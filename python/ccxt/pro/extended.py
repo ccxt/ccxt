@@ -5,16 +5,15 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp
-from ccxt.base.types import Any, Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
+from ccxt.base.types import Balances, Bool, Int, Market, Order, OrderBook, Position, Str, Strings, Ticker, FundingRate, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import InvalidNonce
 
 
 class extended(ccxt.async_support.extended):
 
-    def describe(self) -> Any:
+    def describe(self) -> dict:
         return self.deep_extend(super(extended, self).describe(), {
             'has': {
                 'ws': True,
@@ -48,7 +47,7 @@ class extended(ccxt.async_support.extended):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -63,19 +62,19 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'orderbook:' + symbol
+        symbolValue = self.safe_string(market, 'symbol', '')
+        messageHash = 'orderbook:' + symbolValue
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/orderbooks/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/orderbooks/' + self.safe_string(market, 'id', '')
         if len(query) > 0:
             url += '?' + query
         orderbook = await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         })
         return orderbook.limit()
 
-    def handle_order_book(self, client: Client, message: Any):
+    def handle_order_book(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -83,10 +82,10 @@ class extended(ccxt.async_support.extended):
         #         "data": {
         #             "m": "BTC-USD",
         #             "b": [
-        #                 {"p": "25670", "q": "0.1"}
+        #                 { "p": "25670", "q": "0.1" }
         #             ],
         #             "a": [
-        #                 {"p": "25770", "q": "0.1"}
+        #                 { "p": "25770", "q": "0.1" }
         #             ]
         #         },
         #         "seq": 1
@@ -126,18 +125,18 @@ class extended(ccxt.async_support.extended):
         orderbook['nonce'] = nonce
         client.resolve(orderbook, messageHash)
 
-    def handle_delta(self, bookside: Any, delta: Any):
+    def handle_delta(self, bookside: object, delta: object):
         price = self.safe_float(delta, 'p')
         amount = self.safe_float_2(delta, 'c', 'q')
         bookside.store(price, amount)
 
-    def handle_deltas(self, bookside: Any, deltas: Any):
+    def handle_deltas(self, bookside: object, deltas: list[object]):
         for i in range(0, len(deltas)):
             self.handle_delta(bookside, deltas[i])
 
     async def watch_private(self, messageHash: str, subscription: dict = None):
         self.check_required_credentials()
-        url = self.urls['api']['ws'] + '/account'
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/account'
         if (self.clients is None) or not (url in self.clients):
             defaultOptions = {
                 'ws': {
@@ -160,7 +159,7 @@ class extended(ccxt.async_support.extended):
             self.options['ws']['options'] = originalOptions
         return await self.watch(url, messageHash, None, messageHash, subscription)
 
-    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def watch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         watches information on multiple orders made by the user
 
@@ -175,19 +174,21 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'orders'
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash += ':' + symbol
+            symbolResolved = self.safe_string(market, 'symbol', '')
+            messageHash = 'orders:' + self.safe_string(market, 'symbol', '')
         orders = await self.watch_private(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         })
+        limitResolved = limit
         if self.newUpdates:
-            limit = orders.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
+            limitResolved = orders.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limitResolved, True)
 
-    async def watch_balance(self, params={}) -> Balances:
+    async def watch_balance(self, params: dict = {}) -> Balances:
         """
         watches balance updates
 
@@ -200,7 +201,7 @@ class extended(ccxt.async_support.extended):
             await self.load_markets()
         return await self.watch_private('balance', params)
 
-    def handle_balance(self, client: Client, message: Any):
+    def handle_balance(self, client: Client, message: dict):
         #
         #     {
         #         "type": "BALANCE",
@@ -226,10 +227,15 @@ class extended(ccxt.async_support.extended):
         #         "seq": 1
         #     }
         #
+        # merge updates into the existing balance object instead of building a
+        # fresh one: a consumer awakened by an earlier message holds a reference
+        # to this.balance, and Client.resolve is a no-op while nobody is
+        # awaiting, so a replaced object would make updates landing in that
+        # window invisible to the consumer forever (issue #26773)
+        if self.balance is None:
+            self.balance = {}
         data = self.safe_dict(message, 'data', {})
-        result = {
-            'info': data,
-        }
+        self.balance['info'] = data
         balance = self.safe_dict(data, 'balance')
         if balance is not None:
             currencyId = self.safe_string(balance, 'collateralName')
@@ -238,7 +244,7 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'availableForWithdrawal')
                 account['total'] = self.safe_string(balance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         spotBalances = self.safe_list(data, 'spotBalances', [])
         for i in range(0, len(spotBalances)):
             spotBalance = self.safe_dict(spotBalances, i, {})
@@ -248,14 +254,14 @@ class extended(ccxt.async_support.extended):
                 account = self.account()
                 account['free'] = self.safe_string(spotBalance, 'availableToWithdraw')
                 account['total'] = self.safe_string(spotBalance, 'balance')
-                result[code] = account
+                self.balance[code] = account
         timestamp = self.safe_integer(message, 'ts')
-        result['timestamp'] = timestamp
-        result['datetime'] = self.iso8601(timestamp)
-        self.balance = self.safe_balance(self.deep_extend(self.balance, result))
+        self.balance['timestamp'] = timestamp
+        self.balance['datetime'] = self.iso8601(timestamp)
+        self.balance = self.safe_balance(self.balance)
         client.resolve(self.balance, 'balance')
 
-    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made by the user
 
@@ -270,19 +276,21 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         messageHash = 'myTrades'
+        symbolResolved = None
         if symbol is not None:
             market = self.market(symbol)
-            symbol = market['symbol']
-            messageHash += ':' + symbol
+            symbolResolved = self.safe_string(market, 'symbol', '')
+            messageHash = 'myTrades:' + self.safe_string(market, 'symbol', '')
         trades = await self.watch_private(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         })
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_symbol_since_limit(trades, symbol, since, limit, True)
+            limitResolved = trades.getLimit(symbolResolved, limit)
+        return self.filter_by_symbol_since_limit(trades, symbolResolved, since, limitResolved, True)
 
-    def handle_my_trades(self, client: Client, message: Any):
+    def handle_my_trades(self, client: Client, message: dict):
         #
         #     {
         #         "type": "TRADE",
@@ -301,7 +309,7 @@ class extended(ccxt.async_support.extended):
         #                     "fee": "0.0000000000000000",
         #                     "tradeType": "DELEVERAGE",
         #                     "createdTime": 1701563440000,
-        #                     "isTaker": True
+        #                     "isTaker": true
         #                 }
         #             ]
         #         },
@@ -320,13 +328,14 @@ class extended(ccxt.async_support.extended):
         if first is None:
             return
         for i in range(0, len(rawTrades)):
-            trade = self.parse_trade(rawTrades[i])
+            trade = self.parse_trade(self.safe_dict(rawTrades, i, {}))
             symbol = self.safe_string(trade, 'symbol')
             symbols[symbol] = True
             stored.append(trade)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            messageHash = 'myTrades:' + keys[i]
+            key = keys[i]
+            messageHash = 'myTrades:' + key
             client.resolve(stored, messageHash)
         client.resolve(stored, 'myTrades')
         subscriptions = list(client.subscriptions.keys())
@@ -335,7 +344,7 @@ class extended(ccxt.async_support.extended):
             if messageHash.find('myTrades:') == 0:
                 client.resolve(stored, messageHash)
 
-    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params={}) -> List[Position]:
+    async def watch_positions(self, symbols: Strings = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Position]:
         """
         watches information on multiple positions
 
@@ -349,19 +358,19 @@ class extended(ccxt.async_support.extended):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         messageHash = 'positions'
-        if symbols is not None:
-            messageHash += '::' + ','.join(symbols)
+        if symbolsNormalized is not None:
+            messageHash += '::' + ','.join(symbolsNormalized)
         positions = await self.watch_private(messageHash, {
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'limit': limit,
         })
         if self.newUpdates:
             return positions
-        return self.filter_by_symbols_since_limit(self.positions, symbols, since, limit, True)
+        return self.filter_by_symbols_since_limit(self.positions, symbolsNormalized, since, limit, True)
 
-    def handle_positions(self, client: Client, message: Any):
+    def handle_positions(self, client: Client, message: dict):
         #
         #     {
         #         "type": "POSITION",
@@ -413,7 +422,7 @@ class extended(ccxt.async_support.extended):
                 client.resolve(filtered, messageHash)
         client.resolve(newPositions, 'positions')
 
-    def handle_orders(self, client: Client, message: Any):
+    def handle_orders(self, client: Client, message: dict):
         #
         #     {
         #         "type": "ORDER",
@@ -432,8 +441,8 @@ class extended(ccxt.async_support.extended):
         #                     "qty": "10.000000",
         #                     "filledQty": "3.513000",
         #                     "payedFee": "0.513000",
-        #                     "reduceOnly": True,
-        #                     "postOnly": False,
+        #                     "reduceOnly": true,
+        #                     "postOnly": false,
         #                     "createdTime": 1715885888571,
         #                     "updatedTime": 1715885888571,
         #                     "expireTime": 1715885888571
@@ -455,13 +464,14 @@ class extended(ccxt.async_support.extended):
         if first is None:
             return
         for i in range(0, len((rawOrders))):
-            order = self.parse_order((rawOrders)[i])
+            order = self.parse_order(self.safe_dict(rawOrders, i, {}))
             symbol = self.safe_string(order, 'symbol')
             symbols[symbol] = True
             orders.append(order)
         keys = list(symbols.keys())
         for i in range(0, len(keys)):
-            messageHash = 'orders:' + keys[i]
+            key = keys[i]
+            messageHash = 'orders:' + key
             client.resolve(orders, messageHash)
         client.resolve(orders, 'orders')
         subscriptions = list(client.subscriptions.keys())
@@ -470,7 +480,7 @@ class extended(ccxt.async_support.extended):
             if messageHash.find('orders:') == 0:
                 client.resolve(orders, messageHash)
 
-    async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+    async def watch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
         """
         watch the current funding rate
 
@@ -483,18 +493,18 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'fundingRate:' + symbol
+        symbolValue = self.safe_string(market, 'symbol', '')
+        messageHash = 'fundingRate:' + symbolValue
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/funding/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/funding/' + self.safe_string(market, 'id', '')
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         })
 
-    def handle_funding_rate(self, client: Client, message: Any):
+    def handle_funding_rate(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -508,19 +518,19 @@ class extended(ccxt.async_support.extended):
         #
         data = self.safe_dict(message, 'data', {})
         fundingRate = self.parse_ws_funding_rate(data, None, message)
-        symbol = self.safe_string(fundingRate, 'symbol')
+        symbol = self.safe_string(fundingRate, 'symbol', '')
         self.fundingRates[symbol] = fundingRate
         messageHash = 'fundingRate:' + symbol
         client.resolve(fundingRate, messageHash)
 
-    def parse_ws_funding_rate(self, fundingRate: Any, market: Market = None, message: Any = None) -> FundingRate:
+    def parse_ws_funding_rate(self, fundingRate: dict, market: Market = None, message: dict = None) -> FundingRate:
         marketId = self.safe_string(fundingRate, 'm')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(message, 'ts')
         fundingTimestamp = self.safe_integer(fundingRate, 'T')
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': None,
             'indexPrice': None,
             'interestRate': None,
@@ -539,7 +549,7 @@ class extended(ccxt.async_support.extended):
             'interval': None,
         }
 
-    async def watch_mark_price(self, symbol: str, params={}) -> Ticker:
+    async def watch_mark_price(self, symbol: str, params: dict = {}) -> Ticker:
         """
         watches a mark price for a specific market
 
@@ -552,19 +562,19 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'markPrice:' + symbol
+        symbolValue = self.safe_string(market, 'symbol', '')
+        messageHash = 'markPrice:' + symbolValue
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/prices/mark/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/prices/mark/' + self.safe_string(market, 'id', '')
         if len(query) > 0:
             url += '?' + query
         return await self.watch(url, messageHash, None, messageHash, {
             'name': 'markPrice',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         })
 
-    def handle_mark_price(self, client: Client, message: Any):
+    def handle_mark_price(self, client: Client, message: dict):
         #
         #     {
         #         "type": "MP",
@@ -580,7 +590,7 @@ class extended(ccxt.async_support.extended):
         data = self.safe_dict(message, 'data', {})
         marketId = self.safe_string(data, 'm')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         timestamp = self.safe_integer(data, 'ts')
         if (timestamp is None) or (timestamp == 0):
             timestamp = self.safe_integer(message, 'ts')
@@ -595,7 +605,7 @@ class extended(ccxt.async_support.extended):
         messageHash = 'markPrice:' + symbol
         client.resolve(ticker, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -610,21 +620,22 @@ class extended(ccxt.async_support.extended):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
-        messageHash = 'trades:' + symbol
+        symbolValue = self.safe_string(market, 'symbol', '')
+        messageHash = 'trades:' + symbolValue
         query = self.urlencode(params)
-        url = self.urls['api']['ws'] + '/publicTrades/' + market['id']
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/publicTrades/' + self.safe_string(market, 'id', '')
         if len(query) > 0:
             url += '?' + query
         trades = await self.watch(url, messageHash, None, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         })
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1701563440000,
@@ -648,7 +659,7 @@ class extended(ccxt.async_support.extended):
             return
         marketId = self.safe_string(first, 'm')
         market = self.safe_market(marketId)
-        symbol = market['symbol']
+        symbol = self.safe_string(market, 'symbol', '')
         messageHash = 'trades:' + symbol
         subscription = self.safe_dict(client.subscriptions, messageHash, {})
         stored = self.safe_value(self.trades, symbol)
@@ -667,7 +678,7 @@ class extended(ccxt.async_support.extended):
             stored.append(trade)
         client.resolve(stored, messageHash)
 
-    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def watch_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -680,12 +691,12 @@ class extended(ccxt.async_support.extended):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.candleType]: candle type: 'trades'(default), 'mark-prices', or 'index-prices'
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
+        symbolValue = self.safe_string(market, 'symbol', '')
         price = self.safe_string(params, 'price')
         candleType = self.safe_string(params, 'candleType')
         if candleType is None:
@@ -695,24 +706,25 @@ class extended(ccxt.async_support.extended):
                 candleType = 'index-prices'
             else:
                 candleType = 'trades'
-        params = self.omit(params, ['candleType', 'price'])
+        paramsOmitted = self.omit(params, ['candleType', 'price'])
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
-        messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType
-        query = self.urlencode(self.extend({'interval': interval}, params))
-        url = self.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query
+        messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType
+        query = self.urlencode(self.extend({'interval': interval}, paramsOmitted))
+        url = self.safe_string(self.urls['api'], 'ws', '') + '/candles/' + self.safe_string(market, 'id', '') + '/' + candleType + '?' + query
         ohlcv = await self.watch(url, messageHash, None, messageHash, {
             'name': 'ohlcv',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'candleType': candleType,
             'limit': limit,
             'messageHash': messageHash,
         })
+        limitResolved = limit
         if self.newUpdates:
-            limit = ohlcv.getLimit(symbol, limit)
-        return self.filter_by_since_limit(ohlcv, since, limit, 0, True)
+            limitResolved = ohlcv.getLimit(symbolValue, limit)
+        return self.filter_by_since_limit(ohlcv, since, limitResolved, 0, True)
 
-    def handle_ohlcv(self, client: Client, message: Any):
+    def handle_ohlcv(self, client: Client, message: dict):
         #
         #     {
         #         "ts": 1695738675123,
@@ -733,11 +745,15 @@ class extended(ccxt.async_support.extended):
         if subscription is None:
             return
         symbol = self.safe_string(subscription, 'symbol')
-        timeframe = self.safe_string(subscription, 'timeframe')
-        candleType = self.safe_string(subscription, 'candleType')
-        cacheKey = timeframe if (candleType == 'trades') else timeframe + ':' + candleType
+        timeframe = self.safe_string(subscription, 'timeframe', '')
+        candleType = self.safe_string(subscription, 'candleType', '')
+        cacheKey = None
+        if candleType == 'trades':
+            cacheKey = timeframe
+        else:
+            cacheKey = timeframe + ':' + candleType
         messageHash = self.safe_string(subscription, 'messageHash')
-        self.ohlcvs[symbol] = self.safe_value(self.ohlcvs, symbol, {})
+        self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.ohlcvs[symbol], cacheKey)
         if stored is None:
             defaultLimit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
@@ -755,7 +771,7 @@ class extended(ccxt.async_support.extended):
             stored.append(parsed)
         client.resolve(stored, messageHash)
 
-    def find_subscription(self, client: Client, name: str):
+    def find_subscription(self, client: Client, name: str) -> dict:
         keys = list(client.subscriptions.keys())
         for i in range(0, len(keys)):
             key = keys[i]
@@ -765,11 +781,11 @@ class extended(ccxt.async_support.extended):
                 return subscription
         return None
 
-    def handle_error_message(self, client: Client, message: Any) -> Bool:
+    def handle_error_message(self, client: Client, message: dict) -> Bool:
         #
-        #     {"status": "ERROR", "error": {"code": 1001, "message": "Market not found."}}
+        #     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         #
-        error = self.safe_value(message, 'error')
+        error = self.safe_dict(message, 'error')
         if error is None:
             return False
         feedback = self.id + ' ' + self.json(message)
@@ -779,30 +795,38 @@ class extended(ccxt.async_support.extended):
         self.throw_broadly_matched_exception(self.exceptions['broad'], errorMessage, feedback)
         raise ExchangeError(feedback)
 
-    def handle_message(self, client: Client, message: Any):
-        if self.handle_error_message(client, message):
+    def handle_message(self, client: Client, message: dict):
+        if self.handle_error_message(client, message) is True:
             return
         type = self.safe_string(message, 'type')
-        data = self.safe_value(message, 'data')
-        if isinstance(data, list):
-            first = self.safe_dict(data, 0, {})
+        dataList = self.safe_list(message, 'data')
+        data = self.safe_dict(message, 'data')
+        if dataList is not None:
+            first = self.safe_dict(dataList, 0, {})
             side = self.safe_string(first, 'S')
             if side is not None:
                 self.handle_trades(client, message)
             else:
                 self.handle_ohlcv(client, message)
         elif data is not None:
+            # an account frame may carry several sections at once, so these are
+            # not mutually exclusive and must not fall through to the order book
+            isAccountUpdate = False
             if (type == 'ORDER') or ('orders' in data):
                 self.handle_orders(client, message)
+                isAccountUpdate = True
             if (type == 'TRADE') or ('trades' in data):
                 self.handle_my_trades(client, message)
+                isAccountUpdate = True
             if (type == 'POSITION') or ('positions' in data):
                 self.handle_positions(client, message)
+                isAccountUpdate = True
             if (type == 'BALANCE') or ('balance' in data) or ('spotBalances' in data):
                 self.handle_balance(client, message)
+                isAccountUpdate = True
             if type == 'MP':
                 self.handle_mark_price(client, message)
             elif 'f' in data:
                 self.handle_funding_rate(client, message)
-            else:
+            elif not isAccountUpdate:
                 self.handle_order_book(client, message)

@@ -9,6 +9,8 @@ public partial class BaseExchange
 {
     public HttpClient httpClient { get; set; }
     public object fetchResponse = null; // tmp for response tests
+    // response-test mock keyed by url fragment, for methods that call several endpoints
+    public object fetchResponseByUrl = null;
     public string id { get; set; } = "Exchange";
 
     public string[] countries = null;
@@ -32,13 +34,13 @@ public partial class BaseExchange
 
     public bool reloadingMarkets { get; set; } = false;
 
-    public Task<object> marketsLoading { get; set; } = null;
+    public Task<IDictionary<string, object>> marketsLoading { get; set; } = null;
 
     public IDictionary<string, object> quoteCurrencies { get; set; } = null;
 
-    public dict api { get; set; } = new dict();
+    public Dictionary<string, object> api { get; set; } = new dict();
 
-    public dict transformedApi { get; set; } = new dict();
+    public Dictionary<string, object> transformedApi { get; set; } = new dict();
 
     public bool reduceFees { get; set; } = true;
 
@@ -52,15 +54,15 @@ public partial class BaseExchange
 
     public bool substituteCommonCurrencyCodes { get; set; } = true;
 
-    public dict commonCurrencies { get; set; } = new dict();
+    public Dictionary<string, object> commonCurrencies { get; set; } = new dict();
 
     public object limits { get; set; } = new dict();
 
     public object precisionMode { get; set; } = DECIMAL_PLACES;
 
-    public object currencies_by_id { get; set; } = null;
+    public IDictionary<string, object> currencies_by_id { get; set; } = null;
 
-    public object accounts { get; set; } = new dict();
+    public List<object> accounts { get; set; } = new List<object>();
 
     public object accountsById { get; set; } = null;
 
@@ -71,18 +73,63 @@ public partial class BaseExchange
     public object number { get; set; } = typeof(float);
     public Dictionary<string, object> has { get; set; } = new dict();
     public Dictionary<string, object> features { get; set; }
-    public ConcurrentDictionary<string, object> options { get; set; } = new ConcurrentDictionary<string, object>();
+    public System.Collections.Concurrent.ConcurrentDictionary<string, object> options { get; set; } = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
     public bool isSandboxModeEnabled { get; set; } = false;
 
-    public object markets { get; set; } = null;
+    public IDictionary<string, object> markets { get; set; } = null;
     public object currencies { get; set; } = new dict();
-    public object fees { get; set; } = new dict();
-    public object requiredCredentials { get; set; } = new dict();
-    public dict timeframes { get; set; } = null;
+    public IDictionary<string, object> fees { get; set; } = new dict();
+    public IDictionary<string, object> requiredCredentials { get; set; } = new dict();
+    public Dictionary<string, object> timeframes { get; set; } = null;
     public double rateLimit { get; set; } = 2000;
-    public object exceptions { get; set; } = new dict();
-    public object urls { get; set; } = new dict();
-    public dict precision { get; set; } = null;
+    public IDictionary<string, object> exceptions { get; set; } = new dict();
+    public IDictionary<string, object> urls { get; set; } = new dict();
+
+    // urls['api'] is a Dict in the TS base declaration (`urls: { api: Dict }`), and every write of
+    // it stores a section dictionary, so this view is the dictionary itself.
+    public IDictionary<string, object> urlsApi
+    {
+        get
+        {
+            var sections = this.urls;
+            if (sections == null || !sections.ContainsKey("api"))
+            {
+                return null;
+            }
+            return sections["api"] as IDictionary<string, object>;
+        }
+    }
+    // urls['api'] entries that are themselves dictionaries, so urlsApi['ws'] indexes as a map.
+    // urls is written at config time only; RefreshUrlsViews re-derives this at every such write.
+    public Dictionary<string, IDictionary<string, object>> urlsApiSections { get; private set; } = new Dictionary<string, IDictionary<string, object>>();
+
+    public void RefreshUrlsViews()
+    {
+        var api = this.urlsApi;
+        var sections = new Dictionary<string, IDictionary<string, object>>();
+        if (api != null)
+        {
+            foreach (var entry in api)
+            {
+                var section = entry.Value as IDictionary<string, object>;
+                if (section != null)
+                {
+                    sections[entry.Key] = section;
+                }
+            }
+        }
+        this.urlsApiSections = sections;
+    }
+    // currencies stays `object` (cs/tests/Generated/TestMethods.cs assigns a boxed local into it),
+    // but every writer stores a string-keyed dictionary: this view is that dictionary.
+    public IDictionary<string, object> currenciesDict
+    {
+        get
+        {
+            return this.currencies as IDictionary<string, object>;
+        }
+    }
+    public Dictionary<string, object> precision { get; set; } = null;
 
     public string apiKey { get; set; }
     public string secret { get; set; }
@@ -96,8 +143,9 @@ public partial class BaseExchange
     public string twofa { get; set; }
 
     public int minFundingAddressLength { get; set; } = 1;
+    public Dictionary<string, object> networkAliases { get; set; } = new Dictionary<string, object>() { { "ETH", "ERC20" }, { "TRX", "TRC20" }, { "BSC", "BEP20" }, { "BSC20", "BEP20" }, { "CRONOS", "CRC20" }, { "ARB", "ARBITRUM" }, { "ARBONE", "ARBITRUM" }, { "ARBNOVA", "ARBITRUM_NOVA" } };
 
-    public dict userAgents { get; set; } = new dict(){
+    public Dictionary<string, object> userAgents { get; set; } = new dict(){
         {"chrome", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.94 Safari/537.36"},
         {"chrome39","Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.71 Safari/537.36"},
         {"chrome100","Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.75 Safari/537.36"}
@@ -140,12 +188,12 @@ public partial class BaseExchange
 
     public object name { get; set; }
 
-    public object headers { get; set; } = new dict();
+    public IDictionary<string, object> headers { get; set; } = new dict();
     public bool returnResponseHeaders { get; set; } = false;
 
-    public dict httpExceptions { get; set; } = new dict();
+    public Dictionary<string, object> httpExceptions { get; set; } = new dict();
 
-    public dict tokenBucket { get; set; } = new dict();
+    public Dictionary<string, object> tokenBucket { get; set; } = new dict();
     public Throttler throttler { get; set; }
 
     public object proxyUrl { get; set; } = null;
@@ -174,25 +222,67 @@ public partial class BaseExchange
 
     // WS options
 
-    public object tickers = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object fundingRates = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object bidsasks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // WS caches: concurrent maps, written by ws handlers while user threads read them.
+    private IDictionary<string, object> tickersState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> fundingRatesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> bidsasksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+
+    public IDictionary<string, object> tickers
+    {
+        get { return this.tickersState; }
+        set { this.tickersState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> fundingRates
+    {
+        get { return this.fundingRatesState; }
+        set { this.fundingRatesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> bidsasks
+    {
+        get { return this.bidsasksState; }
+        set { this.bidsasksState = this.wrapWsCache(value); }
+    }
 
     public object transactions = new dict();
-    public object myTrades;
-    public object orders;
+    // ws caches: always an ArrayCache subclass or null (every writer in cs/**, bitstamp's
+    // pruneCachedBySymbols included). positions stays `object` — five venues store the
+    // account-type-keyed Dictionary there.
+    public ccxt.pro.ArrayCache myTrades;
+    public ccxt.pro.ArrayCache orders;
     public object triggerOrders;
-    public object balance = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    // a plain dict: safeBalance hands the merged balance back by reference and every
+    // ws balance handler stores that return value, so a concurrent map type is not kept
+    public IDictionary<string, object> balance = new Dictionary<string, object>() {};
 
     public bool newUpdates;
 
     public object positions;
-    public object liquidations;
+    public ccxt.pro.ArrayCache liquidations;
     public object myLiquidations;
-    public object trades = new ccxt.pro.CustomConcurrentDictionary<string, object>();
-    public object orderbooks = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    private IDictionary<string, object> tradesState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+    private IDictionary<string, object> orderbooksState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
 
-    public object ohlcvs = new ccxt.pro.CustomConcurrentDictionary<string, object>();
+    public IDictionary<string, object> trades
+    {
+        get { return this.tradesState; }
+        set { this.tradesState = this.wrapWsCache(value); }
+    }
+
+    public IDictionary<string, object> orderbooks
+    {
+        get { return this.orderbooksState; }
+        set { this.orderbooksState = this.wrapWsCache(value); }
+    }
+
+    private IDictionary<string, object> ohlcvsState = new System.Collections.Concurrent.ConcurrentDictionary<string, object>();
+
+    public IDictionary<string, object> ohlcvs
+    {
+        get { return this.ohlcvsState; }
+        set { this.ohlcvsState = this.wrapWsCache(value); }
+    }
     public object wssProxy { get; set; } = null;
     public object wss_proxy { get; set; } = null;
 
@@ -229,7 +319,7 @@ public partial class BaseExchange
         }
     }
 
-    void initializeProperties(dict userConfig = null)
+    void initializeProperties(Dictionary<string, object> userConfig = null)
     {
         var properties = this.describe();
 
@@ -261,6 +351,7 @@ public partial class BaseExchange
         this.api = SafeValue(extendedProperties, "api") as dict;
         this.hostname = SafeString(extendedProperties, "hostname");
         this.urls = SafeValue(extendedProperties, "urls") as dict;
+        this.RefreshUrlsViews();
         this.limits = SafeValue(extendedProperties, "limits") as dict;
 
         this.streaming = SafeValue(extendedProperties, "streaming") as dict;
@@ -271,13 +362,12 @@ public partial class BaseExchange
         {
             extendedOptions = this.deepExtend(this.getDefaultOptions(), extendedOptions);
             var extendedDict = extendedOptions as dict;
-            var concurrentExtendedDict = new ConcurrentDictionary<string, object>(extendedDict);
-            this.options = concurrentExtendedDict;
+            this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(extendedDict);
         }
         else
         {
             var dict2 = this.getDefaultOptions() as dict;
-            this.options = new ConcurrentDictionary<string, object>(dict2);
+            this.options = new System.Collections.Concurrent.ConcurrentDictionary<string, object>(dict2);
         }
         this.verbose = (bool)this.safeValue(extendedProperties, "verbose", false);
         this.timeframes = SafeValue(extendedProperties, "timeframes", null) as dict;

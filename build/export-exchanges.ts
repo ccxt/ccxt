@@ -520,31 +520,26 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         }
     }
 
+    // remove extra exchanges from table
+    const skipIds = [ 'binanceusdm', 'binancecoinm', 'kucoinfutures' ];
     const certifiedExchanges = arrayOfExchanges.filter (exchange => exchange.certified)
     // certified exchanges are sorted according to the following order
     const certifiedExchangesSortingOrder = [
         'binance',
-        'binanceusdm',
-        'binancecoinm',
         'bybit',
-        'okx',
         'gate',
+        'okx',
         'kucoin',
-        'kucoinfutures',
         'bitget',
         'hyperliquid',
-        'bitmex',
         'bingx',
-        'htx',
         'mexc',
         'cryptocom',
-        'coinex',
         'hashkey',
-        'woo',
         'woofipro',
     ]
 
-    let copyOfCertifiedExchanges = certifiedExchanges.slice (); // makes a new array with the same elements
+    let copyOfCertifiedExchanges = certifiedExchanges.slice ().filter (exchange => !skipIds.includes (exchange.id)); // makes a new array with the same elements
     let reorderedCertifiedExchanges = []
     for (let i = 0; i < certifiedExchangesSortingOrder.length; i++) {
         const exchangeId = certifiedExchangesSortingOrder[i]
@@ -582,7 +577,6 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
         const exchangesByCountriesMarkdownTable = createMarkdownTable (byCountryExchanges, createMarkdownListOfExchangesByCountries, [ 4 ])
         const result = "# Exchanges By Country\n\nThe ccxt library currently supports the following cryptocurrency exchange markets and trading APIs:\n\n" + exchangesByCountriesMarkdownTable + "\n\n"
         for (const exchangePath of exchangesByCountriesPaths) {
-            fs.truncateSync (exchangePath)
             fs.writeFileSync (exchangePath, result)
         }
     }
@@ -792,7 +786,7 @@ async function exportEverything () {
     flat.push ('error_hierarchy')
 
     const typeExports = getTypesExports();
-    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
+    const staticExports = ['version', 'Exchange', 'BaseExchange', 'PredictionExchange', 'exchanges', 'pro', 'prediction', 'Precise', 'OrderRouter', 'functions', 'errors'].concat(errorsExports).concat(typeExports)
 
     const fullExports  = staticExports.concat(ids)
 

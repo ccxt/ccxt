@@ -9,7 +9,7 @@ import ccxt from '../../../ccxt.js';
 // will skip if balance is positive or market limits are not set
 
 export default async (exchange, symbol, balance) => {
-    if (!exchange.has.createOrder) {
+    if ((exchange.has['createOrder'] === undefined) || (exchange.has['createOrder'] === false)) {
         console.log ('createOrder() is not supported');
         return;
     }

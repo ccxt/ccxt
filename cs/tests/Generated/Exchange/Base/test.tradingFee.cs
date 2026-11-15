@@ -16,13 +16,13 @@ public partial class testMainClass : BaseTest
                 { "symbol", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "info", new Dictionary<string, object>() {} },
             { "symbol", "ETH/BTC" },
             { "maker", exchange.parseNumber("0.002") },
             { "taker", exchange.parseNumber("0.003") },
         };
-        object emptyAllowedFor = new List<object>() {"tierBased", "percentage", "symbol"};
+        List<object> emptyAllowedFor = new List<object>() {"tierBased", "percentage", "symbol"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);
     }

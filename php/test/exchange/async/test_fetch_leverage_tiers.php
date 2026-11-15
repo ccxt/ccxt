@@ -14,13 +14,13 @@ include_once PATH_TO_CCXT . '/test/exchange/base/test_leverage_tier.php';
 function test_fetch_leverage_tiers($exchange, $skipped_properties, $symbol) {
     return Async\async(function () use ($exchange, $skipped_properties, $symbol) {
         $method = 'fetchLeverageTiers';
-        $tiers = \React\Async\await($exchange->fetch_leverage_tiers(['symbol']));
+        $tiers = \React\Async\await($exchange->fetch_leverage_tiers([$symbol]));
         // const format = {
         //     'RAY/USDT': [
         //       {},
         //     ],
         // };
-        assert($exchange->is_dictionary($tiers), $exchange->id . ' ' . $method . ' ' . $symbol . ' must return a dict. ' . $exchange->json($tiers));
+        assert_dictionary_response($exchange, $method, $tiers, $symbol);
         $tier_keys = is_array($tiers) ? array_keys($tiers) : array();
         assert_non_emtpy_array($exchange, $skipped_properties, $method, $tier_keys, $symbol);
         for ($i = 0; $i < count($tier_keys); $i++) {

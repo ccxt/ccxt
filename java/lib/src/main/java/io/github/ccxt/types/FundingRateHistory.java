@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class FundingRateHistory {
+public final class FundingRateHistory extends TypedMap {
     public String symbol;
     public Double fundingRate;
     public Long timestamp;
@@ -14,6 +14,7 @@ public final class FundingRateHistory {
 
     @SuppressWarnings("unchecked")
     public FundingRateHistory(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.fundingRate = TypeHelper.safeFloat(data, "fundingRate");

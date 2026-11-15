@@ -1,6 +1,6 @@
 Every endpoint in `zaif`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/zaif) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepthPair`); the snake_case alias (`public_get_depth_pair`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetDepthPair`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepthPair`); Python and PHP use the snake_case form (`public_get_depth_pair`), and Go uses the PascalCase form (`PublicGetDepthPair`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official zaif API documentation:** [techbureau-api-document.readthedocs.io](https://techbureau-api-document.readthedocs.io/ja/latest/index.html) · [corp.zaif.jp](https://corp.zaif.jp/api-docs) · [corp.zaif.jp](https://corp.zaif.jp/api-docs/api_links) · [npmjs.com](https://www.npmjs.com/package/zaif.jp) · [github.com](https://github.com/you21979/node-zaif)
 
-> 34 implicit endpoints across 5 access groups.
+> 37 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -69,6 +69,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetLastPricePair` | GET | `last_price/{pair}` | 1 |
 | `publicGetTickerPair` | GET | `ticker/{pair}` | 1 |
 | `publicGetTradesPair` | GET | `trades/{pair}` | 1 |
+| `publicGetVaspInfoVaspMasterId` | GET | `vasp_info/{vasp_master_id}` | 1 |
+| `publicGetCountryInfoCode` | GET | `country_info/{code}` | 1 |
+| `publicGetCorpTypeIdInfoId` | GET | `corp_type_id_info/{id}` | 1 |
 
 ## private
 

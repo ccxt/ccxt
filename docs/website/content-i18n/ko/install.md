@@ -192,6 +192,36 @@ cd java
 
 전체 예제 목록은 [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples)를 참조하세요.
 
+### Rust
+
+[**crates.io**의 Rust용 ccxt](https://crates.io/crates/ccxt) ([docs.rs](https://docs.rs/ccxt))
+
+```shell
+cargo add ccxt tokio --features tokio/full
+cargo add ccxt-pro
+```
+
+```toml
+[dependencies]
+ccxt = "4.5.75"
+ccxt-pro = "4.5.75"
+tokio = { version = "1", features = ["full"] }
+```
+
+`ccxt`에는 REST 거래소가, `ccxt-pro`에는 WebSocket(`watch*`) 거래소가 들어 있으며 스트리밍이 필요할 때만 추가하면 됩니다. 둘 다 비동기이며 Tokio 런타임이 필요합니다.
+
+```rust
+use ccxt::{Binance, Params};
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+println!("{} {:?}", ticker.symbol, ticker.last);
+```
+
+전체 예제 목록은 [examples/rust/](https://github.com/ccxt/ccxt/tree/master/examples/rust)를 참조하세요.
+
 ### Docker
 
 지원되는 모든 언어 및 의존성과 함께 컨테이너에 CCXT를 설치할 수 있습니다. 이는 CCXT에 기여하려는 경우(예: 빌드 스크립트 및 테스트 실행 - 자세한 내용은 [기여](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md) 문서 참조) 유용할 수 있습니다.

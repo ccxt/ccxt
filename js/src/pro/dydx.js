@@ -49,19 +49,20 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString(market, 'symbol', '');
         const request = {
             'type': 'subscribe',
             'channel': 'v4_trades',
             'id': market['id'],
         };
         const trades = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     /**
      * @method
@@ -76,9 +77,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString(market, 'symbol', '');
         const request = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
@@ -111,7 +112,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString(message, 'id');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const content = this.safeDict(message, 'contents');
         const rawTrades = this.safeList(content, 'trades', []);
         let stored = this.safeValue(this.trades, symbol);
@@ -122,8 +123,7 @@ export default class dydx extends dydxRest {
         }
         const parsedTrades = this.parseTrades(rawTrades, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const parsed = parsedTrades[i];
-            stored.append(parsed);
+            stored.append(parsedTrades[i]);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve(stored, messageHash);
@@ -171,9 +171,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
         const request = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
@@ -195,9 +195,9 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString(market, 'symbol', '');
         const request = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
@@ -231,7 +231,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString(message, 'id');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const content = this.safeDict(message, 'contents');
         let orderbook = this.safeValue(this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -274,20 +274,21 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString(market, 'symbol', '');
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString(market, 'id', '') + '/' + resolution,
         };
         const ohlcv = await this.watch(url, messageHash, this.extend(request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbol, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     /**
      * @method
@@ -304,14 +305,14 @@ export default class dydx extends dydxRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString(this.urls['api'], 'ws');
         const market = this.market(symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString(market, 'symbol', '');
         const resolution = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString(market, 'id', '') + '/' + resolution,
         };
         return await this.watch(url, messageHash, this.extend(request, params), messageHash);
     }
@@ -373,13 +374,13 @@ export default class dydx extends dydxRest {
         const timeframe = this.findTimeframe(interval);
         const marketId = this.safeString(part, 0);
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const content = this.safeDict(message, 'contents');
         const candles = this.safeList(content, 'candles');
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = this.safeDict(candles, 0, content);
         const parsed = this.parseOHLCV(ohlcv, market);
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -399,7 +400,7 @@ export default class dydx extends dydxRest {
         // }
         //
         try {
-            const msg = this.safeString(message, 'message');
+            const msg = this.safeString(message, 'message', '');
             throw new ExchangeError(this.id + ' ' + msg);
         }
         catch (e) {

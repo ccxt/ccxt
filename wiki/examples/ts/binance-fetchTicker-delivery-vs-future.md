@@ -18,8 +18,8 @@ async function fetchTickers (exchange) {
 
 (async () => {
 
-    const future   = new ccxt.binance ({ options: { defaultType: 'future' }})
-    const delivery = new ccxt.binance ({ options: { defaultType: 'delivery' }})
+    const future   = new ccxt.binance ({ options: { defaultType: 'swap', defaultSubType: 'linear' }})
+    const delivery = new ccxt.binance ({ options: { defaultType: 'swap', defaultSubType: 'inverse' }})
 
     // ...
 

@@ -17,7 +17,7 @@ use React\Promise\PromiseInterface;
 use const ccxt\TICK_SIZE;
 
 class coinspot extends Exchange {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
@@ -186,7 +186,9 @@ class coinspot extends Exchange {
                             'my/sell' => array( 'cost' => 1 ),
                             'my/sell/edit' => array( 'cost' => 1 ),
                             'my/buy/now' => array( 'cost' => 1 ),
+                            'my/buy/now/coinlist' => array( 'cost' => 1 ),
                             'my/sell/now' => array( 'cost' => 1 ),
+                            'my/sell/now/coinlist' => array( 'cost' => 1 ),
                             'my/swap/now' => array( 'cost' => 1 ),
                             'my/buy/cancel' => array( 'cost' => 1 ),
                             'my/buy/cancel/all' => array( 'cost' => 1 ),
@@ -194,6 +196,8 @@ class coinspot extends Exchange {
                             'my/sell/cancel/all' => array( 'cost' => 1 ),
                             'my/coin/withdraw/senddetails' => array( 'cost' => 1 ),
                             'my/coin/withdraw/send' => array( 'cost' => 1 ),
+                            'my/coin/withdraw/send/async' => array( 'cost' => 1 ),
+                            'my/coin/withdraw/send/status' => array( 'cost' => 1 ),
                             'ro/status' => array( 'cost' => 1 ),
                             'ro/orders/market/open' => array( 'cost' => 1 ),
                             'ro/orders/market/completed' => array( 'cost' => 1 ),
@@ -235,7 +239,7 @@ class coinspot extends Exchange {
                 'DRK' => 'DASH',
             ),
             'options' => array(
-                'fetchBalance' => 'private_post_my_balances',
+                'fetchBalance' => 'privatePostMyBalances',
             ),
             'features' => array(
                 'spot' => array(
@@ -289,16 +293,18 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function parse_balance(mixed $response): array {
+    public function parse_balance(array $response): array {
         $result = array( 'info' => $response );
         $balances = $this->safe_value_2($response, 'balance', 'balances');
         if ((gettype($balances) === 'array' && array_keys($balances) === array_keys(array_keys($balances)))) {
-            for ($i = 0; $i < count($balances); $i++) {
-                $currencies = $balances[$i];
-                $currencyIds = is_array($currencies) ? array_keys($currencies) : array();
-                for ($j = 0; $j < count($currencyIds); $j++) {
-                    $currencyId = $currencyIds[$j];
-                    $balance = $currencies[$currencyId];
+            $rows = $this->to_array($balances);
+            $numRows = count($rows);
+            for ($i = 0; $i < $numRows; $i++) {
+                $currencies = $this->safe_dict($rows, $i, array());
+                $currencyIdsList = is_array($currencies) ? array_keys($currencies) : array();
+                for ($j = 0; $j < count($currencyIdsList); $j++) {
+                    $currencyId = $currencyIdsList[$j];
+                    $balance = $this->safe_dict($currencies, $currencyId);
                     $code = $this->safe_currency_code($currencyId);
                     $account = $this->account();
                     $account['total'] = $this->safe_string($balance, 'balance');
@@ -308,9 +314,9 @@ class coinspot extends Exchange {
                 }
             }
         } else {
-            $currencyIds = is_array($balances) ? array_keys($balances) : array();
-            for ($i = 0; $i < count($currencyIds); $i++) {
-                $currencyId = $currencyIds[$i];
+            $currencyIdsMap = is_array($balances) ? array_keys($balances) : array();
+            for ($i = 0; $i < count($currencyIdsMap); $i++) {
+                $currencyId = $currencyIdsMap[$i];
                 $code = $this->safe_currency_code($currencyId);
                 $account = $this->account();
                 $account['total'] = $this->safe_string($balances, $currencyId);
@@ -338,8 +344,13 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $method = $this->safe_string($this->options, 'fetchBalance', 'private_post_my_balances');
-        $response = Async\await($this->$method($params));
+        $method = $this->safe_string($this->options, 'fetchBalance', 'privatePostMyBalances');
+        $response = null;
+        if (($method === 'private_post_ro_my_balances') || ($method === 'privatePostRoMyBalances')) {
+            $response = Async\await($this->privatePostRoMyBalances($params));
+        } else {
+            $response = Async\await($this->privatePostMyBalances($params));
+        }
         //
         // read-write api keys
         //
@@ -349,11 +360,11 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "balances":array(
+        //         "balances":[
         //             {
-        //                 "LTC":array("balance":0.1,"audbalance":16.59,"rate":165.95)
+        //                 "LTC":{"balance":0.1,"audbalance":16.59,"rate":165.95}
         //             }
-        //         )
+        //         ]
         //     }
         //
         return $this->parse_balance($response);
@@ -479,17 +490,17 @@ class coinspot extends Exchange {
         $response = Async\await($this->publicGetLatest($params));
         //
         //    {
-        //        "status" => "ok",
-        //        "prices" =>   {
-        //            "btc" =>   array(
-        //                "bid" => "25050",
-        //                "ask" => "25370",
-        //                "last" => "25234"
-        //            ),
-        //            "ltc" =>   {
-        //                "bid" => "79.39192993",
-        //                "ask" => "87.98",
-        //                "last" => "87.95"
+        //        "status": "ok",
+        //        "prices":   {
+        //            "btc":   {
+        //                "bid": "25050",
+        //                "ask": "25370",
+        //                "last": "25234"
+        //            },
+        //            "ltc":   {
+        //                "bid": "79.39192993",
+        //                "ask": "87.98",
+        //                "last": "87.95"
         //            }
         //        }
         //    }
@@ -500,7 +511,7 @@ class coinspot extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $market = $this->safe_market($id);
-            if ($market['spot']) {
+            if ($this->safe_bool($market, 'spot', false)) {
                 $symbol = $market['symbol'];
                 $ticker = $prices[$id];
                 $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -536,16 +547,16 @@ class coinspot extends Exchange {
         //
         //     {
         //         "status":"ok",
-        //         "orders":array(
-        //             array("amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"),
-        //         ),
+        //         "orders":[
+        //             {"amount":0.00102091,"rate":21549.09999991,"total":21.99969168,"coin":"BTC","solddate":1604890646143,"market":"BTC/AUD"},
+        //         ],
         //     }
         //
         $trades = $this->safe_list($response, 'orders', array());
         return $this->parse_trades($trades, $market, $since, $limit);
     }
 
-    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -574,30 +585,30 @@ class coinspot extends Exchange {
         }
         $response = Async\await($this->privatePostRoMyTransactions($this->extend($request, $params)));
         //  {
-        //      "status" => "ok",
-        //      "buyorders" => array(
-        //          array(
-        //              "otc" => false,
-        //              "market" => "ALGO/AUD",
-        //              "amount" => 386.95197925,
-        //              "created" => "2022-10-20T09:56:44.502Z",
-        //              "audfeeExGst" => 1.80018002,
-        //              "audGst" => 0.180018,
-        //              "audtotal" => 200
-        //          ),
-        //      ),
-        //      "sellorders" => array(
-        //          array(
-        //              "otc" => false,
-        //              "market" => "SOLO/ALGO",
-        //              "amount" => 154.52345614,
-        //              "total" => 115.78858204658796,
-        //              "created" => "2022-04-16T09:36:43.698Z",
-        //              "audfeeExGst" => 1.08995731,
-        //              "audGst" => 0.10899573,
-        //              "audtotal" => 118.7
-        //          ),
-        //      )
+        //      "status": "ok",
+        //      "buyorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "ALGO/AUD",
+        //              "amount": 386.95197925,
+        //              "created": "2022-10-20T09:56:44.502Z",
+        //              "audfeeExGst": 1.80018002,
+        //              "audGst": 0.180018,
+        //              "audtotal": 200
+        //          },
+        //      ],
+        //      "sellorders": [
+        //          {
+        //              "otc": false,
+        //              "market": "SOLO/ALGO",
+        //              "amount": 154.52345614,
+        //              "total": 115.78858204658796,
+        //              "created": "2022-04-16T09:36:43.698Z",
+        //              "audfeeExGst": 1.08995731,
+        //              "audGst": 0.10899573,
+        //              "audtotal": 118.7
+        //          },
+        //      ]
         // }
         $buyTrades = $this->safe_list($response, 'buyorders', array());
         for ($i = 0; $i < count($buyTrades); $i++) {
@@ -626,16 +637,16 @@ class coinspot extends Exchange {
         //
         // private fetchMyTrades
         //     {
-        //       "otc" => false,
-        //       "market" => "ALGO/AUD",
-        //       "amount" => 386.95197925,
-        //       "created" => "2022-10-20T09:56:44.502Z",
-        //       "audfeeExGst" => 1.80018002,
-        //       "audGst" => 0.180018,
-        //       "audtotal" => 200,
-        //       "total" => 200,
-        //       "side" => "buy",
-        //       "price" => 0.5168600000125209
+        //       "otc": false,
+        //       "market": "ALGO/AUD",
+        //       "amount": 386.95197925,
+        //       "created": "2022-10-20T09:56:44.502Z",
+        //       "audfeeExGst": 1.80018002,
+        //       "audGst": 0.180018,
+        //       "audtotal": 200,
+        //       "total": 200,
+        //       "side": "buy",
+        //       "price": 0.5168600000125209
         //     }
         $timestamp = null;
         $priceString = null;
@@ -656,7 +667,7 @@ class coinspot extends Exchange {
             $timestamp = $this->parse8601($createdString);
             $audfeeExGst = $this->safe_string($trade, 'audfeeExGst');
             $audGst = $this->safe_string($trade, 'audGst');
-            // The transaction $fee which consumers pay is inclusive of GST by default
+            // The transaction fee which consumers pay is inclusive of GST by default
             $feeCost = Precise::string_add($audfeeExGst, $audGst);
             $feeCurrencyId = 'AUD';
             $fee = array(
@@ -681,7 +692,7 @@ class coinspot extends Exchange {
         ), $market);
     }
 
-    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -702,9 +713,7 @@ class coinspot extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        if ($side === null) {
-            throw new ArgumentsRequired($this->id . ' createOrder() requires a $side argument');
-        }
+        $this->check_required_argument('createOrder', $side, 'side');
         $sideUpper = strtoupper($side);
         if ($type === 'market') {
             throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
@@ -730,7 +739,7 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function cancel_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_order(...))($id, $symbol, $params);
     }
 
@@ -748,16 +757,16 @@ class coinspot extends Exchange {
          */
         $side = $this->safe_string($params, 'side');
         if ($side !== 'buy' && $side !== 'sell') {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $side parameter, "buy" or "sell"');
+            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a side parameter, "buy" or "sell"');
         }
-        $params = $this->omit($params, 'side');
+        $paramsOmitted = $this->omit($params, 'side');
         $request = array(
             'id' => $id,
         );
         if ($side === 'buy') {
-            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMyBuyCancel($this->extend($request, $paramsOmitted)));
         } else {
-            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $params)));
+            $response = Async\await($this->privatePostMySellCancel($this->extend($request, $paramsOmitted)));
         }
         //
         // status - ok, error
@@ -767,8 +776,8 @@ class coinspot extends Exchange {
         ));
     }
 
-    public function handle_errors(int $httpCode, string $reason, string $url, string $method, array $headers, string $body, mixed $response, mixed $requestHeaders, mixed $requestBody) {
-        if (!$response) {
+    public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {
+        if ($response === null) {
             return null; // fallback to default error handler
         }
         $status = $this->safe_string($response, 'status');
@@ -779,23 +788,41 @@ class coinspot extends Exchange {
         return null;
     }
 
-    public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {
-        $isVersionedApi = (gettype($api) === 'array' && array_keys($api) === array_keys(array_keys($api)));
-        $version = $isVersionedApi ? $api[0] : null;
-        $accessType = $isVersionedApi ? $api[1] : $api;
+    public function nonce(): int {
+        // the venue accepts any strictly-increasing integer, so use milliseconds: with the second-resolution base nonce a burst of N calls would leave incrementingNonce N seconds ahead of the clock
+        return $this->milliseconds();
+    }
+
+    public function sign(string $path, array $api = array('public'), string $method = 'GET', $params = array()): array {
+        $requestHeaders = null;
+        $requestBody = null;
+        $apiLength = count($api);
+        $isVersionedApi = $apiLength > 1;
+        $accessType = $api[0];
+        if ($isVersionedApi) {
+            $accessType = $api[1];
+        }
         $endpoint = '/' . $this->implode_params($path, $params);
-        $fullPath = ($version !== null) ? '/' . $version . $endpoint : $endpoint;
-        $url = $this->urls['api'][$accessType] . $fullPath;
+        $fullPath = $endpoint;
+        if ($isVersionedApi) {
+            $fullPath = '/' . $api[0] . $endpoint;
+        }
+        $apiUrl = $this->safe_string($this->urls['api'], $accessType);
+        if ($apiUrl === null) {
+            throw new ExchangeError($this->id . ' sign() has no API URL for this endpoint');
+        }
+        $url = $apiUrl . $fullPath;
         if ($accessType === 'private') {
             $this->check_required_credentials();
-            $nonce = $this->nonce();
-            $body = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
-            $headers = array(
+            // coinspot requires an increasing nonce
+            $nonce = $this->incrementing_nonce();
+            $requestBody = $this->json($this->extend(array( 'nonce' => $nonce ), $params));
+            $requestHeaders = array(
                 'Content-Type' => 'application/json',
                 'key' => $this->apiKey,
-                'sign' => $this->hmac($this->encode($body), $this->encode($this->secret), 'sha512'),
+                'sign' => $this->hmac($this->encode($requestBody), $this->encode($this->secret), 'sha512'),
             );
         }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 }

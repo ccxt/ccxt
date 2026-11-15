@@ -8,19 +8,54 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetDepth (params?: {}): Promise<Dict>;
-    publicGetOrders (params?: {}): Promise<List>;
-    publicGetTicker (params?: {}): Promise<Dict>;
-    publicGetTickers (params?: {}): Promise<Dict>;
-    privatePostBalance (params?: {}): Promise<Dict>;
-    privatePostTradeAdd (params?: {}): Promise<Dict>;
-    privatePostTradeCancel (params?: {}): Promise<Dict>;
-    privatePostTradeList (params?: {}): Promise<List>;
-    privatePostTradeView (params?: {}): Promise<Dict>;
-    privatePostWallet (params?: {}): Promise<Dict>;
-    webApiGetAjaxCoinCoinInfo (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetDepth (params = {}): Promise<Dict> {
+        return this.request ('depth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTicker (params = {}): Promise<Dict> {
+        return this.request ('ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetTickers (params = {}): Promise<Dict> {
+        return this.request ('tickers', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostBalance (params = {}): Promise<Dict> {
+        return this.request ('balance', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostOrderHistory (params = {}): Promise<List> {
+        return this.request ('order_history', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTradeAdd (params = {}): Promise<Dict> {
+        return this.request ('trade_add', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTradeCancel (params = {}): Promise<Dict> {
+        return this.request ('trade_cancel', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTradeList (params = {}): Promise<List> {
+        return this.request ('trade_list', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostTradeView (params = {}): Promise<Dict> {
+        return this.request ('trade_view', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostWallet (params = {}): Promise<Dict> {
+        return this.request ('wallet', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    webApiGetAjaxCoinCoinInfo (params = {}): Promise<Dict> {
+        return this.request ('ajax/coin/coinInfo', [ 'webApi' ], 'GET', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

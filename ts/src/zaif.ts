@@ -15,7 +15,7 @@ import type { Balances, Currency, Dict, NullableDict, Int, List, Market, Num, Or
  * @augments Exchange
  */
 export default class zaif extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'zaif',
             'name': 'Zaif',
@@ -115,6 +115,9 @@ export default class zaif extends Exchange {
                         'last_price/{pair}': { 'cost': 1 } as Endpoint<Dict>,
                         'ticker/{pair}': { 'cost': 1 } as Endpoint<Dict>,
                         'trades/{pair}': { 'cost': 1 } as Endpoint<List>,
+                        'vasp_info/{vasp_master_id}': { 'cost': 1 } as Endpoint<List>,
+                        'country_info/{code}': { 'cost': 1 } as Endpoint<List>,
+                        'corp_type_id_info/{id}': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
@@ -238,7 +241,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const markets = await this.publicGetCurrencyPairsAll (params);
         //
         //     [
@@ -270,9 +273,14 @@ export default class zaif extends Exchange {
         if (name === undefined) {
             throw new ExchangeError (this.id + ' parseMarket() missing name');
         }
-        const [ baseId, quoteId ] = name.split ('/');
+        const nameParts = name.split ('/');
+        const baseId = this.safeString (nameParts, 0);
+        const quoteId = this.safeString (nameParts, 1);
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
+        if ((base === undefined) || (quote === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote;
         return this.safeMarketStructure ({
             'id': id,
@@ -325,15 +333,15 @@ export default class zaif extends Exchange {
         });
     }
 
-    override parseBalance (response: any): Balances {
-        const balances = this.safeValue (response, 'return', {});
-        const deposit = this.safeValue (balances, 'deposit');
+    override parseBalance (response: Dict): Balances {
+        const balances = this.safeDict (response, 'return', {});
+        const deposit = this.safeDict (balances, 'deposit');
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
-        const funds = this.safeValue (balances, 'funds', {});
+        const funds = this.safeDict (balances, 'funds', {});
         const currencyIds = Object.keys (funds);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -362,7 +370,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -380,7 +388,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -442,7 +450,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -514,7 +522,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -539,7 +547,7 @@ export default class zaif extends Exchange {
         const numTrades = trades.length;
         if (numTrades === 1) {
             const firstTrade = this.safeDict (trades, 0, {});
-            if (!Object.keys (firstTrade).length) {
+            if (Object.keys (firstTrade).length === 0) {
                 trades = [];
             }
         }
@@ -559,7 +567,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -577,7 +585,7 @@ export default class zaif extends Exchange {
         const data = this.safeDict (response, 'return', {});
         return this.safeOrder ({
             'info': response,
-            'id': data['order_id'].toString (),
+            'id': this.numberToString (data['order_id']),
         }, market);
     }
 
@@ -591,7 +599,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const request: Dict = {
             'order_id': id,
         };
@@ -681,7 +689,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -710,7 +718,7 @@ export default class zaif extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -729,6 +737,12 @@ export default class zaif extends Exchange {
             market = this.market (symbol);
             request['currency_pair'] = market['id'];
         }
+        if (since !== undefined) {
+            request['since'] = this.parseToInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['count'] = Math.min (limit, 1000);
+        }
         const response = await this.privatePostTradeHistory (this.extend (request, params));
         const data = this.safeDict (response, 'return', {});
         return this.parseOrders (data, market, since, limit);
@@ -742,13 +756,13 @@ export default class zaif extends Exchange {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    override async withdraw (code: string, amount: number, address: string, tag: Str = undefined, params = {}): Promise<Transaction> {
-        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
-        this.checkAddress (address);
+    override async withdraw (code: string, amount: number, address: string, params: Dict = {}): Promise<Transaction> {
+        const [ tagWithdrawTag, paramsWithdrawTag ] = this.handleParamString (params, 'tag');
+        this.checkAddress (address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -763,10 +777,10 @@ export default class zaif extends Exchange {
             // 'message': 'Hi!', // XEM and others
             // 'opt_fee': 0.003, // BTC and MONA only
         };
-        if (tag !== undefined) {
-            request['message'] = tag;
+        if (tagWithdrawTag !== undefined) {
+            request['message'] = tagWithdrawTag;
         }
-        const result = await this.privatePostWithdraw (this.extend (request, params));
+        const result = await this.privatePostWithdraw (this.extend (request, paramsWithdrawTag));
         //
         //     {
         //         "success": 1,
@@ -801,13 +815,13 @@ export default class zaif extends Exchange {
         //         }
         //     }
         //
-        currency = this.safeCurrency (undefined, currency);
+        const currencyResolved: Currency = this.safeCurrency (undefined, currency);
         let fee: Fee = undefined;
-        const feeCost = this.safeValue (transaction, 'fee');
+        const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'cost': feeCost,
-                'currency': currency['code'],
+                'currency': currencyResolved['code'],
             };
         }
         return {
@@ -821,7 +835,7 @@ export default class zaif extends Exchange {
             'addressTo': undefined,
             'amount': undefined,
             'type': undefined,
-            'currency': currency['code'],
+            'currency': currencyResolved['code'],
             'status': undefined,
             'updated': undefined,
             'tagFrom': undefined,
@@ -834,42 +848,48 @@ export default class zaif extends Exchange {
         } as Transaction;
     }
 
-    customNonce () {
-        const num = this.numberToString (this.milliseconds () / 1000);
-        const nonce = parseFloat (num);
+    customNonce (): string {
+        const nonce: number = this.milliseconds () / 1000;
         return nonce.toFixed (8);
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: any = undefined) {
-        let url = this.urls['api']['rest'] + '/';
-        if (api === 'public') {
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const baseApiUrl = this.safeString (this.urls['api'], 'rest');
+        if (baseApiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        const baseUrl: string = baseApiUrl;
+        let url = baseUrl + '/';
+        if (apiName === 'public') {
             url += 'api/' + this.version + '/' + this.implodeParams (path, params);
-        } else if (api === 'fapi') {
+        } else if (apiName === 'fapi') {
             url += 'fapi/' + this.version + '/' + this.implodeParams (path, params);
         } else {
             this.checkRequiredCredentials ();
-            if (api === 'ecapi') {
+            if (apiName === 'ecapi') {
                 url += 'ecapi';
-            } else if (api === 'tlapi') {
+            } else if (apiName === 'tlapi') {
                 url += 'tlapi';
             } else {
                 url += 'tapi';
             }
             const nonce = this.customNonce ();
-            body = this.urlencode (this.extend ({
+            const bodyEncoded = this.urlencode (this.extend ({
                 'method': path,
                 'nonce': nonce,
             }, params));
-            headers = {
+            const headersSigned: NullableDict = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Key': this.apiKey,
-                'Sign': this.hmac (this.encode (body), this.encode (this.secret), sha512),
+                'Sign': this.hmac (this.encode (bodyEncoded), this.encode (this.secret), sha512),
             };
+            return { 'url': url, 'method': method, 'body': bodyEncoded, 'headers': headersSigned };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': undefined };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

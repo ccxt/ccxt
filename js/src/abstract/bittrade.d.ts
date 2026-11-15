@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     v2PublicGetReferenceCurrencies(params?: {}): Promise<Dict>;
     v2PublicGetMarketStatus(params?: {}): Promise<Dict>;
     v2PrivateGetAccountLedger(params?: {}): Promise<Dict>;
@@ -67,6 +67,7 @@ interface Exchange {
     publicGetCommonTimestamp(params?: {}): Promise<Dict>;
     publicGetCommonExchange(params?: {}): Promise<Dict>;
     publicGetSettingsCurrencys(params?: {}): Promise<Dict>;
+    publicGetRetailMaintainTime(params?: {}): Promise<Dict>;
     privateGetAccountAccounts(params?: {}): Promise<Dict>;
     privateGetAccountAccountsIdBalance(params?: {}): Promise<Dict>;
     privateGetAccountAccountsSubUid(params?: {}): Promise<Dict>;
@@ -91,6 +92,7 @@ interface Exchange {
     privateGetSubuserAggregateBalance(params?: {}): Promise<Dict>;
     privateGetStableCoinExchangeRate(params?: {}): Promise<Dict>;
     privateGetStableCoinQuote(params?: {}): Promise<Dict>;
+    privateGetRetailOrderList(params?: {}): Promise<Dict>;
     privatePostAccountTransfer(params?: {}): Promise<Dict>;
     privatePostFuturesTransfer(params?: {}): Promise<Dict>;
     privatePostOrderBatchOrders(params?: {}): Promise<Dict>;
@@ -111,7 +113,6 @@ interface Exchange {
     privatePostCrossMarginOrdersIdRepay(params?: {}): Promise<Dict>;
     privatePostStableCoinExchange(params?: {}): Promise<Dict>;
     privatePostSubuserTransfer(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
+    privatePostRetailOrderPlace(params?: {}): Promise<Dict>;
 }
 export default Exchange;

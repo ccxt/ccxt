@@ -25,10 +25,13 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
         $method = 'watchTickers';
         $now = $exchange->milliseconds();
         $ends = $now + 15000;
-        while ($now < $ends) {
+        $max_idle_time = 5000;
+        $idle = false;
+        while (($now < $ends) && !$idle) {
             $response = array();
             $success = true;
             $should_return = false;
+            $start_time = $exchange->milliseconds();
             try {
                 $response = \React\Async\await($exchange->watch_tickers($arg_symbols, $arg_params));
             } catch(\Throwable $e) {
@@ -44,14 +47,13 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
                 } elseif (!is_temporary_failure($e)) {
                     throw $e;
                 }
-                $now = $exchange->milliseconds();
-                // continue;
                 $success = false;
             }
+            $now = $exchange->milliseconds();
             if ($should_return) {
                 return false;
             }
-            if ($success === true) {
+            if ($success) {
                 assert($exchange->is_dictionary($response), $exchange->id . ' ' . $method . ' ' . $exchange->json($arg_symbols) . ' must return a dictionary. ' . $exchange->json($response));
                 $values = is_array($response) ? array_values($response) : array();
                 $checked_symbol = null;
@@ -72,7 +74,9 @@ function test_watch_tickers_helper($exchange, $skipped_properties, $arg_symbols,
                         validate_ticker_exception_for_percentage($ex, $exchange, $ticker, $ohlcv);
                     }
                 }
-                $now = $exchange->milliseconds();
+                if (($now - $start_time) > $max_idle_time) {
+                    $idle = true;
+                }
             }
         }
         return true;

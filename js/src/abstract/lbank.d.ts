@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     spotPublicGetCurrencyPairs(params?: {}): Promise<Dict>;
     spotPublicGetAccuracy(params?: {}): Promise<Dict>;
     spotPublicGetUsdToCny(params?: {}): Promise<Dict>;
@@ -42,6 +42,7 @@ interface Exchange {
     spotPrivatePostSupplementDepositHistory(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementWithdraws(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementGetDepositAddress(params?: {}): Promise<Dict>;
+    spotPrivatePostSupplementAddDepositAddress(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementAssetDetail(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementCustomerTradeFee(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementApiRestrictions(params?: {}): Promise<Dict>;
@@ -55,11 +56,14 @@ interface Exchange {
     spotPrivatePostSupplementOrdersInfoHistory(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementUserInfoAccount(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementTransactionHistory(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletWithdraw(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletDepositHistory(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletWithdraws(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotTradeOrdersInfo(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotTradeOrdersInfoHistory(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubGetTime(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubInstrument(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubMarketData(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubMarketOrder(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

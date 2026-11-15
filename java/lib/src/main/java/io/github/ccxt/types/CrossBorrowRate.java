@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class CrossBorrowRate {
+public final class CrossBorrowRate extends TypedMap {
     public String currency;
     public Double rate;
     public Double period;
@@ -15,6 +15,7 @@ public final class CrossBorrowRate {
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRate(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currency = TypeHelper.safeString(data, "currency");
         this.rate = TypeHelper.safeFloat(data, "rate");

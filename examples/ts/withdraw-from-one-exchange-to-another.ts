@@ -41,7 +41,7 @@ async function main () {
 
     // https://github.com/ccxt/ccxt/wiki/Manual#overriding-unified-api-params
     // https://docs.kucoin.com/#apply-withdraw-2
-    const withdrawal = await kucoin.withdraw (code, amount, deposit['address'], deposit['tag'], { 'chain': 'ERC20' })
+    const withdrawal = await kucoin.withdraw (code, amount, deposit['address'], { 'chain': 'ERC20', 'tag': deposit['tag'] })
 
     console.log ('-----------------------------------------------------------')
 

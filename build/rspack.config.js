@@ -105,14 +105,14 @@ const unminimizedConfig = {
   ],
 };
 
-// Minimized build with a source map.
+// Minimized build. No source map: it is not needed at runtime and added ~32 MB to the
+// npm package; devtool: false also drops the //# sourceMappingURL comment from the bundle.
 const minimizedConfig = {
   ...baseConfig,
-  devtool: 'source-map',
+  devtool: false,
   output: {
     ...baseConfig.output,
     filename: minimizedFilename,
-    sourceMapFilename: minimizedFilename + '.map',
   },
   optimization: {
     ...baseConfig.optimization,

@@ -130,6 +130,105 @@
                   1
                 ],
                 "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"positionSide\":\"SHORT\",\"orderSide\":\"SELL\",\"orderType\":\"MARKET\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "swap trailing stop order with trailingPercent and activation price",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/create-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "trailingPercent": 1,
+                        "trailingTriggerPrice": 0.86
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"orderSide\":\"BUY\",\"triggerPriceType\":\"LATEST_PRICE\",\"positionType\":\"CROSSED\",\"callback\":\"PROPORTION\",\"callbackVal\":0.01,\"activationPrice\":\"0.86\"}"
+            },
+            {
+                "description": "swap trailing stop order with a fixed trailingAmount",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/create-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    "market",
+                    "buy",
+                    1,
+                    null,
+                    {
+                        "trailingAmount": 0.05,
+                        "trailingTriggerPrice": 0.86
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\",\"origQty\":\"1\",\"positionSide\":\"LONG\",\"orderSide\":\"BUY\",\"triggerPriceType\":\"LATEST_PRICE\",\"positionType\":\"CROSSED\",\"callback\":\"FIXED\",\"callbackVal\":0.05,\"activationPrice\":\"0.86\"}"
+            },
+            {
+                "description": "spot post-only limit order via params.postOnly maps to timeInForce GTX",
+                "method": "createOrder",
+                "url": "https://sapi.xt.com/v4/order",
+                "input": [
+                    "LTC/USDT",
+                    "limit",
+                    "buy",
+                    0.1,
+                    50,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"side\":\"BUY\",\"type\":\"LIMIT\",\"bizType\":\"SPOT\",\"price\":\"50\",\"quantity\":\"0.1\",\"timeInForce\":\"GTX\",\"media\":\"CCXT\"}"
+            },
+            {
+                "description": "swap post-only limit order via params.postOnly maps to timeInForce GTX",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50,
+                    {
+                        "postOnly": true
+                    }
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"timeInForce\":\"GTX\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "swap post-only limit order via the unified timeInForce PO spelling",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50,
+                    {
+                        "timeInForce": "PO"
+                    }
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"timeInForce\":\"GTX\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
+            },
+            {
+                "description": "postOnly wins over a conflicting explicit timeInForce and the raw keys never reach the body",
+                "method": "createOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/order/create",
+                "input": [
+                    "LTC/USDT:USDT",
+                    "limit",
+                    "buy",
+                    1,
+                    50,
+                    {
+                        "postOnly": true,
+                        "timeInForce": "GTC"
+                    }
+                ],
+                "output": "{\"symbol\":\"ltc_usdt\",\"origQty\":\"1\",\"timeInForce\":\"GTX\",\"positionSide\":\"LONG\",\"price\":\"50\",\"orderSide\":\"BUY\",\"orderType\":\"LIMIT\",\"clientMedia\":\"CCXT\"}"
             }
         ],
         "fetchOrders": [
@@ -147,6 +246,19 @@
                 "url": "https://fapi.xt.com/future/trade/v1/order/list-history?symbol=ltc_usdt",
                 "input": [
                     "LTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "swap trailing orders history with limit",
+                "method": "fetchOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list-history?limit=5&symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    5,
+                    {
+                        "trailing": true
+                    }
                 ]
             }
         ],
@@ -173,6 +285,19 @@
             }
         ],
         "fetchOpenOrders": [
+            {
+                "description": "swap open trailing orders, no state parameter is sent",
+                "method": "fetchOpenOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list?symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ]
+            },
             {
                 "description": "swap open orders no symbol",
                 "method": "fetchOpenOrders",
@@ -252,6 +377,20 @@
                 "input": []
             }
         ],
+        "cancelAllOrders": [
+            {
+                "description": "cancel all swap trailing stop orders",
+                "method": "cancelAllOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/cancel-all-track",
+                "input": [
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"symbol\":\"xrp_usdt\"}"
+            }
+        ],
         "cancelOrder": [
             {
                 "description": "cancel spot order",
@@ -271,6 +410,19 @@
                   "LTC/USDT:USDT"
                 ],
                 "output": "{\"orderId\":\"371184779575507520\"}"
+            },
+            {
+                "description": "cancel swap trailing stop order",
+                "method": "cancelOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/cancel-track",
+                "input": [
+                    "658239170722259328",
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ],
+                "output": "{\"trackId\":\"658239170722259328\"}"
             }
         ],
         "fetchBidsAsks": [
@@ -302,6 +454,85 @@
                     [
                         "BTC/USD:BTC"
                     ]
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "swap trailing order detail by trackId",
+                "method": "fetchOrder",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-detail?trackId=658271606680303168",
+                "input": [
+                    "658271606680303168",
+                    "XRP/USDT:USDT",
+                    {
+                        "trailing": true
+                    }
+                ]
+            }
+        ],
+        "fetchCanceledOrders": [
+            {
+                "description": "swap trailing orders history, the state filter is applied locally",
+                "method": "fetchCanceledOrders",
+                "url": "https://fapi.xt.com/future/trade/v1/entrust/track-list-history?symbol=xrp_usdt",
+                "input": [
+                    "XRP/USDT:USDT",
+                    null,
+                    null,
+                    {
+                        "trailing": true
+                    }
+                ]
+            }
+        ],
+        "fetchTradingFee": [
+            {
+                "description": "swap trading fee from the account step rate",
+                "method": "fetchTradingFee",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USDT:USDT"
+                ]
+            },
+            {
+                "description": "inverse swap trading fee routes to dapi",
+                "method": "fetchTradingFee",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    "BTC/USD:BTC"
+                ]
+            }
+        ],
+        "fetchTradingFees": [
+            {
+                "description": "linear trading fees by default",
+                "method": "fetchTradingFees",
+                "url": "https://fapi.xt.com/future/user/v1/user/step-rate",
+                "input": []
+            },
+            {
+                "description": "inverse trading fees route to dapi",
+                "method": "fetchTradingFees",
+                "url": "https://dapi.xt.com/future/user/v1/user/step-rate",
+                "input": [
+                    {
+                        "subType": "inverse"
+                    }
+                ]
+            }
+        ],
+        "fetchPositionsHistory": [
+            {
+                "description": "linear swap positions history with symbol, since and limit",
+                "method": "fetchPositionsHistory",
+                "url": "https://fapi.xt.com/future/trade/v1/position/list-history?limit=5&startTime=1785700000000&symbol=xrp_usdt",
+                "input": [
+                    [
+                        "XRP/USDT:USDT"
+                    ],
+                    1785700000000,
+                    5
                 ]
             }
         ],

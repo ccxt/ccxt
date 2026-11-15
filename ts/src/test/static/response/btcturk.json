@@ -1,0 +1,518 @@
+{
+    "exchange": "btcturk",
+    "skipKeys": [],
+    "options": {},
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "Captured BTC USDT change from open",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789410188498,
+                            "last": 79152,
+                            "high": 79165,
+                            "low": 76386,
+                            "bid": 79164,
+                            "ask": 79185,
+                            "open": 77356,
+                            "volume": 11.32065888,
+                            "average": 77879,
+                            "daily": 1829,
+                            "dailyPercent": 2.32,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789410188498,
+                    "datetime": "2026-09-14T18:23:08.498Z",
+                    "high": 79165,
+                    "low": 76386,
+                    "bid": 79164,
+                    "bidVolume": null,
+                    "ask": 79185,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77356,
+                    "close": 79152,
+                    "last": 79152,
+                    "previousClose": null,
+                    "change": 1796,
+                    "percentage": 2.321733285071617,
+                    "average": 78254,
+                    "baseVolume": 11.32065888,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789410188498,
+                        "last": 79152,
+                        "high": 79165,
+                        "low": 76386,
+                        "bid": 79164,
+                        "ask": 79185,
+                        "open": 77356,
+                        "volume": 11.32065888,
+                        "average": 77879,
+                        "daily": 1829,
+                        "dailyPercent": 2.32,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "Captured negative change from open",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789455232698,
+                            "last": 77254,
+                            "high": 79527,
+                            "low": 77254,
+                            "bid": 77222,
+                            "ask": 77226,
+                            "open": 77614,
+                            "volume": 13.62400222,
+                            "average": 78443,
+                            "daily": -388,
+                            "dailyPercent": -0.46,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789455232698,
+                    "datetime": "2026-09-15T06:53:52.698Z",
+                    "high": 79527,
+                    "low": 77254,
+                    "bid": 77222,
+                    "bidVolume": null,
+                    "ask": 77226,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77614,
+                    "close": 77254,
+                    "last": 77254,
+                    "previousClose": null,
+                    "change": -360,
+                    "percentage": -0.4638338444095137,
+                    "average": 77434,
+                    "baseVolume": 13.62400222,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789455232698,
+                        "last": 77254,
+                        "high": 79527,
+                        "low": 77254,
+                        "bid": 77222,
+                        "ask": 77226,
+                        "open": 77614,
+                        "volume": 13.62400222,
+                        "average": 78443,
+                        "daily": -388,
+                        "dailyPercent": -0.46,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "Unchanged price ignores inconsistent daily fields and average",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789410188498,
+                            "last": 77356,
+                            "high": 79165,
+                            "low": 76386,
+                            "bid": 79164,
+                            "ask": 79185,
+                            "open": 77356,
+                            "volume": 11.32065888,
+                            "average": 77879,
+                            "daily": 1829,
+                            "dailyPercent": 2.32,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789410188498,
+                    "datetime": "2026-09-14T18:23:08.498Z",
+                    "high": 79165,
+                    "low": 76386,
+                    "bid": 79164,
+                    "bidVolume": null,
+                    "ask": 79185,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77356,
+                    "close": 77356,
+                    "last": 77356,
+                    "previousClose": null,
+                    "change": 0,
+                    "percentage": 0,
+                    "average": 77356,
+                    "baseVolume": 11.32065888,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789410188498,
+                        "last": 77356,
+                        "high": 79165,
+                        "low": 76386,
+                        "bid": 79164,
+                        "ask": 79185,
+                        "open": 77356,
+                        "volume": 11.32065888,
+                        "average": 77879,
+                        "daily": 1829,
+                        "dailyPercent": 2.32,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "Missing open retains exchange change fallback",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789410188498,
+                            "last": 79152,
+                            "high": 79165,
+                            "low": 76386,
+                            "bid": 79164,
+                            "ask": 79185,
+                            "volume": 11.32065888,
+                            "average": 77879,
+                            "daily": 1829,
+                            "dailyPercent": 2.32,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789410188498,
+                    "datetime": "2026-09-14T18:23:08.498Z",
+                    "high": 79165,
+                    "low": 76386,
+                    "bid": 79164,
+                    "bidVolume": null,
+                    "ask": 79185,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77323,
+                    "close": 79152,
+                    "last": 79152,
+                    "previousClose": null,
+                    "change": 1829,
+                    "percentage": 2.32,
+                    "average": 77879,
+                    "baseVolume": 11.32065888,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789410188498,
+                        "last": 79152,
+                        "high": 79165,
+                        "low": 76386,
+                        "bid": 79164,
+                        "ask": 79185,
+                        "volume": 11.32065888,
+                        "average": 77879,
+                        "daily": 1829,
+                        "dailyPercent": 2.32,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "Missing last retains exchange change fallback",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789410188498,
+                            "high": 79165,
+                            "low": 76386,
+                            "bid": 79164,
+                            "ask": 79185,
+                            "open": 77356,
+                            "volume": 11.32065888,
+                            "average": 77879,
+                            "daily": 1829,
+                            "dailyPercent": 2.32,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789410188498,
+                    "datetime": "2026-09-14T18:23:08.498Z",
+                    "high": 79165,
+                    "low": 76386,
+                    "bid": 79164,
+                    "bidVolume": null,
+                    "ask": 79185,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77356,
+                    "close": 78793.5,
+                    "last": 78793.5,
+                    "previousClose": null,
+                    "change": 1829,
+                    "percentage": 2.32,
+                    "average": 77879,
+                    "baseVolume": 11.32065888,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789410188498,
+                        "high": 79165,
+                        "low": 76386,
+                        "bid": 79164,
+                        "ask": 79185,
+                        "open": 77356,
+                        "volume": 11.32065888,
+                        "average": 77879,
+                        "daily": 1829,
+                        "dailyPercent": 2.32,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            },
+            {
+                "description": "Zero open retains exchange change fallback",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCUSDT",
+                            "pairNormalized": "BTC_USDT",
+                            "timestamp": 1789410188498,
+                            "last": 79152,
+                            "high": 79165,
+                            "low": 76386,
+                            "bid": 79164,
+                            "ask": 79185,
+                            "open": 0,
+                            "volume": 11.32065888,
+                            "average": 77879,
+                            "daily": 1829,
+                            "dailyPercent": 2.32,
+                            "denominatorSymbol": "USDT",
+                            "numeratorSymbol": "BTC",
+                            "order": 2000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1789410188498,
+                    "datetime": "2026-09-14T18:23:08.498Z",
+                    "high": 79165,
+                    "low": 76386,
+                    "bid": 79164,
+                    "bidVolume": null,
+                    "ask": 79185,
+                    "askVolume": null,
+                    "vwap": null,
+                    "open": 77323,
+                    "close": 79152,
+                    "last": 79152,
+                    "previousClose": null,
+                    "change": 1829,
+                    "percentage": 2.32,
+                    "average": 77879,
+                    "baseVolume": 11.32065888,
+                    "quoteVolume": null,
+                    "info": {
+                        "pair": "BTCUSDT",
+                        "pairNormalized": "BTC_USDT",
+                        "timestamp": 1789410188498,
+                        "last": 79152,
+                        "high": 79165,
+                        "low": 76386,
+                        "bid": 79164,
+                        "ask": 79185,
+                        "open": 0,
+                        "volume": 11.32065888,
+                        "average": 77879,
+                        "daily": 1829,
+                        "dailyPercent": 2.32,
+                        "denominatorSymbol": "USDT",
+                        "numeratorSymbol": "BTC",
+                        "order": 2000
+                    },
+                    "indexPrice": null,
+                    "markPrice": null
+                }
+            }
+        ],
+        "fetchTickers": [
+            {
+                "description": "Captured BTC TRY change from open",
+                "method": "fetchTickers",
+                "input": [],
+                "httpResponse": {
+                    "data": [
+                        {
+                            "pair": "BTCTRY",
+                            "pairNormalized": "BTC_TRY",
+                            "timestamp": 1789410188492,
+                            "last": 3844648,
+                            "high": 3844648,
+                            "low": 3715392,
+                            "bid": 3842925,
+                            "ask": 3844704,
+                            "open": 3760295,
+                            "volume": 25.3073659,
+                            "average": 3781356,
+                            "daily": 84409,
+                            "dailyPercent": 2.24,
+                            "denominatorSymbol": "TRY",
+                            "numeratorSymbol": "BTC",
+                            "order": 1000
+                        }
+                    ],
+                    "success": true,
+                    "message": null,
+                    "code": 0
+                },
+                "parsedResponse": {
+                    "BTC/TRY": {
+                        "symbol": "BTC/TRY",
+                        "timestamp": 1789410188492,
+                        "datetime": "2026-09-14T18:23:08.492Z",
+                        "high": 3844648,
+                        "low": 3715392,
+                        "bid": 3842925,
+                        "bidVolume": null,
+                        "ask": 3844704,
+                        "askVolume": null,
+                        "vwap": null,
+                        "open": 3760295,
+                        "close": 3844648,
+                        "last": 3844648,
+                        "previousClose": null,
+                        "change": 84353,
+                        "percentage": 2.2432548510156782,
+                        "average": 3802471,
+                        "baseVolume": 25.3073659,
+                        "quoteVolume": null,
+                        "info": {
+                            "pair": "BTCTRY",
+                            "pairNormalized": "BTC_TRY",
+                            "timestamp": 1789410188492,
+                            "last": 3844648,
+                            "high": 3844648,
+                            "low": 3715392,
+                            "bid": 3842925,
+                            "ask": 3844704,
+                            "open": 3760295,
+                            "volume": 25.3073659,
+                            "average": 3781356,
+                            "daily": 84409,
+                            "dailyPercent": 2.24,
+                            "denominatorSymbol": "TRY",
+                            "numeratorSymbol": "BTC",
+                            "order": 1000
+                        },
+                        "indexPrice": null,
+                        "markPrice": null
+                    }
+                }
+            }
+        ]
+    }
+}

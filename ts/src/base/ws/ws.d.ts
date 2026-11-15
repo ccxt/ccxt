@@ -25,7 +25,17 @@ declare module 'ws' {
         close (code?: number, reason?: any): void;
         terminate (): void;
     }
+    // server surface used only by the offline base tests (ts/src/pro/test/base)
+    // that stand up a local peer to drive Client teardown paths
+    class WebSocketServer {
+        constructor (options?: any, callback?: () => void);
+        readonly clients: Set<WebSocket>;
+        address (): any;
+        on (event: string, listener: (...args: any[]) => void): this;
+        once (event: string, listener: (...args: any[]) => void): this;
+        close (callback?: (err?: Error) => void): void;
+    }
     function createWebSocketStream (websocket: WebSocket, options?: any): any;
     export default WebSocket;
-    export { WebSocket, createWebSocketStream };
+    export { WebSocket, WebSocketServer, createWebSocketStream };
 }

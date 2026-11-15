@@ -65,7 +65,7 @@ function test_order($exchange, $skipped_properties, $method, $entry, $symbol, $n
         ));
         if ($entry['trades'] !== null) {
             for ($i = 0; $i < count($entry['trades']); $i++) {
-                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now);
+                test_trade($exchange, $skipped_new, $method, $entry['trades'][$i], $symbol, $now, false);
             }
         }
     }

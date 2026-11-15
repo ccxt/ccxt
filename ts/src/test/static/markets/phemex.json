@@ -1974,5 +1974,92 @@
         "priceScale": 0,
         "valueScale": null,
         "ratioScale": 0
+    },
+    "JUP/USDT:USDT": {
+        "id": "JUPUSDT",
+        "symbol": "JUP/USDT:USDT",
+        "base": "JUP",
+        "quote": "USDT",
+        "settle": "USDT",
+        "baseId": "JUP",
+        "quoteId": "USDT",
+        "settleId": "USDT",
+        "type": "swap",
+        "spot": false,
+        "margin": false,
+        "swap": true,
+        "future": false,
+        "option": false,
+        "active": true,
+        "contract": true,
+        "linear": true,
+        "inverse": false,
+        "subType": "linear",
+        "taker": 0.001,
+        "maker": 0.001,
+        "contractSize": 1,
+        "precision": {
+            "amount": 1,
+            "price": 0.0001
+        },
+        "limits": {
+            "leverage": {
+                "min": 1,
+                "max": 50
+            },
+            "amount": {},
+            "price": {},
+            "cost": {}
+        },
+        "marginModes": {},
+        "info": {
+            "perpProductSubType": "Normal",
+            "symbol": "JUPUSDT",
+            "code": "76841",
+            "type": "PerpetualV2",
+            "displaySymbol": "JUP / USDT",
+            "indexSymbol": ".JUPUSDT",
+            "markSymbol": ".MJUPUSDT",
+            "fundingRateSymbol": ".JUPUSDTFR",
+            "fundingRate8hSymbol": ".JUPUSDTFR8H",
+            "contractUnderlyingAssets": "JUP",
+            "settleCurrency": "USDT",
+            "quoteCurrency": "USDT",
+            "tickSize": "0.0001",
+            "priceScale": "0",
+            "ratioScale": "0",
+            "pricePrecision": "4",
+            "baseCurrency": "JUP",
+            "description": "JUP/USDT perpetual contracts are priced on the .JUPUSDT Index. Each contract is worth 1 JUP. Funding fees are paid and received every 8 hours at UTC time: 00:00, 08:00 and 16:00.",
+            "status": "Listed",
+            "tipOrderQty": "0",
+            "listTime": "1706781600000",
+            "majorSymbol": false,
+            "defaultLeverage": "-10",
+            "fundingInterval": "14400",
+            "maxLeverage": "50",
+            "leverageMargin": "1015",
+            "maxOI": "-1.0",
+            "maxOrderQtyRq": "800000",
+            "maxPriceRp": "500000",
+            "minOrderValueRv": "1",
+            "minPriceRp": "1.0",
+            "qtyPrecision": "0",
+            "qtyStepSize": "1.0",
+            "tipOrderQtyRq": "160000",
+            "maxOpenPosLeverage": "50.0",
+            "steps": "0K",
+            "riskLimits": [
+                {
+                    "limit": "665000",
+                    "initialMarginRr": "0.02",
+                    "maintenanceMarginRr": "0.01"
+                }
+            ]
+        },
+        "tierBased": false,
+        "percentage": true,
+        "priceScale": 0,
+        "ratioScale": 0
     }
 }

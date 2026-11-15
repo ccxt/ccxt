@@ -24,8 +24,15 @@ import java.util.concurrent.atomic.AtomicInteger;
 class WsClientConcurrencyTest {
 
     private static WsClient newClient() {
+        // a non-routable RFC1918 blackhole, NOT a resolvable-and-failing name:
+        // wss://example.invalid fails DNS almost instantly, so onError could fire
+        // in the middle of the connect storm, legitimately reset startedConnecting
+        // and install a fresh future - splitting the callers across two futures
+        // and breaking the single-attempt postcondition the test asserts. a
+        // blackhole address just hangs far beyond the test window, so nothing
+        // can interleave and the assertions are deterministic
         return new WsClient(
-                "wss://example.invalid/ws",
+                "wss://10.255.255.1/ws",
                 null,
                 /* handleMessage */ (c, m) -> {},
                 /* ping */ c -> null,
@@ -68,7 +75,7 @@ class WsClientConcurrencyTest {
         start.countDown();
         for (Thread t : threads) t.join();
 
-        assertTrue(client.startedConnecting.get(), "startedConnecting should be set after connect");
+        assertTrue(client.startedConnecting, "startedConnecting should be set after connect");
         // All callers must observe the same future reference (single connection attempt).
         for (int i = 1; i < n; i++) {
             assertSame(returned[0], returned[i], "Caller " + i + " got a different future");

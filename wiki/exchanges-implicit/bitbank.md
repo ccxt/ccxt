@@ -1,6 +1,6 @@
 Every endpoint in `bitbank`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitbank) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetPairTicker`); the snake_case alias (`public_get_pair_ticker`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetPairTicker`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetPairTicker`); Python and PHP use the snake_case form (`public_get_pair_ticker`), and Go uses the PascalCase form (`PublicGetPairTicker`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitbank API documentation:** [docs.bitbank.cc](https://docs.bitbank.cc/)
 
-> 28 implicit endpoints across 3 access groups.
+> 29 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -81,6 +81,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserAssets` | GET | `user/assets` | 1 |
 | `privateGetUserSpotOrder` | GET | `user/spot/order` | 1 |
 | `privateGetUserSpotActiveOrders` | GET | `user/spot/active_orders` | 1 |
+| `privateGetUserMarginStatus` | GET | `user/margin/status` | 1 |
 | `privateGetUserMarginPositions` | GET | `user/margin/positions` | 1 |
 | `privateGetUserSpotTradeHistory` | GET | `user/spot/trade_history` | 1 |
 | `privateGetUserDepositHistory` | GET | `user/deposit_history` | 1 |

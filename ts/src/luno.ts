@@ -14,7 +14,7 @@ import type { Balances, Currency, CurrencyInterface, Currencies, Fee, Int, Marke
  * @augments Exchange
  */
 export default class luno extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'luno',
             'name': 'Luno',
@@ -459,7 +459,7 @@ export default class luno extends Exchange {
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    override async fetchCurrencies (params = {}): Promise<Currencies> {
+    override async fetchCurrencies (params: Dict = {}): Promise<Currencies> {
         if (!this.checkRequiredCredentials (false)) {
             return {};
         }
@@ -482,12 +482,12 @@ export default class luno extends Exchange {
         return this.parseCurrencies (values);
     }
 
-    override parseCurrency (rawCurrency: Dict): CurrencyInterface {
-        const id = this.safeString (rawCurrency[0], 'native_currency'); // first item is guaranteed
+    override parseCurrency (rawCurrency: Dict[]): CurrencyInterface {
+        const id = this.safeString (this.safeDict (rawCurrency, 0), 'native_currency'); // first item is guaranteed
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        for (let i = 0; i < (rawCurrency as List).length; i++) {
-            const networkEntry = rawCurrency[i];
+        for (let i = 0; i < rawCurrency.length; i++) {
+            const networkEntry = this.safeDict (rawCurrency, i);
             const networkId = this.safeString (networkEntry, 'name');
             const networkCode = this.networkIdToCode (networkId, code);
             if (networkCode !== undefined) {
@@ -546,7 +546,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const response = await this.exchangeGetMarkets (params);
         //
         //     {
@@ -568,7 +568,7 @@ export default class luno extends Exchange {
         //     }
         //
         const result: List = [];
-        const markets = this.safeValue (response, 'markets', []);
+        const markets: Dict[] = this.safeList (response, 'markets', []);
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'market_id');
@@ -576,6 +576,9 @@ export default class luno extends Exchange {
             const quoteId = this.safeString (market, 'counter_currency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
             const status = this.safeString (market, 'trading_status');
             // Luno's published schedule is categorical, not a single pair. Entry-tier
             // rates below are read from Luno's own Help Centre fee article for the ZAR
@@ -587,8 +590,8 @@ export default class luno extends Exchange {
             // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
             const unverifiedQuotes = [ 'MYR', 'NGN', 'IDR', 'KES', 'UGX', 'AUD', 'GBP', 'EUR', 'USD', 'ZARU' ];
             const stablecoins = [ 'USDT', 'USDC' ];
-            let taker = undefined;
-            let maker = undefined;
+            let taker: Num = undefined;
+            let maker: Num = undefined;
             if (this.inArray (quote, fiats)) {
                 if (this.inArray (base, stablecoins)) {
                     taker = this.parseNumber ('0.002');
@@ -666,9 +669,9 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/?id=account-structure} indexed by the account type
      */
-    override async fetchAccounts (params = {}): Promise<Account[]> {
+    override async fetchAccounts (params: Dict = {}): Promise<Account[]> {
         const response = await this.privateGetBalance (params);
-        const wallets = this.safeValue (response, 'balance', []);
+        const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Account[] = [];
         for (let i = 0; i < wallets.length; i++) {
             const account = wallets[i];
@@ -685,15 +688,15 @@ export default class luno extends Exchange {
         return result;
     }
 
-    override parseBalance (response: any): Balances {
-        const wallets = this.safeValue (response, 'balance', []);
+    override parseBalance (response: Dict): Balances {
+        const wallets: Dict[] = this.safeList (response, 'balance', []);
         const result: Dict = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         for (let i = 0; i < wallets.length; i++) {
-            const wallet = wallets[i];
+            const wallet = this.safeDict (wallets, i);
             const currencyId = this.safeString (wallet, 'asset');
             const code = this.safeCurrencyCode (currencyId);
             const reserved = this.safeString (wallet, 'reserved');
@@ -702,8 +705,10 @@ export default class luno extends Exchange {
             const reservedUnconfirmed = Precise.stringAdd (reserved, unconfirmed);
             const balanceUnconfirmed = Precise.stringAdd (balance, unconfirmed);
             if ((code !== undefined) && (code in result)) {
-                result[code]['used'] = Precise.stringAdd (result[code]['used'], reservedUnconfirmed);
-                result[code]['total'] = Precise.stringAdd (result[code]['total'], balanceUnconfirmed);
+                result[code] = this.extend (result[code], {
+                    'used': Precise.stringAdd (this.safeString (result[code], 'used'), reservedUnconfirmed),
+                    'total': Precise.stringAdd (this.safeString (result[code], 'total'), balanceUnconfirmed),
+                });
             } else if (code !== undefined) {
                 const account = this.account ();
                 account['used'] = reservedUnconfirmed;
@@ -722,7 +727,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -751,7 +756,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async fetchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -769,7 +774,7 @@ export default class luno extends Exchange {
         return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'volume');
     }
 
-    parseOrderStatus (status: Str) {
+    parseOrderStatus (status: Str): Str {
         const statuses: Dict = {
             // todo add other statuses
             'PENDING': 'open',
@@ -796,8 +801,7 @@ export default class luno extends Exchange {
         //     }
         //
         const timestamp = this.safeInteger (order, 'creation_timestamp');
-        let status = this.parseOrderStatus (this.safeString (order, 'state'));
-        status = (status === 'open') ? status : status;
+        const status = this.parseOrderStatus (this.safeString (order, 'state'));
         let side: Str = undefined;
         const orderType = this.safeString (order, 'type');
         if ((orderType === 'ASK') || (orderType === 'SELL')) {
@@ -806,7 +810,7 @@ export default class luno extends Exchange {
             side = 'buy';
         }
         const marketId = this.safeString (order, 'pair');
-        market = this.safeMarket (marketId, market);
+        const marketResolved: Market = this.safeMarket (marketId, market);
         const price = this.safeString (order, 'limit_price');
         const amount = this.safeString (order, 'limit_volume');
         const quoteFee = this.safeNumber (order, 'fee_counter');
@@ -817,12 +821,12 @@ export default class luno extends Exchange {
         if (quoteFee !== undefined) {
             fee = {
                 'cost': quoteFee,
-                'currency': market['quote'],
+                'currency': marketResolved['quote'],
             };
         } else if (baseFee !== undefined) {
             fee = {
                 'cost': baseFee,
-                'currency': market['base'],
+                'currency': marketResolved['base'],
             };
         }
         const id = this.safeString (order, 'order_id');
@@ -833,7 +837,7 @@ export default class luno extends Exchange {
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
             'status': status,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': undefined,
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -848,7 +852,7 @@ export default class luno extends Exchange {
             'fee': fee,
             'info': order,
             'average': undefined,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -861,7 +865,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -872,7 +876,7 @@ export default class luno extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -886,7 +890,7 @@ export default class luno extends Exchange {
             request['pair'] = market['id'];
         }
         const response = await this.privateGetListorders (this.extend (request, params));
-        const orders = this.safeList (response, 'orders', []);
+        const orders: Dict[] = this.safeList (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -901,7 +905,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState (undefined, symbol, since, limit, params);
     }
 
@@ -916,7 +920,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchOpenOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('PENDING', symbol, since, limit, params);
     }
 
@@ -931,7 +935,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async fetchClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         return await this.fetchOrdersByState ('COMPLETE', symbol, since, limit, params);
     }
 
@@ -982,11 +986,11 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const response = await this.publicGetTickers (params);
         const rawTickers = this.safeList (response, 'tickers', []);
         const tickers = this.indexBy (rawTickers, 'pair');
@@ -999,7 +1003,7 @@ export default class luno extends Exchange {
             const ticker = tickers[id];
             result[symbol] = this.parseTicker (ticker, market);
         }
-        return this.filterByArrayTickers (result, 'symbol', symbols);
+        return this.filterByArrayTickers (result, 'symbol', symbolsNormalized);
     }
 
     /**
@@ -1011,7 +1015,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async fetchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1076,15 +1080,15 @@ export default class luno extends Exchange {
             } else if ((type === 'BID') || (type === 'BUY')) {
                 side = 'buy';
             }
-            if (side === 'sell' && trade['is_buy']) {
+            if ((side === 'sell') && (this.safeBool (trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
-            } else if (side === 'buy' && !trade['is_buy']) {
+            } else if ((side === 'buy') && (!this.safeBool (trade, 'is_buy', false))) {
                 takerOrMaker = 'maker';
             } else {
                 takerOrMaker = 'taker';
             }
         } else {
-            side = trade['is_buy'] ? 'buy' : 'sell';
+            side = (this.safeBool (trade, 'is_buy', false)) ? 'buy' : 'sell';
         }
         const feeBaseString = this.safeString (trade, 'fee_base');
         const feeCounterString = this.safeString (trade, 'fee_counter');
@@ -1134,7 +1138,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async fetchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1159,7 +1163,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1175,7 +1179,7 @@ export default class luno extends Exchange {
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1241,7 +1245,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
         }
@@ -1280,7 +1284,7 @@ export default class luno extends Exchange {
         //          ]
         //      }
         //
-        const trades = this.safeList (response, 'trades', []);
+        const trades: Dict[] = this.safeList (response, 'trades', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -1293,7 +1297,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
+    override async fetchTradingFee (symbol: string, params: Dict = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1333,7 +1337,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1342,9 +1346,7 @@ export default class luno extends Exchange {
             'pair': market['id'],
         };
         let response: NullableDict = undefined;
-        if (side === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a side argument');
-        }
+        this.checkRequiredArgument ('createOrder', side, 'side');
         if (type === 'market') {
             request['type'] = side.toUpperCase ();
             // todo add createMarketBuyOrderRequires price logic as it is implemented in the other exchanges
@@ -1363,9 +1365,10 @@ export default class luno extends Exchange {
         if (response === undefined) {
             throw new NullResponse (this.id + ' createOrder() returned empty response');
         }
+        const orderId = this.safeString (response, 'order_id');
         return this.safeOrder ({
             'info': response,
-            'id': response['order_id'],
+            'id': orderId,
         }, market);
     }
 
@@ -1379,7 +1382,7 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrder (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1397,20 +1400,16 @@ export default class luno extends Exchange {
         });
     }
 
-    async fetchLedgerByEntries (code: Str = undefined, entry: any = undefined, limit: Int = undefined, params = {}) {
+    async fetchLedgerByEntries (code: Str = undefined, entry: any = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         // by default without entry number or limit number, return most recent entry
-        if (entry === undefined) {
-            entry = -1;
-        }
-        if (limit === undefined) {
-            limit = 1;
-        }
-        const since = undefined;
+        const entryValue = (entry === undefined) ? -1 : entry;
+        const limitValue = (limit === undefined) ? 1 : limit;
+        const since: Int = undefined;
         const request: Dict = {
-            'min_row': entry,
-            'max_row': this.sum (entry, limit),
+            'min_row': entryValue,
+            'max_row': this.sum (entryValue, limitValue),
         };
-        return await this.fetchLedger (code, since, limit, this.extend (request, params));
+        return await this.fetchLedger (code, since, limitValue, this.extend (request, params));
     }
 
     /**
@@ -1424,41 +1423,40 @@ export default class luno extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<LedgerEntry[]> {
+    override async fetchLedger (code: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<LedgerEntry[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         await this.loadAccounts ();
         let currency: Currency = undefined;
         let id = this.safeString (params, 'id'); // account id
-        let min_row = this.safeValue (params, 'min_row');
-        let max_row = this.safeValue (params, 'max_row');
+        const minRowParam = this.safeInteger (params, 'min_row');
+        const maxRowParam = this.safeInteger (params, 'max_row');
         if (id === undefined) {
             if (code === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchLedger() requires a currency code argument if no account id specified in params');
             }
             currency = this.currency (code);
             const accountsByCurrencyCode = this.indexBy (this.accounts, 'currency');
-            const account = this.safeValue (accountsByCurrencyCode, code);
+            const account = this.safeDict (accountsByCurrencyCode, code);
             if (account === undefined) {
                 throw new ExchangeError (this.id + ' fetchLedger() could not find account id for ' + code);
             }
-            id = account['id'];
+            id = this.safeString (account, 'id');
         }
-        if (min_row === undefined && max_row === undefined) {
-            max_row = 0; // Default to most recent transactions
-            min_row = -1000; // Maximum number of records supported
-        } else if (min_row === undefined || max_row === undefined) {
+        if ((minRowParam === undefined || maxRowParam === undefined) && (minRowParam !== undefined || maxRowParam !== undefined)) {
             throw new ExchangeError (this.id + " fetchLedger() require both params 'max_row' and 'min_row' or neither to be defined");
         }
-        if (limit !== undefined && max_row - min_row > limit) {
-            if (max_row <= 0) {
-                min_row = max_row - limit;
-            } else if (min_row > 0) {
-                max_row = min_row + limit;
-            }
+        const maxRowBase = this.safeInteger (params, 'max_row', 0); // Default to most recent transactions
+        const minRowBase = this.safeInteger (params, 'min_row', -1000); // Maximum number of records supported
+        const limitApplies = (limit !== undefined) && (maxRowBase - minRowBase > limit);
+        const min_row = (limitApplies && (limit !== undefined) && maxRowBase <= 0) ? maxRowBase - limit : minRowBase;
+        let max_row: Int = maxRowBase;
+        if (limitApplies && maxRowBase > 0 && minRowBase > 0) {
+            max_row = minRowBase + limit;
         }
-        if (max_row - min_row > 1000) {
+        const limitAdjusts = limitApplies && (maxRowBase <= 0 || minRowBase > 0); // max_row - min_row becomes limit
+        if ((limitAdjusts && limit > 1000) || (!limitAdjusts && maxRowBase - minRowBase > 1000)) {
             throw new ExchangeError (this.id + " fetchLedger() requires the params 'max_row' - 'min_row' <= 1000");
         }
         const request: Dict = {
@@ -1467,11 +1465,11 @@ export default class luno extends Exchange {
             'max_row': max_row,
         };
         const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
-        const entries = this.safeValue (response, 'transactions', []);
+        const entries: Dict[] = this.safeList (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }
 
-    parseLedgerComment (comment: any) {
+    parseLedgerComment (comment: string): Dict {
         const words = comment.split (' ');
         const types: Dict = {
             'Withdrawal': 'fee',
@@ -1503,23 +1501,23 @@ export default class luno extends Exchange {
         };
     }
 
-    override parseLedgerEntry (entry: any, currency: Currency = undefined): LedgerEntry {
+    override parseLedgerEntry (entry: Dict, currency: Currency = undefined): LedgerEntry {
         // const details = this.safeValue (entry, 'details', {});
         const id = this.safeString (entry, 'row_index');
         const account_id = this.safeString (entry, 'account_id');
         const timestamp = this.safeInteger (entry, 'timestamp');
         const currencyId = this.safeString (entry, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        currency = this.safeCurrency (currencyId, currency);
+        const currencyResolved: Currency = this.safeCurrency (currencyId, currency);
         const available_delta = this.safeString (entry, 'available_delta');
         const balance_delta = this.safeString (entry, 'balance_delta');
         const after = this.safeString (entry, 'balance');
-        const comment = this.safeString (entry, 'description');
+        const comment = this.safeString (entry, 'description', '');
         let before = after;
         let amount: Str = '0.0';
         const result = this.parseLedgerComment (comment);
-        const type = result['type'];
-        const referenceId = result['referenceId'];
+        const resultType = this.safeString (result, 'type');
+        const resultReferenceId = this.safeString (result, 'referenceId');
         let direction: Str = undefined;
         let status: Str = undefined;
         if (!Precise.stringEquals (balance_delta, '0.0')) {
@@ -1543,9 +1541,9 @@ export default class luno extends Exchange {
             'id': id,
             'direction': direction,
             'account': account_id,
-            'referenceId': referenceId,
+            'referenceId': resultReferenceId,
             'referenceAccount': undefined,
-            'type': type,
+            'type': resultType,
             'currency': code,
             'amount': this.parseToNumeric (amount),
             'timestamp': timestamp,
@@ -1554,7 +1552,7 @@ export default class luno extends Exchange {
             'after': this.parseToNumeric (after),
             'status': status,
             'fee': undefined,
-        }, currency) as LedgerEntry;
+        }, currencyResolved) as LedgerEntry;
     }
 
     /**
@@ -1569,7 +1567,7 @@ export default class luno extends Exchange {
      * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async createDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async createDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1612,7 +1610,7 @@ export default class luno extends Exchange {
      * @param {int} [params.network] the blockchain network id to use
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    override async fetchDepositAddress (code: string, params = {}): Promise<DepositAddress> {
+    override async fetchDepositAddress (code: string, params: Dict = {}): Promise<DepositAddress> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1644,7 +1642,7 @@ export default class luno extends Exchange {
         return this.parseDepositAddress (response, currency);
     }
 
-    override parseDepositAddress (depositAddress: any, currency: Currency = undefined): DepositAddress {
+    override parseDepositAddress (depositAddress: Dict, currency: Currency = undefined): DepositAddress {
         //
         //     {
         //         "account_id": "string",
@@ -1686,7 +1684,7 @@ export default class luno extends Exchange {
      * @param {string} params.address the destination address luno should quote the send fee for (required by the exchange)
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    override async fetchDepositWithdrawFee (code: string, params = {}): Promise<DepositWithdrawFee> {
+    override async fetchDepositWithdrawFee (code: string, params: Dict = {}): Promise<DepositWithdrawFee> {
         const address = this.safeString (params, 'address');
         if (address === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositWithdrawFee() requires an "address" parameter - luno quotes the send fee per destination address');
@@ -1704,28 +1702,37 @@ export default class luno extends Exchange {
         //     }
         //
         const result = this.depositWithdrawFee (response);
-        result['withdraw']['fee'] = this.safeNumber (response, 'fee');
-        result['withdraw']['percentage'] = false;
+        result['withdraw'] = {
+            'fee': this.safeNumber (response, 'fee'),
+            'percentage': false,
+        };
         return this.assignDefaultDepositWithdrawFees (result, currency) as DepositWithdrawFee;
     }
 
-    override sign (path: any, api: any = 'public', method = 'GET', params = {}, headers: NullableDict = undefined, body: Str = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + '/' + this.implodeParams (path, params);
+    override sign (path: string, api: string[] = [ 'public' ], method: string = 'GET', params: Dict = {}): Dict {
+        const apiName = api[0];
+        const apiUrl = this.safeString (this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
-        if (Object.keys (query).length) {
+        let requestHeaders: NullableDict = undefined;
+        if (Object.keys (query).length > 0) {
             url += '?' + this.urlencode (query);
         }
-        if ((api === 'private') || (api === 'exchangePrivate')) {
+        if ((apiName === 'private') || (apiName === 'exchangePrivate')) {
             this.checkRequiredCredentials ();
             const auth = this.stringToBase64 (this.apiKey + ':' + this.secret);
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Basic ' + auth,
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = requestHeaders;
+        return { 'url': url, 'method': method, 'body': undefined, 'headers': headersResolved };
     }
 
-    override handleErrors (httpCode: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }

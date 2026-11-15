@@ -1,6 +1,6 @@
 import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetPairTicker(params?: {}): Promise<Dict>;
     publicGetTickers(params?: {}): Promise<Dict>;
     publicGetTickersJpy(params?: {}): Promise<Dict>;
@@ -12,6 +12,7 @@ interface Exchange {
     privateGetUserAssets(params?: {}): Promise<Dict>;
     privateGetUserSpotOrder(params?: {}): Promise<Dict>;
     privateGetUserSpotActiveOrders(params?: {}): Promise<Dict>;
+    privateGetUserMarginStatus(params?: {}): Promise<Dict>;
     privateGetUserMarginPositions(params?: {}): Promise<Dict>;
     privateGetUserSpotTradeHistory(params?: {}): Promise<Dict>;
     privateGetUserDepositHistory(params?: {}): Promise<Dict>;
@@ -29,7 +30,5 @@ interface Exchange {
     privatePostUserConfirmDepositsAll(params?: {}): Promise<Dict>;
     privatePostUserRequestWithdrawal(params?: {}): Promise<Dict>;
     marketsGetSpotPairs(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

@@ -10,7 +10,7 @@ import type Client from '../base/ws/Client.js';
 // ---------------------------------------------------------------------------
 
 export default class mudrex extends mudrexRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -40,7 +40,7 @@ export default class mudrex extends mudrexRest {
         };
     }
 
-    requestId () {
+    requestId (): number {
         const reqid = this.sum (this.safeInteger (this.options, 'correlationId', 0), 1);
         this.options['correlationId'] = reqid;
         return reqid;
@@ -65,18 +65,19 @@ export default class mudrex extends mudrexRest {
         this.options['ws'] = wsOptions;
     }
 
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ticker:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders ();
-        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-        const assetId = baseIdString.toLowerCase () + quoteIdString.toLowerCase ();
+        const baseIdString = this.safeString (market, 'baseId', '');
+        const quoteIdString = this.safeString (market, 'quoteId', '');
+        let assetId: string = baseIdString.toLowerCase ();
+        assetId = assetId + quoteIdString.toLowerCase ();
         const subscribe: Dict = {
             'id': this.requestId (),
             'method': 'SUBSCRIBE',
@@ -87,20 +88,22 @@ export default class mudrex extends mudrexRest {
         return await this.watch (url, messageHash, request, messageHash);
     }
 
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const messageHashes: string[] = [];
         const assets: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market (symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market (symbolsNormalized[i]);
                 messageHashes.push ('ticker:' + market['symbol']);
-                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-                assets.push (baseIdString.toLowerCase () + quoteIdString.toLowerCase ());
+                const baseIdString = this.safeString (market, 'baseId', '');
+                const quoteIdString = this.safeString (market, 'quoteId', '');
+                let assetId: string = baseIdString.toLowerCase ();
+                assetId = assetId + quoteIdString.toLowerCase ();
+                assets.push (assetId);
             }
         }
         const url = this.urls['api']['ws'];
@@ -115,20 +118,23 @@ export default class mudrex extends mudrexRest {
         const ticker = await this.watchMultiple (url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result: Dict = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArrayTickers (this.tickers, 'symbol', symbols);
+        return this.filterByArrayTickers (this.tickers, 'symbol', symbolsNormalized);
     }
 
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const priceType = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
+        const paramsOmitted: Dict = this.omit (params, 'price');
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         if (interval !== '1s' && interval !== '1m') {
             throw new NotSupported (this.id + ' watchOHLCV() supports 1s and 1m timeframes only');
@@ -137,8 +143,8 @@ export default class mudrex extends mudrexRest {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const streamBaseId = this.safeString (market, 'baseId', '');
+        const streamQuoteId = this.safeString (market, 'quoteId', '');
         const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase () + streamQuoteId.toLowerCase ();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
@@ -148,15 +154,16 @@ export default class mudrex extends mudrexRest {
             'method': 'SUBSCRIBE',
             'params': [ stream ],
         };
-        const request = this.extend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        const request = this.extend (subscribe, paramsOmitted);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, request, messageHash);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    override handleMessage (client: any, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.safeString (message, 'method') === 'PONG') {
             return;
         }
@@ -175,10 +182,10 @@ export default class mudrex extends mudrexRest {
         }
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict) {
         const error = this.safeDict (message, 'error', {});
         const code = this.safeString (error, 'code');
-        const msg = this.safeString (error, 'msg');
+        const msg = this.safeString (error, 'msg', '');
         const feedback = this.id + ' ' + msg;
         if (code === '429') {
             throw new RateLimitExceeded (feedback);
@@ -186,7 +193,7 @@ export default class mudrex extends mudrexRest {
         throw new ExchangeError (feedback);
     }
 
-    handleOHLCV (client: any, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         const stream = this.safeString (message, 'stream');
         if (stream === undefined) {
             return;
@@ -209,8 +216,8 @@ export default class mudrex extends mudrexRest {
             this.safeNumber (data, 'c'),
             this.safeNumber (data, 'v'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), tf);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -223,8 +230,8 @@ export default class mudrex extends mudrexRest {
         client.resolve (stored, messageHash);
     }
 
-    handleTicker (client: any, message: any) {
-        const data = this.safeList (message, 'data', []);
+    handleTicker (client: Client, message: Dict) {
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const t = data[i];
             const s = this.safeString (t, 's');

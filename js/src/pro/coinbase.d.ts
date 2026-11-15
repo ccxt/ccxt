@@ -1,9 +1,9 @@
 import type { Market } from './../base/types.js';
 import coinbaseRest from '../coinbase.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict, OHLCV } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 export default class coinbase extends coinbaseRest {
-    describe(): any;
+    describe(): Dict;
     /**
      * @ignore
      * @method
@@ -15,7 +15,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribe(name: string, isPrivate: boolean, symbol?: Str | Strings, params?: {}): Promise<any>;
+    subscribe(name: string, isPrivate?: boolean, symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -27,7 +27,7 @@ export default class coinbase extends coinbaseRest {
      * @param {string} [symbol] unified market symbol
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribe(topic: string, name: string, isPrivate: boolean, symbol?: Str | Strings): Promise<any>;
+    unSubscribe(topic: string, name: string, isPrivate?: boolean, symbol?: Str): Promise<any>;
     /**
      * @ignore
      * @method
@@ -39,7 +39,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    subscribeMultiple(name: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
+    subscribeMultiple(name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     /**
      * @ignore
      * @method
@@ -52,7 +52,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} subscription to a websocket channel
      */
-    unSubscribeMultiple(topic: string, name: string, isPrivate: boolean, symbols?: Strings, params?: {}): Promise<any>;
+    unSubscribeMultiple(topic: string, name: string, isPrivate?: boolean, symbols?: Strings, params?: Dict): Promise<any>;
     createWSAuth(name: string, productIds: Str[]): Dict;
     /**
      * @method
@@ -63,7 +63,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    watchTicker(symbol: string, params?: Dict): Promise<Ticker>;
     /**
      * @method
      * @name coinbase#unWatchTicker
@@ -73,7 +73,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTicker(symbol: string, params?: {}): Promise<Ticker>;
+    unWatchTicker(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchTickers
@@ -83,7 +83,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    watchTickers(symbols?: Strings, params?: {}): Promise<Tickers>;
+    watchTickers(symbols?: Strings, params?: Dict): Promise<Tickers>;
     /**
      * @method
      * @name coinbase#unWatchTickers
@@ -93,9 +93,23 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    unWatchTickers(symbols?: Strings, params?: {}): Promise<any>;
-    handleTickers(client: Client, message: any): void;
+    unWatchTickers(symbols?: Strings, params?: Dict): Promise<any>;
+    handleTickers(client: Client, message: Dict): void;
     parseWsTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name coinbase#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, only 5m is supported
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    watchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;
+    handleOHLCV(client: Client, message: any): void;
     /**
      * @method
      * @name coinbase#watchTrades
@@ -107,7 +121,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTrades(symbol: string, since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTrades(symbol: string, since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinbase#unWatchTrades
@@ -117,7 +131,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTrades(symbol: string, params?: {}): Promise<any>;
+    unWatchTrades(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchTradesForSymbols
@@ -129,7 +143,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: {}): Promise<Trade[]>;
+    watchTradesForSymbols(symbols: string[], since?: Int, limit?: Int, params?: Dict): Promise<Trade[]>;
     /**
      * @method
      * @name coinbase#unWatchTradesForSymbols
@@ -139,7 +153,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    unWatchTradesForSymbols(symbols: string[], params?: {}): Promise<any>;
+    unWatchTradesForSymbols(symbols: string[], params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrders
@@ -151,7 +165,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Order[]>;
+    watchOrders(symbol?: Str, since?: Int, limit?: Int, params?: Dict): Promise<Order[]>;
     /**
      * @method
      * @name coinbase#unWatchOrders
@@ -161,7 +175,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    unWatchOrders(symbol?: Str, params?: {}): Promise<any>;
+    unWatchOrders(symbol?: Str, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrderBook
@@ -172,7 +186,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBook(symbol: string, limit?: Int, params?: {}): Promise<OrderBook>;
+    watchOrderBook(symbol: string, limit?: Int, params?: Dict): Promise<OrderBook>;
     /**
      * @method
      * @name coinbase#unWatchOrderBook
@@ -182,7 +196,7 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    unWatchOrderBook(symbol: string, params?: {}): Promise<any>;
+    unWatchOrderBook(symbol: string, params?: Dict): Promise<any>;
     /**
      * @method
      * @name coinbase#watchOrderBookForSymbols
@@ -193,14 +207,14 @@ export default class coinbase extends coinbaseRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: {}): Promise<OrderBook>;
-    handleTrade(client: any, message: any): void;
-    handleOrder(client: any, message: any): void;
-    parseWsOrder(order: any, market?: Market): Order;
-    handleOrderBookHelper(orderbook: any, updates: any): void;
-    handleOrderBook(client: any, message: any): void;
-    tryResolveUsdc(client: Client, messageHash: any, result: any): void;
-    handleSubscriptionStatus(client: Client, message: any): any;
-    handleHeartbeats(client: Client, message: any): any;
-    handleMessage(client: any, message: any): void;
+    watchOrderBookForSymbols(symbols: string[], limit?: Int, params?: Dict): Promise<OrderBook>;
+    handleTrade(client: Client, message: Dict): void;
+    handleOrder(client: Client, message: Dict): void;
+    parseWsOrder(order: Dict, market?: Market): Order;
+    handleOrderBookHelper(orderbook: any, updates: any[]): void;
+    handleOrderBook(client: Client, message: Dict): void;
+    tryResolveUsdc(client: Client, messageHash: string, result: any): void;
+    handleSubscriptionStatus(client: Client, message: Dict): Dict;
+    handleHeartbeats(client: Client, message: Dict): Dict;
+    handleMessage(client: Client, message: Dict): void;
 }

@@ -1,6 +1,6 @@
 Every endpoint in `coinone`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/coinone) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetOrderbook`); the snake_case alias (`public_get_orderbook`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetOrderbook`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetOrderbook`); Python and PHP use the snake_case form (`public_get_orderbook`), and Go uses the PascalCase form (`PublicGetOrderbook`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinone API documentation:** [doc.coinone.co.kr](https://doc.coinone.co.kr)
 
-> 63 implicit endpoints across 5 access groups.
+> 65 implicit endpoints across 5 access groups.
 
 ## public
 
@@ -150,4 +150,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v2_1PrivatePostTransactionKrwHistory` | POST | `transaction/krw/history` | 1 |
 | `v2_1PrivatePostTransactionCoinHistory` | POST | `transaction/coin/history` | 1 |
 | `v2_1PrivatePostTransactionCoinWithdrawalLimit` | POST | `transaction/coin/withdrawal/limit` | 1 |
+| `v2_1PrivatePostEventOrderRewardPrograms` | POST | `event/order-reward/programs` | 1 |
+| `v2_1PrivatePostEventOrderRewardHistory` | POST | `event/order-reward/history` | 1 |
 

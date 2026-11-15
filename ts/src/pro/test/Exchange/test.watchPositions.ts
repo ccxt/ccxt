@@ -25,7 +25,7 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
             // continue;
             success = false;
         }
-        if (success === true) {
+        if (success) {
             if (response === undefined) {
                 throw new Error (exchange.id + ' watch returned undefined response');
             }
@@ -52,7 +52,7 @@ async function testWatchPositions (exchange: Exchange, skippedProperties: object
             // continue;
             success2 = false;
         }
-        if (success2 === true) {
+        if (success2) {
             assert (Array.isArray (positionsForSymbols), exchange.id + ' ' + method + ' must return an array, returned ' + exchange.json (positionsForSymbols));
             // max theoretical 4 positions: two for one-way-mode and two for two-way mode
             assert (positionsForSymbols.length <= 4, exchange.id + ' ' + method + ' positions length for particular symbol should be less than 4, returned ' + exchange.json (positionsForSymbols));

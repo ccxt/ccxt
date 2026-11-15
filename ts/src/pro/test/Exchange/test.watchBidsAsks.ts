@@ -16,10 +16,13 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
     const method = 'watchBidsAsks';
     let now = exchange.milliseconds ();
     const ends = now + 15000;
-    while (now < ends) {
+    const maxIdleTime = 5000;
+    let idle = false;
+    while ((now < ends) && !idle) {
         let success = true;
         let shouldReturn = false;
         let response: Tickers = {};
+        const startTime = exchange.milliseconds ();
         try {
             response = await exchange.watchBidsAsks (argSymbols, argParams);
         } catch (e) {
@@ -34,14 +37,13 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
             else if (!testSharedMethods.isTemporaryFailure (e)) {
                 throw e;
             }
-            now = exchange.milliseconds ();
-            // continue;
             success = false;
         }
+        now = exchange.milliseconds ();
         if (shouldReturn) {
             return false;
         }
-        if (success === true) {
+        if (success) {
             assert (exchange.isDictionary (response), exchange.id + ' ' + method + ' ' + exchange.json (argSymbols) + ' must return a dictionary. ' + exchange.json (response));
             const values = Object.values (response);
             let checkedSymbol: Str = undefined;
@@ -53,7 +55,9 @@ async function testWatchBidsAsksHelper (exchange: Exchange, skippedProperties: o
                 const ticker = values[i];
                 testTicker (exchange, skippedProperties, method, ticker, checkedSymbol);
             }
-            now = exchange.milliseconds ();
+            if ((now - startTime) > maxIdleTime) {
+                idle = true;
+            }
         }
     }
     return true;

@@ -15,7 +15,6 @@ sys.path.append(root)
 import ccxt.async_support as ccxt  # noqa: F402
 
 def helper_test_network_code_to_id(networks_map):
-    # we should conduct tests with such example configuration
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
@@ -23,53 +22,29 @@ def helper_test_network_code_to_id(networks_map):
         },
     })
     exchange.currencies = exchange.map_to_safe_map({})  # go fix + c# uninitialized prop fix
-    #
-    #
-    # CASE #1 : with mainnet key
-    #
-    #
+    # unified code and its alias resolve to the same id, regardless of which one options.networks uses
+    assert exchange.network_code_to_id('ERC20') == 'Ether'
     assert exchange.network_code_to_id('ETH') == 'Ether'
-    assert exchange.network_code_to_id('ERC20') == 'Ether'  # inexistent secondary networkCode should match
-    # with currencyCode
-    assert exchange.network_code_to_id('ETH', 'USDC') == 'Ether'
-    assert exchange.network_code_to_id('ETH', 'ETH') == 'Ether'
-    assert exchange.network_code_to_id('ERC20', 'USDC') == 'Ether'
     assert exchange.network_code_to_id('ERC20', 'ETH') == 'Ether'
-    #
-    #
-    # CASE #2 : with mainnet key
-    #
-    #
-    assert exchange.network_code_to_id('TRX') == 'Tron'  # inexistent primary networkCode should match
+    assert exchange.network_code_to_id('ETH', 'USDC') == 'Ether'
     assert exchange.network_code_to_id('TRC20') == 'Tron'
-    # with currencyCode
-    assert exchange.network_code_to_id('TRX', 'USDC') == 'Tron'
+    assert exchange.network_code_to_id('TRX') == 'Tron'
     assert exchange.network_code_to_id('TRX', 'TRX') == 'Tron'
-    assert exchange.network_code_to_id('TRC20', 'USDC') == 'Tron'
-    assert exchange.network_code_to_id('TRC20', 'TRX') == 'Tron'
-    #
-    #
-    # Case #3
-    #
-    #
-    assert exchange.network_code_to_id('BTC') == 'Bitcoin'  # exclusive match
-    assert exchange.network_code_to_id('BRC20') == 'Brc_20'  # exclusive match
-    # with currencyCode
-    assert exchange.network_code_to_id('BTC', 'USDC') == 'Brc_20'
-    assert exchange.network_code_to_id('BTC', 'BTC') == 'Bitcoin'
-    assert exchange.network_code_to_id('BRC20', 'USDC') == 'Brc_20'
-    assert exchange.network_code_to_id('BRC20', 'BTC') == 'Bitcoin'
-    #
-    #
-    # Case #4: unknown networkCode
-    #
-    #
+    assert exchange.network_code_to_id('BEP20') == 'Bsc'
+    assert exchange.network_code_to_id('BSC') == 'Bsc'
+    # BTC and BRC20 are distinct networks, not aliases
+    assert exchange.network_code_to_id('BTC') == 'Bitcoin'
+    assert exchange.network_code_to_id('BRC20') == 'Brc_20'
+    assert exchange.network_code_to_id('BTC', 'USDC') == 'Bitcoin'
+    # backward-supported aliases
+    assert exchange.network_code_to_id('ARB') == 'Arb'
+    assert exchange.network_code_to_id('ARBONE') == 'Arb'
+    # unknown network code passes through
     assert exchange.network_code_to_id('Xyz') == 'Xyz'
     assert exchange.network_code_to_id('Xyz', 'SAMPLECOIN') == 'Xyz'
 
 
 def helper_test_network_id_to_code(networks_map):
-    # we should conduct tests with such example configuration
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
         'options': {
@@ -77,122 +52,72 @@ def helper_test_network_id_to_code(networks_map):
         },
     })
     exchange.currencies = exchange.map_to_safe_map({})  # go fix + c# uninitialized prop fix
-    #
-    #
-    # CASE #1 : with mainnet key
-    #
-    #
+    # always the unified code, never an alias, regardless of currency
     assert exchange.network_id_to_code('Ether') == 'ERC20'
-    # with currencyCode
     assert exchange.network_id_to_code('Ether', 'USDC') == 'ERC20'
-    assert exchange.network_id_to_code('Ether', 'ETH') == 'ETH'
-    #
-    #
-    # CASE #2 : with mainnet key
-    #
-    #
+    assert exchange.network_id_to_code('Ether', 'ETH') == 'ERC20'
     assert exchange.network_id_to_code('Tron') == 'TRC20'
-    # with currencyCode
-    assert exchange.network_id_to_code('Tron', 'USDC') == 'TRC20'
-    assert exchange.network_id_to_code('Tron', 'TRX') == 'TRX'
-    #
-    #
-    # Case #3
-    #
-    #
-    assert exchange.network_id_to_code('Bitcoin') == 'BTC'  # exclusive match
-    assert exchange.network_id_to_code('Brc_20') == 'BRC20'  # exclusive match
-    # with currencyCode
-    assert exchange.network_id_to_code('Bitcoin', 'USDC') == 'BRC20'
+    assert exchange.network_id_to_code('Tron', 'TRX') == 'TRC20'
+    assert exchange.network_id_to_code('Bsc') == 'BEP20'
+    assert exchange.network_id_to_code('Bsc', 'BNB') == 'BEP20'
+    assert exchange.network_id_to_code('Arb') == 'ARBITRUM'
+    assert exchange.network_id_to_code('Bitcoin') == 'BTC'
     assert exchange.network_id_to_code('Bitcoin', 'BTC') == 'BTC'
-    assert exchange.network_id_to_code('Brc_20', 'USDC') == 'BRC20'
-    assert exchange.network_id_to_code('Brc_20', 'BTC') == 'BTC'
-    #
-    #
-    # Case #4: unknown networkCode
-    #
-    #
+    assert exchange.network_id_to_code('Brc_20') == 'BRC20'
+    # ids missing from options.networks still get unified when they spell an alias
+    assert exchange.network_id_to_code('ETH') == 'ERC20'
+    assert exchange.network_id_to_code('CRONOS') == 'CRC20'
     assert exchange.network_id_to_code('Xyz') == 'Xyz'
     assert exchange.network_id_to_code('Xyz', 'SAMPLECOIN') == 'Xyz'
 
 
-def helper_batch_network_tests():
+def helper_test_networkAliases():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
+        'options': {
+            'networks': {},
+        },
     })
-    #
-    # check batch
-    #
-    default_network_code_replacements = exchange.options['defaultNetworkCodeReplacements']
-    all_network_codes = ['ETH', 'ERC20', 'TRON', 'TRX', 'TRC20', 'SOL', 'BSC', 'BEP20', 'ARBITRUM', 'AVAXC', 'POL', 'BASE', 'SUI', 'OPTIMISM', 'OP', 'NEAR', 'CRO', 'CRONOS', 'BTC', 'APT', 'SCR', 'KAVA', 'TON', 'Cardano', 'ADA', 'HECO', 'HT', 'MNT', 'ALGO', 'RUNE', 'OSMO', 'CELO', 'HBAR', 'FTM', 'zkSync', 'EraZK', 'KLAY', 'ACA', 'STX', 'XTZ', 'NEO', 'METIS']
-    all_currency_codes = ['Bitcoin', 'BTC', 'Ethereum', 'ETH', 'Tether', 'USDT', 'BNB', 'BNB', 'XRP', 'XRP', 'USDC', 'USDC', 'Solana', 'SOL', 'TRON', 'TRX', 'Dogecoin', 'DOGE', 'Hyperliquid', 'HYPE', 'Bitcoin Cash', 'BCH', 'Cardano', 'ADA', 'LEO', 'Chainlink', 'LINK', 'Ethena', 'USDe', 'USDe', 'Monero', 'XMR', 'Stellar', 'XLM', 'Dai', 'DAI', 'Litecoin', 'LTC', 'PayPal', 'USD', 'PYUSD', 'Hedera', 'HBAR', 'Avalanche', 'AVAX', 'Zcash', 'ZEC', 'Bittensor', 'TAO', 'Sui', 'SUI', 'Shiba Inu', 'SHIB', 'Cronos', 'CRO', 'Toncoin', 'TON', 'WLFI', 'Tether', 'Gold', 'XAUt', '', 'PAX', 'Gold', 'PAXG', 'Mantle', 'MNT', 'Uniswap', 'UNI', 'Polkadot', 'DOT', 'USDG', 'OKB', 'OKB', 'Aster', 'ASTER', 'Aave', 'AAVE', 'NEAR', 'NEAR', 'Ripple', 'USD', 'RLUSD', 'Polygon', 'POL']
-    for i in range(0, len(all_network_codes)):
-        random_network_code = all_network_codes[i]
-        for j in range(0, len(all_currency_codes)):
-            random_currency_code = all_currency_codes[j]
-            result = exchange.network_id_to_code(random_network_code, random_currency_code)
-            keys = list(default_network_code_replacements.keys())
-            for k in range(0, len(keys)):
-                chain_base_coin = keys[k]
-                chain_mapping = default_network_code_replacements[chain_base_coin]
-                primary_network_code = chain_mapping['primary']
-                secondary_network_code = chain_mapping['secondary']
-                msg = 'network protocol test failed for networkCode:' + random_network_code + ' & currencyCode: ' + random_currency_code + ', result: ' + result + ', expected: '
-                if random_network_code == primary_network_code:
-                    if random_currency_code == chain_base_coin:
-                        assert result == primary_network_code, msg + primary_network_code
-                    else:
-                        assert result == secondary_network_code, msg + secondary_network_code
-                elif random_network_code == secondary_network_code:
-                    if random_currency_code == chain_base_coin:
-                        assert result == primary_network_code, msg + primary_network_code
-                    else:
-                        assert result == secondary_network_code, msg + secondary_network_code
+    exchange.currencies = exchange.map_to_safe_map({})  # go fix + c# uninitialized prop fix
+    aliases = {
+        'ETH': 'ERC20',
+        'TRX': 'TRC20',
+        'BSC': 'BEP20',
+        'BSC20': 'BEP20',
+        'CRONOS': 'CRC20',
+        'ARB': 'ARBITRUM',
+        'ARBONE': 'ARBITRUM',
+        'ARBNOVA': 'ARBITRUM_NOVA',
+    }
+    keys = list(aliases.keys())
+    for i in range(0, len(keys)):
+        assert exchange.safe_string(exchange.networkAliases, keys[i]) == aliases[keys[i]]
+        # unified codes are never aliases themselves
+        assert not (aliases[keys[i]] in exchange.networkAliases)
+    assert not ('BTC' in exchange.networkAliases)
+    assert exchange.network_id_to_code('ETH') == 'ERC20'
 
 
-# function helperTestNetworkProtocolCorrector () {
-#     return;
-#     const exchange = new ccxt.Exchange ({
-#         'id': 'sampleexchange',
-#     });
-#     # for ethereum
-#     assert (exchange.prioritizedNetworkAliases ('ERC20', 'MYTOKEN') === 'ERC20');
-#     assert (exchange.prioritizedNetworkAliases ('ETH', 'MYTOKEN') === 'ERC20');
-#     assert (exchange.prioritizedNetworkAliases ('ERC20', 'ETH') === 'ETH');
-#     assert (exchange.prioritizedNetworkAliases ('ETH', 'ETH') === 'ETH');
-#     # for tron
-#     assert (exchange.prioritizedNetworkAliases ('TRC20', 'MYTOKEN') === 'TRC20');
-#     assert (exchange.prioritizedNetworkAliases ('TRX', 'MYTOKEN') === 'TRC20');
-#     assert (exchange.prioritizedNetworkAliases ('TRC20', 'TRX') === 'TRX');
-#     assert (exchange.prioritizedNetworkAliases ('TRX', 'TRX') === 'TRX');
-#     # for cronos
-#     assert (exchange.prioritizedNetworkAliases ('CRC20', 'MYTOKEN') === 'CRC20');
-#     assert (exchange.prioritizedNetworkAliases ('CRONOS', 'MYTOKEN') === 'CRC20');
-#     assert (exchange.prioritizedNetworkAliases ('CRC20', 'CRO') === 'CRONOS');
-#     assert (exchange.prioritizedNetworkAliases ('CRONOS', 'CRO') === 'CRONOS');
-#     # for bitcoin
-#     assert (exchange.prioritizedNetworkAliases ('BRC20', 'MYTOKEN') === 'BRC20');
-#     assert (exchange.prioritizedNetworkAliases ('BTC', 'MYTOKEN') === 'BRC20');
-#     assert (exchange.prioritizedNetworkAliases ('BRC20', 'BTC') === 'BTC');
-#     assert (exchange.prioritizedNetworkAliases ('BTC', 'BTC') === 'BTC');
-# }
 def test_network_methods():
-    # both below dicts should end with "same" results
+    # keyed by alias vs keyed by unified code: both must behave identically
     dict1 = {
         'BTC': 'Bitcoin',
         'BRC20': 'Brc_20',
-        'TRC20': 'Tron',
         'ETH': 'Ether',
+        'TRX': 'Tron',
+        'BSC': 'Bsc',
+        'ARB': 'Arb',
     }
     dict2 = {
         'BTC': 'Bitcoin',
         'BRC20': 'Brc_20',
-        'TRC20': 'Tron',
         'ERC20': 'Ether',
+        'TRC20': 'Tron',
+        'BEP20': 'Bsc',
+        'ARBITRUM': 'Arb',
     }
-    # helperTestNetworkProtocolCorrector ();
     helper_test_network_code_to_id(dict1)
     helper_test_network_code_to_id(dict2)
     helper_test_network_id_to_code(dict1)
     helper_test_network_id_to_code(dict2)
-    helper_batch_network_tests()
+    helper_test_networkAliases()

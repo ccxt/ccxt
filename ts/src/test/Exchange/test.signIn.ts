@@ -2,7 +2,7 @@ import { Exchange } from "../../../ccxt.js";
 
 async function testSignIn (exchange: Exchange, skippedProperties: object) {
     const method = 'signIn';
-    if (exchange.has[method]) {
+    if (exchange.has[method] !== undefined && exchange.has[method] !== false) {
         await exchange.signIn ();
     }
     return true;

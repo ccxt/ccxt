@@ -1,6 +1,6 @@
 Every endpoint in `bittrade`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bittrade) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v2PublicGetReferenceCurrencies`); the snake_case alias (`v2Public_get_reference_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V2PublicGetReferenceCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v2PublicGetReferenceCurrencies`); Python and PHP use the snake_case form (`v2Public_get_reference_currencies`), and Go uses the PascalCase form (`V2PublicGetReferenceCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bittrade API documentation:** [api-doc.bittrade.co.jp](https://api-doc.bittrade.co.jp)
 
-> 110 implicit endpoints across 5 access groups.
+> 113 implicit endpoints across 5 access groups.
 
 ## v2Public
 
@@ -150,6 +150,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetCommonTimestamp` | GET | `common/timestamp` | 1 |
 | `publicGetCommonExchange` | GET | `common/exchange` | 1 |
 | `publicGetSettingsCurrencys` | GET | `settings/currencys` | 1 |
+| `publicGetRetailMaintainTime` | GET | `retail/maintain/time` | 1 |
 
 ## private
 
@@ -181,6 +182,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetSubuserAggregateBalance` | GET | `subuser/aggregate-balance` | 10 |
 | `privateGetStableCoinExchangeRate` | GET | `stable-coin/exchange_rate` | 1 |
 | `privateGetStableCoinQuote` | GET | `stable-coin/quote` | 1 |
+| `privateGetRetailOrderList` | GET | `retail/order/list` | 1 |
 | `privatePostAccountTransfer` | POST | `account/transfer` | 1 |
 | `privatePostFuturesTransfer` | POST | `futures/transfer` | 1 |
 | `privatePostOrderBatchOrders` | POST | `order/batch-orders` | 0.4 |
@@ -201,4 +203,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostCrossMarginOrdersIdRepay` | POST | `cross-margin/orders/{id}/repay` | 1 |
 | `privatePostStableCoinExchange` | POST | `stable-coin/exchange` | 1 |
 | `privatePostSubuserTransfer` | POST | `subuser/transfer` | 10 |
+| `privatePostRetailOrderPlace` | POST | `retail/order/place` | 1 |
 

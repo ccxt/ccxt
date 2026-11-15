@@ -8,13 +8,13 @@ namespace ccxt\pro;
 use Exception; // a common import
 
 class gateeu extends \ccxt\pro\gate {
-    public function describe(): mixed {
+    public function describe(): array {
         // eslint-disable-next-line new-cap
         $restInstance = new \ccxt\async\gateeu();
         $restDescribe = $restInstance->describe();
         $parentWsDescribe = parent::describe_data();
         // the ws describe-data must be applied on top of the rest describe,
-        // otherwise the explicit-null watch* defaults of the rest 'has'
+        // otherwise the explicit-undefined watch* defaults of the rest 'has'
         // block wipe the parent's ws capability flags in the deep extend
         $extended = $this->deep_extend($restDescribe, $parentWsDescribe);
         return $this->deep_extend($extended, array(

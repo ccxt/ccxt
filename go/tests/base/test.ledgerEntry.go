@@ -6,7 +6,7 @@ import "github.com/ccxt/ccxt/go/v4"
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 func TestLedgerEntry(exchange ccxt.ICoreExchange, skippedProperties any, method any, entry any, requestedCode any, now any) {
-	var format any = map[string]any{
+	var format map[string]any = map[string]any{
 		"info":             map[string]any{},
 		"id":               "x1234",
 		"currency":         "BTC",
@@ -23,7 +23,7 @@ func TestLedgerEntry(exchange ccxt.ICoreExchange, skippedProperties any, method 
 		"datetime":         "2021-11-30T00:00:00.000Z",
 		"type":             "deposit",
 	}
-	var emptyAllowedFor any = []any{"referenceId", "referenceAccount", "id"}
+	var emptyAllowedFor []any = []any{"referenceId", "referenceAccount", "id"}
 	AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor)
 	AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now)
 	AssertCurrencyCode(exchange, skippedProperties, method, entry, GetValue(entry, "currency"), requestedCode)

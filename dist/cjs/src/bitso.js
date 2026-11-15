@@ -216,6 +216,10 @@ class bitso extends bitso$1["default"] {
                         'orders/{oid}': { 'cost': 1 },
                         'orders/all': { 'cost': 1 },
                     },
+                    'patch': {
+                        'orders': { 'cost': 1 },
+                        'orders/{oid}': { 'cost': 1 },
+                    },
                 },
             },
             'features': {
@@ -326,7 +330,7 @@ class bitso extends bitso$1["default"] {
         //         }]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const currency = this.safeCurrency(code);
         return this.parseLedger(payload, currency, since, limit);
     }
@@ -396,15 +400,15 @@ class bitso extends bitso$1["default"] {
         //     }
         const operation = this.safeString(item, 'operation');
         const type = this.parseLedgerEntryType(operation);
-        const balanceUpdates = this.safeValue(item, 'balance_updates', []);
-        const firstBalance = this.safeValue(balanceUpdates, 0, {});
+        const balanceUpdates = this.safeList(item, 'balance_updates', []);
+        const firstBalance = this.safeDict(balanceUpdates, 0, {});
         let direction = undefined;
         let fee = undefined;
         const amount = this.safeString(firstBalance, 'amount');
         const currencyId = this.safeString(firstBalance, 'currency');
         const code = this.safeCurrencyCode(currencyId, currency);
-        currency = this.safeCurrency(currencyId, currency);
-        const details = this.safeValue(item, 'details', {});
+        const currencyResolved = this.safeCurrency(currencyId, currency);
+        const details = this.safeDict(item, 'details', {});
         let referenceId = this.safeString2(details, 'fid', 'wid');
         if (referenceId === undefined) {
             referenceId = this.safeString(details, 'tid');
@@ -423,7 +427,7 @@ class bitso extends bitso$1["default"] {
             const cost = Precise["default"].stringAbs(amount);
             fee = {
                 'cost': cost,
-                'currency': currency,
+                'currency': currencyResolved,
             };
         }
         const timestamp = this.parse8601(this.safeString(item, 'created_at'));
@@ -443,7 +447,7 @@ class bitso extends bitso$1["default"] {
             'after': undefined,
             'status': 'ok',
             'fee': fee,
-        }, currency);
+        }, currencyResolved);
     }
     /**
      * @method
@@ -487,24 +491,27 @@ class bitso extends bitso$1["default"] {
         //             },
         //         ]
         //     }
-        const markets = this.safeValue(response, 'payload', []);
+        const markets = this.safeList(response, 'payload', []);
         const currencies = this.safeDict(this.options, 'cachedCurrencies');
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString(market, 'book');
-            const [baseId, quoteId] = id.split('_');
-            let base = baseId.toUpperCase();
-            let quote = quoteId.toUpperCase();
-            base = this.safeCurrencyCode(base);
-            quote = this.safeCurrencyCode(quote);
-            const fees = this.safeValue(market, 'fees', {});
-            const flatRate = this.safeValue(fees, 'flat_rate', {});
+            const parts = id.split('_');
+            const baseId = this.safeString(parts, 0, '');
+            const quoteId = this.safeString(parts, 1, '');
+            const base = this.safeCurrencyCode(baseId.toUpperCase());
+            const quote = this.safeCurrencyCode(quoteId.toUpperCase());
+            if ((base === undefined) || (quote === undefined)) {
+                continue;
+            }
+            const fees = this.safeDict(market, 'fees', {});
+            const flatRate = this.safeDict(fees, 'flat_rate', {});
             const takerString = this.safeString(flatRate, 'taker');
             const makerString = this.safeString(flatRate, 'maker');
             const taker = this.parseNumber(Precise["default"].stringDiv(takerString, '100'));
             const maker = this.parseNumber(Precise["default"].stringDiv(makerString, '100'));
-            const feeTiers = this.safeValue(fees, 'structure', []);
+            const feeTiers = this.safeList(fees, 'structure', []);
             const fee = {
                 'taker': taker,
                 'maker': maker,
@@ -514,7 +521,7 @@ class bitso extends bitso$1["default"] {
             const takerFees = [];
             const makerFees = [];
             for (let j = 0; j < feeTiers.length; j++) {
-                const tier = feeTiers[j];
+                const tier = this.safeDict(feeTiers, j);
                 const volume = this.safeNumber(tier, 'volume');
                 const takerFee = this.safeNumber(tier, 'taker');
                 const makerFee = this.safeNumber(tier, 'maker');
@@ -655,15 +662,15 @@ class bitso extends bitso$1["default"] {
         });
     }
     parseBalance(response) {
-        const payload = this.safeValue(response, 'payload', {});
-        const balances = this.safeValue(payload, 'balances', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const balances = this.safeList(payload, 'balances', []);
         const result = {
             'info': response,
             'timestamp': undefined,
             'datetime': undefined,
         };
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict(balances, i);
             const currencyId = this.safeString(balance, 'currency');
             const code = this.safeCurrencyCode(currencyId);
             const account = this.account();
@@ -735,7 +742,7 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetOrderBook(this.extend(request, params));
-        const orderbook = this.safeValue(response, 'payload');
+        const orderbook = this.safeDict(response, 'payload');
         const timestamp = this.parse8601(this.safeString(orderbook, 'updated_at'));
         return this.parseOrderBook(orderbook, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
@@ -801,7 +808,7 @@ class bitso extends bitso$1["default"] {
             'book': market['id'],
         };
         const response = await this.publicGetTicker(this.extend(request, params));
-        const ticker = this.safeValue(response, 'payload');
+        const ticker = this.safeDict(response, 'payload');
         //
         //     {
         //         "success":true,
@@ -848,10 +855,12 @@ class bitso extends bitso$1["default"] {
                 request['end'] = this.sum(since, duration * limit * 1000);
             }
         }
-        else if (limit !== undefined) {
-            const now = this.milliseconds();
-            request['end'] = now;
-            request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+        else {
+            if (limit !== undefined) {
+                const now = this.milliseconds();
+                request['end'] = now;
+                request['start'] = now - this.parseTimeframe(timeframe) * 1000 * limit;
+            }
         }
         const response = await this.publicGetOhlc(this.extend(request, params));
         //
@@ -1087,8 +1096,8 @@ class bitso extends bitso$1["default"] {
         //        }
         //    }
         //
-        const payload = this.safeValue(response, 'payload', {});
-        const fees = this.safeValue(payload, 'fees', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const fees = this.safeList(payload, 'fees', []);
         const result = {};
         for (let i = 0; i < fees.length; i++) {
             const fee = fees[i];
@@ -1131,11 +1140,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': this.parseToInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1143,7 +1150,7 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetUserTrades(this.extend(request, params));
+        const response = await this.privateGetUserTrades(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
         return this.parseTrades(payload, market, since, limit);
     }
@@ -1242,7 +1249,7 @@ class bitso extends bitso$1["default"] {
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const orders = [];
         for (let i = 0; i < payload.length; i++) {
             const id = payload[i];
@@ -1270,7 +1277,7 @@ class bitso extends bitso$1["default"] {
         //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const canceledOrders = [];
         for (let i = 0; i < payload.length; i++) {
             const order = this.parseOrder(payload[i]);
@@ -1360,11 +1367,9 @@ class bitso extends bitso$1["default"] {
             throw new errors.ExchangeError(this.id + ' fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id');
         }
         // convert it to an integer unconditionally
+        let paramsMarker = params;
         if (markerInParams) {
-            const marker = parseInt(params['marker']);
-            params = this.extend(params, {
-                'marker': marker,
-            });
+            paramsMarker = this.extend(params, { 'marker': this.parseToInt(params['marker']) });
         }
         const request = {
             'book': market['id'],
@@ -1372,10 +1377,9 @@ class bitso extends bitso$1["default"] {
             // 'sort': 'desc', // default = desc
             // 'marker': id, // integer id to start from
         };
-        const response = await this.privateGetOpenOrders(this.extend(request, params));
+        const response = await this.privateGetOpenOrders(this.extend(request, paramsMarker));
         const payload = this.safeList(response, 'payload', []);
-        const orders = this.parseOrders(payload, market, since, limit);
-        return orders;
+        return this.parseOrders(payload, market, since, limit);
     }
     /**
      * @method
@@ -1394,12 +1398,10 @@ class bitso extends bitso$1["default"] {
         const response = await this.privateGetOrdersOid({
             'oid': id,
         });
-        const payload = this.safeValue(response, 'payload');
-        if (Array.isArray(payload)) {
-            const numOrders = payload.length;
-            if (numOrders === 1) {
-                return this.parseOrder(payload[0]);
-            }
+        const payload = this.safeList(response, 'payload', []);
+        const numOrders = payload.length;
+        if (numOrders === 1) {
+            return this.parseOrder(payload[0]);
         }
         throw new errors.OrderNotFound(this.id + ': The order ' + id + ' not found.');
     }
@@ -1468,7 +1470,7 @@ class bitso extends bitso$1["default"] {
         //         }]
         //     }
         //
-        const transactions = this.safeValue(response, 'payload', []);
+        const transactions = this.safeList(response, 'payload', []);
         const first = this.safeDict(transactions, 0, {});
         return this.parseTransaction(first);
     }
@@ -1611,8 +1613,8 @@ class bitso extends bitso$1["default"] {
         //    }
         //
         const result = {};
-        const payload = this.safeValue(response, 'payload', {});
-        const depositFees = this.safeValue(payload, 'deposit_fees', []);
+        const payload = this.safeDict(response, 'payload', {});
+        const depositFees = this.safeList(payload, 'deposit_fees', []);
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString(depositFee, 'currency');
@@ -1631,7 +1633,7 @@ class bitso extends bitso$1["default"] {
                 };
             }
         }
-        const withdrawalFees = this.safeValue(payload, 'withdrawal_fees', []);
+        const withdrawalFees = this.safeDict(payload, 'withdrawal_fees', {});
         const currencyIds = Object.keys(withdrawalFees);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
@@ -1641,10 +1643,10 @@ class bitso extends bitso$1["default"] {
             }
             if (code !== undefined) {
                 result[code] = {
-                    'deposit': this.safeValue(this.safeValue(result, code), 'deposit'),
+                    'deposit': this.safeNumber(this.safeDict(result, code), 'deposit'),
                     'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     'info': {
-                        'deposit': this.safeValue(this.safeValue(this.safeValue(result, code), 'info'), 'deposit'),
+                        'deposit': this.safeValue(this.safeDict(this.safeDict(result, code), 'info'), 'deposit'),
                         'withdraw': this.safeNumber(withdrawalFees, currencyId),
                     },
                 };
@@ -1754,18 +1756,18 @@ class bitso extends bitso$1["default"] {
         //    }
         //
         const result = {};
-        const depositResponse = this.safeValue(response, 'deposit_fees', []);
-        const withdrawalResponse = this.safeValue(response, 'withdrawal_fees', []);
+        const depositResponse = this.safeList(response, 'deposit_fees', []);
+        const withdrawalResponse = this.safeDict(response, 'withdrawal_fees', {});
         for (let i = 0; i < depositResponse.length; i++) {
             const entry = depositResponse[i];
             const currencyId = this.safeString(entry, 'currency');
             const code = this.safeCurrencyCode(currencyId);
-            if ((codes === undefined) || ((code !== undefined) && (code in codes))) {
+            if ((codes === undefined) || ((code !== undefined) && this.inArray(code, codes))) {
                 if (code !== undefined) {
                     result[code] = {
                         'deposit': {
                             'fee': this.safeNumber(entry, 'fee'),
-                            'percentage': !this.safeValue(entry, 'is_fixed'),
+                            'percentage': (!this.safeBool(entry, 'is_fixed', false)),
                         },
                         'withdraw': {
                             'fee': undefined,
@@ -1781,9 +1783,9 @@ class bitso extends bitso$1["default"] {
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode(currencyId);
-            if ((code !== undefined) && ((codes === undefined) || (code in codes))) {
+            if ((code !== undefined) && ((codes === undefined) || this.inArray(code, codes))) {
                 const withdrawFee = this.parseNumber(withdrawalResponse[currencyId]);
-                const resultValue = this.safeValue(result, code);
+                const resultValue = this.safeDict(result, code);
                 if (resultValue === undefined) {
                     result[code] = this.depositWithdrawFee({});
                 }
@@ -1800,13 +1802,13 @@ class bitso extends bitso$1["default"] {
      * @param {string} code unified currency code
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
-        [tag, params] = this.handleWithdrawTagAndParams(tag, params);
-        this.checkAddress(address);
+    async withdraw(code, amount, address, params = {}) {
+        const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
+        this.checkAddress(address, code, tagWithdrawTag);
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
@@ -1818,17 +1820,17 @@ class bitso extends bitso$1["default"] {
             'LTC': 'Litecoin',
         };
         const currency = this.currency(code);
-        const method = (code in methods) ? methods[code] : undefined;
+        const method = this.safeString(methods, code);
         if (method === undefined) {
             throw new errors.ExchangeError(this.id + ' not valid withdraw coin: ' + code);
         }
         const request = {
             'amount': amount,
             'address': address,
-            'destination_tag': tag,
+            'destination_tag': tagWithdrawTag,
         };
         const classMethod = 'privatePost' + method + 'Withdrawal';
-        const response = await this[classMethod](this.extend(request, params));
+        const response = await this[classMethod](this.extend(request, paramsWithdrawTag));
         //
         //     {
         //         "success": true,
@@ -1848,7 +1850,7 @@ class bitso extends bitso$1["default"] {
         //         ]
         //     }
         //
-        const payload = this.safeValue(response, 'payload', []);
+        const payload = this.safeList(response, 'payload', []);
         const first = this.safeDict(payload, 0);
         return this.parseTransaction(first, currency);
     }
@@ -1890,15 +1892,15 @@ class bitso extends bitso$1["default"] {
         //     }
         //
         const currencyId = this.safeString2(transaction, 'currency', 'asset');
-        currency = this.safeCurrency(currencyId, currency);
-        const details = this.safeValue(transaction, 'details', {});
+        const currencyResolved = this.safeCurrency(currencyId, currency);
+        const details = this.safeDict(transaction, 'details', {});
         const datetime = this.safeString(transaction, 'created_at');
         const withdrawalAddress = this.safeString(details, 'withdrawal_address');
         const receivingAddress = this.safeString(details, 'receiving_address');
         const networkId = this.safeString2(transaction, 'network', 'method');
         const status = this.safeString(transaction, 'status');
         const withdrawId = this.safeString(transaction, 'wid');
-        const networkCode = this.networkIdToCode(networkId, currency['code']);
+        const networkCode = this.networkIdToCode(networkId, this.safeString(currencyResolved, 'code'));
         const networkCodeUpper = (networkCode !== undefined) ? networkCode.toUpperCase() : undefined;
         return {
             'id': this.safeString2(transaction, 'wid', 'fid'),
@@ -1911,7 +1913,7 @@ class bitso extends bitso$1["default"] {
             'addressTo': withdrawalAddress,
             'amount': this.safeNumber(transaction, 'amount'),
             'type': (withdrawId === undefined) ? 'deposit' : 'withdrawal',
-            'currency': this.safeCurrencyCode(currencyId, currency),
+            'currency': this.safeCurrencyCode(currencyId, currencyResolved),
             'status': this.parseTransactionStatus(status),
             'updated': undefined,
             'tagFrom': undefined,
@@ -1935,37 +1937,44 @@ class bitso extends bitso$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        let requestHeaders = undefined;
+        let requestBody = undefined;
         let endpoint = '/' + this.version + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
         if (method === 'GET' || method === 'DELETE') {
-            if (Object.keys(query).length) {
+            if (Object.keys(query).length > 0) {
                 endpoint += '?' + this.urlencode(query);
             }
         }
-        const url = this.urls['api']['rest'] + endpoint;
-        if (api === 'private') {
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        const url = apiUrl + endpoint;
+        if (api[0] === 'private') {
             this.checkRequiredCredentials();
-            const nonce = this.nonce().toString();
+            // bitso rejects a nonce that is not higher than the previous one (error 104)
+            const nonce = this.incrementingNonce().toString();
             endpoint = '/api' + endpoint;
-            const content = [nonce, method, endpoint];
-            let request = content.join('');
+            let request = nonce + method + endpoint;
             if (method !== 'GET' && method !== 'DELETE') {
-                if (Object.keys(query).length) {
-                    body = this.json(query);
-                    request += body;
+                if (Object.keys(query).length > 0) {
+                    const jsonBody = this.json(query);
+                    requestBody = jsonBody;
+                    request += jsonBody;
                 }
             }
             const signature = this.hmac(this.encode(request), this.encode(this.secret), sha2_js.sha256);
             const auth = this.apiKey + ':' + nonce + ':' + signature;
-            headers = {
+            requestHeaders = {
                 'Authorization': 'Bitso ' + auth,
                 // 'Content-Type': 'application/json',
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
@@ -1973,23 +1982,15 @@ class bitso extends bitso$1["default"] {
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            let success = this.safeBool(response, 'success', false);
-            if (typeof success === 'string') {
-                if ((success === 'true') || (success === '1')) {
-                    success = true;
-                }
-                else {
-                    success = false;
-                }
-            }
+            const success = this.safeBool(response, 'success', false);
             if (!success) {
                 const feedback = this.id + ' ' + this.json(response);
-                const error = this.safeValue(response, 'error');
+                const error = this.safeDict(response, 'error');
                 if (error === undefined) {
                     throw new errors.ExchangeError(feedback);
                 }
-                const code = this.safeString(error, 'code');
-                this.throwExactlyMatchedException(this.exceptions, code, feedback);
+                const codeError = this.safeString(error, 'code');
+                this.throwExactlyMatchedException(this.exceptions, codeError, feedback);
                 throw new errors.ExchangeError(feedback);
             }
         }

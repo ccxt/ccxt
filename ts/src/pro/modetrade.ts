@@ -2,17 +2,18 @@
 
 import { ed25519 } from '@noble/curves/ed25519.js';
 import modetradeRest from '../modetrade.js';
-import { AuthenticationError, NotSupported } from '../base/errors.js';
+import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market } from '../base/types.js';
+import type { Balances, Bool, Dict, Int, OHLCV, Order, OrderBook, Position, Str, Strings, Ticker, Tickers, Trade, Market, NullableDict } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
 export default class modetrade extends modetradeRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -70,7 +71,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    requestId (url: any) {
+    requestId (url: string): number {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -78,13 +79,18 @@ export default class modetrade extends modetradeRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: any, message: any) {
-        // the default id
-        let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
-        if (this.accountId !== undefined && this.accountId !== '') {
-            id = this.accountId;
+    async watchPublic (messageHash: string, message: Dict) {
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'public');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPublic() has no public websocket url');
         }
-        const url = this.urls['api']['ws']['public'] + '/' + id;
+        // the default id
+        let url = wsUrl + '/' + 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
+        if (this.accountId !== undefined && this.accountId !== '') {
+            url = wsUrl + '/' + this.accountId;
+        }
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -96,30 +102,31 @@ export default class modetrade extends modetradeRest {
     /**
      * @method
      * @name modetrade#watchOrderBook
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
      * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return.
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const orderbook: WsOrderBook = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -159,20 +166,20 @@ export default class modetrade extends modetradeRest {
     /**
      * @method
      * @name modetrade#watchTicker
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
      * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -181,7 +188,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -194,10 +201,11 @@ export default class modetrade extends modetradeRest {
         //         "count": 3689
         //     }
         //
+        const timestamp = this.safeInteger (ticker, 'timestamp');
         return this.safeTicker ({
             'symbol': this.safeSymbol (undefined, market),
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (ticker, 'high'),
             'low': this.safeString (ticker, 'low'),
             'bid': undefined,
@@ -218,7 +226,7 @@ export default class modetrade extends modetradeRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -240,8 +248,7 @@ export default class modetrade extends modetradeRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
-        data['date'] = timestamp;
-        const ticker = this.parseWsTicker (data, market);
+        const ticker = this.parseWsTicker (this.extend (data, { 'timestamp': timestamp }), market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve (ticker, topic);
@@ -251,17 +258,17 @@ export default class modetrade extends modetradeRest {
     /**
      * @method
      * @name modetrade#watchTickers
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-tickers
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-tickers
      * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -270,10 +277,10 @@ export default class modetrade extends modetradeRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
-    handleTickers (client: Client, message: any) {
+    handleTickers (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"tickers",
@@ -300,7 +307,7 @@ export default class modetrade extends modetradeRest {
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
-            const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
+            const ticker = this.parseWsTicker (this.extend (data[i], { 'timestamp': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push (ticker);
         }
@@ -310,17 +317,17 @@ export default class modetrade extends modetradeRest {
     /**
      * @method
      * @name modetrade#watchBidsAsks
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
      * @description watches best bid & ask for symbols
      * @param {string[]} symbols unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -329,10 +336,10 @@ export default class modetrade extends modetradeRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //       "topic": "bbos",
@@ -354,7 +361,7 @@ export default class modetrade extends modetradeRest {
         const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            const symbol = ticker['symbol'];
+            const symbol = this.safeString (ticker, 'symbol');
             if (symbol !== undefined) {
                 this.tickers[symbol] = ticker;
             }
@@ -363,10 +370,10 @@ export default class modetrade extends modetradeRest {
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -377,14 +384,14 @@ export default class modetrade extends modetradeRest {
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': this.safeString (ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
      * @method
      * @name modetrade#watchOHLCV
      * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
@@ -392,7 +399,7 @@ export default class modetrade extends modetradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -402,20 +409,22 @@ export default class modetrade extends modetradeRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -452,14 +461,14 @@ export default class modetrade extends modetradeRest {
             this.safeNumber (data, 'close'),
             this.safeNumber (data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const ohlcvCache = this.ohlcvs[symbol][timeframe];
+        const ohlcvCache = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         ohlcvCache.append (parsed);
         client.resolve (ohlcvCache, topic);
     }
@@ -468,33 +477,34 @@ export default class modetrade extends modetradeRest {
      * @method
      * @name modetrade#watchTrades
      * @description watches information on multiple trades made in a market
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
      * @param {string} symbol unified market symbol of the market trades were made in
      * @param {int} [since] the earliest time in ms to fetch trades for
      * @param {int} [limit] the maximum number of trade structures to retrieve
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, market['symbol'], since, limitResolved, true);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -525,7 +535,7 @@ export default class modetrade extends modetradeRest {
         client.resolve (trades, topic);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -563,8 +573,8 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -597,10 +607,10 @@ export default class modetrade extends modetradeRest {
             'type': this.safeStringLower (trade, 'type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
-    handleAuth (client: Client, message: any) {
+    handleAuth (client: Client, message: Dict) {
         //
         //     {
         //         "event": "auth",
@@ -609,7 +619,7 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success', false);
         if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
@@ -624,9 +634,15 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' authenticate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -636,8 +652,8 @@ export default class modetrade extends modetradeRest {
             const ts = this.nonce ().toString ();
             const auth = ts;
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
@@ -655,9 +671,15 @@ export default class modetrade extends modetradeRest {
         return await future;
     }
 
-    async watchPrivate (messageHash: any, message: any, params = {}) {
+    async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPrivate() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -666,9 +688,15 @@ export default class modetrade extends modetradeRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
+    async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPrivateMultiple() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -681,8 +709,8 @@ export default class modetrade extends modetradeRest {
      * @method
      * @name modetrade#watchOrders
      * @description watches information on multiple orders made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -690,37 +718,42 @@ export default class modetrade extends modetradeRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let topic: Str = 'executionreport';
+        if (trigger) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString (market, 'symbol');
+            messageHash = topic + ':' + this.safeString (market, 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
      * @method
      * @name modetrade#watchMyTrades
      * @description watches information on multiple trades made by the user
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
      * @param {int} [limit] the maximum number of order structures to retrieve
@@ -728,32 +761,37 @@ export default class modetrade extends modetradeRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, 'stop');
+        let topic: Str = 'executionreport';
+        if (trigger) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString (market, 'symbol');
+            messageHash = 'myTrades' + ':' + this.safeString (market, 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved: Int = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -821,10 +859,10 @@ export default class modetrade extends modetradeRest {
         //
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
@@ -874,7 +912,7 @@ export default class modetrade extends modetradeRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "executionreport",
@@ -905,10 +943,13 @@ export default class modetrade extends modetradeRest {
         //
         const topic = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        if (Array.isArray (data)) {
+        const dataIsArray = Array.isArray (data);
+        if (dataIsArray) {
             // algoexecutionreport
-            for (let i = 0; i < data.length; i++) {
-                const order = data[i];
+            const dataList = this.safeList (message, 'data', []);
+            const dataListLength = dataList.length;
+            for (let i = 0; i < dataListLength; i++) {
+                const order = dataList[i];
                 const tradeIdStr = this.safeString (data, 'tradeId');
                 const tradeId = (tradeIdStr === undefined) ? undefined : this.omitZero (tradeIdStr);
                 if (tradeId !== undefined) {
@@ -927,7 +968,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    handleOrder (client: Client, message: any, topic: any) {
+    handleOrder (client: Client, message: Dict, topic: Str) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -946,7 +987,7 @@ export default class modetrade extends modetradeRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    (parsed as Dict)['fees'] = fees;
+                    parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -954,12 +995,11 @@ export default class modetrade extends modetradeRest {
             }
             cachedOrders.append (parsed);
             client.resolve (this.orders, topic);
-            const messageHashSymbol = topic + ':' + symbol;
-            client.resolve (this.orders, messageHashSymbol);
+            client.resolve (this.orders, topic + ':' + symbol);
         }
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -1008,7 +1048,7 @@ export default class modetrade extends modetradeRest {
     /**
      * @method
      * @name modetrade#watchPositions
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
      * @description watch all open positions
      * @param {string[]} [symbols] list of unified market symbols
      * @param {int} [since] timestamp in ms of the earliest position to fetch
@@ -1016,28 +1056,34 @@ export default class modetrade extends modetradeRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if ((symbols !== undefined) && !this.isEmpty (symbols)) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if ((symbolsNormalized !== undefined) && !this.isEmpty (symbolsNormalized)) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const apiUrls = this.safeDict (this.urls, 'api', {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const wsUrl = this.safeString (wsUrls, 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError (this.id + ' watchPositions() has no private websocket url');
+        }
+        const url = wsUrl + '/' + this.accountId;
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
-        const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        this.setPositionsCache (client, symbolsNormalized);
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
+        const awaitPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1047,12 +1093,12 @@ export default class modetrade extends modetradeRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
-    setPositionsCache (client: Client, type: any, symbols: Strings = undefined) {
-        const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+    setPositionsCache (client: Client, symbols: Strings = undefined) {
+        const fetchPositionsSnapshot: Bool = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1063,10 +1109,10 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1075,14 +1121,14 @@ export default class modetrade extends modetradeRest {
             }
         }
         // don't remove the future from the .futures cache
-        if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+        const future = this.safeValue (client.futures, messageHash);
+        if (future !== undefined) {
             future.resolve (cache);
             client.resolve (cache, 'positions');
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        "topic":"position",
@@ -1116,26 +1162,27 @@ export default class modetrade extends modetradeRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
-            const rawPosition = rawPositions[i];
+            const rawPosition = this.safeDict (rawPositions, i);
             const marketId = this.safeString (rawPosition, 'symbol');
             const market = this.safeMarket (marketId);
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const marketSymbol = this.safeString (market, 'symbol', '');
+            const messageHash = 'positions::' + marketSymbol;
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: NullableDict, market: Market = undefined): Position {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1161,7 +1208,7 @@ export default class modetrade extends modetradeRest {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'positionQty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1169,7 +1216,7 @@ export default class modetrade extends modetradeRest {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'averageOpenPrice');
@@ -1179,7 +1226,7 @@ export default class modetrade extends modetradeRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
@@ -1212,11 +1259,11 @@ export default class modetrade extends modetradeRest {
      * @method
      * @name modetrade#watchBalance
      * @description watch balance and get the amount of funds available for trading or funds locked in orders
-     * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+     * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1230,7 +1277,7 @@ export default class modetrade extends modetradeRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client: any, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"balance",
@@ -1267,12 +1314,9 @@ export default class modetrade extends modetradeRest {
         this.balance['datetime'] = this.iso8601 (ts);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = balances[key];
+            const value = this.safeDict (balances, key);
             const code = this.safeCurrencyCode (key);
-            let account = this.account ();
-            if ((code !== undefined) && (code in this.balance)) {
-                account = this.balance[code];
-            }
+            const account = this.account ();
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
             account['total'] = total;
@@ -1286,14 +1330,14 @@ export default class modetrade extends modetradeRest {
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool (message, 'success');
+        const success = this.safeBool (message, 'success', false);
         if (success) {
             return false;
         }
@@ -1318,7 +1362,7 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         if (this.handleErrorMessage (client, message)) {
             return;
         }
@@ -1376,19 +1420,19 @@ export default class modetrade extends modetradeRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict) {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1396,7 +1440,7 @@ export default class modetrade extends modetradeRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message: any) {
+    handleSubscribe (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": "666888",

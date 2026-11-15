@@ -94,6 +94,7 @@ class hibachi extends hibachi$1["default"] {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': false,
+                'fetchOrdersByStatus': true,
                 'fetchOrderTrades': false,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -133,6 +134,7 @@ class hibachi extends hibachi$1["default"] {
                     'private': 'https://api.hibachi.xyz',
                 },
                 'www': 'https://www.hibachi.xyz/',
+                'doc': 'https://api-doc.hibachi.xyz/',
                 'referral': {
                     'url': 'https://hibachi.xyz/r/ZBL2YFWIHU',
                 },
@@ -289,6 +291,9 @@ class hibachi extends hibachi$1["default"] {
         const quote = this.safeCurrencyCode(quoteId);
         const settleId = this.safeString(market, 'settlementSymbol');
         const settle = this.safeCurrencyCode(settleId);
+        if ((base === undefined) || (quote === undefined) || (settle === undefined)) {
+            return undefined;
+        }
         const symbol = base + '/' + quote + ':' + settle;
         const created = this.safeIntegerProduct(market, 'marketCreationTimestamp', 1000);
         return this.safeMarketStructure({
@@ -318,7 +323,7 @@ class hibachi extends hibachi$1["default"] {
             'optionType': undefined,
             'precision': {
                 'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'underlyingDecimals'))),
-                'price': this.parseNumber(this.safeValue(this.safeList(market, 'orderbookGranularities', []), 0)) / 10000.0,
+                'price': this.parseNumber(Precise["default"].stringDiv(this.safeString(this.safeList(market, 'orderbookGranularities', []), 0), '10000')),
             },
             'limits': {
                 'leverage': {
@@ -535,8 +540,8 @@ class hibachi extends hibachi$1["default"] {
         //          "timestamp": 1752543391
         //      }
         const marketId = this.safeString(trade, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString(trade, 'id');
         const price = this.safeString(trade, 'price');
         const amount = this.safeString(trade, 'quantity');
@@ -578,7 +583,7 @@ class hibachi extends hibachi$1["default"] {
             'type': orderType,
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -641,8 +646,7 @@ class hibachi extends hibachi$1["default"] {
             this.publicGetMarketDataPrices(this.extend(request, params)),
             this.publicGetMarketDataStats(this.extend(request, params)),
         ];
-        const promises = await Promise.all(rawPromises);
-        const pricesResponse = promises[0];
+        const [pricesResponse, statsResponse] = await Promise.all(rawPromises);
         // {
         //     "askPrice": "3514.650296",
         //     "bidPrice": "3513.596112",
@@ -655,7 +659,6 @@ class hibachi extends hibachi$1["default"] {
         //     "symbol": "ETH/USDT-P",
         //     "tradePrice": "2372.746570"
         // }
-        const statsResponse = promises[1];
         // {
         //     "high24h": "3819.507827",
         //     "low24h": "3754.474162",
@@ -685,7 +688,7 @@ class hibachi extends hibachi$1["default"] {
     }
     parseOrder(order, market = undefined) {
         const marketId = this.safeString(order, 'symbol');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const status = this.safeString(order, 'status');
         const type = this.safeStringLower(order, 'orderType');
         const price = this.safeString2(order, 'price', 'avgFillPrice');
@@ -710,7 +713,7 @@ class hibachi extends hibachi$1["default"] {
             remainingString = Precise["default"].stringSub(totalQuantity, filled);
         }
         let timeInForce = 'GTC';
-        const orderFlags = this.safeValue(order, 'orderFlags');
+        const orderFlags = this.safeString(order, 'orderFlags');
         let postOnly = false;
         let reduceOnly = false;
         if (orderFlags === 'POST_ONLY') {
@@ -737,7 +740,7 @@ class hibachi extends hibachi$1["default"] {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': lastUpdateTimestamp,
             'status': this.parseOrderStatus(status),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -752,7 +755,7 @@ class hibachi extends hibachi$1["default"] {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'triggerPrice': this.safeNumber(order, 'triggerPrice'),
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -816,12 +819,6 @@ class hibachi extends hibachi$1["default"] {
         return result;
     }
     orderMessage(market, nonce, feeRate, type, side, amount, price = undefined) {
-        if (type === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' requires a type argument');
-        }
-        if (side === undefined) {
-            throw new errors.ArgumentsRequired(this.id + ' requires a side argument');
-        }
         let sideInternal = 0;
         if (side === 'sell') {
             sideInternal = 0;
@@ -836,8 +833,7 @@ class hibachi extends hibachi$1["default"] {
         const amountStr = this.amountToPrecision(this.safeString(market, 'symbol'), amount);
         const feeRateStr = this.numberToString(feeRate);
         const info = this.safeDict(market, 'info');
-        const underlying = '1e' + this.safeString(info, 'underlyingDecimals');
-        const settlement = '1e' + this.safeString(info, 'settlementDecimals');
+        const underlying = '1e' + this.safeString(info, 'underlyingDecimals', '');
         const one = '1';
         const feeRateFactor = '100000000'; // 10^8
         const priceFactor = '4294967296'; // 2^32
@@ -862,7 +858,7 @@ class hibachi extends hibachi$1["default"] {
         let encodedPrice = this.binaryConcat();
         if (type === 'limit') {
             const priceStr = this.priceToPrecision(this.safeString(market, 'symbol'), price);
-            const priceInternal = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(Precise["default"].stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
+            const priceInternal = Precise["default"].stringDiv(Precise["default"].stringDiv(Precise["default"].stringMul(Precise["default"].stringMul(priceStr, priceFactor), '1e' + this.safeString(info, 'settlementDecimals', '')), underlying), one, 0);
             const price16 = this.intToBase16(this.parseToInt(priceInternal));
             const pricePadded = price16.padStart(16, '0');
             // @ts-expect-error
@@ -883,7 +879,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', this.safeNumber(this.options, 'defaultMakerFee', 0.00015));
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         let sideInternal = '';
         if (side === 'sell') {
             sideInternal = 'ASK';
@@ -892,7 +888,7 @@ class hibachi extends hibachi$1["default"] {
             sideInternal = 'BID';
         }
         let priceInternal = '';
-        if (price) {
+        if ((price !== undefined) && (price !== 0)) {
             priceInternal = this.priceToPrecision(symbol, price);
         }
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
@@ -917,14 +913,14 @@ class hibachi extends hibachi$1["default"] {
         else if (timeInForce === 'ioc') {
             request['orderFlags'] = 'IOC';
         }
-        else if (reduceOnly) {
+        else if (reduceOnly === true) {
             request['orderFlags'] = 'REDUCE_ONLY';
         }
         if (triggerPrice !== undefined) {
             request['triggerPrice'] = triggerPrice;
         }
-        params = this.omit(params, ['reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
-        return this.extend(request, params);
+        const paramsOmitted = this.omit(params, ['reduceOnly', 'reduce_only', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice']);
+        return this.extend(request, paramsOmitted);
     }
     /**
      * @method
@@ -943,7 +939,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const request = this.createOrderRequest(nonce, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
         const response = await this.privatePostTradeOrder(request);
@@ -970,15 +966,16 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonceValue = this.incrementingNonce();
+        const nonce = this.parseToInt(nonceValue);
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.createOrderRequest(nonce + i, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'place';
@@ -1016,7 +1013,7 @@ class hibachi extends hibachi$1["default"] {
         const makerFee = this.safeNumber(market, 'maker', 0);
         const takerFeeValue = (takerFee === undefined) ? 0 : takerFee;
         const makerFeeValue = (makerFee === undefined) ? 0 : makerFee;
-        const feeRate = Math.max(takerFeeValue, makerFeeValue);
+        const feeRate = this.parseNumber(Precise["default"].stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -1047,7 +1044,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const request = this.editOrderRequest(nonce, id, symbol, type, side, amount, price, params);
         request['accountId'] = this.getAccountId();
         await this.privatePutTradeOrder(request);
@@ -1073,16 +1070,17 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonceValue = this.incrementingNonce();
+        const nonce = this.parseToInt(nonceValue);
         const requestOrders = [];
         for (let i = 0; i < orders.length; i++) {
-            const rawOrder = orders[i];
+            const rawOrder = this.safeDict(orders, i);
             const id = this.safeString(rawOrder, 'id');
             const symbol = this.safeString(rawOrder, 'symbol');
             const type = this.safeString(rawOrder, 'type');
             const side = this.safeString(rawOrder, 'side');
-            const amount = this.safeValue(rawOrder, 'amount');
-            const price = this.safeValue(rawOrder, 'price');
+            const amount = this.safeNumber(rawOrder, 'amount');
+            const price = this.safeNumber(rawOrder, 'price');
             const orderParams = this.safeDict(rawOrder, 'params', {});
             const orderRequest = this.editOrderRequest(nonce + i, id, symbol, type, side, amount, price, orderParams);
             orderRequest['action'] = 'modify';
@@ -1156,7 +1154,7 @@ class hibachi extends hibachi$1["default"] {
     async cancelOrders(ids, symbol = undefined, params = {}) {
         const orders = [];
         for (let i = 0; i < ids.length; i++) {
-            const orderRequest = this.cancelOrderRequest(ids[i]);
+            const orderRequest = this.cancelOrderRequest(this.safeString(ids, i, ''));
             orderRequest['action'] = 'cancel';
             orders.push(orderRequest);
         }
@@ -1193,7 +1191,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const nonce = this.nonce();
+        const nonce = this.incrementingNonce();
         const nonce16 = this.intToBase16(nonce);
         const noncePadded = nonce16.padStart(16, '0');
         const message = this.base16ToBinary(noncePadded);
@@ -1252,11 +1250,11 @@ class hibachi extends hibachi$1["default"] {
      * @param {string} code unified currency code, only support USDT
      * @param {float} amount the amount to withdraw
      * @param {string} address the address to withdraw to
-     * @param {string} tag
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.tag] memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies']
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async withdraw(code, amount, address, tag = undefined, params = {}) {
+    async withdraw(code, amount, address, params = {}) {
         const withdrawAddress = address.slice(-40);
         // Get the withdraw fees
         const exchangeInfo = await this.publicGetMarketExchangeInfo(params);
@@ -1324,8 +1322,8 @@ class hibachi extends hibachi$1["default"] {
             // For Trustless account, the key length is 66 including '0x' and we use ECDSA to sign the message
             const hash = this.hash(message, sha2_js.sha256, 'hex');
             const signature = crypto.ecdsa(hash.slice(-64), privateKey.slice(-64), secp256k1_js.secp256k1, undefined);
-            const r = signature['r'];
-            const s = signature['s'];
+            const r = this.safeString(signature, 'r', '');
+            const s = this.safeString(signature, 's', '');
             const v = this.intToBase16(signature['v']);
             return r.padStart(64, '0') + s.padStart(64, '0') + v.padStart(2, '0');
         }
@@ -1470,7 +1468,7 @@ class hibachi extends hibachi$1["default"] {
      * @description fetches all current open orders
      * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
      * @param {string} [symbol] unified market symbol to filter by
-     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [since] millisecond timestamp of the earliest order
      * @param {int} [limit] the maximum number of open orders to return
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1549,12 +1547,11 @@ class hibachi extends hibachi$1["default"] {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOrdersByStatus', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOrdersByStatus', 'until');
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.privateGetTradeOrdersHistory(this.extend(request, params));
+        const response = await this.privateGetTradeOrdersHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "hasMore": false,
@@ -1639,20 +1636,19 @@ class hibachi extends hibachi$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        timeframe = this.safeString(this.timeframes, timeframe, timeframe);
+        const timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
         const request = {
             'symbol': market['id'],
-            'interval': timeframe,
+            'interval': timeframeValue,
         };
         if (since !== undefined) {
             request['fromMs'] = since;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchOHLCV', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchOHLCV', 'until');
         if (until !== undefined) {
             request['toMs'] = until;
         }
-        const response = await this.publicGetMarketDataKlines(this.extend(request, params));
+        const response = await this.publicGetMarketDataKlines(this.extend(request, paramsUntil));
         //
         // [
         //     {
@@ -1667,7 +1663,7 @@ class hibachi extends hibachi$1["default"] {
         //   ]
         //
         const klines = this.safeList(response, 'klines', []);
-        return this.parseOHLCVs(klines, market, timeframe, since, limit);
+        return this.parseOHLCVs(klines, market, timeframeValue, since, limit);
     }
     /**
      * @method
@@ -1682,7 +1678,7 @@ class hibachi extends hibachi$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const request = {
             'accountId': this.getAccountId(),
         };
@@ -1730,7 +1726,7 @@ class hibachi extends hibachi$1["default"] {
         //   }
         //
         const data = this.safeList(response, 'positions', []);
-        return this.parsePositions(data, symbols);
+        return this.parsePositions(data, symbolsNormalized);
     }
     parsePosition(position, market = undefined) {
         //
@@ -1745,8 +1741,8 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const marketId = this.safeString(position, 'symbol');
-        market = this.safeMarket(marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market);
+        const symbol = marketResolved['symbol'];
         const side = this.safeStringLower(position, 'direction');
         const quantity = this.safeString(position, 'quantity');
         const unrealizedFunding = this.safeString(position, 'unrealizedFundingPnl', '0');
@@ -1756,11 +1752,11 @@ class hibachi extends hibachi$1["default"] {
             'info': position,
             'id': undefined,
             'symbol': symbol,
-            'entryPrice': this.safeString(position, 'average_entry_price'),
+            'entryPrice': this.safeNumber(position, 'average_entry_price'),
             'markPrice': undefined,
-            'notional': this.safeString(position, 'notionalValue'),
+            'notional': this.safeNumber(position, 'notionalValue'),
             'collateral': undefined,
-            'unrealizedPnl': unrealizedPnl,
+            'unrealizedPnl': this.parseNumber(unrealizedPnl),
             'side': side,
             'contracts': this.parseNumber(quantity),
             'contractSize': undefined,
@@ -1778,10 +1774,15 @@ class hibachi extends hibachi$1["default"] {
             'percentage': undefined,
         });
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
         const endpoint = '/' + this.implodeParams(path, params);
-        let url = this.urls['api'][api] + endpoint;
-        headers = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
+        const apiUrl = this.safeString(this.urls['api'], apiName);
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + endpoint;
+        const headersValue = { 'Hibachi-Client': 'HibachiCCXT/unversioned' };
         if (method === 'GET') {
             const request = this.omit(params, this.extractParams(path));
             const query = this.urlencode(request);
@@ -1789,30 +1790,34 @@ class hibachi extends hibachi$1["default"] {
                 url += '?' + query;
             }
         }
-        if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-            headers['Content-Type'] = 'application/json';
-            body = this.json(params);
+        const hasJsonBody = (method === 'POST' || method === 'PUT' || method === 'DELETE');
+        if (hasJsonBody) {
+            headersValue['Content-Type'] = 'application/json';
         }
-        if (api === 'private') {
+        let bodyResult = undefined;
+        if (hasJsonBody) {
+            bodyResult = this.json(params);
+        }
+        if (apiName === 'private') {
             this.checkRequiredCredentials();
-            headers['Authorization'] = this.apiKey;
+            headersValue['Authorization'] = this.apiKey;
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersValue };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined; // fallback to default error handler
         }
-        if ('status' in response) {
-            //
-            //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
-            //
-            const status = this.safeString(response, 'status');
+        const status = this.safeString(response, 'status');
+        //
+        //     {"errorCode":4,"message":"Invalid input: Invalid quantity: 0","status":"failed"}
+        //
+        if (status !== undefined) {
             if (status === 'failed') {
-                const code = this.safeString(response, 'errorCode');
+                const codeError = this.safeString(response, 'errorCode');
                 const feedback = this.id + ' ' + body;
                 this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwExactlyMatchedException(this.exceptions['exact'], codeError, feedback);
                 const message = this.safeString(response, 'message');
                 this.throwExactlyMatchedException(this.exceptions['exact'], message, feedback);
                 throw new errors.ExchangeError(feedback);
@@ -1919,7 +1924,7 @@ class hibachi extends hibachi$1["default"] {
             this.privateGetTradeAccountTradingHistory(this.extend(request, params)),
         ];
         const promises = await Promise.all(rawPromises);
-        const responseCapitalHistory = promises[0];
+        const responseCapitalHistory = this.safeDict(promises, 0);
         //
         // {
         //     "transactions": [
@@ -1974,7 +1979,7 @@ class hibachi extends hibachi$1["default"] {
         // }
         //
         const rowsCapitalHistory = this.safeList(responseCapitalHistory, 'transactions', []);
-        const responseTradingHistory = promises[1];
+        const responseTradingHistory = this.safeDict(promises, 1);
         //
         // {
         //     "tradingHistory": [
@@ -2192,10 +2197,11 @@ class hibachi extends hibachi$1["default"] {
         const request = {
             'accountId': this.getAccountId(),
         };
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             market = this.market(symbol);
             request['contractId'] = market['numericId'];
-            symbol = market['symbol'];
+            symbolResolved = this.safeString(market, 'symbol');
         }
         if (since !== undefined) {
             request['startTime'] = this.parseToInt(since / 1000);
@@ -2203,12 +2209,11 @@ class hibachi extends hibachi$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let until = undefined;
-        [until, params] = this.handleOptionAndParams(params, 'fetchMySettlementHistory', 'until');
+        const [until, paramsUntil] = this.handleOptionIntegerAndParams(params, 'fetchMySettlementHistory', 'until');
         if (until !== undefined) {
             request['endTime'] = this.parseToInt(until / 1000);
         }
-        const response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, params));
+        const response = await this.privateGetTradeAccountSettlementsHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "settlements": [
@@ -2227,7 +2232,7 @@ class hibachi extends hibachi$1["default"] {
         const data = this.safeList(response, 'settlements', []);
         const settlements = this.parseSettlements(data, market);
         const sorted = this.sortBy(settlements, 'timestamp');
-        return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
+        return this.filterBySymbolSinceLimit(sorted, symbolResolved, since, limit);
     }
     /**
      * @method

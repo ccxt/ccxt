@@ -1,6 +1,6 @@
 Every endpoint in `lighter`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/lighter) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `rootGet`); the snake_case alias (`root_get_`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`RootGet`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `rootGet`); Python and PHP use the snake_case form (`root_get_`), and Go uses the PascalCase form (`RootGet`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official lighter API documentation:** [apidocs.lighter.xyz](https://apidocs.lighter.xyz/)
 
-> 46 implicit endpoints across 3 access groups.
+> 59 implicit endpoints across 3 access groups.
 
 ## root
 
@@ -91,10 +91,14 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetBlocks` | GET | `blocks` | 1 |
 | `publicGetCurrentHeight` | GET | `currentHeight` | 1 |
 | `publicGetCandles` | GET | `candles` | 1 |
+| `publicGetMarkPriceCandles` | GET | `markPriceCandles` | 1 |
 | `publicGetFundings` | GET | `fundings` | 1 |
 | `publicGetFastbridgeInfo` | GET | `fastbridge/info` | 1 |
 | `publicGetFundingRates` | GET | `funding-rates` | 1 |
 | `publicGetWithdrawalDelay` | GET | `withdrawalDelay` | 1 |
+| `publicGetPartnerStats` | GET | `partnerStats` | 1 |
+| `publicGetSyntheticSpotInfo` | GET | `syntheticSpotInfo` | 1 |
+| `publicGetTokenlist` | GET | `tokenlist` | 1 |
 | `publicPostSendTx` | POST | `sendTx` | 1 |
 | `publicPostSendTxBatch` | POST | `sendTxBatch` | 1 |
 
@@ -111,9 +115,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetLiquidations` | GET | `liquidations` | 1 |
 | `privateGetPositionFunding` | GET | `positionFunding` | 1 |
 | `privateGetPublicPoolsMetadata` | GET | `publicPoolsMetadata` | 1 |
+| `privateGetGetMakerOnlyApiKeys` | GET | `getMakerOnlyApiKeys` | 1 |
 | `privateGetAccountActiveOrders` | GET | `accountActiveOrders` | 1 |
 | `privateGetAccountInactiveOrders` | GET | `accountInactiveOrders` | 1 |
+| `privateGetAccountOrders` | GET | `accountOrders` | 1 |
 | `privateGetExport` | GET | `export` | 1 |
+| `privateGetExportHistoricalTrades` | GET | `export/historicalTrades` | 1 |
 | `privateGetTrades` | GET | `trades` | 1 |
 | `privateGetAccountTxs` | GET | `accountTxs` | 1 |
 | `privateGetDepositHistory` | GET | `deposit/history` | 1 |
@@ -121,6 +128,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetWithdrawHistory` | GET | `withdraw/history` | 1 |
 | `privateGetReferralPoints` | GET | `referral/points` | 1 |
 | `privateGetTransferFeeInfo` | GET | `transferFeeInfo` | 1 |
+| `privateGetRfqGet` | GET | `rfq/get` | 1 |
+| `privateGetRfqList` | GET | `rfq/list` | 1 |
 | `privatePostChangeAccountTier` | POST | `changeAccountTier` | 1 |
+| `privatePostSetMakerOnlyApiKeys` | POST | `setMakerOnlyApiKeys` | 1 |
 | `privatePostNotificationAck` | POST | `notification/ack` | 1 |
+| `privatePostRfqCreate` | POST | `rfq/create` | 1 |
+| `privatePostRfqRespond` | POST | `rfq/respond` | 1 |
+| `privatePostRfqUpdate` | POST | `rfq/update` | 1 |
 

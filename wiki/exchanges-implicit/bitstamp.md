@@ -1,6 +1,6 @@
 Every endpoint in `bitstamp`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitstamp) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetOhlcPair`); the snake_case alias (`public_get_ohlc_pair`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetOhlcPair`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetOhlcPair`); Python and PHP use the snake_case form (`public_get_ohlc_pair`), and Go uses the PascalCase form (`PublicGetOhlcPair`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitstamp API documentation:** [bitstamp.net](https://www.bitstamp.net/api)
 
-> 263 implicit endpoints across 2 access groups.
+> 274 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -76,6 +76,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTravelRuleVasps` | GET | `travel_rule/vasps/` | 1 |
 | `publicGetFundingRateMarketSymbol` | GET | `funding_rate/{market_symbol}/` | 1 |
 | `publicGetFundingRateHistoryPair` | GET | `funding_rate_history/{pair}/` | 1 |
+| `publicGetDerivativesMarketHours` | GET | `derivatives/market_hours/` | 1 |
+| `publicGetDerivativesMarketHoursMarketSymbol` | GET | `derivatives/market_hours/{market_symbol}/` | 1 |
 
 ## private
 
@@ -85,6 +87,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `privateGetTravelRuleContacts` | GET | `travel_rule/contacts/` | 1 |
 | `privateGetContactsContactUuid` | GET | `contacts/{contact_uuid}/` | 1 |
+| `privateGetTravelRuleUtxoXpubRegistrations` | GET | `travel_rule/utxo/xpub_registrations/` | 1 |
+| `privateGetTravelRuleUtxoXpubRegistrationsRegistrationId` | GET | `travel_rule/utxo/xpub_registrations/{registration_id}/` | 1 |
+| `privateGetTravelRuleAddressVerification` | GET | `travel_rule/address_verification/` | 1 |
+| `privateGetCryptoTransactionsDeposits` | GET | `crypto-transactions/deposits/` | 1 |
 | `privateGetEarnSubscriptions` | GET | `earn/subscriptions/` | 1 |
 | `privateGetEarnTransactions` | GET | `earn/transactions/` | 1 |
 | `privateGetTradeHistory` | GET | `trade_history/` | 1 |
@@ -98,6 +104,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostUserTransactions` | POST | `user_transactions/` | 1 |
 | `privatePostUserTransactionsPair` | POST | `user_transactions/{pair}/` | 1 |
 | `privatePostCryptoTransactions` | POST | `crypto-transactions/` | 1 |
+| `privatePostCryptoTransactionsDepositsDepositIdReject` | POST | `crypto-transactions/deposits/{deposit_id}/reject/` | 1 |
 | `privatePostOpenOrder` | POST | `open_order` | 1 |
 | `privatePostOpenOrdersAll` | POST | `open_orders/all/` | 1 |
 | `privatePostOpenOrdersPair` | POST | `open_orders/{pair}/` | 1 |
@@ -129,6 +136,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostWebsocketsToken` | POST | `websockets_token/` | 1 |
 | `privatePostRevokeAllApiKeys` | POST | `revoke_all_api_keys/` | 1 |
 | `privatePostGetMaxOrderAmount` | POST | `get_max_order_amount/` | 1 |
+| `privatePostOrderData` | POST | `order_data/` | 1 |
+| `privatePostAccountOrderData` | POST | `account_order_data/` | 1 |
 | `privatePostBtcWithdrawal` | POST | `btc_withdrawal/` | 1 |
 | `privatePostBtcAddress` | POST | `btc_address/` | 1 |
 | `privatePostRippleWithdrawal` | POST | `ripple_withdrawal/` | 1 |
@@ -292,6 +301,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostLdoWithdrawal` | POST | `ldo_withdrawal/` | 1 |
 | `privatePostLdoAddress` | POST | `ldo_address/` | 1 |
 | `privatePostTravelRuleContacts` | POST | `travel_rule/contacts/` | 1 |
+| `privatePostTravelRuleUtxoXpubRegistrations` | POST | `travel_rule/utxo/xpub_registrations/` | 1 |
+| `privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke` | POST | `travel_rule/utxo/xpub_registrations/{registration_id}/revoke/` | 1 |
 | `privatePostEarnSubscribe` | POST | `earn/subscribe/` | 1 |
 | `privatePostEarnSubscriptionsSetting` | POST | `earn/subscriptions/setting/` | 1 |
 | `privatePostEarnUnsubscribe` | POST | `earn/unsubscribe` | 1 |

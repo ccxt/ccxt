@@ -12,7 +12,7 @@ import ccxt from '../../../ccxt.js';
 // will try to place a buy order at the minimum price level on minimum amount possible
 // will skip if balance is positive or market limits are not set
 export default async (exchange, symbol, balance) => {
-    if (!exchange.has.createOrder) {
+    if ((exchange.has['createOrder'] === undefined) || (exchange.has['createOrder'] === false)) {
         console.log('createOrder() is not supported');
         return;
     }

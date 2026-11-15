@@ -93,11 +93,14 @@ ARG PLAYGROUND_DISABLED=""
 ENV PLAYGROUND_DISABLED=${PLAYGROUND_DISABLED} \
     NEXT_PUBLIC_PLAYGROUND_DISABLED=${PLAYGROUND_DISABLED}
 
-# Python/PHP/C# resolve "latest" ccxt, so a cached layer pins whatever was
+# Python/PHP/C#/JS resolve "latest" ccxt, so a cached layer pins whatever was
 # current when it was built. Change this value to force a re-resolve; the deploy
-# workflow passes an ISO week, refreshing the runtimes weekly.
+# workflow passes an ISO week, refreshing the runtimes weekly. The npm step
+# upgrades the app's ccxt in the same layer; --no-save keeps package.json and
+# the lockfile untouched so every other dep stays `npm ci` reproducible.
 ARG RUNTIMES_REV=""
-RUN RUNTIMES_REV="$RUNTIMES_REV" bash scripts/setup-runtimes.sh
+RUN RUNTIMES_REV="$RUNTIMES_REV" bash scripts/setup-runtimes.sh \
+ && npm install ccxt@latest --no-save
 
 # --- App source + Next build (seconds, and a small layer) --------------------
 COPY --chown=playground:playground . .

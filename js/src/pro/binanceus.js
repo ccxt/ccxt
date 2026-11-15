@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import binance from './binance.js';
+import binance from '../abstract/pro/binanceus.js';
 import binanceusRest from '../binanceus.js';
 // ---------------------------------------------------------------------------
 export default class binanceus extends binance {

@@ -1,6 +1,6 @@
 # CCXT Usage Skills
 
-This directory contains **six language-specific skills** plus a **CLI skill** to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
+This directory contains **seven language-specific skills** plus **CLI** and **MCP** skills to help developers **use CCXT** in their own projects. These skills provide comprehensive guides for installing CCXT, connecting to exchanges, fetching market data, placing orders, handling authentication, managing errors, and using both REST and WebSocket APIs.
 
 ## Available Skills
 
@@ -70,7 +70,20 @@ Java skill covering:
 
 **Invoke with:** `/ccxt-java`
 
-### 7. ccxt-cli
+### 7. ccxt-rust
+Rust skill covering:
+- Installation via cargo (`ccxt`, `ccxt-pro`, `ccxt-prediction` crates)
+- Typed wrapper pattern (`ccxt::Binance` returning `Result<T, ExchangeError>`)
+- REST API with typed returns (Ticker, Vec\<Trade\>, OrderBook)
+- WebSocket API (`ccxt_pro::Binance::watch_*`, one decoded update per call)
+- `Config` / `Params` builders — no dynamic values at the call site
+- Runtime setup (tokio, worker-thread stack size, panic hook)
+- Error handling with the unified hierarchy (`ExchangeError::is`)
+- Untyped escape hatch (`raw`, `Deref` to the core, `call_raw`)
+
+**Invoke with:** `/ccxt-rust`
+
+### 8. ccxt-cli
 Command-line interface skill covering:
 - Installation via npm (`ccxt-cli` package)
 - Calling any unified CCXT method from the terminal
@@ -81,6 +94,18 @@ Command-line interface skill covering:
 - Scripting with `--raw` JSON output
 
 **Invoke with:** `/ccxt-cli`
+
+### 9. ccxt-mcp
+MCP server skill covering:
+- Installing the official CCXT MCP server in Claude Desktop/Code, Cursor, VS Code and other MCP hosts
+- Configuring named accounts and API keys (kept local, never seen by the model)
+- Capability tiers and the trading safety rails
+- Sandbox/testnet trading
+- Driving the tools for market data, balances, orders and prediction markets
+
+This is documentation *about* the MCP server, not the server itself.
+
+**Invoke with:** `/ccxt-mcp`
 
 ## Common Features Across All Skills
 
@@ -120,6 +145,7 @@ bash install-skills.sh --all
 # Install specific skills
 bash install-skills.sh --typescript
 bash install-skills.sh --python --go
+bash install-skills.sh --rust
 ```
 
 ### Option 2: Manual Installation
@@ -127,9 +153,11 @@ bash install-skills.sh --python --go
 Copy individual skill directories to `~/.claude/skills/` or `~/.opencode/skills/`:
 
 ```bash
-cp -r .claude/skills/ccxt-typescript ~/.claude/skills/
-cp -r .claude/skills/ccxt-python ~/.claude/skills/
-# ... etc
+# Copy every ccxt-* skill into each assistant's skills directory
+for dir in ~/.claude/skills ~/.opencode/skills ~/skills ~/.gemini/skills; do
+    mkdir -p "$dir"
+    cp -r .claude/skills/ccxt-* "$dir/"
+done
 ```
 
 ## Usage
@@ -143,7 +171,9 @@ Once installed, you can invoke skills in Claude Code or OpenCode:
 /ccxt-csharp
 /ccxt-go
 /ccxt-java
+/ccxt-rust
 /ccxt-cli
+/ccxt-mcp
 ```
 
 Or simply ask questions:
@@ -151,6 +181,7 @@ Or simply ask questions:
 - "Show me how to fetch a ticker in TypeScript"
 - "How do I create a limit order in PHP?"
 - "How do I watch live orderbook updates in Go?"
+- "How do I stream trades over WebSocket in Rust?"
 
 ## Example Code Structure
 

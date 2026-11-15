@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetMarketExchangeInfo(params?: {}): Promise<Dict>;
     publicGetMarketInventory(params?: {}): Promise<Dict>;
     publicGetMarketDataPrices(params?: {}): Promise<Dict>;
@@ -29,7 +29,5 @@ interface Exchange {
     privatePostCapitalWithdraw(params?: {}): Promise<Dict>;
     privatePostCapitalTransfer(params?: {}): Promise<Dict>;
     privatePostTradeAccountLeverage(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

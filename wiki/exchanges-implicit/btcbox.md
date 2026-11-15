@@ -1,6 +1,6 @@
 Every endpoint in `btcbox`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/btcbox) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepth`); the snake_case alias (`public_get_depth`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetDepth`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetDepth`); Python and PHP use the snake_case form (`public_get_depth`), and Go uses the PascalCase form (`PublicGetDepth`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official btcbox API documentation:** [blog.btcbox.jp](https://blog.btcbox.jp/en/archives/8762)
 
-> 11 implicit endpoints across 3 access groups.
+> 12 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -71,6 +71,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privatePostBalance` | POST | `balance` | 1 |
+| `privatePostOrderHistory` | POST | `order_history` | 1 |
 | `privatePostTradeAdd` | POST | `trade_add` | 1 |
 | `privatePostTradeCancel` | POST | `trade_cancel` | 1 |
 | `privatePostTradeList` | POST | `trade_list` | 1 |

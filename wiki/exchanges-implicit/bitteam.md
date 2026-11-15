@@ -1,6 +1,6 @@
 Every endpoint in `bitteam`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/bitteam) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `historyGetApiTwHistoryPairNameResolution`); the snake_case alias (`history_get_api_tw_history_pairname_resolution`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`HistoryGetApiTwHistoryPairNameResolution`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `historyGetApiTwHistoryPairNameResolution`); Python and PHP use the snake_case form (`history_get_api_tw_history_pairname_resolution`), and Go uses the PascalCase form (`HistoryGetApiTwHistoryPairNameResolution`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bitteam API documentation:** [bit.team](https://bit.team/trade/api/documentation)
 
-> 25 implicit endpoints across 3 access groups.
+> 26 implicit endpoints across 3 access groups.
 
 ## history
 
@@ -79,6 +79,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetTradeApiPairs` | GET | `trade/api/pairs` | 1 |
 | `publicGetTradeApiPairsPrecisions` | GET | `trade/api/pairs/precisions` | 1 |
 | `publicGetTradeApiRates` | GET | `trade/api/rates` | 1 |
+| `publicGetTradeApiStats` | GET | `trade/api/stats` | 1 |
 | `publicGetTradeApiTradeId` | GET | `trade/api/trade/{id}` | 1 |
 | `publicGetTradeApiTrades` | GET | `trade/api/trades` | 1 |
 | `publicGetTradeApiCcxtPairs` | GET | `trade/api/ccxt/pairs` | 1 |

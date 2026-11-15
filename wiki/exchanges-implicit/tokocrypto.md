@@ -1,6 +1,6 @@
 Every endpoint in `tokocrypto`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/tokocrypto) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `binanceGetPing`); the snake_case alias (`binance_get_ping`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`BinanceGetPing`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `binanceGetPing`); Python and PHP use the snake_case form (`binance_get_ping`), and Go uses the PascalCase form (`BinanceGetPing`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official tokocrypto API documentation:** [tokocrypto.com](https://www.tokocrypto.com/apidocs/)
 
-> 33 implicit endpoints across 3 access groups.
+> 35 implicit endpoints across 3 access groups.
 
 ## binance
 
@@ -72,6 +72,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `binanceGetTickerPrice` | GET | `ticker/price` | 1 |
 | `binanceGetTickerBookTicker` | GET | `ticker/bookTicker` | 1 |
 | `binanceGetExchangeInfo` | GET | `exchangeInfo` | 10 |
+| `binanceGetExecutionRules` | GET | `executionRules` | 2 |
 | `binancePutUserDataStream` | PUT | `userDataStream` | 1 |
 | `binancePostUserDataStream` | POST | `userDataStream` | 1 |
 | `binanceDeleteUserDataStream` | DELETE | `userDataStream` | 1 |
@@ -104,4 +105,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOpenV1OrdersOco` | POST | `open/v1/orders/oco` | 1 |
 | `privatePostOpenV1Withdraws` | POST | `open/v1/withdraws` | 1 |
 | `privatePostOpenV1UserDataStream` | POST | `open/v1/user-data-stream` | 1 |
+| `privatePostOpenV1UserListenToken` | POST | `open/v1/user-listen-token` | 1 |
 

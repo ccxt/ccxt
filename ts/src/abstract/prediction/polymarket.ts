@@ -8,136 +8,518 @@
 import { List, Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
-interface Exchange {
-    gammaPublicGetStatus (params?: {}): Promise<string>;
-    gammaPublicGetComments (params?: {}): Promise<List>;
-    gammaPublicGetCommentsId (params?: {}): Promise<List>;
-    gammaPublicGetCommentsUserAddressUserAddress (params?: {}): Promise<List>;
-    gammaPublicGetEvents (params?: {}): Promise<List>;
-    gammaPublicGetEventsCreators (params?: {}): Promise<List>;
-    gammaPublicGetEventsCreatorsId (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsKeyset (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsPagination (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsResults (params?: {}): Promise<List>;
-    gammaPublicGetEventsSlugSlug (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsId (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsIdCommentsCount (params?: {}): Promise<Dict>;
-    gammaPublicGetEventsIdTags (params?: {}): Promise<List>;
-    gammaPublicGetEventsIdTweetCount (params?: {}): Promise<Dict>;
-    gammaPublicGetMarkets (params?: {}): Promise<List>;
-    gammaPublicGetMarketsKeyset (params?: {}): Promise<Dict>;
-    gammaPublicGetMarketsSlugSlug (params?: {}): Promise<Dict>;
-    gammaPublicGetMarketsId (params?: {}): Promise<Dict>;
-    gammaPublicGetMarketsIdDescription (params?: {}): Promise<Dict>;
-    gammaPublicGetMarketsIdTags (params?: {}): Promise<List>;
-    gammaPublicGetProfilesUserAddressUserAddress (params?: {}): Promise<Dict>;
-    gammaPublicGetPublicProfile (params?: {}): Promise<Dict>;
-    gammaPublicGetPublicSearch (params?: {}): Promise<Dict>;
-    gammaPublicGetSeries (params?: {}): Promise<List>;
-    gammaPublicGetSeriesSummarySlugSlug (params?: {}): Promise<Dict>;
-    gammaPublicGetSeriesSummaryId (params?: {}): Promise<Dict>;
-    gammaPublicGetSeriesId (params?: {}): Promise<Dict>;
-    gammaPublicGetSeriesIdCommentsCount (params?: {}): Promise<Dict>;
-    gammaPublicGetSports (params?: {}): Promise<List>;
-    gammaPublicGetSportsMarketTypes (params?: {}): Promise<Dict>;
-    gammaPublicGetTags (params?: {}): Promise<List>;
-    gammaPublicGetTagsSlugSlug (params?: {}): Promise<Dict>;
-    gammaPublicGetTagsSlugSlugRelatedTags (params?: {}): Promise<List>;
-    gammaPublicGetTagsSlugSlugRelatedTagsTags (params?: {}): Promise<List>;
-    gammaPublicGetTagsId (params?: {}): Promise<Dict>;
-    gammaPublicGetTagsIdRelatedTags (params?: {}): Promise<List>;
-    gammaPublicGetTagsIdRelatedTagsTags (params?: {}): Promise<List>;
-    gammaPublicGetTeams (params?: {}): Promise<List>;
-    gammaPublicGetTeamsId (params?: {}): Promise<Dict>;
-    gammaPublicPostMarketsAbridged (params?: {}): Promise<List>;
-    gammaPublicPostMarketsInformation (params?: {}): Promise<List>;
-    clobPublicGetBook (params?: {}): Promise<Dict>;
-    clobPublicGetBooks (params?: {}): Promise<List>;
-    clobPublicGetBuilderTrades (params?: {}): Promise<Dict>;
-    clobPublicGetClobMarketsConditionId (params?: {}): Promise<Dict>;
-    clobPublicGetFeeRate (params?: {}): Promise<Dict>;
-    clobPublicGetFeeRateTokenId (params?: {}): Promise<Dict>;
-    clobPublicGetLastTradePrice (params?: {}): Promise<Dict>;
-    clobPublicGetLastTradesPrices (params?: {}): Promise<List>;
-    clobPublicGetMarketsByTokenTokenId (params?: {}): Promise<Dict>;
-    clobPublicGetMarketsLiveActivityConditionId (params?: {}): Promise<Dict>;
-    clobPublicGetMidpoint (params?: {}): Promise<Dict>;
-    clobPublicGetMidpoints (params?: {}): Promise<Dict>;
-    clobPublicGetNegRisk (params?: {}): Promise<Dict>;
-    clobPublicGetNegRiskTokenId (params?: {}): Promise<Dict>;
-    clobPublicGetPrice (params?: {}): Promise<Dict>;
-    clobPublicGetPrices (params?: {}): Promise<Dict>;
-    clobPublicGetPricesHistory (params?: {}): Promise<Dict>;
-    clobPublicGetRebatesCurrent (params?: {}): Promise<List>;
-    clobPublicGetRewardsMarketsCurrent (params?: {}): Promise<Dict>;
-    clobPublicGetRewardsMarketsMulti (params?: {}): Promise<Dict>;
-    clobPublicGetRewardsMarketsConditionId (params?: {}): Promise<Dict>;
-    clobPublicGetSamplingMarkets (params?: {}): Promise<Dict>;
-    clobPublicGetSamplingSimplifiedMarkets (params?: {}): Promise<Dict>;
-    clobPublicGetSimplifiedMarkets (params?: {}): Promise<Dict>;
-    clobPublicGetSpread (params?: {}): Promise<Dict>;
-    clobPublicGetTickSize (params?: {}): Promise<Dict>;
-    clobPublicGetTickSizeTokenId (params?: {}): Promise<Dict>;
-    clobPublicGetTime (params?: {}): Promise<string>;
-    clobPublicPostBatchPricesHistory (params?: {}): Promise<Dict>;
-    clobPublicPostBooks (params?: {}): Promise<List>;
-    clobPublicPostLastTradesPrices (params?: {}): Promise<List>;
-    clobPublicPostMarketsLiveActivity (params?: {}): Promise<List>;
-    clobPublicPostMidpoints (params?: {}): Promise<Dict>;
-    clobPublicPostPrices (params?: {}): Promise<Dict>;
-    clobPublicPostSpreads (params?: {}): Promise<Dict>;
-    clobPrivateGetAuthApiKeys (params?: {}): Promise<Dict>;
-    clobPrivateGetAuthBanStatusClosedOnly (params?: {}): Promise<Dict>;
-    clobPrivateGetAuthBuilderApiKey (params?: {}): Promise<List>;
-    clobPrivateGetAuthDeriveApiKey (params?: {}): Promise<Dict>;
-    clobPrivateGetBalanceAllowance (params?: {}): Promise<Dict>;
-    clobPrivateGetBalanceAllowanceUpdate (params?: {}): Promise<Dict>;
-    clobPrivateGetDataOrderId (params?: {}): Promise<Dict>;
-    clobPrivateGetDataOrders (params?: {}): Promise<Dict>;
-    clobPrivateGetDataTrades (params?: {}): Promise<Dict>;
-    clobPrivateGetNotifications (params?: {}): Promise<List>;
-    clobPrivateGetOrderScoring (params?: {}): Promise<Dict>;
-    clobPrivateGetOrdersScoring (params?: {}): Promise<Dict>;
-    clobPrivateGetRewardsUser (params?: {}): Promise<Dict>;
-    clobPrivateGetRewardsUserMarkets (params?: {}): Promise<Dict>;
-    clobPrivateGetRewardsUserPercentages (params?: {}): Promise<Dict>;
-    clobPrivateGetRewardsUserTotal (params?: {}): Promise<List>;
-    clobPrivatePostAuthApiKey (params?: {}): Promise<Dict>;
-    clobPrivatePostAuthBuilderApiKey (params?: {}): Promise<Dict>;
-    clobPrivatePostHeartbeats (params?: {}): Promise<Dict>;
-    clobPrivatePostOrder (params?: {}): Promise<Dict>;
-    clobPrivatePostOrders (params?: {}): Promise<List>;
-    clobPrivatePostV1Heartbeats (params?: {}): Promise<Dict>;
-    clobPrivateDeleteAuthApiKey (params?: {}): Promise<string>;
-    clobPrivateDeleteAuthBuilderApiKey (params?: {}): Promise<string>;
-    clobPrivateDeleteCancelAll (params?: {}): Promise<Dict>;
-    clobPrivateDeleteCancelMarketOrders (params?: {}): Promise<Dict>;
-    clobPrivateDeleteNotifications (params?: {}): Promise<string>;
-    clobPrivateDeleteOrder (params?: {}): Promise<Dict>;
-    clobPrivateDeleteOrders (params?: {}): Promise<Dict>;
-    dataPublicGetActivity (params?: {}): Promise<List>;
-    dataPublicGetClosedPositions (params?: {}): Promise<List>;
-    dataPublicGetHolders (params?: {}): Promise<List>;
-    dataPublicGetLiveVolume (params?: {}): Promise<List>;
-    dataPublicGetOi (params?: {}): Promise<List>;
-    dataPublicGetOther (params?: {}): Promise<List>;
-    dataPublicGetPositions (params?: {}): Promise<Dict>;
-    dataPublicGetRevisions (params?: {}): Promise<List>;
-    dataPublicGetTraded (params?: {}): Promise<Dict>;
-    dataPublicGetTrades (params?: {}): Promise<Dict>;
-    dataPublicGetV1AccountingSnapshot (params?: {}): Promise<Dict>;
-    dataPublicGetV1ActivityCombos (params?: {}): Promise<Dict>;
-    dataPublicGetV1BuildersLeaderboard (params?: {}): Promise<List>;
-    dataPublicGetV1BuildersVolume (params?: {}): Promise<List>;
-    dataPublicGetV1Leaderboard (params?: {}): Promise<List>;
-    dataPublicGetV1MarketPositions (params?: {}): Promise<List>;
-    dataPublicGetV1PositionsCombos (params?: {}): Promise<Dict>;
-    dataPublicGetValue (params?: {}): Promise<List>;
-    combosPublicGetV1RfqComboMarkets (params?: {}): Promise<Dict>;
-    combosPrivatePostV1MakerConfirmations (params?: {}): Promise<Dict>;
-    combosPrivatePostV1MakerQuotes (params?: {}): Promise<Dict>;
-    combosPrivatePostV1MakerQuotesCancel (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    gammaPublicGetStatus (params = {}): Promise<string> {
+        return this.request ('status', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    gammaPublicGetComments (params = {}): Promise<List> {
+        return this.request ('comments', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetCommentsId (params = {}): Promise<List> {
+        return this.request ('comments/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetCommentsUserAddressUserAddress (params = {}): Promise<List> {
+        return this.request ('comments/user_address/{user_address}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEvents (params = {}): Promise<List> {
+        return this.request ('events', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsCreators (params = {}): Promise<List> {
+        return this.request ('events/creators', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsCreatorsId (params = {}): Promise<Dict> {
+        return this.request ('events/creators/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsKeyset (params = {}): Promise<Dict> {
+        return this.request ('events/keyset', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsPagination (params = {}): Promise<Dict> {
+        return this.request ('events/pagination', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsResults (params = {}): Promise<List> {
+        return this.request ('events/results', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsSlugSlug (params = {}): Promise<Dict> {
+        return this.request ('events/slug/{slug}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsId (params = {}): Promise<Dict> {
+        return this.request ('events/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsIdCommentsCount (params = {}): Promise<Dict> {
+        return this.request ('events/{id}/comments/count', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsIdTags (params = {}): Promise<List> {
+        return this.request ('events/{id}/tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetEventsIdTweetCount (params = {}): Promise<Dict> {
+        return this.request ('events/{id}/tweet-count', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarkets (params = {}): Promise<List> {
+        return this.request ('markets', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarketsKeyset (params = {}): Promise<Dict> {
+        return this.request ('markets/keyset', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarketsSlugSlug (params = {}): Promise<Dict> {
+        return this.request ('markets/slug/{slug}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarketsId (params = {}): Promise<Dict> {
+        return this.request ('markets/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarketsIdDescription (params = {}): Promise<Dict> {
+        return this.request ('markets/{id}/description', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetMarketsIdTags (params = {}): Promise<List> {
+        return this.request ('markets/{id}/tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetProfilesUserAddressUserAddress (params = {}): Promise<Dict> {
+        return this.request ('profiles/user_address/{user_address}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetPublicProfile (params = {}): Promise<Dict> {
+        return this.request ('public-profile', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetPublicSearch (params = {}): Promise<Dict> {
+        return this.request ('public-search', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSeries (params = {}): Promise<List> {
+        return this.request ('series', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSeriesSummarySlugSlug (params = {}): Promise<Dict> {
+        return this.request ('series-summary/slug/{slug}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSeriesSummaryId (params = {}): Promise<Dict> {
+        return this.request ('series-summary/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSeriesId (params = {}): Promise<Dict> {
+        return this.request ('series/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSeriesIdCommentsCount (params = {}): Promise<Dict> {
+        return this.request ('series/{id}/comments/count', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSports (params = {}): Promise<List> {
+        return this.request ('sports', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetSportsMarketTypes (params = {}): Promise<Dict> {
+        return this.request ('sports/market-types', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTags (params = {}): Promise<List> {
+        return this.request ('tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsSlugSlug (params = {}): Promise<Dict> {
+        return this.request ('tags/slug/{slug}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsSlugSlugRelatedTags (params = {}): Promise<List> {
+        return this.request ('tags/slug/{slug}/related-tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsSlugSlugRelatedTagsTags (params = {}): Promise<List> {
+        return this.request ('tags/slug/{slug}/related-tags/tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsId (params = {}): Promise<Dict> {
+        return this.request ('tags/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsIdRelatedTags (params = {}): Promise<List> {
+        return this.request ('tags/{id}/related-tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTagsIdRelatedTagsTags (params = {}): Promise<List> {
+        return this.request ('tags/{id}/related-tags/tags', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTeams (params = {}): Promise<List> {
+        return this.request ('teams', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicGetTeamsId (params = {}): Promise<Dict> {
+        return this.request ('teams/{id}', [ 'gamma', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    gammaPublicPostMarketsAbridged (params = {}): Promise<List> {
+        return this.request ('markets/abridged', [ 'gamma', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    gammaPublicPostMarketsInformation (params = {}): Promise<List> {
+        return this.request ('markets/information', [ 'gamma', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicGetBook (params = {}): Promise<Dict> {
+        return this.request ('book', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetBooks (params = {}): Promise<List> {
+        return this.request ('books', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetBuilderTrades (params = {}): Promise<Dict> {
+        return this.request ('builder/trades', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetClobMarketsConditionId (params = {}): Promise<Dict> {
+        return this.request ('clob-markets/{condition_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetFeeRate (params = {}): Promise<Dict> {
+        return this.request ('fee-rate', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetFeeRateTokenId (params = {}): Promise<Dict> {
+        return this.request ('fee-rate/{token_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetLastTradePrice (params = {}): Promise<Dict> {
+        return this.request ('last-trade-price', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetLastTradesPrices (params = {}): Promise<List> {
+        return this.request ('last-trades-prices', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetMarketsByTokenTokenId (params = {}): Promise<Dict> {
+        return this.request ('markets-by-token/{token_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetMarketsLiveActivityConditionId (params = {}): Promise<Dict> {
+        return this.request ('markets/live-activity/{condition_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetMidpoint (params = {}): Promise<Dict> {
+        return this.request ('midpoint', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetMidpoints (params = {}): Promise<Dict> {
+        return this.request ('midpoints', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetNegRisk (params = {}): Promise<Dict> {
+        return this.request ('neg-risk', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetNegRiskTokenId (params = {}): Promise<Dict> {
+        return this.request ('neg-risk/{token_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetPrice (params = {}): Promise<Dict> {
+        return this.request ('price', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetPrices (params = {}): Promise<Dict> {
+        return this.request ('prices', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetPricesHistory (params = {}): Promise<Dict> {
+        return this.request ('prices-history', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetRebatesCurrent (params = {}): Promise<List> {
+        return this.request ('rebates/current', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetRewardsMarketsCurrent (params = {}): Promise<Dict> {
+        return this.request ('rewards/markets/current', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetRewardsMarketsMulti (params = {}): Promise<Dict> {
+        return this.request ('rewards/markets/multi', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetRewardsMarketsConditionId (params = {}): Promise<Dict> {
+        return this.request ('rewards/markets/{condition_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetSamplingMarkets (params = {}): Promise<Dict> {
+        return this.request ('sampling-markets', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetSamplingSimplifiedMarkets (params = {}): Promise<Dict> {
+        return this.request ('sampling-simplified-markets', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetSimplifiedMarkets (params = {}): Promise<Dict> {
+        return this.request ('simplified-markets', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetSpread (params = {}): Promise<Dict> {
+        return this.request ('spread', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetTickSize (params = {}): Promise<Dict> {
+        return this.request ('tick-size', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetTickSizeTokenId (params = {}): Promise<Dict> {
+        return this.request ('tick-size/{token_id}', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicGetTime (params = {}): Promise<string> {
+        return this.request ('time', [ 'clob', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPublicPostBatchPricesHistory (params = {}): Promise<Dict> {
+        return this.request ('batch-prices-history', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostBooks (params = {}): Promise<List> {
+        return this.request ('books', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostLastTradesPrices (params = {}): Promise<List> {
+        return this.request ('last-trades-prices', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostMarketsLiveActivity (params = {}): Promise<List> {
+        return this.request ('markets/live-activity', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostMidpoints (params = {}): Promise<Dict> {
+        return this.request ('midpoints', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostPrices (params = {}): Promise<Dict> {
+        return this.request ('prices', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPublicPostSpreads (params = {}): Promise<Dict> {
+        return this.request ('spreads', [ 'clob', 'public' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetAuthApiKeys (params = {}): Promise<Dict> {
+        return this.request ('auth/api-keys', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetAuthBanStatusClosedOnly (params = {}): Promise<Dict> {
+        return this.request ('auth/ban-status/closed-only', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetAuthBuilderApiKey (params = {}): Promise<List> {
+        return this.request ('auth/builder-api-key', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetAuthDeriveApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/derive-api-key', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetBalanceAllowance (params = {}): Promise<Dict> {
+        return this.request ('balance-allowance', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetBalanceAllowanceUpdate (params = {}): Promise<Dict> {
+        return this.request ('balance-allowance/update', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetDataOrderId (params = {}): Promise<Dict> {
+        return this.request ('data/order/{id}', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetDataOrders (params = {}): Promise<Dict> {
+        return this.request ('data/orders', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetDataTrades (params = {}): Promise<Dict> {
+        return this.request ('data/trades', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetNotifications (params = {}): Promise<List> {
+        return this.request ('notifications', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetOrderScoring (params = {}): Promise<Dict> {
+        return this.request ('order-scoring', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetOrdersScoring (params = {}): Promise<Dict> {
+        return this.request ('orders-scoring', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetRewardsUser (params = {}): Promise<Dict> {
+        return this.request ('rewards/user', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetRewardsUserMarkets (params = {}): Promise<Dict> {
+        return this.request ('rewards/user/markets', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetRewardsUserPercentages (params = {}): Promise<Dict> {
+        return this.request ('rewards/user/percentages', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivateGetRewardsUserTotal (params = {}): Promise<List> {
+        return this.request ('rewards/user/total', [ 'clob', 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostAuthApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/api-key', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostAuthBuilderApiKey (params = {}): Promise<Dict> {
+        return this.request ('auth/builder-api-key', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostHeartbeats (params = {}): Promise<Dict> {
+        return this.request ('heartbeats', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostOrders (params = {}): Promise<List> {
+        return this.request ('orders', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivatePostV1Heartbeats (params = {}): Promise<Dict> {
+        return this.request ('v1/heartbeats', [ 'clob', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteAuthApiKey (params = {}): Promise<string> {
+        return this.request ('auth/api-key', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteAuthBuilderApiKey (params = {}): Promise<string> {
+        return this.request ('auth/builder-api-key', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteCancelAll (params = {}): Promise<Dict> {
+        return this.request ('cancel-all', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteCancelMarketOrders (params = {}): Promise<Dict> {
+        return this.request ('cancel-market-orders', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteNotifications (params = {}): Promise<string> {
+        return this.request ('notifications', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteOrder (params = {}): Promise<Dict> {
+        return this.request ('order', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    clobPrivateDeleteOrders (params = {}): Promise<Dict> {
+        return this.request ('orders', [ 'clob', 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    dataPublicGetActivity (params = {}): Promise<List> {
+        return this.request ('activity', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetClosedPositions (params = {}): Promise<List> {
+        return this.request ('closed-positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetHolders (params = {}): Promise<List> {
+        return this.request ('holders', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetLiveVolume (params = {}): Promise<List> {
+        return this.request ('live-volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetOi (params = {}): Promise<List> {
+        return this.request ('oi', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetOther (params = {}): Promise<List> {
+        return this.request ('other', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetPositions (params = {}): Promise<Dict> {
+        return this.request ('positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetRevisions (params = {}): Promise<List> {
+        return this.request ('revisions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetTraded (params = {}): Promise<Dict> {
+        return this.request ('traded', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetTrades (params = {}): Promise<List> {
+        return this.request ('trades', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1AccountingSnapshot (params = {}): Promise<Dict> {
+        return this.request ('v1/accounting/snapshot', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1ActivityCombos (params = {}): Promise<Dict> {
+        return this.request ('v1/activity/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1BuildersLeaderboard (params = {}): Promise<List> {
+        return this.request ('v1/builders/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1BuildersVolume (params = {}): Promise<List> {
+        return this.request ('v1/builders/volume', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1Leaderboard (params = {}): Promise<List> {
+        return this.request ('v1/leaderboard', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1MarketPositions (params = {}): Promise<List> {
+        return this.request ('v1/market-positions', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetV1PositionsCombos (params = {}): Promise<Dict> {
+        return this.request ('v1/positions/combos', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    dataPublicGetValue (params = {}): Promise<List> {
+        return this.request ('value', [ 'data', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    combosPublicGetV1RfqComboMarkets (params = {}): Promise<Dict> {
+        return this.request ('v1/rfq/combo-markets', [ 'combos', 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    combosPrivatePostV1MakerConfirmations (params = {}): Promise<Dict> {
+        return this.request ('v1/maker/confirmations', [ 'combos', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    combosPrivatePostV1MakerQuotes (params = {}): Promise<Dict> {
+        return this.request ('v1/maker/quotes', [ 'combos', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    combosPrivatePostV1MakerQuotesCancel (params = {}): Promise<Dict> {
+        return this.request ('v1/maker/quotes/cancel', [ 'combos', 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

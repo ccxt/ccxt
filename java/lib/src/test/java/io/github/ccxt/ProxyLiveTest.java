@@ -29,7 +29,7 @@ public class ProxyLiveTest {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
             BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
-            ex.loadMarkets().get(30, TimeUnit.SECONDS);
+            ex.loadMarkets(false, new java.util.HashMap<String, Object>()).get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ticker = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTicker", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);
             assert ticker.get("symbol").equals("BTC/USDT") : "symbol mismatch";
@@ -42,7 +42,7 @@ public class ProxyLiveTest {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
             BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
-            ex.loadMarkets().get(30, TimeUnit.SECONDS);
+            ex.loadMarkets(false, new java.util.HashMap<String, Object>()).get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ob = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchOrderBook", new Object[]{"ETH/USDT"})).get(15, TimeUnit.SECONDS);
             List<?> asks = (List<?>) ob.get("asks");
@@ -57,7 +57,7 @@ public class ProxyLiveTest {
             Map<String, Object> config = new HashMap<>();
             config.put("httpProxy", proxyUrl);
             BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
-            ex.loadMarkets().get(30, TimeUnit.SECONDS);
+            ex.loadMarkets(false, new java.util.HashMap<String, Object>()).get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             List<?> trades = (List<?>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTrades", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);
             assert trades != null && !trades.isEmpty() : "no trades";
@@ -69,7 +69,7 @@ public class ProxyLiveTest {
             Map<String, Object> config = new HashMap<>();
             config.put("httpsProxy", proxyUrl);
             BaseExchange ex = Exchange.dynamicallyCreateInstance("binance", config);
-            ex.loadMarkets().get(30, TimeUnit.SECONDS);
+            ex.loadMarkets(false, new java.util.HashMap<String, Object>()).get(30, TimeUnit.SECONDS);
             @SuppressWarnings("unchecked")
             Map<String, Object> ticker = (Map<String, Object>) ((java.util.concurrent.CompletableFuture<Object>) Helpers.callDynamically(ex, "fetchTicker", new Object[]{"BTC/USDT"})).get(15, TimeUnit.SECONDS);
             assert ticker.get("last") != null : "last price is null";

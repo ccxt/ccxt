@@ -6,6 +6,7 @@
 
 //  ---------------------------------------------------------------------------
 import hashkeyRest from '../hashkey.js';
+import { AuthenticationError, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 export default class hashkey extends hashkeyRest {
@@ -65,7 +66,11 @@ export default class hashkey extends hashkeyRest {
         return await this.watch(url, messageHash, undefined, messageHash);
     }
     getPrivateUrl(listenKey) {
-        return this.urls['api']['ws']['private'] + '/' + listenKey;
+        const wsUrl = this.safeString(this.urls['api']['ws'], 'private');
+        if (wsUrl === undefined) {
+            throw new ExchangeError(this.id + ' getPrivateUrl() has no private websocket url');
+        }
+        return wsUrl + '/' + listenKey;
     }
     /**
      * @method
@@ -85,15 +90,16 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const topic = 'kline_' + interval;
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe;
         const ohlcv = await this.wathPublic(market, topic, messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -124,13 +130,16 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = this.safeSymbol(marketId, market);
-        if (!(symbol in this.ohlcvs)) {
-            this.ohlcvs[symbol] = {};
-        }
+        const symbol = this.safeString(market, 'symbol', '');
         const params = this.safeDict(message, 'params');
         const klineType = this.safeString(params, 'klineType');
         const timeframe = this.findTimeframe(klineType);
+        if (timeframe === undefined) {
+            return;
+        }
+        if (!(symbol in this.ohlcvs)) {
+            this.ohlcvs[symbol] = {};
+        }
         if (!(timeframe in this.ohlcvs[symbol])) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             this.ohlcvs[symbol][timeframe] = new ArrayCacheByTimestamp(limit);
@@ -182,9 +191,9 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const topic = 'realtimes';
-        const messageHash = 'ticker:' + symbol;
+        const messageHash = 'ticker:' + symbolValue;
         return await this.wathPublic(market, topic, messageHash, params);
     }
     handleTicker(client, message) {
@@ -217,8 +226,8 @@ export default class hashkey extends hashkeyRest {
         //     }
         //
         const data = this.safeList(message, 'data', []);
-        const ticker = this.parseTicker(this.safeDict(data, 0));
-        const symbol = ticker['symbol'];
+        const ticker = this.parseTicker(this.safeDict(data, 0, {}));
+        const symbol = this.safeString(ticker, 'symbol', '');
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve(this.tickers[symbol], messageHash);
@@ -240,14 +249,15 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const topic = 'trade';
-        const messageHash = 'trades:' + symbol;
+        const messageHash = 'trades:' + symbolValue;
         const trades = await this.wathPublic(market, topic, messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -276,7 +286,7 @@ export default class hashkey extends hashkeyRest {
         //
         const marketId = this.safeString(message, 'symbol');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);
             this.trades[symbol] = new ArrayCache(limit);
@@ -309,9 +319,9 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const topic = 'depth';
-        const messageHash = 'orderbook:' + symbol;
+        const messageHash = 'orderbook:' + symbolValue;
         const orderbook = await this.wathPublic(market, topic, messageHash, params);
         return orderbook.limit();
     }
@@ -377,15 +387,16 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         let messageHash = 'orders';
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash = messageHash + ':' + symbol;
+            messageHash = 'orders' + ':' + symbolResolved;
         }
         const orders = await this.watchPrivate(messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     handleOrder(client, message) {
         //
@@ -432,13 +443,13 @@ export default class hashkey extends hashkeyRest {
         orders.append(parsed);
         const messageHash = 'orders';
         client.resolve(orders, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(orders, symbolSpecificMessageHash);
     }
     parseWsOrder(order, market = undefined) {
         const marketId = this.safeString(order, 's');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(order, 'O');
         let side = this.safeStringLower(order, 'S');
         let reduceOnly = undefined;
@@ -447,7 +458,7 @@ export default class hashkey extends hashkeyRest {
         let timeInForce = this.safeString(order, 'f');
         let postOnly = undefined;
         [type, timeInForce, postOnly] = this.parseOrderTypeTimeInForceAndPostOnly(type, timeInForce);
-        if (market['contract']) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
+        if (this.safeBool(marketResolved, 'contract', false)) { // swap orders are always have type 'LIMIT', thus we can not define the correct type
             type = undefined;
         }
         return this.safeOrder({
@@ -458,7 +469,7 @@ export default class hashkey extends hashkeyRest {
             'lastTradeTimestamp': undefined,
             'lastUpdateTimestamp': undefined,
             'status': this.parseOrderStatus(this.safeString(order, 'X')),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'side': side,
@@ -480,7 +491,7 @@ export default class hashkey extends hashkeyRest {
             'reduceOnly': reduceOnly,
             'postOnly': postOnly,
             'info': order,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -498,15 +509,16 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         let messageHash = 'myTrades';
+        const symbolResolved = (symbol !== undefined) ? this.symbol(symbol) : symbol;
         if (symbol !== undefined) {
-            symbol = this.symbol(symbol);
-            messageHash += ':' + symbol;
+            messageHash = 'myTrades' + ':' + symbolResolved;
         }
         const trades = await this.watchPrivate(messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleMyTrade(client, message, subscription = {}) {
         //
@@ -535,7 +547,7 @@ export default class hashkey extends hashkeyRest {
         this.myTrades = tradesArray;
         const messageHash = 'myTrades';
         client.resolve(tradesArray, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
         client.resolve(tradesArray, symbolSpecificMessageHash);
     }
@@ -567,7 +579,7 @@ export default class hashkey extends hashkeyRest {
         //     }
         //
         const marketId = this.safeString(trade, 's');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(trade, 't');
         const isBuyerMaker = this.safeBool(trade, 'm');
         const isPublicTrade = this.safeString(trade, 'e') === undefined;
@@ -587,7 +599,7 @@ export default class hashkey extends hashkeyRest {
             'id': this.safeString2(trade, 'v', 'T'),
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'side': side,
             'price': this.safeString(trade, 'p'),
             'amount': this.safeString(trade, 'q'),
@@ -597,7 +609,7 @@ export default class hashkey extends hashkeyRest {
             'order': this.safeString(trade, 'o'),
             'fee': undefined,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -615,15 +627,15 @@ export default class hashkey extends hashkeyRest {
             await this.loadMarkets();
         }
         const listenKey = await this.authenticate();
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const messageHash = 'positions';
         const messageHashes = [];
-        if (symbols === undefined) {
+        if (symbolsNormalized === undefined) {
             messageHashes.push(messageHash);
         }
         else {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const symbol = symbolsNormalized[i];
                 messageHashes.push(messageHash + ':' + symbol);
             }
         }
@@ -632,7 +644,7 @@ export default class hashkey extends hashkeyRest {
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePosition(client, message) {
         //
@@ -664,15 +676,15 @@ export default class hashkey extends hashkeyRest {
         positions.append(parsed);
         const messageHash = 'positions';
         client.resolve(parsed, messageHash);
-        const symbol = parsed['symbol'];
+        const symbol = this.safeString(parsed, 'symbol', '');
         client.resolve(parsed, messageHash + ':' + symbol);
     }
     parseWsPosition(position, market = undefined) {
         const marketId = this.safeString(position, 's');
-        market = this.safeMarket(marketId);
+        const marketResolved = this.safeMarket(marketId);
         const timestamp = this.safeInteger(position, 'E');
         return this.safePosition({
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'id': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601(timestamp),
@@ -716,18 +728,16 @@ export default class hashkey extends hashkeyRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        let type = 'spot';
-        [type, params] = this.handleMarketTypeAndParams('watchBalance', undefined, params, type);
-        const messageHash = 'balance:' + type;
+        const type = 'spot';
+        const typeMarketType = this.handleMarketTypeAndParams('watchBalance', undefined, params, type)[0];
+        const messageHash = 'balance:' + typeMarketType;
         const url = this.getPrivateUrl(listenKey);
         const client = this.client(url);
-        this.setBalanceCache(client, type, messageHash);
-        let fetchBalanceSnapshot = undefined;
-        let awaitBalanceSnapshot = undefined;
-        [fetchBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
-        [awaitBalanceSnapshot, params] = this.handleOptionAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
+        this.setBalanceCache(client, typeMarketType, messageHash);
+        const [fetchBalanceSnapshot] = this.handleOptionBoolAndParams(this.options, 'watchBalance', 'fetchBalanceSnapshot', true);
+        const [awaitBalanceSnapshot] = this.handleOptionBoolAndParams(this.options, 'watchBalance', 'awaitBalanceSnapshot', false);
         if (fetchBalanceSnapshot && awaitBalanceSnapshot) {
-            await client.future(type + ':fetchBalanceSnapshot');
+            await client.future(typeMarketType + ':fetchBalanceSnapshot');
         }
         return await this.watch(url, messageHash, undefined, messageHash);
     }
@@ -749,7 +759,7 @@ export default class hashkey extends hashkeyRest {
     }
     async loadBalanceSnapshot(client, messageHash, type) {
         const response = await this.fetchBalance({ 'type': type });
-        this.balance[type] = this.extend(response, this.safeValue(this.balance, type, {}));
+        this.balance[type] = this.extend(response, this.safeDict(this.balance, type, {}));
         // don't remove the future from the .futures cache
         if (messageHash in client.futures) {
             const future = client.futures[messageHash];
@@ -780,7 +790,10 @@ export default class hashkey extends hashkeyRest {
         const data = this.safeList(message, 'B', []);
         const balanceUpdate = this.safeDict(data, 0);
         const isSpot = event === 'outboundAccountInfo';
-        const type = isSpot ? 'spot' : 'swap';
+        let type = 'swap';
+        if (isSpot) {
+            type = 'spot';
+        }
         if (!(type in this.balance)) {
             this.balance[type] = {};
         }
@@ -790,7 +803,7 @@ export default class hashkey extends hashkeyRest {
         const account = this.account();
         account['free'] = this.safeString(balanceUpdate, 'f');
         account['used'] = this.safeString(balanceUpdate, 'l');
-        if ((type !== undefined) && (code !== undefined)) {
+        if (code !== undefined) {
             this.balance[type][code] = account;
         }
         this.balance[type] = this.safeBalance(this.balance[type]);
@@ -802,16 +815,54 @@ export default class hashkey extends hashkeyRest {
         if (listenKey !== undefined) {
             return listenKey;
         }
-        const response = await this.privatePostApiV1UserDataStream(params);
-        //
-        //    {
-        //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
-        //    }
-        //
-        listenKey = this.safeString(response, 'listenKey');
-        this.options['listenKey'] = listenKey;
-        const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000);
-        this.delay(listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+        // single-flight leader election on a never-dialed client, see
+        // https://github.com/ccxt/ccxt/issues/29393: racing cold callers each
+        // mint their own listenKey and each schedules its own
+        // keepAliveListenKey timer, and the key rides the private url built by
+        // getPrivateUrl (), so every loser dials .../ws/<orphaned-key> and its
+        // subscriptions never deliver. the flight is registered in
+        // client.futures and settled through client.resolve () /
+        // client.reject (), so every mutation of the futures map goes through
+        // the client's own accessors
+        const messageHash = 'authenticateFlight';
+        const client = this.client('authenticationFlights');
+        if (messageHash in client.futures) {
+            // a flight is already in progress - wake when the leader
+            // settles it: the listenKey is then in the bucket
+            await client.future(messageHash);
+            return this.safeString(this.options, 'listenKey');
+        }
+        // register the flight BEFORE the first await, so a caller arriving
+        // during the fetch below finds it and waits instead of re-leading
+        const future = client.reusableFuture(messageHash);
+        try {
+            const response = await this.privatePostApiV1UserDataStream(params);
+            //
+            //    {
+            //        "listenKey": "atbNEcWnBqnmgkfmYQeTuxKTpTStlZzgoPLJsZhzAOZTbAlxbHqGNWiYaUQzMtDz"
+            //    }
+            //
+            listenKey = this.safeString(response, 'listenKey');
+            if (listenKey === undefined) {
+                // reject instead of caching an empty credential, so waiters
+                // retry rather than dial .../ws/undefined for an hour
+                throw new AuthenticationError(this.id + ' authenticate() received an empty listenKey');
+            }
+            this.options['listenKey'] = listenKey;
+            const listenKeyRefreshRate = this.safeInteger(this.options, 'listenKeyRefreshRate', 3600000);
+            this.delay(listenKeyRefreshRate, this.keepAliveListenKey, listenKey, params);
+            // settle the flight: client.resolve () wakes every waiter and
+            // drops the future from the map
+            client.resolve(listenKey, messageHash);
+        }
+        catch (e) {
+            // reject the flight - all waiters throw and the next caller
+            // re-leads instead of deadlocking on a dead flight
+            client.reject(e, messageHash);
+        }
+        // rethrows the failure to the leader and attaches the handler that
+        // keeps an alone-leader rejection from crashing the process
+        await future;
         return listenKey;
     }
     async keepAliveListenKey(listenKey, params = {}) {
@@ -831,13 +882,16 @@ export default class hashkey extends hashkeyRest {
             const client = this.client(url);
             this.options['listenKey'] = undefined;
             client.reject(error);
-            delete this.clients[url];
+            delete this.clients[client.url];
         }
     }
+    handleListMessage(client, message) {
+        this.handleStreamMessage(client, this.safeDict(message, 0, {}));
+    }
     handleMessage(client, message) {
-        if (Array.isArray(message)) {
-            message = this.safeDict(message, 0, {});
-        }
+        this.handleStreamMessage(client, message);
+    }
+    handleStreamMessage(client, message) {
         const topic = this.safeString2(message, 'topic', 'e');
         if (topic === 'kline') {
             this.handleOHLCV(client, message);

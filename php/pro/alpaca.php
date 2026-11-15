@@ -15,7 +15,7 @@ use ccxt\pro\ArrayCacheBySymbolById;
 use ccxt\pro\ArrayCacheByTimestamp;
 
 class alpaca extends \ccxt\async\alpaca {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'has' => array(
                 'ws' => true,
@@ -85,7 +85,7 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -99,37 +99,38 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
     }
 
-    public function handle_ticker(Client $client, mixed $message) {
+    public function handle_ticker(Client $client, array $message) {
         //
         //    {
-        //         "T" => "q",
-        //         "S" => "BTC/USDT",
-        //         "bp" => 17394.44,
-        //         "bs" => 0.021981,
-        //         "ap" => 17397.99,
-        //         "as" => 0.02,
-        //         "t" => "2022-12-16T06:07:56.611063286Z"
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
         $ticker = $this->parse_ticker($message);
         $symbol = $ticker['symbol'];
-        $messageHash = 'ticker:' . $symbol;
+        $tickerSymbol = $this->safe_string($ticker, 'symbol', '');
+        $messageHash = 'ticker:' . $tickerSymbol;
         if ($symbol !== null) {
             $this->tickers[$symbol] = $ticker;
         }
         $client->resolve($ticker, $messageHash);
     }
 
-    public function parse_ticker(mixed $ticker, ?array $market = null): array {
+    public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //    {
-        //         "T" => "q",
-        //         "S" => "BTC/USDT",
-        //         "bp" => 17394.44,
-        //         "bs" => 0.021981,
-        //         "ap" => 17397.99,
-        //         "as" => 0.02,
-        //         "t" => "2022-12-16T06:07:56.611063286Z"
+        //         "T": "q",
+        //         "S": "BTC/USDT",
+        //         "bp": 17394.44,
+        //         "bs": 0.021981,
+        //         "ap": 17397.99,
+        //         "as": 0.02,
+        //         "t": "2022-12-16T06:07:56.611063286Z"
         //    }
         //
         $marketId = $this->safe_string($ticker, 'S');
@@ -173,40 +174,41 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
+        $symbolValue = $this->safe_string($market, 'symbol', '');
         $request = array(
             'action' => 'subscribe',
             'bars' => array( $market['id'] ),
         );
-        $messageHash = 'ohlcv:' . $symbol;
+        $messageHash = 'ohlcv:' . $symbolValue;
         $ohlcv = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $ohlcv->getLimit($symbol, $limit);
+            $limitResolved = $ohlcv->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($ohlcv, $since, $limit, 0, true);
+        return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
-    public function handle_ohlcv(Client $client, mixed $message) {
+    public function handle_ohlcv(Client $client, array $message) {
         //
         //    {
-        //        "T" => "b",
-        //        "S" => "BTC/USDT",
-        //        "o" => 17416.39,
-        //        "h" => 17424.82,
-        //        "l" => 17416.39,
-        //        "c" => 17424.82,
-        //        "v" => 1.341054,
-        //        "t" => "2022-12-16T06:53:00Z",
-        //        "n" => 21,
-        //        "vw" => 17421.9529234915
+        //        "T": "b",
+        //        "S": "BTC/USDT",
+        //        "o": 17416.39,
+        //        "h": 17424.82,
+        //        "l": 17416.39,
+        //        "c": 17424.82,
+        //        "v": 1.341054,
+        //        "t": "2022-12-16T06:53:00Z",
+        //        "n": 21,
+        //        "vw": 17421.9529234915
         //    }
         //
         $marketId = $this->safe_string($message, 'S');
@@ -238,14 +240,14 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'orderbook' . ':' . $symbol;
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'orderbook' . ':' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
             'orderbooks' => array( $market['id'] ),
@@ -254,26 +256,26 @@ class alpaca extends \ccxt\async\alpaca {
         return $orderbook->limit();
     }
 
-    public function handle_order_book(Client $client, mixed $message) {
+    public function handle_order_book(Client $client, array $message) {
         //
-        // $snapshot
+        // snapshot
         //    {
-        //        "T" => "o",
-        //        "S" => "BTC/USDT",
-        //        "t" => "2022-12-16T06:35:31.585113205Z",
-        //        "b" => [array(
-        //                "p" => 17394.37,
-        //                "s" => 0.015499,
-        //            ),
+        //        "T": "o",
+        //        "S": "BTC/USDT",
+        //        "t": "2022-12-16T06:35:31.585113205Z",
+        //        "b": [{
+        //                "p": 17394.37,
+        //                "s": 0.015499,
+        //            },
         //            ...
         //        ],
-        //        "a" => [array(
-        //                "p" => 17398.8,
-        //                "s" => 0.042919,
-        //            ),
+        //        "a": [{
+        //                "p": 17398.8,
+        //                "s": 0.042919,
+        //            },
         //            ...
         //        ],
-        //        "r" => true,
+        //        "r": true,
         //    }
         //
         $marketId = $this->safe_string($message, 'S');
@@ -306,12 +308,6 @@ class alpaca extends \ccxt\async\alpaca {
         $bookside->storeArray($bidAsk);
     }
 
-    public function handle_deltas(mixed $bookside, mixed $deltas) {
-        for ($i = 0; $i < count($deltas); $i++) {
-            $this->handle_delta($bookside, $deltas[$i]);
-        }
-    }
-
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
@@ -328,35 +324,36 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['crypto'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'crypto');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
-        $symbol = $market['symbol'];
-        $messageHash = 'trade:' . $symbol;
+        $symbolValue = $this->safe_string($market, 'symbol', '');
+        $messageHash = 'trade:' . $symbolValue;
         $request = array(
             'action' => 'subscribe',
             'trades' => array( $market['id'] ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolValue, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
-    public function handle_trades(Client $client, mixed $message) {
+    public function handle_trades(Client $client, array $message) {
         //
         //     {
-        //         "T" => "t",
-        //         "S" => "BTC/USDT",
-        //         "p" => 17408.8,
-        //         "s" => 0.042919,
-        //         "t" => "2022-12-16T06:43:18.327Z",
-        //         "i" => 16585162,
-        //         "tks" => "B"
+        //         "T": "t",
+        //         "S": "BTC/USDT",
+        //         "p": 17408.8,
+        //         "s": 0.042919,
+        //         "t": "2022-12-16T06:43:18.327Z",
+        //         "i": 16585162,
+        //         "tks": "B"
         //     ]
         //
         $marketId = $this->safe_string($message, 'S');
@@ -383,22 +380,25 @@ class alpaca extends \ccxt\async\alpaca {
          *
          * @see https://docs.alpaca.markets/docs/websocket-streaming#trade-updates
          *
-         * @param {string} $symbol unified market $symbol of the market $trades were made in
+         * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
          * @param {int} [$limit] the maximum number of trade structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->unifiedMargin] use unified margin account
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         $messageHash = 'myTrades';
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $symbolResolved = null;
         if ($symbol !== null) {
-            $symbol = $this->symbol($symbol);
-            $messageHash .= ':' . $symbol;
+            $market = $this->market($symbol);
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $marketSymbol;
+            $messageHash = 'myTrades:' . $marketSymbol;
         }
         $request = array(
             'action' => 'listen',
@@ -407,10 +407,11 @@ class alpaca extends \ccxt\async\alpaca {
             ),
         );
         $trades = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $trades->getLimit($symbol, $limit);
+            $limitResolved = $trades->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
     public function watch_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
@@ -426,16 +427,18 @@ class alpaca extends \ccxt\async\alpaca {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        $url = $this->urls['api']['ws']['trading'];
+        $url = $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading');
         Async\await($this->authenticate($url));
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $messageHash = 'orders';
+        $symbolResolved = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $messageHash = 'orders:' . $symbol;
+            $marketSymbol = $this->safe_string($market, 'symbol', '');
+            $symbolResolved = $marketSymbol;
+            $messageHash = 'orders:' . $marketSymbol;
         }
         $request = array(
             'action' => 'listen',
@@ -444,65 +447,66 @@ class alpaca extends \ccxt\async\alpaca {
             ),
         );
         $orders = Async\await($this->watch($url, $messageHash, $this->extend($request, $params), $messageHash));
+        $limitResolved = $limit;
         if ($this->newUpdates) {
-            $limit = $orders->getLimit($symbol, $limit);
+            $limitResolved = $orders->getLimit($symbolResolved, $limit);
         }
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit, true);
+        return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limitResolved, true);
     }
 
-    public function handle_trade_update(Client $client, mixed $message) {
+    public function handle_trade_update(Client $client, array $message) {
         $this->handle_order($client, $message);
         $this->handle_my_trade($client, $message);
     }
 
-    public function handle_order(Client $client, mixed $message) {
+    public function handle_order(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "trade_updates",
-        //        "data" => {
-        //          "event" => "new",
-        //          "timestamp" => "2022-12-16T07:28:51.67621869Z",
-        //          "order" => array(
-        //            "id" => "c2470331-8993-4051-bf5d-428d5bdc9a48",
-        //            "client_order_id" => "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
-        //            "created_at" => "2022-12-16T02:28:51.673531798-05:00",
-        //            "updated_at" => "2022-12-16T02:28:51.678736847-05:00",
-        //            "submitted_at" => "2022-12-16T02:28:51.673015558-05:00",
-        //            "filled_at" => null,
-        //            "expired_at" => null,
-        //            "cancel_requested_at" => null,
-        //            "canceled_at" => null,
-        //            "failed_at" => null,
-        //            "replaced_at" => null,
-        //            "replaced_by" => null,
-        //            "replaces" => null,
-        //            "asset_id" => "276e2673-764b-4ab6-a611-caf665ca6340",
-        //            "symbol" => "BTC/USD",
-        //            "asset_class" => "crypto",
-        //            "notional" => null,
-        //            "qty" => "0.01",
-        //            "filled_qty" => "0",
-        //            "filled_avg_price" => null,
-        //            "order_class" => '',
-        //            "order_type" => "market",
-        //            "type" => "market",
-        //            "side" => "buy",
-        //            "time_in_force" => "gtc",
-        //            "limit_price" => null,
-        //            "stop_price" => null,
-        //            "status" => "new",
-        //            "extended_hours" => false,
-        //            "legs" => null,
-        //            "trail_percent" => null,
-        //            "trail_price" => null,
-        //            "hwm" => null
-        //          ),
-        //          "execution_id" => "5f781a30-b9a3-4c86-b466-2175850cf340"
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
+        //          },
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
-        $data = $this->safe_value($message, 'data', array());
-        $rawOrder = $this->safe_value($data, 'order', array());
+        $data = $this->safe_dict($message, 'data', array());
+        $rawOrder = $this->safe_dict($data, 'order', array());
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
             $this->orders = new ArrayCacheBySymbolById($limit);
@@ -512,62 +516,63 @@ class alpaca extends \ccxt\async\alpaca {
         $orders->append($order);
         $messageHash = 'orders';
         $client->resolve($orders, $messageHash);
-        $messageHash = 'orders:' . $order['symbol'];
+        $orderSymbol = $this->safe_string($order, 'symbol', '');
+        $messageHash = 'orders:' . $orderSymbol;
         $client->resolve($orders, $messageHash);
     }
 
-    public function handle_my_trade(Client $client, mixed $message) {
+    public function handle_my_trade(Client $client, array $message) {
         //
         //    {
-        //        "stream" => "trade_updates",
-        //        "data" => {
-        //          "event" => "new",
-        //          "timestamp" => "2022-12-16T07:28:51.67621869Z",
-        //          "order" => array(
-        //            "id" => "c2470331-8993-4051-bf5d-428d5bdc9a48",
-        //            "client_order_id" => "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
-        //            "created_at" => "2022-12-16T02:28:51.673531798-05:00",
-        //            "updated_at" => "2022-12-16T02:28:51.678736847-05:00",
-        //            "submitted_at" => "2022-12-16T02:28:51.673015558-05:00",
-        //            "filled_at" => null,
-        //            "expired_at" => null,
-        //            "cancel_requested_at" => null,
-        //            "canceled_at" => null,
-        //            "failed_at" => null,
-        //            "replaced_at" => null,
-        //            "replaced_by" => null,
-        //            "replaces" => null,
-        //            "asset_id" => "276e2673-764b-4ab6-a611-caf665ca6340",
-        //            "symbol" => "BTC/USD",
-        //            "asset_class" => "crypto",
-        //            "notional" => null,
-        //            "qty" => "0.01",
-        //            "filled_qty" => "0",
-        //            "filled_avg_price" => null,
-        //            "order_class" => '',
-        //            "order_type" => "market",
-        //            "type" => "market",
-        //            "side" => "buy",
-        //            "time_in_force" => "gtc",
-        //            "limit_price" => null,
-        //            "stop_price" => null,
-        //            "status" => "new",
-        //            "extended_hours" => false,
-        //            "legs" => null,
-        //            "trail_percent" => null,
-        //            "trail_price" => null,
-        //            "hwm" => null
-        //          ),
-        //          "execution_id" => "5f781a30-b9a3-4c86-b466-2175850cf340"
+        //        "stream": "trade_updates",
+        //        "data": {
+        //          "event": "new",
+        //          "timestamp": "2022-12-16T07:28:51.67621869Z",
+        //          "order": {
+        //            "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //            "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //            "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //            "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //            "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //            "filled_at": null,
+        //            "expired_at": null,
+        //            "cancel_requested_at": null,
+        //            "canceled_at": null,
+        //            "failed_at": null,
+        //            "replaced_at": null,
+        //            "replaced_by": null,
+        //            "replaces": null,
+        //            "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //            "symbol": "BTC/USD",
+        //            "asset_class": "crypto",
+        //            "notional": null,
+        //            "qty": "0.01",
+        //            "filled_qty": "0",
+        //            "filled_avg_price": null,
+        //            "order_class": '',
+        //            "order_type": "market",
+        //            "type": "market",
+        //            "side": "buy",
+        //            "time_in_force": "gtc",
+        //            "limit_price": null,
+        //            "stop_price": null,
+        //            "status": "new",
+        //            "extended_hours": false,
+        //            "legs": null,
+        //            "trail_percent": null,
+        //            "trail_price": null,
+        //            "hwm": null
+        //          },
+        //          "execution_id": "5f781a30-b9a3-4c86-b466-2175850cf340"
         //        }
         //      }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $event = $this->safe_string($data, 'event');
         if ($event !== 'fill' && $event !== 'partial_fill') {
             return;
         }
-        $rawOrder = $this->safe_value($data, 'order', array());
+        $rawOrder = $this->safe_dict($data, 'order', array());
         $myTrades = $this->myTrades;
         if ($myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -578,48 +583,49 @@ class alpaca extends \ccxt\async\alpaca {
             return;
         }
         $myTrades->append($trade);
-        $messageHash = 'myTrades:' . $trade['symbol'];
+        $tradeSymbol = $this->safe_string($trade, 'symbol', '');
+        $messageHash = 'myTrades:' . $tradeSymbol;
         $client->resolve($myTrades, $messageHash);
         $messageHash = 'myTrades';
         $client->resolve($myTrades, $messageHash);
     }
 
-    public function parse_my_trade(mixed $trade, ?array $market = null) {
+    public function parse_my_trade(array $trade, ?array $market = null) {
         //
         //    {
-        //        "id" => "c2470331-8993-4051-bf5d-428d5bdc9a48",
-        //        "client_order_id" => "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
-        //        "created_at" => "2022-12-16T02:28:51.673531798-05:00",
-        //        "updated_at" => "2022-12-16T02:28:51.678736847-05:00",
-        //        "submitted_at" => "2022-12-16T02:28:51.673015558-05:00",
-        //        "filled_at" => null,
-        //        "expired_at" => null,
-        //        "cancel_requested_at" => null,
-        //        "canceled_at" => null,
-        //        "failed_at" => null,
-        //        "replaced_at" => null,
-        //        "replaced_by" => null,
-        //        "replaces" => null,
-        //        "asset_id" => "276e2673-764b-4ab6-a611-caf665ca6340",
-        //        "symbol" => "BTC/USD",
-        //        "asset_class" => "crypto",
-        //        "notional" => null,
-        //        "qty" => "0.01",
-        //        "filled_qty" => "0",
-        //        "filled_avg_price" => null,
-        //        "order_class" => '',
-        //        "order_type" => "market",
-        //        "type" => "market",
-        //        "side" => "buy",
-        //        "time_in_force" => "gtc",
-        //        "limit_price" => null,
-        //        "stop_price" => null,
-        //        "status" => "new",
-        //        "extended_hours" => false,
-        //        "legs" => null,
-        //        "trail_percent" => null,
-        //        "trail_price" => null,
-        //        "hwm" => null
+        //        "id": "c2470331-8993-4051-bf5d-428d5bdc9a48",
+        //        "client_order_id": "0f1f3764-107a-4d09-8b9a-d75a11738f5c",
+        //        "created_at": "2022-12-16T02:28:51.673531798-05:00",
+        //        "updated_at": "2022-12-16T02:28:51.678736847-05:00",
+        //        "submitted_at": "2022-12-16T02:28:51.673015558-05:00",
+        //        "filled_at": null,
+        //        "expired_at": null,
+        //        "cancel_requested_at": null,
+        //        "canceled_at": null,
+        //        "failed_at": null,
+        //        "replaced_at": null,
+        //        "replaced_by": null,
+        //        "replaces": null,
+        //        "asset_id": "276e2673-764b-4ab6-a611-caf665ca6340",
+        //        "symbol": "BTC/USD",
+        //        "asset_class": "crypto",
+        //        "notional": null,
+        //        "qty": "0.01",
+        //        "filled_qty": "0",
+        //        "filled_avg_price": null,
+        //        "order_class": '',
+        //        "order_type": "market",
+        //        "type": "market",
+        //        "side": "buy",
+        //        "time_in_force": "gtc",
+        //        "limit_price": null,
+        //        "stop_price": null,
+        //        "status": "new",
+        //        "extended_hours": false,
+        //        "legs": null,
+        //        "trail_percent": null,
+        //        "trail_price": null,
+        //        "hwm": null
         //    }
         //
         $marketId = $this->safe_string($trade, 'symbol');
@@ -649,11 +655,11 @@ class alpaca extends \ccxt\async\alpaca {
         ), $market);
     }
 
-    public function authenticate(mixed $url, $params = array()) {
+    public function authenticate(?string $url, $params = array()) {
         return Async\async(self::do_authenticate(...))($url, $params);
     }
 
-    private function do_authenticate(mixed $url, $params = array()) {
+    private function do_authenticate(?string $url, $params = array()) {
         $this->check_required_credentials();
         $messageHash = 'authenticated';
         $client = $this->client($url);
@@ -665,8 +671,8 @@ class alpaca extends \ccxt\async\alpaca {
                 'key' => $this->apiKey,
                 'secret' => $this->secret,
             );
-            if ($url === $this->urls['api']['ws']['trading']) {
-                // this auth $request is being deprecated in test environment
+            if ($url === $this->safe_string($this->safe_dict($this->urls['api'], 'ws'), 'trading')) {
+                // this auth request is being deprecated in test environment
                 $request = array(
                     'action' => 'authenticate',
                     'data' => array(
@@ -680,30 +686,35 @@ class alpaca extends \ccxt\async\alpaca {
         return Async\await($future);
     }
 
-    public function handle_error_message(Client $client, mixed $message): ?bool {
+    public function handle_error_message(Client $client, array $message): ?bool {
         //
         //    {
-        //        "T" => "error",
-        //        "code" => 400,
-        //        "msg" => "invalid syntax"
+        //        "T": "error",
+        //        "code": 400,
+        //        "msg": "invalid syntax"
         //    }
         //
-        $code = $this->safe_string($message, 'code');
-        $msg = $this->safe_value($message, 'msg', array());
-        throw new ExchangeError($this->id . ' $code => ' . $code . ' $message => ' . $msg);
+        $code = $this->safe_string($message, 'code', '');
+        $msg = $this->safe_string($message, 'msg');
+        $header = $this->id . ' code => ' . $code;
+        $errorMessage = $header;
+        if ($msg !== null) {
+            $errorMessage = $header . ' message => ' . $msg;
+        }
+        throw new ExchangeError($errorMessage);
     }
 
-    public function handle_connected(Client $client, mixed $message) {
+    public function handle_connected(Client $client, array $message): array {
         //
         //    {
-        //        "T" => "success",
-        //        "msg" => "connected"
+        //        "T": "success",
+        //        "msg": "connected"
         //    }
         //
         return $message;
     }
 
-    public function handle_crypto_message(Client $client, mixed $message) {
+    public function handle_crypto_message(Client $client, array $message) {
         for ($i = 0; $i < count($message); $i++) {
             $data = $message[$i];
             $T = $this->safe_string($data, 'T');
@@ -734,7 +745,7 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_trading_message(Client $client, mixed $message) {
+    public function handle_trading_message(Client $client, array $message) {
         $stream = $this->safe_string($message, 'stream');
         $methods = array(
             'authorization' => array($this, 'handle_authenticate'),
@@ -747,42 +758,42 @@ class alpaca extends \ccxt\async\alpaca {
         }
     }
 
-    public function handle_message(Client $client, mixed $message) {
-        if ((gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message)))) {
-            $this->handle_crypto_message($client, $message);
-            return;
-        }
+    public function handle_message(Client $client, array $message) {
         $this->handle_trading_message($client, $message);
     }
 
-    public function handle_authenticate(Client $client, mixed $message) {
+    public function handle_list_message(Client $client, array $message) {
+        $this->handle_crypto_message($client, $message);
+    }
+
+    public function handle_authenticate(Client $client, array $message) {
         //
         // crypto
         //    {
-        //        "T" => "success",
-        //        "msg" => "connected"
+        //        "T": "success",
+        //        "msg": "connected"
         //    ]
         //
         // trading
         //    {
-        //        "stream" => "authorization",
-        //        "data" => {
-        //            "status" => "authorized",
-        //            "action" => "authenticate"
+        //        "stream": "authorization",
+        //        "data": {
+        //            "status": "authorized",
+        //            "action": "authenticate"
         //        }
         //    }
         // error
         //    {
-        //        "stream" => "authorization",
-        //        "data" => {
-        //            "action" => "authenticate",
-        //            "message" => "access key verification failed",
-        //            "status" => "unauthorized"
+        //        "stream": "authorization",
+        //        "data": {
+        //            "action": "authenticate",
+        //            "message": "access key verification failed",
+        //            "status": "unauthorized"
         //        }
         //    }
         //
         $T = $this->safe_string($message, 'T');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_dict($message, 'data', array());
         $status = $this->safe_string($data, 'status');
         if ($T === 'success' || $status === 'authorized') {
             $promise = $client->futures['authenticated'];
@@ -792,23 +803,23 @@ class alpaca extends \ccxt\async\alpaca {
         throw new AuthenticationError($this->id . ' failed to authenticate.');
     }
 
-    public function handle_subscription(Client $client, mixed $message) {
+    public function handle_subscription(Client $client, array $message): array {
         //
         // crypto
         //    {
-        //          "T" => "subscription",
-        //          "trades" => array(),
-        //          "quotes" => array( "BTC/USDT" ),
-        //          "orderbooks" => array(),
-        //          "bars" => array(),
-        //          "updatedBars" => array(),
-        //          "dailyBars" => array()
+        //          "T": "subscription",
+        //          "trades": [],
+        //          "quotes": [ "BTC/USDT" ],
+        //          "orderbooks": [],
+        //          "bars": [],
+        //          "updatedBars": [],
+        //          "dailyBars": []
         //    }
         // trading
         //    {
-        //        "stream" => "listening",
-        //        "data" => {
-        //            "streams" => ["trade_updates"]
+        //        "stream": "listening",
+        //        "data": {
+        //            "streams": ["trade_updates"]
         //        }
         //    }
         //

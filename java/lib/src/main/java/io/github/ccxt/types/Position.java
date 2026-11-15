@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class Position {
+public final class Position extends TypedMap {
     public String symbol;
     public String id;
     public Long timestamp;
@@ -17,6 +17,7 @@ public final class Position {
     public Double leverage;
     public Double unrealizedPnl;
     public Double realizedPnl;
+    public Double positionMargin;
     public Double collateral;
     public Double entryPrice;
     public Double markPrice;
@@ -33,10 +34,13 @@ public final class Position {
     public Double stopLossPrice;
     public Double takeProfitPrice;
     public Double percentage;
+    public Boolean isolated;
+    public Double exitPrice;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
     public Position(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.id = TypeHelper.safeString(data, "id");
@@ -49,6 +53,7 @@ public final class Position {
         this.leverage = TypeHelper.safeFloat(data, "leverage");
         this.unrealizedPnl = TypeHelper.safeFloat(data, "unrealizedPnl");
         this.realizedPnl = TypeHelper.safeFloat(data, "realizedPnl");
+        this.positionMargin = TypeHelper.safeFloat(data, "positionMargin");
         this.collateral = TypeHelper.safeFloat(data, "collateral");
         this.entryPrice = TypeHelper.safeFloat(data, "entryPrice");
         this.markPrice = TypeHelper.safeFloat(data, "markPrice");
@@ -65,6 +70,8 @@ public final class Position {
         this.stopLossPrice = TypeHelper.safeFloat(data, "stopLossPrice");
         this.takeProfitPrice = TypeHelper.safeFloat(data, "takeProfitPrice");
         this.percentage = TypeHelper.safeFloat(data, "percentage");
+        this.isolated = TypeHelper.safeBool(data, "isolated");
+        this.exitPrice = TypeHelper.safeFloat(data, "exitPrice");
         this.info = TypeHelper.getInfo(data);
     }
 }

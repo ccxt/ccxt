@@ -151,11 +151,25 @@ public partial class bitbns : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PostDepositHistoryAllSymbol",parameters);
     }
 
+    /// <summary>Calls the v1PostUserHistoryNew endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostUserHistoryNew (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PostUserHistoryNew",parameters);
+    }
+
     /// <summary>Calls the v1PostListOpenOrdersSymbol endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PostListOpenOrdersSymbol (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PostListOpenOrdersSymbol",parameters);
+    }
+
+    /// <summary>Calls the v1PostListOpenOrdersOtherSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostListOpenOrdersOtherSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PostListOpenOrdersOtherSymbol",parameters);
     }
 
     /// <summary>Calls the v1PostListOpenStopOrdersSymbol endpoint.</summary>
@@ -179,11 +193,25 @@ public partial class bitbns : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceSellOrderSymbol",parameters);
     }
 
+    /// <summary>Calls the v1PostPlaceSellOrderOtherSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceSellOrderOtherSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceSellOrderOtherSymbol",parameters);
+    }
+
     /// <summary>Calls the v1PostPlaceBuyOrderSymbol endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PostPlaceBuyOrderSymbol (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceBuyOrderSymbol",parameters);
+    }
+
+    /// <summary>Calls the v1PostPlaceBuyOrderOtherSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostPlaceBuyOrderOtherSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PostPlaceBuyOrderOtherSymbol",parameters);
     }
 
     /// <summary>Calls the v1PostBuyStopLossSymbol endpoint.</summary>
@@ -205,6 +233,13 @@ public partial class bitbns : Exchange
     public async Task<Dictionary<string, object>> v1PostCancelOrderSymbol (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PostCancelOrderSymbol",parameters);
+    }
+
+    /// <summary>Calls the v1PostCancelOrderOtherSymbol endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PostCancelOrderOtherSymbol (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PostCancelOrderOtherSymbol",parameters);
     }
 
     /// <summary>Calls the v1PostCancelStopLossOrderSymbol endpoint.</summary>

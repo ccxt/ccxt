@@ -91,7 +91,7 @@ exchange = ccxt.binance({
     'apiKey': 'YOUR_API_KEY',
     'secret': 'YOUR_SECRET',
     'options': {
-        'defaultType': 'future',
+        'defaultType': 'swap',
     },
 })
 

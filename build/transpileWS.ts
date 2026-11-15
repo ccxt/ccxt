@@ -238,7 +238,7 @@ class CCXTProTranspiler extends Transpiler {
             name: testName,
             tsFile: this.wsTestsDirectories.ts + currentFolder + testName + '.ts',
             pyFileSync: this.wsTestsDirectories.py + currentFolder + testNameUncameled + '.py',
-            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n'],
+            pyHeaders: ['from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheByOutcomeById, ArrayCacheBySymbolBySide  # noqa: F402', '\n', '\n'],
             phpHeaders: [],
             phpFileSync: this.wsTestsDirectories.php + currentFolder + testNameUncameled + '.php',
         };
@@ -366,7 +366,7 @@ if (isMainEntry(import.meta.url)) { // called directly like `node module`
     }
     else if (multiprocess) {
         (async () => {
-            await parallelizeTranspiling (exchanges.ws, undefined, force, pythonOnly, phpOnly)
+            await parallelizeTranspiling (exchanges.ws, process.env.CCXT_TRANSPILE_PROCESSES, force, pythonOnly, phpOnly)
             // the prediction ws exchanges are few — transpile them serially after the workers finish
             await transpiler.transpileEverything (force, false, true)
         })()

@@ -355,17 +355,17 @@ public partial class bitrue : Exchange
     }
 
     /// <summary>Calls the dapiV1PublicGetTicker endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> dapiV1PublicGetTicker (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> dapiV1PublicGetTicker (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("dapiV1PublicGetTicker",parameters);
+        return await this.callAsync<object> ("dapiV1PublicGetTicker",parameters);
     }
 
     /// <summary>Calls the dapiV1PublicGetKlines endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> dapiV1PublicGetKlines (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiV1PublicGetKlines (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("dapiV1PublicGetKlines",parameters);
+        return await this.callAsync<List<object>> ("dapiV1PublicGetKlines",parameters);
     }
 
     /// <summary>Calls the dapiV2PrivateGetMyTrades endpoint.</summary>

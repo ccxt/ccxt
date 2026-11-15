@@ -1,6 +1,6 @@
 Every endpoint in `lbank`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/lbank) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetCurrencyPairs`); the snake_case alias (`spot_public_get_currencypairs`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`SpotPublicGetCurrencyPairs`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `spotPublicGetCurrencyPairs`); Python and PHP use the snake_case form (`spot_public_get_currencypairs`), and Go uses the PascalCase form (`SpotPublicGetCurrencyPairs`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official lbank API documentation:** [lbank.com](https://www.lbank.com/en-US/docs/index.html)
 
-> 58 implicit endpoints across 2 access groups.
+> 64 implicit endpoints across 2 access groups.
 
 ## spot
 
@@ -102,6 +102,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePostSupplementDepositHistory` | POST | `supplement/deposit_history` | 2.5 |
 | `spotPrivatePostSupplementWithdraws` | POST | `supplement/withdraws` | 2.5 |
 | `spotPrivatePostSupplementGetDepositAddress` | POST | `supplement/get_deposit_address` | 2.5 |
+| `spotPrivatePostSupplementAddDepositAddress` | POST | `supplement/add_deposit_address` | 2.5 |
 | `spotPrivatePostSupplementAssetDetail` | POST | `supplement/asset_detail` | 2.5 |
 | `spotPrivatePostSupplementCustomerTradeFee` | POST | `supplement/customer_trade_fee` | 2.5 |
 | `spotPrivatePostSupplementApiRestrictions` | POST | `supplement/api_Restrictions` | 2.5 |
@@ -115,6 +116,11 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `spotPrivatePostSupplementOrdersInfoHistory` | POST | `supplement/orders_info_history` | 2.5 |
 | `spotPrivatePostSupplementUserInfoAccount` | POST | `supplement/user_info_account` | 2.5 |
 | `spotPrivatePostSupplementTransactionHistory` | POST | `supplement/transaction_history` | 2.5 |
+| `spotPrivatePostSpotWalletWithdraw` | POST | `spot/wallet/withdraw` | 2.5 |
+| `spotPrivatePostSpotWalletDepositHistory` | POST | `spot/wallet/deposit_history` | 2.5 |
+| `spotPrivatePostSpotWalletWithdraws` | POST | `spot/wallet/withdraws` | 2.5 |
+| `spotPrivatePostSpotTradeOrdersInfo` | POST | `spot/trade/orders_info` | 2.5 |
+| `spotPrivatePostSpotTradeOrdersInfoHistory` | POST | `spot/trade/orders_info_history` | 2.5 |
 
 ## contract
 

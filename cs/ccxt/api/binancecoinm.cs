@@ -1565,6 +1565,13 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioDeltaMode",parameters);
     }
 
+    /// <summary>Calls the sapiGetPortfolioMarginCallLevel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetPortfolioMarginCallLevel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetPortfolioMarginCallLevel",parameters);
+    }
+
     /// <summary>Calls the sapiGetStakingProductList endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> sapiGetStakingProductList (object parameters = null)
@@ -1836,6 +1843,69 @@ public partial class binancecoinm : binance
     public async Task<Dictionary<string, object>> sapiGetAccumulatorProductSumHolding (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("sapiGetAccumulatorProductSumHolding",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketExchangeInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketExchangeInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketExchangeInfo",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketTokenizedAssets endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketTokenizedAssets (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketTokenizedAssets",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityMarketQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityMarketQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityMarketQuote",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> sapiGetEquityOrderOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("sapiGetEquityOrderOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityOrderDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTradeHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTradeHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTradeHistory",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedConvertStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedConvertStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedConvertStatus",parameters);
+    }
+
+    /// <summary>Calls the sapiGetEquityTokenizedHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiGetEquityTokenizedHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiGetEquityTokenizedHistory",parameters);
     }
 
     /// <summary>Calls the sapiPostAssetDust endpoint.</summary>
@@ -2601,6 +2671,13 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioDeltaMode",parameters);
     }
 
+    /// <summary>Calls the sapiPostPortfolioMarginCallLevel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostPortfolioMarginCallLevel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostPortfolioMarginCallLevel",parameters);
+    }
+
     /// <summary>Calls the sapiPostLendingAutoInvestPlanAdd endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiPostLendingAutoInvestPlanAdd (object parameters = null)
@@ -2706,6 +2783,55 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("sapiPostAccumulatorProductSubscribe",parameters);
     }
 
+    /// <summary>Calls the sapiPostEquityOrderPlace endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderPlace (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderPlace",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancel",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityOrderCancelAll endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityOrderCancelAll (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityOrderCancelAll",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedMint endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedMint (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedMint",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityTokenizedRedeem endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityTokenizedRedeem (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityTokenizedRedeem",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityAccountDisclaimer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityAccountDisclaimer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityAccountDisclaimer",parameters);
+    }
+
+    /// <summary>Calls the sapiPostEquityListenKey endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiPostEquityListenKey (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiPostEquityListenKey",parameters);
+    }
+
     /// <summary>Calls the sapiPutUserDataStream endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> sapiPutUserDataStream (object parameters = null)
@@ -2718,6 +2844,13 @@ public partial class binancecoinm : binance
     public async Task<Dictionary<string, object>> sapiPutUserDataStreamIsolated (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("sapiPutUserDataStreamIsolated",parameters);
+    }
+
+    /// <summary>Calls the sapiDeletePortfolioMarginCallLevel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> sapiDeletePortfolioMarginCallLevel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("sapiDeletePortfolioMarginCallLevel",parameters);
     }
 
     /// <summary>Calls the sapiDeleteMarginOpenOrders endpoint.</summary>
@@ -3161,6 +3294,20 @@ public partial class binancecoinm : binance
         return await this.callAsync<List<object>> ("dapiPrivateGetOpenAlgoOrders",parameters);
     }
 
+    /// <summary>Calls the dapiPrivateGetAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateGetAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateGetAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the dapiPrivateGetAllAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> dapiPrivateGetAllAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("dapiPrivateGetAllAlgoOrders",parameters);
+    }
+
     /// <summary>Calls the dapiPrivateGetAllOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> dapiPrivateGetAllOrders (object parameters = null)
@@ -3392,6 +3539,13 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteAlgoOrder",parameters);
     }
 
+    /// <summary>Calls the dapiPrivateDeleteAlgoOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> dapiPrivateDeleteAlgoOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("dapiPrivateDeleteAlgoOpenOrders",parameters);
+    }
+
     /// <summary>Calls the dapiPrivateDeleteAllOpenOrders endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> dapiPrivateDeleteAllOpenOrders (object parameters = null)
@@ -3540,17 +3694,17 @@ public partial class binancecoinm : binance
     }
 
     /// <summary>Calls the fapiPublicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> fapiPublicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("fapiPublicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetTickerBookTicker endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> fapiPublicGetTickerBookTicker (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicGetTickerBookTicker (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("fapiPublicGetTickerBookTicker",parameters);
+        return await this.callAsync<object> ("fapiPublicGetTickerBookTicker",parameters);
     }
 
     /// <summary>Calls the fapiPublicGetOpenInterest endpoint.</summary>
@@ -4142,10 +4296,10 @@ public partial class binancecoinm : binance
     }
 
     /// <summary>Calls the fapiPublicV2GetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> fapiPublicV2GetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> fapiPublicV2GetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("fapiPublicV2GetTickerPrice",parameters);
+        return await this.callAsync<object> ("fapiPublicV2GetTickerPrice",parameters);
     }
 
     /// <summary>Calls the fapiPrivateV2GetAccount endpoint.</summary>
@@ -4463,6 +4617,13 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostBlockOrderExecute",parameters);
     }
 
+    /// <summary>Calls the eapiPrivatePostStockContract endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> eapiPrivatePostStockContract (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("eapiPrivatePostStockContract",parameters);
+    }
+
     /// <summary>Calls the eapiPrivatePutListenKey endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> eapiPrivatePutListenKey (object parameters = null)
@@ -4597,10 +4758,10 @@ public partial class binancecoinm : binance
     }
 
     /// <summary>Calls the publicGetTickerPrice endpoint.</summary>
-    /// <returns>a JSON array</returns>
-    public async Task<List<object>> publicGetTickerPrice (object parameters = null)
+    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
+    public async Task<object> publicGetTickerPrice (object parameters = null)
     {
-        return await this.callAsync<List<object>> ("publicGetTickerPrice",parameters);
+        return await this.callAsync<object> ("publicGetTickerPrice",parameters);
     }
 
     /// <summary>Calls the publicGetTickerBookTicker endpoint.</summary>
@@ -4617,11 +4778,39 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("publicGetExchangeInfo",parameters);
     }
 
+    /// <summary>Calls the publicGetExecutionRules endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetExecutionRules (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetExecutionRules",parameters);
+    }
+
     /// <summary>Calls the publicGetAvgPrice endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetAvgPrice (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetAvgPrice",parameters);
+    }
+
+    /// <summary>Calls the publicGetReferencePrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetReferencePrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetReferencePrice",parameters);
+    }
+
+    /// <summary>Calls the publicGetReferencePriceCalculation endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetReferencePriceCalculation (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetReferencePriceCalculation",parameters);
+    }
+
+    /// <summary>Calls the publicGetHistoricalBlockTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetHistoricalBlockTrades (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetHistoricalBlockTrades",parameters);
     }
 
     /// <summary>Calls the publicPutUserDataStream endpoint.</summary>
@@ -4916,6 +5105,27 @@ public partial class binancecoinm : binance
     public async Task<List<object>> papiGetUmConditionalAllOrders (object parameters = null)
     {
         return await this.callAsync<List<object>> ("papiGetUmConditionalAllOrders",parameters);
+    }
+
+    /// <summary>Calls the papiGetUmAlgoAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiGetUmAlgoAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("papiGetUmAlgoAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the papiGetUmAlgoOpenAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmAlgoOpenAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("papiGetUmAlgoOpenAlgoOrders",parameters);
+    }
+
+    /// <summary>Calls the papiGetUmAlgoAllAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiGetUmAlgoAllAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("papiGetUmAlgoAllAlgoOrders",parameters);
     }
 
     /// <summary>Calls the papiGetCmConditionalOpenOrder endpoint.</summary>
@@ -5310,6 +5520,13 @@ public partial class binancecoinm : binance
         return await this.callAsync<Dictionary<string, object>> ("papiPostUmConditionalOrder",parameters);
     }
 
+    /// <summary>Calls the papiPostUmAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiPostUmAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("papiPostUmAlgoOrder",parameters);
+    }
+
     /// <summary>Calls the papiPostCmOrder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> papiPostCmOrder (object parameters = null)
@@ -5490,6 +5707,20 @@ public partial class binancecoinm : binance
     public async Task<List<object>> papiDeleteUmConditionalAllOpenOrders (object parameters = null)
     {
         return await this.callAsync<List<object>> ("papiDeleteUmConditionalAllOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the papiDeleteUmAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> papiDeleteUmAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("papiDeleteUmAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the papiDeleteUmAlgoAllOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> papiDeleteUmAlgoAllOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("papiDeleteUmAlgoAllOpenOrders",parameters);
     }
 
     /// <summary>Calls the papiDeleteCmOrder endpoint.</summary>

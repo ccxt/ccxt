@@ -1,6 +1,6 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     limitlessPublicGetMarketsActive(params?: {}): Promise<Dict>;
     limitlessPublicGetMarketsActiveCategoryId(params?: {}): Promise<Dict>;
     limitlessPublicGetCategories(params?: {}): Promise<List>;
@@ -59,7 +59,5 @@ interface Exchange {
     limitlessPrivateDeleteOrdersAllSlug(params?: {}): Promise<Dict>;
     limitlessPrivateDeleteAuthApiTokensTokenId(params?: {}): Promise<Dict>;
     limitlessPrivateDeletePortfolioWithdrawalAddressesAddress(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

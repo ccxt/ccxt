@@ -25,7 +25,7 @@ def test_currency(exchange, skipped_properties, method, entry):
     # todo: remove fee from empty
     empty_allowed_for = ['name', 'fee']
     # todo: info key needs to be added in base, when exchange does not have fetchCurrencies
-    is_native = exchange.has['fetchCurrencies'] and exchange.has['fetchCurrencies'] != 'emulated'
+    is_native = (exchange.has['fetchCurrencies'] is not None) and (exchange.has['fetchCurrencies'] is not False) and (exchange.has['fetchCurrencies'] != 'emulated')
     currency_type = exchange.safe_string(entry, 'type')
     if is_native:
         format['info'] = {}
@@ -60,6 +60,8 @@ def test_currency(exchange, skipped_properties, method, entry):
     networks = exchange.safe_dict(entry, 'networks', {})
     network_keys = list(networks.keys())
     network_keys_length = len(network_keys)
+    for i in range(0, network_keys_length):
+        test_shared_methods.assert_unified_network_code(exchange, skipped_properties, method, entry, network_keys[i])
     if network_keys_length == 0 and ('skipCurrenciesWithoutNetworks' in skipped_properties):
         return
     try:

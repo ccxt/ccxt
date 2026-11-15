@@ -5,15 +5,14 @@
 
 import ccxt.async_support
 from ccxt.async_support.base.ws.cache import ArrayCache
-from ccxt.base.types import Any, Int, Market, OrderBook, Trade
+from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
-from typing import List
 from ccxt.base.errors import AuthenticationError
 
 
 class coincheck(ccxt.async_support.coincheck):
 
-    def describe(self) -> Any:
+    def describe(self) -> dict:
         return self.deep_extend(super(coincheck, self).describe(), {
             'has': {
                 'ws': True,
@@ -48,7 +47,7 @@ class coincheck(ccxt.async_support.coincheck):
             },
         })
 
-    async def watch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def watch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -66,13 +65,13 @@ class coincheck(ccxt.async_support.coincheck):
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-orderbook',
+            'channel': self.safe_string(market, 'id', '') + '-orderbook',
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash)
         return orderbook.limit()
 
-    def handle_order_book(self, client: Any, message: Any):
+    def handle_order_book(self, client: Client, message: list[object]):
         #
         #     [
         #         "btc_jpy",
@@ -93,21 +92,16 @@ class coincheck(ccxt.async_support.coincheck):
         #         }
         #     ]
         #
-        symbol = self.symbol(self.safe_string(message, 0))
-        data = self.safe_value(message, 1, {})
+        symbol = self.safe_string(self.market(self.safe_string(message, 0)), 'symbol', '')
+        data = self.safe_dict(message, 1, {})
         timestamp = self.safe_timestamp(data, 'last_update_at')
         snapshot = self.parse_order_book(data, symbol, timestamp)
-        orderbook = self.safe_value(self.orderbooks, symbol)
-        if orderbook is None:
-            orderbook = self.order_book(snapshot)
-            self.orderbooks[symbol] = orderbook
-        else:
-            orderbook = self.orderbooks[symbol]
-            orderbook.reset(snapshot)
+        orderbook = self.order_book(snapshot)
+        self.orderbooks[symbol] = orderbook
         messageHash = 'orderbook:' + symbol
         client.resolve(orderbook, messageHash)
 
-    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def watch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         watches information on multiple trades made in a market
 
@@ -122,36 +116,36 @@ class coincheck(ccxt.async_support.coincheck):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        symbol = market['symbol']
         messageHash = 'trade:' + market['symbol']
         url = self.urls['api']['ws']
         request = {
             'type': 'subscribe',
-            'channel': market['id'] + '-trades',
+            'channel': self.safe_string(market, 'id', '') + '-trades',
         }
         message = self.extend(request, params)
         trades = await self.watch(url, messageHash, message, messageHash)
+        limitResolved = limit
         if self.newUpdates:
-            limit = trades.getLimit(symbol, limit)
-        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+            limitResolved = trades.getLimit(market['symbol'], limit)
+        return self.filter_by_since_limit(trades, since, limitResolved, 'timestamp', True)
 
-    def handle_trades(self, client: Client, message: Any):
+    def handle_trades(self, client: Client, message: list[object]):
         #
         #     [
         #         [
-        #             "1663318663",  # transaction timestamp(unix time)
-        #             "2357062",  # transaction ID
-        #             "btc_jpy",  # pair
-        #             "2820896.0",  # transaction rate
-        #             "5.0",  # transaction amount
-        #             "sell",  # order side
-        #             "1193401",  # ID of the Taker
-        #             "2078767"  # ID of the Maker
+        #             "1663318663", // transaction timestamp (unix time)
+        #             "2357062", // transaction ID
+        #             "btc_jpy", // pair
+        #             "2820896.0", // transaction rate
+        #             "5.0", // transaction amount
+        #             "sell", // order side
+        #             "1193401", // ID of the Taker
+        #             "2078767" // ID of the Maker
         #         ]
         #     ]
         #
-        first = self.safe_value(message, 0, [])
-        symbol = self.symbol(self.safe_string(first, 2))
+        first = self.safe_list(message, 0, [])
+        symbol = self.safe_string(self.market(self.safe_string(first, 2)), 'symbol', '')
         stored = self.safe_value(self.trades, symbol)
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -164,17 +158,17 @@ class coincheck(ccxt.async_support.coincheck):
         messageHash = 'trade:' + symbol
         client.resolve(stored, messageHash)
 
-    def parse_ws_trade(self, trade: dict, market: Market = None) -> Trade:
+    def parse_ws_trade(self, trade: list, market: Market = None) -> Trade:
         #
         #     [
-        #         "1663318663",  # transaction timestamp(unix time)
-        #         "2357062",  # transaction ID
-        #         "btc_jpy",  # pair
-        #         "2820896.0",  # transaction rate
-        #         "5.0",  # transaction amount
-        #         "sell",  # order side
-        #         "1193401",  # ID of the Taker
-        #         "2078767"  # ID of the Maker
+        #         "1663318663", // transaction timestamp (unix time)
+        #         "2357062", // transaction ID
+        #         "btc_jpy", // pair
+        #         "2820896.0", // transaction rate
+        #         "5.0", // transaction amount
+        #         "sell", // order side
+        #         "1193401", // ID of the Taker
+        #         "2078767" // ID of the Maker
         #     ]
         #
         symbol = self.symbol(self.safe_string(trade, 2))
@@ -198,8 +192,8 @@ class coincheck(ccxt.async_support.coincheck):
             'fee': None,
         }, market)
 
-    def handle_message(self, client: Client, message: Any):
-        data = self.safe_value(message, 0)
+    def handle_list_message(self, client: Client, message: list):
+        data = self.safe_list(message, 0)
         if not isinstance(data, list):
             self.handle_order_book(client, message)
         else:

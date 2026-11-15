@@ -99,7 +99,7 @@ const filterBy = (x, k, value = undefined, out = []) => {
     }
     return out;
 };
-const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.sort((a, b) => {
+const sortBy = (array, key, descending = false, defaultValue = 0, direction = descending ? -1 : 1) => array.slice().sort((a, b) => {
     const first = (key in a) ? a[key] : defaultValue;
     const second = (key in b) ? b[key] : defaultValue;
     if (first < second) {
@@ -112,7 +112,7 @@ const sortBy = (array, key, descending = false, defaultValue = 0, direction = de
         return 0;
     }
 });
-const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.sort((a, b) => {
+const sortBy2 = (array, key1, key2, descending = false, direction = descending ? -1 : 1) => array.slice().sort((a, b) => {
     if (a[key1] < b[key1]) {
         return -direction;
     }
@@ -143,7 +143,7 @@ const flatten = function flatten(x, out = []) {
     return out;
 };
 const pluck = (x, k) => values(x).filter((v) => k in v).map((v) => v[k]);
-const omit = (x, ...args) => {
+function omit(x, ...args) {
     if (x === undefined) {
         return x;
     }
@@ -162,7 +162,7 @@ const omit = (x, ...args) => {
         return out;
     }
     return x;
-};
+}
 const sum = (...xs) => {
     const ns = xs.filter(type.isNumber); // leave only numbers
     return (ns.length > 0) ? ns.reduce((a, b) => a + b, 0) : undefined;
@@ -201,7 +201,6 @@ const deepExtend = function (...args) {
     }
     return result;
 };
-// better "merge" func resides in static_dependencies/qs/utils.js
 const merge = (target, ...args) => {
     // doesn't overwrite defined keys with undefined
     const overwrite = {};

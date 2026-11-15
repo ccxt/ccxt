@@ -1,0 +1,220 @@
+{
+    "exchange": "predictfun",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "apiKey": "test-api-key",
+    "walletAddress": "0xabababababababababababababababababababab",
+    "privateKey": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+    "options": {
+        "jwtToken": "jwt",
+        "jwtTokenExpiresAt": 9999999999999
+    },
+    "methods": {
+        "fetchTicker": [
+            {
+                "description": "fetchTicker for one outcome",
+                "method": "fetchTicker",
+                "url": "https://api.predict.fun/v1/markets/1878469",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ]
+            }
+        ],
+        "fetchOrderBook": [
+            {
+                "description": "fetchOrderBook for one outcome",
+                "method": "fetchOrderBook",
+                "url": "https://api.predict.fun/v1/markets/1878469/orderbook",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ]
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "fetchTrades with a limit",
+                "method": "fetchTrades",
+                "url": "https://api.predict.fun/v1/orders/matches?marketId=1878469",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchMyTrades": [
+            {
+                "description": "fetchMyTrades scoped to one outcome",
+                "method": "fetchMyTrades",
+                "url": "https://api.predict.fun/v1/orders/matches?signerAddress=0xabababababababababababababababababababab&marketId=1878469",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                    null,
+                    5
+                ]
+            },
+            {
+                "description": "fetchMyTrades across every market",
+                "method": "fetchMyTrades",
+                "url": "https://api.predict.fun/v1/orders/matches?signerAddress=0xabababababababababababababababababababab",
+                "input": [
+                    null,
+                    null,
+                    5
+                ]
+            }
+        ],
+        "fetchOpenOrders": [
+            {
+                "description": "fetchOpenOrders for one outcome",
+                "method": "fetchOpenOrders",
+                "url": "https://api.predict.fun/v1/orders?status=OPEN",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ]
+            }
+        ],
+        "fetchClosedOrders": [
+            {
+                "description": "fetchClosedOrders for one outcome",
+                "method": "fetchClosedOrders",
+                "url": "https://api.predict.fun/v1/orders?status=FILLED",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ]
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder by hash",
+                "method": "fetchOrder",
+                "url": "https://api.predict.fun/v1/orders/0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+                "input": [
+                    "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a"
+                ]
+            }
+        ],
+        "fetchPositions": [
+            {
+                "description": "fetchPositions across every market",
+                "method": "fetchPositions",
+                "url": "https://api.predict.fun/v1/positions",
+                "input": []
+            }
+        ],
+        "fetchPosition": [
+            {
+                "description": "fetchPosition for one outcome",
+                "method": "fetchPosition",
+                "url": "https://api.predict.fun/v1/positions?marketId=1878469",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ]
+            }
+        ],
+        "cancelOrder": [
+            {
+                "description": "cancelOrder by hash",
+                "method": "cancelOrder",
+                "url": "https://api.predict.fun/v1/orders/remove-by-hash",
+                "input": [
+                    "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ],
+                "output": "{\"data\":{\"hashes\":[\"0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a\"]}}"
+            }
+        ],
+        "cancelOrders": [
+            {
+                "description": "cancelOrders by hash",
+                "method": "cancelOrders",
+                "url": "https://api.predict.fun/v1/orders/remove-by-hash",
+                "input": [
+                    [
+                        "0xaaa",
+                        "0xbbb"
+                    ],
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+                ],
+                "output": "{\"data\":{\"hashes\":[\"0xaaa\",\"0xbbb\"]}}"
+            }
+        ],
+        "createOrder": [
+            {
+                "description": "createOrder limit buy",
+                "method": "createOrder",
+                "url": "https://api.predict.fun/v1/orders",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                    "limit",
+                    "buy",
+                    10,
+                    0.4,
+                    {
+                        "salt": "1",
+                        "nonce": "0",
+                        "expiration": "1789017900"
+                    }
+                ],
+                "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"59609662274634420713255055715470737173946398995313530846306470637882773028040\",\"makerAmount\":\"4000000000000000000\",\"takerAmount\":\"10000000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":0,\"signatureType\":0,\"hash\":\"0x970e19bf3a5882428453bed98b6c3920ffab70916cb2b4688b0da1aaad23933d\",\"signature\":\"0x9ecbc1c46714e4eaec9e1592f6612aee69c82bb0c7c38af6deafec620fcd7dfc732900b38253f0e52c53701032b321a66d1aab9656ef68e37f39c087180136bd1c\"},\"pricePerShare\":\"400000000000000000\",\"strategy\":\"LIMIT\"}}"
+            },
+            {
+                "description": "createOrder limit sell",
+                "method": "createOrder",
+                "url": "https://api.predict.fun/v1/orders",
+                "input": [
+                    "BITCOIN_UP_DOWN_SEPTEMBER_9_2026_1AM_ET:UP",
+                    "limit",
+                    "sell",
+                    10,
+                    0.6,
+                    {
+                        "salt": "1",
+                        "nonce": "0",
+                        "expiration": "1789017900"
+                    }
+                ],
+                "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"71111667581947966458963638272722498520811333974978184910327698120887210008877\",\"makerAmount\":\"10000000000000000000\",\"takerAmount\":\"6000000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":1,\"signatureType\":0,\"hash\":\"0x8033e51e8843db677d8d087c67c97534b3451dc4b95c0fb26bfff6296a68488e\",\"signature\":\"0xbef5049b6aa2072cd4506949bc7ccb10b58ddafaa79d6c2560789c29daf60b0a44c03658edb1726e0521b7f6d039fde166d72f5021c576de9769868ed92447a51c\"},\"pricePerShare\":\"600000000000000000\",\"strategy\":\"LIMIT\"}}"
+            },
+            {
+                "description": "createOrder market buy signs at the aggressive end of the range",
+                "method": "createOrder",
+                "url": "https://api.predict.fun/v1/orders",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                    "market",
+                    "buy",
+                    10,
+                    null,
+                    {
+                        "salt": "1",
+                        "nonce": "0",
+                        "expiration": "1789017900",
+                        "warnOnMarketOrderWithoutPrice": false
+                    }
+                ],
+                "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"59609662274634420713255055715470737173946398995313530846306470637882773028040\",\"makerAmount\":\"9900000000000000000\",\"takerAmount\":\"10000000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":0,\"signatureType\":0,\"hash\":\"0xb5e4839d2fbf4e2306f69d07d810e5d600bc1544bcc97d7c38f1475822a86b72\",\"signature\":\"0xa2e6765ffa6f41d85120b0d0067bac77caa86c0ff86a444a177c245619ef9d5d35dff3372e44b45b08a39217dd44bcaef047676c013e057a537d4deee3f98c111c\"},\"pricePerShare\":\"990000000000000000\",\"strategy\":\"MARKET\"}}"
+            },
+            {
+                "description": "createOrder market sell signs at the aggressive end of the range",
+                "method": "createOrder",
+                "url": "https://api.predict.fun/v1/orders",
+                "input": [
+                    "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+                    "market",
+                    "sell",
+                    10,
+                    null,
+                    {
+                        "salt": "1",
+                        "nonce": "0",
+                        "expiration": "1789017900",
+                        "warnOnMarketOrderWithoutPrice": false
+                    }
+                ],
+                "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"59609662274634420713255055715470737173946398995313530846306470637882773028040\",\"makerAmount\":\"10000000000000000000\",\"takerAmount\":\"100000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":1,\"signatureType\":0,\"hash\":\"0xfabc817c55377f27b6f94d4a02baf90c3b43f6cbf5536a6e507df68770085caf\",\"signature\":\"0xf67dee06db9f4f6fa8d2482a457ee09a1395f019799bbc4a9a8fdaae839ca7a93bece3e63cb59d03f3be2d31095c8733698636ec6c6261167cf98a0d89f03f841b\"},\"pricePerShare\":\"10000000000000000\",\"strategy\":\"MARKET\"}}"
+            }
+        ]
+    }
+}

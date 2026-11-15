@@ -5,7 +5,7 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 //  ---------------------------------------------------------------------------
-import binance from './binance.js';
+import binance from '../abstract/pro/binancecoinm.js';
 import binancecoinmRest from '../binancecoinm.js';
 // ---------------------------------------------------------------------------
 export default class binancecoinm extends binance {

@@ -8,10 +8,14 @@
 import { Dict, List } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
 
-interface Exchange {
-    publicPostInfo (params?: {}): Promise<Dict | List | string>;
-    privatePostExchange (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicPostInfo (params = {}): Promise<Dict | List | string> {
+        return this.request ('info', [ 'public' ], 'POST', params, { 'cost': 20, 'byType': { 'l2Book': 2, 'allMids': 2, 'spotClearinghouseState': 2, 'candleSnapshot': 4, 'orderStatus': 2 }});
+    }
 
-export default Exchange
+    privatePostExchange (params = {}): Promise<Dict> {
+        return this.request ('exchange', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

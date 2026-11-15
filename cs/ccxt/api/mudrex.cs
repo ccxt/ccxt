@@ -53,6 +53,13 @@ public partial class mudrex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetFuturesFunds",parameters);
     }
 
+    /// <summary>Calls the privateGetFuturesTransactions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetFuturesTransactions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetFuturesTransactions",parameters);
+    }
+
     /// <summary>Calls the privateGetFuturesOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetFuturesOrders (object parameters = null)

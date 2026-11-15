@@ -6,11 +6,12 @@ import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 import type { Int, Trade, Dict, OrderBook, OHLCV , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
 import { ExchangeError } from '../base/errors.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class dydx extends dydxRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -46,23 +47,24 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_trades',
             'id': market['id'],
         };
-        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -74,13 +76,13 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'trade:' + market['symbol'];
+        const messageHash = 'trade:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_trades',
@@ -89,7 +91,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleTrades (client: any, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -114,7 +116,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const rawTrades = this.safeList (content, 'trades', []);
         let stored = this.safeValue (this.trades, symbol);
@@ -125,14 +127,13 @@ export default class dydx extends dydxRest {
         }
         const parsedTrades = this.parseTrades (rawTrades, market);
         for (let i = 0; i < parsedTrades.length; i++) {
-            const parsed = parsedTrades[i];
-            stored.append (parsed);
+            stored.append (parsedTrades[i]);
         }
         const messageHash = 'trade' + ':' + symbol;
         client.resolve (stored, messageHash);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         // {
         //     "id": "02b6148d0000000200000003",
@@ -172,19 +173,19 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_orderbook',
             'id': market['id'],
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         return orderbook.limit ();
     }
 
@@ -197,13 +198,13 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'orderbook:' + market['symbol'];
+        const messageHash = 'orderbook:' + this.safeString (market, 'symbol', '');
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_orderbook',
@@ -212,7 +213,7 @@ export default class dydx extends dydxRest {
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -238,7 +239,7 @@ export default class dydx extends dydxRest {
         //
         const marketId = this.safeString (message, 'id');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
@@ -278,24 +279,25 @@ export default class dydx extends dydxRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'subscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -309,23 +311,23 @@ export default class dydx extends dydxRest {
      * @param {object} [params.timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const url = this.urls['api']['ws'];
+        const url = this.safeString (this.urls['api'], 'ws');
         const market = this.market (symbol);
-        const messageHash = 'ohlcv:' + market['symbol'];
+        const messageHash = 'ohlcv:' + this.safeString (market, 'symbol', '');
         const resolution = this.safeString (this.timeframes, timeframe, timeframe);
         const request: Dict = {
             'type': 'unsubscribe',
             'channel': 'v4_candles',
-            'id': market['id'] + '/' + resolution,
+            'id': this.safeString (market, 'id', '') + '/' + resolution,
         };
         return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //     "type": "subscribed",
@@ -383,13 +385,13 @@ export default class dydx extends dydxRest {
         const timeframe = this.findTimeframe (interval);
         const marketId = this.safeString (part, 0);
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const content = this.safeDict (message, 'contents');
         const candles = this.safeList (content, 'candles');
         const messageHash = 'ohlcv:' + symbol;
         const ohlcv = this.safeDict (candles, 0, content);
         const parsed = this.parseOHLCV (ohlcv, market);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -400,7 +402,7 @@ export default class dydx extends dydxRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {
         //     "type": "error",
@@ -410,7 +412,7 @@ export default class dydx extends dydxRest {
         // }
         //
         try {
-            const msg = this.safeString (message, 'message');
+            const msg = this.safeString (message, 'message', '');
             throw new ExchangeError (this.id + ' ' + msg);
         } catch (e) {
             client.reject (e);
@@ -418,7 +420,7 @@ export default class dydx extends dydxRest {
         return true;
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         const type = this.safeString (message, 'type');
         if (type === 'error') {
             this.handleErrorMessage (client, message);

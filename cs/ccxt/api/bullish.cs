@@ -39,6 +39,20 @@ public partial class bullish : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetV1AssetsSymbol",parameters);
     }
 
+    /// <summary>Calls the publicGetV1VolGrids endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1VolGrids (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1VolGrids",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1AssetsSymbolVolGrid endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1AssetsSymbolVolGrid (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1AssetsSymbolVolGrid",parameters);
+    }
+
     /// <summary>Calls the publicGetV1Markets endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetV1Markets (object parameters = null)
@@ -51,6 +65,13 @@ public partial class bullish : Exchange
     public async Task<Dictionary<string, object>> publicGetV1MarketsSymbol (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetV1MarketsSymbol",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1HistoryMarkets endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1HistoryMarkets (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1HistoryMarkets",parameters);
     }
 
     /// <summary>Calls the publicGetV1HistoryMarketsSymbol endpoint.</summary>
@@ -88,6 +109,20 @@ public partial class bullish : Exchange
         return await this.callAsync<List<object>> ("publicGetV1MarketsSymbolCandle",parameters);
     }
 
+    /// <summary>Calls the publicGetV1MarketsSymbolAuctions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1MarketsSymbolAuctions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1MarketsSymbolAuctions",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1MarketsSymbolAuctionsNoii endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetV1MarketsSymbolAuctionsNoii (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetV1MarketsSymbolAuctionsNoii",parameters);
+    }
+
     /// <summary>Calls the publicGetV1HistoryMarketsSymbolTrades endpoint.</summary>
     /// <returns>a JSON array</returns>
     public async Task<List<object>> publicGetV1HistoryMarketsSymbolTrades (object parameters = null)
@@ -100,6 +135,20 @@ public partial class bullish : Exchange
     public async Task<List<object>> publicGetV1HistoryMarketsSymbolFundingRate (object parameters = null)
     {
         return await this.callAsync<List<object>> ("publicGetV1HistoryMarketsSymbolFundingRate",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1HistoryMarketsSymbolAuctions endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1HistoryMarketsSymbolAuctions (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1HistoryMarketsSymbolAuctions",parameters);
+    }
+
+    /// <summary>Calls the publicGetV1HistoryOptionTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> publicGetV1HistoryOptionTrades (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("publicGetV1HistoryOptionTrades",parameters);
     }
 
     /// <summary>Calls the publicGetV1IndexPrices endpoint.</summary>
@@ -156,6 +205,13 @@ public partial class bullish : Exchange
     public async Task<Dictionary<string, object>> privateGetV2OrdersOrderId (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetV2OrdersOrderId",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2OrdersClientOrderIdClientOrderId endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetV2OrdersClientOrderIdClientOrderId (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetV2OrdersClientOrderIdClientOrderId",parameters);
     }
 
     /// <summary>Calls the privateGetV2AmmInstructions endpoint.</summary>
@@ -347,6 +403,27 @@ public partial class bullish : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetV2OtcTradesUnconfirmedTrade",parameters);
     }
 
+    /// <summary>Calls the privateGetV2OtcTradesDelegatedAccounts endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetV2OtcTradesDelegatedAccounts (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetV2OtcTradesDelegatedAccounts",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2IdbDelegatedAccounts endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetV2IdbDelegatedAccounts (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetV2IdbDelegatedAccounts",parameters);
+    }
+
+    /// <summary>Calls the privateGetV2IdbOtcTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetV2IdbOtcTrades (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetV2IdbOtcTrades",parameters);
+    }
+
     /// <summary>Calls the privatePostV2Orders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostV2Orders (object parameters = null)
@@ -389,6 +466,13 @@ public partial class bullish : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostV1SimulatePortfolioMargin",parameters);
     }
 
+    /// <summary>Calls the privatePostV1BulkSimulatePortfolioMargin endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privatePostV1BulkSimulatePortfolioMargin (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privatePostV1BulkSimulatePortfolioMargin",parameters);
+    }
+
     /// <summary>Calls the privatePostV1WalletsSelfHostedInitiate endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostV1WalletsSelfHostedInitiate (object parameters = null)
@@ -415,6 +499,20 @@ public partial class bullish : Exchange
     public async Task<Dictionary<string, object>> privatePostV2OtcCommand (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostV2OtcCommand",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2IdbOtcTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2IdbOtcTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2IdbOtcTrades",parameters);
+    }
+
+    /// <summary>Calls the privatePostV2IdbOtcCommand endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostV2IdbOtcCommand (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostV2IdbOtcCommand",parameters);
     }
 
 }

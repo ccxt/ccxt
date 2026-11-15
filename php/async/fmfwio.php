@@ -9,7 +9,7 @@ use Exception; // a common import
 use ccxt\async\abstract\fmfwio as hitbtc;
 
 class fmfwio extends hitbtc {
-    public function describe(): mixed {
+    public function describe(): array {
         return $this->deep_extend(parent::describe(), array(
             'id' => 'fmfwio',
             'name' => 'FMFW.io',

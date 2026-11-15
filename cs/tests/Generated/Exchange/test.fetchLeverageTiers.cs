@@ -9,21 +9,21 @@ public partial class testMainClass : BaseTest
 {
     async static public Task<object> testFetchLeverageTiers(BaseExchange exchange, object skippedProperties, object symbol)
     {
-        object method = "fetchLeverageTiers";
-        object tiers = await ((dynamic)exchange).fetchLeverageTiers(new List<object>() {"symbol"});
+        string method = "fetchLeverageTiers";
+        object tiers = await invokeExchangeDynamically(exchange, "fetchLeverageTiers", new List<object>() {symbol});
         // const format = {
         //     'RAY/USDT': [
         //       {},
         //     ],
         // };
-        assert(exchange.isDictionary(tiers), add(add(add(add(add(add(exchange.id, " "), method), " "), symbol), " must return a dict. "), exchange.json(tiers)));
-        object tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
+        testSharedMethods.assertDictionaryResponse(exchange, method, tiers, symbol);
+        List<object> tierKeys = new List<object>(((IDictionary<string,object>)tiers).Keys);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tierKeys, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(tierKeys)); postFixIncrement(ref i))
+        for (int i = 0; i < tierKeys.Count; i++)
         {
-            object tiersForSymbol = getValue(tiers, getValue(tierKeys, i));
+            object tiersForSymbol = getValue(tiers, tierKeys[i]);
             testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, tiersForSymbol, symbol);
-            for (object j = 0; isLessThan(j, getArrayLength(tiersForSymbol)); postFixIncrement(ref j))
+            for (int j = 0; j < getArrayLength(tiersForSymbol); j++)
             {
                 testLeverageTier(exchange, skippedProperties, method, getValue(tiersForSymbol, j));
             }

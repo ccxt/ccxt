@@ -1,6 +1,6 @@
 Every endpoint in `blockchaincom`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/blockchaincom) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetTickers`); the snake_case alias (`public_get_tickers`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetTickers`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetTickers`); Python and PHP use the snake_case form (`public_get_tickers`), and Go uses the PascalCase form (`PublicGetTickers`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official blockchaincom API documentation:** [api.blockchain.com](https://api.blockchain.com/v3)
 
-> 24 implicit endpoints across 2 access groups.
+> 25 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -77,6 +77,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `privateGetFees` | GET | `fees` | 1 |
+| `privateGetInternalOrders` | GET | `internal/orders` | 1 |
 | `privateGetOrders` | GET | `orders` | 1 |
 | `privateGetOrdersOrderId` | GET | `orders/{orderId}` | 1 |
 | `privateGetTrades` | GET | `trades` | 1 |

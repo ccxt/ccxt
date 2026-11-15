@@ -1,6 +1,6 @@
 Every endpoint in `cex`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/cex) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicPostGetServerTime`); the snake_case alias (`public_post_get_server_time`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicPostGetServerTime`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicPostGetServerTime`); Python and PHP use the snake_case form (`public_post_get_server_time`), and Go uses the PascalCase form (`PublicPostGetServerTime`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cex API documentation:** [trade.cex.io](https://trade.cex.io/docs/)
 
-> 28 implicit endpoints across 2 access groups.
+> 29 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -89,6 +89,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostDoCancelMyOrder` | POST | `do_cancel_my_order` | 1 |
 | `privatePostDoCancelAllOrders` | POST | `do_cancel_all_orders` | 5 |
 | `privatePostGetOrderBook` | POST | `get_order_book` | 1 |
+| `privatePostGetTicker` | POST | `get_ticker` | 1 |
 | `privatePostGetCandles` | POST | `get_candles` | 1 |
 | `privatePostGetTradeHistory` | POST | `get_trade_history` | 1 |
 | `privatePostGetMyTransactionHistory` | POST | `get_my_transaction_history` | 1 |

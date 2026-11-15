@@ -9,7 +9,7 @@ import java.util.Map;
 // record (it does not embed a base unified struct): one settled outcome the user
 // held, with the collateral paid in and paid out. Mirrors the PredictionSettlement
 // interface in ts/src/base/types.ts and the Go/C# structs.
-public final class PredictionSettlement {
+public final class PredictionSettlement extends TypedMap {
     public String id;
     public Long timestamp;
     public String datetime;
@@ -28,6 +28,7 @@ public final class PredictionSettlement {
 
     @SuppressWarnings("unchecked")
     public PredictionSettlement(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

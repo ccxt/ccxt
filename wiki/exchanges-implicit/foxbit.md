@@ -1,6 +1,6 @@
 Every endpoint in `foxbit`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/foxbit) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v3PublicGetCurrencies`); the snake_case alias (`v3_public_get_currencies`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`V3PublicGetCurrencies`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `v3PublicGetCurrencies`); Python and PHP use the snake_case form (`v3_public_get_currencies`), and Go uses the PascalCase form (`V3PublicGetCurrencies`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official foxbit API documentation:** [docs.foxbit.com.br](https://docs.foxbit.com.br)
 
-> 22 implicit endpoints across 2 access groups.
+> 26 implicit endpoints across 2 access groups.
 
 ## v3
 
@@ -68,6 +68,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PublicGetMarketsMarketCandlesticks` | GET | `markets/{market}/candlesticks` | 12 |
 | `v3PublicGetMarketsMarketTradesHistory` | GET | `markets/{market}/trades/history` | 12 |
 | `v3PublicGetMarketsMarketTicker24hr` | GET | `markets/{market}/ticker/24hr` | 15 |
+| `v3PublicGetMarketsSparklineWindow` | GET | `markets/sparkline/{window}` | 20 |
+| `v3PublicGetTravelRuleOperationReasons` | GET | `travel_rule/operation_reasons` | 30 |
 | `v3PrivateGetAccounts` | GET | `accounts` | 2 |
 | `v3PrivateGetAccountsSymbolTransactions` | GET | `accounts/{symbol}/transactions` | 60 |
 | `v3PrivateGetOrders` | GET | `orders` | 2 |
@@ -77,10 +79,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivateGetDeposits` | GET | `deposits` | 10 |
 | `v3PrivateGetWithdrawals` | GET | `withdrawals` | 10 |
 | `v3PrivateGetMeFeesTrading` | GET | `me/fees/trading` | 60 |
+| `v3PrivateGetPrimeDeskExecutionsQuoteId` | GET | `prime_desk/executions/{quote_id}` | 10 |
 | `v3PrivatePostOrders` | POST | `orders` | 2 |
 | `v3PrivatePostOrdersBatch` | POST | `orders/batch` | 7.5 |
 | `v3PrivatePostOrdersCancelReplace` | POST | `orders/cancel-replace` | 3 |
 | `v3PrivatePostWithdrawals` | POST | `withdrawals` | 10 |
+| `v3PrivatePostDepositsDepositSnTravelRule` | POST | `deposits/{deposit_sn}/travel_rule` | 30 |
 | `v3PrivatePutOrdersCancel` | PUT | `orders/cancel` | 2 |
 
 ## status

@@ -233,7 +233,7 @@
 				"method": "cancelOrder",
 				"url": "https://api.binance.com/sapi/v1/w3w/wallet/prediction/trade/batch-cancel",
 				"input": [
-					12345567
+					"12345567"
 				],
 				"output": "timestamp=1785327231918&walletAddress=0x6d9102ba612C1717D723b473810D13C6d6669Ca8&walletId=12345678&cancelInfoList[0].orderId=12345567&signature=xxxxxxx"
 			}

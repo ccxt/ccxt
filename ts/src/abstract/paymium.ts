@@ -8,32 +8,106 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 
-interface Exchange {
-    publicGetCountries (params?: {}): Promise<List>;
-    publicGetCurrencies (params?: {}): Promise<List>;
-    publicGetDataCurrencyTicker (params?: {}): Promise<Dict>;
-    publicGetDataCurrencyTrades (params?: {}): Promise<List>;
-    publicGetDataCurrencyDepth (params?: {}): Promise<Dict>;
-    publicGetBitcoinChartsIdTrades (params?: {}): Promise<List>;
-    publicGetBitcoinChartsIdDepth (params?: {}): Promise<Dict>;
-    privateGetUser (params?: {}): Promise<Dict>;
-    privateGetUserAddresses (params?: {}): Promise<List>;
-    privateGetUserAddressesAddress (params?: {}): Promise<Dict>;
-    privateGetUserOrders (params?: {}): Promise<List>;
-    privateGetUserOrdersUuid (params?: {}): Promise<Dict>;
-    privateGetUserPriceAlerts (params?: {}): Promise<List>;
-    privateGetMerchantGetPaymentUuid (params?: {}): Promise<Dict>;
-    privatePostUserAddresses (params?: {}): Promise<Dict>;
-    privatePostUserOrders (params?: {}): Promise<Dict>;
-    privatePostUserWithdrawals (params?: {}): Promise<Dict>;
-    privatePostUserEmailTransfers (params?: {}): Promise<Dict>;
-    privatePostUserPaymentRequests (params?: {}): Promise<List>;
-    privatePostUserPriceAlerts (params?: {}): Promise<Dict>;
-    privatePostMerchantCreatePayment (params?: {}): Promise<Dict>;
-    privateDeleteUserOrdersUuid (params?: {}): Promise<Dict>;
-    privateDeleteUserOrdersUuidCancel (params?: {}): Promise<Dict>;
-    privateDeleteUserPriceAlertsId (params?: {}): Promise<Dict>;
-}
-abstract class Exchange extends _Exchange {}
+abstract class Exchange extends _Exchange {
+    publicGetCountries (params = {}): Promise<List> {
+        return this.request ('countries', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
 
-export default Exchange
+    publicGetCurrencies (params = {}): Promise<List> {
+        return this.request ('currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDataCurrencyTicker (params = {}): Promise<Dict> {
+        return this.request ('data/{currency}/ticker', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDataCurrencyTrades (params = {}): Promise<List> {
+        return this.request ('data/{currency}/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetDataCurrencyDepth (params = {}): Promise<Dict> {
+        return this.request ('data/{currency}/depth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBitcoinChartsIdTrades (params = {}): Promise<List> {
+        return this.request ('bitcoin_charts/{id}/trades', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    publicGetBitcoinChartsIdDepth (params = {}): Promise<Dict> {
+        return this.request ('bitcoin_charts/{id}/depth', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUser (params = {}): Promise<Dict> {
+        return this.request ('user', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserAddresses (params = {}): Promise<List> {
+        return this.request ('user/addresses', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserAddressesAddress (params = {}): Promise<Dict> {
+        return this.request ('user/addresses/{address}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserOrders (params = {}): Promise<List> {
+        return this.request ('user/orders', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserOrdersUuid (params = {}): Promise<Dict> {
+        return this.request ('user/orders/{uuid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserPriceAlerts (params = {}): Promise<List> {
+        return this.request ('user/price_alerts', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetUserWithdrawals (params = {}): Promise<List> {
+        return this.request ('user/withdrawals', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privateGetMerchantGetPaymentUuid (params = {}): Promise<Dict> {
+        return this.request ('merchant/get_payment/{uuid}', [ 'private' ], 'GET', params, { 'cost': 1 });
+    }
+
+    privatePostUserAddresses (params = {}): Promise<Dict> {
+        return this.request ('user/addresses', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUserOrders (params = {}): Promise<Dict> {
+        return this.request ('user/orders', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUserWithdrawals (params = {}): Promise<Dict> {
+        return this.request ('user/withdrawals', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUserEmailTransfers (params = {}): Promise<Dict> {
+        return this.request ('user/email_transfers', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUserPaymentRequests (params = {}): Promise<List> {
+        return this.request ('user/payment_requests', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostUserPriceAlerts (params = {}): Promise<Dict> {
+        return this.request ('user/price_alerts', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privatePostMerchantCreatePayment (params = {}): Promise<Dict> {
+        return this.request ('merchant/create_payment', [ 'private' ], 'POST', params, { 'cost': 1 });
+    }
+
+    privateDeleteUserOrdersUuid (params = {}): Promise<Dict> {
+        return this.request ('user/orders/{uuid}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteUserOrdersUuidCancel (params = {}): Promise<Dict> {
+        return this.request ('user/orders/{uuid}/cancel', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+
+    privateDeleteUserPriceAlertsId (params = {}): Promise<Dict> {
+        return this.request ('user/price_alerts/{id}', [ 'private' ], 'DELETE', params, { 'cost': 1 });
+    }
+}
+
+export default Exchange;

@@ -1,6 +1,6 @@
 import { List, Dict } from '../../base/types.js';
 import { default as _Exchange } from '../../base/PredictionExchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     gammaPublicGetStatus(params?: {}): Promise<string>;
     gammaPublicGetComments(params?: {}): Promise<List>;
     gammaPublicGetCommentsId(params?: {}): Promise<List>;
@@ -129,7 +129,5 @@ interface Exchange {
     combosPrivatePostV1MakerConfirmations(params?: {}): Promise<Dict>;
     combosPrivatePostV1MakerQuotes(params?: {}): Promise<Dict>;
     combosPrivatePostV1MakerQuotesCancel(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

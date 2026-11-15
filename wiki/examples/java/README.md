@@ -34,6 +34,8 @@
 
 - [ListExchanges](examples/java/ListExchanges.md)
 
+- [LoomConcurrencyBench](examples/java/LoomConcurrencyBench.md)
+
 - [WatchMultipleSymbols](examples/java/WatchMultipleSymbols.md)
 
 - [WatchOHLCV](examples/java/WatchOHLCV.md)

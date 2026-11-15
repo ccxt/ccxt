@@ -291,4 +291,18 @@ public partial class bitso : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateDeleteOrdersAll",parameters);
     }
 
+    /// <summary>Calls the privatePatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePatchOrdersOid endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePatchOrdersOid (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePatchOrdersOid",parameters);
+    }
+
 }

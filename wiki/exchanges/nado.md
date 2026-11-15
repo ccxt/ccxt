@@ -97,7 +97,7 @@ create a trade order
 | params.triggerPrice | <code>float</code> | No | *swap only* The price at which a trigger order is triggered at |
 | params.stopLossPrice | <code>float</code> | No | *swap only* The price at which a stop loss order is triggered at |
 | params.takeProfitPrice | <code>float</code> | No | *swap only* The price at which a take profit order is triggered at |
-| params.triggerDirection | <code>string</code> | No | trigger direction, above, below |
+| params.triggerDirection | <code>string</code> | No | the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases |
 | params.id | <code>int</code> | No | client-provided request id, returned by the exchange in the response |
 
 
@@ -134,6 +134,7 @@ edit a trade order
 | params.spotLeverage | <code>boolean</code> | No | whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage |
 | params.placeRequiresUnfilled | <code>boolean</code> | No | when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true |
 | params.id | <code>int</code> | No | client-provided request id, returned by the exchange in the response |
+| params.triggerPrice | <code>float</code> | No | not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice |
 
 
 ```javascript
@@ -256,7 +257,7 @@ fetches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
 
@@ -328,7 +329,7 @@ nado.fetchClosedOrders (symbol?, since?, limit?, params?)
 <a name="fetchCanceledOrders" id="fetchcanceledorders"></a>
 
 ### fetchCanceledOrders{docsify-ignore}
-fetches information on multiple canceled orders made by the user
+fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
 
 **Kind**: instance method of [<code>nado</code>](#nado)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
@@ -339,9 +340,8 @@ fetches information on multiple canceled orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
 
 
 ```javascript
@@ -352,7 +352,7 @@ nado.fetchCanceledOrders (symbol, since?, limit?, params?)
 <a name="fetchCanceledAndClosedOrders" id="fetchcanceledandclosedorders"></a>
 
 ### fetchCanceledAndClosedOrders{docsify-ignore}
-fetches information on multiple canceled orders made by the user
+fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
 
 **Kind**: instance method of [<code>nado</code>](#nado)  
 **Returns**: <code>Array&lt;object&gt;</code> - a list of [order structures](https://docs.ccxt.com/?id=order-structure)
@@ -363,9 +363,8 @@ fetches information on multiple canceled orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market the orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.trigger | <code>boolean</code> | No | set to true if you would like to fetch portfolio margin account trigger or conditional orders |
 
 
 ```javascript
@@ -791,7 +790,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch OHLCV data for |
 | timeframe | <code>string</code> | Yes | the length of time each candle represents |
 | since | <code>int</code> | No | timestamp in ms of the earliest candle to fetch |
-| limit | <code>int</code> | No | the maximum amount of candles to fetch |
+| limit | <code>int</code> | No | the maximum amount of candles to fetch, max 500 |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
 
@@ -1419,6 +1418,7 @@ edit a trade order over the v2 gateway WebSocket
 | params.spotLeverage | <code>boolean</code> | No | whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage |
 | params.placeRequiresUnfilled | <code>boolean</code> | No | when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true |
 | params.id | <code>int</code> | No | client-provided request id used to correlate the out-of-order v2 response, autogenerated when omitted |
+| params.triggerPrice | <code>float</code> | No | not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice |
 
 
 ```javascript

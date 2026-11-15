@@ -13,6 +13,8 @@
 * [fetchOHLCV](#fetchohlcv)
 * [fetchTickers](#fetchtickers)
 * [fetchTicker](#fetchticker)
+* [fetchFundingRates](#fetchfundingrates)
+* [fetchFundingRate](#fetchfundingrate)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchOpenInterest](#fetchopeninterest)
@@ -47,7 +49,6 @@
 ### paradex{docsify-ignore}
 Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
 or alternatively you can provide the startknet private key and public key by setting exchange.options['paradexAccount'] with  add {"privateKey": A, "publicKey": B, "address": C}
-
 
 
 ```javascript
@@ -174,7 +175,7 @@ fetches historical candlestick data containing the open, high, low, and close pr
 | limit | <code>int</code> | No | the maximum amount of candles to fetch |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms of the latest candle to fetch |
-| params.price | <code>string</code> | No | "last", "mark", "index", default is "last" |
+| params.price | <code>string</code> | No | "last", "mark", "index" (sent as "underlying"), default is "last" |
 
 
 ```javascript
@@ -221,6 +222,48 @@ fetches a price ticker, a statistical calculation with the information calculate
 
 ```javascript
 paradex.fetchTicker (symbol, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetches the current funding rate for multiple markets
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>Array&lt;object&gt;</code> - a list of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRates (symbols?, params?)
+```
+
+
+<a name="fetchFundingRate" id="fetchfundingrate"></a>
+
+### fetchFundingRate{docsify-ignore}
+fetches the current funding rate
+
+**Kind**: instance method of [<code>paradex</code>](#paradex)  
+**Returns**: <code>object</code> - a [funding rate structure](https://docs.ccxt.com/?id=funding-rate-structure)
+
+**See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified market symbol |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+paradex.fetchFundingRate (symbol, params?)
 ```
 
 
@@ -312,12 +355,13 @@ create a trade order
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
-| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at |
-| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at |
-| params.timeInForce | <code>string</code> | No | "GTC", "IOC", or "POST_ONLY" |
+| params.stopLossPrice | <code>float</code> | No | the price that a stop loss order is triggered at, an amount of 0 closes the whole position |
+| params.takeProfitPrice | <code>float</code> | No | the price that a take profit order is triggered at, an amount of 0 closes the whole position |
+| params.timeInForce | <code>string</code> | No | "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported |
 | params.postOnly | <code>bool</code> | No | true or false |
 | params.reduceOnly | <code>bool</code> | No | Ensures that the executed order does not flip the opened position. |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
+| params.recvWindow | <code>int</code> | No | the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted |
 
 
 ```javascript
@@ -342,14 +386,16 @@ edit an open limit order or TPSL order
 | type | <code>string</code> | Yes | 'limit' or a TPSL order type |
 | side | <code>string</code> | Yes | 'buy' or 'sell' |
 | amount | <code>float</code> | Yes | how much of the currency you want to trade in units of the base currency |
-| price | <code>float</code> | Yes | the price at which the order is to be fulfilled, in units of the quote currency |
+| price | <code>float</code> | No | the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.stopPrice | <code>float</code> | No | alias for triggerPrice |
 | params.triggerPrice | <code>float</code> | No | The price a trigger order is triggered at |
+| params.stopLossPrice | <code>float</code> | No | the price a stop loss order is triggered at |
+| params.takeProfitPrice | <code>float</code> | No | the price a take profit order is triggered at |
 
 
 ```javascript
-paradex.editOrder (id, symbol, type, side, amount, price, params?)
+paradex.editOrder (id, symbol, type, side, amount, price?, params?)
 ```
 
 
@@ -569,7 +615,7 @@ paradex.fetchMyTrades (symbol, since?, limit?, params?)
 <a name="fetchPosition" id="fetchposition"></a>
 
 ### fetchPosition{docsify-ignore}
-fetch data on an open position
+fetch data on a single position, a closed one included
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
 **Returns**: <code>object</code> - a [position structure](https://docs.ccxt.com/?id=position-structure)
@@ -743,7 +789,7 @@ set margin mode to 'cross' or 'isolated'
 | marginMode | <code>string</code> | Yes | 'cross' or 'isolated' |
 | symbol | <code>string</code> | Yes | unified market symbol |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.leverage | <code>float</code> | No | the rate of leverage |
+| params.leverage | <code>float</code> | No | the rate of leverage, the current leverage of the market is kept when omitted |
 
 
 ```javascript
@@ -822,7 +868,7 @@ paradex.fetchGreeks (symbol, params?)
 fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
 **Kind**: instance method of [<code>paradex</code>](#paradex)  
-**Returns**: <code>object</code> - a [greeks structure](https://docs.ccxt.com/?id=greeks-structure)
+**Returns**: <code>object</code> - a dictionary of [greeks structures](https://docs.ccxt.com/?id=greeks-structure) indexed by market symbol
 
 **See**: https://docs.paradex.trade/api/prod/markets/get-markets-summary  
 

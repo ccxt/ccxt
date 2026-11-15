@@ -85,6 +85,7 @@
 * [setContractLeverage](#setcontractleverage)
 * [fetchFundingInterval](#fetchfundinginterval)
 * [fetchFundingRate](#fetchfundingrate)
+* [fetchFundingRates](#fetchfundingrates)
 * [fetchFundingRateHistory](#fetchfundingratehistory)
 * [fetchFundingHistory](#fetchfundinghistory)
 * [fetchPosition](#fetchposition)
@@ -526,7 +527,7 @@ kucoin.fetchContractDepositAddress (code, params?)
 fetch the deposit address for a currency associated with this account
 
 **Kind**: instance method of [<code>kucoin</code>](#kucoin)  
-**Returns**: <code>object</code> - an array of [address structures](https://docs.ccxt.com/?id=address-structure)
+**Returns**: <code>object</code> - a dictionary of [address structures](https://docs.ccxt.com/?id=address-structure) indexed by the network
 
 **See**
 
@@ -559,15 +560,15 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 - https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-part-orderbook
 - https://www.kucoin.com/docs-new/rest/spot-trading/market-data/get-full-orderbook
 - https://www.kucoin.com/docs-new/rest/futures-trading/market-data/get-part-orderbook
-- https://www.kucoin.com/docs-new/rest/ua/get-orderbook
+- https://www.kucoin.com/docs-new/v2/rest/ua/get-orderbook
 
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return, for uta any depth is accepted and the full book is returned when omitted |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false |
+| params.uta | <code>boolean</code> | No | set to true for the unified trading account (uta), defaults to false, the uta orderbook endpoint is public |
 
 
 ```javascript
@@ -1753,12 +1754,12 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-kucoin.withdraw (code, amount, address, tag, params?)
+kucoin.withdraw (code, amount, address, params?)
 ```
 
 
@@ -2403,6 +2404,29 @@ fetch the current funding rate
 
 ```javascript
 kucoin.fetchFundingRate (symbol, params?)
+```
+
+
+<a name="fetchFundingRates" id="fetchfundingrates"></a>
+
+### fetchFundingRates{docsify-ignore}
+fetch the current funding rates for multiple markets
+
+**Kind**: instance method of [<code>kucoin</code>](#kucoin)  
+**Returns**: <code>object</code> - a dictionary of [funding rate structures](https://docs.ccxt.com/?id=funding-rate-structure), indexed by market symbols
+
+**See**: https://www.kucoin.com/docs-new/v2/rest/ua/get-current-funding  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbols | <code>Array&lt;string&gt;</code> | No | unified market symbols, all markets are returned if not assigned |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.productType | <code>string</code> | No | filter by USDT-FUTURES, USDC-FUTURES or COIN-FUTURES |
+| params.symbol | <code>string</code> | No | exchange-specific contract id (e.g. XBTUSDTM), overrides productType when provided |
+
+
+```javascript
+kucoin.fetchFundingRates (symbols?, params?)
 ```
 
 

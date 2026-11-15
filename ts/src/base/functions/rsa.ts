@@ -75,5 +75,4 @@ function jwt (request: Dictionary<any>, secret: Uint8Array, hash: CHash, isRSA =
     return result;
   }
 
-
 export { rsa, jwt }

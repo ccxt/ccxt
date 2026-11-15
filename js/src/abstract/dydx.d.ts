@@ -1,6 +1,6 @@
 import { Dict, List } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     indexerGetAddressesAddress(params?: {}): Promise<Dict>;
     indexerGetAddressesAddressParentSubaccountNumberNumber(params?: {}): Promise<Dict>;
     indexerGetAddressesAddressSubaccountNumberSubaccountNumber(params?: {}): Promise<Dict>;
@@ -47,6 +47,12 @@ interface Exchange {
     indexerGetAddressesAddressSubaccountNumberSubaccountNumberOrders(params?: {}): Promise<Dict>;
     indexerGetFillsParentSubaccount(params?: {}): Promise<Dict>;
     indexerGetHistoricalPnlParentSubaccount(params?: {}): Promise<Dict>;
+    indexerGetPnl(params?: {}): Promise<Dict>;
+    indexerGetPnlParentSubaccountNumber(params?: {}): Promise<Dict>;
+    indexerGetTradeHistory(params?: {}): Promise<Dict>;
+    indexerGetTradeHistoryParentSubaccountNumber(params?: {}): Promise<Dict>;
+    indexerPostTurnkeySignin(params?: {}): Promise<Dict>;
+    indexerPostTurnkeyUploadAddress(params?: {}): Promise<Dict>;
     nodeRpcGetAbciInfo(params?: {}): Promise<Dict>;
     nodeRpcGetBlock(params?: {}): Promise<Dict>;
     nodeRpcGetBroadcastTxAsync(params?: {}): Promise<Dict>;
@@ -55,7 +61,5 @@ interface Exchange {
     nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(params?: {}): Promise<Dict>;
     nodeRestPostCosmosTxV1beta1Encode(params?: {}): Promise<Dict>;
     nodeRestPostCosmosTxV1beta1Simulate(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

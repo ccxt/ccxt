@@ -18,6 +18,7 @@
 * [createOrder](#createorder)
 * [cancelOrders](#cancelorders)
 * [cancelOrder](#cancelorder)
+* [calculateFee](#calculatefee)
 * [fetchOrder](#fetchorder)
 * [fetchOrders](#fetchorders)
 * [fetchOpenOrders](#fetchopenorders)
@@ -314,6 +315,31 @@ btcmarkets.cancelOrder (id, symbol, params?)
 ```
 
 
+<a name="calculateFee" id="calculatefee"></a>
+
+### calculateFee{docsify-ignore}
+calculates the presumptive fee that would be charged for an order
+
+**Kind**: instance method of [<code>btcmarkets</code>](#btcmarkets)  
+**Returns**: <code>object</code> - contains the rate, the percentage multiplied to the order amount to obtain the fee amount, and cost, the total value of the fee in units of the quote currency, for the order
+
+
+| Param | Type | Description |
+| --- | --- | --- |
+| symbol | <code>string</code> | unified market symbol |
+| type | <code>string</code> | not used by btcmarkets.calculateFee |
+| side | <code>string</code> | not used by btcmarkets.calculateFee |
+| amount | <code>float</code> | how much you want to trade, in units of the base currency on most exchanges, or number of contracts |
+| price | <code>float</code> | the price for the order to be filled at, in units of the quote currency |
+| takerOrMaker | <code>string</code> | 'taker' or 'maker' |
+| params | <code>object</code> |  |
+
+
+```javascript
+btcmarkets.calculateFee (symbol, type, side, amount, price, takerOrMaker, params)
+```
+
+
 <a name="fetchOrder" id="fetchorder"></a>
 
 ### fetchOrder{docsify-ignore}
@@ -443,11 +469,11 @@ make a withdrawal
 | code | <code>string</code> | Yes | unified currency code |
 | amount | <code>float</code> | Yes | the amount to withdraw |
 | address | <code>string</code> | Yes | the address to withdraw to |
-| tag | <code>string</code> | Yes |  |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+| params.tag | <code>string</code> | No | memo / destination tag, required for currencies in options['withdrawTagRequiredCurrencies'] |
 
 
 ```javascript
-btcmarkets.withdraw (code, amount, address, tag, params?)
+btcmarkets.withdraw (code, amount, address, params?)
 ```
 

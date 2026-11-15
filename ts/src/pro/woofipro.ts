@@ -6,13 +6,14 @@ import { ArgumentsRequired, AuthenticationError, NotSupported } from '../base/er
 import { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache, ArrayCacheBySymbolBySide } from '../base/ws/Cache.js';
 import { Precise } from '../base/Precise.js';
 import { eddsa } from '../base/functions/crypto.js';
-import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Bool, Market } from '../base/types.js';
+import type { Int, Str, Strings, OrderBook, Order, Trade, Ticker, Tickers, OHLCV, Balances, Position, Dict, FeeString, Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 // ----------------------------------------------------------------------------
 
 export default class woofipro extends woofiproRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -70,7 +71,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    requestId (url: any) {
+    requestId (url: string): number {
         const options = this.safeDict (this.options, 'requestId', {});
         const previousValue = this.safeInteger (options, url, 0);
         const newValue = this.sum (previousValue, 1);
@@ -78,13 +79,13 @@ export default class woofipro extends woofiproRest {
         return newValue;
     }
 
-    async watchPublic (messageHash: any, message: any) {
+    async watchPublic (messageHash: string, message: Dict) {
         // the default id
         let id = 'OqdphuyCtYWxwzhxyLLjOWNdFP7sQt8RPWzmb5xY';
         if (this.accountId !== undefined && this.accountId !== '') {
             id = this.accountId;
         }
-        const url = this.urls['api']['ws']['public'] + '/' + id;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'public', '') + '/' + id;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -103,23 +104,24 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const name = 'orderbook';
         const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watchPublic (topic, message);
+        const orderbook: WsOrderBook = await this.watchPublic (topic, message);
         return orderbook.limit ();
     }
 
-    handleOrderBook (client: Client, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@orderbook",
@@ -144,7 +146,7 @@ export default class woofipro extends woofiproRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const topic = this.safeString (message, 'topic');
         if (!(symbol in this.orderbooks)) {
             this.orderbooks[symbol] = this.orderBook ();
@@ -165,14 +167,14 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const name = 'ticker';
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = market['id'] + '@' + name;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
@@ -181,7 +183,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseWsTicker (ticker: Dict, market: Market = undefined) {
+    parseWsTicker (ticker: Dict, market: Market = undefined): Ticker {
         //
         //     {
         //         "symbol": "PERP_BTC_USDC",
@@ -218,7 +220,7 @@ export default class woofipro extends woofiproRest {
         }, market);
     }
 
-    handleTicker (client: Client, message: any) {
+    handleTicker (client: Client, message: Dict): Dict {
         //
         //     {
         //         "topic": "PERP_BTC_USDC@ticker",
@@ -257,11 +259,11 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'tickers';
         const topic = name;
         const request: Dict = {
@@ -270,10 +272,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
-    handleTickers (client: Client, message: any) {
+    handleTickers (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"tickers",
@@ -316,11 +318,11 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchBidsAsks (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
         const name = 'bbos';
         const topic = name;
         const request: Dict = {
@@ -329,10 +331,10 @@ export default class woofipro extends woofiproRest {
         };
         const message = this.extend (request, params);
         const tickers = await this.watchPublic (topic, message);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.filterByArray (tickers, 'symbol', symbolsNormalized);
     }
 
-    handleBidAsk (client: Client, message: any) {
+    handleBidAsk (client: Client, message: Dict) {
         //
         //     {
         //       "topic": "bbos",
@@ -354,18 +356,19 @@ export default class woofipro extends woofiproRest {
         const result: Ticker[] = [];
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseWsBidAsk (this.extend (data[i], { 'ts': timestamp }));
-            if (ticker['symbol'] !== undefined) {
-                this.tickers[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString (ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                this.tickers[tickerSymbol] = ticker;
             }
             result.push (ticker);
         }
         client.resolve (result, topic);
     }
 
-    parseWsBidAsk (ticker: any, market: Market = undefined) {
+    parseWsBidAsk (ticker: Dict, market: Market = undefined): Ticker {
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = this.safeString (market, 'symbol');
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = this.safeString (marketResolved, 'symbol');
         const timestamp = this.safeInteger (ticker, 'ts');
         return this.safeTicker ({
             'symbol': symbol,
@@ -376,7 +379,7 @@ export default class woofipro extends woofiproRest {
             'bid': this.safeString (ticker, 'bid'),
             'bidVolume': this.safeString (ticker, 'bidSize'),
             'info': ticker,
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -391,7 +394,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -401,20 +404,22 @@ export default class woofipro extends woofiproRest {
         const market = this.market (symbol);
         const interval = this.safeString (this.timeframes, timeframe, timeframe);
         const name = 'kline';
-        const topic = market['id'] + '@' + name + '_' + interval;
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@' + name + '_' + interval;
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
         const ohlcv = await this.watchPublic (topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (market['symbol'], limit);
+            limitResolved = ohlcv.getLimit (market['symbol'], limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"PERP_BTC_USDC@kline_1m",
@@ -448,8 +453,8 @@ export default class woofipro extends woofiproRest {
             this.safeNumber (data, 'close'),
             this.safeNumber (data, 'volume'),
         ];
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.safeValue (this.ohlcvs, symbol), timeframe);
+        this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), timeframe);
         if (stored === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
             stored = new ArrayCacheByTimestamp (limit);
@@ -472,26 +477,28 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const topic = market['id'] + '@trade';
+        const symbolValue: string = market['symbol'];
+        const marketId = this.safeString (market, 'id', '');
+        const topic = marketId + '@trade';
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
         const message = this.extend (request, params);
         const trades = await this.watchPublic (topic, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (market['symbol'], limit);
+            limitResolved = trades.getLimit (market['symbol'], limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolValue, since, limitResolved, true);
     }
 
-    handleTrade (client: Client, message: any) {
+    handleTrade (client: Client, message: Dict) {
         //
         // {
         //     "topic":"PERP_ADA_USDC@trade",
@@ -509,7 +516,7 @@ export default class woofipro extends woofiproRest {
         const data = this.safeDict (message, 'data', {});
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString (market, 'symbol', '');
         const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -522,7 +529,7 @@ export default class woofipro extends woofiproRest {
         client.resolve (trades, topic);
     }
 
-    override parseWsTrade (trade: any, market: Market = undefined) {
+    override parseWsTrade (trade: Dict, market: Market = undefined): Trade {
         //
         //     {
         //         "symbol":"PERP_ADA_USDC",
@@ -560,8 +567,8 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const price = this.safeString2 (trade, 'executedPrice', 'price');
         const amount = this.safeString2 (trade, 'executedQuantity', 'size');
         const cost = Precise.stringMul (price, amount);
@@ -594,10 +601,10 @@ export default class woofipro extends woofiproRest {
             'type': this.safeStringLower (trade, 'type'),
             'fee': fee,
             'info': trade,
-        }, market);
+        }, marketResolved);
     }
 
-    handleAuth (client: Client, message: any) {
+    handleAuth (client: Client, message: Dict) {
         //
         //     {
         //         "event": "auth",
@@ -606,7 +613,7 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const messageHash = 'authenticated';
-        const success = this.safeValue (message, 'success');
+        const success = this.safeBool (message, 'success', false);
         if (success) {
             // client.resolve (message, messageHash);
             const future = this.safeValue (client.futures, 'authenticated');
@@ -621,9 +628,9 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async authenticate (params = {}) {
+    async authenticate (params: Dict = {}) {
         this.checkRequiredCredentials ();
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const client = this.client (url);
         const messageHash = 'authenticated';
         const event = 'auth';
@@ -633,8 +640,8 @@ export default class woofipro extends woofiproRest {
             const ts = this.nonce ().toString ();
             const auth = ts;
             let secret = this.secret;
-            if (secret.indexOf ('ed25519:') >= 0) {
-                const parts = secret.split ('ed25519:');
+            if (this.secret.indexOf ('ed25519:') >= 0) {
+                const parts = this.secret.split ('ed25519:');
                 secret = parts[1];
             }
             const signature = eddsa (this.encode (auth), this.base58ToBinary (secret), ed25519);
@@ -652,9 +659,9 @@ export default class woofipro extends woofiproRest {
         return await future;
     }
 
-    async watchPrivate (messageHash: any, message: any, params = {}) {
+    async watchPrivate (messageHash: string, message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -663,9 +670,9 @@ export default class woofipro extends woofiproRest {
         return await this.watch (url, messageHash, request, messageHash, subscribe);
     }
 
-    async watchPrivateMultiple (messageHashes: any, message: any, params = {}) {
+    async watchPrivateMultiple (messageHashes: string[], message: Dict, params: Dict = {}) {
         await this.authenticate (params);
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const requestId = this.requestId (url);
         const subscribe: Dict = {
             'id': requestId,
@@ -687,29 +694,36 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, [ 'stop', 'trigger' ]);
+        let topic: Str = 'executionreport';
+        if (trigger) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted: Dict = this.omit (params, [ 'stop', 'trigger' ]);
         let messageHash = topic;
+        let market: Market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            market = this.market (symbol);
+        }
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
+        if (symbol !== undefined) {
+            messageHash += ':' + this.safeString (this.market (symbol), 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -725,32 +739,39 @@ export default class woofipro extends woofiproRest {
      * @param {bool} [params.trigger] true if trigger order
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const trigger = this.safeBool2 (params, 'stop', 'trigger', false);
-        const topic = (trigger) ? 'algoexecutionreport' : 'executionreport';
-        params = this.omit (params, 'stop');
+        let topic: Str = 'executionreport';
+        if (trigger) {
+            topic = 'algoexecutionreport';
+        }
+        const paramsOmitted: Dict = this.omit (params, 'stop');
         let messageHash = 'myTrades';
+        let market: Market = undefined;
         if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            market = this.market (symbol);
+        }
+        const symbolResolved: Str = (market !== undefined) ? this.safeString (market, 'symbol') : undefined;
+        if (symbol !== undefined) {
+            messageHash += ':' + this.safeString (this.market (symbol), 'symbol', '');
         }
         const request: Dict = {
             'event': 'subscribe',
             'topic': topic,
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOmitted);
         const orders = await this.watchPrivate (messageHash, message);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
-    override parseWsOrder (order: any, market: Market = undefined) {
+    override parseWsOrder (order: Dict, market: Market = undefined): Order {
         //
         //     {
         //         "symbol": "PERP_BTC_USDT",
@@ -818,10 +839,10 @@ export default class woofipro extends woofiproRest {
         //
         const orderId = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
-        market = this.market (marketId);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.market (marketId);
+        const symbol = marketResolved['symbol'];
         const timestamp = this.safeInteger (order, 'timestamp');
-        const fee = {
+        const fee: Dict = {
             'cost': this.safeString (order, 'totalFee'),
             'currency': this.safeString (order, 'feeAsset'),
         };
@@ -871,7 +892,7 @@ export default class woofipro extends woofiproRest {
         });
     }
 
-    handleOrderUpdate (client: Client, message: any) {
+    handleOrderUpdate (client: Client, message: Dict) {
         //
         //     {
         //         "topic": "executionreport",
@@ -922,7 +943,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleOrder (client: Client, message: any, topic: any) {
+    handleOrder (client: Client, message: Dict, topic: Str) {
         const parsed = this.parseWsOrder (message);
         const symbol = this.safeString (parsed, 'symbol');
         const orderId = this.safeString (parsed, 'id');
@@ -941,7 +962,7 @@ export default class woofipro extends woofiproRest {
                 }
                 const fees = this.safeList (order, 'fees');
                 if (fees !== undefined) {
-                    (parsed as Dict)['fees'] = fees;
+                    parsed['fees'] = fees;
                 }
                 parsed['trades'] = this.safeList (order, 'trades', []);
                 parsed['timestamp'] = this.safeInteger (order, 'timestamp');
@@ -954,7 +975,7 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    handleMyTrade (client: Client, message: any) {
+    handleMyTrade (client: Client, message: Dict) {
         //
         // {
         //     symbol: 'PERP_XRP_USDC',
@@ -988,12 +1009,11 @@ export default class woofipro extends woofiproRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const trade = this.parseWsTrade (message, market);
-        let trades = this.myTrades;
-        if (trades === undefined) {
+        if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCacheBySymbolById (limit);
-            this.myTrades = trades;
+            this.myTrades = new ArrayCacheBySymbolById (limit);
         }
+        const trades = this.myTrades;
         trades.append (trade);
         client.resolve (trades, messageHash);
         const symbolSpecificMessageHash = messageHash + ':' + symbol;
@@ -1011,34 +1031,34 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Position[]> {
+    override async watchPositions (symbols: Strings = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Position[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const messageHashes: string[] = [];
-        symbols = this.marketSymbols (symbols);
-        if (!this.isEmpty (symbols)) {
-            if (symbols === undefined) {
+        const symbolsNormalized: Strings = this.marketSymbols (symbols);
+        if (!this.isEmpty (symbolsNormalized)) {
+            if (symbolsNormalized === undefined) {
                 throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
             }
-            for (let i = 0; i < symbols.length; i++) {
-                if (symbols === undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                if (symbolsNormalized === undefined) {
                     throw new ArgumentsRequired (this.id + ' watchPositions() symbols is required');
                 }
-                const symbol = symbols[i];
+                const symbol = symbolsNormalized[i];
                 messageHashes.push ('positions::' + symbol);
             }
         } else {
             messageHashes.push ('positions');
         }
-        const url = this.urls['api']['ws']['private'] + '/' + this.accountId;
+        const url = this.safeString (this.safeDict (this.safeDict (this.urls, 'api', {}), 'ws', {}), 'private', '') + '/' + this.accountId;
         const client = this.client (url);
-        this.setPositionsCache (client, symbols);
+        this.setPositionsCache (client, symbolsNormalized);
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true);
         const awaitPositionsSnapshot = this.handleOption ('watchPositions', 'awaitPositionsSnapshot', true);
-        if (fetchPositionsSnapshot && awaitPositionsSnapshot && this.positions === undefined) {
+        if ((fetchPositionsSnapshot === true) && (awaitPositionsSnapshot === true) && (this.positions === undefined)) {
             const snapshot = await client.future ('fetchPositionsSnapshot');
-            return this.filterBySymbolsSinceLimit (snapshot, symbols, since, limit, true);
+            return this.filterBySymbolsSinceLimit (snapshot, symbolsNormalized, since, limit, true);
         }
         const request: Dict = {
             'event': 'subscribe',
@@ -1048,12 +1068,12 @@ export default class woofipro extends woofiproRest {
         if (this.newUpdates) {
             return newPositions;
         }
-        return this.filterBySymbolsSinceLimit (this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit (this.positions, symbolsNormalized, since, limit, true);
     }
 
     setPositionsCache (client: Client, symbols: Strings = undefined) {
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
-        if (fetchPositionsSnapshot) {
+        if (fetchPositionsSnapshot === true) {
             const messageHash = 'fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
@@ -1064,10 +1084,10 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    async loadPositionsSnapshot (client: Client, messageHash: any) {
+    async loadPositionsSnapshot (client: Client, messageHash: string) {
         const positions = await this.fetchPositions ();
         this.positions = new ArrayCacheBySymbolBySide ();
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
             const contracts = this.safeString (position, 'contracts', '0');
@@ -1076,14 +1096,14 @@ export default class woofipro extends woofiproRest {
             }
         }
         // don't remove the future from the .futures cache
-        if (messageHash in client.futures) {
-            const future = client.futures[messageHash];
+        const future = this.safeValue (client.futures, messageHash);
+        if (future !== undefined) {
             future.resolve (cache);
             client.resolve (cache, 'positions');
         }
     }
 
-    handlePositions (client: any, message: any) {
+    handlePositions (client: Client, message: Dict) {
         //
         //    {
         //        "topic":"position",
@@ -1117,11 +1137,11 @@ export default class woofipro extends woofiproRest {
         //    }
         //
         const data = this.safeDict (message, 'data', {});
-        const rawPositions = this.safeList (data, 'positions', []);
+        const rawPositions: Dict[] = this.safeList (data, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide ();
         }
-        const cache = this.positions;
+        const cache: ArrayCacheBySymbolBySide = this.positions;
         const newPositions: Position[] = [];
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
@@ -1130,13 +1150,14 @@ export default class woofipro extends woofiproRest {
             const position = this.parseWsPosition (rawPosition, market);
             newPositions.push (position);
             cache.append (position);
-            const messageHash = 'positions::' + market['symbol'];
+            const positionSymbol: string = market['symbol'];
+            const messageHash = 'positions::' + positionSymbol;
             client.resolve (position, messageHash);
         }
         client.resolve (newPositions, 'positions');
     }
 
-    parseWsPosition (position: any, market: Market = undefined) {
+    parseWsPosition (position: Dict, market: Market = undefined): Position {
         //
         //     {
         //         "symbol":"PERP_ETH_USDC",
@@ -1162,7 +1183,7 @@ export default class woofipro extends woofiproRest {
         //     }
         //
         const contract = this.safeString (position, 'symbol');
-        market = this.safeMarket (contract, market);
+        const marketResolved: Market = this.safeMarket (contract, market);
         let size = this.safeString (position, 'positionQty');
         let side: Str = undefined;
         if (Precise.stringGt (size, '0')) {
@@ -1170,7 +1191,7 @@ export default class woofipro extends woofiproRest {
         } else {
             side = 'short';
         }
-        const contractSize = this.safeString (market, 'contractSize');
+        const contractSize = this.safeString (marketResolved, 'contractSize');
         const markPrice = this.safeString (position, 'markPrice');
         const timestamp = this.safeInteger (position, 'timestamp');
         const entryPrice = this.safeString (position, 'averageOpenPrice');
@@ -1180,7 +1201,7 @@ export default class woofipro extends woofiproRest {
         return this.safePosition ({
             'info': position,
             'id': undefined,
-            'symbol': this.safeString (market, 'symbol'),
+            'symbol': this.safeString (marketResolved, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastUpdateTimestamp': undefined,
@@ -1217,7 +1238,7 @@ export default class woofipro extends woofiproRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async watchBalance (params = {}): Promise<Balances> {
+    override async watchBalance (params: Dict = {}): Promise<Balances> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1231,7 +1252,7 @@ export default class woofipro extends woofiproRest {
         return await this.watchPrivate (messageHash, message);
     }
 
-    handleBalance (client: any, message: any) {
+    handleBalance (client: Client, message: Dict) {
         //
         //     {
         //         "topic":"balance",
@@ -1268,33 +1289,37 @@ export default class woofipro extends woofiproRest {
         this.balance['datetime'] = this.iso8601 (ts);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            const value = balances[key];
+            const value = this.safeDict (balances, key);
             const code = this.safeCurrencyCode (key);
-            let account = this.account ();
+            let account: Dict = this.account ();
             if ((code !== undefined) && (code in this.balance)) {
-                account = this.balance[code];
+                const cachedAccount = this.safeDict (this.balance, code);
+                if (cachedAccount !== undefined) {
+                    account = cachedAccount;
+                }
             }
             const total = this.safeString (value, 'holding');
             const used = this.safeString (value, 'frozen');
-            account['total'] = total;
-            account['used'] = used;
-            account['free'] = Precise.stringSub (total, used);
             if (code !== undefined) {
-                this.balance[code] = account;
+                this.balance[code] = this.extend (account, {
+                    'total': total,
+                    'used': used,
+                    'free': Precise.stringSub (total, used),
+                });
             }
         }
         this.balance = this.safeBalance (this.balance);
         client.resolve (this.balance, 'balance');
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): boolean {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!('success' in message)) {
             return false;
         }
-        const success = this.safeBool (message, 'success');
+        const success = this.safeBool (message, 'success', false);
         if (success) {
             return false;
         }
@@ -1319,8 +1344,8 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
-        if (this.handleErrorMessage (client, message)) {
+    override handleMessage (client: Client, message: Dict) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const methods: Dict = {
@@ -1376,19 +1401,19 @@ export default class woofipro extends woofiproRest {
         }
     }
 
-    override ping (client: Client) {
+    override ping (client: Client): Dict {
         return { 'event': 'ping' };
     }
 
-    async pong (client: Client, message: any) {
+    async pong (client: Client, message: Dict) {
         await client.send ({ 'event': 'pong' });
     }
 
-    handlePing (client: Client, message: any) {
+    handlePing (client: Client, message: Dict) {
         this.spawn (this.pong, client, message);
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         // { event: "pong", ts: 1614667590000 }
         //
@@ -1396,7 +1421,7 @@ export default class woofipro extends woofiproRest {
         return message;
     }
 
-    handleSubscribe (client: Client, message: any) {
+    handleSubscribe (client: Client, message: Dict): Dict {
         //
         //     {
         //         "id": "666888",

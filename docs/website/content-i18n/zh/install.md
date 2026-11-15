@@ -192,6 +192,36 @@ cd java
 
 查看 [java/examples/](https://github.com/ccxt/ccxt/tree/master/java/examples) 获取完整的示例列表。
 
+### Rust
+
+[通过 **crates.io** 使用 Rust 版 ccxt](https://crates.io/crates/ccxt) ([docs.rs](https://docs.rs/ccxt))
+
+```shell
+cargo add ccxt tokio --features tokio/full
+cargo add ccxt-pro
+```
+
+```toml
+[dependencies]
+ccxt = "4.5.75"
+ccxt-pro = "4.5.75"
+tokio = { version = "1", features = ["full"] }
+```
+
+`ccxt` 提供 REST 交易所；`ccxt-pro` 增加 WebSocket（`watch*`）交易所，仅在需要流式数据时才引入。两者都是异步的，需要 Tokio 运行时。
+
+```rust
+use ccxt::{Binance, Params};
+
+let mut exchange = Binance::new(None);
+exchange.load_markets(false).await;
+
+let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+println!("{} {:?}", ticker.symbol, ticker.last);
+```
+
+查看 [examples/rust/](https://github.com/ccxt/ccxt/tree/master/examples/rust) 获取完整的示例列表。
+
 ### Docker
 
 您可以在容器中安装 CCXT 以及所有支持的语言和依赖项。如果您想为 CCXT 做贡献（例如运行构建脚本和测试 - 请参阅[贡献](https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md)文档了解详情），这可能很有用。

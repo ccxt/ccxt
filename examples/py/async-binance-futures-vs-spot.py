@@ -41,7 +41,7 @@ async def run():
     symbol = 'BTC/USDT'
     everything = {
         'spot': await load(exchange, symbol, 'spot'),
-        'future': await load(exchange, symbol, 'future'),
+        'swap': await load(exchange, symbol, 'swap'),
     }
     await exchange.close()
     return everything

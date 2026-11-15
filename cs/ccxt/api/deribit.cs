@@ -102,6 +102,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetAnnouncements",parameters);
     }
 
+    /// <summary>Calls the publicGetGetAprHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetGetAprHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetGetAprHistory",parameters);
+    }
+
     /// <summary>Calls the publicGetGetBookSummaryByCurrency endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetGetBookSummaryByCurrency (object parameters = null)
@@ -137,6 +144,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetDeliveryPrices",parameters);
     }
 
+    /// <summary>Calls the publicGetGetExpirations endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetGetExpirations (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetGetExpirations",parameters);
+    }
+
     /// <summary>Calls the publicGetGetFundingChartData endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetGetFundingChartData (object parameters = null)
@@ -170,6 +184,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> publicGetGetIndex (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetIndex",parameters);
+    }
+
+    /// <summary>Calls the publicGetGetIndexChartData endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetGetIndexChartData (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetGetIndexChartData",parameters);
     }
 
     /// <summary>Calls the publicGetGetIndexPrice endpoint.</summary>
@@ -254,6 +275,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> publicGetGetOrderBook (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetGetOrderBook",parameters);
+    }
+
+    /// <summary>Calls the publicGetGetSupportedIndexNames endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetGetSupportedIndexNames (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetGetSupportedIndexNames",parameters);
     }
 
     /// <summary>Calls the publicGetGetTradeVolumes endpoint.</summary>
@@ -424,6 +452,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetAffiliateProgramInfo",parameters);
     }
 
+    /// <summary>Calls the privateGetGetCurrencies endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetCurrencies (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetCurrencies",parameters);
+    }
+
     /// <summary>Calls the privateGetGetEmailLanguage endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetGetEmailLanguage (object parameters = null)
@@ -522,6 +557,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetSetApiKeyAsDefault",parameters);
     }
 
+    /// <summary>Calls the privateGetSetDisabledTradingProducts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSetDisabledTradingProducts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSetDisabledTradingProducts",parameters);
+    }
+
     /// <summary>Calls the privateGetSetEmailForSubaccount endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetSetEmailForSubaccount (object parameters = null)
@@ -543,6 +585,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetSetPasswordForSubaccount",parameters);
     }
 
+    /// <summary>Calls the privateGetSimulatePortfolio endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSimulatePortfolio (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSimulatePortfolio",parameters);
+    }
+
     /// <summary>Calls the privateGetToggleNotificationsFromSubaccount endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetToggleNotificationsFromSubaccount (object parameters = null)
@@ -555,6 +604,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetToggleSubaccountLogin (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetToggleSubaccountLogin",parameters);
+    }
+
+    /// <summary>Calls the privateGetApproveBlockTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApproveBlockTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApproveBlockTrade",parameters);
     }
 
     /// <summary>Calls the privateGetExecuteBlockTrade endpoint.</summary>
@@ -571,6 +627,20 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetBlockTrade",parameters);
     }
 
+    /// <summary>Calls the privateGetGetBlockTradeRequests endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetBlockTradeRequests (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetBlockTradeRequests",parameters);
+    }
+
+    /// <summary>Calls the privateGetGetBlockTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetBlockTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetBlockTrades",parameters);
+    }
+
     /// <summary>Calls the privateGetGetLastBlockTradesByCurrency endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetGetLastBlockTradesByCurrency (object parameters = null)
@@ -583,6 +653,20 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetInvalidateBlockTradeSignature (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetInvalidateBlockTradeSignature",parameters);
+    }
+
+    /// <summary>Calls the privateGetRejectBlockTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRejectBlockTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRejectBlockTrade",parameters);
+    }
+
+    /// <summary>Calls the privateGetSimulateBlockTrade endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSimulateBlockTrade (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSimulateBlockTrade",parameters);
     }
 
     /// <summary>Calls the privateGetVerifyBlockTrade endpoint.</summary>
@@ -655,6 +739,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetCancelByLabel",parameters);
     }
 
+    /// <summary>Calls the privateGetCancelQuotes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetCancelQuotes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetCancelQuotes",parameters);
+    }
+
     /// <summary>Calls the privateGetClosePosition endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetClosePosition (object parameters = null)
@@ -676,6 +767,20 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetMmpConfig",parameters);
     }
 
+    /// <summary>Calls the privateGetGetMmpStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetMmpStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetMmpStatus",parameters);
+    }
+
+    /// <summary>Calls the privateGetGetOpenOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetOpenOrders",parameters);
+    }
+
     /// <summary>Calls the privateGetGetOpenOrdersByCurrency endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetGetOpenOrdersByCurrency (object parameters = null)
@@ -688,6 +793,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetGetOpenOrdersByInstrument (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetOpenOrdersByInstrument",parameters);
+    }
+
+    /// <summary>Calls the privateGetGetOpenOrdersByLabel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetOpenOrdersByLabel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetOpenOrdersByLabel",parameters);
     }
 
     /// <summary>Calls the privateGetGetOrderHistoryByCurrency endpoint.</summary>
@@ -716,6 +828,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetGetOrderState (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetOrderState",parameters);
+    }
+
+    /// <summary>Calls the privateGetGetOrderStateByLabel endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetOrderStateByLabel (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetOrderStateByLabel",parameters);
     }
 
     /// <summary>Calls the privateGetGetStopOrderHistory endpoint.</summary>
@@ -767,6 +886,20 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetUserTradesByOrder",parameters);
     }
 
+    /// <summary>Calls the privateGetMassQuote endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetMassQuote (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetMassQuote",parameters);
+    }
+
+    /// <summary>Calls the privateGetMovePositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetMovePositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetMovePositions",parameters);
+    }
+
     /// <summary>Calls the privateGetResetMmp endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetResetMmp (object parameters = null)
@@ -795,6 +928,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetSettlementHistoryByCurrency",parameters);
     }
 
+    /// <summary>Calls the privateGetAddToAddressBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAddToAddressBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAddToAddressBook",parameters);
+    }
+
     /// <summary>Calls the privateGetCancelTransferById endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetCancelTransferById (object parameters = null)
@@ -816,6 +956,13 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetCreateDepositAddress",parameters);
     }
 
+    /// <summary>Calls the privateGetGetAddressBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetAddressBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetAddressBook",parameters);
+    }
+
     /// <summary>Calls the privateGetGetCurrentDepositAddress endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetGetCurrentDepositAddress (object parameters = null)
@@ -828,6 +975,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetGetDeposits (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetDeposits",parameters);
+    }
+
+    /// <summary>Calls the privateGetGetRewardEligibility endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetRewardEligibility (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetRewardEligibility",parameters);
     }
 
     /// <summary>Calls the privateGetGetTransfers endpoint.</summary>
@@ -844,6 +998,20 @@ public partial class deribit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetGetWithdrawals",parameters);
     }
 
+    /// <summary>Calls the privateGetRemoveFromAddressBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRemoveFromAddressBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRemoveFromAddressBook",parameters);
+    }
+
+    /// <summary>Calls the privateGetSetClearanceOriginator endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSetClearanceOriginator (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSetClearanceOriginator",parameters);
+    }
+
     /// <summary>Calls the privateGetSubmitTransferToSubaccount endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetSubmitTransferToSubaccount (object parameters = null)
@@ -856,6 +1024,13 @@ public partial class deribit : Exchange
     public async Task<Dictionary<string, object>> privateGetSubmitTransferToUser (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetSubmitTransferToUser",parameters);
+    }
+
+    /// <summary>Calls the privateGetUpdateInAddressBook endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUpdateInAddressBook (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUpdateInAddressBook",parameters);
     }
 
     /// <summary>Calls the privateGetWithdraw endpoint.</summary>

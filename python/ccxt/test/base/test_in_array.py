@@ -22,4 +22,4 @@ def test_in_array():
     assert exchange.in_array(1, array)
     assert exchange.in_array(2, array)
     assert exchange.in_array(3, array)
-    assert exchange.in_array(4, array) is False
+    assert not exchange.in_array(4, array)

@@ -1,0 +1,685 @@
+{
+    "exchange": "kucoinfutures",
+    "skipKeys": [
+        "datetime",
+        "timestamp"
+    ],
+    "options": {},
+    "methods": {
+        "watchTicker": [
+            {
+                "description": "linear swap ticker",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-api-futures.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1p3_lYZOgf-Ja5Is0HBKFks8ImvO3lh-tiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OA_Es6Vsv6b9JBvJHl5Vs9Y%3D.nBiz3F3PcIV3NWcFNzjz-w%3D%3D&privateChannel=false&connectId=publicFutures",
+                "messages": [
+                    {
+                        "id": "publicFutures",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/contractMarket/ticker:XBTUSDTM",
+                        "type": "message",
+                        "subject": "ticker",
+                        "sn": 1940498762797,
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498762797,
+                            "side": "buy",
+                            "size": 6,
+                            "price": "64006.6",
+                            "bestBidSize": 1410,
+                            "bestBidPrice": "64006.5",
+                            "bestAskPrice": "64006.6",
+                            "tradeId": "1940498762797",
+                            "bestAskSize": 696,
+                            "ts": 1786540854233000000
+                        }
+                    },
+                    {
+                        "topic": "/contractMarket/ticker:XBTUSDTM",
+                        "type": "message",
+                        "subject": "ticker",
+                        "sn": 1940498769441,
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498769441,
+                            "side": "sell",
+                            "size": 1,
+                            "price": "64006.5",
+                            "bestBidSize": 2890,
+                            "bestBidPrice": "64006.5",
+                            "bestAskPrice": "64006.6",
+                            "tradeId": "1940498769441",
+                            "bestAskSize": 8,
+                            "ts": 1786540862363000000
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ1p3_lYZOgf-Ja5Is0HBKFks8ImvO3lh-tiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OA_Es6Vsv6b9JBvJHl5Vs9Y=.nBiz3F3PcIV3NWcFNzjz-w==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-futures.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/contractMarket/ticker:XBTUSDTM",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540854232,
+                        "datetime": "2026-08-12T13:20:54.232Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64006.5,
+                        "bidVolume": 1410,
+                        "ask": 64006.6,
+                        "askVolume": 696,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64006.6,
+                        "last": 64006.6,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498762797,
+                            "side": "buy",
+                            "size": 6,
+                            "price": "64006.6",
+                            "bestBidSize": 1410,
+                            "bestBidPrice": "64006.5",
+                            "bestAskPrice": "64006.6",
+                            "tradeId": "1940498762797",
+                            "bestAskSize": 696,
+                            "ts": 1786540854233000000
+                        }
+                    },
+                    {
+                        "symbol": "BTC/USDT:USDT",
+                        "timestamp": 1786540862363,
+                        "datetime": "2026-08-12T13:21:02.363Z",
+                        "high": null,
+                        "low": null,
+                        "bid": 64006.5,
+                        "bidVolume": 2890,
+                        "ask": 64006.6,
+                        "askVolume": 8,
+                        "vwap": null,
+                        "open": null,
+                        "close": 64006.5,
+                        "last": 64006.5,
+                        "previousClose": null,
+                        "change": null,
+                        "percentage": null,
+                        "average": null,
+                        "baseVolume": null,
+                        "quoteVolume": null,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498769441,
+                            "side": "sell",
+                            "size": 1,
+                            "price": "64006.5",
+                            "bestBidSize": 2890,
+                            "bestBidPrice": "64006.5",
+                            "bestAskPrice": "64006.6",
+                            "tradeId": "1940498769441",
+                            "bestAskSize": 8,
+                            "ts": 1786540862363000000
+                        }
+                    }
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchOHLCV": [
+            {
+                "description": "linear swap ohlcv 1m",
+                "input": [
+                    "BTC/USDT:USDT",
+                    "1m"
+                ],
+                "url": "wss://ws-api-futures.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJy_z5Nhn3tF9f3n_8oEC6uDx-dQwAclKs9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OI_eJb2OouB9JBvJHl5Vs9Y%3D.Gs34WdRX9BQtmQBqVfaMyA%3D%3D&privateChannel=false&connectId=publicFutures",
+                "messages": [
+                    {
+                        "id": "publicFutures",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/contractMarket/limitCandle:XBTUSDTM_1min",
+                        "type": "message",
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "candles": [
+                                "1786540800",
+                                "63980.1",
+                                "63989.7",
+                                "63990.6",
+                                "63975.9",
+                                "39992.3707",
+                                "625"
+                            ],
+                            "time": 1786540833494
+                        },
+                        "subject": "candle.stick"
+                    },
+                    {
+                        "topic": "/contractMarket/limitCandle:XBTUSDTM_1min",
+                        "type": "message",
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "candles": [
+                                "1786540800",
+                                "63980.1",
+                                "63990.7",
+                                "63990.7",
+                                "63975.9",
+                                "40440.3056",
+                                "632"
+                            ],
+                            "time": 1786540833542
+                        },
+                        "subject": "candle.stick"
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJy_z5Nhn3tF9f3n_8oEC6uDx-dQwAclKs9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OI_eJb2OouB9JBvJHl5Vs9Y=.Gs34WdRX9BQtmQBqVfaMyA==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-futures.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/contractMarket/limitCandle:XBTUSDTM_1min",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1786540800000,
+                            63980.1,
+                            63990.6,
+                            63975.9,
+                            63989.7,
+                            625
+                        ]
+                    ],
+                    [
+                        [
+                            1786540800000,
+                            63980.1,
+                            63990.7,
+                            63975.9,
+                            63990.7,
+                            632
+                        ]
+                    ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchTrades": [
+            {
+                "description": "linear swap trades",
+                "input": [
+                    "BTC/USDT:USDT"
+                ],
+                "url": "wss://ws-api-futures.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ0Fv20ExuCgmJa5Is0HBKFlEbwmyvXpPjNiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OBR6DLIi3ngJJBvJHl5Vs9Y%3D.dHVPhi6XKs8kz4bGC4VCUQ%3D%3D&privateChannel=false&connectId=publicFutures",
+                "messages": [
+                    {
+                        "id": "publicFutures",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/contractMarket/execution:XBTUSDTM",
+                        "type": "message",
+                        "subject": "match",
+                        "sn": 1940498726489,
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498726489,
+                            "side": "sell",
+                            "size": 4,
+                            "price": "63990.6",
+                            "takerOrderId": "477008141691793408",
+                            "makerOrderId": "477008127993122816",
+                            "tradeId": "1940498726489",
+                            "ts": 1786540805418000000
+                        }
+                    },
+                    {
+                        "topic": "/contractMarket/execution:XBTUSDTM",
+                        "type": "message",
+                        "subject": "match",
+                        "sn": 1940498726490,
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498726490,
+                            "side": "sell",
+                            "size": 53,
+                            "price": "63990.6",
+                            "takerOrderId": "477008141691793408",
+                            "makerOrderId": "477008131042459648",
+                            "tradeId": "1940498726490",
+                            "ts": 1786540805418000000
+                        }
+                    },
+                    {
+                        "topic": "/contractMarket/execution:XBTUSDTM",
+                        "type": "message",
+                        "subject": "match",
+                        "sn": 1940498729018,
+                        "data": {
+                            "symbol": "XBTUSDTM",
+                            "sequence": 1940498729018,
+                            "side": "sell",
+                            "size": 100,
+                            "price": "63989.4",
+                            "takerOrderId": "477008147165306883",
+                            "makerOrderId": "477008127653421056",
+                            "tradeId": "1940498729018",
+                            "ts": 1786540806668000000
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ0Fv20ExuCgmJa5Is0HBKFlEbwmyvXpPjNiYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49OBR6DLIi3ngJJBvJHl5Vs9Y=.dHVPhi6XKs8kz4bGC4VCUQ==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-futures.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/contractMarket/execution:XBTUSDTM",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "symbol": "XBTUSDTM",
+                                "sequence": 1940498726489,
+                                "side": "sell",
+                                "size": 4,
+                                "price": "63990.6",
+                                "takerOrderId": "477008141691793408",
+                                "makerOrderId": "477008127993122816",
+                                "tradeId": "1940498726489",
+                                "ts": 1786540805418000000
+                            },
+                            "id": "1940498726489",
+                            "order": null,
+                            "timestamp": 1786540805417,
+                            "datetime": "2026-08-12T13:20:05.417Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "takerOrMaker": null,
+                            "side": "sell",
+                            "price": 63990.6,
+                            "amount": 4,
+                            "cost": 255.9624,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "symbol": "XBTUSDTM",
+                                "sequence": 1940498726490,
+                                "side": "sell",
+                                "size": 53,
+                                "price": "63990.6",
+                                "takerOrderId": "477008141691793408",
+                                "makerOrderId": "477008131042459648",
+                                "tradeId": "1940498726490",
+                                "ts": 1786540805418000000
+                            },
+                            "id": "1940498726490",
+                            "order": null,
+                            "timestamp": 1786540805417,
+                            "datetime": "2026-08-12T13:20:05.417Z",
+                            "symbol": "BTC/USDT:USDT",
+                            "type": null,
+                            "takerOrMaker": null,
+                            "side": "sell",
+                            "price": 63990.6,
+                            "amount": 53,
+                            "cost": 3391.5018,
+                            "fee": {
+                                "cost": null,
+                                "currency": null
+                            },
+                            "fees": []
+                        }
+                    ]
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ],
+        "watchOrderBook": [
+            {
+                "description": "linear swap orderbook depth 5",
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ],
+                "url": "wss://ws-api-futures.kucoin.com/?token=2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ0_I5lyNYWnJ1GMPuAmhQe6gBcCTN5nYN9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49ODM5XE7BVCIqJBvJHl5Vs9Y%3D.09jykNSv29Li8TOdYIctTg%3D%3D&privateChannel=false&connectId=publicFutures",
+                "messages": [
+                    {
+                        "id": "publicFutures",
+                        "type": "welcome"
+                    },
+                    {
+                        "id": "1",
+                        "type": "ack"
+                    },
+                    {
+                        "topic": "/contractMarket/level2Depth5:XBTUSDTM",
+                        "type": "message",
+                        "subject": "level2",
+                        "sn": 1786541277620,
+                        "data": {
+                            "sequence": 1746504928684,
+                            "asks": [
+                                [
+                                    "63922.2",
+                                    197
+                                ],
+                                [
+                                    "63923.7",
+                                    6
+                                ],
+                                [
+                                    "63924.4",
+                                    332
+                                ],
+                                [
+                                    "63924.5",
+                                    58
+                                ],
+                                [
+                                    "63924.8",
+                                    79
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    "63922.1",
+                                    2240
+                                ],
+                                [
+                                    "63920.5",
+                                    42
+                                ],
+                                [
+                                    "63920",
+                                    174
+                                ],
+                                [
+                                    "63919.9",
+                                    142
+                                ],
+                                [
+                                    "63919.5",
+                                    94
+                                ]
+                            ],
+                            "timestamp": 1786541277620,
+                            "ts": 1786541277620
+                        }
+                    },
+                    {
+                        "topic": "/contractMarket/level2Depth5:XBTUSDTM",
+                        "type": "message",
+                        "subject": "level2",
+                        "sn": 1786541277720,
+                        "data": {
+                            "sequence": 1746504928690,
+                            "asks": [
+                                [
+                                    "63922.2",
+                                    197
+                                ],
+                                [
+                                    "63923.7",
+                                    6
+                                ],
+                                [
+                                    "63924.4",
+                                    332
+                                ],
+                                [
+                                    "63924.5",
+                                    58
+                                ],
+                                [
+                                    "63924.8",
+                                    79
+                                ]
+                            ],
+                            "bids": [
+                                [
+                                    "63922.1",
+                                    2474
+                                ],
+                                [
+                                    "63920.5",
+                                    42
+                                ],
+                                [
+                                    "63920",
+                                    174
+                                ],
+                                [
+                                    "63919.9",
+                                    142
+                                ],
+                                [
+                                    "63919.5",
+                                    94
+                                ]
+                            ],
+                            "timestamp": 1786541277720,
+                            "ts": 1786541277720
+                        }
+                    }
+                ],
+                "httpResponse": {
+                    "code": "200000",
+                    "data": {
+                        "token": "2neAiuYvAU61ZDXANAGAsiL4-iAExhsBXZxftpOeh_55i3Ysy2q2LEsEWU64mdzUOPusi34M_wGoSf7iNyEWJ0_I5lyNYWnJ1GMPuAmhQe6gBcCTN5nYN9iYB9J6i9GjsxUuhPw3Blq6rhZlGykT3Vp1phUafnulOOpts-MEmEFR6Xrkya49ODM5XE7BVCIqJBvJHl5Vs9Y=.09jykNSv29Li8TOdYIctTg==",
+                        "instanceServers": [
+                            {
+                                "endpoint": "wss://ws-api-futures.kucoin.com/",
+                                "encrypt": true,
+                                "protocol": "websocket",
+                                "pingInterval": 18000,
+                                "pingTimeout": 10000
+                            }
+                        ]
+                    }
+                },
+                "sentMessages": [
+                    {
+                        "id": "1",
+                        "type": "subscribe",
+                        "topic": "/contractMarket/level2Depth5:XBTUSDTM",
+                        "response": true
+                    }
+                ],
+                "parsedResponses": [
+                    {
+                        "bids": [
+                            [
+                                63922.1,
+                                2240
+                            ],
+                            [
+                                63920.5,
+                                42
+                            ],
+                            [
+                                63920,
+                                174
+                            ],
+                            [
+                                63919.9,
+                                142
+                            ],
+                            [
+                                63919.5,
+                                94
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63922.2,
+                                197
+                            ],
+                            [
+                                63923.7,
+                                6
+                            ],
+                            [
+                                63924.4,
+                                332
+                            ],
+                            [
+                                63924.5,
+                                58
+                            ],
+                            [
+                                63924.8,
+                                79
+                            ]
+                        ],
+                        "timestamp": 1786541277620,
+                        "datetime": "2026-08-12T13:27:57.620Z",
+                        "nonce": 1746504928684,
+                        "symbol": "BTC/USDT:USDT"
+                    },
+                    {
+                        "bids": [
+                            [
+                                63922.1,
+                                2474
+                            ],
+                            [
+                                63920.5,
+                                42
+                            ],
+                            [
+                                63920,
+                                174
+                            ],
+                            [
+                                63919.9,
+                                142
+                            ],
+                            [
+                                63919.5,
+                                94
+                            ]
+                        ],
+                        "asks": [
+                            [
+                                63922.2,
+                                197
+                            ],
+                            [
+                                63923.7,
+                                6
+                            ],
+                            [
+                                63924.4,
+                                332
+                            ],
+                            [
+                                63924.5,
+                                58
+                            ],
+                            [
+                                63924.8,
+                                79
+                            ]
+                        ],
+                        "timestamp": 1786541277720,
+                        "datetime": "2026-08-12T13:27:57.720Z",
+                        "nonce": 1746504928690,
+                        "symbol": "BTC/USDT:USDT"
+                    }
+                ],
+                "disabledGO": "go derives a different ws url than the recorded fixture url so the mock transport is bypassed and the client connects live - go kucoin url negotiation parity, investigate separately",
+                "disabledJava": "java: watchTicker missing on kucoinfutures (falls to base NotSupported) and the kucoin ws url negotiation can bypass the mock and connect live, keeping the jvm alive - investigate separately"
+            }
+        ]
+    }
+}

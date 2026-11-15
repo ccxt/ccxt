@@ -5,7 +5,7 @@ package io.github.ccxt.types;
 
 import java.util.Map;
 
-public final class LeverageTier {
+public final class LeverageTier extends TypedMap {
     public Double tier;
     public String symbol;
     public String currency;
@@ -17,6 +17,7 @@ public final class LeverageTier {
 
     @SuppressWarnings("unchecked")
     public LeverageTier(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.tier = TypeHelper.safeFloat(data, "tier");
         this.symbol = TypeHelper.safeString(data, "symbol");

@@ -84,7 +84,7 @@ export default class PredictionExchange extends BaseExchange {
         });
     }
     isPrediction() {
-        return this.safeBool(this.has, 'prediction', false) === true;
+        return this.safeBool(this.has, 'prediction', false);
     }
     parseSearchQueries(params = {}) {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
@@ -133,7 +133,7 @@ export default class PredictionExchange extends BaseExchange {
         if ((eventId !== undefined) || (slug !== undefined)) {
             const filtered = [];
             for (let i = 0; i < result.length; i++) {
-                const event = result[i];
+                const event = this.safeValue(result, i);
                 const idMatch = (eventId !== undefined) && (this.safeString(event, 'id') === eventId);
                 const slugMatch = (slug !== undefined) && (this.safeString(event, 'slug') === slug);
                 if (idMatch || slugMatch) {
@@ -196,7 +196,7 @@ export default class PredictionExchange extends BaseExchange {
         const wantActive = (status === 'active');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const isActive = this.safeBool(event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isActive === undefined) || (isActive === wantActive)) {
@@ -212,19 +212,19 @@ export default class PredictionExchange extends BaseExchange {
         if (queries !== undefined) {
             queriesLength = queries.length;
         }
-        if ((searchIn === undefined) || (queries === undefined) || (queriesLength === 0)) {
+        if ((searchIn === undefined) || (queriesLength === 0)) {
             return events;
         }
         const checkTitle = (searchIn === 'title') || (searchIn === 'both');
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const title = this.safeStringLower(event, 'title', '');
             const description = this.safeStringLower(event, 'description', '');
             let matched = false;
-            for (let qi = 0; qi < queries.length; qi++) {
-                const q = queries[qi].toLowerCase();
+            for (let qi = 0; qi < queriesLength; qi++) {
+                const q = this.safeString(queries, qi, '').toLowerCase();
                 if (title === undefined) {
                     throw new ExchangeError(this.id + ' filterEventsBySearchIn() missing title');
                 }
@@ -275,12 +275,16 @@ export default class PredictionExchange extends BaseExchange {
     filterEventsByTags(events, tags = undefined) {
         // keep events carrying one of the requested tags; tolerant to string tags and to
         // object tags ({ slug, title, ... }) since venues differ. no-op when no tags requested
-        if ((tags === undefined) || (tags.length === 0)) {
+        let tagsLength = 0;
+        if (tags !== undefined) {
+            tagsLength = tags.length;
+        }
+        if (tagsLength === 0) {
             return events;
         }
         const wanted = [];
-        for (let i = 0; i < tags.length; i++) {
-            const wantedKey = this.normalizeTagKey(tags[i]);
+        for (let i = 0; i < tagsLength; i++) {
+            const wantedKey = this.normalizeTagKey(this.safeString(tags, i, ''));
             if (wantedKey !== '') {
                 // an empty normalized key would substring-match every tag
                 wanted.push(wantedKey);
@@ -288,7 +292,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const result = [];
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const eventTags = this.safeList(event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
@@ -336,7 +340,7 @@ export default class PredictionExchange extends BaseExchange {
             this.events_by_slug = {};
         }
         for (let i = 0; i < events.length; i++) {
-            const event = events[i];
+            const event = this.safeValue(events, i);
             const id = this.safeString(event, 'id');
             const slug = this.safeString(event, 'slug');
             const handle = this.safeString(event, 'event');
@@ -375,7 +379,7 @@ export default class PredictionExchange extends BaseExchange {
         // note: the cache-hit shortcut ignores params, so events fetched under one scope are
         // returned for a later differently-scoped call. events are scoped (unlike global
         // markets), so prefer fetchEvents (params) directly when you need a specific scope
-        if (!reload && this.events) {
+        if (!reload && (this.events !== undefined && this.events !== null)) {
             return this.events;
         }
         const events = await this.fetchEvents(params);
@@ -391,10 +395,10 @@ export default class PredictionExchange extends BaseExchange {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
         if ((this.events !== undefined) && (eventIdOrSlug in this.events)) {
-            return this.events[eventIdOrSlug];
+            return this.safeValue(this.events, eventIdOrSlug);
         }
         if ((this.events_by_slug !== undefined) && (eventIdOrSlug in this.events_by_slug)) {
-            return this.events_by_slug[eventIdOrSlug];
+            return this.safeValue(this.events_by_slug, eventIdOrSlug);
         }
         throw new BadSymbol(this.id + ' has no cached event ' + eventIdOrSlug + " - call fetchEvents ({ 'query': ... }) first");
     }
@@ -406,10 +410,10 @@ export default class PredictionExchange extends BaseExchange {
             throw new ExchangeError(this.id + ' outcomes not loaded - call loadOutcomes () or an outcome-addressed method first');
         }
         if (outcomeSymbol in this.outcomes) {
-            return this.outcomes[outcomeSymbol];
+            return this.safeValue(this.outcomes, outcomeSymbol);
         }
         if ((this.outcomes_by_id !== undefined) && (outcomeSymbol in this.outcomes_by_id)) {
-            return this.outcomes_by_id[outcomeSymbol];
+            return this.safeValue(this.outcomes_by_id, outcomeSymbol);
         }
         throw new BadSymbol(this.id + ' does not have outcome ' + outcomeSymbol + ' - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first');
     }
@@ -431,20 +435,22 @@ export default class PredictionExchange extends BaseExchange {
     safeOutcome(outcomeIdOrSymbol, outcomeObj = undefined) {
         if (outcomeIdOrSymbol !== undefined) {
             if ((this.outcomes !== undefined) && (outcomeIdOrSymbol in this.outcomes)) {
-                return this.outcomes[outcomeIdOrSymbol];
+                return this.safeValue(this.outcomes, outcomeIdOrSymbol);
             }
             if ((this.outcomes_by_id !== undefined) && (outcomeIdOrSymbol in this.outcomes_by_id)) {
-                return this.outcomes_by_id[outcomeIdOrSymbol];
+                return this.safeValue(this.outcomes_by_id, outcomeIdOrSymbol);
             }
         }
         if (outcomeObj !== undefined) {
             return outcomeObj;
         }
-        return { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        // stub for an unknown handle; it only carries the identity keys, not the market fields
+        const outcomeObjValue = { 'outcome': outcomeIdOrSymbol, 'outcomeId': outcomeIdOrSymbol, 'market': undefined, 'label': undefined, 'event': undefined, 'info': {} };
+        return outcomeObjValue;
     }
     safeOutcomeSymbol(outcomeIdOrSymbol, outcomeObj = undefined) {
-        outcomeObj = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
-        return outcomeObj['outcome'];
+        const outcomeObjValue = this.safeOutcome(outcomeIdOrSymbol, outcomeObj);
+        return outcomeObjValue['outcome'];
     }
     shortenSlug(slug) {
         const replacements = {
@@ -538,10 +544,7 @@ export default class PredictionExchange extends BaseExchange {
         // removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
         // currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
         // instead of leaking raw text into the outcome handle
-        if (outcome === undefined) {
-            outcome = '';
-        }
-        const upper = outcome.toUpperCase();
+        const upper = (outcome === undefined) ? '' : outcome.toUpperCase();
         const allowed = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         const chars = this.stringToCharsArray(upper);
         let label = '';
@@ -584,7 +587,7 @@ export default class PredictionExchange extends BaseExchange {
         const marketKeys = Object.keys(stored);
         for (let i = 0; i < marketKeys.length; i++) {
             const key = marketKeys[i];
-            stored[key] = this.omit(stored[key], 'symbol');
+            stored[key] = this.omit(this.safeDict(stored, key, {}), 'symbol');
         }
         this.populateOutcomes();
         return stored;
@@ -695,7 +698,7 @@ export default class PredictionExchange extends BaseExchange {
             let missingLength = missing.length;
             const wasWarm = (this.outcomes !== undefined) && !this.isEmpty(this.outcomes);
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if ((missingLength > 0) && loadAll && !wasWarm && !reload) {
+            if ((missingLength > 0) && (loadAll) && !wasWarm && !reload) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
                 await this.loadOutcomes();
@@ -760,7 +763,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             const loadAll = this.safeBool(this.options, 'loadAllOutcomes', false);
-            if (loadAll && !wasWarm) {
+            if ((loadAll) && !wasWarm) {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
                 // listed, so fall through to fetchOutcome (a real BadSymbol) rather than refetching
@@ -1279,27 +1282,25 @@ export default class PredictionExchange extends BaseExchange {
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
         const feeListLength = feeList.length;
         if ((fee === undefined) && (feeListLength > 0)) {
-            const reduced = this.reduceFeesByCurrency(feeList);
-            const reducedLength = reduced.length;
-            if (reducedLength > 0) {
-                fee = reduced[0];
-            }
+            fee = this.safeDict(this.reduceFeesByCurrency(feeList), 0);
         }
         // derive timeInForce/postOnly the same way the crypto safeOrder does (prediction has no
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         const orderType = this.safeString(outcomeOrder, 'type');
         let timeInForce = this.safeString(outcomeOrder, 'timeInForce');
-        let postOnly = this.safeBool(outcomeOrder, 'postOnly');
+        // the venue flag and the derived one are each written once, so neither local widens
+        const postOnlyValue = this.safeBool(outcomeOrder, 'postOnly');
+        let derivedPostOnly = undefined;
         if (timeInForce === undefined) {
             if (orderType === 'market') {
                 timeInForce = 'IOC';
             }
-            if (postOnly) {
+            if (postOnlyValue === true) {
                 timeInForce = 'PO';
             }
         }
-        else if (postOnly === undefined) {
-            postOnly = (timeInForce === 'PO');
+        else if (postOnlyValue === undefined) {
+            derivedPostOnly = (timeInForce === 'PO');
         }
         const timestamp = this.safeInteger(outcomeOrder, 'timestamp');
         let datetime = this.safeString(outcomeOrder, 'datetime');
@@ -1325,7 +1326,7 @@ export default class PredictionExchange extends BaseExchange {
             'cost': this.parseNumber(cost),
             'fee': fee,
             'reduceOnly': this.safeBool(outcomeOrder, 'reduceOnly'),
-            'postOnly': postOnly,
+            'postOnly': (postOnlyValue !== undefined) ? postOnlyValue : derivedPostOnly,
             'trades': trades,
             'outcome': this.safeString(outcomeOrder, 'outcome'),
             'outcomeId': this.safeString(outcomeOrder, 'outcomeId'),
@@ -1462,11 +1463,13 @@ export default class PredictionExchange extends BaseExchange {
         // `symbol` with the `outcome` handle and attach the outcome identity fields
         // outcomeId and market - so books match the PredictionOrderBook structure.
         const fallback = this.safeString2(orderbook, 'outcome', 'symbol');
-        orderbook['outcome'] = (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback);
-        orderbook['outcomeId'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId');
-        orderbook['market'] = (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market');
+        const identity = {
+            'outcome': (outcomeObj === undefined) ? fallback : this.safeString(outcomeObj, 'outcome', fallback),
+            'outcomeId': (outcomeObj === undefined) ? this.safeString(orderbook, 'outcomeId') : this.safeString(outcomeObj, 'outcomeId'),
+            'market': (outcomeObj === undefined) ? this.safeString(orderbook, 'market') : this.safeString(outcomeObj, 'market'),
+        };
         // omit (not delete) — `del dict['symbol']` raises KeyError in python/php when absent
-        return this.omit(orderbook, 'symbol');
+        return this.extend(this.omit(orderbook, 'symbol'), identity);
     }
     parsePredictionTicker(ticker, market = undefined) {
         throw new NotSupported(this.id + ' parsePredictionTicker() is not supported yet');
@@ -1509,7 +1512,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         results = this.sortBy2(results, 'timestamp', 'id');
         const outcomeHandle = this.safeString(outcomeObj, 'outcome');
-        return this.filterByOutcomeSinceLimit(results, outcomeHandle, since, limit);
+        return this.filterByValueSinceLimit(results, 'outcome', outcomeHandle, since, limit, 'timestamp', false);
     }
     /**
      * @ignore
@@ -1630,7 +1633,7 @@ export default class PredictionExchange extends BaseExchange {
     rlpEncodeList(items) {
         let concatenated = '';
         for (let i = 0; i < items.length; i++) {
-            concatenated = concatenated + items[i];
+            concatenated = concatenated + this.safeString(items, i, '');
         }
         const byteLength = this.parseToInt(concatenated.length / 2);
         if (byteLength < 56) {
@@ -1659,18 +1662,15 @@ export default class PredictionExchange extends BaseExchange {
         if (hexValue === undefined) {
             return '';
         }
-        let h = this.remove0xPrefix(hexValue);
-        let start = 0;
+        const h = this.remove0xPrefix(hexValue);
         const total = h.length;
-        while ((start < total) && (h.slice(start, start + 1) === '0')) {
-            start = start + 1;
+        for (let i = 0; i < total; i++) {
+            if (h.slice(i, i + 1) === '0') {
+                continue;
+            }
+            return this.padHexToEven(h.slice(i));
         }
-        h = h.slice(start);
-        if (h === '') {
-            return '';
-        }
-        h = this.padHexToEven(h);
-        return h;
+        return '';
     }
     // eslint-disable-next-line no-unused-vars
     signEvmTransaction(tx, privateKey) {
@@ -1710,7 +1710,7 @@ export default class PredictionExchange extends BaseExchange {
         const start = this.milliseconds();
         while ((this.milliseconds() - start) < timeout) {
             const receipt = await this.ethRpc(rpcUrl, 'eth_getTransactionReceipt', [txHash]);
-            if (receipt) {
+            if ((receipt !== undefined) && (receipt !== null)) {
                 return receipt;
             }
             await this.sleep(2000);

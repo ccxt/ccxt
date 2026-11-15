@@ -1,6 +1,6 @@
 Every endpoint in `indodax`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/indodax) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetApiServerTime`); the snake_case alias (`public_get_api_server_time`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetApiServerTime`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetApiServerTime`); Python and PHP use the snake_case form (`public_get_api_server_time`), and Go uses the PascalCase form (`PublicGetApiServerTime`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official indodax API documentation:** [github.com](https://github.com/btcid/indodax-official-api-docs)
 
-> 22 implicit endpoints across 2 access groups.
+> 24 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -86,7 +86,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostOpenOrders` | POST | `openOrders` | 4 |
 | `privatePostOrderHistory` | POST | `orderHistory` | 4 |
 | `privatePostGetOrder` | POST | `getOrder` | 4 |
+| `privatePostGetOrderByClientOrderId` | POST | `getOrderByClientOrderId` | 4 |
 | `privatePostCancelOrder` | POST | `cancelOrder` | 4 |
+| `privatePostCancelByClientOrderId` | POST | `cancelByClientOrderId` | 4 |
 | `privatePostWithdrawFee` | POST | `withdrawFee` | 4 |
 | `privatePostWithdrawCoin` | POST | `withdrawCoin` | 4 |
 | `privatePostListDownline` | POST | `listDownline` | 4 |

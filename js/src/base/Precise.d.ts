@@ -14,11 +14,13 @@ declare class Precise {
     or(other: Precise): Precise;
     min(other: Precise): Precise;
     max(other: Precise): Precise;
+    compare(other: Precise): number;
     gt(other: Precise): boolean;
     ge(other: Precise): boolean;
     lt(other: Precise): boolean;
     le(other: Precise): boolean;
-    reduce(): this | undefined;
+    reduceDigits(): string;
+    reduce(): this;
     equals(other: any): boolean;
     toString(): string;
     static stringMul(string1: Str, string2: Str): string | undefined;

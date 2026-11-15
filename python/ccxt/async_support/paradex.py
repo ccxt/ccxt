@@ -5,22 +5,30 @@
 
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Any, Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
-from typing import List
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, AllGreeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, FundingRateHistory, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountNotEnabled
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import InvalidOrder
+from ccxt.base.errors import OrderNotFound
+from ccxt.base.errors import DuplicateOrderId
+from ccxt.base.errors import NotSupported
+from ccxt.base.errors import RateLimitExceeded
+from ccxt.base.errors import ExchangeNotAvailable
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
 class paradex(Exchange, ImplicitAPI):
 
-    def describe(self) -> Any:
+    def describe(self) -> dict:
         return self.deep_extend(super(paradex, self).describe(), {
             'id': 'paradex',
             'name': 'Paradex',
@@ -32,7 +40,7 @@ class paradex(Exchange, ImplicitAPI):
             'dex': True,
             'has': {
                 'CORS': None,
-                'spot': False,
+                'spot': True,
                 'margin': False,
                 'swap': True,
                 'future': False,
@@ -73,9 +81,9 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
@@ -166,6 +174,7 @@ class paradex(Exchange, ImplicitAPI):
                         'jwks.json': {'cost': 1},
                         'onboarding': {'cost': 1},
                         'referrals/config': {'cost': 1},
+                        'staking/balance/history/global': {'cost': 1},
                         'staking/config': {'cost': 1},
                         'system/announcements': {'cost': 1},
                         'system/config': {'cost': 1},
@@ -175,6 +184,7 @@ class paradex(Exchange, ImplicitAPI):
                         'system/volume-tiers': {'cost': 1},
                         'trades': {'cost': 1},
                         'vaults': {'cost': 1},
+                        'vaults/analytics': {'cost': 1},
                         'vaults/balance': {'cost': 1},
                         'vaults/config': {'cost': 1},
                         'vaults/history': {'cost': 1},
@@ -220,6 +230,11 @@ class paradex(Exchange, ImplicitAPI):
                         'orders/{order_id}': {'cost': 1},
                         'referrals/qr-code': {'cost': 1},
                         'referrals/summary': {'cost': 1},
+                        'rfqs': {'cost': 1},
+                        'rfqs/drafts': {'cost': 1},
+                        'rfqs/markets': {'cost': 1},
+                        'rfqs/{rfq_id}/bbo': {'cost': 1},
+                        'staking/balance/history': {'cost': 1},
                         'staking/history': {'cost': 1},
                         'staking/summary': {'cost': 1},
                         'transfers': {'cost': 1},
@@ -241,6 +256,8 @@ class paradex(Exchange, ImplicitAPI):
                         'account/profile/username': {'cost': 1},
                         'account/referrer': {'cost': 1},
                         'account/settings/trading_value_display': {'cost': 1},
+                        'account/paradigm/enable': {'cost': 1},
+                        'account/terminal-token': {'cost': 1},
                         'account/keys/subkeys/activate': {'cost': 1},
                         'account/keys/subkeys': {'cost': 1},
                         'account/tokens': {'cost': 1},
@@ -253,6 +270,9 @@ class paradex(Exchange, ImplicitAPI):
                         'onboarding': {'cost': 1},
                         'orders': {'cost': 1},
                         'orders/batch': {'cost': 1},
+                        'rfqs': {'cost': 1},
+                        'rfqs/drafts': {'cost': 1},
+                        'rfqs/{rfq_id}/execute': {'cost': 1},
                         'v2/auth': {'cost': 1},
                         'v2/onboarding': {'cost': 1},
                         'vaults': {'cost': 1},
@@ -262,6 +282,8 @@ class paradex(Exchange, ImplicitAPI):
                     'put': {
                         'account/profile': {'cost': 1},
                         'account/keys/subkeys/{public_key}': {'cost': 1},
+                        'account/keys/subkeys/{public_key}/allowed-cidrs': {'cost': 1},
+                        'account/tokens/{lookup_id}/allowed-cidrs': {'cost': 1},
                         'orders/{order_id}': {'cost': 1},
                     },
                     'delete': {
@@ -274,6 +296,8 @@ class paradex(Exchange, ImplicitAPI):
                         'orders/batch': {'cost': 1},
                         'orders/by_client_id/{client_id}': {'cost': 1},
                         'orders/{order_id}': {'cost': 1},
+                        'rfqs/drafts/{draft_id}': {'cost': 1},
+                        'rfqs/{rfq_id}': {'cost': 1},
                     },
                 },
             },
@@ -295,44 +319,63 @@ class paradex(Exchange, ImplicitAPI):
             },
             'exceptions': {
                 'exact': {
-                    'VALIDATION_ERROR': AuthenticationError,
-                    'BINDING_ERROR': OperationRejected,
+                    'VALIDATION_ERROR': BadRequest,
+                    'BINDING_ERROR': BadRequest,
                     'INTERNAL_ERROR': ExchangeError,
                     'NOT_FOUND': BadRequest,
-                    'SERVICE_UNAVAILABLE': ExchangeError,
+                    'SERVICE_UNAVAILABLE': ExchangeNotAvailable,
                     'INVALID_REQUEST_PARAMETER': BadRequest,
-                    'ORDER_ID_NOT_FOUND': InvalidOrder,
+                    'ORDER_ID_NOT_FOUND': OrderNotFound,
                     'ORDER_IS_CLOSED': InvalidOrder,
-                    'ORDER_IS_NOT_OPEN_YET': InvalidOrder,
-                    'CLIENT_ORDER_ID_NOT_FOUND': InvalidOrder,
-                    'DUPLICATED_CLIENT_ID': InvalidOrder,
-                    'INVALID_PRICE_PRECISION': OperationRejected,
-                    'INVALID_SYMBOL': OperationRejected,
-                    'INVALID_TOKEN': OperationRejected,
+                    'ORDER_IS_NOT_OPEN': InvalidOrder,
+                    'INVALID_PRICE_PRECISION': InvalidOrder,
+                    'INVALID_ORDER_SIZE': InvalidOrder,
+                    'CLIENT_ORDER_ID_NOT_FOUND': OrderNotFound,
+                    'ALGO_ID_NOT_FOUND': OrderNotFound,
+                    'DUPLICATED_CLIENT_ID': DuplicateOrderId,
+                    'INVALID_SYMBOL': BadSymbol,
+                    'INVALID_TOKEN': AuthenticationError,
+                    'INVALID_TOKEN_SCOPE': PermissionDenied,
                     'INVALID_ETHEREUM_ADDRESS': OperationRejected,
-                    'INVALID_ETHEREUM_SIGNATURE': OperationRejected,
+                    'INVALID_ETHEREUM_SIGNATURE': AuthenticationError,
+                    'INVALID_EVM_SIGNATURE': AuthenticationError,
                     'INVALID_STARKNET_ADDRESS': OperationRejected,
-                    'INVALID_STARKNET_SIGNATURE': OperationRejected,
+                    'INVALID_STARKNET_SIGNATURE': AuthenticationError,
                     'STARKNET_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'EVM_SIGNATURE_VERIFICATION_FAILED': AuthenticationError,
+                    'INVALID_SUBKEY': AuthenticationError,
+                    'SUBKEY_REVOKED': AuthenticationError,
                     'BAD_STARKNET_REQUEST': BadRequest,
                     'ETHEREUM_SIGNER_MISMATCH': BadRequest,
                     'ETHEREUM_HASH_MISMATCH': BadRequest,
-                    'NOT_ONBOARDED': BadRequest,
+                    'NOT_ONBOARDED': AccountNotEnabled,
                     'INVALID_TIMESTAMP': BadRequest,
-                    'INVALID_SIGNATURE_EXPIRATION': AuthenticationError,
+                    'INVALID_BLOCK_EXPIRATION': AuthenticationError,
                     'ACCOUNT_NOT_FOUND': AuthenticationError,
                     'INVALID_ORDER_SIGNATURE': AuthenticationError,
                     'PUBLIC_KEY_INVALID': BadRequest,
                     'UNAUTHORIZED_ETHEREUM_ADDRESS': BadRequest,
+                    'UNAUTHORIZED_ERROR': PermissionDenied,
+                    'NO_ACCESS_TO_MARKET': PermissionDenied,
+                    'IP_NOT_ALLOWED': PermissionDenied,
+                    'RPI_ACCOUNT_NOT_WHITELISTED': PermissionDenied,
                     'ETHEREUM_ADDRESS_ALREADY_ONBOARDED': BadRequest,
-                    'MARKET_NOT_FOUND': BadRequest,
+                    'MARKET_NOT_FOUND': BadSymbol,
                     'ALLOWLIST_ENTRY_NOT_FOUND': BadRequest,
                     'USERNAME_IN_USE': AuthenticationError,
                     'GEO_IP_BLOCK': PermissionDenied,
-                    'ETHEREUM_ADDRESS_BLOCKED': PermissionDenied,
+                    'ETHEREUM_ADDRESS_BLOCKED': AccountSuspended,
                     'PROGRAM_NOT_FOUND': BadRequest,
                     'INVALID_DASHBOARD': OperationRejected,
                     'MARKET_NOT_OPEN': BadRequest,
+                    'SYSTEM_STATUS_CANCEL_ONLY': OnMaintenance,
+                    'SYSTEM_STATUS_POST_ONLY': OperationRejected,
+                    'MMP_CONFIG_INVALID': OperationRejected,
+                    'MMP_NOT_ENABLED': OperationRejected,
+                    'MMP_NOT_CONFIGURED': OperationRejected,
+                    'MMP_MIN_FREEZE_NOT_ELAPSED': OperationRejected,
+                    'ONBOARDING_RATE_LIMITED': RateLimitExceeded,
+                    'RFQ_CREATE_BUDGET_EXCEEDED': RateLimitExceeded,
                     'INVALID_REFERRAL_CODE': OperationRejected,
                     'PARENT_ADDRESS_ALREADY_ONBOARDED': BadRequest,
                     'INVALID_PARENT_ACCOUNT': OperationRejected,
@@ -351,8 +394,15 @@ class paradex(Exchange, ImplicitAPI):
                     '40110': AuthenticationError,  # Malformed Bearer Token
                     '40111': AuthenticationError,  # Invalid Bearer Token
                     '40112': PermissionDenied,  # Geo IP blocked
+                    '40300': PermissionDenied,  # Permission denied
+                    '40301': NotSupported,  # SBE encoding required
+                    '42900': OperationRejected,  # Max subscriptions per connection, a retry does not help until a channel is unsubscribed
+                    '42901': RateLimitExceeded,  # Rate limited
                 },
                 'broad': {
+                    # INVALID_REQUEST_PARAMETER is shared by every validation failure, its message tells them apart
+                    'must be a multiple of': InvalidOrder,
+                    'market not found': BadSymbol,
                     'missing or malformed jwt': AuthenticationError,
                 },
             },
@@ -360,11 +410,20 @@ class paradex(Exchange, ImplicitAPI):
             'commonCurrencies': {
             },
             'options': {
-                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard(optional)", "address": "copy Paradex Address from UI"}
+                'paradexAccount': None,  # add {"privateKey": "copy Paradex Private Key from UI", "publicKey": "used when onboard (optional)", "address": "copy Paradex Address from UI"}
                 'broker': 'CCXT',
             },
             'features': {
-                'spot': None,
+                'spot': {
+                    'extends': 'forSwap',
+                    'createOrder': {
+                        # spot takes limit and market orders only, no trigger, stop loss or take profit types
+                        'triggerPrice': False,
+                        'triggerDirection': False,
+                        'stopLossPrice': False,
+                        'takeProfitPrice': False,
+                    },
+                },
                 'forSwap': {
                     'sandbox': True,
                     'createOrder': {
@@ -423,7 +482,7 @@ class paradex(Exchange, ImplicitAPI):
                     },
                     'fetchClosedOrders': None,  # todo
                     'fetchOHLCV': {
-                        'limit': None,  # todo by from/to
+                        'limit': 1000,  # todo by from/to
                     },
                 },
                 'swap': {
@@ -439,7 +498,7 @@ class paradex(Exchange, ImplicitAPI):
             },
         })
 
-    async def fetch_time(self, params={}) -> Int:
+    async def fetch_time(self, params: dict = {}) -> Int:
         """
         fetches the current integer timestamp in milliseconds from the exchange server
 
@@ -456,7 +515,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         return self.safe_integer(response, 'server_time')
 
-    async def fetch_status(self, params={}) -> Status:
+    async def fetch_status(self, params: dict = {}) -> Status:
         """
         the latest known information on the availability of the exchange API
 
@@ -480,7 +539,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    async def fetch_markets(self, params={}) -> List[Market]:
+    async def fetch_markets(self, params: dict = {}) -> list[Market]:
         """
         retrieves data on all markets for paradex
 
@@ -603,20 +662,49 @@ class paradex(Exchange, ImplicitAPI):
         #     ]
         #  }
         #
+        # spot
+        #
+        #     {
+        #         "symbol": "ETH-USD",
+        #         "base_currency": "ETH",
+        #         "quote_currency": "USD",
+        #         "settlement_currency": "USDC",
+        #         "order_size_increment": "0.0001",
+        #         "price_tick_size": "0.01",
+        #         "min_notional": "10",
+        #         "asset_kind": "SPOT",
+        #         "market_kind": "cross",
+        #         ...
+        #     }
+        #
         assetKind = self.safe_string(market, 'asset_kind')
+        isSpot = (assetKind == 'SPOT')
         isOptionPerpetual = (assetKind == 'PERP_OPTION')
         isOptionDelivery = (assetKind == 'OPTION')
         isOption = isOptionPerpetual or isOptionDelivery
-        type = 'option' if (isOption) else 'swap'
+        type = 'swap'
+        if isSpot:
+            type = 'spot'
+        elif isOption:
+            type = 'option'
         isSwap = (type == 'swap')
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quote_currency')
         baseId = self.safe_string(market, 'base_currency')
+        settleId = self.safe_string(market, 'settlement_currency')
+        if isSpot:
+            # spot is quoted in "USD" but paid and received in the settlement token (USDC),
+            # a spot market has no settle, so the token it trades against is the quote
+            quoteId = settleId
+            settleId = None
         quote = self.safe_currency_code(quoteId)
         base = self.safe_currency_code(baseId)
-        settleId = self.safe_string(market, 'settlement_currency')
+        if (base is None) or (quote is None):
+            return None
         settle = self.safe_currency_code(settleId)
-        symbol = base + '/' + quote + ':' + settle
+        symbol = base + '/' + quote
+        if not isSpot and (settle is not None):
+            symbol = symbol + ':' + settle
         expiry = self.safe_integer(market, 'expiry_at')
         optionType = self.safe_string(market, 'option_type')
         strikePrice = self.safe_string(market, 'strike_price')
@@ -624,8 +712,11 @@ class paradex(Exchange, ImplicitAPI):
         makerFee = self.parse_number('-0.00005')
         if isOption:
             optionTypeSuffix = 'C' if (optionType == 'CALL') else 'P'
-            deliveryValue = '' if (expiry == 0) else self.yymmdd(expiry) + '-'
-            symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
+            deliveryValue = ''
+            if expiry != 0:
+                deliveryValue = self.yymmdd(expiry) + '-'
+            if strikePrice is not None:
+                symbol = symbol + '-' + deliveryValue + strikePrice + '-' + optionTypeSuffix
             makerFee = self.parse_number('0.0003')
         else:
             expiry = None
@@ -640,18 +731,18 @@ class paradex(Exchange, ImplicitAPI):
             'quoteId': quoteId,
             'settleId': settleId,
             'type': type,
-            'spot': False,
+            'spot': isSpot,
             'margin': None,
             'swap': isSwap,
             'future': False,
             'option': isOption,
             'active': self.safe_bool(market, 'enableTrading'),
-            'contract': True,
-            'linear': True,
-            'inverse': False,
+            'contract': not isSpot,
+            'linear': None if (isSpot) else True,
+            'inverse': None if (isSpot) else False,
             'taker': takerFee,
             'maker': makerFee,
-            'contractSize': self.parse_number('1'),
+            'contractSize': None if (isSpot) else self.parse_number('1'),
             'expiry': expiry,
             'expiryDatetime': expireDatetime,
             'strike': self.parse_number(strikePrice),
@@ -703,21 +794,21 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(fee, 'symbol')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         feeConfig = self.safe_dict(fee, 'fee_config', {})
         apiFee = self.safe_dict(feeConfig, 'api_fee', {})
         makerFee = self.safe_dict(apiFee, 'maker_fee', {})
         takerFee = self.safe_dict(apiFee, 'taker_fee', {})
         return {
             'info': fee,
-            'symbol': market['symbol'],
-            'maker': self.safe_number(makerFee, 'fee', self.safe_number(market, 'maker')),
-            'taker': self.safe_number(takerFee, 'fee', self.safe_number(market, 'taker')),
+            'symbol': marketResolved['symbol'],
+            'maker': self.safe_number(makerFee, 'fee', self.safe_number(marketResolved, 'maker')),
+            'taker': self.safe_number(takerFee, 'fee', self.safe_number(marketResolved, 'taker')),
             'percentage': True,
             'tierBased': False,
         }
 
-    async def fetch_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
+    async def fetch_trading_fee(self, symbol: str, params: dict = {}) -> TradingFeeInterface:
         """
         fetch the trading fees for a market
 
@@ -759,7 +850,7 @@ class paradex(Exchange, ImplicitAPI):
         first = self.safe_dict(data, 0, {})
         return self.parse_trading_fee(first, market)
 
-    async def fetch_trading_fees(self, params={}) -> TradingFees:
+    async def fetch_trading_fees(self, params: dict = {}) -> TradingFees:
         """
         fetch the trading fees for multiple markets
 
@@ -798,7 +889,7 @@ class paradex(Exchange, ImplicitAPI):
             result[symbol] = fee
         return result
 
-    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params={}) -> List[list]:
+    async def fetch_ohlcv(self, symbol: str, timeframe: str = '1m', since: Int = None, limit: Int = None, params: dict = {}) -> list[list]:
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
 
@@ -810,8 +901,8 @@ class paradex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :param str [params.price]: "last", "mark", "index", default is "last"
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :param str [params.price]: "last", "mark", "index"(sent as "underlying"), default is "last"
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -820,26 +911,28 @@ class paradex(Exchange, ImplicitAPI):
             'resolution': self.safe_string(self.timeframes, timeframe, timeframe),
             'symbol': market['id'],
         }
-        now = self.milliseconds()
         duration = self.parse_timeframe(timeframe)
-        until = self.safe_integer_2(params, 'until', 'till', now)
         price = self.safe_string(params, 'price')
         if price is not None:
-            request['price_kind'] = price
-        params = self.omit(params, ['until', 'till', 'price'])
+            # the exchange names the index price "underlying" and rejects "index"
+            request['price_kind'] = 'underlying' if (price == 'index') else price
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, params)
+        hasEnd = ('end_at' in request)
+        paramsOmitted = self.omit(paramsUntil, ['price'])
+        # exchange has undocumented limit slightly above, but 1000 is reliable limit
+        limitResolved = 1000 if ((limit is None) or (limit > 1000)) else limit
+        windowLength = self.parse_to_int(duration * (self.parse_to_int(limitResolved) + 1) * 1000)
         if since is not None:
-            request['start_at'] = since
-            if limit is not None:
-                request['end_at'] = self.sum(since, duration * (limit + 1) * 1000) - 1
-            else:
-                request['end_at'] = until
+            requestUntil['start_at'] = since
+            if not hasEnd:
+                sinceInt = self.parse_to_int(since)
+                requestUntil['end_at'] = sinceInt + windowLength - 1
         else:
-            request['end_at'] = until
-            if limit is not None:
-                request['start_at'] = until - duration * (limit + 1) * 1000 + 1
-            else:
-                request['start_at'] = until - duration * 101 * 1000 + 1
-        response = await self.publicGetMarketsKlines(self.extend(request, params))
+            endAtRaw = self.safe_integer(requestUntil, 'end_at', self.milliseconds())
+            endAt = self.parse_to_int(endAtRaw)
+            requestUntil['end_at'] = endAt
+            requestUntil['start_at'] = endAt - windowLength + 1
+        response = await self.publicGetMarketsKlines(self.extend(requestUntil, paramsOmitted))
         #
         #     {
         #         "results": [
@@ -857,7 +950,7 @@ class paradex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'results', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
-    def parse_ohlcv(self, ohlcv: Any, market: Market = None) -> list:
+    def parse_ohlcv(self, ohlcv: object, market: Market = None) -> list:
         #
         #     [
         #         1720071900000,
@@ -877,7 +970,7 @@ class paradex(Exchange, ImplicitAPI):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_tickers(self, symbols: Strings = None, params={}) -> Tickers:
+    async def fetch_tickers(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
         fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
 
@@ -889,7 +982,7 @@ class paradex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
+        symbolsNormalized = self.market_symbols(symbols)
         request = {
             'market': 'ALL',
         }
@@ -916,9 +1009,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        return self.parse_tickers(data, symbols)
+        return self.parse_tickers(data, symbolsNormalized)
 
-    async def fetch_ticker(self, symbol: str, params={}) -> Ticker:
+    async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
@@ -983,8 +1076,8 @@ class paradex(Exchange, ImplicitAPI):
             percentage = Precise.string_mul(percentage, '100')
         last = self.safe_string(ticker, 'last_traded_price')
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(ticker, 'created_at')
         return self.safe_ticker({
             'symbol': symbol,
@@ -1008,9 +1101,111 @@ class paradex(Exchange, ImplicitAPI):
             'quoteVolume': self.safe_string(ticker, 'volume_24h'),
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'info': ticker,
-        }, market)
+        }, marketResolved)
 
-    async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
+    async def fetch_funding_rates(self, symbols: Strings = None, params: dict = {}) -> FundingRates:
+        """
+        fetches the current funding rate for multiple markets
+
+        https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        symbolsNormalized = self.market_symbols(symbols)
+        # the endpoint takes one market id, and ALL answers for every product on
+        # the venue: a single symbol is asked for by name, which is 544 bytes
+        # against 1.6 MB
+        target = 'ALL'
+        if symbolsNormalized is not None:
+            symbolsLength = len(symbolsNormalized)
+            if symbolsLength == 1:
+                target = self.market(symbolsNormalized[0])['id']
+        request = {
+            'market': target,
+        }
+        response = await self.publicGetMarketsSummary(self.extend(request, params))
+        data = self.safe_list(response, 'results', [])
+        return self.parse_funding_rates(data, symbolsNormalized)
+
+    async def fetch_funding_rate(self, symbol: str, params: dict = {}) -> FundingRate:
+        """
+        fetches the current funding rate
+
+        https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            await self.load_markets()
+        market = self.market(symbol)
+        rates = await self.fetch_funding_rates([market['symbol']], params)
+        rate = self.safe_dict(rates, market['symbol'])
+        if rate is None:
+            raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
+        return rate
+
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "symbol": "BTC-USD-PERP",
+        #         "oracle_price": "68465.17449906",
+        #         "mark_price": "68465.17449906",
+        #         "last_traded_price": "68495.1",
+        #         "bid": "68477.6",
+        #         "ask": "69578.2",
+        #         "volume_24h": "5815541.397939004",
+        #         "total_volume": "584031465.525259686",
+        #         "created_at": 1718170156580,
+        #         "underlying_price": "67367.37268422",
+        #         "open_interest": "162.272",
+        #         "funding_rate": "0.01629574927887",
+        #         "price_change_rate_24h": "0.009032"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        marketResolved = self.safe_market(marketId, market, None, 'swap')
+        timestamp = self.safe_integer(contract, 'created_at')
+        # the summary answers for every product, and only a perpetual funds: an
+        # option row carries an empty funding_rate and a period of zero. left
+        # without a symbol, parseFundingRates drops the row
+        rate = self.safe_string(contract, 'funding_rate')
+        funds = (marketResolved['swap'] is True) and (rate is not None) and (rate != '')
+        # the funding period belongs to the market and is not always eight hours:
+        # fetchMarkets documents one on twenty four. funding accrues each second
+        # against an index, and this rate is the amount for a whole period
+        hours = self.safe_string(self.safe_dict(marketResolved, 'info', {}), 'funding_period_hours')
+        # zero hours is not an interval, and a caller annualising a rate divides by it
+        interval = None
+        if (hours is not None) and Precise.string_gt(hours, '0'):
+            interval = hours + 'h'
+        return {
+            'info': contract,
+            'symbol': marketResolved['symbol'] if funds else None,
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'underlying_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': interval,
+        }
+
+    async def fetch_order_book(self, symbol: str, limit: Int = None, params: dict = {}) -> OrderBook:
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
 
@@ -1052,7 +1247,7 @@ class paradex(Exchange, ImplicitAPI):
         orderbook['nonce'] = self.safe_integer(response, 'seq_no')
         return orderbook
 
-    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params={}) -> List[Trade]:
+    async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         get the list of most recent trades for a particular symbol
 
@@ -1068,10 +1263,9 @@ class paradex(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -1080,8 +1274,8 @@ class paradex(Exchange, ImplicitAPI):
             request['page_size'] = min(limit, 1000)
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.publicGetTrades(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsPaginate)
+        response = await self.publicGetTrades(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "next": "...",
@@ -1106,7 +1300,7 @@ class paradex(Exchange, ImplicitAPI):
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #
-        # fetchTrades(public)
+        # fetchTrades (public)
         #
         #     {
         #         "id": "1718154353750201703989430001",
@@ -1118,7 +1312,7 @@ class paradex(Exchange, ImplicitAPI):
         #         "trade_type": "FILL"
         #     }
         #
-        # fetchMyTrades(private)
+        # fetchMyTrades (private)
         #
         #     {
         #         "id": "1718947571560201703986670001",
@@ -1137,7 +1331,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(trade, 'market')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         id = self.safe_string(trade, 'id')
         timestamp = self.safe_integer(trade, 'created_at')
         priceString = self.safe_string(trade, 'price')
@@ -1145,7 +1339,9 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(trade, 'side')
         liability = self.safe_string_lower(trade, 'liquidity', 'taker')
         isTaker = liability == 'taker'
-        takerOrMaker = 'taker' if (isTaker) else 'maker'
+        takerOrMaker = 'maker'
+        if isTaker:
+            takerOrMaker = 'taker'
         currencyId = self.safe_string(trade, 'fee_currency')
         code = self.safe_currency_code(currencyId)
         return self.safe_trade({
@@ -1154,7 +1350,7 @@ class paradex(Exchange, ImplicitAPI):
             'order': self.safe_string(trade, 'order_id'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'type': None,
             'takerOrMaker': takerOrMaker,
             'side': side,
@@ -1166,9 +1362,9 @@ class paradex(Exchange, ImplicitAPI):
                 'currency': code,
                 'rate': None,
             },
-        }, market)
+        }, marketResolved)
 
-    async def fetch_open_interest(self, symbol: str, params={}):
+    async def fetch_open_interest(self, symbol: str, params: dict = {}) -> OpenInterest:
         """
         retrieves the open interest of a contract trading pair
 
@@ -1181,7 +1377,7 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        if not market['contract']:
+        if not self.safe_bool(market, 'contract', False):
             raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
         request = {
             'market': market['id'],
@@ -1212,7 +1408,7 @@ class paradex(Exchange, ImplicitAPI):
         interest = self.safe_dict(data, 0, {})
         return self.parse_open_interest(interest, market)
 
-    def parse_open_interest(self, interest: Any, market: Market = None):
+    def parse_open_interest(self, interest: dict, market: Market = None) -> OpenInterest:
         #
         #     {
         #         "symbol": "BTC-USD-PERP",
@@ -1232,8 +1428,8 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(interest, 'created_at')
         marketId = self.safe_string(interest, 'symbol')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         return self.safe_open_interest({
             'symbol': symbol,
             'openInterestAmount': self.safe_string(interest, 'open_interest'),
@@ -1241,99 +1437,68 @@ class paradex(Exchange, ImplicitAPI):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
-        }, market)
+        }, marketResolved)
 
-    def hash_message(self, message: Any):
-        return '0x' + self.hash(message, 'keccak', 'hex')
+    def hash_message(self, message: object) -> str:
+        hashed = self.hash(message, 'keccak', 'hex')
+        return '0x' + hashed
 
-    def sign_hash(self, hash: Any, privateKey: Any):
+    def sign_hash(self, hash: str, privateKey: str) -> str:
         signature = self.ecdsa(hash[-64:], privateKey[-64:], 'secp256k1', None)
         r = signature['r']
         s = signature['s']
         v = self.int_to_base16(self.sum(27, signature['v']))
         return '0x' + r.rjust(64, '0') + s.rjust(64, '0') + v
 
-    def sign_message(self, message: Any, privateKey: Any):
+    def sign_message(self, message: object, privateKey: str) -> str:
         return self.sign_hash(self.hash_message(message), privateKey[-64:])
 
-    async def get_system_config(self):
-        cachedConfig = self.safe_dict(self.options, 'systemConfig')
-        if cachedConfig is not None:
-            return cachedConfig
-        response = await self.publicGetSystemConfig()
-        #
-        # {
-        #     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
-        #     "starknet_fullnode_rpc_url": "https://pathfinder.api.testnet.paradex.trade/rpc/v0_7",
-        #     "starknet_chain_id": "PRIVATE_SN_POTC_SEPOLIA",
-        #     "block_explorer_url": "https://voyager.testnet.paradex.trade/",
-        #     "paraclear_address": "0x286003f7c7bfc3f94e8f0af48b48302e7aee2fb13c23b141479ba00832ef2c6",
-        #     "paraclear_decimals": 8,
-        #     "paraclear_account_proxy_hash": "0x3530cc4759d78042f1b543bf797f5f3d647cde0388c33734cf91b7f7b9314a9",
-        #     "paraclear_account_hash": "0x41cb0280ebadaa75f996d8d92c6f265f6d040bb3ba442e5f86a554f1765244e",
-        #     "oracle_address": "0x2c6a867917ef858d6b193a0ff9e62b46d0dc760366920d631715d58baeaca1f",
-        #     "bridged_tokens": [
-        #         {
-        #             "name": "TEST USDC",
-        #             "symbol": "USDC",
-        #             "decimals": 6,
-        #             "l1_token_address": "0x29A873159D5e14AcBd63913D4A7E2df04570c666",
-        #             "l1_bridge_address": "0x8586e05adc0C35aa11609023d4Ae6075Cb813b4C",
-        #             "l2_token_address": "0x6f373b346561036d98ea10fb3e60d2f459c872b1933b50b21fe6ef4fda3b75e",
-        #             "l2_bridge_address": "0x46e9237f5408b5f899e72125dd69bd55485a287aaf24663d3ebe00d237fc7ef"
-        #         }
-        #     ],
-        #     "l1_core_contract_address": "0x582CC5d9b509391232cd544cDF9da036e55833Af",
-        #     "l1_operator_address": "0x11bACdFbBcd3Febe5e8CEAa75E0Ef6444d9B45FB",
-        #     "l1_chain_id": "11155111",
-        #     "liquidation_fee": "0.2"
-        # }
-        #
-        self.options['systemConfig'] = response
+    async def get_system_config(self) -> dict:
+        if self.safe_dict(self.options, 'systemConfig') is None:
+            response = await self.publicGetSystemConfig()
+            self.options['systemConfig'] = response
         return self.safe_dict(self.options, 'systemConfig', {})
 
-    async def prepare_paradex_domain(self, l1=False):
+    async def prepare_paradex_domain(self, l1: bool = False) -> dict:
         systemConfig = await self.get_system_config()
-        if l1 is True:
+        if l1:
             l1D = {
                 'name': 'Paradex',
-                'chainId': systemConfig['l1_chain_id'],
+                'chainId': self.safe_string(systemConfig, 'l1_chain_id'),
                 'version': '1',
             }
             return l1D
         domain = {
             'name': 'Paradex',
-            'chainId': systemConfig['starknet_chain_id'],
+            'chainId': self.safe_string(systemConfig, 'starknet_chain_id'),
             'version': 1,
         }
         return domain
 
-    async def retrieve_account(self):
-        cachedAccount = self.safe_dict(self.options, 'paradexAccount')
-        if cachedAccount is not None:
-            return cachedAccount
-        self.check_required_credentials()
-        systemConfig = await self.get_system_config()
-        domain = await self.prepare_paradex_domain(True)
-        messageTypes = {
-            'Constant': [
-                {'name': 'action', 'type': 'string'},
-            ],
-        }
-        message = {
-            'action': 'STARK Key',
-        }
-        msg = self.eth_encode_structured_data(domain, messageTypes, message)
-        signature = self.sign_message(msg, self.privateKey)
-        account = self.retrieve_stark_account(
-            signature,
-            systemConfig['paraclear_account_hash'],
-            systemConfig['paraclear_account_proxy_hash']
-        )
-        self.options['paradexAccount'] = account
-        return account
+    async def retrieve_account(self) -> dict:
+        if self.safe_dict(self.options, 'paradexAccount') is None:
+            self.check_required_credentials()
+            systemConfig = await self.get_system_config()
+            domain = await self.prepare_paradex_domain(True)
+            messageTypes = {
+                'Constant': [
+                    {'name': 'action', 'type': 'string'},
+                ],
+            }
+            message = {
+                'action': 'STARK Key',
+            }
+            msg = self.eth_encode_structured_data(domain, messageTypes, message)
+            signature = self.sign_message(msg, self.privateKey)
+            account = self.retrieve_stark_account(
+                signature,
+                self.safe_string(systemConfig, 'paraclear_account_hash'),
+                self.safe_string(systemConfig, 'paraclear_account_proxy_hash')
+            )
+            self.options['paradexAccount'] = account
+        return self.safe_dict(self.options, 'paradexAccount', {})
 
-    async def onboarding(self, params: dict = {}):
+    async def onboarding(self, params: dict = {}) -> dict:
         account = await self.retrieve_account()
         req = {
             'action': 'Onboarding',
@@ -1344,17 +1509,17 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'action', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
-        params['public_key'] = account['publicKey']
+        params['account'] = self.safe_string(account, 'address')
+        params['public_key'] = self.safe_string(account, 'publicKey')
         response = await self.privatePostOnboarding(params)
         return response
 
-    async def authenticate_rest(self, params: dict = {}):
+    async def authenticate_rest(self, params: dict = {}) -> Str:
         cachedToken = self.safe_string(self.options, 'authToken')
-        now = self.nonce()
+        now = self.parse_to_int(self.nonce())
         if cachedToken is not None:
             cachedExpires = self.safe_integer(self.options, 'expires')
             if cachedExpires is None:
@@ -1381,10 +1546,10 @@ class paradex(Exchange, ImplicitAPI):
                 {'name': 'expiration', 'type': 'felt'},
             ],
         }
-        msg = self.starknet_encode_structured_data(domain, messageTypes, req, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, req, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
         params['signature'] = signature
-        params['account'] = account['address']
+        params['account'] = self.safe_string(account, 'address')
         params['timestamp'] = req['timestamp']
         params['expiration'] = req['expiration']
         response = await self.privatePostAuth(params)
@@ -1429,10 +1594,13 @@ class paradex(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(order, 'created_at')
         orderId = self.safe_string(order, 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'client_id'))
+        # a client id is free text, omitZero would drop every non-numeric one in php
+        clientOrderId = self.safe_string(order, 'client_id')
+        if clientOrderId == '':
+            clientOrderId = None
         marketId = self.safe_string(order, 'market')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         price = self.safe_string(order, 'price')
         amount = self.safe_string(order, 'size')
         orderType = self.safe_string(order, 'type')
@@ -1446,11 +1614,23 @@ class paradex(Exchange, ImplicitAPI):
         side = self.safe_string_lower(order, 'side')
         average = self.omit_zero(self.safe_string(order, 'avg_fill_price'))
         remaining = self.omit_zero(self.safe_string(order, 'remaining_size'))
+        triggerPrice = self.omit_zero(self.safe_string(order, 'trigger_price'))
+        stopLossPrice = None
+        takeProfitPrice = None
+        if orderType is not None:
+            if orderType.find('STOP_LOSS') >= 0:
+                stopLossPrice = triggerPrice
+            elif orderType.find('TAKE_PROFIT') >= 0:
+                takeProfitPrice = triggerPrice
+        timeInForce = self.parse_time_in_force(self.safe_string(order, 'instruction'))
+        postOnly = None
+        if timeInForce is not None:
+            postOnly = (timeInForce == 'PO')
         lastUpdateTimestamp = self.safe_integer(order, 'last_updated_at')
-        flags = self.safe_list(order, 'flags', [])
+        flags = self.safe_list(order, 'flags')
         reduceOnly = None
-        if 'REDUCE_ONLY' in flags:
-            reduceOnly = True
+        if flags is not None:
+            reduceOnly = self.in_array('REDUCE_ONLY', flags)
         return self.safe_order({
             'id': orderId,
             'clientOrderId': clientOrderId,
@@ -1461,14 +1641,14 @@ class paradex(Exchange, ImplicitAPI):
             'status': self.parse_order_status(status),
             'symbol': symbol,
             'type': self.parse_order_type(orderType),
-            'timeInForce': self.parse_time_in_force(self.safe_string(order, 'instruction')),
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'reduceOnly': reduceOnly,
             'side': side,
             'price': price,
-            'triggerPrice': self.safe_string(order, 'trigger_price'),
-            'takeProfitPrice': None,
-            'stopLossPrice': None,
+            'triggerPrice': triggerPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'stopLossPrice': stopLossPrice,
             'average': average,
             'amount': amount,
             'filled': None,
@@ -1480,17 +1660,18 @@ class paradex(Exchange, ImplicitAPI):
                 'currency': None,
             },
             'info': order,
-        }, market)
+        }, marketResolved)
 
-    def parse_time_in_force(self, timeInForce: Str):
+    def parse_time_in_force(self, timeInForce: Str) -> Str:
         timeInForces = {
             'IOC': 'IOC',
             'GTC': 'GTC',
             'POST_ONLY': 'PO',
+            'RPI': 'PO',  # retail price improvement orders only rest on the book, the raw instruction stays in info
         }
         return self.safe_string(timeInForces, timeInForce)
 
-    def parse_order_status(self, status: Str):
+    def parse_order_status(self, status: Str) -> Str:
         if status is not None:
             statuses = {
                 'NEW': 'open',
@@ -1499,21 +1680,38 @@ class paradex(Exchange, ImplicitAPI):
                 'CLOSED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
-    def parse_order_type(self, type: Str):
+    def parse_order_type(self, type: Str) -> Str:
         types = {
             'LIMIT': 'limit',
             'MARKET': 'market',
             'STOP_LIMIT': 'limit',
             'STOP_MARKET': 'market',
+            'STOP_LOSS_LIMIT': 'limit',
+            'STOP_LOSS_MARKET': 'market',
+            'TAKE_PROFIT_LIMIT': 'limit',
+            'TAKE_PROFIT_MARKET': 'market',
         }
         return self.safe_string_lower(types, type, type)
 
-    def scale_number(self, num: str):
+    def scale_number(self, num: Str) -> Str:
         return Precise.string_mul(num, '100000000')
 
-    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params={}):
+    def encode_time_in_force(self, timeInForce: Str) -> Str:
+        timeInForces = {
+            'GTC': 'GTC',
+            'IOC': 'IOC',
+            'PO': 'POST_ONLY',
+            'POST_ONLY': 'POST_ONLY',
+            'RPI': 'RPI',
+        }
+        instruction = self.safe_string(timeInForces, timeInForce)
+        if instruction is None:
+            raise NotSupported(self.id + ' createOrder() does not support timeInForce ' + timeInForce + ', supported values are GTC, IOC, PO and RPI')
+        return instruction
+
+    def create_order_request(self, symbol: Str, type: Str, side: Str, amount: Num, price: Num = None, params: dict = {}) -> dict:
         if type is None:
             raise ArgumentsRequired(self.id + ' requires a type argument')
         if side is None:
@@ -1526,7 +1724,6 @@ class paradex(Exchange, ImplicitAPI):
             'market': market['id'],
             'side': orderSide,
             'type': orderType,  # LIMIT/MARKET/STOP_LIMIT/STOP_MARKET,STOP_LOSS_MARKET,STOP_LOSS_LIMIT,TAKE_PROFIT_MARKET,TAKE_PROFIT_LIMIT
-            'instruction': 'GTC',
         }
         triggerPrice = self.safe_string_2(params, 'triggerPrice', 'stopPrice')
         stopLossPrice = self.safe_string(params, 'stopLossPrice')
@@ -1537,72 +1734,70 @@ class paradex(Exchange, ImplicitAPI):
         isStopOrder = (triggerPrice is not None) or isTakeProfitOrder or isStopLossOrder
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         postOnly = self.is_post_only(isMarket, None, params)
-        if not isMarket:
-            if postOnly:
-                request['instruction'] = 'POST_ONLY'
-            elif timeInForce == 'IOC':
-                request['instruction'] = 'IOC'
-        if price is not None:
+        instruction = 'GTC'
+        if timeInForce is not None:
+            instruction = self.encode_time_in_force(timeInForce)
+        if postOnly and (instruction != 'RPI'):
+            instruction = 'POST_ONLY'
+        if (instruction == 'POST_ONLY') or (instruction == 'RPI'):
+            # both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if isMarket:
+                raise InvalidOrder(self.id + ' createOrder() market orders cannot be post only or RPI')
+            if isStopOrder:
+                raise InvalidOrder(self.id + ' createOrder() trigger, stop loss and take profit orders cannot be post only or RPI')
+        request['instruction'] = instruction
+        # the exchange requires the price to be omitted for every market order type
+        if (price is not None) and not isMarket:
             request['price'] = self.price_to_precision(symbol, price)
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
+        recvWindow, paramsRecvWindow = self.handle_option_and_params_2(params, 'createOrder', 'recvWindow', 'recv_window')
+        if recvWindow is not None:
+            request['recv_window'] = self.parse_to_int(recvWindow)
+        isTakeProfitOrStopLoss = isStopLossOrder or isTakeProfitOrder
         sizeString = '0'
+        # a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if not isTakeProfitOrStopLoss or ((amount is not None) and (amount > 0)):
+            sizeString = self.amount_to_precision(symbol, amount)
         stopPrice = None
         if isStopOrder:
-            # flags: Reduce_Only must be provided for TPSL orders.
-            if isMarket:
-                if isStopLossOrder:
-                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
-                    reduceOnly = True
-                    request['type'] = 'STOP_LOSS_MARKET'
-                elif isTakeProfitOrder:
-                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
-                    reduceOnly = True
-                    request['type'] = 'TAKE_PROFIT_MARKET'
-                else:
-                    stopPrice = self.price_to_precision(symbol, triggerPrice)
-                    sizeString = self.amount_to_precision(symbol, amount)
-                    request['type'] = 'STOP_MARKET'
+            if isTakeProfitOrStopLoss:
+                # flags: Reduce_Only must be provided for TPSL orders.
+                reduceOnly = True
+            if isStopLossOrder:
+                stopPrice = self.price_to_precision(symbol, stopLossPrice)
+                request['type'] = 'STOP_LOSS_MARKET' if (isMarket) else 'STOP_LOSS_LIMIT'
+            elif isTakeProfitOrder:
+                stopPrice = self.price_to_precision(symbol, takeProfitPrice)
+                request['type'] = 'TAKE_PROFIT_MARKET' if (isMarket) else 'TAKE_PROFIT_LIMIT'
             else:
-                if isStopLossOrder:
-                    stopPrice = self.price_to_precision(symbol, stopLossPrice)
-                    reduceOnly = True
-                    request['type'] = 'STOP_LOSS_LIMIT'
-                elif isTakeProfitOrder:
-                    stopPrice = self.price_to_precision(symbol, takeProfitPrice)
-                    reduceOnly = True
-                    request['type'] = 'TAKE_PROFIT_LIMIT'
-                else:
-                    stopPrice = self.price_to_precision(symbol, triggerPrice)
-                    sizeString = self.amount_to_precision(symbol, amount)
-                    request['type'] = 'STOP_LIMIT'
-        else:
-            sizeString = self.amount_to_precision(symbol, amount)
+                stopPrice = self.price_to_precision(symbol, triggerPrice)
+                request['type'] = 'STOP_MARKET' if (isMarket) else 'STOP_LIMIT'
         if stopPrice is not None:
             request['trigger_price'] = stopPrice
         request['size'] = sizeString
-        if reduceOnly:
+        if reduceOnly is True:
             request['flags'] = [
                 'REDUCE_ONLY',
             ]
-        params = self.omit(params, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
-        return self.extend(request, params)
+        paramsOmitted = self.omit(paramsRecvWindow, ['reduceOnly', 'reduce_only', 'clOrdID', 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice'])
+        return self.extend(request, paramsOmitted)
 
-    async def sign_order_request(self, request: dict, modify=False):
+    async def sign_order_request(self, request: dict, modify: bool = False) -> dict:
         account = await self.retrieve_account()
-        now = self.nonce()
+        now = self.milliseconds()
         orderType = self.safe_string(request, 'type')
         if orderType is None:
             raise ExchangeError(self.id + ' signOrderRequest() missing orderType')
         isMarket = (orderType.find('MARKET') >= 0)
         orderReq = {
-            'timestamp': now * 1000,
-            'market': self.string_to_base16(request['market']),
-            'side': '1' if (request['side'] == 'BUY') else '2',
-            'orderType': self.string_to_base16(request['type']),
-            'size': self.scale_number(request['size']),
-            'price': '0' if (isMarket) else self.scale_number(request['price']),
+            'timestamp': now,
+            'market': self.string_to_base16(self.safe_string(request, 'market')),
+            'side': '1' if (self.safe_string(request, 'side') == 'BUY') else '2',
+            'orderType': self.string_to_base16(self.safe_string(request, 'type')),
+            'size': self.scale_number(self.safe_string(request, 'size')),
+            'price': '0' if (isMarket) else self.scale_number(self.safe_string(request, 'price')),
         }
         orderFields = [
             {'name': 'timestamp', 'type': 'felt'},
@@ -1614,7 +1809,7 @@ class paradex(Exchange, ImplicitAPI):
         ]
         messageTypes = {}
         if modify:
-            orderReq['id'] = request['id']
+            orderReq['id'] = self.safe_string(request, 'id')
             orderFields.append({'name': 'id', 'type': 'felt'})
             messageTypes = {
                 'ModifyOrder': orderFields,
@@ -1624,13 +1819,15 @@ class paradex(Exchange, ImplicitAPI):
                 'Order': orderFields,
             }
         domain = await self.prepare_paradex_domain()
-        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, account['address'])
+        msg = self.starknet_encode_structured_data(domain, messageTypes, orderReq, self.safe_string(account, 'address'))
         signature = self.starknet_sign(msg, account['privateKey'])
-        request['signature'] = signature
-        request['signature_timestamp'] = orderReq['timestamp']
-        return request
+        signedRequest = self.extend(request, {
+            'signature': signature,
+            'signature_timestamp': orderReq['timestamp'],
+        })
+        return signedRequest
 
-    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """
         create a trade order
 
@@ -1644,12 +1841,13 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
-        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
-        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
-        :param str [params.timeInForce]: "GTC", "IOC", or "POST_ONLY"
+        :param float [params.stopLossPrice]: the price that a stop loss order is triggered at, an amount of 0 closes the whole position
+        :param float [params.takeProfitPrice]: the price that a take profit order is triggered at, an amount of 0 closes the whole position
+        :param str [params.timeInForce]: "GTC", "IOC", "PO" or "RPI"(retail price improvement), "FOK" and "GTD" are not supported
         :param bool [params.postOnly]: True or False
         :param bool [params.reduceOnly]: Ensures that the executed order does not flip the opened position.
         :param str [params.clientOrderId]: a unique id for the order
+        :param int [params.recvWindow]: the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         await self.authenticate_rest()
@@ -1690,7 +1888,7 @@ class paradex(Exchange, ImplicitAPI):
         order = self.parse_order(response, market)
         return order
 
-    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}):
+    async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params: dict = {}) -> Order:
         """
         edit an open limit order or TPSL order
 
@@ -1701,22 +1899,25 @@ class paradex(Exchange, ImplicitAPI):
         :param str type: 'limit' or a TPSL order type
         :param str side: 'buy' or 'sell'
         :param float amount: how much of the currency you want to trade in units of the base currency
-        :param float price: the price at which the order is to be fulfilled, in units of the quote currency
+        :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.stopPrice]: alias for triggerPrice
         :param float [params.triggerPrice]: The price a trigger order is triggered at
+        :param float [params.stopLossPrice]: the price a stop loss order is triggered at
+        :param float [params.takeProfitPrice]: the price a take profit order is triggered at
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
-        if price is None:
-            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument')
+        isMarket = (type is not None) and (type.upper() == 'MARKET')
+        if (price is None) and not isMarket:
+            raise ArgumentsRequired(self.id + ' editOrder() requires a price argument for limit orders')
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
         request = self.create_order_request(symbol, type, side, amount, price, params)
-        request = self.omit(request, ['instruction', 'client_id', 'flags'])
+        request = self.omit(request, ['instruction', 'client_id', 'flags', 'recv_window'])
         request['order_id'] = id
         request['id'] = id
         request = await self.sign_order_request(request, True)
@@ -1757,7 +1958,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response, market)
 
-    async def create_orders(self, orders: List[OrderRequest], params={}) -> List[Order]:
+    async def create_orders(self, orders: list[OrderRequest], params: dict = {}) -> list[Order]:
         """
         create a list of trade orders
 
@@ -1772,7 +1973,7 @@ class paradex(Exchange, ImplicitAPI):
             await self.load_markets()
         ordersRequests = []
         for i in range(0, len(orders)):
-            rawOrder = orders[i]
+            rawOrder = self.safe_dict(orders, i)
             symbol = self.safe_string(rawOrder, 'symbol')
             type = self.safe_string(rawOrder, 'type')
             side = self.safe_string(rawOrder, 'side')
@@ -1785,38 +1986,46 @@ class paradex(Exchange, ImplicitAPI):
             ordersRequests.append(orderRequest)
         response = await self.privatePostOrdersBatch(ordersRequests)
         #
-        # {
-        #     "errors": [
-        #         {
-        #             "error": "VALIDATION_ERROR",
-        #             "message": "Invalid order"
-        #         }
-        #     ],
-        #     "orders": [
-        #         {
-        #             "id": "123456",
-        #             "market": "BTC-USD-PERP",
-        #             "side": "BUY",
-        #             "type": "LIMIT",
-        #             "price": "26000",
-        #             "size": "0.05",
-        #             "status": "NEW"
-        #         }
-        #     ]
-        # }
+        # orders and errors are index-aligned with the request, null where the other array has the entry
+        #
+        #     {
+        #         "errors": [
+        #             null,
+        #             {
+        #                 "error": "DUPLICATED_CLIENT_ID",
+        #                 "message": "duplicated client order id"
+        #             }
+        #         ],
+        #         "orders": [
+        #             {
+        #                 "id": "123456",
+        #                 "market": "BTC-USD-PERP",
+        #                 "side": "BUY",
+        #                 "type": "LIMIT",
+        #                 "price": "26000",
+        #                 "size": "0.05",
+        #                 "status": "NEW"
+        #             },
+        #             null
+        #         ]
+        #     }
         #
         responseOrders = self.safe_list(response, 'orders', [])
-        parsedOrders = self.parse_orders(responseOrders)
         errors = self.safe_list(response, 'errors', [])
-        for i in range(0, len(errors)):
-            error = errors[i]
-            parsedOrders.append(self.safe_order({
-                'info': error,
-                'status': 'rejected',
-            }))
-        return parsedOrders
+        result = []
+        for i in range(0, len(orders)):
+            responseOrder = self.safe_dict(responseOrders, i)
+            if responseOrder is not None:
+                result.append(self.parse_order(responseOrder))
+            else:
+                error = self.safe_dict(errors, i)
+                result.append(self.safe_order({
+                    'info': error,
+                    'status': 'rejected',
+                }))
+        return result
 
-    async def cancel_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         cancels an open order
 
@@ -1846,7 +2055,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def cancel_orders(self, ids: List[str], symbol: Str = None, params={}):
+    async def cancel_orders(self, ids: list[str], symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel multiple orders
 
@@ -1862,8 +2071,8 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         clientOrderIds = self.safe_list_n(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
-        params = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
-        hasOrderIds = (ids is not None) and (isinstance(ids, list))
+        paramsOmitted = self.omit(params, ['clOrdIDs', 'clientOrderIds', 'client_order_ids'])
+        hasOrderIds = isinstance(ids, list)
         hasClientOrderIds = (clientOrderIds is not None) and (isinstance(clientOrderIds, list))
         if not hasOrderIds and not hasClientOrderIds:
             raise ArgumentsRequired(self.id + ' cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter')
@@ -1872,7 +2081,7 @@ class paradex(Exchange, ImplicitAPI):
             request['order_ids'] = ids
         if hasClientOrderIds:
             request['client_order_ids'] = clientOrderIds
-        response = await self.privateDeleteOrdersBatch(self.extend(request, params))
+        response = await self.privateDeleteOrdersBatch(self.extend(request, paramsOmitted))
         #
         # {
         #     "results": [
@@ -1920,7 +2129,7 @@ class paradex(Exchange, ImplicitAPI):
             }, market))
         return orders
 
-    async def cancel_all_orders(self, symbol: Str = None, params={}):
+    async def cancel_all_orders(self, symbol: Str = None, params: dict = {}) -> list[Order]:
         """
         cancel all open orders in a market
 
@@ -1945,7 +2154,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         return [self.safe_order({'info': response})]
 
-    async def fetch_order(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order(self, id: str, symbol: Str = None, params: dict = {}) -> Order:
         """
         fetches information on an order made by the user
 
@@ -1963,14 +2172,14 @@ class paradex(Exchange, ImplicitAPI):
             await self.load_markets()
         request = {}
         clientOrderId = self.safe_string_n(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
-        params = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
+        paramsOmitted = self.omit(params, ['clOrdID', 'clientOrderId', 'client_order_id'])
         response: dict
         if clientOrderId is not None:
             request['client_id'] = clientOrderId
-            response = await self.privateGetOrdersByClientIdClientId(self.extend(request, params))
+            response = await self.privateGetOrdersByClientIdClientId(self.extend(request, paramsOmitted))
         else:
             request['order_id'] = id
-            response = await self.privateGetOrdersOrderId(self.extend(request, params))
+            response = await self.privateGetOrdersOrderId(self.extend(request, paramsOmitted))
         #
         #     {
         #         "id": "1718941725080201704028870000",
@@ -1999,7 +2208,7 @@ class paradex(Exchange, ImplicitAPI):
         #
         return self.parse_order(response)
 
-    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2017,10 +2226,9 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchOrders', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOrders', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, params, 'next', 'cursor', None, 50)
+            return await self.fetch_paginated_call_cursor('fetchOrders', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 50)
         request = {}
         market = None
         if symbol is not None:
@@ -2030,8 +2238,8 @@ class paradex(Exchange, ImplicitAPI):
             request['start_at'] = since
         if limit is not None:
             request['page_size'] = limit
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetOrdersHistory(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsPaginate)
+        response = await self.privateGetOrdersHistory(self.extend(requestUntil, paramsUntil))
         #
         # {
         #     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2075,7 +2283,7 @@ class paradex(Exchange, ImplicitAPI):
             orders[0] = first
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Order]:
+    async def fetch_open_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         fetches information on multiple orders made by the user
 
@@ -2131,7 +2339,7 @@ class paradex(Exchange, ImplicitAPI):
         orders = self.safe_list(response, 'results', [])
         return self.parse_orders(orders, market, since, limit)
 
-    async def fetch_balance(self, params={}) -> Balances:
+    async def fetch_balance(self, params: dict = {}) -> Balances:
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
 
@@ -2156,9 +2364,9 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        return self.parse_balance(data)
+        return self.parse_balance_list(data)
 
-    def parse_balance(self, response: Any) -> Balances:
+    def parse_balance_list(self, response: list[dict]) -> Balances:
         result = {'info': response}
         for i in range(0, len(response)):
             balance = self.safe_dict(response, i, {})
@@ -2170,7 +2378,7 @@ class paradex(Exchange, ImplicitAPI):
                 result[code] = account
         return self.safe_balance(result)
 
-    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Trade]:
         """
         fetch all trades made by the user
 
@@ -2187,10 +2395,9 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchMyTrades', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, params, 'next', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchMyTrades', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
         request = {}
         market = None
         if symbol is not None:
@@ -2200,8 +2407,8 @@ class paradex(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetFills(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsPaginate)
+        response = await self.privateGetFills(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "next": null,
@@ -2230,9 +2437,9 @@ class paradex(Exchange, ImplicitAPI):
             trades[i]['next'] = self.safe_string(response, 'next')
         return self.parse_trades(trades, market, since, limit)
 
-    async def fetch_position(self, symbol: str, params={}):
+    async def fetch_position(self, symbol: str, params: dict = {}) -> Position:
         """
-        fetch data on an open position
+        fetch data on a single position, a closed one included
 
         https://docs.paradex.trade/api/prod/account/get-positions
 
@@ -2244,10 +2451,17 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        positions = await self.fetch_positions([market['symbol']], params)
+        response = await self.privateGetPositions(params)
+        data = self.safe_list(response, 'results', [])
+        # unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        matching = []
+        for i in range(0, len(data)):
+            if self.safe_string(data[i], 'market') == market['id']:
+                matching.append(data[i])
+        positions = self.parse_positions(matching, [market['symbol']])
         return self.safe_dict(positions, 0, {})
 
-    async def fetch_positions(self, symbols: Strings = None, params={}) -> List[Position]:
+    async def fetch_positions(self, symbols: Strings = None, params: dict = {}) -> list[Position]:
         """
         fetch all open positions
 
@@ -2260,8 +2474,8 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        response = await self.privateGetPositions()
+        symbolsNormalized = self.market_symbols(symbols)
+        response = await self.privateGetPositions(params)
         #
         #     {
         #         "results": [
@@ -2276,9 +2490,11 @@ class paradex(Exchange, ImplicitAPI):
         #                 "realized_pnl": "0",
         #                 "unrealized_pnl": "-2.39677214",
         #                 "unrealized_funding_pnl": "-0.11214013",
+        #                 "leverage": "5",
         #                 "cost": "648.39960537",
         #                 "cost_usd": "648.529",
         #                 "cached_funding_index": "35202.1002351",
+        #                 "created_at": 1718947571560,
         #                 "last_updated_at": 1718950074249,
         #                 "last_fill_id": "1718947571560201703986670001",
         #                 "seq_no": 1718950074249176253,
@@ -2288,9 +2504,17 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_list(response, 'results', [])
-        return self.parse_positions(data, symbols)
+        # the endpoint keeps returning a market's position after it is closed, with a size of 0
+        openPositions = []
+        for i in range(0, len(data)):
+            position = data[i]
+            status = self.safe_string(position, 'status')
+            size = self.safe_string(position, 'size')
+            if (status != 'CLOSED') and not Precise.string_eq(size, '0'):
+                openPositions.append(position)
+        return self.parse_positions(openPositions, symbolsNormalized)
 
-    def parse_position(self, position: dict, market: Market = None):
+    def parse_position(self, position: dict, market: Market = None) -> Position:
         #
         #     {
         #         "id": "0x49ddd7a564c978f6e4089ff8355b56a42b7e2d48ba282cb5aad60f04bea0ec3-BTC-USD-PERP",
@@ -2303,9 +2527,11 @@ class paradex(Exchange, ImplicitAPI):
         #         "realized_pnl": "0",
         #         "unrealized_pnl": "-2.39677214",
         #         "unrealized_funding_pnl": "-0.11214013",
+        #         "leverage": "5",
         #         "cost": "648.39960537",
         #         "cost_usd": "648.529",
         #         "cached_funding_index": "35202.1002351",
+        #         "created_at": 1718947571560,
         #         "last_updated_at": 1718950074249,
         #         "last_fill_id": "1718947571560201703986670001",
         #         "seq_no": 1718950074249176253,
@@ -2313,40 +2539,44 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(position, 'market')
-        market = self.safe_market(marketId, market)
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market)
+        symbol = marketResolved['symbol']
         side = self.safe_string_lower(position, 'side')
-        quantity = self.safe_string(position, 'size')
-        if side != 'long':
-            quantity = Precise.string_mul('-1', quantity)
-        timestamp = self.safe_integer(position, 'time')
+        # side carries the direction, the unified contracts is a magnitude whether or not size is signed
+        quantity = Precise.string_abs(self.safe_string(position, 'size'))
+        timestamp = self.safe_integer(position, 'created_at')
+        liquidationPrice = self.parse_number(self.omit_zero(self.safe_string(position, 'liquidation_price')))
+        # cost_usd is signed by side, the unified notional is a magnitude
+        notionalString = Precise.string_abs(self.safe_string(position, 'cost_usd'))
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': symbol,
-            'entryPrice': self.safe_string(position, 'average_entry_price'),
+            'entryPrice': self.safe_number(position, 'average_entry_price'),
             'markPrice': None,
-            'notional': None,
-            'collateral': self.safe_string(position, 'cost'),
-            'unrealizedPnl': self.safe_string(position, 'unrealized_pnl'),
+            'notional': self.parse_number(notionalString),
+            'collateral': None,  # cross margin is held at the account level, the position payload only carries its cost
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'realizedPnl': self.safe_number(position, 'realized_pnl'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'lastUpdateTimestamp': self.safe_integer(position, 'last_updated_at'),
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,
-            'leverage': None,
-            'liquidationPrice': None,
+            'leverage': self.safe_number(position, 'leverage'),
+            'liquidationPrice': liquidationPrice,
             'marginRatio': None,
-            'marginMode': None,
+            'marginMode': 'cross',  # isolated margin positions live on their own sub-account
             'percentage': None,
         })
 
-    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Liquidation]:
+    async def fetch_my_liquidations(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Liquidation]:
         """
         retrieves the users liquidated positions
 
@@ -2370,8 +2600,8 @@ class paradex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request, params = self.handle_until_option('to', request, params)
-        response = await self.privateGetLiquidations(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('to', request, params)
+        response = await self.privateGetLiquidations(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "results": [
@@ -2385,7 +2615,7 @@ class paradex(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'results', [])
         return self.parse_liquidations(data, market, since, limit)
 
-    def parse_liquidation(self, liquidation: Any, market: Market = None):
+    def parse_liquidation(self, liquidation: object, market: Market = None) -> Liquidation:
         #
         #     {
         #         "created_at": 1697213130097,
@@ -2406,7 +2636,7 @@ class paradex(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         })
 
-    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_deposits(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all deposits made to an account
 
@@ -2423,17 +2653,21 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchDeposits', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchDeposits', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchDeposits', code, since, limit, params, 'next', 'cursor', None, 100)
+            # a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            transactions = await self.fetch_paginated_call_cursor('fetchDeposits', code, since, None, self.extend(paramsPaginate, {'allKinds': True}), 'next', 'cursor', None, 100)
+            transactionsOfKind = self.filter_transactions_by_kind(transactions, 'DEPOSIT')
+            return self.filter_by_since_limit(transactionsOfKind, since, limit)
+        allKinds = self.safe_bool(paramsPaginate, 'allKinds', False)
+        paramsKinds = self.omit(paramsPaginate, 'allKinds')
         request = {}
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetTransfers(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsKinds)
+        response = await self.privateGetTransfers(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "next": null,
@@ -2456,14 +2690,18 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
+        # the cursor pagination reads the next page cursor from the parsed entries
+        next = self.safe_string(response, 'next')
+        for i in range(0, len(rows)):
+            rows[i]['next'] = next
         deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
-            if row['kind'] == 'DEPOSIT':
+            if allKinds or (self.safe_string(row, 'kind') == 'DEPOSIT'):
                 deposits.append(row)
         return self.parse_transactions(deposits, None, since, limit)
 
-    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[Transaction]:
+    async def fetch_withdrawals(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Transaction]:
         """
         fetch all withdrawals made from an account
 
@@ -2480,17 +2718,21 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchWithdrawals', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchWithdrawals', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, limit, params, 'next', 'cursor', None, 100)
+            # a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            transactions = await self.fetch_paginated_call_cursor('fetchWithdrawals', code, since, None, self.extend(paramsPaginate, {'allKinds': True}), 'next', 'cursor', None, 100)
+            transactionsOfKind = self.filter_transactions_by_kind(transactions, 'WITHDRAWAL')
+            return self.filter_by_since_limit(transactionsOfKind, since, limit)
+        allKinds = self.safe_bool(paramsPaginate, 'allKinds', False)
+        paramsKinds = self.omit(paramsPaginate, 'allKinds')
         request = {}
         if limit is not None:
             request['page_size'] = limit
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetTransfers(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsKinds)
+        response = await self.privateGetTransfers(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "next": null,
@@ -2513,14 +2755,18 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
+        # the cursor pagination reads the next page cursor from the parsed entries
+        next = self.safe_string(response, 'next')
+        for i in range(0, len(rows)):
+            rows[i]['next'] = next
         deposits = []
         for i in range(0, len(rows)):
             row = rows[i]
-            if row['kind'] == 'WITHDRAWAL':
+            if allKinds or (self.safe_string(row, 'kind') == 'WITHDRAWAL'):
                 deposits.append(row)
         return self.parse_transactions(deposits, None, since, limit)
 
-    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params={}) -> List[TransferEntry]:
+    async def fetch_transfers(self, code: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[TransferEntry]:
         """
         fetch a history of transfers made on an account
 
@@ -2537,10 +2783,9 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, params, 'next', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchTransfers', code, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
         request = {}
         currency = None
         if code is not None:
@@ -2549,8 +2794,8 @@ class paradex(Exchange, ImplicitAPI):
             request['page_size'] = limit
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetTransfers(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsPaginate)
+        response = await self.privateGetTransfers(self.extend(requestUntil, paramsUntil))
         #
         #     {
         #         "next": null,
@@ -2573,6 +2818,10 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         rows = self.safe_list(response, 'results', [])
+        # the cursor pagination reads the next page cursor from the parsed entries
+        next = self.safe_string(response, 'next')
+        for i in range(0, len(rows)):
+            rows[i]['next'] = next
         return self.parse_transfers(rows, currency, since, limit)
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
@@ -2667,7 +2916,15 @@ class paradex(Exchange, ImplicitAPI):
             'fee': None,
         }
 
-    def parse_transaction_status(self, status: Str):
+    def filter_transactions_by_kind(self, transactions: list[Transaction], kind: str) -> list[Transaction]:
+        result = []
+        for i in range(0, len(transactions)):
+            info = self.safe_dict(transactions[i], 'info')
+            if self.safe_string(info, 'kind') == kind:
+                result.append(transactions[i])
+        return result
+
+    def parse_transaction_status(self, status: Str) -> Str:
         statuses = {
             'PENDING': 'pending',
             'AVAILABLE': 'pending',
@@ -2676,7 +2933,7 @@ class paradex(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_margin_mode(self, symbol: str, params={}) -> MarginMode:
+    async def fetch_margin_mode(self, symbol: str, params: dict = {}) -> MarginMode:
         """
         fetches the margin mode of a specific symbol
 
@@ -2711,15 +2968,15 @@ class paradex(Exchange, ImplicitAPI):
 
     def parse_margin_mode(self, rawMarginMode: dict, market: Market = None) -> MarginMode:
         marketId = self.safe_string(rawMarginMode, 'market')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         marginMode = self.safe_string_lower(rawMarginMode, 'margin_type')
         return {
             'info': rawMarginMode,
-            'symbol': self.safe_string(market, 'symbol'),
+            'symbol': self.safe_string(marketResolved, 'symbol'),
             'marginMode': marginMode,
         }
 
-    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params={}):
+    async def set_margin_mode(self, marginMode: str, symbol: Str = None, params: dict = {}):
         """
         set margin mode to 'cross' or 'isolated'
 
@@ -2728,7 +2985,7 @@ class paradex(Exchange, ImplicitAPI):
         :param str marginMode: 'cross' or 'isolated'
         :param str symbol: unified market symbol
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param float [params.leverage]: the rate of leverage
+        :param float [params.leverage]: the rate of leverage, the current leverage of the market is kept when omitted
         :returns dict: response from the exchange
         """
         self.check_required_argument('setMarginMode', symbol, 'symbol')
@@ -2736,16 +2993,22 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        leverage = 1
-        leverage, params = self.handle_option_and_params(params, 'setMarginMode', 'leverage', leverage)
+        leverageOption, paramsLeverage = self.handle_option_and_params(params, 'setMarginMode', 'leverage')
+        leverage = leverageOption
+        if leverage is None:
+            # the endpoint always sets the leverage too, keep the current one instead of resetting it
+            currentLeverage = await self.fetch_leverage(symbol)
+            leverage = self.safe_integer(currentLeverage, 'longLeverage')
+            if leverage is None:
+                raise ArgumentsRequired(self.id + ' setMarginMode() requires a params.leverage argument, the current leverage of ' + market['symbol'] + ' could not be fetched')
         request = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': self.encode_margin_mode(marginMode),
         }
-        return await self.privatePostAccountMarginMarket(self.extend(request, params))
+        return await self.privatePostAccountMarginMarket(self.extend(request, paramsLeverage))
 
-    async def fetch_leverage(self, symbol: str, params={}) -> Leverage:
+    async def fetch_leverage(self, symbol: str, params: dict = {}) -> Leverage:
         """
         fetch the set leverage for a market
 
@@ -2780,24 +3043,24 @@ class paradex(Exchange, ImplicitAPI):
 
     def parse_leverage(self, leverage: dict, market: Market = None) -> Leverage:
         marketId = self.safe_string(leverage, 'market')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         marginMode = self.safe_string_lower(leverage, 'margin_type')
         return {
             'info': leverage,
-            'symbol': self.safe_symbol(marketId, market),
+            'symbol': self.safe_symbol(marketId, marketResolved),
             'marginMode': marginMode,
             'longLeverage': self.safe_integer(leverage, 'leverage'),
             'shortLeverage': self.safe_integer(leverage, 'leverage'),
         }
 
-    def encode_margin_mode(self, mode: Any):
+    def encode_margin_mode(self, mode: Str) -> Str:
         modes = {
             'cross': 'CROSS',
             'isolated': 'ISOLATED',
         }
         return self.safe_string(modes, mode, mode)
 
-    async def set_leverage(self, leverage: int, symbol: Str = None, params={}):
+    async def set_leverage(self, leverage: int, symbol: Str = None, params: dict = {}):
         """
         set the level of leverage for a market
 
@@ -2814,16 +3077,15 @@ class paradex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
+        marginMode, paramsMarginMode = self.handle_margin_mode_and_params('setLeverage', params, 'cross')
         request = {
             'market': market['id'],
             'leverage': leverage,
             'margin_type': self.encode_margin_mode(marginMode),
         }
-        return await self.privatePostAccountMarginMarket(self.extend(request, params))
+        return await self.privatePostAccountMarginMarket(self.extend(request, paramsMarginMode))
 
-    async def fetch_greeks(self, symbol: str, params={}) -> Greeks:
+    async def fetch_greeks(self, symbol: str, params: dict = {}) -> Greeks:
         """
         fetches an option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -2878,7 +3140,7 @@ class paradex(Exchange, ImplicitAPI):
         greeks = self.safe_dict(data, 0, {})
         return self.parse_greeks(greeks, market)
 
-    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> List[Greeks]:
+    async def fetch_all_greeks(self, symbols: Strings = None, params: dict = {}) -> AllGreeks:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -2886,11 +3148,11 @@ class paradex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        :returns dict: a dictionary of `greeks structures <https://docs.ccxt.com/?id=greeks-structure>` indexed by market symbol
         """
         if self.markets is None:
             await self.load_markets()
-        symbols = self.market_symbols(symbols, None, True, True, True)
+        symbolsNormalized = self.market_symbols(symbols, None, True, True, True)
         request = {
             'market': 'ALL',
         }
@@ -2930,7 +3192,7 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         results = self.safe_list(response, 'results', [])
-        return self.parse_all_greeks(results, symbols)
+        return self.parse_all_greeks(results, symbolsNormalized)
 
     def parse_greeks(self, greeks: dict, market: Market = None) -> Greeks:
         #
@@ -2964,8 +3226,8 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(greeks, 'symbol')
-        market = self.safe_market(marketId, market, None, 'option')
-        symbol = market['symbol']
+        marketResolved = self.safe_market(marketId, market, None, 'option')
+        symbol = marketResolved['symbol']
         timestamp = self.safe_integer(greeks, 'created_at')
         greeksData = self.safe_dict(greeks, 'greeks', {})
         return {
@@ -2992,7 +3254,7 @@ class paradex(Exchange, ImplicitAPI):
             'info': greeks,
         }
 
-    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> List[FundingHistory]:
+    async def fetch_funding_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingHistory]:
         """
         fetch the history of funding payments paid and received on self account
 
@@ -3012,10 +3274,9 @@ class paradex(Exchange, ImplicitAPI):
         await self.authenticate_rest()
         if self.markets is None:
             await self.load_markets()
-        paginate = False
-        paginate, params = self.handle_option_and_params(params, 'fetchFundingHistory', 'paginate')
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, params, 'next', 'cursor', None, 100)
+            return await self.fetch_paginated_call_cursor('fetchFundingHistory', symbol, since, limit, paramsPaginate, 'next', 'cursor', None, 100)
         market = self.market(symbol)
         request = {
             'market': market['id'],
@@ -3026,8 +3287,8 @@ class paradex(Exchange, ImplicitAPI):
             request['page_size'] = 100
         if since is not None:
             request['start_at'] = since
-        request, params = self.handle_until_option('end_at', request, params)
-        response = await self.privateGetFundingPayments(self.extend(request, params))
+        requestUntil, paramsUntil = self.handle_until_option('end_at', request, paramsPaginate)
+        response = await self.privateGetFundingPayments(self.extend(requestUntil, paramsUntil))
         #
         # {
         #     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3046,9 +3307,13 @@ class paradex(Exchange, ImplicitAPI):
         # }
         #
         results = self.safe_list(response, 'results', [])
+        # the cursor pagination reads the next page cursor from the parsed entries
+        next = self.safe_string(response, 'next')
+        for i in range(0, len(results)):
+            results[i]['next'] = next
         return self.parse_incomes(results, market, since, limit)
 
-    def parse_income(self, income: Any, market: Market = None):
+    def parse_income(self, income: dict, market: Market = None) -> object:
         #
         #     {
         #         "account": "string",
@@ -3061,19 +3326,19 @@ class paradex(Exchange, ImplicitAPI):
         #     }
         #
         marketId = self.safe_string(income, 'market')
-        market = self.safe_market(marketId, market)
+        marketResolved = self.safe_market(marketId, market)
         timestamp = self.safe_integer(income, 'created_at')
         return {
             'info': income,
-            'symbol': market['symbol'],
-            'code': market['settle'],
+            'symbol': marketResolved['symbol'],
+            'code': marketResolved['settle'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'id': self.safe_string(income, 'id'),
             'amount': self.safe_number(income, 'payment'),
         }
 
-    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_funding_rate_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[FundingRateHistory]:
         """
         fetches historical funding rate prices
 
@@ -3101,10 +3366,10 @@ class paradex(Exchange, ImplicitAPI):
         if since is not None:
             request['start_at'] = since
         until = self.safe_integer(params, 'until')
+        paramsOmitted = self.omit(params, 'until') if (until is not None) else params
         if until is not None:
-            params = self.omit(params, 'until')
             request['end_at'] = until
-        response = await self.publicGetFundingData(self.extend(request, params))
+        response = await self.publicGetFundingData(self.extend(request, paramsOmitted))
         #
         # {
         #     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -3122,6 +3387,9 @@ class paradex(Exchange, ImplicitAPI):
         #     ]
         # }
         #
+        # every row is one observation of a rate quoted for a whole funding period,
+        # not a settled payment: paradex recomputes it each second and accrues it
+        # into funding_index, so the series cannot be summed
         results = self.safe_list(response, 'results', [])
         rates = []
         for i in range(0, len(results)):
@@ -3136,62 +3404,73 @@ class paradex(Exchange, ImplicitAPI):
                 'datetime': datetime,
             })
         sorted = self.sort_by(rates, 'timestamp')
-        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+        return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    def sign(self, path: Any, api: Any = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
+    def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params: dict = {}) -> dict:
+        apiName = api[0]
         version = self.version
+        pathValue = path
+        if path.find('v2/') == 0:
+            pathValue = path.replace('v2/', '')
         if path.find('v2/') == 0:
             version = 'v2'
-            path = path.replace('v2/', '')
-        url = self.implode_hostname(self.urls['api'][version]) + '/' + self.implode_params(path, params)
-        query = self.omit(params, self.extract_params(path))
-        if api == 'public':
-            if query:
+        baseApiUrl = self.safe_string(self.urls['api'], version)
+        if baseApiUrl is None:
+            raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
+        url = self.implode_hostname(baseApiUrl) + '/' + self.implode_params(pathValue, params)
+        query = self.omit(params, self.extract_params(pathValue))
+        if apiName == 'public':
+            if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        elif api == 'private':
-            headers = {
+        elif apiName == 'private':
+            privateHeaders = {
                 'Accept': 'application/json',
                 'PARADEX-PARTNER': self.safe_string(self.options, 'broker', 'CCXT'),
             }
+            privateBody = None
             # TODO: optimize
-            if path == 'auth':
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                headers['PARADEX-TIMESTAMP'] = str(query['timestamp'])
-                headers['PARADEX-SIGNATURE-EXPIRATION'] = str(query['expiration'])
-            elif path == 'onboarding':
-                headers['PARADEX-ETHEREUM-ACCOUNT'] = self.walletAddress
-                headers['PARADEX-STARKNET-ACCOUNT'] = query['account']
-                headers['PARADEX-STARKNET-SIGNATURE'] = query['signature']
-                headers['PARADEX-TIMESTAMP'] = str(self.nonce())
-                headers['Content-Type'] = 'application/json'
-                body = self.json({
-                    'public_key': query['public_key'],
+            if pathValue == 'auth':
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.safe_string(query, 'timestamp')
+                privateHeaders['PARADEX-SIGNATURE-EXPIRATION'] = self.safe_string(query, 'expiration')
+            elif pathValue == 'onboarding':
+                privateHeaders['PARADEX-ETHEREUM-ACCOUNT'] = self.walletAddress
+                privateHeaders['PARADEX-STARKNET-ACCOUNT'] = self.safe_string(query, 'account')
+                privateHeaders['PARADEX-STARKNET-SIGNATURE'] = self.safe_string(query, 'signature')
+                privateHeaders['PARADEX-TIMESTAMP'] = self.number_to_string(self.nonce())
+                privateHeaders['Content-Type'] = 'application/json'
+                privateBody = self.json({
+                    'public_key': self.safe_string(query, 'public_key'),
                 })
             else:
-                token = self.options['authToken']
-                headers['Authorization'] = 'Bearer ' + token
-                if (method == 'POST') or (method == 'PUT') or ((method == 'DELETE') and (path == 'orders/batch')):
-                    headers['Content-Type'] = 'application/json'
-                    body = self.json(query)
+                token = self.safe_string(self.options, 'authToken')
+                if token is None:
+                    raise AuthenticationError(self.id + ' sign() requires an authToken, call authenticateRest() first')
+                privateHeaders['Authorization'] = 'Bearer ' + token
+                if (method == 'POST') or (method == 'PUT') or ((method == 'DELETE') and (pathValue == 'orders/batch')):
+                    privateHeaders['Content-Type'] = 'application/json'
+                    privateBody = self.json(query)
                 else:
                     url = url + '?' + self.urlencode(query)
             # headers = {
             #     'Accept': 'application/json',
-            #     'Authorization': 'Bearer ' + self.apiKey,
-            # }
-            # if method == 'POST':
-            #     body = self.json(query)
-            #     headers['Content-Type'] = 'application/json'
-            # else:
-            #     if query:
-            #         url += '?' + self.urlencode(query)
+            #     'Authorization': 'Bearer ' + this.apiKey,
+            # };
+            # if (method === 'POST') {
+            #     body = this.json (query);
+            #     headers['Content-Type'] = 'application/json';
+            # } else {
+            #     if (Object.keys (query).length) {
+            #         url += '?' + this.urlencode (query);
             #     }
             # }
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
+            bodyResolved = privateBody
+            return {'url': url, 'method': method, 'body': bodyResolved, 'headers': privateHeaders}
+        return {'url': url, 'method': method, 'body': None, 'headers': None}
 
-    def handle_errors(self, httpCode: int, reason: str, url: str, method: str, headers: dict, body: str, response: Any, requestHeaders: Any, requestBody: Any):
-        if not response:
+    def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
+        if response is None:
             return None  # fallback to default error handler
         #
         #     {
@@ -3200,10 +3479,44 @@ class paradex(Exchange, ImplicitAPI):
         #         "message": "User has never called /onboarding endpoint"
         #     }
         #
+        #     {
+        #         "error": "INVALID_REQUEST_PARAMETER",
+        #         "message": "market: FOO-USD-PERP does not exist.",
+        #         "data": { "market": "FOO-USD-PERP does not exist." }
+        #     }
+        #
+        #     {
+        #         "message": "missing or malformed jwt"
+        #     }
+        #
         errorCode = self.safe_string(response, 'error')
-        if errorCode is not None:
-            feedback = self.id + ' ' + body
-            self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
-            self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
-            raise ExchangeError(feedback)  # unknown message
-        return None
+        message = self.safe_string(response, 'message')
+        if (errorCode is None) and (code == 400):
+            #
+            # a batch where every order was rejected, errors are index-aligned with the request
+            #
+            #     {
+            #         "errors": [ { "error": "DUPLICATED_CLIENT_ID", "message": "..." } ],
+            #         "orders": [ null ]
+            #     }
+            #
+            batchErrors = self.safe_list(response, 'errors', [])
+            for i in range(0, len(batchErrors)):
+                batchErrorCode = self.safe_string(batchErrors[i], 'error')
+                if batchErrorCode is not None:
+                    errorCode = batchErrorCode
+                    message = self.safe_string(batchErrors[i], 'message')
+                    break
+        feedback = self.id + ' ' + body
+        if errorCode is None:
+            if (code >= 400) and (message is not None):
+                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            return None  # fallback to default error handler
+        # the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if (errorCode == 'INVALID_REQUEST_PARAMETER') and (message is not None):
+            # an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if (message.find('market') == 0) and (message.find('does not exist') >= 0):
+                raise BadSymbol(feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+        self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
+        raise ExchangeError(feedback)  # unknown message

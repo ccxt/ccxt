@@ -3,7 +3,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { sha256 } from '@noble/hashes/sha2.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InvalidNonce, PermissionDenied, RateLimitExceeded, InsufficientFunds, InvalidOrder, NotSupported, OrderNotFound } from '../base/errors.js';
-import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint } from '../base/types.js';
+import type { OrderSide, OrderType, Int, int, Str, Dict, Bool, List, Strings, Num, Market, PredictionOrderBook, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, fetchEventsParams, Balances, PredictionPosition, PredictionTrade, Endpoint, NullableDict } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -15,7 +15,7 @@ import type { Int, int, Str, Dict, List, Strings, Num, Market, PredictionOrderBo
  * including market data, requires apiKey/secret credentials
  */
 export default class binance extends Exchange {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'binance',
             'name': 'Binance',
@@ -136,7 +136,7 @@ export default class binance extends Exchange {
         });
     }
 
-    override nonce (): number {
+    override nonce (): int {
         return this.milliseconds ();
     }
 
@@ -153,7 +153,7 @@ export default class binance extends Exchange {
      * @param {int} [params.limit] for an unscoped listing (no query), the max number of topics to collect (defaults to options.maxFetchMarketsLimit, 200)
      * @returns {object[]} an array of objects representing market data
      */
-    override async fetchMarkets (params = {}): Promise<Market[]> {
+    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const queries = this.parseSearchQueries (params) as any[];
         const queriesLength = queries.length;
         if (queriesLength > 0) {
@@ -162,7 +162,7 @@ export default class binance extends Exchange {
             const eventsLength = events.length;
             const queryMarkets: Market[] = [];
             for (let ei = 0; ei < eventsLength; ei++) {
-                const eventMarkets = this.safeList (events[ei], 'markets', []) as any[];
+                const eventMarkets: List = this.safeList (events[ei], 'markets', []);
                 const eventMarketsLength = eventMarkets.length;
                 for (let mi = 0; mi < eventMarketsLength; mi++) {
                     queryMarkets.push (eventMarkets[mi]);
@@ -179,7 +179,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             parsedEvents.push (parsedEvent);
-            const eventMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const eventMarkets: List = this.safeList (parsedEvent, 'markets', []);
             const eventMarketsLength = eventMarkets.length;
             for (let mi = 0; mi < eventMarketsLength; mi++) {
                 flatMarkets.push (eventMarkets[mi]);
@@ -199,23 +199,23 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the listing endpoint (l1Category, l2Category, sortBy, orderBy)
      * @returns {object[]} raw market topic objects
      */
-    async fetchRawTopics (maxTopics: Int, rest = {}): Promise<any[]> {
-        if (maxTopics === undefined) {
-            maxTopics = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+    async fetchRawTopics (maxTopics: Int, rest: Dict = {}): Promise<Dict[]> {
+        const maxTopicsOption = this.safeInteger (this.options, 'maxFetchMarketsLimit', 200);
+        let maxTopicsResolved = this.parseToInt (maxTopicsOption);
+        if (maxTopics !== undefined) {
+            maxTopicsResolved = this.parseToInt (maxTopics);
         }
-        let pageLimit = this.safeInteger (this.options, 'marketsPageLimit', 100);
-        if (pageLimit > 100) {
-            pageLimit = 100;
+        const pageLimitOption = this.safeInteger (this.options, 'marketsPageLimit', 100);
+        let pageLimit = this.parseToInt (100);
+        if (pageLimitOption < 100) {
+            pageLimit = this.parseToInt (pageLimitOption);
         }
-        const collected: any[] = [];
-        let offset = 0;
+        const collected: List = [];
+        let offset: int = 0;
         while (true) {
-            let reqLimit = pageLimit;
             const collectedLength = collected.length;
-            const remaining = maxTopics - collectedLength;
-            if (remaining < reqLimit) {
-                reqLimit = remaining;
-            }
+            const remaining = maxTopicsResolved - collectedLength;
+            const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
             }
@@ -256,13 +256,13 @@ export default class binance extends Exchange {
             //         "hasMore": true
             //     }
             //
-            const pageTopics = this.safeList (response, 'marketTopics', []) as any[];
+            const pageTopics: Dict[] = this.safeList (response, 'marketTopics', []);
             const pageTopicsLength = pageTopics.length;
             for (let i = 0; i < pageTopicsLength; i++) {
                 collected.push (pageTopics[i]);
             }
             const hasMore = this.safeBool (response, 'hasMore', false);
-            if (!hasMore || (pageTopicsLength < reqLimit)) {
+            if ((!hasMore) || (pageTopicsLength < reqLimit)) {
                 break;
             }
             offset = this.sum (offset, pageTopicsLength);
@@ -279,7 +279,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra params forwarded verbatim to the detail endpoint
      * @returns {object} the raw market topic object
      */
-    async fetchRawTopicDetail (topicId: string, params = {}): Promise<any> {
+    async fetchRawTopicDetail (topicId: string, params: Dict = {}): Promise<Dict> {
         const request: Dict = {
             'marketTopicId': topicId,
         };
@@ -294,17 +294,17 @@ export default class binance extends Exchange {
      * @param {object[]} rawTopics raw market topic objects
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    async completeRawTopics (rawTopics: any[]): Promise<any[]> {
-        const result: any[] = [];
+    async completeRawTopics (rawTopics: Dict[]): Promise<Dict[]> {
+        const result: Dict[] = [];
         const rawTopicsLength = rawTopics.length;
         for (let i = 0; i < rawTopicsLength; i++) {
             const rawTopic = rawTopics[i];
-            const rawMarkets = this.safeList (rawTopic, 'markets', []) as any[];
+            const rawMarkets: Dict[] = this.safeList (rawTopic, 'markets', []);
             const rawMarketsLength = rawMarkets.length;
             let hasOutcomes = false;
             if (rawMarketsLength > 0) {
                 const firstMarket = this.safeDict (rawMarkets, 0, {});
-                const firstOutcomes = this.safeList (firstMarket, 'outcomes', []) as any[];
+                const firstOutcomes: Dict[] = this.safeList (firstMarket, 'outcomes', []);
                 const firstOutcomesLength = firstOutcomes.length;
                 hasOutcomes = (firstOutcomesLength > 0);
             }
@@ -357,20 +357,22 @@ export default class binance extends Exchange {
             allQueries.push (tags[i]);
         }
         const allQueriesLength = allQueries.length;
-        params = this.omit (params, [ 'query', 'queries' ]);
-        const userLimit = this.safeInteger (params, 'limit');
+        const paramsOmitted: Dict = this.omit (params, [ 'query', 'queries' ]);
+        // keys dropped before the client-side pass; a server-side sort also drops its own keys
+        const postOmitKeys: string[] = [ 'tags', 'l1Category', 'l2Category' ];
+        const userLimit = this.safeInteger (paramsOmitted, 'limit');
         let fetchCap = this.safeInteger (this.options, 'maxFetchEventsResults', 100);
         if (userLimit !== undefined) {
             fetchCap = userLimit;
         }
-        const rest = this.omit (params, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ]);
-        const eventId = this.safeString (params, 'eventId');
-        const l1Category = this.safeString (params, 'l1Category');
-        const l2Category = this.safeString (params, 'l2Category');
-        if (!this.markets) {
+        const rest = this.omit (paramsOmitted, [ 'status', 'limit', 'sort', 'searchIn', 'eventId', 'slug', 'tags', 'l1Category', 'l2Category' ]);
+        const eventId = this.safeString (paramsOmitted, 'eventId');
+        const l1Category = this.safeString (paramsOmitted, 'l1Category');
+        const l2Category = this.safeString (paramsOmitted, 'l2Category');
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary ();
         }
-        let rawTopics: any[] = [];
+        let rawTopics: List = [];
         if (allQueriesLength > 0) {
             rawTopics = await this.fetchEventsByQuery (allQueries, fetchCap, rest);
         } else if (eventId !== undefined) {
@@ -384,7 +386,7 @@ export default class binance extends Exchange {
             if (l2Category !== undefined) {
                 listingRequest['l2Category'] = l2Category;
             }
-            let sortBy = this.safeStringUpper2 (params, 'sortBy', 'sort');
+            let sortBy = this.safeStringUpper2 (paramsOmitted, 'sortBy', 'sort');
             if (sortBy !== undefined) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no
@@ -397,7 +399,8 @@ export default class binance extends Exchange {
                 }
                 if (sortBy !== undefined) {
                     listingRequest['sortBy'] = sortBy;
-                    params = this.omit (params, [ 'sort', 'sortBy' ]);
+                    postOmitKeys.push ('sort');
+                    postOmitKeys.push ('sortBy');
                 }
             }
             const listed = await this.fetchRawTopics (fetchCap, this.extend (listingRequest, rest));
@@ -408,7 +411,7 @@ export default class binance extends Exchange {
         for (let i = 0; i < rawTopicsLength; i++) {
             const parsedEvent = this.parseEvent (rawTopics[i]);
             result.push (parsedEvent);
-            const parsedMarkets = this.safeList (parsedEvent, 'markets', []) as any[];
+            const parsedMarkets: List = this.safeList (parsedEvent, 'markets', []);
             const parsedMarketsLength = parsedMarkets.length;
             for (let mi = 0; mi < parsedMarketsLength; mi++) {
                 const m = parsedMarkets[mi];
@@ -423,7 +426,7 @@ export default class binance extends Exchange {
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        const postParams = this.omit (params, [ 'tags', 'l1Category', 'l2Category' ]);
+        const postParams = this.omit (paramsOmitted, postOmitKeys);
         return this.applyEventFetchParams (result, postParams, []);
     }
 
@@ -438,20 +441,23 @@ export default class binance extends Exchange {
      * @param {object} [rest] extra params forwarded verbatim to the search endpoint
      * @returns {object[]} raw market topic objects with usable nested markets
      */
-    async fetchEventsByQuery (queries: string[], limit: Int, rest = {}): Promise<any[]> {
+    async fetchEventsByQuery (queries: string[], limit: Int, rest: Dict = {}): Promise<Dict[]> {
         const seen: Dict = {};
-        const collected: any[] = [];
+        const collected: List = [];
         const queriesLength = queries.length;
-        if (limit === undefined) {
-            limit = 20;
-        } else if (limit > 50) {
-            limit = 50;
+        let limitValue = this.parseToInt (20);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt (limit);
+        }
+        let limitResolved = limitValue;
+        if (limitValue > 50) {
+            limitResolved = this.parseToInt (50);
         }
         for (let qi = 0; qi < queriesLength; qi++) {
             const request: Dict = {
                 'query': queries[qi],
             };
-            request['topK'] = limit;
+            request['topK'] = limitResolved;
             const response = await this.sapiPrivateGetMarketSearch (this.extend (request, rest));
             //
             //     [
@@ -467,7 +473,7 @@ export default class binance extends Exchange {
             //
             const responseLength = response.length;
             for (let i = 0; i < responseLength; i++) {
-                const rawTopic = response[i];
+                const rawTopic = this.safeDict (response, i);
                 const topicId = this.safeString (rawTopic, 'marketTopicId');
                 if (topicId !== undefined) {
                     const already = this.safeString (seen, topicId);
@@ -480,8 +486,8 @@ export default class binance extends Exchange {
         }
         let capped = collected;
         const collectedLength = collected.length;
-        if ((limit !== undefined) && (collectedLength > limit)) {
-            capped = this.arraySlice (collected, 0, limit);
+        if (collectedLength > limitResolved) {
+            capped = this.arraySlice (collected, 0, limitResolved);
         }
         return await this.completeRawTopics (capped);
     }
@@ -495,7 +501,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    override async fetchEvent (id: string, params = {}): Promise<PredictionEvent> {
+    override async fetchEvent (id: string, params: Dict = {}): Promise<PredictionEvent> {
         const events = await this.fetchEvents (this.extend ({ 'eventId': id }, params));
         return this.safeDict (events, 0) as PredictionEvent;
     }
@@ -508,7 +514,7 @@ export default class binance extends Exchange {
      * @param {object} rawTopic the raw market topic object
      * @returns {object} an event structure
      */
-    parseEvent (rawTopic: Dict): any {
+    parseEvent (rawTopic: Dict): Dict {
         //
         //     {
         //         "marketTopicId": 4229564,
@@ -537,7 +543,7 @@ export default class binance extends Exchange {
         //         "markets": [ { "marketId": 5567895, "title": "UP", "outcomes": [ ... ] } ]
         //     }
         //
-        const rawMarkets = this.safeList (rawTopic, 'markets', []) as any[];
+        const rawMarkets: Dict[] = this.safeList (rawTopic, 'markets', []);
         const marketsList: any[] = [];
         let anyActive = false;
         const rawMarketsLength = rawMarkets.length;
@@ -558,7 +564,7 @@ export default class binance extends Exchange {
         if (rawMarketsLength === 0) {
             active = (status === 'REGISTERED') || (status === 'OPEN');
         }
-        let resolved = undefined;
+        let resolved: Bool = undefined;
         if (status !== undefined) {
             resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
@@ -637,18 +643,18 @@ export default class binance extends Exchange {
         };
         const volume = this.safeNumber (rawMarket, 'tradeVolume');
         const liquidity = this.safeNumber (rawMarket, 'liquidity');
-        const rawOutcomes = this.safeList (rawMarket, 'outcomes', []) as any[];
+        const rawOutcomes: Dict[] = this.safeList (rawMarket, 'outcomes', []);
         const outcomes: any[] = [];
         let resolvedOutcomeRaw = undefined;
         const rawOutcomesLength = rawOutcomes.length;
         for (let oi = 0; oi < rawOutcomesLength; oi++) {
-            const rawOutcome = rawOutcomes[oi];
+            const rawOutcome = this.safeDict (rawOutcomes, oi);
             const label = this.safeStringUpper (rawOutcome, 'name');
             const tokenId = this.safeString (rawOutcome, 'tokenId');
             const outcomeHandle = marketSymbol + ':' + label;
             const price = this.safeString (rawOutcome, 'price');
-            let winnerRaw = undefined;
-            let settleFractionRaw = undefined;
+            let winnerRaw: Bool = undefined;
+            let settleFractionRaw: Int = undefined;
             if (resolved && (price !== undefined)) {
                 winnerRaw = Precise.stringEq (price, '1');
                 settleFractionRaw = (winnerRaw) ? 1 : 0;
@@ -753,7 +759,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    override async fetchTicker (outcome: Str, params = {}): Promise<PredictionTicker> {
+    override async fetchTicker (outcome: string, params: Dict = {}): Promise<PredictionTicker> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -794,7 +800,7 @@ export default class binance extends Exchange {
             isMirrored = (label === 'NO') || (label === 'DOWN');
         }
         const lastString = this.safeString (raw, 'lastTradePrice');
-        let last = undefined;
+        let last: Num = undefined;
         if (lastString !== undefined) {
             if (isMirrored) {
                 last = this.parseNumber (Precise.stringSub ('1', lastString));
@@ -802,14 +808,13 @@ export default class binance extends Exchange {
                 last = this.parseNumber (lastString);
             }
         }
-        const now = this.milliseconds ();
         return this.safePredictionTicker ({
             'outcome': this.safeString (outcomeObj, 'outcome'),
             'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
             'label': this.safeString (outcomeObj, 'label'),
             'market': this.safeString (outcomeObj, 'market'),
-            'timestamp': now,
-            'datetime': this.iso8601 (now),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': undefined,
@@ -839,7 +844,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of prediction [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    override async fetchTickers (outcomes: Strings = undefined, params = {}): Promise<PredictionTickers> {
+    override async fetchTickers (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionTickers> {
         if (outcomes === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())');
         }
@@ -879,7 +884,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a prediction [order book structure](https://docs.ccxt.com/#/?id=order-book-structure)
      */
-    override async fetchOrderBook (outcome: Str, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+    override async fetchOrderBook (outcome: string, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrderBook> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         const info = this.safeDict (outcomeObj, 'info', {});
@@ -912,10 +917,9 @@ export default class binance extends Exchange {
      * @param {string} [params.type] 'CeDefi', 'FUNDING', or 'SPOT'
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    override async fetchBalance (params = {}): Promise<Balances> {
-        let type = undefined;
-        [ type, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'type', 'SPOT');
-        const response = await this.sapiPrivateGetBalancePaymentOptions (params);
+    override async fetchBalance (params: Dict = {}): Promise<Balances> {
+        const [ type, paramsType ] = this.handleOptionStringAndParams (params, 'fetchBalance', 'type', 'SPOT');
+        const response = await this.sapiPrivateGetBalancePaymentOptions (paramsType);
         //
         // {
         //     "items": [
@@ -930,9 +934,9 @@ export default class binance extends Exchange {
         const result: Dict = {
             'info': response,
         };
-        const balances = this.safeList (response, 'items', []);
+        const balances: Dict[] = this.safeList (response, 'items', []);
         for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+            const balance = this.safeDict (balances, i);
             const accountType = this.safeString (balance, 'accountType');
             if (accountType === type) {
                 const free = this.safeString (balance, 'availableBalanceDisplay');
@@ -982,7 +986,8 @@ export default class binance extends Exchange {
         // }
         //
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (order, 'marketId');
             const outcome = this.safeStringUpper (order, 'outcome');
             const market = this.safeMarket (marketId);
@@ -991,7 +996,7 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const side = this.safeStringLower (order, 'side');
         const timestamp = this.safeInteger (order, 'createTime');
@@ -1003,10 +1008,10 @@ export default class binance extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'status': status,
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString (outcomeObj, 'id'),
-            'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString (outcomeObjResolved, 'id'),
+            'label': this.safeString (outcomeObjResolved, 'label'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'type': this.safeStringLower (order, 'orderType'),
             'timeInForce': undefined,
             'postOnly': undefined,
@@ -1021,7 +1026,7 @@ export default class binance extends Exchange {
             'remaining': undefined,
             'fee': undefined,
             'trades': [],
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     parseOrderStatus (status: Str): Str {
@@ -1058,18 +1063,18 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOpenOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOpenOrders', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOpenOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+            return await this.fetchPaginatedCallIncremental ('fetchOpenOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {};
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1083,9 +1088,9 @@ export default class binance extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const wallet = await this.fetchWallet ('fetchOpenOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderList (this.extend (request, params));
+        const wallet = await this.fetchWallet ('fetchOpenOrders', paramsMaxEntriesPerRequest);
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
+        const response = await this.sapiPrivateGetOrderList (this.extend (request, paramsMaxEntriesPerRequest));
         //
         // {
         //     "total": 2,
@@ -1141,18 +1146,18 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOrders', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchOrders', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionOrder[];
+            return await this.fetchPaginatedCallIncremental ('fetchOrders', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionOrder[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {};
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1167,14 +1172,14 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const until = this.safeInteger (paramsMaxEntriesPerRequest, 'until');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd (until);
         }
-        const wallet = await this.fetchWallet ('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        const wallet = await this.fetchWallet ('fetchOrders', paramsOmitted);
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1225,7 +1230,7 @@ export default class binance extends Exchange {
      * @param {string} [params.tab] Position status tab. Values from PositionQueryType. Default ONGOING
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPositions (outcomes: Strings = undefined, params = {}): Promise<PredictionPosition[]> {
+    override async fetchPositions (outcomes: Strings = undefined, params: Dict = {}): Promise<PredictionPosition[]> {
         await this.loadOutcomes ();
         const requestedOutcomeSymbols: Dict = {};
         if (outcomes !== undefined) {
@@ -1238,7 +1243,7 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet ('fetchPositions', params);
         const request = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
         };
         const response = await this.sapiPrivateGetPositionList (this.extend (request, params));
         //
@@ -1291,10 +1296,10 @@ export default class binance extends Exchange {
         // }
         //
         const data = this.safeList (response, 'positions', []);
-        const positions = this.parsePredictionPositions (data);
         if (outcomes === undefined) {
-            return positions;
+            return this.parsePredictionPositions (data);
         }
+        const positions = this.parsePredictionPositions (data);
         const filtered: PredictionPosition[] = [];
         const positionsLength = positions.length;
         for (let i = 0; i < positionsLength; i++) {
@@ -1316,7 +1321,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction position structures](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
-    override async fetchPosition (outcome: string, params = {}): Promise<PredictionPosition> {
+    override async fetchPosition (outcome: string, params: Dict = {}): Promise<PredictionPosition> {
         const request: Dict = {};
         let outcomeObj = undefined;
         if (outcome !== undefined) {
@@ -1326,7 +1331,7 @@ export default class binance extends Exchange {
             request['marketTopicId'] = market['info']['marketTopicId'];
         }
         const wallet = await this.fetchWallet ('fetchOrders', params);
-        request['walletAddress'] = wallet['walletAddress'];
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
         const response = await this.sapiPrivateGetPositionFilter (this.extend (request, params));
         //
         //
@@ -1346,7 +1351,8 @@ export default class binance extends Exchange {
      * @returns {object} a [prediction position structure](https://docs.ccxt.com/#/?id=prediction-position-structure)
      */
     override parsePredictionPosition (position: Dict, outcomeObj: Market = undefined): PredictionPosition {
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (position, 'marketId');
             const outcome = this.safeStringUpper (position, 'outcomeName');
             const market = this.safeMarket (marketId);
@@ -1355,15 +1361,15 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (position, 'createdTime');
         const totalCost = this.parseNumber (this.safeString (position, 'totalCost'));
         return this.safePredictionPosition ({
             'id': this.safeInteger (position, 'positionId'),
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString2 (outcomeObj, 'outcomeId', 'id'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString2 (outcomeObjResolved, 'outcomeId', 'id'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'isolated': false,
@@ -1406,20 +1412,20 @@ export default class binance extends Exchange {
      * @param {boolean} [params.paginate] *spot only* default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<PredictionTrade[]> {
         let paginate = false;
-        [ paginate, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginate');
-        let maxEntriesPerRequest = undefined;
-        [ maxEntriesPerRequest, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
+        let paramsPaginate: Dict = {};
+        [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchMyTrades', 'paginate', false);
+        const [ maxEntriesPerRequest, paramsMaxEntriesPerRequest ] = this.handleOptionIntegerAndParams (paramsPaginate, 'fetchMyTrades', 'maxEntriesPerRequest', 100);
         const pageKey = 'ccxtPageKey';
         if (paginate) {
-            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, params, pageKey, maxEntriesPerRequest) as PredictionTrade[];
+            return await this.fetchPaginatedCallIncremental ('fetchMyTrades', outcome, since, limit, paramsMaxEntriesPerRequest, pageKey, maxEntriesPerRequest) as PredictionTrade[];
         }
-        const page = this.safeInteger (params, pageKey, 1) - 1;
+        const page = this.safeInteger (paramsMaxEntriesPerRequest, pageKey, 1) - 1;
         const request: Dict = {
             'status': 'FILLED',
         };
-        const offSet = this.safeInteger (params, 'offset', page * maxEntriesPerRequest);
+        const offSet = this.safeInteger (paramsMaxEntriesPerRequest, 'offset', page * maxEntriesPerRequest);
         if (offSet > 0) {
             request['offset'] = offSet;
         }
@@ -1434,14 +1440,14 @@ export default class binance extends Exchange {
         if (since !== undefined) {
             request['startDate'] = this.yyyymmdd (since);
         }
-        const until = this.safeInteger (params, 'until');
-        params = this.omit (params, 'until');
+        const until = this.safeInteger (paramsMaxEntriesPerRequest, 'until');
+        const paramsOmitted: Dict = this.omit (paramsMaxEntriesPerRequest, 'until');
         if (until !== undefined) {
             request['endDate'] = this.yyyymmdd (until);
         }
-        const wallet = await this.fetchWallet ('fetchMyTrades', params);
-        request['walletAddress'] = wallet['walletAddress'];
-        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, params));
+        const wallet = await this.fetchWallet ('fetchMyTrades', paramsOmitted);
+        request['walletAddress'] = this.safeString (wallet, 'walletAddress');
+        const response = await this.sapiPrivateGetOrderHistory (this.extend (request, paramsOmitted));
         //
         // {
         //     "total": 15,
@@ -1519,7 +1525,8 @@ export default class binance extends Exchange {
         //     "networkFee": "0.000001"
         // }
         //
-        if (outcomeObj === undefined) {
+        let outcomeObjResolved: Market = outcomeObj;
+        if (outcomeObjResolved === undefined) {
             const marketId = this.safeString (trade, 'marketId');
             const outcome = this.safeStringUpper (trade, 'outcome');
             const market = this.safeMarket (marketId);
@@ -1528,7 +1535,7 @@ export default class binance extends Exchange {
                 outcomeName = marketId;
             }
             outcomeName += ':' + outcome;
-            outcomeObj = this.safeOutcome (outcomeName);
+            outcomeObjResolved = this.safeOutcome (outcomeName);
         }
         const timestamp = this.safeInteger (trade, 'createTime');
         const filled = this.safeString (trade, 'filledShareQty');
@@ -1550,21 +1557,19 @@ export default class binance extends Exchange {
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeInteger (trade, 'modifyTime'),
-            'outcome': this.safeString (outcomeObj, 'outcome'),
-            'outcomeId': this.safeString (outcomeObj, 'id'),
-            'label': this.safeString (outcomeObj, 'label'),
-            'market': this.safeString (outcomeObj, 'market'),
+            'outcome': this.safeString (outcomeObjResolved, 'outcome'),
+            'outcomeId': this.safeString (outcomeObjResolved, 'id'),
+            'label': this.safeString (outcomeObjResolved, 'label'),
+            'market': this.safeString (outcomeObjResolved, 'market'),
             'order': this.safeString (trade, 'orderId'),
             'type': orderType,
             'side': this.safeStringLower (trade, 'side'),
             'takerOrMaker': undefined,
             'price': price,
             'amount': this.safeString (trade, 'makerShareQty'),
-            'filled': filled,
             'cost': cost,
             'fee': fee,
-        }, outcomeObj);
+        }, outcomeObjResolved);
     }
 
     /**
@@ -1576,13 +1581,11 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    async fetchWallet (methodName: string, params = {}): Promise<any> {
-        let cachedWallet = this.safeDict (this.options, 'wallet');
-        if (cachedWallet !== undefined) {
-            return cachedWallet;
+    async fetchWallet (methodName: string, params: Dict = {}): Promise<any> {
+        if (this.safeDict (this.options, 'wallet') !== undefined) {
+            return this.safeDict (this.options, 'wallet');
         }
-        let walletAddress = undefined;
-        [ walletAddress, params ] = this.handleOptionAndParams (params, methodName, 'walletAddress', this.walletAddress);
+        const walletAddress = this.handleOptionStringAndParams (params, methodName, 'walletAddress', this.walletAddress)[0];
         const response = await this.sapiPrivateGetWalletList ();
         //
         // {
@@ -1597,23 +1600,18 @@ export default class binance extends Exchange {
         //
         const wallets = this.safeList (response, 'wallets', []);
         if (walletAddress === undefined) {
-            cachedWallet = this.safeDict (wallets, 0);
-            this.options['wallet'] = cachedWallet;
-            return cachedWallet;
+            this.options['wallet'] = this.safeDict (wallets, 0);
+            return this.safeDict (this.options, 'wallet');
         }
         const walletLength = wallets.length;
         for (let i = 0; i < walletLength; i++) {
             const w = this.safeString (wallets[i], 'walletAddress', '');
             if (w === walletAddress) {
-                cachedWallet = wallets[i];
-                break;
+                this.options['wallet'] = wallets[i];
+                return this.safeDict (this.options, 'wallet');
             }
         }
-        if (cachedWallet === undefined) {
-            throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
-        }
-        this.options['wallet'] = cachedWallet;
-        return cachedWallet;
+        throw new NotSupported (this.id + 'fetchWallet could\'n find wallet ' + walletAddress);
     }
 
     /**
@@ -1629,7 +1627,7 @@ export default class binance extends Exchange {
      * @param {string} [params.fundTransferAmount] Auto-transfer amount before order (wei). Must be > 0 if provided
      * @returns {object} a quote
      */
-    async fetchQuote (request: Dict, params = {}): Promise<any> {
+    async fetchQuote (request: Dict, params: Dict = {}): Promise<Dict> {
         const response = await this.sapiPrivatePostTradeGetQuote (this.extend (request, params));
         //
         // {
@@ -1704,7 +1702,7 @@ export default class binance extends Exchange {
      * @param {string} [params.cost] Buy prediction market with USDT cost, only for buy side
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async createOrder (outcome: string, type: string, side: string, amount: number, price: Num = undefined, params = {}): Promise<PredictionOrder> {
+    override async createOrder (outcome: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<PredictionOrder> {
         await this.loadOutcome (outcome);
         const outcomeObj = this.outcome (outcome);
         // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
@@ -1719,7 +1717,7 @@ export default class binance extends Exchange {
         const cost = this.safeString (params, 'cost');
         const slippageBps = this.parseToInt (Precise.stringMul (slippage, '10000'));
         const commonRequest: Dict = {
-            'walletAddress': wallet['walletAddress'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
             'orderType': typeUpper,
             'slippageBps': slippageBps,
         };
@@ -1757,21 +1755,21 @@ export default class binance extends Exchange {
         if (accountType === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder requires accountType (SPOT, FUNDING)');
         }
-        params = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
+        const paramsOmitted: Dict = this.omit (params, [ 'timeInForce', 'accountType', 'cost' ]);
         const quoteRequest = this.extend (commonRequest, {
             'tokenId': outcomeObj['id'],
             'side': sideUpper,
             'amountIn': Precise.stringMul (this.amountToPrecision (marketSymbol, amountStr), '1000000000000000000'),
         });
-        const quote = await this.fetchQuote (quoteRequest, params);
+        const quote = await this.fetchQuote (quoteRequest, paramsOmitted);
         const quoteId = this.safeString (quote, 'quoteId');
         const orderRequest = this.extend (commonRequest, {
-            'walletId': wallet['walletId'],
+            'walletId': this.safeString (wallet, 'walletId'),
             'quoteId': quoteId,
             'timeInForce': timeInForce,
             'accountType': accountType,
         });
-        const response = await this.sapiPrivatePostTradePlaceOrderBundle (this.extend (orderRequest, params));
+        const response = await this.sapiPrivatePostTradePlaceOrderBundle (this.extend (orderRequest, paramsOmitted));
         return this.safePredictionOrder ({
             'id': this.safeString (response, 'orderId'),
             'clientOrderId': undefined,
@@ -1806,11 +1804,11 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createMarketOrderWithCost (symbol: string, side: string, cost: number, params = {}) {
+    async createMarketOrderWithCost (symbol: string, side: OrderSide, cost: number, params: Dict = {}) {
         const req = {
             'cost': cost,
         };
-        return await this.createOrder (symbol, 'market', side, cost, undefined, this.extend (req, params));
+        return await this.createOrder (symbol, 'market', side as string, cost, undefined, this.extend (req, params));
     }
 
     /**
@@ -1823,9 +1821,10 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrder (id: string, outcome: Str = undefined, params = {}): Promise<PredictionOrder> {
+    override async cancelOrder (id: string, outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder> {
         const orders = await this.cancelOrders ([ id ], outcome, params);
-        return this.safeDict (orders, 0, {}) as PredictionOrder;
+        const first = this.safeDict (orders, 0, {});
+        return first as PredictionOrder;
     }
 
     /**
@@ -1838,7 +1837,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    override async cancelOrders (ids: string[], outcome: Str = undefined, params = {}): Promise<PredictionOrder[]> {
+    override async cancelOrders (ids: string[], outcome: Str = undefined, params: Dict = {}): Promise<PredictionOrder[]> {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -1846,8 +1845,8 @@ export default class binance extends Exchange {
         }
         const wallet = await this.fetchWallet ('cancelOrders', params);
         const request: Dict = {
-            'walletAddress': wallet['walletAddress'],
-            'walletId': wallet['walletId'],
+            'walletAddress': this.safeString (wallet, 'walletAddress'),
+            'walletId': this.safeString (wallet, 'walletId'),
         };
         // flatten cancelInfoList to dot list, eg. cancelInfoList[o].orderId=1234
         for (let i = 0; i < ids.length; i++) {
@@ -1870,14 +1869,19 @@ export default class binance extends Exchange {
         //
         const canceledOrders = this.safeList (response, 'canceled', []);
         const outcomeSymbol = this.safeString (outcomeObj, 'outcome', outcome);
-        const failedOrders = this.safeList (response, 'failed', []);
+        const failedOrders: Dict[] = this.safeList (response, 'failed', []);
         const failedOrdersLength = failedOrders.length;
-        for (let i = 0; i < failedOrdersLength; i++) {
-            const failedOrder = failedOrders[i];
-            const error = this.safeString (failedOrder, 'reason');
-            throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + this.safeString (failedOrder, 'orderId') + ': ' + error);
+        if (failedOrdersLength > 0) {
+            const failedDetails: string[] = [];
+            for (let i = 0; i < failedOrdersLength; i++) {
+                const failedOrder = this.safeDict (failedOrders, i);
+                const failedOrderId = this.safeString (failedOrder, 'orderId', '');
+                const failedReason = this.safeString (failedOrder, 'reason', '');
+                failedDetails.push (failedOrderId + ': ' + failedReason);
+            }
+            throw new OrderNotFound (this.id + ' cancelOrders() failed for ' + failedDetails.join (', '));
         }
-        const orders = [];
+        const orders: PredictionOrder[] = [];
         const canceledOrdersLength = canceledOrders.length;
         for (let i = 0; i < canceledOrdersLength; i++) {
             const status = canceledOrders[i];
@@ -1890,15 +1894,15 @@ export default class binance extends Exchange {
                 'outcomeId': this.safeString (outcomeObj, 'id'),
                 'label': this.safeString (outcomeObj, 'label'),
                 'market': this.safeString (outcomeObj, 'market'),
-                'timestamp': this.milliseconds (),
-                'datetime': this.iso8601 (this.milliseconds ()),
+                'timestamp': undefined,
+                'datetime': undefined,
             };
             orders.push (this.safePredictionOrder (order) as PredictionOrder);
         }
         return orders;
     }
 
-    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: any, requestBody: any) {
+    override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
         if (response === undefined) {
             return undefined;
         }
@@ -1922,12 +1926,10 @@ export default class binance extends Exchange {
      * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
-     * @param {object} [headers] request headers
-     * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'sapi', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
+    override sign (path: string, api: string[] = [ 'sapi' ], method: string = 'GET', params: Dict = {}) {
+        const apiGroup: string = api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['sapi'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -1945,15 +1947,16 @@ export default class binance extends Exchange {
         querystring = querystring.replaceAll ('%5D', ']');
         const signature = this.hmac (this.encode (querystring), this.encode (this.secret), sha256);
         querystring = querystring + '&signature=' + signature;
-        headers = {
+        const headersValue: any = {
             'X-MBX-APIKEY': this.apiKey,
         };
+        let bodyValue: any = undefined;
         if ((method === 'GET') || (method === 'DELETE')) {
             url = url + '?' + querystring;
         } else {
-            body = querystring;
-            headers['Content-Type'] = 'application/x-www-form-urlencoded';
+            bodyValue = querystring;
+            headersValue['Content-Type'] = 'application/x-www-form-urlencoded';
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
 }

@@ -1,6 +1,7 @@
 import assert from 'assert';
 import { Exchange } from "../../../ccxt.js";
 import testOrderBook from './base/test.orderBook.js';
+import testSharedMethods from './base/test.sharedMethods.js';
 
 async function testFetchOrderBooks (exchange: Exchange, skippedProperties: object) {
     const method = 'fetchOrderBooks';
@@ -8,9 +9,9 @@ async function testFetchOrderBooks (exchange: Exchange, skippedProperties: objec
     assert (symbols !== undefined, exchange.id + ' ' + method + ' requires exchange.symbols to be loaded');
     const symbol = symbols[0];
     const orderBooks = await exchange.fetchOrderBooks ([ symbol ]);
-    assert (exchange.isDictionary (orderBooks), exchange.id + ' ' + method + ' must return a dict. ' + exchange.json (orderBooks));
+    testSharedMethods.assertDictionaryResponse (exchange, method, orderBooks);
     const orderBookKeys = Object.keys (orderBooks);
-    assert (orderBookKeys.length, exchange.id + ' ' + method + ' returned 0 length data');
+    assert (orderBookKeys.length > 0, exchange.id + ' ' + method + ' returned 0 length data');
     for (let i = 0; i < orderBookKeys.length; i++) {
         const symbolInner = orderBookKeys[i];
         testOrderBook (exchange, skippedProperties, method, orderBooks[symbolInner], symbolInner);

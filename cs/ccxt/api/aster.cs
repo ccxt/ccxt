@@ -494,6 +494,48 @@ public partial class aster : Exchange
         return await this.callAsync<List<object>> ("fapiPrivateGetV3Builder",parameters);
     }
 
+    /// <summary>Calls the fapiPrivateGetV3BuilderUserTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3BuilderUserTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3BuilderUserTrades",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateGetV3BuilderApprovedUserList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3BuilderApprovedUserList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3BuilderApprovedUserList",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateGetV3StpMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3StpMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3StpMode",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateGetV3AssetMigrateUserHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3AssetMigrateUserHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3AssetMigrateUserHistory",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateGetV3StrategyOpenOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3StrategyOpenOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3StrategyOpenOrder",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateGetV3StrategyHistoryOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateGetV3StrategyHistoryOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateGetV3StrategyHistoryOrder",parameters);
+    }
+
     /// <summary>Calls the fapiPrivatePostV1PositionSideDual endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> fapiPrivatePostV1PositionSideDual (object parameters = null)
@@ -697,6 +739,48 @@ public partial class aster : Exchange
         return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3UpdateBuilder",parameters);
     }
 
+    /// <summary>Calls the fapiPrivatePostV3RegisterAndApproveAgent endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostV3RegisterAndApproveAgent (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3RegisterAndApproveAgent",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivatePostV3AssetMigrateUser endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostV3AssetMigrateUser (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3AssetMigrateUser",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivatePostV3Chase endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostV3Chase (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3Chase",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivatePostV3StpMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostV3StpMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3StpMode",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivatePostV3PlaceStrategyOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivatePostV3PlaceStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivatePostV3PlaceStrategyOrder",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivatePostV3UpdateStrategyOrder endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivatePostV3UpdateStrategyOrder (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("fapiPrivatePostV3UpdateStrategyOrder",parameters);
+    }
+
     /// <summary>Calls the fapiPrivatePutV1ListenKey endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> fapiPrivatePutV1ListenKey (object parameters = null)
@@ -751,6 +835,20 @@ public partial class aster : Exchange
     public async Task<List<object>> fapiPrivateDeleteV3BatchOrders (object parameters = null)
     {
         return await this.callAsync<List<object>> ("fapiPrivateDeleteV3BatchOrders",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateDeleteV3GuardedCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> fapiPrivateDeleteV3GuardedCancelOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("fapiPrivateDeleteV3GuardedCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the fapiPrivateDeleteV3GuardedBatchOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> fapiPrivateDeleteV3GuardedBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("fapiPrivateDeleteV3GuardedBatchOrders",parameters);
     }
 
     /// <summary>Calls the fapiPrivateDeleteV3Mmp endpoint.</summary>

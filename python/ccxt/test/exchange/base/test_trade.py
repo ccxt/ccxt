@@ -14,7 +14,7 @@ sys.path.append(root)
 
 from ccxt.test.exchange.base import test_shared_methods  # noqa E402
 
-def test_trade(exchange, skipped_properties, method, entry, symbol, now):
+def test_trade(exchange, skipped_properties, method, entry, symbol, now, is_public_trade):
     # prediction-market structures are keyed by an outcome handle, not a `symbol`, and the
     # PredictionTrade type carries a single `fee` but omits the `fees` list entirely
     if exchange.safe_bool(exchange.has, 'prediction', False):
@@ -48,7 +48,12 @@ def test_trade(exchange, skipped_properties, method, entry, symbol, now):
     test_shared_methods.assert_symbol(exchange, skipped_properties, method, entry, 'symbol', symbol)
     #
     test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'side', ['buy', 'sell'])
-    test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'takerOrMaker', ['taker', 'maker'])
+    if is_public_trade:
+        # for public trades (fetchTrades & watchTrades), it must be either 'taker' or undefined
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'takerOrMaker', ['taker', None])
+    else:
+        # for private trades (fetchMyTrades & watchMyTrades), it can be any
+        test_shared_methods.assert_in_array(exchange, skipped_properties, method, entry, 'takerOrMaker', ['taker', 'maker', None])
     test_shared_methods.assert_fee_structure(exchange, skipped_properties, method, entry, 'fee')
     if not ('fees' in skipped_properties):
         # todo: remove undefined check and probably non-empty array check later

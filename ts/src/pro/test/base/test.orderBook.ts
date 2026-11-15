@@ -309,6 +309,25 @@ function testWsOrderBook () {
 
     // --------------------------------------------------------------------------------------------------------------------
 
+    // a zero size delta for an id that is not in the book stores nothing, so the
+    // constructor must not advance the length on its account. it used to, which
+    // left the side with trailing holes and a length that overcounted the rows,
+    // and limit() then dereferenced one of those holes
+    const noopDeltas = new IndexedOrderBook ({
+        'bids': [ [ 100.0, 1, 'a' ], [ 101.0, 0, 'ghost' ], [ 102.0, 1, 'c' ] ],
+        'asks': [ [ 200.0, 0, 'ghost' ], [ 201.0, 1, 'd' ] ],
+    }, 2);
+    assert (noopDeltas['bids'].length === 2);
+    assert (noopDeltas['asks'].length === 1);
+    assert (noopDeltas['bids'][0] !== undefined);
+    assert (noopDeltas['bids'][1] !== undefined);
+    assert (noopDeltas['asks'][0] !== undefined);
+    noopDeltas.limit ();
+    assert (noopDeltas['bids'].length === 2);
+    assert (noopDeltas['asks'].length === 1);
+
+    // --------------------------------------------------------------------------------------------------------------------
+
     const countedOrderBook = new CountedOrderBook (countedOrderBookInput);
     const limitedCountedOrderBook = new CountedOrderBook (countedOrderBookInput, 5);
     countedOrderBook.limit ();
@@ -396,6 +415,83 @@ function testWsOrderBook () {
     resetBook.reset (orderBookInput);
     resetBook.limit ();
     assert (equals (resetBook, orderBookTarget));
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // regression for the php phantom index desync under limit, the corruption
+    // sequence was a reset with a snapshot, a depth trim via limit, then
+    // deltas landing on and beyond the trimmed tail, which produced rows
+    // holding only an amount and stale levels in php before the fix, see
+    // https://github.com/ccxt/ccxt/pull/29603 and
+    // https://github.com/ccxt/ccxt/issues/26967
+
+    const desyncBook = new OrderBook ({}, 3);
+    desyncBook.reset (orderBookInput);
+    desyncBook.limit ();
+    const desyncBids = desyncBook['bids'];
+    const desyncAsks = desyncBook['asks'];
+    // a delta beyond the trimmed tail must reinsert cleanly
+    desyncBids.storeArray ([ 6.4, 14 ]);
+    // a delta on a surviving level must update that level in place
+    desyncAsks.storeArray ([ 11.1, 7 ]);
+    // a delete on a surviving level must remove exactly that level
+    desyncBids.storeArray ([ 9.1, 0 ]);
+    desyncBook.limit ();
+    const desyncTarget = {
+        'bids': [ [ 10.0, 10 ], [ 8.2, 12 ], [ 6.4, 14 ] ],
+        'asks': [ [ 11.1, 7 ], [ 12.2, 14 ], [ 13.3, 13 ] ],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 69,
+        'symbol': undefined,
+    };
+    assert (equals (desyncBook, desyncTarget));
+    // every row must be a well formed price and amount pair, the php
+    // corruption produced rows holding only an amount
+    const desyncSides = [ desyncBook['bids'], desyncBook['asks'] ];
+    for (let i = 0; i < desyncSides.length; i++) {
+        const side = desyncSides[i];
+        for (let k = 0; k < side.length; k++) {
+            const row = side[k];
+            assert (row.length >= 2);
+            assert (row[0] !== undefined);
+        }
+    }
+
+    // --------------------------------------------------------------------------------------------------------------------
+    // indexed sides must clean their hashmap when limit trims rows away: a
+    // delta arriving later for a trimmed id previously threw in js and looped
+    // in php while python handled it, an update of a trimmed id must reinsert
+    // cleanly and a delete of a trimmed id must be a no op
+
+    const trimIndexedInput = {
+        'bids': [ [ 10.0, 1, 'x' ], [ 9.0, 1, 'y' ], [ 8.0, 1, 'z' ], [ 7.0, 1, 'w' ], [ 6.0, 1, 'v' ] ],
+        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ], [ 14.0, 1, 'd' ], [ 15.0, 1, 'e' ] ],
+        'timestamp': 1574827239000,
+        'nonce': 70,
+        'symbol': undefined,
+    };
+    const trimIndexedTarget = {
+        'bids': [ [ 10.0, 1, 'x' ], [ 9.0, 1, 'y' ], [ 8.0, 1, 'z' ] ],
+        'asks': [ [ 11.0, 1, 'a' ], [ 12.0, 1, 'b' ], [ 13.0, 1, 'c' ] ],
+        'timestamp': 1574827239000,
+        'datetime': '2019-11-27T04:00:39.000Z',
+        'nonce': 70,
+        'symbol': undefined,
+    };
+    const trimIndexedBook = new IndexedOrderBook (trimIndexedInput, 3);
+    trimIndexedBook.limit ();
+    const trimAsks = trimIndexedBook['asks'];
+    const trimBids = trimIndexedBook['bids'];
+    // update of a trimmed id reinserts cleanly
+    trimAsks.storeArray ([ 15.0, 2, 'e' ]);
+    trimBids.storeArray ([ 7.0, 2, 'w' ]);
+    // delete of a trimmed id is a no op, on both sides via ids that were
+    // trimmed and never reinserted (d on asks, v on bids); the final limit
+    // below also re-trims the reinserted w, exercising the cleanup twice
+    trimAsks.storeArray ([ 14.0, 0, 'd' ]);
+    trimBids.storeArray ([ 6.0, 0, 'v' ]);
+    trimIndexedBook.limit ();
+    assert (equals (trimIndexedBook, trimIndexedTarget));
 }
 
 export default testWsOrderBook;

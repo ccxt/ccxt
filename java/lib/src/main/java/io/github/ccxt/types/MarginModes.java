@@ -7,11 +7,12 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class MarginModes {
+public final class MarginModes extends TypedMap {
     public Map<String, MarginMode> modes;
 
     @SuppressWarnings("unchecked")
     public MarginModes(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.modes = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

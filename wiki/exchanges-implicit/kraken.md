@@ -1,6 +1,6 @@
 Every endpoint in `kraken`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/kraken) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `zendeskGet201893608`); the snake_case alias (`zendesk_get_201893608`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`ZendeskGet201893608`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `zendeskGet201893608`); Python and PHP use the snake_case form (`zendesk_get_201893608`), and Go uses the PascalCase form (`ZendeskGet201893608`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official kraken API documentation:** [docs.kraken.com](https://docs.kraken.com/api-reference/)
 
-> 61 implicit endpoints across 3 access groups.
+> 63 implicit endpoints across 3 access groups.
 
 ## zendesk
 
@@ -74,6 +74,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetTime` | GET | `Time` | 1 |
 | `publicGetSystemStatus` | GET | `SystemStatus` | 1 |
+| `publicGetMaintenanceSchedule` | GET | `MaintenanceSchedule` | 1 |
 | `publicGetAssets` | GET | `Assets` | 1 |
 | `publicGetAssetPairs` | GET | `AssetPairs` | 1 |
 | `publicGetTicker` | GET | `Ticker` | 1 |
@@ -111,6 +112,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostRetrieveExport` | POST | `RetrieveExport` | 3 |
 | `privatePostRemoveExport` | POST | `RemoveExport` | 3 |
 | `privatePostGetApiKeyInfo` | POST | `GetApiKeyInfo` | 3 |
+| `privatePostListWalletAccounts` | POST | `ListWalletAccounts` | 3 |
 | `privatePostAddOrder` | POST | `AddOrder` | 0 |
 | `privatePostAmendOrder` | POST | `AmendOrder` | 0 |
 | `privatePostCancelOrder` | POST | `CancelOrder` | 0 |

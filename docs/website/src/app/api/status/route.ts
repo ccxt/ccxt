@@ -1,6 +1,6 @@
 import { readExchangeStatus } from '@/lib/exchange-status';
 
-// Exchange availability feed for the /docs/status page and external consumers.
+// Exchange availability feed for external consumers.
 // The underlying file is rewritten by the monitor sub-process every ~30 minutes;
 // force-dynamic re-reads it per request (an fs read — cheap) instead of letting
 // Next cache the first snapshot forever.

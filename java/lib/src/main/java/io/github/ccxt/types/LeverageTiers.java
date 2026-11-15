@@ -9,11 +9,12 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-public final class LeverageTiers {
+public final class LeverageTiers extends TypedMap {
     public Map<String, List<LeverageTier>> tiers;
 
     @SuppressWarnings("unchecked")
     public LeverageTiers(Object raw) {
+        super(raw);
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.tiers = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

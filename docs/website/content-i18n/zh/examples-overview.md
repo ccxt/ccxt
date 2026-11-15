@@ -59,6 +59,24 @@ php -f path/to/example.php # 替换为实际文件名
 python path/to/example.py # 替换为实际文件名
 ```
 
+---
+
+### Rust
+
+[Rust 示例](/docs/examples/rust/)
+
+Rust 示例是在 `examples/rust/Cargo.toml` 中声明的 cargo 二进制程序 — 按 `[[bin]]` 名称运行:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --bin binance_basics
+```
+
+WebSocket（`watch*`）示例使用 `ccxt-pro` crate，它位于 `ws` feature 之后:
+
+```shell
+cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin watch_trades
+```
+
 -------------------------------------------------------------------------------
 
 ## CCXT 在论文和论文中的引用

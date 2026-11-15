@@ -1,6 +1,6 @@
 Every endpoint in `nado`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/nado) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `gatewayPublicGetSymbols`); the snake_case alias (`gateway_public_get_symbols`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`GatewayPublicGetSymbols`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `gatewayPublicGetSymbols`); Python and PHP use the snake_case form (`gateway_public_get_symbols`), and Go uses the PascalCase form (`GatewayPublicGetSymbols`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official nado API documentation:** [docs.nado.xyz](https://docs.nado.xyz/)
 
-> 14 implicit endpoints across 5 access groups.
+> 16 implicit endpoints across 5 access groups.
 
 ## gateway
 
@@ -67,6 +67,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `gatewayPublicGetQuery` | GET | `query` | 1 |
 | `gatewayPublicGetEdgeQuery` | GET | `edge/query` | 1 |
 | `gatewayPublicPostQuery` | POST | `query` | 1 |
+| `gatewayPublicPostEdgeQuery` | POST | `edge/query` | 1 |
 | `gatewayPrivatePostExecute` | POST | `execute` | 1 |
 
 ## gatewayV2
@@ -96,6 +97,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `archiveV2PublicGetTickers` | GET | `tickers` | 1 |
 | `archiveV2PublicGetContracts` | GET | `contracts` | 1 |
 | `archiveV2PublicGetTrades` | GET | `trades` | 1 |
+| `archiveV2PublicGetSymbols` | GET | `symbols` | 1 |
 
 ## trigger
 

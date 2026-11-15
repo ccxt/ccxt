@@ -11,6 +11,7 @@ async function testFetchHistoryBase() {
     const exchange = new ccxt.Exchange({
         'id': 'sampleexchange',
         'fetchHistoryCacheSize': 2,
+        'enableRateLimit': false, // the cache is what is under test; no throttle wait between the 3 calls
     });
     assert(testSharedMethods.exchangeProp(exchange, 'fetchHistoryCacheSize') === 2, 'fetchHistoryCacheSize should be 2');
     const trueAssertion = exchange.parseNumber(undefined) === undefined;

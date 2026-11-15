@@ -27,10 +27,13 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
     method = 'watchTickers'
     now = exchange.milliseconds()
     ends = now + 15000
-    while now < ends:
+    max_idle_time = 5000
+    idle = False
+    while (now < ends) and not idle:
         response = {}
         success = True
         should_return = False
+        start_time = exchange.milliseconds()
         try:
             response = await exchange.watch_tickers(arg_symbols, arg_params)
         except Exception as e:
@@ -45,9 +48,8 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
                 should_return = True
             elif not test_shared_methods.is_temporary_failure(e):
                 raise e
-            now = exchange.milliseconds()
-            # continue;
             success = False
+        now = exchange.milliseconds()
         if should_return:
             return False
         if success:
@@ -67,5 +69,6 @@ async def test_watch_tickers_helper(exchange, skipped_properties, arg_symbols, a
                     if (ticker_symbol is not None) and test_shared_methods.ticker_exception_needs_ohlcv(ex, exchange, ticker):
                         ohlcv = await exchange.fetch_ohlcv(ticker_symbol, '1d', None, 5)
                     test_shared_methods.validate_ticker_exception_for_percentage(ex, exchange, ticker, ohlcv)
-            now = exchange.milliseconds()
+            if (now - start_time) > max_idle_time:
+                idle = True
     return True

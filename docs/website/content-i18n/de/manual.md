@@ -48,7 +48,7 @@ Die Struktur der Bibliothek lässt sich wie folgt skizzieren:
     +=============================================================+
 ```
 
-Vollständige öffentliche und private HTTP REST APIs für alle Börsen sind in JavaScript, Python, PHP, C#, Go und Java implementiert. WebSocket-Implementierungen sind in [CCXT Pro](https://ccxt.pro) verfügbar und unterstützen WebSocket-Streams.
+Vollständige öffentliche und private HTTP REST APIs für alle Börsen sind in JavaScript, Python, PHP, C#, Go, Java und Rust implementiert. WebSocket-Implementierungen sind in [CCXT Pro](https://ccxt.pro) verfügbar und unterstützen WebSocket-Streams.
 
 - [**Börsen**](#exchanges)
 - [**Märkte**](#markets)

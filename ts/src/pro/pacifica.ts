@@ -1,15 +1,16 @@
 //  ---------------------------------------------------------------------------
 
 import pacificaRest from '../pacifica.js';
-import { ArgumentsRequired, NotSupported } from '../base/errors.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
 import Client from '../base/ws/Client.js';
 import { Int, Str, Market, OrderBook, Trade, OHLCV, Order, Dict, Strings, Ticker, Tickers, type Num, OrderType, OrderSide, Bool } from '../base/types.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
+import type { WsOrderBook } from '../base/ws/OrderBook.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class pacifica extends pacificaRest {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
@@ -103,18 +104,22 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
+    override async createOrderWs (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const [ request, operationType ] = this.createOrderRequest (symbol, type, side, amount, price, params);
-        params = this.omit (params, [
-            'reduceOnly', 'clientOrderId', 'stopLimitPrice', 'timeInForce', 'triggerPrice', 'stopLossCloid',
-            'stopLossPrice', 'stopLossLimitPrice', 'takeProfitCloid', 'takeProfitPrice', 'takeProfitLimitPrice', 'expiryWindow', 'agentAddress', 'originAddress',
-        ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         if (operationType === 'create_stop_order') {
@@ -185,17 +190,24 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params = {}) {
+    override async editOrderWs (id: string, symbol: string, type: string, side: string, amount: Num = undefined, price: Num = undefined, params: Dict = {}): Promise<Order> {
         const batchOperationType = 'edit_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
         const request = this.editOrderRequest (id, symbol, type, side, amount, price, market, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -242,7 +254,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params = {}) {
+    override async cancelOrdersWs (ids: string[], symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         const batchOperationType = 'batch_orders';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -251,10 +263,17 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + 'cancelOrders() requires a "symbol" argument!');
         }
         const request = this.cancelOrdersRequest (ids, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'clientOrderIds' ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (batchOperationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -282,10 +301,10 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const data = this.safeDict (response, 'data', {});
-        const results = this.safeList (data, 'results', []);
+        const results: Dict[] = this.safeList (data, 'results', []);
         const ordersToReturn: Order[] = [];
         for (let i = 0; i < results.length; i++) {
-            const order = results[i];
+            const order = this.safeDict (results, i);
             const error = this.safeString (order, 'error');
             const success = this.safeBool (order, 'success', false);
             const marketId = this.safeString (order, 'symbol');
@@ -318,7 +337,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelOrderWs (id: string, symbol: Str = undefined, params = {}) {
+    override async cancelOrderWs (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
         const operationType = 'cancel_order';
         if (this.markets === undefined) {
             await this.loadMarkets ();
@@ -327,10 +346,17 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + ' cancelOrderWs() requires a symbol argument');
         }
         const request = this.cancelOrderRequest (id, symbol, params);
-        params = this.omit (params, [ 'originAddress', 'agentAddress', 'expiryWindow', 'trigger', 'stop', 'clientOrderId' ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -377,16 +403,23 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.originAddress] only if agent in use. Agent's owner address ( default = credentials walletAddress )
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async cancelAllOrdersWs (symbol: Str = undefined, params = {}) {
+    override async cancelAllOrdersWs (symbol: Str = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const operationType = 'cancel_all_orders';
         const request = this.cancelAllOrdersRequest (symbol, params);
-        params = this.omit (params, [ 'excludeReduceOnly', 'agentAddress', 'originAddress', 'expiryWindow' ]);
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const wsRequest = this.wrapAsPostAction (operationType, request);
         const requestId = this.safeString (wsRequest, 'id');
         const response = await this.watch (url, requestId, wsRequest, requestId);
@@ -418,18 +451,25 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async watchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
+    override async watchOrderBook (symbol: string, limit: Int = undefined, params: Dict = {}): Promise<OrderBook> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const messageHash = 'orderbook:' + symbol;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -438,8 +478,8 @@ export default class pacifica extends pacificaRest {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash);
+        const message = this.extend (request, paramsAggLevel);
+        const orderbook: WsOrderBook = await this.watch (url, messageHash, message, messageHash);
         return orderbook.limit ();
     }
 
@@ -453,18 +493,25 @@ export default class pacifica extends pacificaRest {
      * @param {int|undefined} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    override async unWatchOrderBook (symbol: string, params = {}): Promise<any> {
+    override async unWatchOrderBook (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        let aggLevel: Int = undefined;
-        [ aggLevel, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'aggLevel', 1);
+        const [ aggLevel, paramsAggLevel ] = this.handleOptionIntegerAndParams (params, 'watchOrderBook', 'aggLevel', 1);
         const subMessageHash = 'orderbook:' + symbol;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -473,11 +520,11 @@ export default class pacifica extends pacificaRest {
                 'agg_level': aggLevel,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsAggLevel);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrderBook (client: any, message: any) {
+    handleOrderBook (client: Client, message: Dict) {
         //
         // {
         //   "channel": "book",
@@ -523,16 +570,16 @@ export default class pacifica extends pacificaRest {
         const timestamp = this.safeInteger (entry, 't');
         const snapshot = this.parseOrderBook (result, symbol, timestamp, 'bids', 'asks', 'p', 'a');
         const nonce = this.safeInteger (entry, 'li');
-        if (nonce) {
+        if ((nonce !== undefined) && (nonce !== 0)) {
             snapshot['nonce'] = nonce;
         }
+        const messageHash = 'orderbook:' + symbol;
         if (!(symbol in this.orderbooks)) {
             const ob = this.orderBook (snapshot);
             this.orderbooks[symbol] = ob;
         }
         const orderbook = this.orderbooks[symbol];
         orderbook.reset (snapshot);
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (orderbook, messageHash);
     }
 
@@ -545,7 +592,7 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTicker (symbol: string, params = {}): Promise<Ticker> {
+    override async watchTicker (symbol: string, params: Dict = {}): Promise<Ticker> {
         const tickers = await this.watchTickers ([ symbol ], params);
         return tickers[symbol];
     }
@@ -559,25 +606,33 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async watchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
         this.setupApiKeyHeaders ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true);
+        const symbolsNormalized: Strings = this.marketSymbols (symbols, undefined, true);
         const messageHash = 'tickers';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
                 'source': 'prices',
             },
         };
-        const tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        const tickers: Tickers = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
-            return this.filterByArrayTickers (tickers, 'symbol', symbols);
+            return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
         }
         return this.tickers;
     }
@@ -591,16 +646,24 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    override async unWatchTickers (symbols: Strings = undefined, params = {}): Promise<any> {
+    override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        symbols = this.marketSymbols (symbols, undefined, true);
+        this.marketSymbols (symbols, undefined, true);
         const subMessageHash = 'tickers';
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -622,20 +685,28 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
+    override async watchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('watchMyTrades', params);
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         let messageHash = 'myTrades';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol);
-            messageHash += ':' + symbol;
+            symbolResolved = this.symbol (symbol);
+            messageHash = 'myTrades:' + symbolResolved;
         }
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -643,12 +714,13 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (trades, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -661,19 +733,26 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchMyTrades (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchMyTrades (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         if (symbol !== undefined) {
             throw new NotSupported (this.id + ' unWatchMyTrades does not support a symbol argument, unWatch from all markets only');
         }
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('unWatchMyTrades', params);
         const messageHash = 'unsubscribe:myTrades';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -681,11 +760,11 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any) {
+    handleWsTickers (client: Client, message: Dict): boolean {
         //
         // {
         //     "channel": "prices",
@@ -707,7 +786,7 @@ export default class pacifica extends pacificaRest {
         // }
         //
         const parsedTickers: Ticker[] = [];
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const info = data[i];
             const marketId = this.safeString (info, 'symbol');
@@ -722,11 +801,11 @@ export default class pacifica extends pacificaRest {
         return true;
     }
 
-    parseWsTicker (rawTicker: any, market: Market = undefined): Ticker {
+    parseWsTicker (rawTicker: Dict, market: Market = undefined): Ticker {
         return this.parseTicker (rawTicker, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "account_trades",
@@ -757,7 +836,7 @@ export default class pacifica extends pacificaRest {
         }
         const trades = this.myTrades;
         const symbols: Dict = {};
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -773,7 +852,7 @@ export default class pacifica extends pacificaRest {
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const currentMessageHash = 'myTrades:' + keys[i];
+            const currentMessageHash = 'myTrades:' + this.safeString (keys, i, '');
             client.resolve (trades, currentMessageHash);
         }
         // non-symbol specific
@@ -792,16 +871,24 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
+    override async watchTrades (symbol: string, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const messageHash = 'trade:' + symbolValue;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -810,11 +897,12 @@ export default class pacifica extends pacificaRest {
             },
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash);
+        const trades: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
+            limitResolved = trades.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit (trades, since, limitResolved, 'timestamp', true);
     }
 
     /**
@@ -826,17 +914,25 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    override async unWatchTrades (symbol: string, params = {}): Promise<any> {
+    override async unWatchTrades (symbol: string, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
-        const subMessageHash = 'trade:' + symbol;
+        const symbolValue: string = market['symbol'];
+        const subMessageHash = 'trade:' + symbolValue;
         const messageHash = 'unsubscribe:' + subMessageHash;
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -848,7 +944,7 @@ export default class pacifica extends pacificaRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleTrades (client: Client, message: any) {
+    handleTrades (client: Client, message: Dict) {
         //
         // {
         //   "channel": "trades",
@@ -871,6 +967,7 @@ export default class pacifica extends pacificaRest {
         const marketId = this.safeString (first, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'trade:' + symbol;
         if (!(symbol in this.trades)) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             const stored = new ArrayCache (limit);
@@ -882,7 +979,6 @@ export default class pacifica extends pacificaRest {
             const trade = this.parseWsTrade (data);
             trades.append (trade);
         }
-        const messageHash = 'trade:' + symbol;
         client.resolve (trades, messageHash);
     }
 
@@ -925,8 +1021,8 @@ export default class pacifica extends pacificaRest {
         const price = this.safeString (trade, 'p');
         const amount = this.safeString (trade, 'a');
         const marketId = this.safeString (trade, 's');
-        market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
+        const marketResolved: Market = this.safeMarket (marketId, market);
+        const symbol = marketResolved['symbol'];
         const id = this.safeString (trade, 'h');
         const fee = this.safeString (trade, 'f');
         let side = this.safeString2 (trade, 'ts', 'd');
@@ -963,7 +1059,7 @@ export default class pacifica extends pacificaRest {
             'amount': amount,
             'cost': undefined,
             'fee': { 'cost': fee, 'currency': 'USDC' },
-        }, market);
+        }, marketResolved);
     }
 
     /**
@@ -978,16 +1074,24 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+    override async watchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
         const parsedTf = this.safeString (this.timeframes, timeframe, timeframe);
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -996,13 +1100,14 @@ export default class pacifica extends pacificaRest {
                 'interval': parsedTf,
             },
         };
-        const messageHash = 'candles:' + parsedTf + ':' + symbol;
+        const messageHash = 'candles:' + parsedTf + ':' + symbolValue;
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        const ohlcv: ArrayCacheByTimestamp = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit (symbol, limit);
+            limitResolved = ohlcv.getLimit (symbolValue, limit);
         }
-        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit (ohlcv, since, limitResolved, 0, true);
     }
 
     /**
@@ -1015,15 +1120,23 @@ export default class pacifica extends pacificaRest {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params = {}): Promise<any> {
+    override async unWatchOHLCV (symbol: string, timeframe: string = '1m', params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         const market = this.market (symbol);
-        symbol = market['symbol'];
+        const symbolValue: string = market['symbol'];
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -1032,13 +1145,13 @@ export default class pacifica extends pacificaRest {
                 'interval': timeframe,
             },
         };
-        const subMessageHash = 'candles:' + timeframe + ':' + symbol;
+        const subMessageHash = 'candles:' + timeframe + ':' + symbolValue;
         const messagehash = 'unsubscribe:' + subMessageHash;
         const message = this.extend (request, params);
         return await this.watch (url, messagehash, message, messagehash);
     }
 
-    handleOHLCV (client: Client, message: any) {
+    handleOHLCV (client: Client, message: Dict) {
         //
         // {
         //   "channel": "candle",
@@ -1064,10 +1177,11 @@ export default class pacifica extends pacificaRest {
         if (timeframe === undefined) {
             return;
         }
+        const messageHash = 'candles:' + timeframe + ':' + symbol;
         if (!(symbol in this.ohlcvs)) {
             this.ohlcvs[symbol] = {};
         }
-        const symbolOhlcvs = this.safeValue (this.ohlcvs, symbol, {});
+        const symbolOhlcvs = this.safeDict (this.ohlcvs, symbol, {});
         let ohlcv = this.safeValue (symbolOhlcvs, timeframe);
         if (ohlcv === undefined) {
             const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
@@ -1076,7 +1190,6 @@ export default class pacifica extends pacificaRest {
         }
         const parsed = this.parseOHLCV (data);
         ohlcv.append (parsed);
-        const messageHash = 'candles:' + timeframe + ':' + symbol;
         client.resolve (ohlcv, messageHash);
     }
 
@@ -1092,22 +1205,30 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
+    override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('watchOrders', params);
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('watchOrders', params);
         let market: Market = undefined;
         let messageHash = 'order';
+        let symbolResolved: Str = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + symbol;
+            symbolResolved = this.safeString (market, 'symbol');
+            messageHash = messageHash + ':' + this.safeString (market, 'symbol', '');
         }
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
         const request: Dict = {
             'method': 'subscribe',
             'params': {
@@ -1115,12 +1236,13 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
-        const orders = await this.watch (url, messageHash, message, messageHash);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
+        const orders: ArrayCache = await this.watch (url, messageHash, message, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit (symbol, limit);
+            limitResolved = orders.getLimit (symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, symbolResolved, since, limitResolved, true);
     }
 
     /**
@@ -1133,7 +1255,7 @@ export default class pacifica extends pacificaRest {
      * @param {string|undefined} [params.account] will default to options' walletAddress if not provided
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    override async unWatchOrders (symbol: Str = undefined, params = {}): Promise<any> {
+    override async unWatchOrders (symbol: Str = undefined, params: Dict = {}): Promise<any> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1142,10 +1264,17 @@ export default class pacifica extends pacificaRest {
         }
         const messageHash = 'unsubscribe:order';
         const isTestnet = this.isSandboxModeEnabled;
-        const urlKey = (isTestnet) ? 'test' : 'api';
-        const url = this.urls[urlKey]['ws']['public'];
-        let userAddress: Str = undefined;
-        [ userAddress, params ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
+        let urlKey: Str = 'api';
+        if (isTestnet) {
+            urlKey = 'test';
+        }
+        const apiUrls = this.safeDict (this.urls, urlKey, {});
+        const wsUrls = this.safeDict (apiUrls, 'ws', {});
+        const url = this.safeString (wsUrls, 'public');
+        if (url === undefined) {
+            throw new ExchangeError (this.id + ' has no websocket url for this endpoint');
+        }
+        const [ userAddress, paramsOriginAndSingleAddress ] = this.handleOriginAndSingleAddress ('unWatchOrders', params);
         const request: Dict = {
             'method': 'unsubscribe',
             'params': {
@@ -1153,11 +1282,11 @@ export default class pacifica extends pacificaRest {
                 'account': userAddress,
             },
         };
-        const message = this.extend (request, params);
+        const message = this.extend (request, paramsOriginAndSingleAddress);
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleOrder (client: Client, message: any) {
+    handleOrder (client: Client, message: Dict) {
         // not snapshot, only updates
         // {
         //   "channel": "account_order_updates",
@@ -1185,7 +1314,7 @@ export default class pacifica extends pacificaRest {
         //     }
         //   ]
         // }
-        const data = this.safeList (message, 'data', []);
+        const data: Dict[] = this.safeList (message, 'data', []);
         if (this.orders === undefined) {
             const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
             this.orders = new ArrayCacheBySymbolById (limit);
@@ -1215,7 +1344,7 @@ export default class pacifica extends pacificaRest {
         client.resolve (stored, messageHash);
     }
 
-    handleErrorMessage (client: Client, message: any): Bool {
+    handleErrorMessage (client: Client, message: Dict): Bool {
         //
         // 'rl' key is present only when a rate-limited API key is used
         // {"id":"64107e37-a999-4b90-a3cf-b4322ae110d9","type":"cancel_order","code":420,"err":"Failed to cancel order","t":1769474703073,"rl":{"r":1245,"q":1250,"t":56}}
@@ -1227,8 +1356,11 @@ export default class pacifica extends pacificaRest {
         if (id === undefined) {
             id = this.safeString (data, 'id');
         }
+        const wsOptions = this.safeDict (this.options, 'ws', {});
+        const wsHeaders = this.safeDict (wsOptions, 'options', {});
+        const wsHeadersFinal = this.safeDict (wsHeaders, 'headers', {});
         try {
-            this.handleErrors (0, error, '', postType, this.options['ws']['options']['headers'], this.json (data), message, {}, {});
+            this.handleErrors (0, error, '', postType, wsHeadersFinal, this.json (data), message, {}, '');
         } catch (e) {
             client.reject (e, id);
             return true;
@@ -1283,7 +1415,7 @@ export default class pacifica extends pacificaRest {
         const messageHash = 'unsubscribe:' + subMessageHash;
         this.cleanUnsubscription (client, subMessageHash, messageHash);
         if ((symbol !== undefined) && (symbol in this.ohlcvs)) {
-            if ((timeframe !== undefined) && (timeframe in this.ohlcvs[symbol])) {
+            if (timeframe in this.ohlcvs[symbol]) {
                 delete this.ohlcvs[symbol][timeframe];
             }
         }
@@ -1293,7 +1425,7 @@ export default class pacifica extends pacificaRest {
         const subHash = 'order';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'orders',
         };
         this.cleanCache (topicStructure);
@@ -1303,13 +1435,13 @@ export default class pacifica extends pacificaRest {
         const subHash = 'myTrades';
         const unSubHash = 'unsubscribe:' + subHash;
         this.cleanUnsubscription (client, subHash, unSubHash, true);
-        const topicStructure = {
+        const topicStructure: Dict = {
             'topic': 'myTrades',
         };
         this.cleanCache (topicStructure);
     }
 
-    handleSubscriptionResponse (client: Client, message: any) {
+    handleSubscriptionResponse (client: Client, message: Dict) {
         //  {
         //      "channel": "subscribe",
         //      "data": {
@@ -1349,7 +1481,7 @@ export default class pacifica extends pacificaRest {
         }
     }
 
-    override handleMessage (client: Client, message: any) {
+    override handleMessage (client: Client, message: Dict) {
         //
         // {
         //     "channel":"subscribe",
@@ -1364,7 +1496,7 @@ export default class pacifica extends pacificaRest {
         //     }
         // }
         //
-        if (this.handleErrorMessage (client, message)) {
+        if (this.handleErrorMessage (client, message) === true) {
             return;
         }
         const postType = this.safeString (message, 'type');
@@ -1406,7 +1538,7 @@ export default class pacifica extends pacificaRest {
         };
     }
 
-    handlePong (client: Client, message: any) {
+    handlePong (client: Client, message: Dict): Dict {
         //
         //   {
         //       "channel": "pong"
@@ -1425,11 +1557,12 @@ export default class pacifica extends pacificaRest {
             throw new ArgumentsRequired (this.id + 'postAction() requires a "operationType" argument!');
         }
         const requestId = this.requestId ();
+        const postParams: Dict = {};
+        postParams[operationType] = request;
         const payload: Dict = {
             'id': requestId,
-            'params': {},
+            'params': postParams,
         };
-        payload['params'][operationType] = request;
         return payload;
     }
 

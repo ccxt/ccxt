@@ -1,6 +1,6 @@
 import { List, Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
-interface Exchange {
+declare abstract class Exchange extends _Exchange {
     publicGetMarkets(params?: {}): Promise<List>;
     publicGetMarketsSymbol(params?: {}): Promise<List>;
     publicGetCurrencies(params?: {}): Promise<List>;
@@ -55,7 +55,7 @@ interface Exchange {
     privatePostWalletsWithdraw(params?: {}): Promise<Dict>;
     privatePostV2WalletsWithdraw(params?: {}): Promise<Dict>;
     privatePostOrders(params?: {}): Promise<Dict>;
-    privatePostOrdersBatch(params?: {}): Promise<Dict>;
+    privatePostOrdersBatch(params?: {}): Promise<List>;
     privatePostOrdersKillSwitch(params?: {}): Promise<Dict>;
     privatePostSmartorders(params?: {}): Promise<Dict>;
     privateDeleteOrdersId(params?: {}): Promise<Dict>;
@@ -80,18 +80,22 @@ interface Exchange {
     swapPublicGetV3MarketIndexPrice(params?: {}): Promise<Dict>;
     swapPublicGetV3MarketIndexPriceComponents(params?: {}): Promise<Dict>;
     swapPublicGetV3MarketFundingRate(params?: {}): Promise<Dict>;
+    swapPublicGetV3MarketFundingRateHistory(params?: {}): Promise<Dict>;
     swapPublicGetV3MarketOpenInterest(params?: {}): Promise<Dict>;
     swapPublicGetV3MarketInsurance(params?: {}): Promise<Dict>;
     swapPublicGetV3MarketRiskLimit(params?: {}): Promise<Dict>;
+    swapPublicGetV3MarketLimitPrice(params?: {}): Promise<Dict>;
     swapPrivateGetV3AccountBalance(params?: {}): Promise<Dict>;
     swapPrivateGetV3AccountBills(params?: {}): Promise<Dict>;
     swapPrivateGetV3TradeOrderOpens(params?: {}): Promise<Dict>;
     swapPrivateGetV3TradeOrderTrades(params?: {}): Promise<Dict>;
     swapPrivateGetV3TradeOrderHistory(params?: {}): Promise<Dict>;
+    swapPrivateGetV3TradeOrderDetails(params?: {}): Promise<Dict>;
     swapPrivateGetV3TradePositionOpens(params?: {}): Promise<Dict>;
     swapPrivateGetV3TradePositionHistory(params?: {}): Promise<Dict>;
     swapPrivateGetV3PositionLeverages(params?: {}): Promise<Dict>;
     swapPrivateGetV3PositionMode(params?: {}): Promise<Dict>;
+    swapPrivateGetV3PositionRiskLimit(params?: {}): Promise<Dict>;
     swapPrivatePostV3TradeOrder(params?: {}): Promise<Dict>;
     swapPrivatePostV3TradeOrders(params?: {}): Promise<Dict>;
     swapPrivatePostV3TradePosition(params?: {}): Promise<Dict>;
@@ -102,7 +106,5 @@ interface Exchange {
     swapPrivateDeleteV3TradeOrder(params?: {}): Promise<Dict>;
     swapPrivateDeleteV3TradeBatchOrders(params?: {}): Promise<Dict>;
     swapPrivateDeleteV3TradeAllOrders(params?: {}): Promise<Dict>;
-}
-declare abstract class Exchange extends _Exchange {
 }
 export default Exchange;

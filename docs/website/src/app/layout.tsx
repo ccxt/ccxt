@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   // metadataBase = origin only (image URLs already carry the basePath); fixes the
   // "using localhost:3000" warning. noindex on the /v2 staging build.
   metadataBase: new URL(siteUrl),
+  // Docs pages set a bare title (e.g. "Manual"), so brand them here rather than in
+  // ~1300 generateMetadata calls. Pages whose own title already carries the brand
+  // (home, about-us, contact, blog) use `title.absolute` to opt out instead of
+  // rendering "About Us - CCXT | CCXT". `default` covers segments with no title.
+  title: { template: `%s | ${appName}`, default: appName },
   // Site-wide og:site_name (Discord shows it above the title). Pages that set their own
   // openGraph re-declare siteName, since Next replaces the openGraph object per segment.
   openGraph: { type: 'website', siteName: appName },

@@ -272,10 +272,11 @@ class coincheck extends coincheck$1["default"] {
             const code = codes[i];
             const currency = this.currency(code);
             const currencyId = currency['id'];
-            if (currencyId in response) {
+            const free = this.safeString(response, currencyId);
+            if (free !== undefined) {
                 const account = this.account();
                 const reserved = currencyId + '_reserved';
-                account['free'] = this.safeString(response, currencyId);
+                account['free'] = free;
                 account['used'] = this.safeString(response, reserved);
                 result[code] = account;
             }
@@ -312,7 +313,7 @@ class coincheck extends coincheck$1["default"] {
         let status = 'ok';
         let updated = undefined;
         for (let i = 0; i < exchangeStatuses.length; i++) {
-            const exchangeStatus = exchangeStatuses[i];
+            const exchangeStatus = this.safeDict(exchangeStatuses, i);
             const rawStatus = this.safeString(exchangeStatus, 'status');
             if (updated === undefined) {
                 updated = this.safeTimestamp(exchangeStatus, 'timestamp');
@@ -365,7 +366,7 @@ class coincheck extends coincheck$1["default"] {
             market = this.market(symbol);
         }
         const response = await this.privateGetExchangeOrdersOpens(params);
-        const rawOrders = this.safeValue(response, 'orders', []);
+        const rawOrders = this.safeList(response, 'orders', []);
         const parsedOrders = this.parseOrders(rawOrders, market, since, limit);
         const result = [];
         for (let i = 0; i < parsedOrders.length; i++) {
@@ -549,24 +550,25 @@ class coincheck extends coincheck$1["default"] {
         const id = this.safeString(trade, 'id');
         const priceString = this.safeString(trade, 'rate');
         const marketId = this.safeString(trade, 'pair');
-        market = this.safeMarket(marketId, market, '_');
-        const baseId = market['baseId'];
-        const quoteId = market['quoteId'];
-        const symbol = market['symbol'];
+        const marketResolved = this.safeMarket(marketId, market, '_');
+        const baseId = marketResolved['baseId'];
+        const quoteId = marketResolved['quoteId'];
+        const symbol = marketResolved['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;
         let side = undefined;
         let fee = undefined;
         let orderId = undefined;
-        if ('liquidity' in trade) {
-            if (this.safeString(trade, 'liquidity') === 'T') {
+        const liquidity = this.safeString(trade, 'liquidity');
+        if (liquidity !== undefined) {
+            if (liquidity === 'T') {
                 takerOrMaker = 'taker';
             }
-            else if (this.safeString(trade, 'liquidity') === 'M') {
+            else if (liquidity === 'M') {
                 takerOrMaker = 'maker';
             }
-            const funds = this.safeValue(trade, 'funds', {});
+            const funds = this.safeDict(trade, 'funds', {});
             amountString = this.safeString(funds, baseId);
             costString = this.safeString(funds, quoteId);
             fee = {
@@ -594,7 +596,7 @@ class coincheck extends coincheck$1["default"] {
             'amount': amountString,
             'cost': costString,
             'fee': fee,
-        }, market);
+        }, marketResolved);
     }
     /**
      * @method
@@ -710,7 +712,7 @@ class coincheck extends coincheck$1["default"] {
         //         }
         //     }
         //
-        const fees = this.safeValue(response, 'exchange_fees', {});
+        const fees = this.safeDict(response, 'exchange_fees', {});
         const result = {};
         const symbols = this.symbols;
         if (symbols === undefined) {
@@ -719,7 +721,7 @@ class coincheck extends coincheck$1["default"] {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             const market = this.market(symbol);
-            const fee = this.safeValue(fees, market['id'], {});
+            const fee = this.safeDict(fees, market['id'], {});
             result[symbol] = {
                 'info': fee,
                 'symbol': symbol,
@@ -759,7 +761,6 @@ class coincheck extends coincheck$1["default"] {
             }
             else {
                 const cost = this.safeNumber(params, 'cost');
-                params = this.omit(params, 'cost');
                 if (cost !== undefined) {
                     throw new errors.ArgumentsRequired(this.id + ' createOrder() : you should use "cost" parameter instead of "amount" argument to create market buy orders');
                 }
@@ -771,7 +772,7 @@ class coincheck extends coincheck$1["default"] {
             request['rate'] = price;
             request['amount'] = amount;
         }
-        const response = await this.privatePostExchangeOrders(this.extend(request, params));
+        const response = await this.privatePostExchangeOrders(this.extend(request, this.omit(params, 'cost')));
         const id = this.safeString(response, 'id');
         return this.safeOrder({
             'id': id,
@@ -982,11 +983,19 @@ class coincheck extends coincheck$1["default"] {
     nonce() {
         return this.milliseconds();
     }
-    sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api']['rest'] + '/' + this.implodeParams(path, params);
+    sign(path, api = ['public'], method = 'GET', params = {}) {
+        const apiName = api[0];
+        let bodySigned = undefined;
+        let headersSigned = undefined;
+        const apiUrl = this.safeString(this.urls['api'], 'rest');
+        if (apiUrl === undefined) {
+            throw new errors.ExchangeError(this.id + ' sign() has no API URL for this endpoint');
+        }
+        let url = apiUrl + '/' + this.implodeParams(path, params);
         const query = this.omit(params, this.extractParams(path));
-        if (api === 'public') {
-            if (Object.keys(query).length) {
+        const hasQuery = Object.keys(query).length > 0;
+        if (apiName === 'public') {
+            if (hasQuery) {
                 url += '?' + this.urlencode(query);
             }
         }
@@ -995,27 +1004,29 @@ class coincheck extends coincheck$1["default"] {
             const nonce = this.nonce().toString();
             let queryString = '';
             if (method === 'GET') {
-                if (Object.keys(query).length) {
+                if (hasQuery) {
                     url += '?' + this.urlencode(this.keysort(query));
                 }
             }
             else {
-                if (Object.keys(query).length) {
-                    body = this.urlencode(this.keysort(query));
-                    queryString = body;
+                if (hasQuery) {
+                    queryString = this.urlencode(this.keysort(query));
+                    bodySigned = queryString;
                 }
             }
             const auth = nonce + url + queryString;
-            headers = {
+            headersSigned = {
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'ACCESS-KEY': this.apiKey,
                 'ACCESS-NONCE': nonce,
                 'ACCESS-SIGNATURE': this.hmac(this.encode(auth), this.encode(this.secret), sha2_js.sha256),
             };
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        const headersResolved = headersSigned;
+        const bodyResolved = bodySigned;
+        return { 'url': url, 'method': method, 'body': bodyResolved, 'headers': headersResolved };
     }
-    handleErrors(httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
+    handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {
             return undefined;
         }
@@ -1029,7 +1040,7 @@ class coincheck extends coincheck$1["default"] {
             const feedback = this.id + ' ' + this.json(response);
             this.throwExactlyMatchedException(this.exceptions['exact'], error, feedback);
             this.throwBroadlyMatchedException(this.exceptions['broad'], body, feedback);
-            throw new errors.ExchangeError(this.id + ' ' + this.json(response));
+            throw new errors.ExchangeError(feedback);
         }
         return undefined;
     }

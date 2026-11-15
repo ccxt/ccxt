@@ -50,9 +50,9 @@ def div_mod(n: int, m: int, p: int) -> int:
     """
     Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n
     """
-    a, b, c = igcdex(m, p)
-    assert c == 1
-    return (n * a) % p
+    # pow(m, -1, p) is the C-implemented modular inverse; it raises
+    # ValueError when gcd(m, p) != 1, matching the former assertion
+    return (n * pow(m, -1, p)) % p
 
 def div_ceil(x, y):
     assert isinstance(x, int) and isinstance(y, int)
@@ -90,13 +90,72 @@ def ec_double(point: ECPoint, alpha: int, p: int) -> ECPoint:
     return x, y
 
 
+def _jacobian_double(point, alpha: int, p: int):
+    """
+    Doubles a point given in Jacobian coordinates (X, Y, Z) where x = X / Z^2 and y = Y / Z^3.
+    """
+    x, y, z = point
+    if y == 0:
+        return (0, 1, 0)
+    ysq = (y * y) % p
+    s = (4 * x * ysq) % p
+    zsq = (z * z) % p
+    m = (3 * x * x + alpha * zsq * zsq) % p
+    nx = (m * m - 2 * s) % p
+    ny = (m * (s - nx) - 8 * ysq * ysq) % p
+    nz = (2 * y * z) % p
+    return (nx, ny, nz)
+
+
+def _jacobian_add(point1, point2, alpha: int, p: int):
+    """
+    Adds two points given in Jacobian coordinates, handling the identity (Z == 0) and doubling.
+    """
+    if point1[2] == 0:
+        return point2
+    if point2[2] == 0:
+        return point1
+    x1, y1, z1 = point1
+    x2, y2, z2 = point2
+    z1sq = (z1 * z1) % p
+    z2sq = (z2 * z2) % p
+    u1 = (x1 * z2sq) % p
+    u2 = (x2 * z1sq) % p
+    s1 = (y1 * z2sq * z2) % p
+    s2 = (y2 * z1sq * z1) % p
+    if u1 == u2:
+        if s1 != s2:
+            return (0, 1, 0)
+        return _jacobian_double(point1, alpha, p)
+    h = (u2 - u1) % p
+    r = (s2 - s1) % p
+    hsq = (h * h) % p
+    hcu = (hsq * h) % p
+    u1hsq = (u1 * hsq) % p
+    nx = (r * r - hcu - 2 * u1hsq) % p
+    ny = (r * (u1hsq - nx) - s1 * hcu) % p
+    nz = (h * z1 * z2) % p
+    return (nx, ny, nz)
+
+
 def ec_mult(m: int, point: ECPoint, alpha: int, p: int) -> ECPoint:
     """
     Multiplies by m a point on the elliptic curve with equation y^2 = x^3 + alpha*x + beta mod p.
     Assumes the point is given in affine form (x, y) and that 0 < m < order(point).
+    Runs double-and-add in Jacobian coordinates so only one modular inversion is needed.
     """
     if m == 1:
         return point
-    if m % 2 == 0:
-        return ec_mult(m // 2, ec_double(point, alpha, p), alpha, p)
-    return ec_add(ec_mult(m - 1, point, alpha, p), point, p)
+    result = (0, 1, 0)
+    addend = (point[0], point[1], 1)
+    while m:
+        if m & 1:
+            result = _jacobian_add(result, addend, alpha, p)
+        m >>= 1
+        if m:
+            addend = _jacobian_double(addend, alpha, p)
+    x, y, z = result
+    assert z != 0, "ec_mult evaluated to the point at infinity"
+    z_inv = pow(z, -1, p)
+    z_inv_sq = (z_inv * z_inv) % p
+    return (x * z_inv_sq) % p, (y * z_inv_sq * z_inv) % p

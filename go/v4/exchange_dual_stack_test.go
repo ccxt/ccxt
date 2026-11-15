@@ -15,7 +15,7 @@ import (
 // constructors do (InitParent wires up the HTTP client transport).
 func newTestExchange() *Exchange {
 	ex := &Exchange{}
-	ex.InitParent(map[string]any{}, ex.Describe().(map[string]any), ex)
+	ex.InitParent(map[string]any{}, ex.Describe(), ex)
 	return ex
 }
 

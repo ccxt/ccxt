@@ -77,7 +77,7 @@ const mainRules = {
     'no-nested-ternary': 'error',
     'eqeqeq': 'error',
     'quotes': ['error', 'single', { 'avoidEscape': true }],
-    'no-unused-vars': ['error', { 'argsIgnorePattern': '^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject|queries|outcome|outcomes|dictionaryOrList|defaultValue|keys|key1|key2|key|allowEmpty|sameTypeOnly|sameSubTypeOnly)', 'caughtErrors': 'none' }],
+    'no-unused-vars': ['error', { 'argsIgnorePattern': '^(exchange|headers|body|account|info|symbol|price|tag|side|since|name|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|reason|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client|nonce|orderbook|bookside|deltas|delta|countOrIdKey|amount|fromCurrency|toCurrency|rawCurrency|error|reject|queries|outcome|outcomes|dictionaryOrList|defaultValue|keys|key1|key2|key|allowEmpty|sameTypeOnly|sameSubTypeOnly)', 'caughtErrors': 'none' }],
     'new-parens': 'error',
     'new-cap': ['error', {
         'capIsNewExceptionPattern': '^Future$|^globalThis\\.',
@@ -248,6 +248,28 @@ export default [
         rules: mainRules,
     },
     {
+        // Hand-written utilities use native JS idioms, overloads and browser fallbacks.
+        // Keep the recommended correctness checks, without exchange style/typed rules.
+        files: ['ts/src/base/functions/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        rules: {
+            ...js.configs.recommended.rules,
+            'no-undef': 'off', // TypeScript checks names, including type-only references.
+            'no-redeclare': 'off', // TypeScript overload declarations are intentional.
+            'no-unused-vars': 'off', // Do not impose a new unused-argument policy here.
+            'no-empty': ['error', { 'allowEmptyCatch': true }],
+        },
+    },
+    {
+        // Generated implicit-API files: the generator emits the exchange style, so hold it to it.
+        files: ['ts/src/abstract/**/*.ts'],
+        languageOptions: sharedLanguageOptions,
+        plugins: sharedPlugins,
+        settings: sharedSettings,
+        rules: mainRulesWithoutJsdoc,
+    },
+    {
         files: ['ts/src/test/**/*.ts'],
         languageOptions: sharedLanguageOptions,
         plugins: sharedPlugins,
@@ -322,6 +344,13 @@ export default [
                 { 'blankLine': 'always', 'prev': '*', 'next': 'export' },
                 { 'blankLine': 'always', 'prev': '*', 'next': 'function' },
             ],
+        },
+    },
+    {
+        // exchange sources must not reassign parameters (write new values to fresh typed locals)
+        files: ['ts/src/*.ts', 'ts/src/pro/*.ts', 'ts/src/base/Exchange.ts', 'ts/src/base/PredictionExchange.ts'],
+        rules: {
+            'no-param-reassign': ['error', { 'props': false }],
         },
     },
 ];

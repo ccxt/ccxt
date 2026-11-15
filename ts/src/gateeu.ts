@@ -1,12 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import gate from './gate.js';
+import gate from './abstract/gateeu.js';
+import type { Dict } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
 export default class gateeu extends gate {
-    override describe (): any {
+    override describe (): Dict {
         return this.deepExtend (super.describe (), {
             'id': 'gateeu',
             'name': 'Gate EU',
@@ -50,6 +51,9 @@ export default class gateeu extends gate {
             'options': {
                 'fetchMarkets': {
                     'types': [ 'spot' ],
+                },
+                'fetchOrderBook': {
+                    'maxSpotLimit': 100, // this venue returns an empty book above 100
                 },
                 'mica': true,
             },

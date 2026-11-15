@@ -65,13 +65,14 @@ class mudrex extends mudrex$1["default"] {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'ticker:' + symbol;
+        const symbolValue = market['symbol'];
+        const messageHash = 'ticker:' + symbolValue;
         const url = this.urls['api']['ws'];
         this.setBrokerHeaders();
-        const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-        const assetId = baseIdString.toLowerCase() + quoteIdString.toLowerCase();
+        const baseIdString = this.safeString(market, 'baseId', '');
+        const quoteIdString = this.safeString(market, 'quoteId', '');
+        let assetId = baseIdString.toLowerCase();
+        assetId = assetId + quoteIdString.toLowerCase();
         const subscribe = {
             'id': this.requestId(),
             'method': 'SUBSCRIBE',
@@ -85,16 +86,18 @@ class mudrex extends mudrex$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         const messageHashes = [];
         const assets = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const market = this.market(symbols[i]);
+        if (symbolsNormalized !== undefined) {
+            for (let i = 0; i < symbolsNormalized.length; i++) {
+                const market = this.market(symbolsNormalized[i]);
                 messageHashes.push('ticker:' + market['symbol']);
-                const baseIdString = (market['baseId'] !== undefined) ? market['baseId'] : '';
-                const quoteIdString = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
-                assets.push(baseIdString.toLowerCase() + quoteIdString.toLowerCase());
+                const baseIdString = this.safeString(market, 'baseId', '');
+                const quoteIdString = this.safeString(market, 'quoteId', '');
+                let assetId = baseIdString.toLowerCase();
+                assetId = assetId + quoteIdString.toLowerCase();
+                assets.push(assetId);
             }
         }
         const url = this.urls['api']['ws'];
@@ -109,19 +112,22 @@ class mudrex extends mudrex$1["default"] {
         const ticker = await this.watchMultiple(url, messageHashes, request, messageHashes);
         if (this.newUpdates) {
             const result = {};
-            result[ticker['symbol']] = ticker;
+            const tickerSymbol = this.safeString(ticker, 'symbol');
+            if (tickerSymbol !== undefined) {
+                result[tickerSymbol] = ticker;
+            }
             return result;
         }
-        return this.filterByArrayTickers(this.tickers, 'symbol', symbols);
+        return this.filterByArrayTickers(this.tickers, 'symbol', symbolsNormalized);
     }
     async watchOHLCV(symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = market['symbol'];
         const priceType = this.safeString(params, 'price');
-        params = this.omit(params, 'price');
+        const paramsOmitted = this.omit(params, 'price');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         if (interval !== '1s' && interval !== '1m') {
             throw new errors.NotSupported(this.id + ' watchOHLCV() supports 1s and 1m timeframes only');
@@ -130,8 +136,8 @@ class mudrex extends mudrex$1["default"] {
         if (priceType === 'mark') {
             prefix = 'markKline';
         }
-        const streamBaseId = (market['baseId'] !== undefined) ? market['baseId'] : '';
-        const streamQuoteId = (market['quoteId'] !== undefined) ? market['quoteId'] : '';
+        const streamBaseId = this.safeString(market, 'baseId', '');
+        const streamQuoteId = this.safeString(market, 'quoteId', '');
         const stream = prefix + '@' + interval + '@' + streamBaseId.toLowerCase() + streamQuoteId.toLowerCase();
         const messageHash = stream;
         const url = this.urls['api']['ws'];
@@ -141,12 +147,13 @@ class mudrex extends mudrex$1["default"] {
             'method': 'SUBSCRIBE',
             'params': [stream],
         };
-        const request = this.extend(subscribe, params);
+        const request = this.extend(subscribe, paramsOmitted);
         const ohlcv = await this.watch(url, messageHash, request, messageHash);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleMessage(client, message) {
         if (this.safeString(message, 'method') === 'PONG') {
@@ -170,7 +177,7 @@ class mudrex extends mudrex$1["default"] {
     handleErrorMessage(client, message) {
         const error = this.safeDict(message, 'error', {});
         const code = this.safeString(error, 'code');
-        const msg = this.safeString(error, 'msg');
+        const msg = this.safeString(error, 'msg', '');
         const feedback = this.id + ' ' + msg;
         if (code === '429') {
             throw new errors.RateLimitExceeded(feedback);
@@ -200,8 +207,8 @@ class mudrex extends mudrex$1["default"] {
             this.safeNumber(data, 'c'),
             this.safeNumber(data, 'v'),
         ];
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
-        let stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
+        let stored = this.safeValue(this.safeDict(this.ohlcvs, symbol), tf);
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
             stored = new Cache.ArrayCacheByTimestamp(limit);

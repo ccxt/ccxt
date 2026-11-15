@@ -369,7 +369,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const parsedEvent = this.parseEvent(rawEvent);
             const eventSlug = this.safeString(rawEvent, 'slug');
-            if (eventSlug) {
+            if ((eventSlug !== undefined) && (eventSlug !== '')) {
                 const eventKey = this.shortenSlug(eventSlug);
                 eventsDict[eventKey] = parsedEvent;
             }
@@ -428,11 +428,11 @@ class polymarket extends polymarket$1["default"] {
             const firstEventsLength = firstEvents.length;
             const pagination = this.safeDict(first, 'pagination', {});
             const totalResults = this.safeInteger(pagination, 'totalResults', firstEventsLength);
-            let totalPages = Math.ceil(totalResults / pageSize);
+            let totalPages = this.parseToInt(Math.ceil(totalResults / pageSize));
             // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if (resultLimit !== undefined) {
-                const limitPages = Math.ceil(resultLimit / pageSize);
+                const limitPages = this.parseToInt(Math.ceil(resultLimit / pageSize));
                 if (limitPages < totalPages) {
                     totalPages = limitPages;
                 }
@@ -468,7 +468,7 @@ class polymarket extends polymarket$1["default"] {
             for (let ei = 0; ei < allEvents.length; ei++) {
                 const rawEvent = allEvents[ei];
                 const eventId = this.safeString(rawEvent, 'id');
-                if (eventId && !(eventId in seen)) {
+                if ((eventId !== undefined && eventId !== '') && !(eventId in seen)) {
                     seen[eventId] = true;
                     rawEvents.push(rawEvent);
                 }
@@ -591,7 +591,7 @@ class polymarket extends polymarket$1["default"] {
         }
         if (firstPageLength >= pageSize) {
             const offsets = [];
-            for (let p = 1; p < maxPages; p++) {
+            for (let p = 1; maxPages > p; p++) {
                 offsets.push(p * pageSize);
             }
             const restPromises = [];
@@ -602,7 +602,7 @@ class polymarket extends polymarket$1["default"] {
             }
             const restPages = await Promise.all(restPromises);
             for (let ri = 0; ri < restPages.length; ri++) {
-                const page = (restPages[ri] !== undefined) ? restPages[ri] : [];
+                const page = this.safeList(restPages, ri, []);
                 const pageLength = page.length;
                 for (let pi = 0; pi < pageLength; pi++) {
                     allRawEvents.push(page[pi]);
@@ -713,7 +713,7 @@ class polymarket extends polymarket$1["default"] {
             const active = this.safeBool(market, 'active', false);
             const closed = this.safeBool(market, 'closed', false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
-            const marketResolved = closed || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
+            const marketResolved = (closed) || (this.safeStringLower(market, 'umaResolutionStatus') === 'resolved');
             let resolvedOutcome = undefined;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             const tickSize = this.safeNumber2(market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
@@ -741,13 +741,13 @@ class polymarket extends polymarket$1["default"] {
             if (parsedPrices !== undefined) {
                 parsedPricesLength = parsedPrices.length;
             }
-            if (parsedOutcomes && (parsedOutcomesLength !== undefined)) {
+            if ((parsedOutcomes !== undefined) && (parsedOutcomesLength !== undefined)) {
                 outcomeLabels = parsedOutcomes;
             }
-            if (parsedTokenIds && (parsedTokenIdsLength !== undefined)) {
+            if ((parsedTokenIds !== undefined) && (parsedTokenIdsLength !== undefined)) {
                 clobTokenIds = parsedTokenIds;
             }
-            if (parsedPrices && (parsedPricesLength !== undefined)) {
+            if ((parsedPrices !== undefined) && (parsedPricesLength !== undefined)) {
                 outcomePrices = parsedPrices;
             }
             const outcomeLabelsLength = outcomeLabels.length;
@@ -763,7 +763,7 @@ class polymarket extends polymarket$1["default"] {
                 const outcomeLabel = outcomeLabels[oi];
                 const clobTokenId = clobTokenIds[oi];
                 const outcomePrice = this.safeNumber(outcomePrices, oi);
-                if (!clobTokenId) {
+                if ((clobTokenId === undefined) || (clobTokenId === '')) {
                     continue;
                 }
                 const outcomeHandle = this.slugToOutcomeSymbol(eventSlug, marketSlug, outcomeLabel);
@@ -779,7 +779,7 @@ class polymarket extends polymarket$1["default"] {
                         settleFractionRaw = 1;
                         resolvedOutcome = outcomeHandle;
                     }
-                    else if (outcomePrice <= 0.01) {
+                    else if (0.01 >= outcomePrice) {
                         winnerRaw = false;
                         settleFractionRaw = 0;
                     }
@@ -794,7 +794,7 @@ class polymarket extends polymarket$1["default"] {
                     'market': marketSymbol,
                     'label': outcomeLabel,
                     'price': outcomePrice,
-                    'active': active && !closed,
+                    'active': (active) && (!closed),
                     'winner': winner,
                     'settleFraction': settleFraction,
                     // carry the order precision so createOrder needs no extra request
@@ -829,14 +829,14 @@ class polymarket extends polymarket$1["default"] {
                 'future': false,
                 'option': false,
                 'prediction': true,
-                'active': active && !closed,
+                'active': (active) && (!closed),
                 'resolved': marketResolved,
                 'resolvedOutcome': marketResolvedOutcome,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'expiry': endDate ? this.parse8601(endDate) : undefined,
+                'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601(endDate) : undefined,
                 'expiryDatetime': endDate,
                 'strike': undefined,
                 'optionType': undefined,
@@ -898,9 +898,8 @@ class polymarket extends polymarket$1["default"] {
                     this.markets[mkt['market']] = mkt;
                 }
                 this.populateOutcomes();
-                const byId = this.safeValue(this.outcomes_by_id, outcomeSymbol);
-                if (byId !== undefined) {
-                    return byId;
+                if (this.safeDict(this.outcomes_by_id, outcomeSymbol) !== undefined) {
+                    return this.safeDict(this.outcomes_by_id, outcomeSymbol);
                 }
             }
         }
@@ -980,7 +979,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const promises = [
             this.clobPublicGetMidpoint({ 'token_id': tokenId }),
             this.clobPublicGetBook({ 'token_id': tokenId }),
@@ -1170,7 +1169,7 @@ class polymarket extends polymarket$1["default"] {
             last = mid;
         }
         const outcome = this.safeOutcomeSymbol(undefined, market);
-        const timestamp = this.safeInteger(bookData, 'timestamp', this.milliseconds());
+        const timestamp = this.safeInteger(bookData, 'timestamp');
         let quoteVolume = undefined;
         if (market !== undefined) {
             quoteVolume = this.safeNumber2(market['info'], 'volume24hr', 'volume');
@@ -1216,7 +1215,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const request = {
             'token_id': tokenId,
         };
@@ -1264,7 +1263,7 @@ class polymarket extends polymarket$1["default"] {
             throw new errors.BadRequest(this.id + ' fetchOHLCV() unsupported timeframe ' + timeframe + ', supported timeframes are ' + supportedKeys.join(', '));
         }
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds();
         let startS;
@@ -1313,14 +1312,14 @@ class polymarket extends polymarket$1["default"] {
         const resolutionMs = fidelityMin * 60 * 1000;
         const buckets = {};
         for (let i = 0; i < history.length; i++) {
-            const item = history[i];
+            const item = this.safeDict(history, i);
             const t = this.safeInteger(item, 't');
             const price = this.safeNumber(item, 'p');
             if ((t === undefined) || (price === undefined)) {
                 continue;
             }
             const rawMs = t * 1000;
-            const snappedMs = Math.floor(rawMs / resolutionMs) * resolutionMs;
+            const snappedMs = this.parseToInt(rawMs / resolutionMs) * resolutionMs;
             // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
             // rather than fabricating a 0, probing s/v in case the field ever appears
             let vol = this.safeNumber(item, 's');
@@ -1332,7 +1331,7 @@ class polymarket extends polymarket$1["default"] {
                 buckets[bucketKey] = [snappedMs, price, price, price, price, vol];
             }
             else {
-                const candle = buckets[bucketKey];
+                const candle = this.safeList(buckets, bucketKey, []);
                 candle[2] = Math.max(candle[2], price); // high
                 candle[3] = Math.min(candle[3], price); // low
                 candle[4] = price; // close (last tick wins)
@@ -1379,7 +1378,8 @@ class polymarket extends polymarket$1["default"] {
         //
         //     1781273248
         //
-        return this.parseToInt(response) * 1000;
+        const result = { 'serverTime': response };
+        return this.safeTimestamp(result, 'serverTime');
     }
     /**
      * @method
@@ -1431,15 +1431,14 @@ class polymarket extends polymarket$1["default"] {
         //
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
-        const timestamp = this.milliseconds();
         const openInterest = this.safeOpenInterest({
             'symbol': this.safeOutcomeSymbol(undefined, market),
             'openInterestAmount': undefined,
             'openInterestValue': this.safeNumber(interest, 'value'),
             'baseVolume': undefined,
             'quoteVolume': undefined,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'info': interest,
         }, market);
         openInterest['outcome'] = this.safeOutcomeSymbol(undefined, market);
@@ -1491,7 +1490,7 @@ class polymarket extends polymarket$1["default"] {
      */
     async fetchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
         const outcomeInfo = this.safeDict(outcomeObj, 'info', {});
         const conditionId = this.safeString(outcomeInfo, 'conditionId');
         if (conditionId === undefined) {
@@ -1535,7 +1534,7 @@ class polymarket extends polymarket$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataTrades(this.extend(request, params));
         const rawTrades = Array.isArray(response) ? response : this.safeList(response, 'data', []);
@@ -1564,7 +1563,8 @@ class polymarket extends polymarket$1["default"] {
             let belongs = (this.safeString(trade, 'order') === id) || (this.safeString(info, 'taker_order_id') === id);
             const makerOrders = this.safeList(info, 'maker_orders', []);
             for (let j = 0; j < makerOrders.length; j++) {
-                if (this.safeString(makerOrders[j], 'order_id') === id) {
+                const makerOrder = this.safeDict(makerOrders, j);
+                if (this.safeString(makerOrder, 'order_id') === id) {
                     belongs = true;
                 }
             }
@@ -1594,12 +1594,24 @@ class polymarket extends polymarket$1["default"] {
         const price = this.safeNumber(trade, 'price');
         const amount = this.safeNumber(trade, 'size');
         const rawSide = this.safeStringLower(trade, 'side');
-        const side = (rawSide === 'buy' || rawSide === 'sell') ? rawSide : undefined;
+        let side = undefined;
+        if (rawSide === 'buy' || rawSide === 'sell') {
+            side = rawSide;
+        }
         const assetId = this.safeString2(trade, 'asset', 'asset_id');
-        const mkt = (market !== undefined) ? market : this.safeOutcome(assetId);
+        let mkt = undefined;
+        if (market !== undefined) {
+            mkt = market;
+        }
+        else {
+            mkt = this.safeOutcome(assetId);
+        }
         const outcome = this.safeOutcomeSymbol(undefined, mkt);
         const rawTakerOrMaker = this.safeStringLower(trade, 'trader_side');
-        const takerOrMaker = (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') ? rawTakerOrMaker : undefined;
+        let takerOrMaker = undefined;
+        if (rawTakerOrMaker === 'taker' || rawTakerOrMaker === 'maker') {
+            takerOrMaker = rawTakerOrMaker;
+        }
         const feeRateBps = this.safeString(trade, 'fee_rate_bps');
         let fee = undefined;
         if (feeRateBps !== undefined) {
@@ -1698,10 +1710,10 @@ class polymarket extends polymarket$1["default"] {
         const positions = this.safeList(response, 'data', []);
         // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
         // then filter by the requested outcomes' token ids ourselves
-        const parsed = this.parsePredictionPositions(positions);
         if (outcomesLength === 0) {
-            return parsed;
+            return this.parsePredictionPositions(positions);
         }
+        const parsed = this.parsePredictionPositions(positions);
         const wantedIds = {};
         if (outcomes === undefined) {
             throw new errors.ExchangeError(this.id + ' fetchPositions() missing outcomes');
@@ -1804,7 +1816,7 @@ class polymarket extends polymarket$1["default"] {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             outcomeObj = await this.loadOutcome(outcome);
-            request['asset_id'] = outcomeObj['outcomeId'];
+            request['asset_id'] = this.safeString(outcomeObj, 'outcomeId');
         }
         const response = await this.clobPrivateGetDataOrders(this.extend(request, params));
         const orders = this.safeList(response, 'data', []);
@@ -1926,7 +1938,7 @@ class polymarket extends polymarket$1["default"] {
      * @param {string} [params.funder] the wallet that holds the USDC collateral; defaults to options.funder or the signing address
      * @param {string} [params.tickSize] the market tick size ('0.1'/'0.01'/'0.001'/'0.0001'); read from the outcome when omitted
      * @param {bool} [params.negRisk] whether the market is a neg-risk market; read from the outcome when omitted
-     * @param {string} [params.salt] order salt; defaults to the current time in ms (pin it for idempotent retries)
+     * @param {string} [params.salt] order salt; defaults to a strictly-increasing millisecond value (pin it for idempotent retries)
      * @param {string} [params.timestamp] order timestamp; defaults to the current time in ms
      * @param {string} [params.expiration] unix-seconds expiration for GTD orders; defaults to '0' (no expiry)
      * @param {string} [params.builderCode] builder wallet address or full bytes32 builder code attached to the order for attribution (zero fee — tracking only); defaults to options.builder
@@ -1958,7 +1970,7 @@ class polymarket extends polymarket$1["default"] {
         // requested outcomes first (one gamma request for all uncached token ids)
         const orderOutcomes = [];
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict(orders, i);
             const __oc = this.safeString(o, 'outcome');
             if (__oc !== undefined) {
                 orderOutcomes.push(__oc);
@@ -1968,13 +1980,13 @@ class polymarket extends polymarket$1["default"] {
         const bodies = [];
         const outcomes = [];
         const requests = [];
-        const batchSalt = this.milliseconds();
         for (let i = 0; i < orders.length; i++) {
-            const o = orders[i];
+            const o = this.safeDict(orders, i);
             let orderParams = this.safeDict(o, 'params', {});
             if (this.safeString(orderParams, 'salt') === undefined) {
-                // a distinct salt per order so two identical orders in one batch don't collide
-                orderParams = this.extend(orderParams, { 'salt': this.numberToString(this.sum(batchSalt, i)) });
+                // a distinct salt per order so two identical orders don't collide, within a batch or across calls
+                const orderSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+                orderParams = this.extend(orderParams, { 'salt': this.numberToString(orderSalt) });
             }
             const built = this.buildClobOrderBody(this.safeString(o, 'outcome'), this.safeString(o, 'type'), this.safeString(o, 'side'), this.safeNumber(o, 'amount'), this.safeNumber(o, 'price'), orderParams);
             bodies.push(this.safeDict(built, 'body', {}));
@@ -1986,9 +1998,10 @@ class polymarket extends polymarket$1["default"] {
         if (Array.isArray(response)) {
             for (let i = 0; i < response.length; i++) {
                 // request echo first so the response's real orderID/status win on overlap
-                const enriched = this.extend(requests[i], response[i]);
+                const rawItem = response[i];
+                const enriched = this.extend(requests[i], rawItem);
                 const parsedItem = this.parsePredictionOrder(enriched, outcomes[i]);
-                parsedItem['info'] = response[i]; // keep info the raw exchange response
+                parsedItem['info'] = rawItem; // keep info the raw exchange response
                 result.push(parsedItem);
             }
         }
@@ -2010,7 +2023,7 @@ class polymarket extends polymarket$1["default"] {
         // dict, which throws a TypeError
         // outcome () validates the outcome against the loaded outcomes (built from events or markets)
         const outcomeObj = this.outcome(outcome);
-        const tokenId = outcomeObj['outcomeId'];
+        const tokenId = this.safeString(outcomeObj, 'outcomeId');
         const sideStr = side.toUpperCase();
         const isMarket = (type === 'market');
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
@@ -2035,13 +2048,14 @@ class polymarket extends polymarket$1["default"] {
         if (orderTypeStr === undefined) {
             orderTypeStr = isMarket ? 'FOK' : 'GTC';
         }
-        if (price === undefined) {
+        let priceResolved = price;
+        if (priceResolved === undefined) {
             if (!isMarket) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() requires a price for limit orders');
             }
             // market order without an explicit price: use the outcome's current price as the marketable reference
-            price = this.safeNumber(outcomeObj, 'price');
-            if (price === undefined) {
+            priceResolved = this.safeNumber(outcomeObj, 'price');
+            if (priceResolved === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' createOrder() could not determine a price from the outcome, pass an explicit price');
             }
         }
@@ -2057,15 +2071,16 @@ class polymarket extends polymarket$1["default"] {
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         const eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         const funder = this.ethChecksumAddress(this.safeString2(params, 'funder', 'maker', this.safeString(this.options, 'funder', this.walletAddress)));
-        // salt and timestamp default to the current time but can be pinned via params for idempotency
-        const salt = this.safeString(params, 'salt', this.numberToString(this.milliseconds()));
+        // the salt defaults to a strictly-increasing millisecond value and the timestamp to the current time; both can be pinned via params for idempotency
+        const defaultSalt = this.incrementingNonce(); // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
+        const salt = this.safeString(params, 'salt', this.numberToString(defaultSalt));
         const timestamp = this.safeString(params, 'timestamp', this.numberToString(this.milliseconds()));
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         const expiration = this.safeString(params, 'expiration', '0');
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         const cost = this.safeNumber(params, 'cost');
         const rest = this.omit(params, ['signatureType', 'signature_type', 'funder', 'maker', 'orderType', 'timeInForce', 'postOnly', 'tickSize', 'negRisk', 'salt', 'timestamp', 'expiration', 'cost', 'builder', 'builderCode']);
-        const amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
+        const amounts = this.polymarketOrderRawAmounts(sideStr, amount, priceResolved, tickSize, cost);
         const makerAmount = this.safeString(amounts, 'makerAmount');
         const takerAmount = this.safeString(amounts, 'takerAmount');
         const sideInt = (sideStr === 'BUY') ? 0 : 1;
@@ -2077,7 +2092,7 @@ class polymarket extends polymarket$1["default"] {
         const builderRaw = this.safeStringLower2(params, 'builder', 'builderCode', this.safeStringLower(this.options, 'builder'));
         let builderBytes32 = bytes32Zero;
         if (builderRaw !== undefined) {
-            let builderHex = this.remove0xPrefix(builderRaw);
+            const builderHex = this.remove0xPrefix(builderRaw);
             if (builderHex.length <= 40) {
                 const builderFeeEnabled = this.safeBool(this.options, 'builderFee', true);
                 let feeRate = 0;
@@ -2086,20 +2101,23 @@ class polymarket extends polymarket$1["default"] {
                 }
                 let feeHex = this.intToBase16(feeRate);
                 feeHex = feeHex.padStart(24, '0');
-                let addressHex = builderHex;
-                addressHex = addressHex.padStart(40, '0');
-                builderHex = feeHex + addressHex;
+                const addressHex = builderHex.padStart(40, '0');
+                const packedHex = feeHex + addressHex;
+                builderBytes32 = '0x' + packedHex;
             }
             else {
-                builderHex = builderHex.padStart(64, '0');
+                const paddedHex = builderHex.padStart(64, '0');
+                builderBytes32 = '0x' + paddedHex;
             }
-            builderBytes32 = '0x' + builderHex;
         }
         // POLY_1271 (type 3): the order signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
         // still produces the signature and is checked on-chain as the wallet owner). Otherwise signer = EOA.
         const maker = funder;
-        const signer = (signatureType === 3) ? funder : eoa;
+        let signer = eoa;
+        if (signatureType === 3) {
+            signer = funder;
+        }
         const message = {
             'salt': salt,
             'maker': maker,
@@ -2115,7 +2133,10 @@ class polymarket extends polymarket$1["default"] {
         };
         const exchangeV2 = this.safeString(this.options, 'exchangeAddress', '0xE111180000d2663C0091e4f400237545B87B996B');
         const negRiskExchangeV2 = this.safeString(this.options, 'negRiskExchangeAddress', '0xe2222d279d744050d28e00520010520000310F59');
-        const exchangeAddress = negRisk ? negRiskExchangeV2 : exchangeV2;
+        let exchangeAddress = exchangeV2;
+        if (negRisk) {
+            exchangeAddress = negRiskExchangeV2;
+        }
         const domainVersion = this.safeString(this.options, 'ctfExchangeVersion', '2');
         const signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         const owner = this.safeString(this.options, 'l2ApiKey', this.apiKey);
@@ -2146,7 +2167,7 @@ class polymarket extends polymarket$1["default"] {
         // them and return a fully-populated order instead of undefined side/price/amount
         const requestEcho = {
             'side': sideStr,
-            'price': price,
+            'price': priceResolved,
             'asset_id': tokenId,
             'time_in_force': orderTypeStr,
             'postOnly': postOnly,
@@ -2284,7 +2305,7 @@ class polymarket extends polymarket$1["default"] {
         };
         const innerEncoded = this.ethEncodeStructuredData(orderDomain, { 'TypedDataSign': typedDataSignStruct, 'Order': orderStruct }, innerValue);
         const innerSigObj = this.signMessage(innerEncoded, this.privateKey);
-        const innerSig = this.remove0xPrefix(innerSigObj['r']) + this.remove0xPrefix(innerSigObj['s']) + this.intToBase16(innerSigObj['v']);
+        const innerSig = this.remove0xPrefix(this.safeString(innerSigObj, 'r')) + this.remove0xPrefix(this.safeString(innerSigObj, 's')) + this.intToBase16(innerSigObj['v']);
         // innerSig(65) || appDomainSep(32) || contentsHash(32) || contentsType || uint16_BE(len)
         // orderTypeString.length is used inline (not via a `const n = str.length;` statement) so the
         // php transpiler emits strlen() — the standalone statement form wrongly becomes count() (array)
@@ -2317,7 +2338,10 @@ class polymarket extends polymarket$1["default"] {
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
         const notCanceled = this.safeDict(response, 'not_canceled', {});
         const failureReason = this.safeString(notCanceled, id);
-        const status = (failureReason === undefined) ? 'canceled' : 'open';
+        let status = 'open';
+        if (failureReason === undefined) {
+            status = 'canceled';
+        }
         return this.safePredictionOrder({ 'id': id, 'status': status, 'info': response });
     }
     /**
@@ -2357,7 +2381,7 @@ class polymarket extends polymarket$1["default"] {
         if (outcome !== undefined) {
             // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
             const outcomeObj = await this.loadOutcome(outcome);
-            const request = { 'asset_id': outcomeObj['outcomeId'] };
+            const request = { 'asset_id': this.safeString(outcomeObj, 'outcomeId') };
             response = await this.clobPrivateDeleteCancelMarketOrders(this.extend(request, params));
         }
         else {
@@ -2422,10 +2446,10 @@ class polymarket extends polymarket$1["default"] {
             rawEvents = await this.fetchRawEventsList(rest);
         }
         // Parse and merge into class-level caches
-        if (!this.events) {
+        if (this.events === undefined) {
             this.events = {};
         }
-        if (!this.markets) {
+        if (this.markets === undefined) {
             this.markets = this.createSafeDictionary();
         }
         const result = [];
@@ -2573,7 +2597,7 @@ class polymarket extends polymarket$1["default"] {
         const closed = this.safeBool(rawEvent, 'closed', false);
         let active = undefined;
         if (rawActive !== undefined) {
-            active = rawActive && !closed;
+            active = (rawActive) && (!closed);
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -2591,7 +2615,7 @@ class polymarket extends polymarket$1["default"] {
         return this.extend({
             'id': this.safeString(rawEvent, 'id'),
             'slug': slug,
-            'event': slug ? this.shortenSlug(slug) : undefined,
+            'event': (slug !== undefined && slug !== '') ? this.shortenSlug(slug) : undefined,
             'title': this.safeString(rawEvent, 'title'),
             'tags': parsedTags,
             'markets': marketsList,
@@ -2630,7 +2654,7 @@ class polymarket extends polymarket$1["default"] {
         // the CLOB api returns { "error": "..." } (and createOrder variants use "errorMsg");
         // map the known messages so callers can distinguish a dead book or a rejected order
         // from a transport outage (the base otherwise maps a bare 404 to a retryable error)
-        if (!response) {
+        if (response === undefined) {
             return undefined;
         }
         const errorMessage = this.safeString2(response, 'error', 'errorMsg');
@@ -2641,23 +2665,25 @@ class polymarket extends polymarket$1["default"] {
         }
         return undefined;
     }
+    nonce() {
+        // the order salt is a millisecond timestamp; incrementingNonce () reads this and keeps salts
+        // unique when two identical orders are signed within the same millisecond
+        return this.milliseconds();
+    }
     /**
      * @ignore
      * @method
      * @name polymarket#sign
      * @description builds the request url and attaches HMAC-SHA256 authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} api the api group and access level
+     * @param {string[]} api the api group and access level
      * @param {string} method the http method
      * @param {object} params the request parameters
-     * @param {object} [headers] request headers
-     * @param {string} [body] the request body
      * @returns {object} a dict with url, method, body and headers
      */
-    sign(path, api = 'gamma', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        // api is either a string ('gamma') or array (['gamma', 'public'])
-        const apiGroup = typeof api === 'string' ? api : api[0];
-        const access = typeof api === 'string' ? 'public' : api[1];
+    sign(path, api = ['gamma'], method = 'GET', params = {}) {
+        const apiGroup = api[0];
+        const access = api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString(baseUrls, apiGroup, baseUrls['gamma']);
         let url = baseUrl + '/' + this.implodeParams(path, params);
@@ -2673,6 +2699,7 @@ class polymarket extends polymarket$1["default"] {
         if (!isArrayBody) {
             query = this.omit(params, this.extractParams(path));
         }
+        let bodyValue = undefined;
         if (method === 'GET') {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -2684,23 +2711,29 @@ class polymarket extends polymarket$1["default"] {
                     hasArrayParam = true;
                 }
             }
-            const querystring = hasArrayParam ? this.urlencodeWithArrayRepeat(query) : this.urlencode(query);
-            if (querystring) {
+            let querystring = undefined;
+            if (hasArrayParam) {
+                querystring = this.urlencodeWithArrayRepeat(query);
+            }
+            else {
+                querystring = this.urlencode(query);
+            }
+            if (querystring !== '') {
                 url += '?' + querystring;
             }
         }
         else if (isArrayBody) {
-            body = this.json(params);
+            bodyValue = this.json(params);
         }
         else {
             const queryKeys = Object.keys(query);
             const queryKeysLength = queryKeys.length;
             if (queryKeysLength > 0) {
-                body = this.json(query);
+                bodyValue = this.json(query);
             }
         }
-        const headerDefaults = (headers !== undefined) ? headers : {};
-        headers = this.extend({
+        const headerDefaults = {};
+        let headersValue = this.extend({
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, headerDefaults);
@@ -2721,7 +2754,7 @@ class polymarket extends polymarket$1["default"] {
                 const timestamp = this.seconds().toString();
                 const nonce = this.safeInteger(params, 'nonce', 0);
                 const l1signature = this.signClobAuth(address, timestamp, nonce);
-                headers = this.extend(headers, {
+                headersValue = this.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_SIGNATURE': l1signature,
                     'POLY_TIMESTAMP': timestamp,
@@ -2736,27 +2769,32 @@ class polymarket extends polymarket$1["default"] {
                 const secret = this.safeString(this.options, 'l2Secret', this.secret);
                 const passphrase = this.safeString(this.options, 'l2Passphrase', this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
-                const address = (this.privateKey !== undefined) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
+                let address = undefined;
+                if (this.privateKey !== undefined) {
+                    address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
+                }
+                else {
+                    address = this.walletAddress;
+                }
                 const timestamp = this.seconds().toString();
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 const requestPath = '/' + this.implodeParams(path, params);
                 let auth = timestamp + method + requestPath;
-                if (body !== undefined) {
-                    auth = auth + body;
+                if (bodyValue !== undefined) {
+                    auth = auth + bodyValue;
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
                 // in a chain, leaving the inner call as an (invalid) method call
-                let normalizedSecret = secret;
-                normalizedSecret = normalizedSecret.replaceAll('-', '+');
-                normalizedSecret = normalizedSecret.replaceAll('_', '/');
+                const plusSecret = secret.replaceAll('-', '+');
+                const normalizedSecret = plusSecret.replaceAll('_', '/');
                 const secretBytes = this.base64ToBinary(normalizedSecret);
                 let signature = this.hmac(this.encode(auth), secretBytes, sha2_js.sha256, 'base64');
                 // url-safe base64, preserving '=' padding (matches the reference client)
                 signature = signature.replaceAll('+', '-');
                 signature = signature.replaceAll('/', '_');
-                headers = this.extend(headers, {
+                headersValue = this.extend(headersValue, {
                     'POLY_ADDRESS': address,
                     'POLY_API_KEY': apiKey,
                     'POLY_PASSPHRASE': passphrase,
@@ -2765,7 +2803,7 @@ class polymarket extends polymarket$1["default"] {
                 });
             }
         }
-        return { 'url': url, 'method': method, 'body': body, 'headers': headers };
+        return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersValue };
     }
     hashMessage(message) {
         return '0x' + this.hash(message, sha3_js.keccak_256, 'hex');
@@ -2781,7 +2819,8 @@ class polymarket extends polymarket$1["default"] {
         let result = '';
         for (let i = 0; i < addrChars.length; i++) {
             const ch = addrChars[i];
-            if (upperNibbles.indexOf(hashChars[i]) >= 0) {
+            const hashCh = hashChars[i];
+            if (upperNibbles.indexOf(hashCh) >= 0) {
                 result = result + ch.toUpperCase();
             }
             else {
@@ -2912,7 +2951,13 @@ class polymarket extends polymarket$1["default"] {
             return;
         }
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        let secret = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        }
+        else {
+            secret = this.safeString(this.options, 'l2Secret');
+        }
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const hasL2 = (apiKey !== undefined) && (secret !== undefined) && (passphrase !== undefined);
         if (hasL2) {
@@ -2925,38 +2970,42 @@ class polymarket extends polymarket$1["default"] {
         // keepAlive interval set in describe.streaming sends it on both the market and user channels
         return 'PING';
     }
-    handleMessage(client, message) {
+    handleTextMessage(client, message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh client.lastPong here on the "PONG" reply, otherwise the
         // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
-        if (typeof message === 'string') {
-            client.lastPong = this.milliseconds();
-            return;
-        }
-        const events = Array.isArray(message) ? message : [message];
-        for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            if (!event || typeof event !== 'object') {
+        client.lastPong = this.milliseconds();
+    }
+    handleMessage(client, message) {
+        this.handleMessageEvent(client, message);
+    }
+    handleListMessage(client, message) {
+        for (let i = 0; i < message.length; i++) {
+            const event = message[i];
+            if ((event === undefined) || (event === null) || (typeof event !== 'object')) {
                 continue;
             }
-            const eventType = this.safeString(event, 'event_type');
-            if (eventType === 'book') {
-                this.handleOrderBookSnapshot(client, event);
-            }
-            else if (eventType === 'price_change') {
-                this.handleOrderBookDelta(client, event);
-            }
-            else if (eventType === 'last_trade_price') {
-                this.handleTrade(client, event);
-            }
-            else if (eventType === 'order') {
-                this.handleOrder(client, event);
-            }
-            else if (eventType === 'trade') {
-                this.handleMyTrade(client, event);
-            }
-            // tick_size_change events are silently ignored for now
+            this.handleMessageEvent(client, event);
         }
+    }
+    handleMessageEvent(client, event) {
+        const eventType = this.safeString(event, 'event_type');
+        if (eventType === 'book') {
+            this.handleOrderBookSnapshot(client, event);
+        }
+        else if (eventType === 'price_change') {
+            this.handleOrderBookDelta(client, event);
+        }
+        else if (eventType === 'last_trade_price') {
+            this.handleTrade(client, event);
+        }
+        else if (eventType === 'order') {
+            this.handleOrder(client, event);
+        }
+        else if (eventType === 'trade') {
+            this.handleMyTrade(client, event);
+        }
+        // tick_size_change events are silently ignored for now
     }
     handleOrderBookSnapshot(client, event) {
         const tokenId = this.safeString(event, 'asset_id');
@@ -2974,12 +3023,12 @@ class polymarket extends polymarket$1["default"] {
         const rawAsks = this.safeList(event, 'asks', []);
         const bids = [];
         for (let i = 0; i < rawBids.length; i++) {
-            const b = rawBids[i];
+            const b = this.safeDict(rawBids, i);
             bids.push([this.safeNumber(b, 'price'), this.safeNumber(b, 'size')]);
         }
         const asks = [];
         for (let j = 0; j < rawAsks.length; j++) {
-            const a = rawAsks[j];
+            const a = this.safeDict(rawAsks, j);
             asks.push([this.safeNumber(a, 'price'), this.safeNumber(a, 'size')]);
         }
         const outcomeObj = this.safeOutcome(outcome);
@@ -3000,7 +3049,7 @@ class polymarket extends polymarket$1["default"] {
         const changes = this.safeList(event, 'price_changes', []);
         const updated = {};
         for (let i = 0; i < changes.length; i++) {
-            const change = changes[i];
+            const change = this.safeDict(changes, i);
             const tokenId = this.safeString(change, 'asset_id');
             const outcome = this.tokenIdToSymbol(tokenId);
             if ((outcome === undefined) || !(outcome in this.orderbooks)) {
@@ -3054,7 +3103,7 @@ class polymarket extends polymarket$1["default"] {
             'cost': undefined,
             'fee': undefined,
         }, market);
-        if (!this.trades) {
+        if (this.trades === undefined) {
             this.trades = {};
         }
         let stored = this.safeValue(this.trades, outcome);
@@ -3077,9 +3126,9 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchOrderBook(outcome, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'orderbook::' + outcome;
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
+        const messageHash = 'orderbook::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3098,9 +3147,9 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchTrades(outcome, since = undefined, limit = undefined, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'trades::' + outcome;
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome', '');
+        const messageHash = 'trades::' + outcomeValue;
         const subscribeHash = 'subscribe::' + tokenId;
         const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
         const url = this.urls['api']['ws'];
@@ -3117,18 +3166,18 @@ class polymarket extends polymarket$1["default"] {
      */
     async watchTicker(outcome, params = {}) {
         const outcomeObj = await this.loadOutcome(outcome);
-        const tokenId = this.safeString(outcomeObj, 'outcomeId');
-        outcome = this.safeString(outcomeObj, 'outcome');
-        const messageHash = 'ticker::' + outcome;
-        const subscribeHash = 'subscribe::' + tokenId;
-        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
-        if (outcome === undefined) {
+        const tokenId = this.safeString(outcomeObj, 'outcomeId', '');
+        const outcomeValue = this.safeString(outcomeObj, 'outcome');
+        if (outcomeValue === undefined) {
             throw new errors.ExchangeError(this.id + ' watchTicker() missing outcome');
         }
-        if (!(outcome in this.orderbooks)) {
+        const messageHash = 'ticker::' + outcomeValue;
+        const subscribeHash = 'subscribe::' + tokenId;
+        const subscribeMsg = { 'assets_ids': [tokenId], 'type': 'market' };
+        if (!(outcomeValue in this.orderbooks)) {
             const seededBook = this.orderBook({});
-            if (outcome !== undefined) {
-                this.orderbooks[outcome] = seededBook;
+            if (outcomeValue !== undefined) {
+                this.orderbooks[outcomeValue] = seededBook;
             }
         }
         const url = this.urls['api']['ws'];
@@ -3166,9 +3215,9 @@ class polymarket extends polymarket$1["default"] {
         else {
             mid = bestAsk;
         }
-        const market = this.safeOutcome(outcome);
+        const market = this.safeOutcome(outcomeValue);
         return this.safePredictionTicker({
-            'outcome': outcome,
+            'outcome': outcomeValue,
             'outcomeId': this.safeString(market, 'outcomeId'),
             'label': this.safeString(market, 'label'),
             'market': this.safeString(market, 'market'),
@@ -3207,16 +3256,19 @@ class polymarket extends polymarket$1["default"] {
     async watchOrders(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
         let messageHash = 'orders';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome(outcome);
-            outcome = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'orders::' + outcome;
+        let outcomeResolved = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcomeResolved);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'orders::' + outcomeName;
         }
         const orders = await this.subscribeUserChannel(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(outcome, limit);
+            limitResolved = orders.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(orders, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(orders, outcomeResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -3232,21 +3284,30 @@ class polymarket extends polymarket$1["default"] {
     async watchMyTrades(outcome = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadApiCredentials();
         let messageHash = 'myTrades';
-        if (outcome !== undefined) {
-            const outcomeObj = await this.loadOutcome(outcome);
-            outcome = this.safeString(outcomeObj, 'outcome');
-            messageHash = 'myTrades::' + outcome;
+        let outcomeResolved = outcome;
+        if (outcomeResolved !== undefined) {
+            const outcomeObj = await this.loadOutcome(outcomeResolved);
+            outcomeResolved = this.safeString(outcomeObj, 'outcome');
+            const outcomeName = this.safeString(outcomeObj, 'outcome', '');
+            messageHash = 'myTrades::' + outcomeName;
         }
         const trades = await this.subscribeUserChannel(messageHash, params);
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(outcome, limit);
+            limitResolved = trades.getLimit(outcomeResolved, limitResolved);
         }
-        return this.filterByOutcomeSinceLimit(trades, outcome, since, limit, true);
+        return this.filterByOutcomeSinceLimit(trades, outcomeResolved, since, limitResolved, true);
     }
     async subscribeUserChannel(messageHash, params = {}) {
         // the user channel authenticates inside the subscribe frame, not via HMAC headers
         const apiKey = (this.apiKey !== undefined) ? this.apiKey : this.safeString(this.options, 'l2ApiKey');
-        const secret = (this.secret !== undefined) ? this.secret : this.safeString(this.options, 'l2Secret');
+        let secret = undefined;
+        if (this.secret !== undefined) {
+            secret = this.secret;
+        }
+        else {
+            secret = this.safeString(this.options, 'l2Secret');
+        }
         const passphrase = (this.password !== undefined) ? this.password : this.safeString(this.options, 'l2Passphrase');
         const auth = { 'apiKey': apiKey, 'secret': secret, 'passphrase': passphrase };
         // an empty markets list subscribes to every market the user is active in
@@ -3284,7 +3345,7 @@ class polymarket extends polymarket$1["default"] {
         }
     }
     tokenIdToSymbol(tokenId) {
-        if (!tokenId) {
+        if ((tokenId === undefined) || (tokenId === '')) {
             return undefined;
         }
         // outcome tokens are keyed in outcomes_by_id (populated by fetchEvents/loadMarkets);
@@ -3300,13 +3361,9 @@ class polymarket extends polymarket$1["default"] {
     }
     parsePolyTimestamp(raw) {
         if (raw === undefined) {
-            return this.milliseconds();
+            return undefined;
         }
-        const n = this.parseToInt(raw);
-        if (n === undefined) {
-            return this.milliseconds();
-        }
-        return n;
+        return this.parseToInt(raw);
     }
 }
 

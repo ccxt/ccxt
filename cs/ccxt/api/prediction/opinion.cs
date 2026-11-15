@@ -12,31 +12,31 @@ public partial class opinion : PredictionExchange
     public opinion (object args = null): base(args) {}
 
     /// <summary>Calls the opinionPublicGetMarket endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetMarket (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetMarket (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetMarket",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetMarket",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetMarketMarketId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetMarketMarketId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetMarketMarketId (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetMarketMarketId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetMarketMarketId",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetMarketCategoricalMarketId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetMarketCategoricalMarketId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetMarketCategoricalMarketId (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetMarketCategoricalMarketId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetMarketCategoricalMarketId",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetMarketSlugSlug endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetMarketSlugSlug (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetMarketSlugSlug (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetMarketSlugSlug",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetMarketSlugSlug",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetLabel endpoint.</summary>
@@ -47,108 +47,108 @@ public partial class opinion : PredictionExchange
     }
 
     /// <summary>Calls the opinionPublicGetTokenLatestPrice endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetTokenLatestPrice (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetTokenLatestPrice (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetTokenLatestPrice",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetTokenLatestPrice",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetTokenOrderbook endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetTokenOrderbook (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetTokenOrderbook (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetTokenOrderbook",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetTokenOrderbook",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetTokenPriceHistory endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetTokenPriceHistory (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetTokenPriceHistory (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetTokenPriceHistory",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetTokenPriceHistory",parameters);
     }
 
     /// <summary>Calls the opinionPublicGetQuoteToken endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPublicGetQuoteToken (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPublicGetQuoteToken (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPublicGetQuoteToken",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPublicGetQuoteToken",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetOrder endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetOrder (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetOrder",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetOrderOrderId endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetOrderOrderId (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetOrderOrderId (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetOrderOrderId",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetOrderOrderId",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetPositionsUserWalletAddress endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetPositionsUserWalletAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetPositionsUserWalletAddress (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetPositionsUserWalletAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetPositionsUserWalletAddress",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetTradeUserWalletAddress endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetTradeUserWalletAddress (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetTradeUserWalletAddress (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetTradeUserWalletAddress",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetTradeUserWalletAddress",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetAuthApiKey endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetAuthApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetAuthApiKey (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetAuthApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetAuthApiKey",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetUserAuth endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetUserAuth (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetUserAuth (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetUserAuth",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetUserAuth",parameters);
     }
 
     /// <summary>Calls the opinionPrivateGetUserBalance endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateGetUserBalance (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateGetUserBalance (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateGetUserBalance",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateGetUserBalance",parameters);
     }
 
     /// <summary>Calls the opinionPrivatePostAuthApiKey endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivatePostAuthApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivatePostAuthApiKey (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivatePostAuthApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivatePostAuthApiKey",parameters);
     }
 
     /// <summary>Calls the opinionPrivatePostOrder endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivatePostOrder (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivatePostOrder (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivatePostOrder",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivatePostOrder",parameters);
     }
 
     /// <summary>Calls the opinionPrivatePostOrderCancel endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivatePostOrderCancel (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivatePostOrderCancel (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivatePostOrderCancel",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivatePostOrderCancel",parameters);
     }
 
     /// <summary>Calls the opinionPrivateDeleteAuthApiKey endpoint.</summary>
-    /// <returns>a JSON object or a JSON array, so this endpoint keeps object</returns>
-    public async Task<object> opinionPrivateDeleteAuthApiKey (object parameters = null)
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> opinionPrivateDeleteAuthApiKey (object parameters = null)
     {
-        return await this.callAsync<object> ("opinionPrivateDeleteAuthApiKey",parameters);
+        return await this.callAsync<Dictionary<string, object>> ("opinionPrivateDeleteAuthApiKey",parameters);
     }
 
 }

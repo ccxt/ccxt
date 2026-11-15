@@ -180,10 +180,10 @@ public partial class btcmarkets : Exchange
     }
 
     /// <summary>Calls the privateGetAccountsMeBalances endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetAccountsMeBalances (object parameters = null)
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetAccountsMeBalances (object parameters = null)
     {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountsMeBalances",parameters);
+        return await this.callAsync<List<object>> ("privateGetAccountsMeBalances",parameters);
     }
 
     /// <summary>Calls the privateGetAccountsMeTransactions endpoint.</summary>

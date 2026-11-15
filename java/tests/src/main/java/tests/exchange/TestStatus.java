@@ -11,7 +11,7 @@ import io.github.ccxt.errors.*;
 
 
 public class TestStatus extends BaseTest {
-    public static void testStatus(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object now)
+    public static void testStatus(BaseExchange exchange, Object skippedProperties, String method, Object entry, Object now)
     {
         Assert(true, "testStatus");
     }

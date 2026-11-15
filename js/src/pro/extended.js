@@ -60,15 +60,15 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'orderbook:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const messageHash = 'orderbook:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/orderbooks/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/orderbooks/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
         const orderbook = await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         });
         return orderbook.limit();
@@ -139,7 +139,7 @@ export default class extended extends extendedRest {
     }
     async watchPrivate(messageHash, subscription = undefined) {
         this.checkRequiredCredentials();
-        const url = this.urls['api']['ws'] + '/account';
+        const url = this.safeString(this.urls['api'], 'ws', '') + '/account';
         if ((this.clients === undefined) || !(url in this.clients)) {
             const defaultOptions = {
                 'ws': {
@@ -179,19 +179,21 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         let messageHash = 'orders';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol', '');
+            messageHash = 'orders:' + this.safeString(market, 'symbol', '');
         }
         const orders = await this.watchPrivate(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = orders.getLimit(symbol, limit);
+            limitResolved = orders.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limitResolved, true);
     }
     /**
      * @method
@@ -233,10 +235,16 @@ export default class extended extends extendedRest {
         //         "seq": 1
         //     }
         //
+        // merge updates into the existing balance object instead of building a
+        // fresh one: a consumer awakened by an earlier message holds a reference
+        // to this.balance, and Client.resolve is a no-op while nobody is
+        // awaiting, so a replaced object would make updates landing in that
+        // window invisible to the consumer forever (issue #26773)
+        if (this.balance === undefined) {
+            this.balance = {};
+        }
         const data = this.safeDict(message, 'data', {});
-        const result = {
-            'info': data,
-        };
+        this.balance['info'] = data;
         const balance = this.safeDict(data, 'balance');
         if (balance !== undefined) {
             const currencyId = this.safeString(balance, 'collateralName');
@@ -245,7 +253,7 @@ export default class extended extends extendedRest {
                 const account = this.account();
                 account['free'] = this.safeString(balance, 'availableForWithdrawal');
                 account['total'] = this.safeString(balance, 'balance');
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const spotBalances = this.safeList(data, 'spotBalances', []);
@@ -257,13 +265,13 @@ export default class extended extends extendedRest {
                 const account = this.account();
                 account['free'] = this.safeString(spotBalance, 'availableToWithdraw');
                 account['total'] = this.safeString(spotBalance, 'balance');
-                result[code] = account;
+                this.balance[code] = account;
             }
         }
         const timestamp = this.safeInteger(message, 'ts');
-        result['timestamp'] = timestamp;
-        result['datetime'] = this.iso8601(timestamp);
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        this.balance['timestamp'] = timestamp;
+        this.balance['datetime'] = this.iso8601(timestamp);
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, 'balance');
     }
     /**
@@ -282,19 +290,21 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         let messageHash = 'myTrades';
+        let symbolResolved = undefined;
         if (symbol !== undefined) {
             const market = this.market(symbol);
-            symbol = market['symbol'];
-            messageHash += ':' + symbol;
+            symbolResolved = this.safeString(market, 'symbol', '');
+            messageHash = 'myTrades:' + this.safeString(market, 'symbol', '');
         }
         const trades = await this.watchPrivate(messageHash, {
-            'symbol': symbol,
+            'symbol': symbolResolved,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolResolved, limit);
         }
-        return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit(trades, symbolResolved, since, limitResolved, true);
     }
     handleMyTrades(client, message) {
         //
@@ -336,14 +346,15 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < rawTrades.length; i++) {
-            const trade = this.parseTrade(rawTrades[i]);
+            const trade = this.parseTrade(this.safeDict(rawTrades, i, {}));
             const symbol = this.safeString(trade, 'symbol');
             symbols[symbol] = true;
             stored.append(trade);
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'myTrades:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'myTrades:' + key;
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, 'myTrades');
@@ -370,19 +381,19 @@ export default class extended extends extendedRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        symbols = this.marketSymbols(symbols);
+        const symbolsNormalized = this.marketSymbols(symbols);
         let messageHash = 'positions';
-        if (symbols !== undefined) {
-            messageHash += '::' + symbols.join(',');
+        if (symbolsNormalized !== undefined) {
+            messageHash += '::' + symbolsNormalized.join(',');
         }
         const positions = await this.watchPrivate(messageHash, {
-            'symbols': symbols,
+            'symbols': symbolsNormalized,
             'limit': limit,
         });
         if (this.newUpdates) {
             return positions;
         }
-        return this.filterBySymbolsSinceLimit(this.positions, symbols, since, limit, true);
+        return this.filterBySymbolsSinceLimit(this.positions, symbolsNormalized, since, limit, true);
     }
     handlePositions(client, message) {
         //
@@ -486,14 +497,15 @@ export default class extended extends extendedRest {
             return;
         }
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.parseOrder(rawOrders[i]);
+            const order = this.parseOrder(this.safeDict(rawOrders, i, {}));
             const symbol = this.safeString(order, 'symbol');
             symbols[symbol] = true;
             orders.append(order);
         }
         const keys = Object.keys(symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'orders:' + keys[i];
+            const key = keys[i];
+            const messageHash = 'orders:' + key;
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, 'orders');
@@ -519,15 +531,15 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'fundingRate:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const messageHash = 'fundingRate:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/funding/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/funding/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
         return await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         });
     }
@@ -545,19 +557,19 @@ export default class extended extends extendedRest {
         //
         const data = this.safeDict(message, 'data', {});
         const fundingRate = this.parseWsFundingRate(data, undefined, message);
-        const symbol = this.safeString(fundingRate, 'symbol');
+        const symbol = this.safeString(fundingRate, 'symbol', '');
         this.fundingRates[symbol] = fundingRate;
         const messageHash = 'fundingRate:' + symbol;
         client.resolve(fundingRate, messageHash);
     }
     parseWsFundingRate(fundingRate, market = undefined, message = undefined) {
         const marketId = this.safeString(fundingRate, 'm');
-        market = this.safeMarket(marketId, market);
+        const marketResolved = this.safeMarket(marketId, market);
         const timestamp = this.safeInteger(message, 'ts');
         const fundingTimestamp = this.safeInteger(fundingRate, 'T');
         return {
             'info': fundingRate,
-            'symbol': market['symbol'],
+            'symbol': marketResolved['symbol'],
             'markPrice': undefined,
             'indexPrice': undefined,
             'interestRate': undefined,
@@ -590,16 +602,16 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'markPrice:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const messageHash = 'markPrice:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/prices/mark/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/prices/mark/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
         return await this.watch(url, messageHash, undefined, messageHash, {
             'name': 'markPrice',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'messageHash': messageHash,
         });
     }
@@ -619,7 +631,7 @@ export default class extended extends extendedRest {
         const data = this.safeDict(message, 'data', {});
         const marketId = this.safeString(data, 'm');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         let timestamp = this.safeInteger(data, 'ts');
         if ((timestamp === undefined) || (timestamp === 0)) {
             timestamp = this.safeInteger(message, 'ts');
@@ -651,21 +663,22 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
-        const messageHash = 'trades:' + symbol;
+        const symbolValue = this.safeString(market, 'symbol', '');
+        const messageHash = 'trades:' + symbolValue;
         const query = this.urlencode(params);
-        let url = this.urls['api']['ws'] + '/publicTrades/' + market['id'];
+        let url = this.safeString(this.urls['api'], 'ws', '') + '/publicTrades/' + this.safeString(market, 'id', '');
         if (query.length > 0) {
             url += '?' + query;
         }
         const trades = await this.watch(url, messageHash, undefined, messageHash, {
-            'symbol': symbol,
+            'symbol': symbolValue,
             'limit': limit,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = trades.getLimit(symbol, limit);
+            limitResolved = trades.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
+        return this.filterBySinceLimit(trades, since, limitResolved, 'timestamp', true);
     }
     handleTrades(client, message) {
         //
@@ -692,7 +705,7 @@ export default class extended extends extendedRest {
         }
         const marketId = this.safeString(first, 'm');
         const market = this.safeMarket(marketId);
-        const symbol = market['symbol'];
+        const symbol = this.safeString(market, 'symbol', '');
         const messageHash = 'trades:' + symbol;
         const subscription = this.safeDict(client.subscriptions, messageHash, {});
         let stored = this.safeValue(this.trades, symbol);
@@ -733,7 +746,7 @@ export default class extended extends extendedRest {
             await this.loadMarkets();
         }
         const market = this.market(symbol);
-        symbol = market['symbol'];
+        const symbolValue = this.safeString(market, 'symbol', '');
         const price = this.safeString(params, 'price');
         let candleType = this.safeString(params, 'candleType');
         if (candleType === undefined) {
@@ -747,23 +760,24 @@ export default class extended extends extendedRest {
                 candleType = 'trades';
             }
         }
-        params = this.omit(params, ['candleType', 'price']);
+        const paramsOmitted = this.omit(params, ['candleType', 'price']);
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
-        const messageHash = 'ohlcv:' + symbol + ':' + timeframe + ':' + candleType;
-        const query = this.urlencode(this.extend({ 'interval': interval }, params));
-        const url = this.urls['api']['ws'] + '/candles/' + market['id'] + '/' + candleType + '?' + query;
+        const messageHash = 'ohlcv:' + symbolValue + ':' + timeframe + ':' + candleType;
+        const query = this.urlencode(this.extend({ 'interval': interval }, paramsOmitted));
+        const url = this.safeString(this.urls['api'], 'ws', '') + '/candles/' + this.safeString(market, 'id', '') + '/' + candleType + '?' + query;
         const ohlcv = await this.watch(url, messageHash, undefined, messageHash, {
             'name': 'ohlcv',
-            'symbol': symbol,
+            'symbol': symbolValue,
             'timeframe': timeframe,
             'candleType': candleType,
             'limit': limit,
             'messageHash': messageHash,
         });
+        let limitResolved = limit;
         if (this.newUpdates) {
-            limit = ohlcv.getLimit(symbol, limit);
+            limitResolved = ohlcv.getLimit(symbolValue, limit);
         }
-        return this.filterBySinceLimit(ohlcv, since, limit, 0, true);
+        return this.filterBySinceLimit(ohlcv, since, limitResolved, 0, true);
     }
     handleOHLCV(client, message) {
         //
@@ -787,11 +801,17 @@ export default class extended extends extendedRest {
             return;
         }
         const symbol = this.safeString(subscription, 'symbol');
-        const timeframe = this.safeString(subscription, 'timeframe');
-        const candleType = this.safeString(subscription, 'candleType');
-        const cacheKey = (candleType === 'trades') ? timeframe : timeframe + ':' + candleType;
+        const timeframe = this.safeString(subscription, 'timeframe', '');
+        const candleType = this.safeString(subscription, 'candleType', '');
+        let cacheKey = undefined;
+        if (candleType === 'trades') {
+            cacheKey = timeframe;
+        }
+        else {
+            cacheKey = timeframe + ':' + candleType;
+        }
         const messageHash = this.safeString(subscription, 'messageHash');
-        this.ohlcvs[symbol] = this.safeValue(this.ohlcvs, symbol, {});
+        this.ohlcvs[symbol] = this.safeDict(this.ohlcvs, symbol, {});
         let stored = this.safeValue(this.ohlcvs[symbol], cacheKey);
         if (stored === undefined) {
             const defaultLimit = this.safeInteger(this.options, 'OHLCVLimit', 1000);
@@ -828,7 +848,7 @@ export default class extended extends extendedRest {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
         //
-        const error = this.safeValue(message, 'error');
+        const error = this.safeDict(message, 'error');
         if (error === undefined) {
             return false;
         }
@@ -840,13 +860,14 @@ export default class extended extends extendedRest {
         throw new ExchangeError(feedback);
     }
     handleMessage(client, message) {
-        if (this.handleErrorMessage(client, message)) {
+        if (this.handleErrorMessage(client, message) === true) {
             return;
         }
         const type = this.safeString(message, 'type');
-        const data = this.safeValue(message, 'data');
-        if (Array.isArray(data)) {
-            const first = this.safeDict(data, 0, {});
+        const dataList = this.safeList(message, 'data');
+        const data = this.safeDict(message, 'data');
+        if (dataList !== undefined) {
+            const first = this.safeDict(dataList, 0, {});
             const side = this.safeString(first, 'S');
             if (side !== undefined) {
                 this.handleTrades(client, message);
@@ -856,17 +877,24 @@ export default class extended extends extendedRest {
             }
         }
         else if (data !== undefined) {
+            // an account frame may carry several sections at once, so these are
+            // not mutually exclusive and must not fall through to the order book
+            let isAccountUpdate = false;
             if ((type === 'ORDER') || ('orders' in data)) {
                 this.handleOrders(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'TRADE') || ('trades' in data)) {
                 this.handleMyTrades(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'POSITION') || ('positions' in data)) {
                 this.handlePositions(client, message);
+                isAccountUpdate = true;
             }
             if ((type === 'BALANCE') || ('balance' in data) || ('spotBalances' in data)) {
                 this.handleBalance(client, message);
+                isAccountUpdate = true;
             }
             if (type === 'MP') {
                 this.handleMarkPrice(client, message);
@@ -874,7 +902,7 @@ export default class extended extends extendedRest {
             else if ('f' in data) {
                 this.handleFundingRate(client, message);
             }
-            else {
+            else if (!isAccountUpdate) {
                 this.handleOrderBook(client, message);
             }
         }

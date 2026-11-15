@@ -1,6 +1,6 @@
 Every endpoint in `paymium`'s `api` definition is exposed as an **implicit method** — a thin, generated wrapper around the raw exchange endpoint. Use these for exchange-specific functionality the [CCXT API](/docs/exchanges/paymium) does not cover.
 
-These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCountries`); the snake_case alias (`public_get_countries`) also works in JavaScript, Python and PHP, and Go uses the PascalCase form (`PublicGetCountries`). Switch tabs for the call in each language:
+These methods are available in every CCXT language — TypeScript, JavaScript, Python, PHP, C#, Go and Java. Call them by the camelCase name shown in the tables below (e.g. `publicGetCountries`); Python and PHP use the snake_case form (`public_get_countries`), and Go uses the PascalCase form (`PublicGetCountries`). Switch tabs for the call in each language:
 
 <!-- tabs:start -->
 
@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official paymium API documentation:** [github.com](https://github.com/Paymium/api-documentation) · [paymium.com](https://www.paymium.com/page/developers) · [paymium.github.io](https://paymium.github.io/api-documentation/)
 
-> 24 implicit endpoints across 2 access groups.
+> 25 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -79,6 +79,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserOrders` | GET | `user/orders` | 1 |
 | `privateGetUserOrdersUuid` | GET | `user/orders/{uuid}` | 1 |
 | `privateGetUserPriceAlerts` | GET | `user/price_alerts` | 1 |
+| `privateGetUserWithdrawals` | GET | `user/withdrawals` | 1 |
 | `privateGetMerchantGetPaymentUuid` | GET | `merchant/get_payment/{uuid}` | 1 |
 | `privatePostUserAddresses` | POST | `user/addresses` | 1 |
 | `privatePostUserOrders` | POST | `user/orders` | 1 |

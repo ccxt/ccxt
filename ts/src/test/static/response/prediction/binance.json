@@ -2,8 +2,6 @@
     "exchange": "binance",
     "asyncOnly": true,
     "skipKeys": [
-        "datetime",
-        "timestamp",
         "signature"
     ],
     "outputType": "json",
@@ -27,8 +25,8 @@
                     "lastTradePrice": "0.99"
                 },
                 "parsedResponse": {
-                    "timestamp": 1785932793880,
-                    "datetime": "2026-08-05T12:26:33.880Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "high": null,
                     "low": null,
                     "bid": null,

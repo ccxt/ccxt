@@ -13,7 +13,7 @@ $exchange = new $exchange_class(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     'options' => array(
-        'defaultType' => 'future'
+        'defaultType' => 'swap'
     ),
 ));
 
