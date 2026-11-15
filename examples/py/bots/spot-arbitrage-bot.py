@@ -130,7 +130,7 @@ async def main():
     while True:
         try:
             await bot()
-        except e:
+        except Exception as e:
             print("Exception: ", e)
         await asyncio.sleep(wait_time)
 
