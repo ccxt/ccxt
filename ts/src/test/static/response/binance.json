@@ -8391,7 +8391,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "symbol=ENAUSDT&endTime=1792454400000": [
+                    "endTime=1792454400000": [
                         {
                             "symbol": "ENAUSDT",
                             "fundingTime": 1792411200007,
