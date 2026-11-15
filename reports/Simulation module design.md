@@ -286,7 +286,7 @@ Caveats:
 - **Open-interest history is days to months deep.** Record it forward too.
 - **Order-book depth per request varies 250×,** from 40 levels (Hyperliquid) to 10,000 (OKX). A periodic REST snapshot is only "full depth" on some venues. Elsewhere the recorder must build the book from WebSocket diffs.
 - **ETH behaves like BTC.** Start dates and caps match on every venue, apart from listing dates. Results for the top pairs generalise.
-- **Low-volume history mostly starts at listing, and many quiet pairs are young.** Six of the eleven quiet markets with a known start were listed in 2025–2026. So for the long tail, the binding limit is usually the listing date, not the exchange's retention. Older quiet pairs go back years (Kraken futures 1INCH to 2022, HTX LUNC to 2020, Bitfinex ATO to 2021).
+- **Low-volume history mostly starts at listing, and many quiet pairs are young.** 11 of the 18 quiet markets with a measured start were listed in 2025–2026. So for the long tail, the binding limit is usually the listing date, not the exchange's retention. Older quiet pairs go back years (Kraken futures 1INCH to 2022, HTX LUNC to 2020, Bitfinex ATO to 2021).
 - **Caps are per endpoint, not per symbol.** Gate's ~14 months of hourly candles, MEXC's ~1 month of 1m candles and Kraken's 720 candles hit quiet pairs exactly as they hit BTC. So `historyStart` hints can be stored per exchange and timeframe, not per symbol.
 - **Quiet books are thin.** The quiet pairs returned 7–600 levels versus 200–10,000 for BTC. A REST snapshot of a quiet book is often its full depth, which makes periodic snapshots a cheap and complete way to record the long tail.
 
