@@ -100,7 +100,7 @@ class kucoin extends \ccxt\async\kucoin {
         ));
     }
 
-    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()) {
+    public function negotiate(bool $privateChannel, bool $isFuturesMethod = false, $params = array()): PromiseInterface {
         return Async\async(self::do_negotiate(...))($privateChannel, $isFuturesMethod, $params);
     }
 
