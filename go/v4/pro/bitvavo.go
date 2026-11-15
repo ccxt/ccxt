@@ -118,12 +118,12 @@ func (this *Bitvavo) watchPublicBody(ch chan ccxt.AsyncResult[any], name string,
 	ch <- ccxt.AsyncResult[any]{Value: r1.Value}
 	return nil
 }
-func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[map[string]any] {
-	ch := make(chan ccxt.AsyncResult[map[string]any], 1)
+func (this *Bitvavo) WatchPublicMultipleAsync(methodName string, channelName string, symbols []string, optionalArgs ...any) <-chan ccxt.AsyncResult[[]any] {
+	ch := make(chan ccxt.AsyncResult[[]any], 1)
 	go this.watchPublicMultipleBody(ch, methodName, channelName, symbols, optionalArgs...)
 	return ch
 }
-func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[map[string]any], methodName string, channelName string, symbols []string, optionalArgs ...any) any {
+func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[[]any], methodName string, channelName string, symbols []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
@@ -152,11 +152,11 @@ func (this *Bitvavo) watchPublicMultipleBody(ch chan ccxt.AsyncResult[map[string
 	}
 	var message map[string]any = this.Extend(request, params)
 
-	r1 := <-this.WatchMultipleMap(url, messageHashes, message, messageHashes)
+	r1 := <-this.WatchMultipleList(url, messageHashes, message, messageHashes)
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}
+	ch <- ccxt.AsyncResult[[]any]{Value: r1.Value}
 	return nil
 }
 

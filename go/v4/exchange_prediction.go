@@ -2312,12 +2312,12 @@ func (this *PredictionExchange) RlpEncodeList(items any) any {
 	var lengthOfLength int64 = this.ParseToInt(float64(GetLength(lengthHex)) / 2)
 	return Add(Add(this.IntToBase16(247+lengthOfLength), lengthHex), concatenated)
 }
-func (this *PredictionExchange) IntToRlpHex(value any) any {
-	if IsEqual(value, nil) {
+func (this *PredictionExchange) IntToRlpHex(value *int64) any {
+	if value == nil {
 		panic(ArgumentsRequired(this.Id + " intToRlpHex() requires a value argument"))
 	}
 	// an integer as its minimal big-endian byte hex; 0 is the empty byte string
-	if value == 0 {
+	if value != nil && *value == 0 {
 		return ""
 	}
 	var hex any = this.IntToBase16(value)
