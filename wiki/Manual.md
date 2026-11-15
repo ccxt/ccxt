@@ -1174,6 +1174,14 @@ Methods requiring a symbol, including `fetchOrderBook`, `fetchTicker`, `fetchTra
 
 This classification does not establish ownership of underlying shares or add support for the separate Stock+ securities account.
 
+### Raydium Swap Market Discovery
+
+Raydium's `buildConversionTransaction({ swapResponse: quote.info, wallet: walletAddress })` builds unsigned token conversion transactions from `fetchConvertQuote`. The helper does not sign or submit transactions.
+
+Raydium's default `fetchMarkets()` includes spot pools and public linear perpetual swap markets. Use `fetchMarkets({ type: 'pool' })` for spot pools only, `type: 'launchlab'` for LaunchLab mints, `type: 'swap'` for swaps only, or `type: 'all'` for all three sources. Sandbox default discovery includes pools only; requesting swaps explicitly is unsupported in sandbox.
+
+`fetchSwapMarkets()` returns normalized swap markets such as `SOL/USDC:USDC`, retaining the exchange ID `PERP_SOL_USDC` and raw statistics in `info`. The statistics endpoint does not provide contract sizes, trading precision, limits, fees, or active status; these remain undefined rather than inferred.
+
 ### Backpack Tokenized Stocks and Equity Data
 
 `fetchMarkets({ marketType: ... })` accepts a string or array with aliases `spot` → `SPOT`, `swap` → `PERP`, and `stock` → `RFQ`. Mixed aliases and exchange-native values are normalized and deduplicated. The `stock` market-type alias selects RFQ execution; use `params.stock: true` to filter stock underlyings across spot, swap and RFQ markets.

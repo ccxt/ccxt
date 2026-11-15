@@ -1,4 +1,4 @@
-import Exchange from './abstract/raydium.js';
+﻿import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -23,7 +23,7 @@ export default class raydium extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': false,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'cancelOrder': false,
@@ -226,6 +226,80 @@ export default class raydium extends Exchange {
      * @returns {object} common liquidity pool structure
      */
     parseLiquidityPool (pool: Dict): Dict {
+        //
+        //     {
+        //         "id": "4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW",
+        //         "poolId": "4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW",
+        //         "type": "stake",
+        //         "baseCurrency": null,
+        //         "quoteCurrency": null,
+        //         "lpCurrency": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //         "symbol": null,
+        //         "name": null,
+        //         "totalLiquidity": null,
+        //         "totalLiquidityValue": 65353889.85708877,
+        //         "volume24h": null,
+        //         "apr": 0.0367,
+        //         "feeRate": null,
+        //         "info": {
+        //             "programId": "EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q",
+        //             "id": "4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW",
+        //             "symbolMints": [
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                     "symbol": "RAY",
+        //                     "name": "Raydium",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 }
+        //             ],
+        //             "lpMint": {
+        //                 "chainId": 101,
+        //                 "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                 "symbol": "RAY",
+        //                 "name": "Raydium",
+        //                 "decimals": 6,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "tvl": 65353889.85708877,
+        //             "lpPrice": 1.451041171185985,
+        //             "apr": 0.0367,
+        //             "tags": [
+        //                 "Stake"
+        //             ],
+        //             "rewardInfos": [
+        //                 {
+        //                     "mint": {
+        //                         "chainId": 101,
+        //                         "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                         "symbol": "RAY",
+        //                         "name": "Raydium",
+        //                         "decimals": 6,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "type": "Standard SPL",
+        //                     "apr": 0.0367,
+        //                     "perSecond": "28200"
+        //                 }
+        //             ]
+        //         },
+        //         "supplyRate": null,
+        //         "borrowRate": null,
+        //         "rewardsRate": null,
+        //         "active": null
+        //     }
+        //
+        //
         const info = this.safeDict (pool, 'info', pool);
         const poolId = this.safeString (pool, 'poolId', this.safeString (pool, 'id'));
         return this.extend (pool, {
@@ -256,6 +330,22 @@ export default class raydium extends Exchange {
      * @returns {object} common liquidity position structure
      */
     parseLiquidity (position: Dict): Dict {
+        //
+        // normalized clmm-lock position
+        //
+        //     {
+        //         "id": "A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb",
+        //         "poolId": "AHuAAekwu2DrdagqStUffr6XyRGxLT11g18cGKwvTvpP",
+        //         "owner": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+        //         "type": "clmm-lock",
+        //         "currency": "3GpRo9xH1sfmao5F4zFVyC5vJmmx1KCyZgRtaqrsQNuU",
+        //         "info": {
+        //             "lockId": "11dGkgPJDUPNfBRUdKXyf21xCzfRQy6WxTBKGigjAL1",
+        //             "nftAccount": "BxtNeXHhTAA5wgv5hjzv3mDqrY6KjmzFk8Wb88cgRVfk",
+        //             "positionId": "A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb"
+        //         }
+        //     }
+        //
         const info = this.safeDict (position, 'info', position);
         return this.extend (position, {
             'id': this.safeString (position, 'id'),
@@ -282,6 +372,144 @@ export default class raydium extends Exchange {
      * @returns {object} common pool fee structure retaining rewards and protocol details
      */
     parsePoolFee (fee: Dict, positionId: string, type: string): Dict {
+        //
+        //     {
+        //         "name": "Raydium Concentrated Liquidity",
+        //         "symbol": "RCL",
+        //         "description": "Raydium Concentrated Liquidity Position",
+        //         "external_url": "https://raydium.io/",
+        //         "collection": {
+        //             "name": "Raydium Concentrated Liquidity",
+        //             "family": "Raydium Concentrated Liquidity"
+        //         },
+        //         "image": "https://img-v1.raydium.io/share/ea1ef711-652b-422b-a593-04426f8f2a04.jpg",
+        //         "poolInfo": {
+        //             "type": "Concentrated",
+        //             "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        //             "id": "AHuAAekwu2DrdagqStUffr6XyRGxLT11g18cGKwvTvpP",
+        //             "mintA": {
+        //                 "chainId": 101,
+        //                 "address": "poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN.png",
+        //                 "symbol": "PONS",
+        //                 "name": "Pons",
+        //                 "decimals": 8,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "mintB": {
+        //                 "chainId": 101,
+        //                 "address": "EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL",
+        //                 "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL.png",
+        //                 "symbol": "PPPP",
+        //                 "name": "Pee Pee Poo Poo",
+        //                 "decimals": 9,
+        //                 "tags": [
+        //                     "hasTransferFee"
+        //                 ],
+        //                 "extensions": {
+        //                     "feeConfig": {
+        //                         "transferFeeConfigAuthority": "11111111111111111111111111111111",
+        //                         "withdrawWithheldAuthority": "5KXDF6QnqhBj72hDtJNkkpFaQVUfbFXNybMsp3DiK6tD",
+        //                         "withheldAmount": "0",
+        //                         "olderTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         },
+        //                         "newerTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //             "rewardDefaultPoolInfos": "Clmm",
+        //             "rewardDefaultInfos": [],
+        //             "price": 92663.3167149224,
+        //             "mintAmountA": 6.70712903,
+        //             "mintAmountB": 989999999.997368,
+        //             "feeRate": 0.01,
+        //             "openTime": "0",
+        //             "tvl": 1422.54,
+        //             "day": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "week": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "month": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "pooltype": [
+        //                 "Clmm"
+        //             ],
+        //             "farmUpcomingCount": 0,
+        //             "farmOngoingCount": 0,
+        //             "farmFinishedCount": 0,
+        //             "config": {
+        //                 "id": "A1BBtTYJd4i3xU8D6Tc2FzU6ZN4oXZWXKZnCxwbHXr8x",
+        //                 "index": 3,
+        //                 "protocolFeeRate": 120000,
+        //                 "tradeFeeRate": 10000,
+        //                 "tickSpacing": 120,
+        //                 "fundFeeRate": 40000,
+        //                 "defaultRange": 0.1,
+        //                 "defaultRangePoint": [
+        //                     0.01,
+        //                     0.05,
+        //                     0.1,
+        //                     0.2,
+        //                     0.5
+        //                 ]
+        //             },
+        //             "burnPercent": 100,
+        //             "launchMigratePool": false,
+        //             "tips": [],
+        //             "feeOn": "TokenA",
+        //             "hasDynamicFee": false
+        //         },
+        //         "positionInfo": {
+        //             "tvlPercentage": 4.99,
+        //             "usdValue": 71.08233887794744,
+        //             "amountA": 1e-8,
+        //             "amountB": 49499999.99986821,
+        //             "unclaimedFee": {
+        //                 "amountA": 0.00000422,
+        //                 "amountB": 0,
+        //                 "usdFeeValue": 5.615349632798997e-7,
+        //                 "reward": [],
+        //                 "usdRewardValue": 0,
+        //                 "usdValue": 5.615349632798997e-7
+        //             }
+        //         }
+        //     }
+        //
+        //
         const info = this.safeDict (fee, 'info', fee);
         const amount = this.safeNumber2 (fee, 'unclaimedAmount', 'unclaimedFee');
         return this.extend (fee, {
@@ -303,6 +531,130 @@ export default class raydium extends Exchange {
      * @returns {object} common pool-address structure retaining mint metadata
      */
     parsePoolMintAddresses (addresses: Dict): Dict {
+        //
+        //     {
+        //         "info": {
+        //             "type": "Standard",
+        //             "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        //             "id": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //             "mintA": {
+        //                 "chainId": 101,
+        //                 "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                 "symbol": "RAY",
+        //                 "name": "Raydium",
+        //                 "decimals": 6,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "mintB": {
+        //                 "chainId": 101,
+        //                 "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //                 "symbol": "USDT",
+        //                 "name": "USDT",
+        //                 "decimals": 6,
+        //                 "tags": [
+        //                     "hasFreeze"
+        //                 ],
+        //                 "extensions": {}
+        //             },
+        //             "price": 1.450963684541678,
+        //             "mintAmountA": 494211.140111,
+        //             "mintAmountB": 717082.416797,
+        //             "feeRate": 0.0025,
+        //             "openTime": "0",
+        //             "tvl": 1432999.98,
+        //             "day": {
+        //                 "volume": 186092.7007745733,
+        //                 "volumeQuote": 186612.78683811732,
+        //                 "volumeFee": 465.2317519364334,
+        //                 "apr": 11.85,
+        //                 "feeApr": 11.85,
+        //                 "priceMin": 1.4368946666666669,
+        //                 "priceMax": 1.6216216216216215,
+        //                 "rewardApr": [
+        //                     0
+        //                 ]
+        //             },
+        //             "week": {
+        //                 "volume": 1053593.774430563,
+        //                 "volumeQuote": 1056810.6216153002,
+        //                 "volumeFee": 2633.9844360764077,
+        //                 "apr": 5.51,
+        //                 "feeApr": 5.51,
+        //                 "priceMin": 1.4368946666666669,
+        //                 "priceMax": 1.82563774699872,
+        //                 "rewardApr": [
+        //                     0
+        //                 ]
+        //             },
+        //             "month": {
+        //                 "volume": 4769309.830042222,
+        //                 "volumeQuote": 4786008.320176001,
+        //                 "volumeFee": 11923.274575105555,
+        //                 "apr": 9.98,
+        //                 "feeApr": 9.98,
+        //                 "priceMin": 1.3636363636363635,
+        //                 "priceMax": 2.08662236438065,
+        //                 "rewardApr": [
+        //                     0
+        //                 ]
+        //             },
+        //             "pooltype": [
+        //                 "Amm",
+        //                 "OpenBookMarket"
+        //             ],
+        //             "rewardDefaultPoolInfos": "Raydium",
+        //             "rewardDefaultInfos": [
+        //                 {
+        //                     "mint": {
+        //                         "chainId": 101,
+        //                         "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                         "symbol": "RAY",
+        //                         "name": "Raydium",
+        //                         "decimals": 6,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "perSecond": "0"
+        //                 }
+        //             ],
+        //             "farmUpcomingCount": 0,
+        //             "farmOngoingCount": 0,
+        //             "farmFinishedCount": 3,
+        //             "marketId": "GpHbiJJ9VHiuHVXeoet121Utrbm1CSNNzYrBKB8Xz2oz",
+        //             "lpMint": {
+        //                 "chainId": 101,
+        //                 "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "",
+        //                 "symbol": "RAY-USDT",
+        //                 "name": "Raydium LP Token V4 (RAY-USDT)",
+        //                 "decimals": 6,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "lpPrice": 12.391534616288956,
+        //             "lpAmount": 115643.463401,
+        //             "burnPercent": 0,
+        //             "launchMigratePool": false,
+        //             "tips": [],
+        //             "feeOn": "Both",
+        //             "hasDynamicFee": false
+        //         },
+        //         "poolId": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //         "mintA": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //         "mintB": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //         "lpMint": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //         "symbol": "RAY/USDT"
+        //     }
+        //
+        //
         const info = this.safeDict (addresses, 'info', addresses);
         return this.extend (addresses, {
             'id': this.safeString (addresses, 'id', this.safeString (addresses, 'poolId')),
@@ -335,19 +687,22 @@ export default class raydium extends Exchange {
     /**
      * @method
      * @name raydium#fetchMarkets
-     * @description fetches Raydium pools as spot markets
+     * @description fetches Raydium spot pools and public swap markets
      * @see https://docs.raydium.io/api-reference/api-v3/overview.md
      * @see https://docs.raydium.io/api-reference/launch-mint-v1/overview.md
      * @param {object} [params] extra parameters specific to the endpoint
-     * @param {string} [params.type] pool (default), launchlab, or all
+     * @param {string} [params.type] pool, launchlab, swap, or all; by default returns pools and swaps (pools only in sandbox)
      * @returns {object[]} a list of [market structures](https://docs.ccxt.com/#/?id=market-structure)
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
         const kind = this.safeString (params, 'type', 'pool');
-        if ((kind !== 'pool') && (kind !== 'launchlab') && (kind !== 'all')) {
-            throw new BadRequest (this.id + ' fetchMarkets() params.type must be pool, launchlab, or all');
+        if ((kind !== 'pool') && (kind !== 'launchlab') && (kind !== 'swap') && (kind !== 'all')) {
+            throw new BadRequest (this.id + ' fetchMarkets() params.type must be pool, launchlab, swap, or all');
         }
         const query = this.omit (params, [ 'type' ]);
+        if (kind === 'swap') {
+            return await this.fetchSwapMarkets (query);
+        }
         const rows: Dict[] = [];
         if ((kind === 'pool') || (kind === 'all')) {
             const request = this.extend ({
@@ -363,6 +718,112 @@ export default class raydium extends Exchange {
             } else {
                 response = await this.apiV3PublicGetPoolsInfoList (request);
             }
+            //
+            //     {
+            //         "id": "8e56c5db-02eb-450b-97d6-cc0f7f3db9de",
+            //         "success": true,
+            //         "data": {
+            //             "count": 1000,
+            //             "data": [
+            //                 {
+            //                     "type": "Concentrated",
+            //                     "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+            //                     "id": "5mfjy2Ns9MWuVB6z3N1oFGJKSd6RyG2PAdyH2wDKDaMY",
+            //                     "mintA": {
+            //                         "chainId": 101,
+            //                         "address": "AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P",
+            //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            //                         "logoURI": "https://img-v1.raydium.io/icon/AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P.png",
+            //                         "symbol": "CC",
+            //                         "name": "Canton Network",
+            //                         "decimals": 9,
+            //                         "tags": [],
+            //                         "extensions": {}
+            //                     },
+            //                     "mintB": {
+            //                         "chainId": 101,
+            //                         "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+            //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+            //                         "logoURI": "https://img-v1.raydium.io/icon/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+            //                         "symbol": "USDC",
+            //                         "name": "USD Coin",
+            //                         "decimals": 6,
+            //                         "tags": [
+            //                             "hasFreeze"
+            //                         ],
+            //                         "extensions": {}
+            //                     },
+            //                     "rewardDefaultPoolInfos": "Clmm",
+            //                     "rewardDefaultInfos": [],
+            //                     "price": 0.09600783007339088,
+            //                     "mintAmountA": 998564854.1334,
+            //                     "mintAmountB": 42031.111974,
+            //                     "feeRate": 0.0001,
+            //                     "openTime": "0",
+            //                     "tvl": 95912075.94,
+            //                     "day": {
+            //                         "volume": 99903.88828908766,
+            //                         "volumeQuote": 99910.60633131946,
+            //                         "volumeFee": 9.9903888309347,
+            //                         "apr": 0,
+            //                         "feeApr": 0,
+            //                         "priceMin": 0.09599464144142572,
+            //                         "priceMax": 0.09602014342008008,
+            //                         "rewardApr": []
+            //                     },
+            //                     "week": {
+            //                         "volume": 1525372.0882718102,
+            //                         "volumeQuote": 1525506.8478766459,
+            //                         "volumeFee": 152.53721505297452,
+            //                         "apr": 0,
+            //                         "feeApr": 0,
+            //                         "priceMin": 0.09599464144142572,
+            //                         "priceMax": 0.09604456892948753,
+            //                         "rewardApr": []
+            //                     },
+            //                     "month": {
+            //                         "volume": 2993600.7475060793,
+            //                         "volumeQuote": 2993843.75528,
+            //                         "volumeFee": 299.3601151291465,
+            //                         "apr": 0,
+            //                         "feeApr": 0,
+            //                         "priceMin": 0.09599464144142572,
+            //                         "priceMax": 0.09604456892948753,
+            //                         "rewardApr": []
+            //                     },
+            //                     "pooltype": [
+            //                         "Clmm"
+            //                     ],
+            //                     "farmUpcomingCount": 0,
+            //                     "farmOngoingCount": 0,
+            //                     "farmFinishedCount": 0,
+            //                     "config": {
+            //                         "id": "9iFER3bpjf1PTTCQCfTRu17EJgvsxo9pVyA9QWwEuX4x",
+            //                         "index": 4,
+            //                         "protocolFeeRate": 120000,
+            //                         "tradeFeeRate": 100,
+            //                         "tickSpacing": 1,
+            //                         "fundFeeRate": 40000,
+            //                         "defaultRange": 0.001,
+            //                         "defaultRangePoint": [
+            //                             0.001,
+            //                             0.003,
+            //                             0.005,
+            //                             0.008,
+            //                             0.01
+            //                         ]
+            //                     },
+            //                     "burnPercent": 0,
+            //                     "launchMigratePool": false,
+            //                     "tips": [],
+            //                     "feeOn": "Both",
+            //                     "hasDynamicFee": false
+            //                 }
+            //             ],
+            //             "hasNextPage": true
+            //         }
+            //     }
+            //
             const poolRows = this.extractRows (response);
             for (let i = 0; i < poolRows.length; i++) {
                 rows.push (poolRows[i]);
@@ -383,20 +844,213 @@ export default class raydium extends Exchange {
             if (parsed === undefined) {
                 throw new ExchangeError (this.id + ' fetchMarkets() could not parse a pool market');
             }
-            if (symbols[parsed['symbol']] === undefined) {
+            if (!this.safeBool (symbols, parsed['symbol'], false)) {
                 result.push (parsed);
                 symbols[parsed['symbol']] = true;
             }
+        }
+        const includeSwaps = (kind === 'all') || ((this.safeString (params, 'type') === undefined) && !this.isSandboxModeEnabled);
+        if (includeSwaps) {
+            const swapMarkets = await this.fetchSwapMarkets ();
+            return this.arrayConcat (result, swapMarkets);
         }
         return result;
     }
 
     /**
      * @ignore
-     * @param {object} market raw Raydium pool or LaunchLab mint
+     * @param {object} market raw Raydium pool, LaunchLab mint, or swap market
      * @returns {object} a market structure
      */
     override parseMarket (market: Dict): Market {
+        const marketId = this.safeString (market, 'symbol');
+        if ((marketId !== undefined) && (marketId.indexOf ('PERP_') === 0) && (this.safeDict (market, 'mintA') === undefined) && (this.safeString (market, 'mint') === undefined)) {
+            return this.parseSwapMarket (market);
+        }
+        //
+        // standard pool
+        //
+        //     {
+        //         "type": "Concentrated",
+        //         "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        //         "id": "5mfjy2Ns9MWuVB6z3N1oFGJKSd6RyG2PAdyH2wDKDaMY",
+        //         "mintA": {
+        //             "chainId": 101,
+        //             "address": "AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "https://img-v1.raydium.io/icon/AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P.png",
+        //             "symbol": "CC",
+        //             "name": "Canton Network",
+        //             "decimals": 9,
+        //             "tags": [],
+        //             "extensions": {}
+        //         },
+        //         "mintB": {
+        //             "chainId": 101,
+        //             "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "https://img-v1.raydium.io/icon/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+        //             "symbol": "USDC",
+        //             "name": "USD Coin",
+        //             "decimals": 6,
+        //             "tags": [
+        //                 "hasFreeze"
+        //             ],
+        //             "extensions": {}
+        //         },
+        //         "rewardDefaultPoolInfos": "Clmm",
+        //         "rewardDefaultInfos": [],
+        //         "price": 0.09600783007339088,
+        //         "mintAmountA": 998564854.1334,
+        //         "mintAmountB": 42031.111974,
+        //         "feeRate": 0.0001,
+        //         "openTime": "0",
+        //         "tvl": 95912075.94,
+        //         "day": {
+        //             "volume": 99903.88828908766,
+        //             "volumeQuote": 99910.60633131946,
+        //             "volumeFee": 9.9903888309347,
+        //             "apr": 0,
+        //             "feeApr": 0,
+        //             "priceMin": 0.09599464144142572,
+        //             "priceMax": 0.09602014342008008,
+        //             "rewardApr": []
+        //         },
+        //         "week": {
+        //             "volume": 1525372.0882718102,
+        //             "volumeQuote": 1525506.8478766459,
+        //             "volumeFee": 152.53721505297452,
+        //             "apr": 0,
+        //             "feeApr": 0,
+        //             "priceMin": 0.09599464144142572,
+        //             "priceMax": 0.09604456892948753,
+        //             "rewardApr": []
+        //         },
+        //         "month": {
+        //             "volume": 2993600.7475060793,
+        //             "volumeQuote": 2993843.75528,
+        //             "volumeFee": 299.3601151291465,
+        //             "apr": 0,
+        //             "feeApr": 0,
+        //             "priceMin": 0.09599464144142572,
+        //             "priceMax": 0.09604456892948753,
+        //             "rewardApr": []
+        //         },
+        //         "pooltype": [
+        //             "Clmm"
+        //         ],
+        //         "farmUpcomingCount": 0,
+        //         "farmOngoingCount": 0,
+        //         "farmFinishedCount": 0,
+        //         "config": {
+        //             "id": "9iFER3bpjf1PTTCQCfTRu17EJgvsxo9pVyA9QWwEuX4x",
+        //             "index": 4,
+        //             "protocolFeeRate": 120000,
+        //             "tradeFeeRate": 100,
+        //             "tickSpacing": 1,
+        //             "fundFeeRate": 40000,
+        //             "defaultRange": 0.001,
+        //             "defaultRangePoint": [
+        //                 0.001,
+        //                 0.003,
+        //                 0.005,
+        //                 0.008,
+        //                 0.01
+        //             ]
+        //         },
+        //         "burnPercent": 0,
+        //         "launchMigratePool": false,
+        //         "tips": [],
+        //         "feeOn": "Both",
+        //         "hasDynamicFee": false
+        //     }
+        //
+        //
+        // launchlab mint
+        //
+        //     {
+        //         "mint": "FXEMLHc2CM35jN4yECsiN8T8WofskTbATEywjPKEYX2T",
+        //         "poolId": "97MyiCJP4oCrCUcGWiRL2d6FF4CpheEuaudv2YAtTBfR",
+        //         "configId": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //         "creator": "45YqzZVGe3Zb2AzxXtfpoyBMjDHufeuQNpMHk7tBuh8Z",
+        //         "createAt": 1794623922000,
+        //         "name": "Matchedpad",
+        //         "symbol": "MATCHEDPAD",
+        //         "description": "",
+        //         "metadataUrl": "https://ipfs.io/ipfs/bafkreibk6escj5m6ell5attydjkqoykvrabinuqahpatp2he5vkkbxilb4",
+        //         "platformInfo": {
+        //             "pubKey": "D2ySdMncomHKRKBV4AAftqnLKxyS6HMWcmbewvNcawCg",
+        //             "platformClaimFeeWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //             "platformLockNftWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //             "transferFeeExtensionAuth": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //             "cpConfigId": "FMmwToGqT9iwDgsqvzLg65vcKSzKme4szbWqX1kyCBCJ",
+        //             "platformScale": "0",
+        //             "creatorScale": "0",
+        //             "burnScale": "1000000",
+        //             "feeRate": "15000",
+        //             "creatorFeeRate": "0",
+        //             "name": "My Launch Platform",
+        //             "web": "",
+        //             "img": "",
+        //             "platformVestingWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //             "platformVestingScale": "0",
+        //             "platformCpCreator": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //             "restrictCurveParam": 0,
+        //             "curveRuleManager": "11111111111111111111111111111111"
+        //         },
+        //         "configInfo": {
+        //             "name": "Constant Product Curve",
+        //             "pubKey": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //             "epoch": 961,
+        //             "curveType": 0,
+        //             "index": 0,
+        //             "migrateFee": "0",
+        //             "tradeFeeRate": "2500",
+        //             "maxShareFeeRate": "10000",
+        //             "minSupplyA": "10000000",
+        //             "maxLockRate": "800000",
+        //             "minSellRateA": "200000",
+        //             "minMigrateRateA": "150000",
+        //             "minFundRaisingB": "24000000000",
+        //             "protocolFeeOwner": "rayvTLcCMDs7P5tgpuoNA6ZYeLERegeCphdqLSgdKms",
+        //             "migrateFeeOwner": "rayHQtJKrtvqUs3HnhDW9RKubHRbu87eESKEYD5xosa",
+        //             "migrateToAmmWallet": "RAYzrepoBdjSFg7MZj2vy4XBSv2azKRXC72ztUMZMJB",
+        //             "migrateToCpmmWallet": "RAYpQbFNq9i3mu6cKpTKKRwwHFDeK5AuZz8xvxUrCgw",
+        //             "mintB": "So11111111111111111111111111111111111111112"
+        //         },
+        //         "mintB": {
+        //             "chainId": 101,
+        //             "address": "So11111111111111111111111111111111111111112",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "https://img-v1.raydium.io/icon/So11111111111111111111111111111111111111112.png",
+        //             "symbol": "WSOL",
+        //             "name": "Wrapped SOL",
+        //             "decimals": 9,
+        //             "tags": [],
+        //             "extensions": {}
+        //         },
+        //         "decimals": 6,
+        //         "supply": 1000000000,
+        //         "marketCap": 27.959121193874665,
+        //         "volumeA": 0,
+        //         "volumeB": 0,
+        //         "volumeU": 0,
+        //         "finishingRate": 0,
+        //         "initPrice": "2.7959121193874663768e-8",
+        //         "endPrice": "4.1082648622522957951e-7",
+        //         "totalLockedAmount": 0,
+        //         "cliffPeriod": "0",
+        //         "unlockPeriod": "0",
+        //         "startTime": 0,
+        //         "totalAllocatedShare": 0,
+        //         "defaultCurve": true,
+        //         "totalSellA": "793100000000000",
+        //         "totalFundRaisingB": "85000000000",
+        //         "migrateType": "cpmm",
+        //         "mintProgramA": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //         "cpmmCreatorFeeOn": 0
+        //     }
+        //
         const mintA = this.safeDict (market, 'mintA');
         const mintB = this.safeDict (market, 'mintB');
         const baseId = this.safeString (mintA, 'address', this.safeString (market, 'mint'));
@@ -498,6 +1152,47 @@ export default class raydium extends Exchange {
             const response = await this.apiV3PublicGetMintList ();
             rows = this.extractRows (response);
         }
+        //
+        //     {
+        //         "id": "0d176cd0-ed73-432d-b8c3-d68480cc07e8",
+        //         "success": true,
+        //         "data": {
+        //             "blacklist": [
+        //                 "9jaZhJM6nMHTo4hY9DGabQ1HNuUWhJtm7js1fmKMVpkN"
+        //             ],
+        //             "mintList": [
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+        //                     "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo.png",
+        //                     "symbol": "PYUSD",
+        //                     "name": "PayPal USD",
+        //                     "decimals": 6,
+        //                     "tags": [
+        //                         "hasFreeze"
+        //                     ],
+        //                     "extensions": {}
+        //                 },
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/2FPyTwcZLUg1MDrwsyoP4D6s1tM7hAkHYRjkNb5w6Pxk.png",
+        //                     "symbol": "ETH",
+        //                     "name": "Wrapped Ethereum (Sollet)",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 }
+        //             ],
+        //             "whiteList": [
+        //                 "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                 "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB"
+        //             ]
+        //         }
+        //     }
+        //
         const result: Currencies = {};
         for (let i = 0; i < rows.length; i++) {
             const currency = this.parseCurrency (rows[i]);
@@ -517,6 +1212,21 @@ export default class raydium extends Exchange {
      * @returns {object} a currency structure
      */
     override parseCurrency (currency: Dict): CurrencyInterface {
+        //
+        //     {
+        //         "chainId": 101,
+        //         "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+        //         "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //         "logoURI": "https://img-v1.raydium.io/icon/2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo.png",
+        //         "symbol": "PYUSD",
+        //         "name": "PayPal USD",
+        //         "decimals": 6,
+        //         "tags": [
+        //             "hasFreeze"
+        //         ],
+        //         "extensions": {}
+        //     }
+        //
         const id = this.safeString2 (currency, 'address', 'mint');
         const decimals = this.safeInteger (currency, 'decimals');
         const code = this.safeString (currency, 'symbol', id);
@@ -560,6 +1270,117 @@ export default class raydium extends Exchange {
             throw new BadSymbol (this.id + ' fetchTicker() could not resolve a pool id for ' + symbol);
         }
         const response = await this.apiV3PublicGetPoolsInfoIds ({ 'ids': poolId });
+        //
+        //     {
+        //         "id": "8b69caf9-ef4d-4fe6-a5b9-82b4faf12102",
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "type": "Standard",
+        //                 "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        //                 "id": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //                 "mintA": {
+        //                     "chainId": 101,
+        //                     "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                     "symbol": "RAY",
+        //                     "name": "Raydium",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "mintB": {
+        //                     "chainId": 101,
+        //                     "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //                     "symbol": "USDT",
+        //                     "name": "USDT",
+        //                     "decimals": 6,
+        //                     "tags": ["hasFreeze"],
+        //                     "extensions": {}
+        //                 },
+        //                 "price": 1.4687567803748238,
+        //                 "mintAmountA": 491197.370009,
+        //                 "mintAmountB": 721449.467703,
+        //                 "feeRate": 0.0025,
+        //                 "openTime": "0",
+        //                 "tvl": 1441676.38,
+        //                 "day": {
+        //                     "volume": 179185.2688778311,
+        //                     "volumeQuote": 179705.92389330812,
+        //                     "volumeFee": 447.96317219457796,
+        //                     "apr": 11.34,
+        //                     "feeApr": 11.34,
+        //                     "priceMin": 1.46518572490142,
+        //                     "priceMax": 1.6216216216216215,
+        //                     "rewardApr": [0]
+        //                 },
+        //                 "week": {
+        //                     "volume": 1043439.6989700783,
+        //                     "volumeQuote": 1046648.571578637,
+        //                     "volumeFee": 2608.5992474251957,
+        //                     "apr": 5.43,
+        //                     "feeApr": 5.43,
+        //                     "priceMin": 1.46518572490142,
+        //                     "priceMax": 1.82563774699872,
+        //                     "rewardApr": [0]
+        //                 },
+        //                 "month": {
+        //                     "volume": 4755965.05701011,
+        //                     "volumeQuote": 4772645.131482,
+        //                     "volumeFee": 11889.912642525274,
+        //                     "apr": 9.9,
+        //                     "feeApr": 9.9,
+        //                     "priceMin": 1.3636363636363635,
+        //                     "priceMax": 2.08662236438065,
+        //                     "rewardApr": [0]
+        //                 },
+        //                 "pooltype": ["Amm","OpenBookMarket"],
+        //                 "rewardDefaultPoolInfos": "Raydium",
+        //                 "rewardDefaultInfos": [
+        //                     {
+        //                         "mint": {
+        //                             "chainId": 101,
+        //                             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                             "symbol": "RAY",
+        //                             "name": "Raydium",
+        //                             "decimals": 6,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         },
+        //                         "perSecond": "0"
+        //                     }
+        //                 ],
+        //                 "farmUpcomingCount": 0,
+        //                 "farmOngoingCount": 0,
+        //                 "farmFinishedCount": 3,
+        //                 "marketId": "GpHbiJJ9VHiuHVXeoet121Utrbm1CSNNzYrBKB8Xz2oz",
+        //                 "lpMint": {
+        //                     "chainId": 101,
+        //                     "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "",
+        //                     "symbol": "RAY-USDT",
+        //                     "name": "Raydium LP Token V4 (RAY-USDT)",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "lpPrice": 12.466561765706462,
+        //                 "lpAmount": 115643.463401,
+        //                 "burnPercent": 0,
+        //                 "launchMigratePool": false,
+        //                 "tips": [],
+        //                 "feeOn": "Both",
+        //                 "hasDynamicFee": false
+        //             }
+        //         ]
+        //     }
+        //
         const rows = this.extractRows (response);
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -575,6 +1396,111 @@ export default class raydium extends Exchange {
      * @returns {object} a ticker structure
      */
     override parseTicker (ticker: Dict, market: Market = undefined): Ticker {
+        //
+        //     {
+        //         "type": "Standard",
+        //         "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        //         "id": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //         "mintA": {
+        //             "chainId": 101,
+        //             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //             "symbol": "RAY",
+        //             "name": "Raydium",
+        //             "decimals": 6,
+        //             "tags": [],
+        //             "extensions": {}
+        //         },
+        //         "mintB": {
+        //             "chainId": 101,
+        //             "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //             "symbol": "USDT",
+        //             "name": "USDT",
+        //             "decimals": 6,
+        //             "tags": ["hasFreeze"],
+        //             "extensions": {}
+        //         },
+        //         "price": 1.4687567803748238,
+        //         "mintAmountA": 491197.370009,
+        //         "mintAmountB": 721449.467703,
+        //         "feeRate": 0.0025,
+        //         "openTime": "0",
+        //         "tvl": 1441676.38,
+        //         "day": {
+        //             "volume": 179185.2688778311,
+        //             "volumeQuote": 179705.92389330812,
+        //             "volumeFee": 447.96317219457796,
+        //             "apr": 11.34,
+        //             "feeApr": 11.34,
+        //             "priceMin": 1.46518572490142,
+        //             "priceMax": 1.6216216216216215,
+        //             "rewardApr": [0]
+        //         },
+        //         "week": {
+        //             "volume": 1043439.6989700783,
+        //             "volumeQuote": 1046648.571578637,
+        //             "volumeFee": 2608.5992474251957,
+        //             "apr": 5.43,
+        //             "feeApr": 5.43,
+        //             "priceMin": 1.46518572490142,
+        //             "priceMax": 1.82563774699872,
+        //             "rewardApr": [0]
+        //         },
+        //         "month": {
+        //             "volume": 4755965.05701011,
+        //             "volumeQuote": 4772645.131482,
+        //             "volumeFee": 11889.912642525274,
+        //             "apr": 9.9,
+        //             "feeApr": 9.9,
+        //             "priceMin": 1.3636363636363635,
+        //             "priceMax": 2.08662236438065,
+        //             "rewardApr": [0]
+        //         },
+        //         "pooltype": ["Amm","OpenBookMarket"],
+        //         "rewardDefaultPoolInfos": "Raydium",
+        //          "rewardDefaultInfos": [
+        //             {
+        //                 "mint": {
+        //                     "chainId": 101,
+        //                     "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                     "symbol": "RAY",
+        //                     "name": "Raydium",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "perSecond": "0"
+        //             }
+        //         ],
+        //         "farmUpcomingCount": 0,
+        //         "farmOngoingCount": 0,
+        //         "farmFinishedCount": 3,
+        //         "marketId": "GpHbiJJ9VHiuHVXeoet121Utrbm1CSNNzYrBKB8Xz2oz",
+        //         "lpMint": {
+        //             "chainId": 101,
+        //             "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //             "logoURI": "",
+        //             "symbol": "RAY-USDT",
+        //             "name": "Raydium LP Token V4 (RAY-USDT)",
+        //             "decimals": 6,
+        //             "tags": [],
+        //             "extensions": {}
+        //         },
+        //         "lpPrice": 12.466561765706462,
+        //         "lpAmount": 115643.463401,
+        //         "burnPercent": 0,
+        //         "launchMigratePool": false,
+        //         "tips": [],
+        //         "feeOn": "Both",
+        //         "hasDynamicFee": false
+        //     }
+        //
         const day = this.safeDict (ticker, 'day');
         return this.safeTicker ({
             'info': ticker,
@@ -633,6 +1559,128 @@ export default class raydium extends Exchange {
             }, params);
             response = await this.apiV3PublicGetPoolsInfoList (request);
         }
+        //
+        //     {
+        //         "id": "4439dbf6-7e85-4cc6-b365-6b87098d73ca",
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "type": "Standard",
+        //                 "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        //                 "id": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //                 "mintA": {
+        //                     "chainId": 101,
+        //                     "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                     "symbol": "RAY",
+        //                     "name": "Raydium",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "mintB": {
+        //                     "chainId": 101,
+        //                     "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //                     "symbol": "USDT",
+        //                     "name": "USDT",
+        //                     "decimals": 6,
+        //                     "tags": [
+        //                         "hasFreeze"
+        //                     ],
+        //                     "extensions": {}
+        //                 },
+        //                 "price": 1.450963684541678,
+        //                 "mintAmountA": 494211.140111,
+        //                 "mintAmountB": 717082.416797,
+        //                 "feeRate": 0.0025,
+        //                 "openTime": "0",
+        //                 "tvl": 1432999.98,
+        //                 "day": {
+        //                     "volume": 185925.5816689012,
+        //                     "volumeQuote": 186445.17487497246,
+        //                     "volumeFee": 464.81395417225315,
+        //                     "apr": 11.84,
+        //                     "feeApr": 11.84,
+        //                     "priceMin": 1.4368946666666669,
+        //                     "priceMax": 1.6216216216216215,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "week": {
+        //                     "volume": 1053510.9410816028,
+        //                     "volumeQuote": 1056727.5172064616,
+        //                     "volumeFee": 2633.777352704008,
+        //                     "apr": 5.51,
+        //                     "feeApr": 5.51,
+        //                     "priceMin": 1.4368946666666669,
+        //                     "priceMax": 1.82563774699872,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "month": {
+        //                     "volume": 4769309.830042222,
+        //                     "volumeQuote": 4786008.320176001,
+        //                     "volumeFee": 11923.274575105555,
+        //                     "apr": 9.98,
+        //                     "feeApr": 9.98,
+        //                     "priceMin": 1.3636363636363635,
+        //                     "priceMax": 2.08662236438065,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "pooltype": [
+        //                     "Amm",
+        //                     "OpenBookMarket"
+        //                 ],
+        //                 "rewardDefaultPoolInfos": "Raydium",
+        //                 "rewardDefaultInfos": [
+        //                     {
+        //                         "mint": {
+        //                             "chainId": 101,
+        //                             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                             "symbol": "RAY",
+        //                             "name": "Raydium",
+        //                             "decimals": 6,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         },
+        //                         "perSecond": "0"
+        //                     }
+        //                 ],
+        //                 "farmUpcomingCount": 0,
+        //                 "farmOngoingCount": 0,
+        //                 "farmFinishedCount": 3,
+        //                 "marketId": "GpHbiJJ9VHiuHVXeoet121Utrbm1CSNNzYrBKB8Xz2oz",
+        //                 "lpMint": {
+        //                     "chainId": 101,
+        //                     "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "",
+        //                     "symbol": "RAY-USDT",
+        //                     "name": "Raydium LP Token V4 (RAY-USDT)",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "lpPrice": 12.391534616288956,
+        //                 "lpAmount": 115643.463401,
+        //                 "burnPercent": 0,
+        //                 "launchMigratePool": false,
+        //                 "tips": [],
+        //                 "feeOn": "Both",
+        //                 "hasDynamicFee": false
+        //             }
+        //         ]
+        //     }
+        //
         const rows = this.extractRows (response);
         const result: Ticker[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -670,6 +1718,35 @@ export default class raydium extends Exchange {
         }
         request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetTrade (request);
+        //
+        //     {
+        //         "id": "37ccc001-79da-4403-95d8-35405783b20f",
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "txid": "5zDBbbVRJBpU6tuEh1oXfXaiJ9qY8sTKaNZvHBgymz6No2KMSzkTM4F4e47w2hGiRTbArJy7GF3gwwvKxdae1GoA",
+        //                     "owner": "7JHsyXRNpN93TGkjzwQgsaCag9tXhwkAKTZmxdcAYx69",
+        //                     "blockTime": 1794622861,
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "side": "sell",
+        //                     "amountA": 31339.844768,
+        //                     "amountB": 0.00081792
+        //                 },
+        //                 {
+        //                     "txid": "2DGSJX4tg2PaTHGWEUefRgJtFA7Ev3ncNdPwwfJTqiDhg2tkMcxi9Wt8NLrSPoNGm3V547AZqano5GVU7S1jVMJX",
+        //                     "owner": "6db9d9LnCeKzSaEWYzBJJ88PBrXuuhA6n9NbqcU4tNta",
+        //                     "blockTime": 1794622856,
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "side": "sell",
+        //                     "amountA": 4903635.079408,
+        //                     "amountB": 0.128571985
+        //                 }
+        //             ],
+        //             "nextPageKey": "84a7b9ef7440bb4a6db4d73f79a688001f9a3ff9e3dc31c265926bf5220080c1"
+        //         }
+        //     }
+        //
         const rows = this.extractRows (response);
         const result: Trade[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -719,6 +1796,26 @@ export default class raydium extends Exchange {
         }
         request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetTrade (request);
+        //
+        //     {
+        //         "id": "a7f46fa7-0467-46db-bc0f-a1b55f5adc30",
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "txid": "5MHtJ6fzjssCXfc6vgKifakegVPDRbTZt6SS17nMTAD7J7FgJBtWmS1L6B8e2zPwLYDZejqADfVENDc51hp9N98r",
+        //                     "owner": "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
+        //                     "blockTime": 1794622670,
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "side": "sell",
+        //                     "amountA": 35748600.017462,
+        //                     "amountB": 0.974457737
+        //                 }
+        //             ],
+        //             "nextPageKey": "84a7b9ef7440bb4a6db4d73f79a688001f9a3ff9e3dc31c265926bf5220080c1"
+        //         }
+        //     }
+        //
         const rows = this.extractRows (response);
         const result: Trade[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -737,6 +1834,17 @@ export default class raydium extends Exchange {
      * @returns {object} a trade structure
      */
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "txid": "5zDBbbVRJBpU6tuEh1oXfXaiJ9qY8sTKaNZvHBgymz6No2KMSzkTM4F4e47w2hGiRTbArJy7GF3gwwvKxdae1GoA",
+        //         "owner": "7JHsyXRNpN93TGkjzwQgsaCag9tXhwkAKTZmxdcAYx69",
+        //         "blockTime": 1794622861,
+        //         "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //         "side": "sell",
+        //         "amountA": 31339.844768,
+        //         "amountB": 0.00081792
+        //     }
+        //
         const baseAmount = this.safeString (trade, 'amountA');
         const quoteAmount = this.safeString (trade, 'amountB');
         const price = (baseAmount === undefined || quoteAmount === undefined) ? undefined : Precise.stringDiv (quoteAmount, baseAmount);
@@ -789,6 +1897,48 @@ export default class raydium extends Exchange {
         }
         request['limit'] = this.safeInteger (request, 'limit', defaultLimit);
         const response = await this.launchHistoryPublicGetKline (request);
+        //
+        //     {
+        //         "id": "343191b3-fff5-4410-91e7-ba05d6a1539e",
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "t": 1794622860,
+        //                     "o": 2.656406097707573e-8,
+        //                     "c": 2.6562500037187516e-8,
+        //                     "h": 2.6562500037187516e-8,
+        //                     "l": 2.6562500037187516e-8
+        //                 },
+        //                 {
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "t": 1794622800,
+        //                     "o": 2.681000120405546e-8,
+        //                     "c": 2.656406097707573e-8,
+        //                     "h": 2.656406097707573e-8,
+        //                     "l": 2.656406097707573e-8
+        //                 },
+        //                 {
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "t": 1794622620,
+        //                     "o": 4.756015102242319e-8,
+        //                     "c": 2.681000120405546e-8,
+        //                     "h": 1.9158647408067833e-7,
+        //                     "l": 2.681000120405546e-8
+        //                 },
+        //                 {
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "t": 1794622560,
+        //                     "o": 2.6562499999687518e-8,
+        //                     "c": 4.756015102242319e-8,
+        //                     "h": 4.763413045641281e-8,
+        //                     "l": 2.6562499999687518e-8
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         const rows = this.extractRows (response);
         const result: OHLCV[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -840,10 +1990,264 @@ export default class raydium extends Exchange {
             if (this.safeString (request, 'lp') === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchLiquidityPools() farm lookup requires params.lp');
             }
-            response = await this.apiV3PublicGetFarmsInfoLp (request);
+            response = await this.apiV3PublicGetFarmsInfoLp (this.extend ({
+                'page': 1,
+                'pageSize': 100,
+            }, request));
         } else {
             throw new BadRequest (this.id + ' fetchLiquidityPools() params.type must be pool, stake, or farm');
         }
+        //
+        // pool
+        //
+        //     {
+        //         "id": "82776de5-f861-4334-b4bb-dcb7649d4d78",
+        //         "success": true,
+        //         "data": {
+        //             "count": 100,
+        //             "data": [
+        //                 {
+        //                     "type": "Concentrated",
+        //                     "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        //                     "id": "5mfjy2Ns9MWuVB6z3N1oFGJKSd6RyG2PAdyH2wDKDaMY",
+        //                     "mintA": {
+        //                         "chainId": 101,
+        //                         "address": "AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/AHyKLHgodnahePddu4eQysxFuz2JkDVdpXqMu9x6Yw1P.png",
+        //                         "symbol": "CC",
+        //                         "name": "Canton Network",
+        //                         "decimals": 9,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "mintB": {
+        //                         "chainId": 101,
+        //                         "address": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v.png",
+        //                         "symbol": "USDC",
+        //                         "name": "USD Coin",
+        //                         "decimals": 6,
+        //                         "tags": [
+        //                             "hasFreeze"
+        //                         ],
+        //                         "extensions": {}
+        //                     },
+        //                     "rewardDefaultPoolInfos": "Clmm",
+        //                     "rewardDefaultInfos": [],
+        //                     "price": 0.09600783079117599,
+        //                     "mintAmountA": 998564812.4672697,
+        //                     "mintAmountB": 42031.111974,
+        //                     "feeRate": 0.0001,
+        //                     "openTime": "0",
+        //                     "tvl": 95912072.66,
+        //                     "day": {
+        //                         "volume": 63945.66355313155,
+        //                         "volumeQuote": 63949.902207249645,
+        //                         "volumeFee": 6.394566357461586,
+        //                         "apr": 0,
+        //                         "feeApr": 0,
+        //                         "priceMin": 0.09599464214607106,
+        //                         "priceMax": 0.09602014342008008,
+        //                         "rewardApr": []
+        //                     },
+        //                     "week": {
+        //                         "volume": 1500282.3720352955,
+        //                         "volumeQuote": 1500415.7152473056,
+        //                         "volumeFee": 150.02824345772592,
+        //                         "apr": 0,
+        //                         "feeApr": 0,
+        //                         "priceMin": 0.09599464214607106,
+        //                         "priceMax": 0.09604456892948753,
+        //                         "rewardApr": []
+        //                     },
+        //                     "month": {
+        //                         "volume": 2953603.4949884037,
+        //                         "volumeQuote": 2953843.75528,
+        //                         "volumeFee": 295.36038987736754,
+        //                         "apr": 0,
+        //                         "feeApr": 0,
+        //                         "priceMin": 0.09599464214607106,
+        //                         "priceMax": 0.09604456892948753,
+        //                         "rewardApr": []
+        //                     },
+        //                     "pooltype": [
+        //                         "Clmm"
+        //                     ],
+        //                     "farmUpcomingCount": 0,
+        //                     "farmOngoingCount": 0,
+        //                     "farmFinishedCount": 0,
+        //                     "config": {
+        //                         "id": "9iFER3bpjf1PTTCQCfTRu17EJgvsxo9pVyA9QWwEuX4x",
+        //                         "index": 4,
+        //                         "protocolFeeRate": 120000,
+        //                         "tradeFeeRate": 100,
+        //                         "tickSpacing": 1,
+        //                         "fundFeeRate": 40000,
+        //                         "defaultRange": 0.001,
+        //                         "defaultRangePoint": [
+        //                             0.001,
+        //                             0.003,
+        //                             0.005,
+        //                             0.008,
+        //                             0.01
+        //                         ]
+        //                     },
+        //                     "burnPercent": 0,
+        //                     "launchMigratePool": false,
+        //                     "tips": [],
+        //                     "feeOn": "Both",
+        //                     "hasDynamicFee": false
+        //                 }
+        //             ],
+        //             "hasNextPage": true
+        //         }
+        //     }
+        //
+        //
+        // stake
+        //
+        //     {
+        //         "id": "a1bcb9b8-8689-4b5d-ae2f-81508ecc67f7",
+        //         "success": true,
+        //         "data": {
+        //             "count": 1,
+        //             "data": [
+        //                 {
+        //                     "programId": "EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q",
+        //                     "id": "4EwbZo8BZXP5313z5A2H11MRBP15M5n6YxfmkjXESKAW",
+        //                     "symbolMints": [
+        //                         {
+        //                             "chainId": 101,
+        //                             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                             "symbol": "RAY",
+        //                             "name": "Raydium",
+        //                             "decimals": 6,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         }
+        //                     ],
+        //                     "lpMint": {
+        //                         "chainId": 101,
+        //                         "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                         "symbol": "RAY",
+        //                         "name": "Raydium",
+        //                         "decimals": 6,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "tvl": 65353889.85708877,
+        //                     "lpPrice": 1.451041171185985,
+        //                     "apr": 0.0367,
+        //                     "tags": [
+        //                         "Stake"
+        //                     ],
+        //                     "rewardInfos": [
+        //                         {
+        //                             "mint": {
+        //                                 "chainId": 101,
+        //                                 "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                                 "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                                 "symbol": "RAY",
+        //                                 "name": "Raydium",
+        //                                 "decimals": 6,
+        //                                 "tags": [],
+        //                                 "extensions": {}
+        //                             },
+        //                             "type": "Standard SPL",
+        //                             "apr": 0.0367,
+        //                             "perSecond": "28200"
+        //                         }
+        //                     ]
+        //                 }
+        //             ],
+        //             "hasNextPage": false
+        //         }
+        //     }
+        //
+        //
+        // farm
+        //
+        //     {
+        //         "id": "520cfb5e-4d29-44d4-8e82-55a8c88a44c7",
+        //         "success": true,
+        //         "data": {
+        //             "count": 4,
+        //             "data": [
+        //                 {
+        //                     "programId": "EhhTKczWMGQt46ynNeRX1WfeagwwJd7ufHvCDjRxjo5Q",
+        //                     "id": "3H1fDSeDgwoomw9xTrV3GRwhwpiwvh3K2AEpsah9eWuu",
+        //                     "symbolMints": [
+        //                         {
+        //                             "chainId": 101,
+        //                             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                             "symbol": "RAY",
+        //                             "name": "Raydium",
+        //                             "decimals": 6,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         },
+        //                         {
+        //                             "chainId": 101,
+        //                             "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //                             "symbol": "USDT",
+        //                             "name": "USDT",
+        //                             "decimals": 6,
+        //                             "tags": [
+        //                                 "hasFreeze"
+        //                             ],
+        //                             "extensions": {}
+        //                         }
+        //                     ],
+        //                     "lpMint": {
+        //                         "chainId": 101,
+        //                         "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "",
+        //                         "symbol": "RAY-USDT",
+        //                         "name": "Raydium LP Token V4 (RAY-USDT)",
+        //                         "decimals": 6,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "tvl": 0,
+        //                     "lpPrice": 12.397212985055257,
+        //                     "apr": 0,
+        //                     "tags": [],
+        //                     "rewardInfos": [
+        //                         {
+        //                             "mint": {
+        //                                 "chainId": 101,
+        //                                 "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                                 "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                                 "symbol": "RAY",
+        //                                 "name": "Raydium",
+        //                                 "decimals": 6,
+        //                                 "tags": [],
+        //                                 "extensions": {}
+        //                             },
+        //                             "type": "Standard SPL",
+        //                             "apr": 0,
+        //                             "perSecond": "3"
+        //                         }
+        //                     ]
+        //                 }
+        //             ],
+        //             "hasNextPage": false
+        //         }
+        //     }
+        //
         const rows = this.extractRows (response);
         const result: Dict[] = [];
         for (let i = 0; i < rows.length; i++) {
@@ -854,6 +2258,12 @@ export default class raydium extends Exchange {
             const baseCurrency = this.safeString (mintA, 'address', this.safeString (row, 'mint'));
             const quoteCurrency = this.safeString (mintB, 'address');
             const lpMint = this.safeDict (row, 'lpMint');
+            const mintASymbol = this.safeString (mintA, 'symbol');
+            const mintBSymbol = this.safeString (mintB, 'symbol');
+            let symbol = this.safeString (row, 'symbol');
+            if ((mintASymbol !== undefined) && (mintBSymbol !== undefined)) {
+                symbol = mintASymbol + '/' + mintBSymbol;
+            }
             const normalized: Dict = {
                 'id': poolId,
                 'poolId': poolId,
@@ -861,7 +2271,7 @@ export default class raydium extends Exchange {
                 'baseCurrency': baseCurrency,
                 'quoteCurrency': quoteCurrency,
                 'lpCurrency': this.safeString (lpMint, 'address'),
-                'symbol': this.safeString (mintA, 'symbol') + '/' + this.safeString (mintB, 'symbol'),
+                'symbol': symbol,
                 'name': this.safeString (row, 'name'),
                 'totalLiquidity': this.safeNumber (row, 'totalLiquidity'),
                 'totalLiquidityValue': this.safeNumber (row, 'tvl'),
@@ -870,9 +2280,6 @@ export default class raydium extends Exchange {
                 'feeRate': this.safeNumber (row, 'feeRate'),
                 'info': row,
             };
-            if (this.safeString (mintA, 'symbol') === undefined || this.safeString (mintB, 'symbol') === undefined) {
-                normalized['symbol'] = this.safeString (row, 'symbol');
-            }
             result.push (this.parseLiquidityPool (normalized));
         }
         return result;
@@ -903,8 +2310,69 @@ export default class raydium extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchLiquidity() params.type must be stake or clmm-lock');
         }
-        const rows = this.extractRows (response);
+        if (this.safeBool (response, 'success') === false) {
+            // the owner API answers success false when a wallet has no positions
+            return [];
+        }
+        //
+        // stake with no positions
+        //
+        //     {
+        //         "id": "5e987f81c8e342e6967f066a41d79cbd",
+        //         "success": false
+        //     }
+        //
+        //
+        // clmm-lock
+        //
+        //     {
+        //         "id": "2bcf07d7-4728-418b-a039-8dead03da7eb",
+        //         "success": true,
+        //         "data": {
+        //             "AHuAAekwu2DrdagqStUffr6XyRGxLT11g18cGKwvTvpP": {
+        //                 "3GpRo9xH1sfmao5F4zFVyC5vJmmx1KCyZgRtaqrsQNuU": {
+        //                     "lockId": "11dGkgPJDUPNfBRUdKXyf21xCzfRQy6WxTBKGigjAL1",
+        //                     "nftAccount": "BxtNeXHhTAA5wgv5hjzv3mDqrY6KjmzFk8Wb88cgRVfk",
+        //                     "positionId": "A3Ay878B9NceEPMuB3yaBJRauBnazErXB3PrcBdn7jAb"
+        //                 },
+        //                 "93Ksj69p6A6maAN6aStSVXjhNGNLwYNdoVcdG3B49RDZ": {
+        //                     "lockId": "2Et3C6rQcG8T6RNkeK2fd1j4R4MyYy3DwMXABXPCJmdM",
+        //                     "nftAccount": "FBdqypwuGdnsw5UbsGFUZZwsnxa77Kx3xW1inqrf6Xgt",
+        //                     "positionId": "DiBMGGmGzjWzSJjQ3AWSwNwTbYXgjKV8cC2FLPVZRCMi"
+        //                 }
+        //             }
+        //         }
+        //     }
+        //
         const result: Dict[] = [];
+        if (kind === 'clmm-lock') {
+            // the clmm-lock endpoint nests positions by pool id and position nft mint
+            const data = this.safeDict (response, 'data', {});
+            const dataPoolIds = Object.keys (data);
+            for (let i = 0; i < dataPoolIds.length; i++) {
+                const dataPoolId = dataPoolIds[i];
+                if ((poolId !== undefined) && (dataPoolId !== poolId)) {
+                    continue;
+                }
+                const positions = this.safeDict (data, dataPoolId, {});
+                const nftMints = Object.keys (positions);
+                for (let j = 0; j < nftMints.length; j++) {
+                    const row = this.safeDict (positions, nftMints[j], {});
+                    const normalized: Dict = {
+                        'id': this.safeString (row, 'positionId', this.safeString (row, 'lockId')),
+                        'poolId': dataPoolId,
+                        'owner': walletAddress,
+                        'type': kind,
+                        'currency': nftMints[j],
+                        'amount': undefined,
+                        'info': row,
+                    };
+                    result.push (this.parseLiquidity (normalized));
+                }
+            }
+            return result;
+        }
+        const rows = this.extractRows (response);
         for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
             const nestedPool = this.safeDict (row, 'pool');
@@ -940,6 +2408,12 @@ export default class raydium extends Exchange {
         if (walletAddress === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchStake() requires params.walletAddress');
         }
+        //
+        //     {
+        //         "id": "e4afe2dab8dd401fb56a648ebd1d39ff",
+        //         "success": false
+        //     }
+        //
         return await this.fetchLiquidity (undefined, this.extend (params, { 'walletAddress': walletAddress, 'type': 'stake' }));
     }
 
@@ -954,6 +2428,128 @@ export default class raydium extends Exchange {
      */
     override async fetchPoolMintAddresses (id: string, params: Dict = {}): Promise<Dict> {
         const response = await this.apiV3PublicGetPoolsInfoIds (this.extend ({ 'ids': id }, params));
+        //
+        //     {
+        //         "id": "e66183f8-f8bd-49f3-88f4-662b9863b609",
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "type": "Standard",
+        //                 "programId": "675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8",
+        //                 "id": "DVa7Qmb5ct9RCpaU7UTpSaf3GVMYz17vNVU67XpdCRut",
+        //                 "mintA": {
+        //                     "chainId": 101,
+        //                     "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                     "symbol": "RAY",
+        //                     "name": "Raydium",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "mintB": {
+        //                     "chainId": 101,
+        //                     "address": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB.png",
+        //                     "symbol": "USDT",
+        //                     "name": "USDT",
+        //                     "decimals": 6,
+        //                     "tags": [
+        //                         "hasFreeze"
+        //                     ],
+        //                     "extensions": {}
+        //                 },
+        //                 "price": 1.450963684541678,
+        //                 "mintAmountA": 494211.140111,
+        //                 "mintAmountB": 717082.416797,
+        //                 "feeRate": 0.0025,
+        //                 "openTime": "0",
+        //                 "tvl": 1432999.98,
+        //                 "day": {
+        //                     "volume": 186092.7007745733,
+        //                     "volumeQuote": 186612.78683811732,
+        //                     "volumeFee": 465.2317519364334,
+        //                     "apr": 11.85,
+        //                     "feeApr": 11.85,
+        //                     "priceMin": 1.4368946666666669,
+        //                     "priceMax": 1.6216216216216215,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "week": {
+        //                     "volume": 1053593.774430563,
+        //                     "volumeQuote": 1056810.6216153002,
+        //                     "volumeFee": 2633.9844360764077,
+        //                     "apr": 5.51,
+        //                     "feeApr": 5.51,
+        //                     "priceMin": 1.4368946666666669,
+        //                     "priceMax": 1.82563774699872,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "month": {
+        //                     "volume": 4769309.830042222,
+        //                     "volumeQuote": 4786008.320176001,
+        //                     "volumeFee": 11923.274575105555,
+        //                     "apr": 9.98,
+        //                     "feeApr": 9.98,
+        //                     "priceMin": 1.3636363636363635,
+        //                     "priceMax": 2.08662236438065,
+        //                     "rewardApr": [
+        //                         0
+        //                     ]
+        //                 },
+        //                 "pooltype": [
+        //                     "Amm",
+        //                     "OpenBookMarket"
+        //                 ],
+        //                 "rewardDefaultPoolInfos": "Raydium",
+        //                 "rewardDefaultInfos": [
+        //                     {
+        //                         "mint": {
+        //                             "chainId": 101,
+        //                             "address": "4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R.png",
+        //                             "symbol": "RAY",
+        //                             "name": "Raydium",
+        //                             "decimals": 6,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         },
+        //                         "perSecond": "0"
+        //                     }
+        //                 ],
+        //                 "farmUpcomingCount": 0,
+        //                 "farmOngoingCount": 0,
+        //                 "farmFinishedCount": 3,
+        //                 "marketId": "GpHbiJJ9VHiuHVXeoet121Utrbm1CSNNzYrBKB8Xz2oz",
+        //                 "lpMint": {
+        //                     "chainId": 101,
+        //                     "address": "C3sT1R3nsw4AVdepvLTLKr5Gvszr7jufyBWUCvy4TUvT",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "",
+        //                     "symbol": "RAY-USDT",
+        //                     "name": "Raydium LP Token V4 (RAY-USDT)",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "lpPrice": 12.391534616288956,
+        //                 "lpAmount": 115643.463401,
+        //                 "burnPercent": 0,
+        //                 "launchMigratePool": false,
+        //                 "tips": [],
+        //                 "feeOn": "Both",
+        //                 "hasDynamicFee": false
+        //             }
+        //         ]
+        //     }
+        //
         const rows = this.extractRows (response);
         const rowsLength = rows.length;
         if (rowsLength === 0) {
@@ -962,13 +2558,19 @@ export default class raydium extends Exchange {
         const pool = rows[0];
         const mintA = this.safeDict (pool, 'mintA');
         const mintB = this.safeDict (pool, 'mintB');
+        const mintASymbol = this.safeString (mintA, 'symbol');
+        const mintBSymbol = this.safeString (mintB, 'symbol');
+        let symbol = undefined;
+        if ((mintASymbol !== undefined) && (mintBSymbol !== undefined)) {
+            symbol = mintASymbol + '/' + mintBSymbol;
+        }
         return this.parsePoolMintAddresses ({
             'info': pool,
             'poolId': this.safeString (pool, 'id', id),
             'mintA': this.safeString (mintA, 'address'),
             'mintB': this.safeString (mintB, 'address'),
             'lpMint': this.safeString (this.safeDict (pool, 'lpMint'), 'address'),
-            'symbol': this.safeString (mintA, 'symbol') + '/' + this.safeString (mintB, 'symbol'),
+            'symbol': symbol,
         });
     }
 
@@ -998,6 +2600,143 @@ export default class raydium extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchPoolFees() params.type must be clmm, clmm-lock, or cpmm-lock');
         }
+        //
+        //     {
+        //         "name": "Raydium Concentrated Liquidity",
+        //         "symbol": "RCL",
+        //         "description": "Raydium Concentrated Liquidity Position",
+        //         "external_url": "https://raydium.io/",
+        //         "collection": {
+        //             "name": "Raydium Concentrated Liquidity",
+        //             "family": "Raydium Concentrated Liquidity"
+        //         },
+        //         "image": "https://img-v1.raydium.io/share/ea1ef711-652b-422b-a593-04426f8f2a04.jpg",
+        //         "poolInfo": {
+        //             "type": "Concentrated",
+        //             "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        //             "id": "AHuAAekwu2DrdagqStUffr6XyRGxLT11g18cGKwvTvpP",
+        //             "mintA": {
+        //                 "chainId": 101,
+        //                 "address": "poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN.png",
+        //                 "symbol": "PONS",
+        //                 "name": "Pons",
+        //                 "decimals": 8,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "mintB": {
+        //                 "chainId": 101,
+        //                 "address": "EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL",
+        //                 "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL.png",
+        //                 "symbol": "PPPP",
+        //                 "name": "Pee Pee Poo Poo",
+        //                 "decimals": 9,
+        //                 "tags": [
+        //                     "hasTransferFee"
+        //                 ],
+        //                 "extensions": {
+        //                     "feeConfig": {
+        //                         "transferFeeConfigAuthority": "11111111111111111111111111111111",
+        //                         "withdrawWithheldAuthority": "5KXDF6QnqhBj72hDtJNkkpFaQVUfbFXNybMsp3DiK6tD",
+        //                         "withheldAmount": "0",
+        //                         "olderTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         },
+        //                         "newerTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //             "rewardDefaultPoolInfos": "Clmm",
+        //             "rewardDefaultInfos": [],
+        //             "price": 92663.3167149224,
+        //             "mintAmountA": 6.70712903,
+        //             "mintAmountB": 989999999.997368,
+        //             "feeRate": 0.01,
+        //             "openTime": "0",
+        //             "tvl": 1422.54,
+        //             "day": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "week": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "month": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "pooltype": [
+        //                 "Clmm"
+        //             ],
+        //             "farmUpcomingCount": 0,
+        //             "farmOngoingCount": 0,
+        //             "farmFinishedCount": 0,
+        //             "config": {
+        //                 "id": "A1BBtTYJd4i3xU8D6Tc2FzU6ZN4oXZWXKZnCxwbHXr8x",
+        //                 "index": 3,
+        //                 "protocolFeeRate": 120000,
+        //                 "tradeFeeRate": 10000,
+        //                 "tickSpacing": 120,
+        //                 "fundFeeRate": 40000,
+        //                 "defaultRange": 0.1,
+        //                 "defaultRangePoint": [
+        //                     0.01,
+        //                     0.05,
+        //                     0.1,
+        //                     0.2,
+        //                     0.5
+        //                 ]
+        //             },
+        //             "burnPercent": 100,
+        //             "launchMigratePool": false,
+        //             "tips": [],
+        //             "feeOn": "TokenA",
+        //             "hasDynamicFee": false
+        //         },
+        //         "positionInfo": {
+        //             "tvlPercentage": 4.99,
+        //             "usdValue": 71.08233887794744,
+        //             "amountA": 1e-8,
+        //             "amountB": 49499999.99986821,
+        //             "unclaimedFee": {
+        //                 "amountA": 0.00000422,
+        //                 "amountB": 0,
+        //                 "usdFeeValue": 5.615349632798997e-7,
+        //                 "reward": [],
+        //                 "usdRewardValue": 0,
+        //                 "usdValue": 5.615349632798997e-7
+        //             }
+        //         }
+        //     }
+        //
         return [ this.parsePoolFee (this.extractObject (response), poolId, kind) ];
     }
 
@@ -1025,8 +2764,8 @@ export default class raydium extends Exchange {
         }
         const fromCurrency = await this.lookupRaydiumCurrency (fromCode);
         const toCurrency = await this.lookupRaydiumCurrency (toCode);
-        const fromDecimals = this.safeInteger (params, 'fromDecimals', fromCurrency['precision']);
-        const toDecimals = this.safeInteger (params, 'toDecimals', toCurrency['precision']);
+        const fromDecimals = this.safeInteger (params, 'fromDecimals', this.mintDecimals (fromCurrency));
+        const toDecimals = this.safeInteger (params, 'toDecimals', this.mintDecimals (toCurrency));
         if (fromDecimals === undefined || toDecimals === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchConvertQuote() requires token decimals');
         }
@@ -1047,6 +2786,97 @@ export default class raydium extends Exchange {
         } else {
             response = await this.transactionPublicGetComputeSwapBaseIn (request);
         }
+        //
+        //     {
+        //         "id": "086d43aa-b0d9-4b50-a786-dc56f925452c",
+        //         "success": true,
+        //         "data": {
+        //             "blacklist": [
+        //                 "9jaZhJM6nMHTo4hY9DGabQ1HNuUWhJtm7js1fmKMVpkN"
+        //             ],
+        //             "mintList": [
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+        //                     "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo.png",
+        //                     "symbol": "PYUSD",
+        //                     "name": "PayPal USD",
+        //                     "decimals": 6,
+        //                     "tags": [
+        //                         "hasFreeze"
+        //                     ],
+        //                     "extensions": {}
+        //                 },
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "AVw2QGVkXJPRPRjLAceXVoLqU5DVtJ53mdgMXp14yGit",
+        //                     "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/AVw2QGVkXJPRPRjLAceXVoLqU5DVtJ53mdgMXp14yGit.png",
+        //                     "symbol": "SPYr",
+        //                     "name": "SP500 rStock",
+        //                     "decimals": 9,
+        //                     "tags": [
+        //                         "hasFreeze"
+        //                     ],
+        //                     "extensions": {
+        //                         "tips": {
+        //                             "text": "This is a Remora tokenized equity",
+        //                             "link": "https://remoramarkets.xyz/legal-documentation/service-providers",
+        //                             "icon": "https://img-v1.raydium.io/share/remoramarkets.svg"
+        //                         }
+        //                     }
+        //                 },
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "HQMYCZTDq9g3oZejDRUeQsFtLKgyfvBpD3yHaTnain3L",
+        //                     "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/HQMYCZTDq9g3oZejDRUeQsFtLKgyfvBpD3yHaTnain3L.png",
+        //                     "symbol": "eUSD",
+        //                     "name": "eUSD",
+        //                     "decimals": 6,
+        //                     "tags": [
+        //                         "hasFreeze",
+        //                         "hasTransferFee"
+        //                     ],
+        //                     "extensions": {
+        //                         "feeConfig": {
+        //                             "transferFeeConfigAuthority": "DyJseFwtoCnQWR333miA4PAv57aB5bCTxCwY6iK8kxNG",
+        //                             "withdrawWithheldAuthority": "DyJseFwtoCnQWR333miA4PAv57aB5bCTxCwY6iK8kxNG",
+        //                             "withheldAmount": "0",
+        //                             "olderTransferFee": {
+        //                                 "epoch": "892",
+        //                                 "maximumFee": "0",
+        //                                 "transferFeeBasisPoints": 0
+        //                             },
+        //                             "newerTransferFee": {
+        //                                 "epoch": "892",
+        //                                 "maximumFee": "0",
+        //                                 "transferFeeBasisPoints": 0
+        //                             }
+        //                         }
+        //                     }
+        //                 },
+        //                 {
+        //                     "chainId": 101,
+        //                     "address": "ZEXy1pqteRu3n13kdyh4LwPQknkFk3GzmMYMuNadWPo",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/ZEXy1pqteRu3n13kdyh4LwPQknkFk3GzmMYMuNadWPo.png",
+        //                     "symbol": "ZEX",
+        //                     "name": "Zeta",
+        //                     "decimals": 6,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 }
+        //             ],
+        //             "whiteList": [
+        //                 "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+        //                 "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+        //                 "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+        //             ]
+        //         }
+        //     }
+        //
         const quote = this.extractObject (response);
         const inputAmount = this.safeString (quote, 'inputAmount');
         const outputAmount = this.safeString (quote, 'outputAmount');
@@ -1103,8 +2933,8 @@ export default class raydium extends Exchange {
         const toCurrency = await this.lookupRaydiumCurrency (toCode);
         const quoteInputMint = this.safeString (quote, 'inputMint');
         const quoteOutputMint = this.safeString (quote, 'outputMint');
-        const fromDecimals = this.safeInteger (params, 'fromDecimals', fromCurrency['precision']);
-        const toDecimals = this.safeInteger (params, 'toDecimals', toCurrency['precision']);
+        const fromDecimals = this.safeInteger (params, 'fromDecimals', this.mintDecimals (fromCurrency));
+        const toDecimals = this.safeInteger (params, 'toDecimals', this.mintDecimals (toCurrency));
         const inputAmount = this.safeString (quote, 'inputAmount');
         const outputAmount = this.safeString (quote, 'outputAmount');
         if (quoteInputMint !== fromCurrency['id'] || quoteOutputMint !== toCurrency['id']) {
@@ -1143,21 +2973,21 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#buildSwapTransaction
-     * @description builds an unsigned swap transaction from a Raydium quote
+     * @name raydium#buildConversionTransaction
+     * @description builds unsigned token conversion transactions from a Raydium quote
      * @see https://docs.raydium.io/api-reference/route-api-v2/overview.md
      * @param {object} params transaction construction parameters
      * @param {object} params.swapResponse full raw response from fetchConvertQuote.info
      * @param {string} params.wallet wallet public key that will sign the transaction
      * @param {string} [params.txVersion] V0 or LEGACY
      * @param {string} [params.computeUnitPriceMicroLamports] priority fee per compute unit
-     * @returns {object} unsigned transaction that must be signed and submitted by the caller
+     * @returns {object[]} unsigned transactions that must be signed and submitted by the caller
      */
-    async buildSwapTransaction (params: Dict = {}): Promise<Dict> {
+    async buildConversionTransaction (params: Dict = {}): Promise<Dict[]> {
         const swapResponse = this.safeDict (params, 'swapResponse');
         const wallet = this.safeString (params, 'wallet');
         if (swapResponse === undefined || wallet === undefined) {
-            throw new ArgumentsRequired (this.id + ' buildSwapTransaction() requires params.swapResponse and params.wallet');
+            throw new ArgumentsRequired (this.id + ' buildConversionTransaction() requires params.swapResponse and params.wallet');
         }
         const quote = this.extractObject (swapResponse);
         const swapType = this.safeString (quote, 'swapType', 'BaseIn');
@@ -1173,7 +3003,20 @@ export default class raydium extends Exchange {
         } else {
             response = await this.transactionPublicPostTransactionSwapBaseIn (request);
         }
-        return this.extractObject (response);
+        //
+        //     {
+        //         "id": "e869d4dc-e01a-471d-a1f7-a9644feabfc3-tx",
+        //         "version": "V1",
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "transaction": "AQAAAVr+mDERTufp3OnXCB85PINa68Uic2hpJzpRwBXh7fH1+AA=="
+        //             }
+        //         ]
+        //     }
+        //
+        // the transaction API returns a list with one entry per transaction to sign
+        return this.extractRows (response);
     }
 
     /**
@@ -1238,6 +3081,16 @@ export default class raydium extends Exchange {
      */
     async fetchTVL (params: Dict = {}): Promise<Dict> {
         const response = await this.apiV3PublicGetMainInfo (params);
+        //
+        //     {
+        //         "id": "7de32bbe-c8ca-4b45-82a2-4c37b0b41804",
+        //         "success": true,
+        //         "data": {
+        //             "volume24": 275167147.378878,
+        //             "tvl": 1812759712.0561848
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
@@ -1251,86 +3104,243 @@ export default class raydium extends Exchange {
      */
     async fetchBlockchainTransactionFees (params: Dict = {}): Promise<Dict> {
         const response = await this.apiV3PublicGetMainAutoFee (params);
+        //
+        //     {
+        //         "id": "a7b328ba-d247-4938-87a9-df795546dd38",
+        //         "success": true,
+        //         "data": {
+        //             "default": {
+        //                 "vh": 10000,
+        //                 "h": 10000,
+        //                 "m": 10000
+        //             }
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
     /**
      * @method
-     * @name raydium#fetchPerpInfo
-     * @description fetches public Raydium Perps protocol and market statistics
+     * @name raydium#fetchSwapInfo
+     * @description fetches public Raydium swap protocol and market statistics
      * @see https://docs.raydium.io/api-reference
      * @param {object} [params] extra parameters specific to the endpoint
-     * @returns {object} Perps statistics; this API does not expose order execution
+     * @returns {object} swap statistics; this API does not expose order execution
      */
-    async fetchPerpInfo (params: Dict = {}): Promise<Dict> {
-        this.ensurePerpsApiAvailable ();
+    async fetchSwapInfo (params: Dict = {}): Promise<Dict> {
+        this.ensureSwapApiAvailable ();
         const response = await this.perpsPublicGetMainInfo (params);
+        //
+        //     {
+        //         "id": "861c160a-8d00-46b1-9940-6127bbfe2c8c",
+        //         "success": true,
+        //         "data": {
+        //             "volume": {
+        //                 "24h": 3625572.3761460013,
+        //                 "7d": 31836369.184880976,
+        //                 "30d": 170440689.58485505
+        //             },
+        //             "openInterest": {
+        //                 "long": 2292241.82528875,
+        //                 "short": 2545514.32323518,
+        //                 "all": 4837756.1485239295
+        //             }
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
     /**
      * @method
-     * @name raydium#fetchPerpMarkets
-     * @description fetches the public Raydium Perps market and pool configuration list
+     * @name raydium#fetchSwapMarkets
+     * @description fetches public Raydium linear perpetual swap markets
      * @see https://docs.raydium.io/api-reference
      * @param {object} [params] extra parameters specific to the endpoint
-     * @returns {object[]} Perps market configuration; not CCXT executable markets
+     * @returns {object[]} a list of [market structures](https://docs.ccxt.com/#/?id=market-structure); this API does not expose order execution
      */
-    async fetchPerpMarkets (params: Dict = {}): Promise<Dict[]> {
-        this.ensurePerpsApiAvailable ();
+    async fetchSwapMarkets (params: Dict = {}): Promise<Market[]> {
+        this.ensureSwapApiAvailable ();
         const response = await this.perpsPublicGetPoolDefaultList (params);
-        return this.extractRows (response);
+        //
+        //     {
+        //         "id": "5db4287b-8dbd-4d4c-aa61-48aaaa702096",
+        //         "success": true,
+        //         "data": {
+        //             "data": [
+        //                 {
+        //                     "symbol": "PERP_SOL_USDC",
+        //                     "volume24h": 1344442.16703,
+        //                     "volume7d": 6850798.41186,
+        //                     "volume30d": 79003013.09101
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return this.parseMarkets (this.extractRows (response));
+    }
+
+    /**
+     * @ignore
+     * @param {object} market raw Raydium swap market statistics
+     * @returns {object} a swap market structure
+     */
+    parseSwapMarket (market: Dict): Market {
+        //
+        //     {
+        //         "symbol": "PERP_SOL_USDC",
+        //         "volume24h": 1344442.16703,
+        //         "volume7d": 6850798.41186,
+        //         "volume30d": 79003013.09101
+        //     }
+        //
+        const marketId = this.safeString (market, 'symbol');
+        if (marketId === undefined) {
+            throw new ExchangeError (this.id + ' parseSwapMarket() received a swap without a symbol');
+        }
+        const parts = marketId.split ('_');
+        const numParts = parts.length;
+        if ((numParts !== 3) || (parts[0] !== 'PERP') || (parts[1] === '') || (parts[2] !== 'USDC')) {
+            throw new ExchangeError (this.id + ' parseSwapMarket() received an unsupported swap symbol ' + marketId);
+        }
+        const baseId = parts[1];
+        const quoteId = parts[2];
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        // This statistics endpoint does not provide contract size, precision, limits, or trading status.
+        return this.safeMarketStructure ({
+            'info': market,
+            'id': marketId,
+            'symbol': base + '/' + quote + ':' + quote,
+            'base': base,
+            'quote': quote,
+            'settle': quote,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': quoteId,
+            'type': 'swap',
+            'spot': false,
+            'margin': false,
+            'swap': true,
+            'future': false,
+            'option': false,
+            'active': undefined,
+            'contract': true,
+            'linear': true,
+            'inverse': false,
+            'contractSize': undefined,
+            'expiry': undefined,
+            'expiryDatetime': undefined,
+            'strike': undefined,
+            'optionType': undefined,
+            'maker': undefined,
+            'taker': undefined,
+            'precision': {
+                'amount': undefined,
+                'price': undefined,
+            },
+            'limits': {
+                'leverage': { 'min': undefined, 'max': undefined },
+                'amount': { 'min': undefined, 'max': undefined },
+                'price': { 'min': undefined, 'max': undefined },
+                'cost': { 'min': undefined, 'max': undefined },
+            },
+        });
     }
 
     /**
      * @method
-     * @name raydium#fetchPerpVersion
-     * @description fetches the Raydium Perps API version
+     * @name raydium#fetchSwapVersion
+     * @description fetches the Raydium swap API version
      * @see https://docs.raydium.io/api-reference
      * @param {object} [params] extra parameters specific to the endpoint
-     * @returns {object} Perps API version
+     * @returns {object} swap API version
      */
-    async fetchPerpVersion (params: Dict = {}): Promise<Dict> {
-        this.ensurePerpsApiAvailable ();
+    async fetchSwapVersion (params: Dict = {}): Promise<Dict> {
+        this.ensureSwapApiAvailable ();
         const response = await this.perpsPublicGetMainVersion (params);
+        //
+        //     {
+        //         "id": "1cd8be8b-aa5f-4260-87ba-960348a2b7bf",
+        //         "success": true,
+        //         "data": {
+        //             "latest": "V1.0.1",
+        //             "least": "V1.0.1"
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
     /**
      * @method
-     * @name raydium#fetchPerpRpcs
-     * @description fetches configured RPC endpoint metadata for Raydium Perps
+     * @name raydium#fetchSwapRpcs
+     * @description fetches configured RPC endpoint metadata for Raydium swaps
      * @see https://docs.raydium.io/api-reference
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object[]} RPC endpoint metadata
      */
-    async fetchPerpRpcs (params: Dict = {}): Promise<Dict[]> {
-        this.ensurePerpsApiAvailable ();
+    async fetchSwapRpcs (params: Dict = {}): Promise<Dict[]> {
+        this.ensureSwapApiAvailable ();
         const response = await this.perpsPublicGetMainRpcs (params);
+        //
+        //     {
+        //         "id": "c2af28c8-02a6-40e9-989e-18f40b5f1e3b",
+        //         "success": true,
+        //         "data": {
+        //             "strategy": "weight",
+        //             "rpcs": [
+        //                 {
+        //                     "url": "https://raydium.mainnet.rpcpool.com/",
+        //                     "batch": true,
+        //                     "name": "Triton",
+        //                     "weight": 90
+        //                 },
+        //                 {
+        //                     "url": "https://helius-proxy.raydium.io/",
+        //                     "batch": true,
+        //                     "name": "Helius",
+        //                     "weight": 10
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
     /**
      * @method
-     * @name raydium#fetchPerpAvailability
-     * @description checks whether Raydium Perps is available from the caller's region
+     * @name raydium#fetchSwapAvailability
+     * @description checks whether Raydium swaps are available from the caller's region
      * @see https://docs.raydium.io/api-reference
      * @param {object} [params] extra parameters specific to the endpoint
-     * @returns {object} Perps availability result
+     * @returns {object} swap availability result
      */
-    async fetchPerpAvailability (params: Dict = {}): Promise<Dict> {
-        this.ensurePerpsApiAvailable ();
+    async fetchSwapAvailability (params: Dict = {}): Promise<Dict> {
+        this.ensureSwapApiAvailable ();
         const response = await this.perpsPublicGetMainAvailabilityCheck (params);
+        //
+        //     {
+        //         "id": "50fc480f-407d-459e-92c2-c16fb0915bf4",
+        //         "success": true,
+        //         "data": {
+        //             "disable": []
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
     /**
      * @ignore
-     * @description throws if Raydium Perps is unavailable in the current mode
+     * @description throws if Raydium swaps are unavailable in the current mode
      */
-    ensurePerpsApiAvailable () {
+    ensureSwapApiAvailable () {
         if (this.isSandboxModeEnabled) {
-            throw new NotSupported (this.id + ' Raydium Perps does not provide a sandbox API');
+            throw new NotSupported (this.id + ' Raydium swaps do not provide a sandbox API');
         }
     }
 
@@ -1357,6 +3367,143 @@ export default class raydium extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchLiquidityPoolPosition() params.type must be clmm, clmm-lock, or cpmm-lock');
         }
+        //
+        //     {
+        //         "name": "Raydium Concentrated Liquidity",
+        //         "symbol": "RCL",
+        //         "description": "Raydium Concentrated Liquidity Position",
+        //         "external_url": "https://raydium.io/",
+        //         "collection": {
+        //             "name": "Raydium Concentrated Liquidity",
+        //             "family": "Raydium Concentrated Liquidity"
+        //         },
+        //         "image": "https://img-v1.raydium.io/share/ea1ef711-652b-422b-a593-04426f8f2a04.jpg",
+        //         "poolInfo": {
+        //             "type": "Concentrated",
+        //             "programId": "CAMMCzo5YL8w4VFF8KVHrK22GGUsp5VTaW7grrKgrWqK",
+        //             "id": "AHuAAekwu2DrdagqStUffr6XyRGxLT11g18cGKwvTvpP",
+        //             "mintA": {
+        //                 "chainId": 101,
+        //                 "address": "poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN",
+        //                 "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN.png",
+        //                 "symbol": "PONS",
+        //                 "name": "Pons",
+        //                 "decimals": 8,
+        //                 "tags": [],
+        //                 "extensions": {}
+        //             },
+        //             "mintB": {
+        //                 "chainId": 101,
+        //                 "address": "EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL",
+        //                 "programId": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                 "logoURI": "https://img-v1.raydium.io/icon/EpF6sSDjLH6AeHfBYEZHsXACrTMPHMQFS5xtRgN8gUwL.png",
+        //                 "symbol": "PPPP",
+        //                 "name": "Pee Pee Poo Poo",
+        //                 "decimals": 9,
+        //                 "tags": [
+        //                     "hasTransferFee"
+        //                 ],
+        //                 "extensions": {
+        //                     "feeConfig": {
+        //                         "transferFeeConfigAuthority": "11111111111111111111111111111111",
+        //                         "withdrawWithheldAuthority": "5KXDF6QnqhBj72hDtJNkkpFaQVUfbFXNybMsp3DiK6tD",
+        //                         "withheldAmount": "0",
+        //                         "olderTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         },
+        //                         "newerTransferFee": {
+        //                             "epoch": "1026",
+        //                             "maximumFee": "1000000000000000000",
+        //                             "transferFeeBasisPoints": 100
+        //                         }
+        //                     }
+        //                 }
+        //             },
+        //             "rewardDefaultPoolInfos": "Clmm",
+        //             "rewardDefaultInfos": [],
+        //             "price": 92663.3167149224,
+        //             "mintAmountA": 6.70712903,
+        //             "mintAmountB": 989999999.997368,
+        //             "feeRate": 0.01,
+        //             "openTime": "0",
+        //             "tvl": 1422.54,
+        //             "day": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "week": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "month": {
+        //                 "volume": 0,
+        //                 "volumeQuote": 0,
+        //                 "volumeFee": 0,
+        //                 "apr": 0,
+        //                 "feeApr": 0,
+        //                 "priceMin": 0,
+        //                 "priceMax": 0,
+        //                 "rewardApr": []
+        //             },
+        //             "pooltype": [
+        //                 "Clmm"
+        //             ],
+        //             "farmUpcomingCount": 0,
+        //             "farmOngoingCount": 0,
+        //             "farmFinishedCount": 0,
+        //             "config": {
+        //                 "id": "A1BBtTYJd4i3xU8D6Tc2FzU6ZN4oXZWXKZnCxwbHXr8x",
+        //                 "index": 3,
+        //                 "protocolFeeRate": 120000,
+        //                 "tradeFeeRate": 10000,
+        //                 "tickSpacing": 120,
+        //                 "fundFeeRate": 40000,
+        //                 "defaultRange": 0.1,
+        //                 "defaultRangePoint": [
+        //                     0.01,
+        //                     0.05,
+        //                     0.1,
+        //                     0.2,
+        //                     0.5
+        //                 ]
+        //             },
+        //             "burnPercent": 100,
+        //             "launchMigratePool": false,
+        //             "tips": [],
+        //             "feeOn": "TokenA",
+        //             "hasDynamicFee": false
+        //         },
+        //         "positionInfo": {
+        //             "tvlPercentage": 4.99,
+        //             "usdValue": 71.08233887794744,
+        //             "amountA": 1e-8,
+        //             "amountB": 49499999.99986821,
+        //             "unclaimedFee": {
+        //                 "amountA": 0.00000422,
+        //                 "amountB": 0,
+        //                 "usdFeeValue": 5.615349632798997e-7,
+        //                 "reward": [],
+        //                 "usdRewardValue": 0,
+        //                 "usdValue": 5.615349632798997e-7
+        //             }
+        //         }
+        //     }
+        //
         return this.extractObject (response);
     }
 
@@ -1371,6 +3518,16 @@ export default class raydium extends Exchange {
      */
     async fetchMyLiquidityPools (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.ownerPublicGetCreatePoolOwner (this.extend ({ 'owner': walletAddress }, params));
+        //
+        //     {
+        //         "id": "379a4915401f4fefb3984486cd45d921",
+        //         "success": false
+        //     }
+        //
+        if (this.safeBool (response, 'success') === false) {
+            // the owner API answers success false when a wallet has no created pools
+            return [];
+        }
         return this.extractRows (response);
     }
 
@@ -1385,6 +3542,16 @@ export default class raydium extends Exchange {
      */
     async fetchMyIDOPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.ownerPublicGetMainIdoOwner (this.extend ({ 'owner': walletAddress }, params));
+        //
+        //     {
+        //         "id": "4ce540ff45474a7ca292a25d4284803d",
+        //         "success": false
+        //     }
+        //
+        if (this.safeBool (response, 'success') === false) {
+            // the owner API answers success false when a wallet has no IDO positions
+            return [];
+        }
         return this.extractRows (response);
     }
 
@@ -1399,6 +3566,13 @@ export default class raydium extends Exchange {
      */
     async fetchCreatorFees (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetCpCreatorFee (this.extend ({ 'wallet': walletAddress }, params));
+        //
+        //     {
+        //         "id": "c8de0147-3d52-4857-9309-54530aa8c913",
+        //         "success": true,
+        //         "data": []
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1414,6 +3588,99 @@ export default class raydium extends Exchange {
     async fetchMintList (params: Dict = {}): Promise<Dict[]> {
         const request = this.extend ({ 'sort': 'new' }, params);
         const response = await this.launchMintPublicGetGetList (request);
+        //
+        //     {
+        //         "id": "68048239-c9ea-42ac-aa8d-cdfd1e3c9a2b",
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "mint": "FXEMLHc2CM35jN4yECsiN8T8WofskTbATEywjPKEYX2T",
+        //                     "poolId": "97MyiCJP4oCrCUcGWiRL2d6FF4CpheEuaudv2YAtTBfR",
+        //                     "configId": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                     "creator": "45YqzZVGe3Zb2AzxXtfpoyBMjDHufeuQNpMHk7tBuh8Z",
+        //                     "createAt": 1794623922000,
+        //                     "name": "Matchedpad",
+        //                     "symbol": "MATCHEDPAD",
+        //                     "description": "",
+        //                     "metadataUrl": "https://ipfs.io/ipfs/bafkreibk6escj5m6ell5attydjkqoykvrabinuqahpatp2he5vkkbxilb4",
+        //                     "platformInfo": {
+        //                         "pubKey": "D2ySdMncomHKRKBV4AAftqnLKxyS6HMWcmbewvNcawCg",
+        //                         "platformClaimFeeWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //                         "platformLockNftWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //                         "transferFeeExtensionAuth": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //                         "cpConfigId": "FMmwToGqT9iwDgsqvzLg65vcKSzKme4szbWqX1kyCBCJ",
+        //                         "platformScale": "0",
+        //                         "creatorScale": "0",
+        //                         "burnScale": "1000000",
+        //                         "feeRate": "15000",
+        //                         "creatorFeeRate": "0",
+        //                         "name": "My Launch Platform",
+        //                         "web": "",
+        //                         "img": "",
+        //                         "platformVestingWallet": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //                         "platformVestingScale": "0",
+        //                         "platformCpCreator": "3BiAxhMQVYyQF3qizjd5FDtx4screSNTD35ptFhMXRM2",
+        //                         "restrictCurveParam": 0,
+        //                         "curveRuleManager": "11111111111111111111111111111111"
+        //                     },
+        //                     "configInfo": {
+        //                         "name": "Constant Product Curve",
+        //                         "pubKey": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                         "epoch": 961,
+        //                         "curveType": 0,
+        //                         "index": 0,
+        //                         "migrateFee": "0",
+        //                         "tradeFeeRate": "2500",
+        //                         "maxShareFeeRate": "10000",
+        //                         "minSupplyA": "10000000",
+        //                         "maxLockRate": "800000",
+        //                         "minSellRateA": "200000",
+        //                         "minMigrateRateA": "150000",
+        //                         "minFundRaisingB": "24000000000",
+        //                         "protocolFeeOwner": "rayvTLcCMDs7P5tgpuoNA6ZYeLERegeCphdqLSgdKms",
+        //                         "migrateFeeOwner": "rayHQtJKrtvqUs3HnhDW9RKubHRbu87eESKEYD5xosa",
+        //                         "migrateToAmmWallet": "RAYzrepoBdjSFg7MZj2vy4XBSv2azKRXC72ztUMZMJB",
+        //                         "migrateToCpmmWallet": "RAYpQbFNq9i3mu6cKpTKKRwwHFDeK5AuZz8xvxUrCgw",
+        //                         "mintB": "So11111111111111111111111111111111111111112"
+        //                     },
+        //                     "mintB": {
+        //                         "chainId": 101,
+        //                         "address": "So11111111111111111111111111111111111111112",
+        //                         "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                         "logoURI": "https://img-v1.raydium.io/icon/So11111111111111111111111111111111111111112.png",
+        //                         "symbol": "WSOL",
+        //                         "name": "Wrapped SOL",
+        //                         "decimals": 9,
+        //                         "tags": [],
+        //                         "extensions": {}
+        //                     },
+        //                     "decimals": 6,
+        //                     "supply": 1000000000,
+        //                     "marketCap": 27.959121193874665,
+        //                     "volumeA": 0,
+        //                     "volumeB": 0,
+        //                     "volumeU": 0,
+        //                     "finishingRate": 0,
+        //                     "initPrice": "2.7959121193874663768e-8",
+        //                     "endPrice": "4.1082648622522957951e-7",
+        //                     "totalLockedAmount": 0,
+        //                     "cliffPeriod": "0",
+        //                     "unlockPeriod": "0",
+        //                     "startTime": 0,
+        //                     "totalAllocatedShare": 0,
+        //                     "defaultCurve": true,
+        //                     "totalSellA": "793100000000000",
+        //                     "totalFundRaisingB": "85000000000",
+        //                     "migrateType": "cpmm",
+        //                     "mintProgramA": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "cpmmCreatorFeeOn": 0
+        //                 }
+        //             ],
+        //             "nextPageId": "3a38bec6-2662-4a9d-99d4-a3347e2397c6"
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1427,6 +3694,108 @@ export default class raydium extends Exchange {
      */
     async fetchRecentMints (params: Dict = {}): Promise<Dict[]> {
         const response = await this.launchMintPublicGetGetRandomIndexLeftMint (params);
+        //
+        //     {
+        //         "id": "c352d57e-057c-4f51-b24e-9009b5f54199",
+        //         "success": true,
+        //         "data": {
+        //             "data": [
+        //                 {
+        //                     "mintInfo": {
+        //                         "mint": "6nrM8XDyoKmtLJwwcZr5hFK3qBmUvtuUV5vRsWYaZZo2",
+        //                         "poolId": "BPg5LnXFrup6JXvrtKi1Zy1FxnEtGiNBja24BYQiByRi",
+        //                         "configId": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                         "creator": "EiuLKpXnWs7Jeaw9WnJqcqXm6Txx2s2CXBDNnfEy1DT8",
+        //                         "createAt": 1791433896000,
+        //                         "name": "FatRat",
+        //                         "symbol": "FRT",
+        //                         "description": "FatRat was launched on StonkFun.",
+        //                         "imgUrl": "https://gateway.irys.xyz/8HbiUSsZyLpZxdr9d2xmcJnG5ESMNZ86RQN1ehniC8Hm",
+        //                         "metadataUrl": "https://gateway.irys.xyz/GnnHyGU7aEhGgTwNVGdooFNf9qM9gRsCeyXvmqtTbVcw",
+        //                         "platformInfo": {
+        //                             "pubKey": "6BwHHDg3u1854jC8PDLXvR4spTcLNaoBxLJNGC4nTESt",
+        //                             "platformClaimFeeWallet": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+        //                             "platformLockNftWallet": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+        //                             "transferFeeExtensionAuth": "5KXDF6QnqhBj72hDtJNkkpFaQVUfbFXNybMsp3DiK6tD",
+        //                             "cpConfigId": "CRRS5ieQmBrZjWhcj99JuGrT5tyuWDaGAXLXLFjbAtjQ",
+        //                             "platformScale": "1000000",
+        //                             "creatorScale": "0",
+        //                             "burnScale": "0",
+        //                             "feeRate": "10000",
+        //                             "creatorFeeRate": "0",
+        //                             "name": "StonkFun",
+        //                             "web": "https://www.stonkfun.xyz",
+        //                             "img": "https://www.stonkfun.xyz/stonkfun-logo.png",
+        //                             "platformVestingWallet": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+        //                             "platformVestingScale": "0",
+        //                             "platformCpCreator": "5CEbueQnq1Ym2uSSx2xXds3jQAqT1BDnkA59RZobSPAG",
+        //                             "restrictCurveParam": 1,
+        //                             "curveRuleManager": "2pMi1Sr8vnAR2GPKMHJsmgFY8Hc4cUVbmG5ARxLsRrvp"
+        //                         },
+        //                         "configInfo": {
+        //                             "name": "Constant Product Curve",
+        //                             "pubKey": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                             "epoch": 961,
+        //                             "curveType": 0,
+        //                             "index": 0,
+        //                             "migrateFee": "0",
+        //                             "tradeFeeRate": "2500",
+        //                             "maxShareFeeRate": "10000",
+        //                             "minSupplyA": "10000000",
+        //                             "maxLockRate": "800000",
+        //                             "minSellRateA": "200000",
+        //                             "minMigrateRateA": "150000",
+        //                             "minFundRaisingB": "24000000000",
+        //                             "protocolFeeOwner": "rayvTLcCMDs7P5tgpuoNA6ZYeLERegeCphdqLSgdKms",
+        //                             "migrateFeeOwner": "rayHQtJKrtvqUs3HnhDW9RKubHRbu87eESKEYD5xosa",
+        //                             "migrateToAmmWallet": "RAYzrepoBdjSFg7MZj2vy4XBSv2azKRXC72ztUMZMJB",
+        //                             "migrateToCpmmWallet": "RAYpQbFNq9i3mu6cKpTKKRwwHFDeK5AuZz8xvxUrCgw",
+        //                             "mintB": "So11111111111111111111111111111111111111112"
+        //                         },
+        //                         "mintB": {
+        //                             "chainId": 101,
+        //                             "address": "So11111111111111111111111111111111111111112",
+        //                             "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                             "logoURI": "https://img-v1.raydium.io/icon/So11111111111111111111111111111111111111112.png",
+        //                             "symbol": "WSOL",
+        //                             "name": "Wrapped SOL",
+        //                             "decimals": 9,
+        //                             "tags": [],
+        //                             "extensions": {}
+        //                         },
+        //                         "decimals": 6,
+        //                         "supply": 1000000000,
+        //                         "marketCap": 7389.5354958940325,
+        //                         "volumeA": 2404908.616195,
+        //                         "volumeB": 0.233248202,
+        //                         "volumeU": 18.404336775999493,
+        //                         "finishingRate": 18.29,
+        //                         "initPrice": "2.7959121193874663768e-8",
+        //                         "endPrice": "4.108264862229751e-7",
+        //                         "totalLockedAmount": 0,
+        //                         "cliffPeriod": "0",
+        //                         "unlockPeriod": "0",
+        //                         "startTime": 0,
+        //                         "totalAllocatedShare": 0,
+        //                         "defaultCurve": true,
+        //                         "totalSellA": "793100000000000",
+        //                         "totalFundRaisingB": "85000000000",
+        //                         "migrateType": "cpmm",
+        //                         "mintProgramA": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                         "transferFeeBasePoints": 300,
+        //                         "maxinumFee": "1000000000000000",
+        //                         "cpmmCreatorFeeOn": 0
+        //                     },
+        //                     "tradeInfo": {
+        //                         "amountA": 264548.576157,
+        //                         "amountB": 0.026269566,
+        //                         "side": "buy"
+        //                     }
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1440,6 +3809,99 @@ export default class raydium extends Exchange {
      */
     async fetchFeaturedMints (params: Dict = {}): Promise<Dict[]> {
         const response = await this.launchMintPublicGetGetRandomIndexTopMint (params);
+        //
+        //     {
+        //         "id": "7b819c15-a274-46f1-bbe1-97a2c826920f",
+        //         "success": true,
+        //         "data": {
+        //             "data": {
+        //                 "mint": "Dn2J8oqa7e4YBd3ssAj6Zvm6eH3MA5F9jX279j9UFc4o",
+        //                 "poolId": "BQM4t1o6eNZgSAe8iMkw5c6ZdKSFmehwXkH296pUNu1z",
+        //                 "configId": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                 "creator": "6zuFWUipNdyfM18fZCHpzfpm9rsSSuhfbcwoJqrbW8nB",
+        //                 "createAt": 1794610498000,
+        //                 "name": "CT ARENA",
+        //                 "symbol": "PEW",
+        //                 "description": "",
+        //                 "platformInfo": {
+        //                     "pubKey": "2Vd1rftqZWydE4RBQL6TK2whH96oWJwRwiFTnGQrDdvt",
+        //                     "platformClaimFeeWallet": "6zuFWUipNdyfM18fZCHpzfpm9rsSSuhfbcwoJqrbW8nB",
+        //                     "platformLockNftWallet": "6zuFWUipNdyfM18fZCHpzfpm9rsSSuhfbcwoJqrbW8nB",
+        //                     "transferFeeExtensionAuth": "6zuFWUipNdyfM18fZCHpzfpm9rsSSuhfbcwoJqrbW8nB",
+        //                     "cpConfigId": "D4FPEruKEHrG5TenZ2mpDGEfu1iUvTiqBxvpU8HLBvC2",
+        //                     "platformScale": "1000000",
+        //                     "creatorScale": "0",
+        //                     "burnScale": "0",
+        //                     "feeRate": "20000",
+        //                     "creatorFeeRate": "5000",
+        //                     "name": "",
+        //                     "web": "",
+        //                     "img": "",
+        //                     "platformVestingScale": "0",
+        //                     "platformVestingWallet": "11111111111111111111111111111111",
+        //                     "platformCpCreator": "11111111111111111111111111111111",
+        //                     "restrictCurveParam": 0,
+        //                     "curveRuleManager": "11111111111111111111111111111111"
+        //                 },
+        //                 "configInfo": {
+        //                     "name": "Constant Product Curve",
+        //                     "pubKey": "6s1xP3hpbAfFoNtUNF8mfHsjr2Bd97JxFJRWLbL6aHuX",
+        //                     "epoch": 961,
+        //                     "curveType": 0,
+        //                     "index": 0,
+        //                     "migrateFee": "0",
+        //                     "tradeFeeRate": "2500",
+        //                     "maxShareFeeRate": "10000",
+        //                     "minSupplyA": "10000000",
+        //                     "maxLockRate": "800000",
+        //                     "minSellRateA": "200000",
+        //                     "minMigrateRateA": "150000",
+        //                     "minFundRaisingB": "24000000000",
+        //                     "protocolFeeOwner": "rayvTLcCMDs7P5tgpuoNA6ZYeLERegeCphdqLSgdKms",
+        //                     "migrateFeeOwner": "rayHQtJKrtvqUs3HnhDW9RKubHRbu87eESKEYD5xosa",
+        //                     "migrateToAmmWallet": "RAYzrepoBdjSFg7MZj2vy4XBSv2azKRXC72ztUMZMJB",
+        //                     "migrateToCpmmWallet": "RAYpQbFNq9i3mu6cKpTKKRwwHFDeK5AuZz8xvxUrCgw",
+        //                     "mintB": "So11111111111111111111111111111111111111112"
+        //                 },
+        //                 "mintB": {
+        //                     "chainId": 101,
+        //                     "address": "So11111111111111111111111111111111111111112",
+        //                     "programId": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+        //                     "logoURI": "https://img-v1.raydium.io/icon/So11111111111111111111111111111111111111112.png",
+        //                     "symbol": "WSOL",
+        //                     "name": "Wrapped SOL",
+        //                     "decimals": 9,
+        //                     "tags": [],
+        //                     "extensions": {}
+        //                 },
+        //                 "decimals": 6,
+        //                 "supply": 1000000000,
+        //                 "marketCap": 374.8365866632669,
+        //                 "volumeA": 164138886596420.84,
+        //                 "volumeB": 38.983591876000006,
+        //                 "volumeU": 3051.3721291070888,
+        //                 "finishingRate": 0,
+        //                 "priceStageTime1": 1794610559.866,
+        //                 "priceStageTime2": 1794610592.059,
+        //                 "initPrice": "4.9826989611072671256e-9",
+        //                 "endPrice": "1.5999999999529423e-7",
+        //                 "totalLockedAmount": 0,
+        //                 "cliffPeriod": "0",
+        //                 "unlockPeriod": "0",
+        //                 "startTime": 0,
+        //                 "totalAllocatedShare": 0,
+        //                 "defaultCurve": false,
+        //                 "totalSellA": "850000000000000",
+        //                 "totalFundRaisingB": "24000000000",
+        //                 "migrateType": "cpmm",
+        //                 "mintProgramA": "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb",
+        //                 "transferFeeBasePoints": 0,
+        //                 "maxinumFee": "0",
+        //                 "cpmmCreatorFeeOn": 0
+        //             }
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1466,6 +3928,15 @@ export default class raydium extends Exchange {
         } else {
             throw new BadRequest (this.id + ' fetchMintVesting() params.type must be ids, pool, or owner');
         }
+        //
+        //     {
+        //         "id": "5d1bc269-2565-424a-b3d9-a66a3b1367fa",
+        //         "success": true,
+        //         "data": {
+        //             "data": {}
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1483,6 +3954,35 @@ export default class raydium extends Exchange {
      */
     async fetchLiquidityPoolHistory (poolId: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.launchHistoryPublicGetTrade (this.extend ({ 'poolId': poolId }, params));
+        //
+        //     {
+        //         "id": "be463d40-2a3c-4685-9f30-445684f1249c",
+        //         "success": true,
+        //         "data": {
+        //             "rows": [
+        //                 {
+        //                     "txid": "5zDBbbVRJBpU6tuEh1oXfXaiJ9qY8sTKaNZvHBgymz6No2KMSzkTM4F4e47w2hGiRTbArJy7GF3gwwvKxdae1GoA",
+        //                     "owner": "7JHsyXRNpN93TGkjzwQgsaCag9tXhwkAKTZmxdcAYx69",
+        //                     "blockTime": 1794622861,
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "side": "sell",
+        //                     "amountA": 31339.844768,
+        //                     "amountB": 0.00081792
+        //                 },
+        //                 {
+        //                     "txid": "2DGSJX4tg2PaTHGWEUefRgJtFA7Ev3ncNdPwwfJTqiDhg2tkMcxi9Wt8NLrSPoNGm3V547AZqano5GVU7S1jVMJX",
+        //                     "owner": "6db9d9LnCeKzSaEWYzBJJ88PBrXuuhA6n9NbqcU4tNta",
+        //                     "blockTime": 1794622856,
+        //                     "poolId": "AHGchjPKFjYw25sJtLjnXsgnfkyGs6Jss6ZkS5yJnG8J",
+        //                     "side": "sell",
+        //                     "amountA": 4903635.079408,
+        //                     "amountB": 0.128571985
+        //                 }
+        //             ],
+        //             "nextPageKey": "c9a37599ca4d8b9a4eff87c9d963e7f8190e70d943c4b4a8212310f7b5fdb7c4"
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1583,6 +4083,15 @@ export default class raydium extends Exchange {
      */
     async fetchCLMMLimitOrders (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderOrderList (this.extend ({ 'wallet': walletAddress }, params));
+        //
+        //     {
+        //         "id": "dee5de42-4e5b-4588-9544-12762a1ab92d",
+        //         "success": true,
+        //         "data": {
+        //             "rows": []
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1626,6 +4135,15 @@ export default class raydium extends Exchange {
      */
     async fetchCLMMLimitOrderHistory (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderHistoryOrderListByUser (this.extend ({ 'wallet': walletAddress }, params));
+        //
+        //     {
+        //         "id": "d4e280c8-3a38-402f-ac72-d25653362cfc",
+        //         "success": true,
+        //         "data": {
+        //             "rows": []
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1641,6 +4159,15 @@ export default class raydium extends Exchange {
      */
     async fetchCLMMLimitOrderEvents (pda: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderHistoryEventListByPda (this.extend ({ 'pda': pda }, params));
+        //
+        //     {
+        //         "id": "b9fef5e2-0a73-4542-96d2-3e1d6aa9c26a",
+        //         "success": true,
+        //         "data": {
+        //             "rows": []
+        //         }
+        //     }
+        //
         return this.extractRows (response);
     }
 
@@ -1700,7 +4227,13 @@ export default class raydium extends Exchange {
     async lookupRaydiumCurrency (code: string): Promise<CurrencyInterface> {
         const cached = this.safeDict (this.currencies, code) as CurrencyInterface;
         if (cached !== undefined) {
-            return cached;
+            // currencies derived from markets by setMarkets() lose the mint metadata and may
+            // carry a precision polluted by unrelated pools that reuse the same token symbol,
+            // so only trust cache entries that still carry the mint decimals
+            const cachedInfo = this.safeDict (cached, 'info');
+            if (this.safeInteger (cachedInfo, 'decimals') !== undefined) {
+                return cached;
+            }
         }
         const currencies = await this.fetchCurrencies ({ 'query': code });
         if (currencies[code] !== undefined) {
@@ -1718,13 +4251,29 @@ export default class raydium extends Exchange {
 
     /**
      * @ignore
+     * @param {object} currency currency structure
+     * @returns {int} the token mint decimals
+     */
+    mintDecimals (currency: CurrencyInterface): Int {
+        const info = this.safeDict (currency, 'info');
+        const decimals = this.safeInteger (info, 'decimals');
+        if (decimals !== undefined) {
+            return decimals;
+        }
+        return this.safeInteger (currency, 'precision');
+    }
+
+    /**
+     * @ignore
      * @param {number} amount human-readable token amount
      * @param {int} decimals token decimal precision
      * @returns {string} amount in base units
      */
     toBaseUnits (amount: Num, decimals: number): string {
         const rawAmount = Precise.stringDiv (this.numberToString (amount), this.parsePrecision (this.numberToString (decimals)));
-        if (rawAmount === undefined || rawAmount.indexOf ('.') !== -1) {
+        const amountParts = (rawAmount === undefined) ? [] : rawAmount.split ('.');
+        const amountPartsLength = amountParts.length;
+        if (rawAmount === undefined || amountPartsLength > 1) {
             throw new InvalidOrder (this.id + ' amount has more decimal places than the token supports');
         }
         return rawAmount;
@@ -1762,11 +4311,22 @@ export default class raydium extends Exchange {
         if (Array.isArray (data)) {
             return data as Dict[];
         }
-        const candidates = [ 'rows', 'data', 'mintList', 'items' ];
+        const candidates = [ 'rows', 'data', 'mintList', 'items', 'rpcs' ];
         for (let i = 0; i < candidates.length; i++) {
             const rows = this.safeList (data, candidates[i]);
             if (rows !== undefined) {
                 return rows as Dict[];
+            }
+        }
+        const nested = this.safeDict (data, 'data');
+        if (nested !== undefined) {
+            if (this.safeString2 (nested, 'mint', 'id') !== undefined) {
+                return [ nested as Dict ];
+            }
+            const nestedKeys = Object.keys (nested);
+            const nestedKeysLength = nestedKeys.length;
+            if (nestedKeysLength === 0) {
+                return [];
             }
         }
         if (this.safeString2 (data, 'mint', 'id') !== undefined) {
@@ -1794,8 +4354,8 @@ export default class raydium extends Exchange {
         if (baseUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no URL for API ' + apiName);
         }
-        const url = baseUrl + '/' + path;
-        const requestParams = this.extend ({}, params);
+        const url = baseUrl + '/' + this.implodeParams (path, params);
+        const requestParams = this.omit (params, this.extractParams (path));
         const requestHeaders: Dict = { 'Accept': 'application/json' };
         let requestBody: any = undefined;
         if ((apiName === 'launchForum' && path === 'comment') || (apiName === 'launchMint' && path === 'create/mint-info')) {
@@ -1856,8 +4416,13 @@ export default class raydium extends Exchange {
             return undefined;
         }
         if (this.safeBool (response, 'success') === false) {
-            const message = this.safeString2 (response, 'msg', 'message', 'unknown API error');
-            throw new ExchangeError (this.id + ' ' + message);
+            const message = this.safeString2 (response, 'msg', 'message');
+            if ((message === undefined) && (url.indexOf ('owner-v1') >= 0)) {
+                // the owner API answers 404 with success false and no message when a wallet has no data
+                return response;
+            }
+            const feedback = (message === undefined) ? 'unknown API error' : message;
+            throw new ExchangeError (this.id + ' ' + feedback);
         }
         return undefined;
     }
