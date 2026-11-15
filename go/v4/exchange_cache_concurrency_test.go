@@ -135,8 +135,14 @@ func TestArrayCacheConcurrentPolling(t *testing.T) {
 			}, func() {
 				for i := 0; i < 2000; i++ {
 					for _, symbol := range []any{nil, "A", "unknown"} {
-						count := *test.cache.GetLimit(symbol, 16)
-						if count < 0 || count > 16 {
+						// unbounded poll: a torn counter read could exceed the
+						// number of rows ever appended
+						// (an unseen symbol with no limit reads as absent: nil)
+						got := test.cache.GetLimit(symbol, nil)
+						if got == nil {
+							continue
+						}
+						if count := *got; count < 0 || count > 2000 {
 							t.Errorf("invalid concurrent update count: %v", count)
 							return
 						}

@@ -80,7 +80,9 @@ func NewBaseCache(MaxSize int) *BaseCache {
 // is simply garbage-collected; an owner goroutine blocked on its channel is a
 // GC root and leaked once per cache (resubscribe, snapshot reload, Close).
 // fn must not call submit or any exported cache method: the mutex is not
-// reentrant.
+// reentrant. A panic mid-operation leaves whatever fn had already written
+// (e.g. an index entry without its row); the cache stays usable, but callers
+// that recover should treat its contents for that key as suspect.
 func (c *BaseCache) submit(fn func()) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
