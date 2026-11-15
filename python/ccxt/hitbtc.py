@@ -2805,18 +2805,18 @@ class hitbtc(Exchange, ImplicitAPI):
             self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000)
+            return self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = None
         request = {
             # all arguments are optional
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'until': 'Datetime or Number',
+            # 'till': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
+        requestUntil, paramsUntil = self.handle_until_option('till', request, paramsPaginate)
         if symbol is not None:
             market = self.market(symbol)
             requestUntil['symbols'] = market['id']
