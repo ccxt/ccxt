@@ -9227,10 +9227,13 @@ function isTrueDeclTypes (masked: string, name: string, pos: number): string[] {
 
 // A Bool field of the TS MarketInterface only holds true/false/null, so `Boolean.TRUE.equals` equals isTrue.
 // The receiver must be one local declared once as a Market (MarketInterface, or a Map from this.market/safeMarket).
-const MARKET_BOOL_KEYS = new Set ([ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ]);
+// a function, not a const Set: the transpile entry point runs before this line is evaluated
+function isMarketBoolKey (k: string): boolean {
+    return [ 'active', 'spot', 'margin', 'swap', 'future', 'option', 'index', 'stock', 'prediction', 'contract', 'linear', 'inverse', 'quanto', 'percentage', 'tierBased' ].includes (k);
+}
 function isMarketBoolRead (e: string, ctx: CoreArgHelperCtx): boolean {
     const m = /^(?:([A-Za-z_]\w*)|\(\(Map<String, Object>\)([A-Za-z_]\w*)\))\.get\("(\w+)"\)$/.exec (e);
-    if (m === null || !MARKET_BOOL_KEYS.has (m[3])) { return false; }
+    if (m === null || !isMarketBoolKey (m[3])) { return false; }
     const name = m[1] ?? m[2];
     const before = ctx.masked.slice (0, ctx.pos);
     const breaks = [ ...before.matchAll (/^[ \t]*(?:public|private|protected)[ \t]/gm) ];

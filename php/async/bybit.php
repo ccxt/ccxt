@@ -2824,6 +2824,18 @@ class bybit extends Exchange {
         //
         $result = $this->safe_dict($response, 'result', array());
         $tickerList = $this->safe_list($result, 'list', array());
+        if ($category === 'spot') {
+            // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+            // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+            $spotTickers = array();
+            for ($i = 0; $i < count($tickerList); $i++) {
+                $tickerMarket = $this->safe_market($this->safe_string($tickerList[$i], 'symbol'), null, null, 'spot');
+                if (!$this->safe_bool($tickerMarket, 'contract', false)) {
+                    $spotTickers[] = $tickerList[$i];
+                }
+            }
+            $tickerList = $spotTickers;
+        }
         return $this->parse_tickers($tickerList, $parsedSymbols);
     }
 

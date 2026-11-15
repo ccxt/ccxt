@@ -987,6 +987,17 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> second = (List<Object>) this.safeList(response, 1, new ArrayList<Object>(Arrays.asList()));
             List<Object> meta = (List<Object>) this.safeList(first, "universe", new ArrayList<Object>(Arrays.asList()));
             List<Object> tokens = (List<Object>) this.safeList(first, "tokens", new ArrayList<Object>(Arrays.asList()));
+            // a pair names its tokens by their "index", which isn't their place in the list (the list has gaps)
+            Map<String, Object> tokensByIndex = new HashMap<String, Object>() {{}};
+            for (var i = 0; i < ((List<?>)tokens).size(); i++)
+            {
+                Map<String, Object> token = (Map<String, Object>) this.safeDict(tokens, i, new HashMap<String, Object>() {{}});
+                String tokenIndex = this.safeString(token, "index");
+                if (!java.util.Objects.equals(tokenIndex, null))
+                {
+                    tokensByIndex.put(tokenIndex, token);
+                }
+            }
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)meta).size(); i++)
             {
@@ -1005,10 +1016,10 @@ public class Hyperliquid extends HyperliquidApi
                 Double taker = this.safeNumber(fees, "taker", (Object) null);
                 Double maker = this.safeNumber(fees, "maker", (Object) null);
                 List<Object> tokensPos = (List<Object>) this.safeList(market, "tokens", new ArrayList<Object>(Arrays.asList()));
-                Long baseTokenPos = this.safeInteger(tokensPos, 0);
-                Long quoteTokenPos = this.safeInteger(tokensPos, 1);
-                Map<String, Object> baseTokenInfo = (Map<String, Object>) this.safeDict(tokens, baseTokenPos, new HashMap<String, Object>() {{}});
-                Map<String, Object> quoteTokenInfo = (Map<String, Object>) this.safeDict(tokens, quoteTokenPos, new HashMap<String, Object>() {{}});
+                String baseTokenIndex = this.safeString(tokensPos, 0);
+                String quoteTokenIndex = this.safeString(tokensPos, 1);
+                Map<String, Object> baseTokenInfo = (Map<String, Object>) this.safeDict(tokensByIndex, baseTokenIndex, new HashMap<String, Object>() {{}});
+                Map<String, Object> quoteTokenInfo = (Map<String, Object>) this.safeDict(tokensByIndex, quoteTokenIndex, new HashMap<String, Object>() {{}});
                 String baseName = this.safeString(baseTokenInfo, "name");
                 String quoteId = this.safeString(quoteTokenInfo, "name");
                 if (java.util.Objects.equals(baseName, null) || java.util.Objects.equals(quoteId, null))

@@ -578,7 +578,15 @@ class coinbaseinternational extends \ccxt\async\coinbaseinternational {
         $positions = $this->parse_positions($rawPositions);
         $positionsLength = count($positions);
         for ($i = 0; $i < $positionsLength; $i++) {
-            $this->positions->append($positions[$i]);
+            $position = $positions[$i];
+            if ($position['side'] === null) {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                $position['side'] = 'long';
+                $shortPosition = $this->clone($position);
+                $shortPosition['side'] = 'short';
+                $this->positions->append($shortPosition);
+            }
+            $this->positions->append($position);
         }
         $client->resolve($this->positions, $channel);
     }

@@ -3430,7 +3430,7 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position 
 	var lastUpdateTimestamp *int64 = this.SafeInteger2(position, "updatedAt", "updatedTime")
 	lastUpdateTimestamp = this.SafeInteger(position, "closedTime", lastUpdateTimestamp)
 	var side *string = this.SafeStringLower(position, "side")
-	var margin *string = this.SafeString(position, "margin")
+	var margin *float64 = this.SafeNumber(position, "margin")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -3442,24 +3442,24 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position 
 		"initialMarginPercentage":     nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"entryPrice":                  this.SafeString(position, "openPrice"),
-		"notional":                    this.SafeString(position, "value"),
-		"leverage":                    this.SafeString(position, "leverage"),
-		"unrealizedPnl":               this.SafeString(position, "unrealisedPnl"),
-		"realizedPnl":                 this.SafeString(position, "realisedPnl"),
-		"contracts":                   this.SafeString(position, "size"),
-		"contractSize":                this.SafeString(marketResolved, "contractSize"),
+		"entryPrice":                  this.SafeNumber(position, "openPrice"),
+		"notional":                    this.SafeNumber(position, "value"),
+		"leverage":                    this.SafeNumber(position, "leverage"),
+		"unrealizedPnl":               this.SafeNumber(position, "unrealisedPnl"),
+		"realizedPnl":                 this.SafeNumber(position, "realisedPnl"),
+		"contracts":                   this.SafeNumber(position, "size"),
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"marginRatio":                 nil,
-		"liquidationPrice":            this.SafeString(position, "liquidationPrice"),
-		"markPrice":                   this.SafeString(position, "markPrice"),
-		"lastPrice":                   this.SafeString(position, "exitPrice"),
+		"liquidationPrice":            this.SafeNumber(position, "liquidationPrice"),
+		"markPrice":                   this.SafeNumber(position, "markPrice"),
+		"lastPrice":                   this.SafeNumber(position, "exitPrice"),
 		"collateral":                  margin,
 		"marginMode":                  nil,
 		"side":                        side,
 		"percentage":                  nil,
 		"hedged":                      nil,
-		"stopLossPrice":               this.SafeString(position, "slTriggerPrice"),
-		"takeProfitPrice":             this.SafeString(position, "tpTriggerPrice"),
+		"stopLossPrice":               this.SafeNumber(position, "slTriggerPrice"),
+		"takeProfitPrice":             this.SafeNumber(position, "tpTriggerPrice"),
 	})
 }
 func (this *Extended) GetExtendedStarkAmount(amount any, resolution *int64, optionalArgs ...any) any {

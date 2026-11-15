@@ -79,7 +79,7 @@ public partial class xt : ccxt.xt
         {
             tradeType = "contract";
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         object url = this.safeString(apiUrls, tradeType);
         if (!isContract)
         {
@@ -260,7 +260,7 @@ public partial class xt : ccxt.xt
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "id", id },
         };
-        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, tradeType, "") + "/") + (tail));
         return await this.watch(url, messageHash, request, messageHash, subscription);
     }
@@ -324,7 +324,7 @@ public partial class xt : ccxt.xt
         {
             tail = privateAccess ? "user" : "market";
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, tradeType, "") + "/") + (tail));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -759,7 +759,7 @@ public partial class xt : ccxt.xt
         {
             await this.loadMarkets();
         }
-        IDictionary<string, object> apiUrls = this.safeDict(this.urls, "api", new Dictionary<string, object>() {});
+        IDictionary<string, object> apiUrls = this.safeDict(this.safeDict(this.urls, "api", new Dictionary<string, object>() {}), "ws", new Dictionary<string, object>() {});
         string url = ((this.safeString(apiUrls, "contract", "") + "/") + "user");
         var client = this.client(url);
         this.setPositionsCache(client);
@@ -1388,7 +1388,7 @@ public partial class xt : ccxt.xt
                 object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (isEqual(cacheLength, snapshotDelay))
                 {
-                    this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol});
+                    this.spawn(this.loadOrderBook, new object[] { client, messageHash, symbol, null, new Dictionary<string, object>() {}});
                 }
                 (orderbook as ccxt.pro.OrderBook).cache.Add(data);
                 return;
@@ -1749,6 +1749,14 @@ public partial class xt : ccxt.xt
             tradeType = "contract";
         }
         client.resolve(stored, ("trade::" + tradeType));
+    }
+
+    public override void handleTextMessage(WebSocketClient client, object message)
+    {
+        if ((message is "pong"))
+        {
+            client.lastPong = this.milliseconds();
+        }
     }
 
     public override void handleMessage(WebSocketClient client, object message)

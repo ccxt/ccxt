@@ -802,6 +802,65 @@
                         ]
                     ]
                 ]
+            },
+            {
+                "description": "inverse swap ohlcv 1d: volume in the base asset (q), not in contracts (v), as fetchOHLCV",
+                "input": [
+                    "BTC/USD:BTC",
+                    "1d"
+                ],
+                "url": "wss://dstream.binance.com/ws/0",
+                "messages": [
+                    {
+                        "result": null,
+                        "id": 1
+                    },
+                    {
+                        "e": "kline",
+                        "E": 1793368557834,
+                        "s": "BTCUSD_PERP",
+                        "k": {
+                            "t": 1793318400000,
+                            "T": 1793404799999,
+                            "s": "BTCUSD_PERP",
+                            "i": "1d",
+                            "f": 1161676637,
+                            "L": 1161873937,
+                            "o": "77820.7",
+                            "c": "76636.2",
+                            "h": "78661.4",
+                            "l": "76351.4",
+                            "v": "9136977",
+                            "n": 197291,
+                            "x": false,
+                            "q": "11784.49526990",
+                            "V": "4166545",
+                            "Q": "5378.07799347",
+                            "B": "0"
+                        }
+                    }
+                ],
+                "sentMessages": [
+                    {
+                        "method": "SUBSCRIBE",
+                        "params": [
+                            "btcusd_perp@kline_1d"
+                        ],
+                        "id": 1
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        [
+                            1793318400000,
+                            77820.7,
+                            78661.4,
+                            76351.4,
+                            76636.2,
+                            11784.4952699
+                        ]
+                    ]
+                ]
             }
         ],
         "watchOrderBook": [

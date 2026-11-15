@@ -1548,10 +1548,6 @@ public class Pacifica extends PacificaApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            if (java.util.Objects.equals(since, null))
-            {
-                throw new ArgumentsRequired((this.id + " fetchOHLCV() requires a \"since\" argument")) ;
-            }
             Long defaultMaxLimit = 3950L; // 4000 by docs, but in fact >~3960 returns error
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -1565,27 +1561,35 @@ public class Pacifica extends PacificaApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, defaultMaxLimit)).join();
             }
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? defaultMaxLimit : limit;
             String tf = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("symbol", market.get("id"));
-            request.put("interval", tf);
-            request.put("start_time", since);
+            Long nowMs = this.milliseconds();
+            Long duration = (((long) this.parseTimeframe(tf)) * 1000L);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "symbol", market.get("id") );
+                put( "interval", tf );
+            }};
+            Object sinceValue = since;
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end_time", request, (Map<String, Object>) (paramsPaginate), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
-            Long nowMillis = this.milliseconds();
-            Long requestedUntil = this.safeInteger(requestUntil, "end_time");
-            if (java.util.Objects.equals(requestedUntil, null))
+            if (java.util.Objects.equals(this.safeInteger(requestUntil, "end_time"), null))
             {
-                Long durationMillis = (((long) this.parseTimeframe(tf)) * 1000L);
-                Long candleCount = (((java.util.Objects.equals(limit, null)))) ? defaultMaxLimit : limit;
-                if (!java.util.Objects.equals(since, null))
+                if (java.util.Objects.equals(sinceValue, null))
                 {
-                    Long windowEnd = this.parseToInt(this.sum((since - 1L), (candleCount * durationMillis)));
-                    Long until = ((((windowEnd != null && (nowMillis == null || windowEnd > nowMillis))))) ? nowMillis : windowEnd;
-                    ((Map<String, Object>)requestUntil).put("end_time", until);
+                    sinceValue = (nowMs - (limitValue * duration));
+                }
+                Long windowEnd = this.parseToInt(this.sum(Helpers.subtract(sinceValue, 1), (limitValue * duration)));
+                Long until = ((((windowEnd != null && (nowMs == null || windowEnd > nowMs))))) ? nowMs : windowEnd;
+                ((Map<String, Object>)requestUntil).put("end_time", until);
+            } else
+            {
+                if (java.util.Objects.equals(sinceValue, null))
+                {
+                    sinceValue = Helpers.subtract(((Map<String, Object>)requestUntil).get("end_time"), (limitValue * duration));
                 }
             }
+            ((Map<String, Object>)requestUntil).put("start_time", sinceValue);
             Map<String, Object> response = (this.publicGetKline(this.extend(requestUntil, paramsUntil))).join();
             //
             // {

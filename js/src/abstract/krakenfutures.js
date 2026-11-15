@@ -49,9 +49,6 @@ class Exchange extends _Exchange {
     privateGetOpenorders(params = {}) {
         return this.request('openorders', ['private'], 'GET', params, { 'cost': 1 });
     }
-    privateGetRecentorders(params = {}) {
-        return this.request('recentorders', ['private'], 'GET', params, { 'cost': 1 });
-    }
     privateGetFills(params = {}) {
         return this.request('fills', ['private'], 'GET', params, { 'cost': 1 });
     }

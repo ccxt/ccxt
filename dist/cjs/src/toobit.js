@@ -2066,6 +2066,9 @@ class toobit extends toobit$1["default"] {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async cancelOrder(id, symbol = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
         const request = {};
         if (this.safeString(params, 'clientOrderId') === undefined) {
             request['orderId'] = id;

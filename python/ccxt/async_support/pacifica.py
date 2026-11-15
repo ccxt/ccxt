@@ -1207,8 +1207,6 @@ class pacifica(Exchange, ImplicitAPI):
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params
         :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a "since" argument')
         defaultMaxLimit = 3950  # 4000 by docs, but in fact >~3960 returns error
         if self.markets is None:
             await self.load_markets()
@@ -1216,22 +1214,26 @@ class pacifica(Exchange, ImplicitAPI):
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
             return await self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, defaultMaxLimit)
+        limitValue = defaultMaxLimit if (limit is None) else limit
         tf = self.safe_string(self.timeframes, timeframe, timeframe)
+        nowMs = self.milliseconds()
+        duration = self.parse_timeframe(tf) * 1000
         request = {
             'symbol': market['id'],
             'interval': tf,
-            'start_time': since,
         }
+        sinceValue = since
         requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
-        nowMillis = self.milliseconds()
-        requestedUntil = self.safe_integer(requestUntil, 'end_time')
-        if requestedUntil is None:
-            durationMillis = self.parse_timeframe(tf) * 1000
-            candleCount = defaultMaxLimit if (limit is None) else limit
-            if since is not None:
-                windowEnd = self.parse_to_int(self.sum(since - 1, candleCount * durationMillis))
-                until = nowMillis if (windowEnd > nowMillis) else windowEnd
-                requestUntil['end_time'] = until
+        if self.safe_integer(requestUntil, 'end_time') is None:
+            if sinceValue is None:
+                sinceValue = nowMs - limitValue * duration
+            windowEnd = self.parse_to_int(self.sum(sinceValue - 1, limitValue * duration))
+            until = nowMs if (windowEnd > nowMs) else windowEnd
+            requestUntil['end_time'] = until
+        else:
+            if sinceValue is None:
+                sinceValue = requestUntil['end_time'] - limitValue * duration
+        requestUntil['start_time'] = sinceValue
         response = await self.publicGetKline(self.extend(requestUntil, paramsUntil))
         #
         # {

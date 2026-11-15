@@ -755,7 +755,7 @@ class backpack(ccxt.async_support.backpack):
         #     },
         #
         return [
-            self.parse8601(self.safe_string(ohlcv, 'T')),
+            self.parse8601(self.safe_string(ohlcv, 't')),
             self.safe_number(ohlcv, 'o'),
             self.safe_number(ohlcv, 'h'),
             self.safe_number(ohlcv, 'l'),

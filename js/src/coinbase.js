@@ -1339,12 +1339,23 @@ export default class coinbase extends Exchange {
             feeCurrencyId = this.safeString(marketResolved, 'quote');
         }
         const datetime = this.safeStringN(trade, ['created_at', 'trade_time', 'time']);
-        const side = this.safeStringLower2(trade, 'resource', 'side');
+        let side = this.safeStringLower2(trade, 'resource', 'side');
         const takerOrMaker = this.safeStringLower(trade, 'liquidity_indicator');
+        const orderId = this.safeString(trade, 'order_id');
+        const entryId = this.safeString(trade, 'entry_id');
+        if ((orderId === undefined) && (entryId === undefined) && (this.safeString(trade, 'resource') === undefined)) {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side === 'buy') {
+                side = 'sell';
+            }
+            else if (side === 'sell') {
+                side = 'buy';
+            }
+        }
         return this.safeTrade({
             'info': trade,
             'id': this.safeString2(trade, 'id', 'trade_id'),
-            'order': this.safeString(trade, 'order_id'),
+            'order': orderId,
             'timestamp': this.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,
@@ -3953,7 +3964,7 @@ export default class coinbase extends Exchange {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limitValue, timeframe, paramsPaginate, 299);
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 299);
         }
         const market = this.market(symbol);
         const request = {
@@ -3973,12 +3984,17 @@ export default class coinbase extends Exchange {
             sinceString = Precise.stringSub(now, requestedDuration.toString());
         }
         request['start'] = sinceString;
+        // 300 candles max
+        const windowEnd = Precise.stringAdd(sinceString, requestedDuration.toString());
         if (until !== undefined) {
-            request['end'] = this.numberToString(this.parseToInt(until / 1000));
+            let endString = this.numberToString(this.parseToInt(until / 1000));
+            if ((since !== undefined) && Precise.stringLt(windowEnd, endString)) {
+                endString = windowEnd;
+            }
+            request['end'] = endString;
         }
         else {
-            // 300 candles max
-            request['end'] = Precise.stringAdd(sinceString, requestedDuration.toString());
+            request['end'] = windowEnd;
         }
         let response = undefined;
         const [usePrivate, paramsUsePrivate] = this.handleOptionBoolAndParams(paramsOmitted, 'fetchOHLCV', 'usePrivate', false);

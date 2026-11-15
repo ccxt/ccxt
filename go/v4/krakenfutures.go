@@ -160,9 +160,6 @@ func (this *Krakenfutures) Describe() map[string]any {
 					"openorders": map[string]any{
 						"cost": 1,
 					},
-					"recentorders": map[string]any{
-						"cost": 1,
-					},
 					"fills": map[string]any{
 						"cost": 1,
 					},
@@ -1163,11 +1160,11 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes93219 []any = r1.Value
-		if retRes93219 == nil {
+		var retRes93119 []any = r1.Value
+		if retRes93119 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes93219)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes93119)}
 		}
 		return nil
 	}
@@ -1297,11 +1294,11 @@ func (this *Krakenfutures) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes102719 []any = r1.Value
-		if retRes102719 == nil {
+		var retRes102619 []any = r1.Value
+		if retRes102619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102719)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes102619)}
 		}
 		return nil
 	}
