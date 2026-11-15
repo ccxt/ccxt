@@ -2634,7 +2634,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = self.privatePostWalletTransfer(self.extend(request, params))
         #
         #     [
-        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         #     ]
         #
         return self.parse_transfer(response, currency)

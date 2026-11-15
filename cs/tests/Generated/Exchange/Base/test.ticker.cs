@@ -260,7 +260,8 @@ public partial class testMainClass : BaseTest
             string? medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
             string? medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
             string? medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
-            assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), ("last price should be within 1% of the bid/ask median price" + (logText)));
+            bool lastPriceIsBetween = Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh);
+            assert(lastPriceIsBetween, ("last price should be within 1% of the bid/ask median price" + (logText)));
         }
         string? percentage = exchange.safeString(entry, "percentage");
         string? change = exchange.safeString(entry, "change");

@@ -1228,7 +1228,9 @@ class bingx extends bingx$1["default"] {
         const maxLimit = (this.safeBool(market, 'inverse', false)) ? 1000 : 1440;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = (timeframe === '1m') ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit);
         }
         const request = {
             'symbol': market['id'],
@@ -1244,7 +1246,13 @@ class bingx extends bingx$1["default"] {
         const until = this.safeInteger2(paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, ['until']) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe(timeframe) * 1000;
+                endTime = Math.min(until, this.sum(since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         }
         else if ((this.safeBool(market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe(timeframe) * 1000;
@@ -2149,7 +2157,7 @@ class bingx extends bingx$1["default"] {
         };
         let response;
         if (this.safeBool(market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr(this.extend(request, params));
+            response = await this.spotV2PublicGetQuoteTicker(this.extend(request, params));
         }
         else {
             if (this.safeBool(market, 'inverse', false)) {
@@ -2266,7 +2274,7 @@ class bingx extends bingx$1["default"] {
         const [subType, paramsSubType] = this.handleSubTypeAndParams('fetchTickers', market, paramsMarketType);
         let response;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr(paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker(paramsSubType);
         }
         else {
             if (subType === 'inverse') {

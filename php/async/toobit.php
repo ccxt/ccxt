@@ -2143,6 +2143,9 @@ class toobit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
          */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
         $request = array();
         if ($this->safe_string($params, 'clientOrderId') === null) {
             $request['orderId'] = $id;

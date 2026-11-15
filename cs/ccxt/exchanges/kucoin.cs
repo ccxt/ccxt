@@ -1433,6 +1433,7 @@ public partial class kucoin : Exchange
                     { "411100", typeof(AccountSuspended) },
                     { "415000", typeof(BadRequest) },
                     { "400303", typeof(PermissionDenied) },
+                    { "400304", typeof(PermissionDenied) },
                     { "500000", typeof(ExchangeNotAvailable) },
                     { "260220", typeof(InvalidAddress) },
                     { "600100", typeof(InsufficientFunds) },

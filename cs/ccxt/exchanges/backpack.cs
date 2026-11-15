@@ -1933,9 +1933,10 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
+        int maxLimit = 2000;
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        int duration = this.parseTimeframe(timeframeVar);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Dictionary<string, object> dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(dataRequest, "symbol") },
@@ -1950,32 +1951,30 @@ public partial class backpack : Exchange
         }
         int defaultLimit = 100;
         object limitResolved = limit;
-        if (((since == null)) && ((limit == null)))
+        if (!(limitResolved == null))
         {
-            limitResolved = defaultLimit;
+            limitResolved = mathMin(limitResolved, maxLimit);
         }
-        Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
-        object startTime = null;
-        if ((since == null))
+        object windowLimit = ((limitResolved == null)) ? defaultLimit : limitResolved;
+        Int64 now = this.milliseconds();
+        object startTime = since;
+        object untilValue = until;
+        if ((startTime == null))
         {
-            Int64? endTime = this.seconds();
-            if (!(until == null) && !(until == 0))
+            if ((untilValue == null))
             {
-                endTime = this.parseToInt(((double?)until / 1000));
+                untilValue = now;
             }
-            startTime = (endTime - ((windowLimit * duration)));
-        } else
-        {
-            startTime = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
+            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilValue, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration)));
         }
-        request["startTime"] = startTime;
-        if ((until == null))
+        request["startTime"] = this.parseToInt(divide(startTime, 1000));
+        // set until value
+        if ((untilValue == null))
         {
-            Int64 currentMs = this.seconds(); // default to current time in seconds
-            object windowEnd = this.sum(startTime, (windowLimit * duration));
-            object minTimestamp = mathMin(currentMs, windowEnd);
-            request["endTime"] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
+            object windowEnd = this.sum(startTime, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration));
+            untilValue = mathMin(now, windowEnd);
         }
+        request["endTime"] = this.parseToInt(divide(untilValue, 1000));
         string? price = this.safeString(paramsUntil, "price");
         object paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;
         if ((price != null))

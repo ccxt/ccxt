@@ -2542,6 +2542,7 @@ impl KucoinCore {
         m.insert("411100".to_string(), Value::Str("AccountSuspended".into()));
         m.insert("415000".to_string(), Value::Str("BadRequest".into()));
         m.insert("400303".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("400304".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("500000".to_string(), Value::Str("ExchangeNotAvailable".into()));
         m.insert("260220".to_string(), Value::Str("InvalidAddress".into()));
         m.insert("600100".to_string(), Value::Str("InsufficientFunds".into()));

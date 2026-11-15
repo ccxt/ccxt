@@ -481,7 +481,14 @@ class coinbaseinternational(ccxt.async_support.coinbaseinternational):
         positions = self.parse_positions(rawPositions)
         positionsLength = len(positions)
         for i in range(0, positionsLength):
-            self.positions.append(positions[i])
+            position = positions[i]
+            if position['side'] is None:
+                # flat (direction: zero) position, the cache is keyed by side so reset both sides
+                position['side'] = 'long'
+                shortPosition = self.clone(position)
+                shortPosition['side'] = 'short'
+                self.positions.append(shortPosition)
+            self.positions.append(position)
         client.resolve(self.positions, channel)
 
     async def watch_funding_rate(self, symbol: str, params={}) -> FundingRate:

@@ -2417,6 +2417,10 @@ public class Toobit extends ToobitApi
 
         return BaseExchange.supplyAsync(() -> {
 
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(this.safeString(parameters, "clientOrderId"), null))
             {

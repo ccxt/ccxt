@@ -302,6 +302,11 @@ impl OkxusCore {
         self.call_method(Value::Str("public_get_public_delta_hedge_currencies".into()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetPublicCorporateActions` implicit endpoint.
+    pub async fn public_get_public_corporate_actions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_public_corporate_actions".into()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetRubikStatTradingDataSupportCoin` implicit endpoint.
     pub async fn public_get_rubik_stat_trading_data_support_coin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_rubik_stat_trading_data_support_coin".into()), optional_args).await

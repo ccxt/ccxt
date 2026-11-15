@@ -5204,7 +5204,7 @@ class phemex extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 100));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 100));
         }
         $customSymbol = null;
         if ($isUsdtSettled) {

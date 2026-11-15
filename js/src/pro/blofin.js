@@ -291,7 +291,7 @@ export default class blofin extends blofinRest {
      */
     async watchTickers(symbols = undefined, params = {}) {
         if (symbols === undefined) {
-            throw new NotSupported(this.id + ' watchTickers() requires a list of symbols');
+            throw new ArgumentsRequired(this.id + ' watchTickers() requires a list of symbols');
         }
         const ticker = await this.watchMultipleWrapper(true, 'tickers', 'watchTickers', symbols, params);
         if (this.newUpdates) {

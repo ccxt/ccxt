@@ -52,7 +52,7 @@ public class Blofin extends BlofinApi
         return this.deepExtend(super.describe(), new HashMap<String, Object>() {{
             put( "id", "blofin" );
             put( "name", "BloFin" );
-            put( "countries", new ArrayList<Object>(Arrays.asList("US")) );
+            put( "countries", new ArrayList<Object>(Arrays.asList("MH")) );
             put( "version", "v1" );
             put( "rateLimit", 200 );
             put( "pro", true );
@@ -3973,7 +3973,7 @@ public class Blofin extends BlofinApi
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public CompletableFuture<Order> closePosition(String symbol, String side, Map<String, Object> parameters)
     {

@@ -229,7 +229,8 @@ function testTicker(exchange, skippedProperties, method, entry, symbol) {
         const medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), '2');
         const medianLow = Precise.stringMul(medianPrice, Precise.stringSub('1', allowedPercentageVariation));
         const medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd('1', allowedPercentageVariation));
-        assert(Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh), 'last price should be within 1% of the bid/ask median price' + logText);
+        const lastPriceIsBetween = Precise.stringGe(lastString, medianLow) && Precise.stringLe(lastString, medianHigh);
+        assert(lastPriceIsBetween, 'last price should be within 1% of the bid/ask median price' + logText);
     }
     const percentage = exchange.safeString(entry, 'percentage');
     const change = exchange.safeString(entry, 'change');

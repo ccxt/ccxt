@@ -2079,6 +2079,9 @@ export default class toobit extends Exchange {
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
         const request: Dict = {};
         if (this.safeString (params, 'clientOrderId') === undefined) {
             request['orderId'] = id;

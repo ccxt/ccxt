@@ -1534,10 +1534,23 @@ public partial class coinbase : Exchange
         string? datetime = this.safeStringN(trade, new List<object>() {"created_at", "trade_time", "time"});
         string? side = this.safeStringLower2(trade, "resource", "side");
         string? takerOrMaker = this.safeStringLower(trade, "liquidity_indicator");
+        string? orderId = this.safeString(trade, "order_id");
+        string? entryId = this.safeString(trade, "entry_id");
+        if (((orderId == null)) && ((entryId == null)) && ((this.safeString(trade, "resource") == null)))
+        {
+            // public market trades carry the maker side, the unified side of a public trade is the taker side
+            if (side == "buy")
+            {
+                side = "sell";
+            } else if (side == "sell")
+            {
+                side = "buy";
+            }
+        }
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString2(trade, "id", "trade_id") },
-            { "order", this.safeString(trade, "order_id") },
+            { "order", orderId },
             { "timestamp", this.parse8601(datetime) },
             { "datetime", datetime },
             { "symbol", symbol },

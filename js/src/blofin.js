@@ -20,7 +20,7 @@ export default class blofin extends Exchange {
         return this.deepExtend(super.describe(), {
             'id': 'blofin',
             'name': 'BloFin',
-            'countries': ['US'],
+            'countries': ['MH'], // Marshall Islands
             'version': 'v1',
             'rateLimit': 200, // 1500 requests per 5 minutes per IP is the binding budget => 200ms per request (500/min allows 120ms, but 1500/5min does not)
             'pro': true,
@@ -1122,7 +1122,7 @@ export default class blofin extends Exchange {
         let query = undefined;
         [paginate, query] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', query, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, query, 100);
         }
         const market = this.market(symbol);
         const request = {
@@ -3254,7 +3254,7 @@ export default class blofin extends Exchange {
      * EXCHANGE SPECIFIC PARAMETERS
      * @param {boolean} [params.autoCxl] whether any pending orders for closing out needs to be automatically canceled when close position via a market order. false or true, the default is false
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
-     * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
+     * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async closePosition(symbol, side = undefined, params = {}) {
         if (this.markets === undefined) {

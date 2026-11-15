@@ -257,6 +257,7 @@ export default class okx extends Exchange {
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 } as Endpoint<Dict>, // not documented
                         'public/mm-instrument-types': { 'cost': 4 } as Endpoint<Dict>,
                         'public/delta-hedge-currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        'public/corporate-actions': { 'cost': 1 } as Endpoint<Dict>,
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 } as Endpoint<Dict>,
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 } as Endpoint<Dict>,

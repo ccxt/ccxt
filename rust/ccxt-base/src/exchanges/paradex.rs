@@ -157,6 +157,7 @@ impl crate::exchange_generated::ExchangeBase for ParadexCore {
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "fetch_transfers" => self.fetch_transfers(&args[..]).await,
                 "fetch_withdrawals" => self.fetch_withdrawals(&args[..]).await,
+                "filter_transactions_by_kind" => self.filter_transactions_by_kind(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_system_config" => self.get_system_config().await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
@@ -1035,44 +1036,63 @@ impl ParadexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("exact".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("VALIDATION_ERROR".to_string(), Value::Str("AuthenticationError".into()));
-        m.insert("BINDING_ERROR".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("VALIDATION_ERROR".to_string(), Value::Str("BadRequest".into()));
+        m.insert("BINDING_ERROR".to_string(), Value::Str("BadRequest".into()));
         m.insert("INTERNAL_ERROR".to_string(), Value::Str("ExchangeError".into()));
         m.insert("NOT_FOUND".to_string(), Value::Str("BadRequest".into()));
-        m.insert("SERVICE_UNAVAILABLE".to_string(), Value::Str("ExchangeError".into()));
+        m.insert("SERVICE_UNAVAILABLE".to_string(), Value::Str("ExchangeNotAvailable".into()));
         m.insert("INVALID_REQUEST_PARAMETER".to_string(), Value::Str("BadRequest".into()));
-        m.insert("ORDER_ID_NOT_FOUND".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("ORDER_ID_NOT_FOUND".to_string(), Value::Str("OrderNotFound".into()));
         m.insert("ORDER_IS_CLOSED".to_string(), Value::Str("InvalidOrder".into()));
-        m.insert("ORDER_IS_NOT_OPEN_YET".to_string(), Value::Str("InvalidOrder".into()));
-        m.insert("CLIENT_ORDER_ID_NOT_FOUND".to_string(), Value::Str("InvalidOrder".into()));
-        m.insert("DUPLICATED_CLIENT_ID".to_string(), Value::Str("InvalidOrder".into()));
-        m.insert("INVALID_PRICE_PRECISION".to_string(), Value::Str("OperationRejected".into()));
-        m.insert("INVALID_SYMBOL".to_string(), Value::Str("OperationRejected".into()));
-        m.insert("INVALID_TOKEN".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("ORDER_IS_NOT_OPEN".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("INVALID_PRICE_PRECISION".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("INVALID_ORDER_SIZE".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("CLIENT_ORDER_ID_NOT_FOUND".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("ALGO_ID_NOT_FOUND".to_string(), Value::Str("OrderNotFound".into()));
+        m.insert("DUPLICATED_CLIENT_ID".to_string(), Value::Str("DuplicateOrderId".into()));
+        m.insert("INVALID_SYMBOL".to_string(), Value::Str("BadSymbol".into()));
+        m.insert("INVALID_TOKEN".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("INVALID_TOKEN_SCOPE".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("INVALID_ETHEREUM_ADDRESS".to_string(), Value::Str("OperationRejected".into()));
-        m.insert("INVALID_ETHEREUM_SIGNATURE".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("INVALID_ETHEREUM_SIGNATURE".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("INVALID_EVM_SIGNATURE".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("INVALID_STARKNET_ADDRESS".to_string(), Value::Str("OperationRejected".into()));
-        m.insert("INVALID_STARKNET_SIGNATURE".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("INVALID_STARKNET_SIGNATURE".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("STARKNET_SIGNATURE_VERIFICATION_FAILED".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("EVM_SIGNATURE_VERIFICATION_FAILED".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("INVALID_SUBKEY".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("SUBKEY_REVOKED".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("BAD_STARKNET_REQUEST".to_string(), Value::Str("BadRequest".into()));
         m.insert("ETHEREUM_SIGNER_MISMATCH".to_string(), Value::Str("BadRequest".into()));
         m.insert("ETHEREUM_HASH_MISMATCH".to_string(), Value::Str("BadRequest".into()));
-        m.insert("NOT_ONBOARDED".to_string(), Value::Str("BadRequest".into()));
+        m.insert("NOT_ONBOARDED".to_string(), Value::Str("AccountNotEnabled".into()));
         m.insert("INVALID_TIMESTAMP".to_string(), Value::Str("BadRequest".into()));
-        m.insert("INVALID_SIGNATURE_EXPIRATION".to_string(), Value::Str("AuthenticationError".into()));
+        m.insert("INVALID_BLOCK_EXPIRATION".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("ACCOUNT_NOT_FOUND".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("INVALID_ORDER_SIGNATURE".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("PUBLIC_KEY_INVALID".to_string(), Value::Str("BadRequest".into()));
         m.insert("UNAUTHORIZED_ETHEREUM_ADDRESS".to_string(), Value::Str("BadRequest".into()));
+        m.insert("UNAUTHORIZED_ERROR".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("NO_ACCESS_TO_MARKET".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("IP_NOT_ALLOWED".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("RPI_ACCOUNT_NOT_WHITELISTED".to_string(), Value::Str("PermissionDenied".into()));
         m.insert("ETHEREUM_ADDRESS_ALREADY_ONBOARDED".to_string(), Value::Str("BadRequest".into()));
-        m.insert("MARKET_NOT_FOUND".to_string(), Value::Str("BadRequest".into()));
+        m.insert("MARKET_NOT_FOUND".to_string(), Value::Str("BadSymbol".into()));
         m.insert("ALLOWLIST_ENTRY_NOT_FOUND".to_string(), Value::Str("BadRequest".into()));
         m.insert("USERNAME_IN_USE".to_string(), Value::Str("AuthenticationError".into()));
         m.insert("GEO_IP_BLOCK".to_string(), Value::Str("PermissionDenied".into()));
-        m.insert("ETHEREUM_ADDRESS_BLOCKED".to_string(), Value::Str("PermissionDenied".into()));
+        m.insert("ETHEREUM_ADDRESS_BLOCKED".to_string(), Value::Str("AccountSuspended".into()));
         m.insert("PROGRAM_NOT_FOUND".to_string(), Value::Str("BadRequest".into()));
         m.insert("INVALID_DASHBOARD".to_string(), Value::Str("OperationRejected".into()));
         m.insert("MARKET_NOT_OPEN".to_string(), Value::Str("BadRequest".into()));
+        m.insert("SYSTEM_STATUS_CANCEL_ONLY".to_string(), Value::Str("OnMaintenance".into()));
+        m.insert("SYSTEM_STATUS_POST_ONLY".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("MMP_CONFIG_INVALID".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("MMP_NOT_ENABLED".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("MMP_NOT_CONFIGURED".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("MMP_MIN_FREEZE_NOT_ELAPSED".to_string(), Value::Str("OperationRejected".into()));
+        m.insert("ONBOARDING_RATE_LIMITED".to_string(), Value::Str("RateLimitExceeded".into()));
+        m.insert("RFQ_CREATE_BUDGET_EXCEEDED".to_string(), Value::Str("RateLimitExceeded".into()));
         m.insert("INVALID_REFERRAL_CODE".to_string(), Value::Str("OperationRejected".into()));
         m.insert("PARENT_ADDRESS_ALREADY_ONBOARDED".to_string(), Value::Str("BadRequest".into()));
         m.insert("INVALID_PARENT_ACCOUNT".to_string(), Value::Str("OperationRejected".into()));
@@ -1099,6 +1119,8 @@ impl ParadexCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("must be a multiple of".to_string(), Value::Str("InvalidOrder".into()));
+        m.insert("market not found".to_string(), Value::Str("BadSymbol".into()));
         m.insert("missing or malformed jwt".to_string(), Value::Str("AuthenticationError".into()));
     m
 }));
@@ -2668,6 +2690,20 @@ impl ParadexCore {
         let mut average: Value = self.omit_zero(self.safe_string_k(order.clone(), "avg_fill_price", &[]));
         let mut remaining: Value = self.omit_zero(self.safe_string_k(order.clone(), "remaining_size", &[]));
         let mut triggerPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "trigger_price", &[]));
+        let mut stopLossPrice: Value = Value::Null;
+        let mut takeProfitPrice: Value = Value::Null;
+        if (orderType.is_some()) {
+            if orderType.as_deref().unwrap_or("").contains("STOP_LOSS") {
+                stopLossPrice = triggerPrice.clone();
+            }  else if orderType.as_deref().unwrap_or("").contains("TAKE_PROFIT") {
+                takeProfitPrice = triggerPrice.clone();
+            }
+        }
+        let mut timeInForce: Value = self.parse_time_in_force(self.safe_string_k(order.clone(), "instruction", &[])).map(Value::from).unwrap_or(Value::Null);
+        let mut postOnly: Value = Value::Null;
+        if (timeInForce != Value::Null) {
+            postOnly = (Value::Bool(timeInForce.as_str() == Some("PO")));
+        }
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "last_updated_at", &[]).as_i64();
         let mut flags: Value = self.safe_list_k(order.clone(), "flags", &[]);
         let mut reduceOnly: Value = Value::Null;
@@ -2685,14 +2721,14 @@ impl ParadexCore {
         m.insert("status".to_string(), self.parse_order_status(status).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), symbol);
         m.insert("type".to_string(), self.parse_order_type(orderType.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
-        m.insert("timeInForce".to_string(), self.parse_time_in_force(self.safe_string_k(order.clone(), "instruction", &[])).map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), Value::Null);
+        m.insert("timeInForce".to_string(), timeInForce);
+        m.insert("postOnly".to_string(), postOnly);
         m.insert("reduceOnly".to_string(), reduceOnly);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), triggerPrice);
-        m.insert("takeProfitPrice".to_string(), Value::Null);
-        m.insert("stopLossPrice".to_string(), Value::Null);
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice);
+        m.insert("stopLossPrice".to_string(), stopLossPrice);
         m.insert("average".to_string(), average);
         m.insert("amount".to_string(), amount.map(Value::from).unwrap_or(Value::Null));
         m.insert("filled".to_string(), Value::Null);
@@ -2718,6 +2754,7 @@ impl ParadexCore {
                 m.insert("IOC".to_string(), Value::Str("IOC".into()));
                 m.insert("GTC".to_string(), Value::Str("GTC".into()));
                 m.insert("POST_ONLY".to_string(), Value::Str("PO".into()));
+                m.insert("RPI".to_string(), Value::Str("PO".into()));
             m
         });
         return self.safe_string(Value::Map(timeInForces), timeInForce, &[]).as_str().map(str::to_owned);
@@ -2745,6 +2782,10 @@ impl ParadexCore {
                 m.insert("MARKET".to_string(), Value::Str("market".into()));
                 m.insert("STOP_LIMIT".to_string(), Value::Str("limit".into()));
                 m.insert("STOP_MARKET".to_string(), Value::Str("market".into()));
+                m.insert("STOP_LOSS_LIMIT".to_string(), Value::Str("limit".into()));
+                m.insert("STOP_LOSS_MARKET".to_string(), Value::Str("market".into()));
+                m.insert("TAKE_PROFIT_LIMIT".to_string(), Value::Str("limit".into()));
+                m.insert("TAKE_PROFIT_MARKET".to_string(), Value::Str("market".into()));
             m
         });
         return self.safe_string_lower(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
@@ -2752,6 +2793,23 @@ impl ParadexCore {
 
     pub fn scale_number(&self, mut num: Value) -> Option<String> {
         return crate::precise::Precise::stringMul(&num, &Value::Str("100000000".into())).as_str().map(str::to_owned);
+}
+
+    pub fn encode_time_in_force(&self, mut timeInForce: Value) -> Option<String> {
+        let mut timeInForces: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("GTC".to_string(), Value::Str("GTC".into()));
+                m.insert("IOC".to_string(), Value::Str("IOC".into()));
+                m.insert("PO".to_string(), Value::Str("POST_ONLY".into()));
+                m.insert("POST_ONLY".to_string(), Value::Str("POST_ONLY".into()));
+                m.insert("RPI".to_string(), Value::Str("RPI".into()));
+            m
+        });
+        let mut instruction: Option<String> = self.safe_string_opt(Value::Map(timeInForces), timeInForce.clone(), &[]);
+        if (instruction.is_none()) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() does not support timeInForce ".into())).into()), timeInForce).into()), Value::Str(", supported values are GTC, IOC, PO and RPI".into()))));
+        }
+        return instruction.as_deref().map(str::to_owned);
 }
 
     pub fn create_order_request(&self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2775,67 +2833,70 @@ impl ParadexCore {
                 m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
                 m.insert("side".to_string(), Value::from(orderSide));
                 m.insert("type".to_string(), orderType.clone());
-                m.insert("instruction".to_string(), Value::Str("GTC".into()));
             m
         });
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
-        let mut isMarket: bool = orderType.as_str() == Some("MARKET");
+        let mut isMarket: Value = Value::Bool(orderType.as_str() == Some("MARKET"));
         let mut isTakeProfitOrder: bool = takeProfitPrice.is_some();
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
         let mut isStopOrder: bool = (triggerPrice.is_some()) || isTakeProfitOrder || isStopLossOrder;
-        let mut timeInForce: Option<String> = self.safe_string_upper_k(params.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[params.clone()]);
-        if !(isMarket) {
-            if postOnly.as_bool() == Some(true) {
-                request.insert("instruction".into(), Value::Str("POST_ONLY".into()));
-            }  else if (timeInForce.as_deref() == Some("IOC")) {
-                request.insert("instruction".into(), Value::Str("IOC".into()));
+        let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
+        let mut postOnly: Value = self.is_post_only(isMarket.clone(), Value::Null, &[params.clone()]);
+        let mut instruction: Value = Value::Str("GTC".into());
+        if (timeInForce.is_some()) {
+            instruction = self.encode_time_in_force(timeInForce.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+        }
+        if postOnly.as_bool() == Some(true) && (instruction.as_str() != Some("RPI")) {
+            instruction = Value::Str("POST_ONLY".into());
+        }
+        if (instruction.as_str() == Some("POST_ONLY")) || (instruction.as_str() == Some("RPI")) {
+            // both instructions only rest on the book, the exchange rejects them on market and trigger orders
+            if matches!(&isMarket, Value::Bool(true)) {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() market orders cannot be post only or RPI".into()))));
+            }
+            if isStopOrder {
+                panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), Value::Str(" createOrder() trigger, stop loss and take profit orders cannot be post only or RPI".into()))));
             }
         }
-        if (price != Value::Null) {
+        request.insert("instruction".into(), instruction);
+        // the exchange requires the price to be omitted for every market order type
+        if (price != Value::Null) && !(matches!(&isMarket, Value::Bool(true))) {
             request.insert("price".into(), self.price_to_precision(symbol.clone(), price));
         }
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         if (clientOrderId.is_some()) {
             request.insert("client_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
+        let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_and_params2(params, Value::Str("createOrder".into()), Value::Str("recvWindow".into()), Value::Str("recv_window".into()), &[]).as_array().cloned().unwrap_or_default();
+        let mut recvWindow: Value = recvWindowparamsRecvWindowVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut paramsRecvWindow: Value = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null);
+        if (recvWindow != Value::Null) {
+            request.insert("recv_window".into(), self.parse_to_int(recvWindow));
+        }
+        let mut isTakeProfitOrStopLoss: bool = isStopLossOrder || isTakeProfitOrder;
         let mut sizeString: Value = Value::Str("0".into());
+        // a stop loss or take profit order with a size of 0 closes the whole position when triggered
+        if !isTakeProfitOrStopLoss || ((amount != Value::Null) && (amount.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64))) {
+            sizeString = self.amount_to_precision(symbol.clone(), amount);
+        }
         let mut stopPrice: Value = Value::Null;
         if isStopOrder {
-            // flags: Reduce_Only must be provided for TPSL orders.
-            if isMarket {
-                if isStopLossOrder {
-                    stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.clone().map(Value::from).unwrap_or(Value::Null));
-                    reduceOnly = Some(true);
-                    request.insert("type".into(), Value::Str("STOP_LOSS_MARKET".into()));
-                }  else if isTakeProfitOrder {
-                    stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.clone().map(Value::from).unwrap_or(Value::Null));
-                    reduceOnly = Some(true);
-                    request.insert("type".into(), Value::Str("TAKE_PROFIT_MARKET".into()));
-                }  else {
-                    stopPrice = self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null));
-                    sizeString = self.amount_to_precision(symbol.clone(), amount.clone());
-                    request.insert("type".into(), Value::Str("STOP_MARKET".into()));
-                }
-            }  else {
-                if isStopLossOrder {
-                    stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
-                    reduceOnly = Some(true);
-                    request.insert("type".into(), Value::Str("STOP_LOSS_LIMIT".into()));
-                }  else if isTakeProfitOrder {
-                    stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
-                    reduceOnly = Some(true);
-                    request.insert("type".into(), Value::Str("TAKE_PROFIT_LIMIT".into()));
-                }  else {
-                    stopPrice = self.price_to_precision(symbol.clone(), triggerPrice.map(Value::from).unwrap_or(Value::Null));
-                    sizeString = self.amount_to_precision(symbol.clone(), amount.clone());
-                    request.insert("type".into(), Value::Str("STOP_LIMIT".into()));
-                }
+            if isTakeProfitOrStopLoss {
+                // flags: Reduce_Only must be provided for TPSL orders.
+                reduceOnly = Some(true);
             }
-        }  else {
-            sizeString = self.amount_to_precision(symbol, amount);
+            if isStopLossOrder {
+                stopPrice = self.price_to_precision(symbol.clone(), stopLossPrice.map(Value::from).unwrap_or(Value::Null));
+                request.insert("type".into(), (if (isMarket).as_bool() == Some(true) { Value::Str("STOP_LOSS_MARKET".into()) } else { Value::Str("STOP_LOSS_LIMIT".into()) }));
+            }  else if isTakeProfitOrder {
+                stopPrice = self.price_to_precision(symbol.clone(), takeProfitPrice.map(Value::from).unwrap_or(Value::Null));
+                request.insert("type".into(), (if (isMarket).as_bool() == Some(true) { Value::Str("TAKE_PROFIT_MARKET".into()) } else { Value::Str("TAKE_PROFIT_LIMIT".into()) }));
+            }  else {
+                stopPrice = self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null));
+                request.insert("type".into(), (if (isMarket).as_bool() == Some(true) { Value::Str("STOP_MARKET".into()) } else { Value::Str("STOP_LIMIT".into()) }));
+            }
         }
         if (stopPrice != Value::Null) {
             request.insert("trigger_price".into(), stopPrice);
@@ -2844,8 +2905,8 @@ impl ParadexCore {
         if (reduceOnly == Some(true)) {
             request.insert("flags".into(), Value::from(vec![Value::Str("REDUCE_ONLY".into())]));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("timeInForce".into()), Value::Str("stopPrice".into()),
-            Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
+        let mut paramsOmitted: Value = self.omit(paramsRecvWindow, Value::from(vec![Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), Value::Str("postOnly".into()), Value::Str("post_only".into()), Value::Str("timeInForce".into()),
+            Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         return self.extend(Value::Map(request), &[paramsOmitted]);
 
     Value::Null
@@ -2854,7 +2915,7 @@ impl ParadexCore {
     pub async fn sign_order_request(&mut self, mut request: Value, optional_args: &[Value]) -> Value {
         let modify: bool = get_arg(optional_args, 0, Value::Bool(false)).is_truthy();
         let mut account: Value = self.retrieve_account().await;
-        let mut now: Value = self.parse_to_int(self.nonce());
+        let mut now: Value = self.milliseconds();
         let mut orderType: Option<String> = self.safe_string_k_opt(request.clone(), "type", &[]);
         if (orderType.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), Value::Str(" signOrderRequest() missing orderType".into()))));
@@ -2862,7 +2923,7 @@ impl ParadexCore {
         let mut isMarket: bool = orderType.as_deref().unwrap_or("").contains("MARKET");
         let mut orderReq: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("timestamp".to_string(), (match (&(now), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+                m.insert("timestamp".to_string(), now);
                 m.insert("market".to_string(), self.string_to_base16(self.safe_string_k(request.clone(), "market", &[])));
                 m.insert("side".to_string(), (if (self.safe_string_k(request.clone(), "side", &[]).as_str() == Some("BUY")) { Value::Str("1".into()) } else { Value::Str("2".into()) }));
                 m.insert("orderType".to_string(), self.string_to_base16(self.safe_string_k(request.clone(), "type", &[])));
@@ -2952,12 +3013,13 @@ impl ParadexCore {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopPrice] alias for triggerPrice
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
- * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at
- * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
- * @param {string} [params.timeInForce] "GTC", "IOC", or "POST_ONLY"
+ * @param {float} [params.stopLossPrice] the price that a stop loss order is triggered at, an amount of 0 closes the whole position
+ * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at, an amount of 0 closes the whole position
+ * @param {string} [params.timeInForce] "GTC", "IOC", "PO" or "RPI" (retail price improvement), "FOK" and "GTD" are not supported
  * @param {bool} [params.postOnly] true or false
  * @param {bool} [params.reduceOnly] Ensures that the executed order does not flip the opened position.
  * @param {string} [params.clientOrderId] a unique id for the order
+ * @param {int} [params.recvWindow] the number of milliseconds after the signature timestamp the order is accepted for, the exchange applies its own default when omitted
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn create_order(&mut self, mut symbol: Value, mut type_var: Value, mut side: Value, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -3018,10 +3080,12 @@ impl ParadexCore {
  * @param {string} type 'limit' or a TPSL order type
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of the currency you want to trade in units of the base currency
- * @param {float} price the price at which the order is to be fulfilled, in units of the quote currency
+ * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, required for limit orders and ignored for market orders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {float} [params.stopPrice] alias for triggerPrice
  * @param {float} [params.triggerPrice] The price a trigger order is triggered at
+ * @param {float} [params.stopLossPrice] the price a stop loss order is triggered at
+ * @param {float} [params.takeProfitPrice] the price a take profit order is triggered at
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
@@ -3034,8 +3098,9 @@ impl ParadexCore {
         if (amount == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires an amount argument".into()))));
         }
-        if (price == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument".into()))));
+        let mut isMarket: bool = (type_var != Value::Null) && ((if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET"));
+        if (price == Value::Null) && !isMarket {
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" editOrder() requires a price argument for limit orders".into()))));
         }
         self.authenticate_rest(&[]).await;
         if (self.markets.clone() == Value::Null) {
@@ -3043,7 +3108,7 @@ impl ParadexCore {
         }
         let mut market: Value = self.market(symbol.clone());
         let mut request: Value = self.create_order_request(symbol, type_var, side, amount, &[price, params]);
-        request = self.omit(request.clone(), Value::from(vec![Value::Str("instruction".into()), Value::Str("client_id".into()), Value::Str("flags".into())]), &[]);
+        request = self.omit(request.clone(), Value::from(vec![Value::Str("instruction".into()), Value::Str("client_id".into()), Value::Str("flags".into()), Value::Str("recv_window".into())]), &[]);
         add_element_to_object(&mut request, &Value::Str("order_id".into()), id.clone());
         add_element_to_object(&mut request, &Value::Str("id".into()), id);
         request = self.sign_order_request(request.clone(), &[Value::Bool(true)]).await;
@@ -3690,7 +3755,7 @@ impl ParadexCore {
 /*
  * @method
  * @name paradex#fetchPosition
- * @description fetch data on an open position
+ * @description fetch data on a single position, a closed one included
  * @see https://docs.paradex.trade/api/prod/account/get-positions
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3706,7 +3771,20 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol);
-        let mut positions: Value = self.fetch_positions(&[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)]), params]).await;
+        let mut response: Value = self.private_get_positions(&[params]).await;
+        let mut data: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
+        let mut matching: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_1062: bool = true;
+            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (data.len() as i64) } {
+            if (self.safe_string_k(data.get(i as usize).cloned().unwrap_or(Value::Null), "market", &[]).as_str() == market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str()) {
+                matching.push(data.get(i as usize).cloned().unwrap_or(Value::Null));
+            }
+        }
+        }
+        let mut positions: Value = self.parse_positions(Value::from(matching), &[Value::from(vec![market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)])]);
         return self.safe_dict(positions, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3735,7 +3813,7 @@ impl ParadexCore {
             self.load_markets(&[]).await;
         }
         let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.private_get_positions(&[]).await;
+        let mut response: Value = self.private_get_positions(&[params]).await;
         //
         //     {
         //         "results": [
@@ -3763,8 +3841,22 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut data: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
-        return self.parse_positions(data, &[symbolsNormalized]);
+        let mut data: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        // the endpoint keeps returning a market's position after it is closed, with a size of 0
+        let mut openPositions: Vec<Value> = Vec::new();
+        {
+                        let mut i: i64 = 0;
+            let mut __for_first_1063: bool = true;
+            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (data.len() as i64) } {
+            let mut position: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut status: Option<String> = self.safe_string_k(position.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
+            if (status.as_deref() != Some("CLOSED")) && !(crate::precise::Precise::stringEq(&size.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
+                openPositions.push(position);
+            }
+        }
+        }
+        return self.parse_positions(Value::from(openPositions), &[symbolsNormalized]);
 
     Value::Null
 }
@@ -3814,6 +3906,7 @@ impl ParadexCore {
         m.insert("notional".to_string(), self.parse_number(notionalString, &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
+        m.insert("realizedPnl".to_string(), self.safe_number_k(position.clone(), "realized_pnl", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.parse_number(quantity, &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -3828,7 +3921,7 @@ impl ParadexCore {
         m.insert("leverage".to_string(), self.safe_number_k(position, "leverage", &[]));
         m.insert("liquidationPrice".to_string(), liquidationPrice);
         m.insert("marginRatio".to_string(), Value::Null);
-        m.insert("marginMode".to_string(), Value::Null);
+        m.insert("marginMode".to_string(), Value::Str("cross".into()));
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
@@ -3950,8 +4043,18 @@ impl ParadexCore {
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            // a page can hold no deposit at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            let __ws_arg_18 = self.extend(paramsPaginate.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("allKinds".to_string(), Value::Bool(true));
+    m
+})]);
+            let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchDeposits".into()), &[code, since.clone(), Value::Null, __ws_arg_18, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("DEPOSIT".into()));
+            return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
         }
+        let mut allKinds: bool = self.safe_bool_k_opt(paramsPaginate.clone(), "allKinds", &[Value::Bool(false)]).unwrap_or(false);
+        let mut paramsKinds: Value = self.omit(paramsPaginate, Value::Str("allKinds".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3962,11 +4065,11 @@ impl ParadexCore {
         if (since != Value::Null) {
             request.insert("start_at".into(), since.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsKinds, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_18 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_18]).await;
+        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.private_get_transfers(&[__ws_arg_19]).await;
         //
         //     {
         //         "next": null,
@@ -3988,14 +4091,23 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1064: bool = true;
+            while { if !__for_first_1064 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1064 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+        }
+        }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1062: bool = true;
-            while { if !__for_first_1062 { i += 1; } __for_first_1062 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
+            let mut __for_first_1065: bool = true;
+            while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (rows.len() as i64) } {
+            let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("DEPOSIT")) {
                 deposits.push(row);
             }
         }
@@ -4034,8 +4146,18 @@ impl ParadexCore {
         let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
         if paginate.as_bool() == Some(true) {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), limit.clone(), paramsPaginate.clone(), Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            // a page can hold no withdrawal at all, which would end the pagination early, so every row is paginated and filtered afterwards
+            let __ws_arg_20 = self.extend(paramsPaginate.clone(), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("allKinds".to_string(), Value::Bool(true));
+    m
+})]);
+            let mut transactions: Value = self.fetch_paginated_call_cursor(Value::Str("fetchWithdrawals".into()), &[code, since.clone(), Value::Null, __ws_arg_20, Value::Str("next".into()), Value::Str("cursor".into()), Value::Null, Value::Int(100)]).await;
+            let mut transactionsOfKind: Value = self.filter_transactions_by_kind(transactions, Value::Str("WITHDRAWAL".into()));
+            return self.filter_by_since_limit(transactionsOfKind, &[since.clone(), limit.clone()]);
         }
+        let mut allKinds: bool = self.safe_bool_k_opt(paramsPaginate.clone(), "allKinds", &[Value::Bool(false)]).unwrap_or(false);
+        let mut paramsKinds: Value = self.omit(paramsPaginate, Value::Str("allKinds".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4046,11 +4168,11 @@ impl ParadexCore {
         if (since != Value::Null) {
             request.insert("start_at".into(), since.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsKinds, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_19 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_19]).await;
+        let __ws_arg_21 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.private_get_transfers(&[__ws_arg_21]).await;
         //
         //     {
         //         "next": null,
@@ -4072,14 +4194,23 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Vec<Value> = self.safe_list_k(response, "results", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
+        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1066: bool = true;
+            while { if !__for_first_1066 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1066 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+        }
+        }
         let mut deposits: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1063: bool = true;
-            while { if !__for_first_1063 { i += 1; } __for_first_1063 = false; i < (rows.len() as i64) } {
-            let mut row: Value = rows.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
+            let mut __for_first_1067: bool = true;
+            while { if !__for_first_1067 { i += 1; } __for_first_1067 = false; i < (rows.len() as i64) } {
+            let mut row: Value = rows.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            if allKinds || (self.safe_string_k(row.clone(), "kind", &[]).as_str() == Some("WITHDRAWAL")) {
                 deposits.push(row);
             }
         }
@@ -4137,8 +4268,8 @@ impl ParadexCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_20 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_transfers(&[__ws_arg_20]).await;
+        let __ws_arg_22 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.private_get_transfers(&[__ws_arg_22]).await;
         //
         //     {
         //         "next": null,
@@ -4160,7 +4291,16 @@ impl ParadexCore {
         //         ]
         //     }
         //
-        let mut rows: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut rows: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1068: bool = true;
+            while { if !__for_first_1068 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1068 = false; i.as_f64().unwrap_or(f64::NAN) < ((rows.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut rows, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+        }
+        }
         return self.parse_transfers(rows, &[currency, since, limit]);
 
     Value::Null
@@ -4271,6 +4411,25 @@ impl ParadexCore {
     Value::Null
 }
 
+    pub fn filter_transactions_by_kind(&self, mut transactions: Value, mut kind: Value) -> Value {
+        let __transactions_empty = Vec::new();
+        let transactions = transactions.as_array().unwrap_or(&__transactions_empty);
+        let mut result: Vec<Value> = Vec::new();
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1069: bool = true;
+            while { if !__for_first_1069 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1069 = false; i.as_f64().unwrap_or(f64::NAN) < ((transactions.len() as i64) as f64) } {
+            let mut info: Value = self.safe_dict(transactions.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null), Value::Str("info".into()), &[]);
+            if (self.safe_string_k(info, "kind", &[]).as_str() == kind.as_str()) {
+                result.push(transactions.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null));
+            }
+        }
+        }
+        return Value::from(result);
+
+    Value::Null
+}
+
     pub fn parse_transaction_status(&self, mut status: Value) -> Option<String> {
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4307,8 +4466,8 @@ impl ParadexCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_margin(&[__ws_arg_21]).await;
+        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_account_margin(&[__ws_arg_23]).await;
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4351,7 +4510,7 @@ impl ParadexCore {
  * @param {string} marginMode 'cross' or 'isolated'
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {float} [params.leverage] the rate of leverage
+ * @param {float} [params.leverage] the rate of leverage, the current leverage of the market is kept when omitted
  * @returns {object} response from the exchange
  */
     pub async fn set_margin_mode(&mut self, mut marginMode: Value, optional_args: &[Value]) -> Value {
@@ -4365,20 +4524,29 @@ impl ParadexCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut market: indexmap::IndexMap<String, Value> = self.market(symbol).as_map().cloned().unwrap_or_default();
-        let mut leverage: Value = Value::Int(1);
-        let leverageOptionparamsLeverageVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("setMarginMode".into()), Value::Str("leverage".into()), &[leverage]).as_array().cloned().unwrap_or_default();
+        let mut market: Value = self.market(symbol.clone());
+        let leverageOptionparamsLeverageVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("setMarginMode".into()), Value::Str("leverage".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut leverageOption: Value = leverageOptionparamsLeverageVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsLeverage: Value = leverageOptionparamsLeverageVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut leverage: Value = leverageOption;
+        if (leverage == Value::Null) {
+            // the endpoint always sets the leverage too, keep the current one instead of resetting it
+            let mut currentLeverage: Value = self.fetch_leverage(symbol, &[]).await;
+            leverage = self.safe_integer_k(currentLeverage, "longLeverage", &[]);
+            if (leverage == Value::Null) {
+                panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" setMarginMode() requires a params.leverage argument, the current leverage of ".into())).into()), market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null)).into()),
+                    Value::Str(" could not be fetched".into()))));
+            }
+        }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), market.get("id").cloned().unwrap_or(Value::Null));
-                m.insert("leverage".to_string(), leverageOption);
+                m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+                m.insert("leverage".to_string(), leverage);
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_22 = self.extend(Value::Map(request), &[paramsLeverage]);
-        return self.private_post_account_margin_market(&[__ws_arg_22]).await;
+        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsLeverage]);
+        return self.private_post_account_margin_market(&[__ws_arg_24]).await;
 
     Value::Null
 }
@@ -4407,8 +4575,8 @@ impl ParadexCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_23 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_account_margin(&[__ws_arg_23]).await;
+        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_account_margin(&[__ws_arg_25]).await;
         //
         // {
         //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -4488,8 +4656,8 @@ impl ParadexCore {
                 m.insert("margin_type".to_string(), self.encode_margin_mode(marginMode).map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsMarginMode]);
-        return self.private_post_account_margin_market(&[__ws_arg_24]).await;
+        let __ws_arg_26 = self.extend(Value::Map(request), &[paramsMarginMode]);
+        return self.private_post_account_margin_market(&[__ws_arg_26]).await;
 
     Value::Null
 }
@@ -4517,8 +4685,8 @@ impl ParadexCore {
                 m.insert("market".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_25 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_25]).await;
+        let __ws_arg_27 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_27]).await;
         //
         //     {
         //         "results": [
@@ -4587,8 +4755,8 @@ impl ParadexCore {
                 m.insert("market".to_string(), Value::Str("ALL".into()));
             m
         });
-        let __ws_arg_26 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_26]).await;
+        let __ws_arg_28 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.public_get_markets_summary(&[__ws_arg_28]).await;
         //
         //     {
         //         "results": [
@@ -4750,8 +4918,8 @@ impl ParadexCore {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_at".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let __ws_arg_27 = self.extend(requestUntil, &[paramsUntil]);
-        let mut response: Value = self.private_get_funding_payments(&[__ws_arg_27]).await;
+        let __ws_arg_29 = self.extend(requestUntil, &[paramsUntil]);
+        let mut response: Value = self.private_get_funding_payments(&[__ws_arg_29]).await;
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4769,7 +4937,16 @@ impl ParadexCore {
         //     ]
         // }
         //
-        let mut results: Value = self.safe_list_k(response, "results", &[Value::from(vec![])]);
+        let mut results: Value = self.safe_list_k(response.clone(), "results", &[Value::from(vec![])]);
+        // the cursor pagination reads the next page cursor from the parsed entries
+        let mut next: Option<String> = self.safe_string_k_opt(response, "next", &[]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_1070: bool = true;
+            while { if !__for_first_1070 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1070 = false; i.as_f64().unwrap_or(f64::NAN) < ((results.len() as i64) as f64) } {
+            add_element_to_object(get_value_mut(&mut results, &i), &Value::Str("next".into()), next.clone().map(Value::from).unwrap_or(Value::Null));
+        }
+        }
         return self.parse_incomes(results, &[market, since, limit]);
 
     Value::Null
@@ -4851,8 +5028,8 @@ impl ParadexCore {
         if (until != Value::Null) {
             request.insert("end_at".into(), until);
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.public_get_funding_data(&[__ws_arg_28]).await;
+        let __ws_arg_30 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let mut response: Value = self.public_get_funding_data(&[__ws_arg_30]).await;
         //
         // {
         //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4877,8 +5054,8 @@ impl ParadexCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1064: bool = true;
-            while { if !__for_first_1064 { i += 1; } __for_first_1064 = false; i < (results.len() as i64) } {
+            let mut __for_first_1071: bool = true;
+            while { if !__for_first_1071 { i += 1; } __for_first_1071 = false; i < (results.len() as i64) } {
             let mut rate: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "created_at", &[]).as_i64();
             let mut datetime: Value = self.iso8601(Value::from(timestamp));
@@ -5010,7 +5187,18 @@ impl ParadexCore {
         //         "message": "User has never called /onboarding endpoint"
         //     }
         //
+        //     {
+        //         "error": "INVALID_REQUEST_PARAMETER",
+        //         "message": "market: FOO-USD-PERP does not exist.",
+        //         "data": { "market": "FOO-USD-PERP does not exist." }
+        //     }
+        //
+        //     {
+        //         "message": "missing or malformed jwt"
+        //     }
+        //
         let mut errorCode: Value = self.safe_string_k(response.clone(), "error", &[]);
+        let mut message: Option<String> = self.safe_string_k_opt(response.clone(), "message", &[]);
         if (errorCode == Value::Null) && (code.as_f64() == Some(400.0)) {
             //
             // a batch where every order was rejected, errors are index-aligned with the request
@@ -5023,23 +5211,34 @@ impl ParadexCore {
             let mut batchErrors: Vec<Value> = self.safe_list_k(response, "errors", &[Value::from(vec![])]).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1065: bool = true;
-                while { if !__for_first_1065 { i += 1; } __for_first_1065 = false; i < (batchErrors.len() as i64) } {
+                let mut __for_first_1072: bool = true;
+                while { if !__for_first_1072 { i += 1; } __for_first_1072 = false; i < (batchErrors.len() as i64) } {
                 let mut batchErrorCode: Option<String> = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "error", &[]);
                 if (batchErrorCode.is_some()) {
                     errorCode = batchErrorCode.map(Value::from).unwrap_or(Value::Null);
+                    message = self.safe_string_k_opt(batchErrors.get(i as usize).cloned().unwrap_or(Value::Null), "message", &[]);
                     break;
                 }
             }
             }
         }
-        if (errorCode != Value::Null) {
-            let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
-            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), body, feedback.clone());
-            self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
-            panic!("{}", crate::exchange_errors::exchange_error(feedback));
+        let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
+        if (errorCode == Value::Null) {
+            if (code.as_f64().unwrap_or(f64::NAN) >= ((400i64) as f64)) && (message.is_some()) {
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            }
+            return Value::Null;
         }
-        return Value::Null;
+        // the broad patterns read the message of a validation failure only, other codes carry free text that could match them by accident
+        if (errorCode.as_str() == Some("INVALID_REQUEST_PARAMETER")) && (message.is_some()) {
+            // an unknown market fails the validation of the market field, "market: FOO-USD-PERP does not exist."
+            if (Value::Int(message.as_deref().and_then(|__s| __s.find("market")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) && (message.as_deref().unwrap_or("").contains("does not exist")) {
+                panic!("{}", crate::exchange_errors::bad_symbol(feedback));
+            }
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
+        }
+        self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode, feedback.clone());
+        panic!("{}", crate::exchange_errors::exchange_error(feedback));
 
     Value::Null
 }
