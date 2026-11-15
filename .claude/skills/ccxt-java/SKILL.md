@@ -350,6 +350,31 @@ Exchange exchange = Exchange.dynamicallyCreateInstance("binance", null);
 Object result = exchange.fetchTicker("BTC/USDT").join();
 ```
 
+## Testnet, Capabilities, Precision and Pagination
+
+```java
+Binance exchange = new Binance();
+exchange.apiKey = "...";
+exchange.secret = "...";
+exchange.setSandboxMode(true);          // right after construction; NotSupported if no testnet
+
+// capability flags and finer-grained features (keys stay camelCase)
+Object supported = exchange.has.get("fetchOHLCV");   // true | false | "emulated"
+Object spotFeatures = exchange.features.get("spot"); // createOrder params, fetch limits, ...
+
+// round to the market's precision before ordering (returns strings)
+exchange.loadMarkets(false);
+String amount = exchange.amountToPrecision("BTC/USDT", 0.0012345);
+String price = exchange.priceToPrecision("BTC/USDT", 64123.456789);
+
+// let CCXT paginate history for you
+Map<String, Object> params = new HashMap<>();
+params.put("paginate", true);
+List<OHLCV> history = exchange.fetchOHLCV("BTC/USDT", "1d", 1704067200000L, null, params);
+```
+
+Conditional orders use unified `params` keys on `createOrder`: `triggerPrice`, `stopLossPrice`, `takeProfitPrice`, `reduceOnly`, `postOnly`, `clientOrderId`. Every `watch*` stream has an `unWatch*` (for example `unWatchTicker(symbol, params)`); `close()` stops them all. Always test orders on a testnet or at the minimum size first.
+
 ## Complete Method Reference
 
 ### Market Data Methods
@@ -401,7 +426,7 @@ Object result = exchange.fetchTicker("BTC/USDT").join();
 
 ### Deposits & Withdrawals
 - `fetchDepositAddress(code, params)` - Get deposit address
-- `withdraw(code, amount, address, tag, params)` - Withdraw funds
+- `withdraw(code, amount, address, params)` - Withdraw funds (memo/tag and network go in params: `tag`, `network`)
 - `transfer(code, amount, fromAccount, toAccount, params)` - Internal transfer
 - `fetchDeposits(code, since, limit, params)` - Fetch deposit history
 - `fetchWithdrawals(code, since, limit, params)` - Fetch withdrawal history
