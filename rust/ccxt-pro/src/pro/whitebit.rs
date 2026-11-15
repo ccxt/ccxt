@@ -1553,7 +1553,7 @@ impl Whitebit {
             // the registry entry, so a later cold call can re-lead
             client.resolve(authorized.clone(), messageHash.as_str());
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             // drop the handshake state so the next caller can retry: watch ()
             // registers subscriptions['authenticated'] before it connects and
             // parks a rejected future under the same key when the dial fails,
@@ -1610,9 +1610,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
             }
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if is_instance(&e, &Value::Str("AuthenticationError".into())) {
-                client.reject(e.clone(), "authenticated");
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+            if e.is_instance_of("AuthenticationError") {
+                client.reject(e, "authenticated");
                 if (__ch.has_subscription("authenticated")) {
                     __ch.remove_subscription("authenticated");
                 }

@@ -574,7 +574,7 @@ impl Bitbns {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v1_get_platform_status(&[params]).await;
+        let mut response: crate::value::Dict = self.v1_get_platform_status(&[params]).await.into_dict();
         //
         //     {
         //         "data":{
@@ -587,7 +587,7 @@ impl Bitbns {
         //         "code":200
         //     }
         //
-        let mut statusRaw: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut statusRaw: Option<String> = self.safe_string_k(&response, "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), self.safe_string(Value::Map({
@@ -598,7 +598,7 @@ impl Bitbns {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -1842,7 +1842,7 @@ impl Bitbns {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v1_post_get_coin_address_symbol(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.v1_post_get_coin_address_symbol(&[__ws_arg_10]).await.into_dict();
         //
         //     {
         //         "data":{
@@ -1853,16 +1853,16 @@ impl Bitbns {
         //         "error":null
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&data, "token", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&data, "tag", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

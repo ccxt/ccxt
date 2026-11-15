@@ -956,7 +956,7 @@ impl Delta {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_settings(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_settings(&[params]).await.into_dict();
         //
         //     {
         //         "result": {
@@ -1010,10 +1010,10 @@ impl Delta {
         //         "success": true
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut underMaintenance: Option<String> = self.safe_string_k(&result, "under_maintenance", &[]).as_str().map(str::to_owned);
         let mut status: String = "ok".to_string();
         if (underMaintenance.as_deref() == Some("true")) {
@@ -1026,7 +1026,7 @@ impl Delta {
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -1485,7 +1485,7 @@ impl Delta {
             let mut spot: bool = type_var.as_deref() == Some("spot");
             let mut swap: bool = type_var.as_deref() == Some("perpetual_futures");
             let mut future: bool = type_var.as_deref() == Some("futures");
-            let mut option: Value = (Value::Bool(((callOptions || putOptions) || moveOptions)));
+            let mut option: bool = ((callOptions || putOptions) || moveOptions);
             let mut strike: Option<String> = self.safe_string_k(&market, "strike_price", &[]).as_str().map(str::to_owned);
             let mut expiryDatetime: Option<String> = self.safe_string_k(&market, "settlement_time", &[]).as_str().map(str::to_owned);
             let mut expiry: Option<i64> = self.parse8601(expiryDatetime.map(Value::from).unwrap_or(Value::Null));
@@ -1500,11 +1500,11 @@ impl Delta {
             let mut linear: bool = settle == quote;
             let mut optionType: Option<String> = None;
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-            if swap || future || matches!(&option, Value::Bool(true)) {
+            if swap || future || option {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), settle.as_deref().unwrap_or("null"));
-                if future || matches!(&option, Value::Bool(true)) {
+                if future || option {
                     symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
-                    if matches!(&option, Value::Bool(true)) {
+                    if option {
                         type_var = Some("option".to_string());
                         let mut letter: String = "C".to_string();
                         optionType = Some("call".to_string());
@@ -1540,7 +1540,7 @@ impl Delta {
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(future));
-        m.insert("option".to_string(), option);
+        m.insert("option".to_string(), Value::Bool(option));
         m.insert("active".to_string(), (Value::Bool(state.as_deref() == Some("live"))));
         m.insert("contract".to_string(), Value::Bool(!spot));
         m.insert("linear".to_string(), (if spot { Value::Null } else { Value::Bool(linear) }));

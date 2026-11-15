@@ -1615,7 +1615,7 @@ impl Deribit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_status(&[params]).await.into_dict();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -1628,16 +1628,16 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut locked: Option<String> = self.safe_string_k(&result, "locked", &[]).as_str().map(str::to_owned);
-        let mut updateTime: Option<i64> = self.safe_integer_product_k(response.clone(), "usIn", Value::Float(0.001), &[Value::Int(self.milliseconds())]).as_i64();
+        let mut updateTime: Option<i64> = self.safe_integer_product_k(&response, "usIn", Value::Float(0.001), &[Value::Int(self.milliseconds())]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (locked.as_deref() == Some("false")) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
         m.insert("updated".to_string(), Value::from(updateTime));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -2170,7 +2170,7 @@ impl Deribit {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_create_deposit_address(&[__ws_arg_2]).await;
+        let mut response: crate::value::Dict = self.private_get_create_deposit_address(&[__ws_arg_2]).await.into_dict();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2183,10 +2183,10 @@ impl Deribit {
         //         }
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&result, "address", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -2195,7 +2195,7 @@ impl Deribit {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("network".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -2232,7 +2232,7 @@ impl Deribit {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_get_current_deposit_address(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.private_get_get_current_deposit_address(&[__ws_arg_3]).await.into_dict();
         //
         //     {
         //         "jsonrpc": "2.0",
@@ -2250,15 +2250,15 @@ impl Deribit {
         //         "testnet": false
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&result, "address", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -3351,7 +3351,7 @@ impl Deribit {
         if isStopLossOrder && isTakeProfitOrder {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified")));
         }
-        let mut isStopOrder: bool = isStopLossOrder || isTakeProfitOrder;
+        let mut isStopOrder: bool = (isStopLossOrder || isTakeProfitOrder);
         let mut isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let mut isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
         let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k(params.clone(), "post_only", &[]).as_bool();

@@ -2335,14 +2335,14 @@ impl Digifinex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_spot_get_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.public_spot_get_ping(&[params]).await.into_dict();
         //
         //     {
         //         "msg": "pong",
         //         "code": 0
         //     }
         //
-        let mut code: Option<i64> = self.safe_integer_k(response.clone(), "code", &[]).as_i64();
+        let mut code: Option<i64> = self.safe_integer_k(&response, "code", &[]).as_i64();
         let mut status: String = "maintenance".to_string();
         if (code == Some(0)) {
             status = "ok".to_string();
@@ -2353,7 +2353,7 @@ impl Digifinex {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

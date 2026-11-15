@@ -685,8 +685,8 @@ impl Bitflyer {
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             let mut taker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]);
             let mut maker: Value = self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]);
-            let mut contract: Value = Value::Bool((swap || future));
-            if matches!(&contract, Value::Bool(true)) {
+            let mut contract: bool = (swap || future);
+            if contract {
                 maker = Value::Int(0);
                 taker = Value::Int(0);
                 settle = Some("JPY".to_string());
@@ -706,13 +706,13 @@ impl Bitflyer {
                     m.insert("quoteId".to_string(), quoteId);
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::from(type_var));
-                    m.insert("spot".to_string(), Value::Bool(spot.clone()));
+                    m.insert("spot".to_string(), Value::Bool(spot));
                     m.insert("margin".to_string(), Value::Bool(false));
                     m.insert("swap".to_string(), Value::Bool(swap));
                     m.insert("future".to_string(), Value::Bool(future));
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("active".to_string(), Value::Bool(true));
-                    m.insert("contract".to_string(), contract);
+                    m.insert("contract".to_string(), Value::Bool(contract));
                     m.insert("linear".to_string(), (if spot { Value::Null } else { Value::Bool(true) }));
                     m.insert("inverse".to_string(), (if spot { Value::Null } else { Value::Bool(false) }));
                     m.insert("taker".to_string(), taker);
@@ -1067,16 +1067,16 @@ impl Bitflyer {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_gettradingcommission(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.private_get_gettradingcommission(&[__ws_arg_3]).await.into_dict();
         //
         //   {
         //       commission_rate: '0.0020'
         //   }
         //
-        let mut fee: Option<f64> = self.safe_number_k(response.clone(), "commission_rate", &[]).as_f64();
+        let mut fee: Option<f64> = self.safe_number_k(&response, "commission_rate", &[]).as_f64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("maker".to_string(), Value::from(fee));
         m.insert("taker".to_string(), Value::from(fee));
@@ -1129,13 +1129,13 @@ impl Bitflyer {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut result: Value = self.private_post_sendchildorder(&[__ws_arg_4]).await;
+        let mut result: crate::value::Dict = self.private_post_sendchildorder(&[__ws_arg_4]).await.into_dict();
         // { "status": - 200, "error_message": "Insufficient funds", "data": null }
-        let mut id: Option<String> = self.safe_string_k(result.clone(), "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k(&result, "child_order_acceptance_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), result);
+        m.insert("info".to_string(), Value::Dict(result));
     m
 }), None);
         Value::Null

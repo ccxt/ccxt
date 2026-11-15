@@ -838,11 +838,11 @@ impl Paymium {
             request.insert("price".into(), price);
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_user_orders(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_post_user_orders(&[__ws_arg_4]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response, "uuid", &[]));
+        m.insert("info".to_string(), Value::from(&response));
+        m.insert("id".to_string(), self.safe_string_k(&response, "uuid", &[]));
     m
 }), Some(&market));
         Value::Null

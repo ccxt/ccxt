@@ -1026,7 +1026,7 @@ impl Bitvavo {
         let mut networksArray: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networks", &[Value::from(vec![])]).into_list();
         let mut deposit: bool = (self.safe_string_k(rawCurrency.clone(), "depositStatus", &[]).as_str() == Some("OK"));
         let mut withdrawal: bool = (self.safe_string_k(rawCurrency.clone(), "withdrawalStatus", &[]).as_str() == Some("OK"));
-        let mut active: Value = Value::Bool((deposit && withdrawal));
+        let mut active: bool = (deposit && withdrawal);
         let mut withdrawFee: Option<f64> = self.safe_number_k(rawCurrency.clone(), "withdrawalFee", &[]).as_f64();
         let mut precision: String = self.safe_string_k(rawCurrency.clone(), "decimals", &[Value::Str("8".into())]).as_str().unwrap_or("8").to_string();
         let mut minWithdraw: Option<f64> = self.safe_number_k(rawCurrency.clone(), "withdrawalMinAmount", &[]).as_f64();
@@ -1042,7 +1042,7 @@ impl Bitvavo {
         m.insert("info".to_string(), rawCurrency.clone());
         m.insert("id".to_string(), networkId);
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
-        m.insert("active".to_string(), active.clone());
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdrawal));
         m.insert("fee".to_string(), Value::from(withdrawFee));
@@ -1068,7 +1068,7 @@ impl Bitvavo {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(rawCurrency, "name", &[]));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("deposit".to_string(), Value::Bool(deposit));
         m.insert("withdraw".to_string(), Value::Bool(withdrawal));
         m.insert("networks".to_string(), Value::Map(networks));
@@ -2020,19 +2020,19 @@ impl Bitvavo {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_deposit(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_get_deposit(&[__ws_arg_7]).await.into_dict();
         //
         //     {
         //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
         //         "paymentId": "10002653"
         //     }
         //
-        let mut address: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut tag: Option<String> = self.safe_string_k(response.clone(), "paymentId", &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string_k(&response, "address", &[]).as_str().map(str::to_owned);
+        let mut tag: Option<String> = self.safe_string_k(&response, "paymentId", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

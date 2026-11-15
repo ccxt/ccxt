@@ -879,10 +879,10 @@ impl Kalshi {
                     m
                 })]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
                 // fall through to the search-driven base resolution; let network failures propagate
-                if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
+                if !(e.names("BadSymbol")) {
                     panic!("{}", e);
                 }
                 response = Value::Null;
@@ -919,10 +919,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 })).await { panic!("{}", __e) }
                  #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                     // an unknown series is a plain miss — the free-text fallback below still runs;
                     // let network failures propagate
-                    if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
+                    if !(e.names("BadSymbol")) {
                         panic!("{}", e);
                     }
                 }
@@ -1135,10 +1135,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subtitle: Option<String> = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".into()), &[])]).as_str().map(str::to_owned);
         // markets use status 'active' while events use 'open'
         let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
+        let mut active: bool = ((status.as_deref() == Some("active")) || (status.as_deref() == Some("open")));
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         let mut result: Option<String> = self.safe_string_lower_k(raw.clone(), "result", &[]).as_str().map(str::to_owned);
-        let mut resolved: bool = (status.as_deref() == Some("settled")) || ((result.is_some()) && (result.as_deref() != Some("")));
+        let mut resolved: bool = ((status.as_deref() == Some("settled")) || ((result.is_some()) && (result.as_deref() != Some(""))));
         let mut endDate: Option<String> = self.safe_string_k(raw.clone(), "expiration_time", &[]).as_str().map(str::to_owned);
         let mut volume: Option<f64> = self.safe_number2(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]).as_f64();
         let mut liquidity: Option<f64> = self.safe_number2(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]).as_f64();
@@ -1209,7 +1209,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m.insert("outcome".to_string(), outcomeHandle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), Value::from(label.as_deref()));
-                    m.insert("active".to_string(), active.clone());
+                    m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), winner);
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
@@ -1250,7 +1250,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
@@ -1423,18 +1423,18 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.kalshi_public_get_exchange_status(&[params]).await;
+        let mut response: crate::value::Dict = self.kalshi_public_get_exchange_status(&[params]).await.into_dict();
         //
         //     { "exchange_active": true, "trading_active": true }
         //
-        let mut tradingActive: bool = self.safe_bool_k(response.clone(), "trading_active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut tradingActive: bool = self.safe_bool_k(&response, "trading_active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if tradingActive { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -3438,8 +3438,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker((eventTickers.get(ei as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default(), &[rest.clone()]).await.into_dict();
                 rawEvents.push(Value::Dict(fullEvent));
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+                if !(e.names("BadSymbol")) {
                     panic!("{}", e);
                 }
             }

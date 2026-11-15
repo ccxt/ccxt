@@ -2415,7 +2415,7 @@ impl Nado {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.gateway_public_get_query(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.gateway_public_get_query(&[__ws_arg_15]).await.into_dict();
         //
         //     {
         //         "status": "success",
@@ -2423,14 +2423,14 @@ impl Nado {
         //         "request_type": "query_status"
         //     }
         //
-        let mut status: Option<String> = self.safe_string_k(response.clone(), "data", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k(&response, "data", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (status.as_deref() == Some("active")) { Value::Str("ok".into()) } else { Value::Str("error".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -2742,8 +2742,8 @@ impl Nado {
         //         }
         //     }
         //
-        let mut tickers: Value = self.to_array(&response);
-        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut tickers: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

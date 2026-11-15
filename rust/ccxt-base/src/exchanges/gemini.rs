@@ -1701,7 +1701,7 @@ impl Gemini {
         if swap {
             type_var = "swap".to_string();
         }
-        let mut isSpot: Value = Value::Bool(!swap);
+        let mut isSpot: bool = !(swap);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId);
@@ -1713,7 +1713,7 @@ impl Gemini {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
-        m.insert("spot".to_string(), isSpot);
+        m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
@@ -2228,7 +2228,7 @@ impl Gemini {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_v1_notionalvolume(&[params]).await;
+        let mut response: crate::value::Dict = self.private_post_v1_notionalvolume(&[params]).await.into_dict();
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -2257,8 +2257,8 @@ impl Gemini {
         //          ]
         //     }
         //
-        let mut makerBps: Option<String> = self.safe_string_k(response.clone(), "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
-        let mut takerBps: Option<String> = self.safe_string_k(response.clone(), "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
+        let mut makerBps: Option<String> = self.safe_string_k(&response, "api_maker_fee_bps", &[]).as_str().map(str::to_owned);
+        let mut takerBps: Option<String> = self.safe_string_k(&response, "api_taker_fee_bps", &[]).as_str().map(str::to_owned);
         let mut makerString: Option<String> = crate::precise::Precise::stringDiv(&makerBps, &Value::Str("10000".into())).as_str().map(str::to_owned);
         let mut takerString: Option<String> = crate::precise::Precise::stringDiv(&takerBps, &Value::Str("10000".into())).as_str().map(str::to_owned);
         let mut maker: Option<f64> = self.parse_number(makerString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
@@ -2275,7 +2275,7 @@ impl Gemini {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
@@ -3203,8 +3203,8 @@ impl Gemini {
             m
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_v1_deposit_currency_new_address(&[__ws_arg_13]).await;
-        let mut address: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
+        let mut response: crate::value::Dict = self.private_post_v1_deposit_currency_new_address(&[__ws_arg_13]).await.into_dict();
+        let mut address: Option<String> = self.safe_string_k(&response, "address", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3212,7 +3212,7 @@ impl Gemini {
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), Value::Null);
         m.insert("network".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

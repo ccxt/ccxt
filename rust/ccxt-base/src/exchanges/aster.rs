@@ -2028,8 +2028,8 @@ impl Aster {
             }
         }
         }
-        let mut rows: Value = self.array_concat(&sapiRows, Value::from(fapiRowsFiltered));
-        return self.parse_markets(rows);
+        let mut rows: crate::value::List = self.array_concat(&sapiRows, Value::from(fapiRowsFiltered)).into_list();
+        return self.parse_markets(&rows);
         Value::Null
         }).await?))
     }
@@ -3272,11 +3272,11 @@ impl Aster {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.fapi_private_get_v3_position_side_dual(&[params]).await;
+        let mut response: crate::value::Dict = self.fapi_private_get_v3_position_side_dual(&[params]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("hedged".to_string(), self.safe_bool_k(response, "dualSidePosition", &[]));
+        m.insert("info".to_string(), Value::from(&response));
+        m.insert("hedged".to_string(), self.safe_bool_k(&response, "dualSidePosition", &[]));
     m
 });
         Value::Null

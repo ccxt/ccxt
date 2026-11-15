@@ -1340,7 +1340,7 @@ if _try_result.is_err() {
         let mut baseId: Option<String> = self.safe_string_k(market.clone(), "base_asset", &[Value::from(id.as_deref())]).as_str().map(str::to_owned);
         let mut instrumentType: Option<String> = self.safe_string_k(market.clone(), "instrument_type", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = instrumentType.as_deref() == Some("spot");
-        let mut isSwap: bool = !isSpot;
+        let mut isSwap: bool = !(isSpot);
         let mut quoteId: Value = Value::Str("USDC".into());
         let mut settleId: Value = Value::Null;
         let mut type_var: String = "spot".to_string();
@@ -1402,7 +1402,7 @@ if _try_result.is_err() {
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("spot".to_string(), Value::Bool(isSpot));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), Value::Bool(isSwap.clone()));
+        m.insert("swap".to_string(), Value::Bool(isSwap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(active));
@@ -3100,7 +3100,7 @@ if _try_result.is_err() {
         let mut request: crate::value::Dict = self.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str(), amount, price, Some(&market), &[params.clone()]).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "clientOrderId"], &[]).into_dict();
         let __ws_arg_18 = self.extend(request, &[&paramsOmitted]);
-        let mut response: Value = self.private_post_orders_edit(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_edit(&[__ws_arg_18]).await.into_dict();
         //
         // {
         //     'data': {
@@ -3108,15 +3108,15 @@ if _try_result.is_err() {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut orderId: Option<String> = self.safe_string_k(&data, "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), symbol);
     m
 }), None);
@@ -4064,11 +4064,11 @@ if _try_result.is_err() {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut margin: Option<String> = self.safe_string_k(position.clone(), "margin", &[]).as_str().map(str::to_owned);
         let mut rawIsolated: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
-        let mut isIsolated: Value = Value::Bool((margin.is_some()) && (margin.as_deref() != Some("0")));
+        let mut isIsolated: bool = ((margin.is_some()) && (margin.as_deref() != Some("0")));
         if (rawIsolated.is_some()) {
-            isIsolated = (Value::Bool(rawIsolated == Some(true)));
+            isIsolated = (rawIsolated == Some(true));
         }
-        let mut marginMode: String = (if isIsolated.as_bool() == Some(true) { "isolated".to_string() } else { "cross".to_string() });
+        let mut marginMode: String = (if isIsolated { "isolated".to_string() } else { "cross".to_string() });
         let mut side: Option<String> = self.safe_string_k(position.clone(), "side", &[]).as_str().map(str::to_owned);
         if (side.is_some()) {
             side = (if (side.as_deref() == Some("bid")) { Some("long".to_string()) } else { Some("short".to_string()) });
@@ -4081,7 +4081,7 @@ if _try_result.is_err() {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(createdAt));
         m.insert("datetime".to_string(), self.iso8601(createdAt));
-        m.insert("isolated".to_string(), isIsolated);
+        m.insert("isolated".to_string(), Value::Bool(isIsolated));
         m.insert("hedged".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("contracts".to_string(), self.safe_number_k(position.clone(), "amount", &[]));
@@ -5426,8 +5426,8 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_1054: bool = true;
                 while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (sortedKeys.len() as i64) } {
-                let mut key: Value = self.safe_string(sortedKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
-                result.insert(crate::runtime::stringify_param(&key), self.sort_json_keys(get_value(&value, &key)));
+                let mut key: String = self.safe_string(sortedKeys.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                result.insert(key.clone(), self.sort_json_keys(get_value(&value, key.as_str())));
             }
             }
             return Value::Map(result);

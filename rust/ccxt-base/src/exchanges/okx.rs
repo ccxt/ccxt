@@ -3903,7 +3903,7 @@ impl Okx {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_system_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_system_status(&[params]).await.into_dict();
         //
         // Note, if there is no maintenance around, the 'data' array is empty
         //
@@ -3924,7 +3924,7 @@ impl Okx {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut dataLength: i64 = data.len() as i64;
         let mut update: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3932,7 +3932,7 @@ impl Okx {
                 m.insert("status".to_string(), (if (dataLength == 0) { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
                 m.insert("eta".to_string(), Value::Null);
                 m.insert("url".to_string(), Value::Null);
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Dict(response));
             m
         });
         {
@@ -4299,7 +4299,7 @@ impl Okx {
         m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), Value::Bool(option));
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("live")));
-        m.insert("contract".to_string(), Value::Bool(contract.clone()));
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), (if contract { Value::Bool(quoteEqualSettle) } else { Value::Null }));
         m.insert("inverse".to_string(), (if contract { Value::Bool(baseEqualSettle) } else { Value::Null }));
         m.insert("contractSize".to_string(), (if contract { __ws_arg_0 } else { Value::Null }));
@@ -5858,12 +5858,12 @@ impl Okx {
         let mut isReduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true) || (closeFraction.is_some());
         let mut defaultMarginMode: String = self.safe_string2(self.options.clone(), Value::Str("defaultMarginMode".into()), Value::Str("marginMode".into()), &[Value::Str("cross".into())]).as_str().unwrap_or("cross").to_string();
         let mut marginMode: Option<String> = self.safe_string2(params.clone(), Value::Str("marginMode".into()), Value::Str("tdMode".into()), &[]).as_str().map(str::to_owned); // cross or isolated, tdMode not omitted so as to be extended into the request
-        let mut marginModeIsExplicit: bool = (marginMode.is_some()) && (marginMode.as_deref() != Some("cash"));
-        if !(marginModeIsExplicit) {
+        let mut marginModeIsExplicit: bool = ((marginMode.is_some()) && (marginMode.as_deref() != Some("cash")));
+        if !marginModeIsExplicit {
             marginMode = Some(defaultMarginMode);
         }
-        let mut marginParam: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
-        let mut margin: bool = marginModeIsExplicit || marginParam;
+        let mut marginParam: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut margin: bool = (marginModeIsExplicit || marginParam);
         // position side / hedged options only apply to swap and future orders
         let mut isSwapOrFuture: bool = (contract == Some(true)) && (((market).swap) || ((market).future));
         let positionSideparamsPositionSideVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("positionSide".into()), &[]).as_array().cloned().unwrap_or_default();

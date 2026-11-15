@@ -1539,7 +1539,7 @@ impl Coinbase {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v2_private_post_accounts_account_id_addresses(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.v2_private_post_accounts_account_id_addresses(&[__ws_arg_4]).await.into_dict();
         //
         //     {
         //         "data": {
@@ -1576,10 +1576,10 @@ impl Coinbase {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut tag: Option<String> = self.safe_string_k(&data, "destination_tag", &[]).as_str().map(str::to_owned);
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
         return Value::Map({
@@ -1588,7 +1588,7 @@ impl Coinbase {
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -4803,30 +4803,30 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut limitGTC: Value = self.safe_dict_k(&orderConfiguration, "limit_limit_gtc", &[]);
-        let mut limitGTD: Value = self.safe_dict_k(&orderConfiguration, "limit_limit_gtd", &[]);
-        let mut limitIOC: Value = self.safe_dict_k(&orderConfiguration, "sor_limit_ioc", &[]);
+        let mut limitGTC: Option<crate::value::Dict> = self.safe_dict_k(&orderConfiguration, "limit_limit_gtc", &[]).into_opt_dict();
+        let mut limitGTD: Option<crate::value::Dict> = self.safe_dict_k(&orderConfiguration, "limit_limit_gtd", &[]).into_opt_dict();
+        let mut limitIOC: Option<crate::value::Dict> = self.safe_dict_k(&orderConfiguration, "sor_limit_ioc", &[]).into_opt_dict();
         let mut stopLimitGTC: Value = self.safe_dict_k(&orderConfiguration, "stop_limit_stop_limit_gtc", &[]);
         let mut stopLimitGTD: Value = self.safe_dict_k(&orderConfiguration, "stop_limit_stop_limit_gtd", &[]);
         let mut marketIOC: crate::value::Dict = self.safe_dict_k(&orderConfiguration, "market_market_ioc", &[]).into_dict();
-        let mut isLimit: bool = (limitGTC != Value::Null) || (limitGTD != Value::Null) || (limitIOC != Value::Null);
+        let mut isLimit: bool = (limitGTC.is_some()) || (limitGTD.is_some()) || (limitIOC.is_some());
         let mut isStop: bool = (stopLimitGTC != Value::Null) || (stopLimitGTD != Value::Null);
         let mut price: Option<String> = None;
         let mut amount: Option<String> = None;
         let mut postOnly: Option<bool> = None;
         let mut triggerPrice: Option<String> = None;
         if isLimit {
-            let mut target: Value = Value::Null;
-            if (limitGTC != Value::Null) {
+            let mut target: Option<crate::value::Dict> = None;
+            if (limitGTC.is_some()) {
                 target = limitGTC;
-            }  else if (limitGTD != Value::Null) {
+            }  else if (limitGTD.is_some()) {
                 target = limitGTD;
             }  else {
                 target = limitIOC;
             }
-            price = self.safe_string_k(target.clone(), "limit_price", &[]).as_str().map(str::to_owned);
-            amount = self.safe_string_k(target.clone(), "base_size", &[]).as_str().map(str::to_owned);
-            postOnly = self.safe_bool_k(target, "post_only", &[]).as_bool();
+            price = self.safe_string_k(&target, "limit_price", &[]).as_str().map(str::to_owned);
+            amount = self.safe_string_k(&target, "base_size", &[]).as_str().map(str::to_owned);
+            postOnly = self.safe_bool_k(&target, "post_only", &[]).as_bool();
         }  else if isStop {
             let mut stopTarget: Value = (if (stopLimitGTC != Value::Null) { stopLimitGTC } else { stopLimitGTD });
             price = self.safe_string_k(stopTarget.clone(), "limit_price", &[]).as_str().map(str::to_owned);
@@ -5541,17 +5541,17 @@ if _try_result.is_err() {
         let mut until: Option<i64> = self.safe_integer2(Value::from(&paramsPaginate), Value::Str("until".into()), Value::Str("end".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-        let mut requestedDuration: Value = Value::from((if let Some(__l) = limitValue { Some(__l * duration) } else { None }));
+        let mut requestedDuration: Option<i64> = (if let Some(__l) = limitValue { Some(__l * duration) } else { None });
         let mut sinceString: Value = Value::Null;
         if (since != Value::Null) {
             sinceString = Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))));
         }  else {
             let mut now: String = format!("{}", self.seconds());
-            sinceString = crate::precise::Precise::stringSub(&now, &Value::Str(format!("{}", requestedDuration).into()));
+            sinceString = crate::precise::Precise::stringSub(&now, &Value::from(format!("{}", Value::from(requestedDuration))));
         }
         request.insert("start".into(), sinceString.clone());
         // 300 candles max
-        let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::Str(format!("{}", requestedDuration).into())).as_str().map(str::to_owned);
+        let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::from(format!("{}", Value::from(requestedDuration)))).as_str().map(str::to_owned);
         if (until.is_some()) {
             let mut endString: Option<String> = self.number_to_string(Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))));
             if (since != Value::Null) && crate::precise::Precise::stringLt(&windowEnd, &endString).as_bool() == Some(true) {
@@ -7035,7 +7035,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_66 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.v3_private_get_brokerage_transaction_summary(&[__ws_arg_66]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_brokerage_transaction_summary(&[__ws_arg_66]).await.into_dict();
         //
         // {
         //     total_volume: '0',
@@ -7059,10 +7059,10 @@ if _try_result.is_err() {
         //     has_promo_fee: false
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "fee_tier", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "fee_tier", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut taker_fee: Option<f64> = self.safe_number_k(&data, "taker_fee_rate", &[]).as_f64();
         let mut maker_fee: Option<f64> = self.safe_number_k(&data, "maker_fee_rate", &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -7078,7 +7078,7 @@ if _try_result.is_err() {
             if (isSpot && (market).spot) || (!isSpot && !(market).spot) {
                 result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("maker".to_string(), Value::from(maker_fee));
         m.insert("taker".to_string(), Value::from(taker_fee));
@@ -7376,14 +7376,14 @@ if _try_result.is_err() {
                 }  else {
                     let mut nonce: Option<i64> = self.parse_to_int(self.nonce());
                     let mut timestamp: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = nonce { Some((__l as f64) / 1000.0) } else { None })));
-                    let mut timestampString: Value = Value::Str(format!("{}", Value::from(timestamp)).into());
+                    let mut timestampString: String = format!("{}", Value::from(timestamp));
                     let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestampString, method).into()), savedPath).into()), payload.as_deref().unwrap_or("null"));
                     let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("CB-ACCESS-KEY".to_string(), self.apiKey.clone());
                             m.insert("CB-ACCESS-SIGN".to_string(), Value::from(signature));
-                            m.insert("CB-ACCESS-TIMESTAMP".to_string(), timestampString);
+                            m.insert("CB-ACCESS-TIMESTAMP".to_string(), Value::from(timestampString));
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                         m
                     }));

@@ -587,9 +587,9 @@ impl Bybit {
         }
         isSpot = Some(type_var.as_deref() == Some("spot"));
         if isPrivate.as_bool() == Some(true) {
-            let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
-            let mut isUnifiedMargin: bool = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut isUnifiedAccount: bool = self.safe_bool(unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
+            let mut isUnifiedMargin: bool = self.safe_bool(&unified, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isUnifiedAccount: bool = self.safe_bool(&unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
             if (isUsdcSettled == Some(true)) && (!isUnifiedMargin) && (!isUnifiedAccount) {
                 url = accessibilityUrls.get("usdc").cloned().unwrap_or(Value::Null);
             }  else {
@@ -3058,9 +3058,9 @@ impl Bybit {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchBalance".into()), None, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut unified: Value = self.parent.is_unified_enabled(&[]).await;
-        let mut isUnifiedMargin: bool = self.safe_bool(unified.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isUnifiedAccount: bool = self.safe_bool(unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
+        let mut isUnifiedMargin: bool = self.safe_bool(&unified, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnifiedAccount: bool = self.safe_bool(&unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut url: Option<String> = self.get_url_by_market_type(None, &[Value::Bool(true), Value::from(method), Value::from(&paramsSubType)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({
@@ -3512,8 +3512,8 @@ impl Bybit {
         let mut messageHash: String = "authenticated".to_string();
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url));
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             let mut expiresInt: i64 = ((self.milliseconds()) + 10000);
             let mut expires: Option<String> = self.number_to_string(Value::from(expiresInt));
             let mut path: String = "GET/realtime".to_string();
@@ -3602,7 +3602,7 @@ impl Bybit {
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             let mut reqId: Option<String> = self.safe_string2(message.clone(), Value::Str("req_id".into()), Value::Str("reqId".into()), &[]).as_str().map(str::to_owned);
             let mut foundSubscription: bool = false;
             if (reqId.is_some()) {
@@ -3628,7 +3628,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if !foundSubscription {
                 if (reqId.is_some()) {
                     client.reject(error.clone(), reqId.as_deref());
-                }  else if is_instance(&error, &Value::Str("AuthenticationError".into())) {
+                }  else if error.is_instance_of("AuthenticationError") {
                     let mut authenticatedHash: Value = Value::Str("authenticated".into());
                     client.reject(error.clone(), &authenticatedHash);
                     if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &authenticatedHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
@@ -3867,8 +3867,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_213 { j += 1; } __for_first_213 = false; j < (messageHashes.len() as i64) } {
                     let mut unsubHash: Option<String> = messageHashes.get(j as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut subHash: Option<String> = self.safe_string(&subMessageHashes, Value::Int(j), &[]).as_str().map(str::to_owned);
-                    let mut usePrefix: Value = Value::Bool((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades")) || (subHash.as_deref() == Some("positions")));
-                    self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[usePrefix]);
+                    let mut usePrefix: bool = (((subHash.as_deref() == Some("orders")) || (subHash.as_deref() == Some("myTrades"))) || (subHash.as_deref() == Some("positions")));
+                    self.clean_unsubscription(client.clone(), subHash.map(Value::from).unwrap_or(Value::Null), unsubHash.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(usePrefix)]);
                 }
                 }
                 self.clean_cache(subscription);

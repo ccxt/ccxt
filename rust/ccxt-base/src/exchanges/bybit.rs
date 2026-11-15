@@ -3998,7 +3998,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_v5_system_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_v5_system_status(&[params]).await.into_dict();
         //
         //     {
         //         "retCode": 0,
@@ -4024,10 +4024,10 @@ impl Bybit {
         //         "time": 1751858399649
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut list: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
         let mut status: String = "ok".to_string();
         let mut eta: Option<i64> = None;
@@ -4055,7 +4055,7 @@ impl Bybit {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::from(eta));
         m.insert("url".to_string(), url.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -4638,17 +4638,17 @@ impl Bybit {
                 m
             })]).into_dict();
             let mut status: Option<String> = self.safe_string_k(&market, "status", &[]).as_str().map(str::to_owned);
-            let mut swap: Value = Value::Bool((linearPerpetual || inversePerpetual));
-            let mut future: Value = Value::Bool((inverseFutures || linearFutures));
+            let mut swap: bool = (linearPerpetual || inversePerpetual);
+            let mut future: bool = (inverseFutures || linearFutures);
             let mut type_var: Option<String> = None;
-            if matches!(&swap, Value::Bool(true)) {
+            if swap {
                 type_var = Some("swap".to_string());
-            }  else if matches!(&future, Value::Bool(true)) {
+            }  else if future {
                 type_var = Some("future".to_string());
             }
             let mut expiry: Option<i64> = None;
             // some swaps have deliveryTime meaning delisting time
-            if !(matches!(&swap, Value::Bool(true))) {
+            if !swap {
                 let mut deliveryTime: Option<String> = self.omit_zero(self.safe_string_k(&market, "deliveryTime", &[]));
                 if (deliveryTime.is_some()) {
                     expiry = self.parse_to_int(deliveryTime.map(Value::from).unwrap_or(Value::Null));
@@ -4673,8 +4673,8 @@ impl Bybit {
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("margin".to_string(), Value::Null);
-        m.insert("swap".to_string(), swap);
-        m.insert("future".to_string(), future);
+        m.insert("swap".to_string(), Value::Bool(swap));
+        m.insert("future".to_string(), Value::Bool(future));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), (Value::Bool(status.as_deref() == Some("Trading"))));
         m.insert("contract".to_string(), Value::Bool(true));
@@ -5531,7 +5531,7 @@ impl Bybit {
         let mut intervalString: Option<String> = None;
         if (fundingInterval.is_some()) {
             let mut interval: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fundingInterval { Some((__l as f64) / 60.0) } else { None })));
-            intervalString = Some(format!("{}{}", Value::Str(format!("{}", Value::from(interval)).into()), Value::Str("h".into())));
+            intervalString = Some(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -6418,9 +6418,9 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         // don't use getBybitType here
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
@@ -7465,7 +7465,7 @@ impl Bybit {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.edit_order_request(id.as_str(), symbol.as_str(), type_var.as_str(), side.as_str(), &[amount, price, params.clone()]).into_dict();
         let __ws_arg_23 = self.extend(request, &[params]);
-        let mut response: Value = self.private_post_v5_order_amend(&[__ws_arg_23]).await;
+        let mut response: crate::value::Dict = self.private_post_v5_order_amend(&[__ws_arg_23]).await.into_dict();
         //
         //     {
         //         "retCode": 0,
@@ -7478,13 +7478,13 @@ impl Bybit {
         //         "time": 1672217093461
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), self.safe_string_k(&result, "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&result, "orderLinkId", &[]));
     m
@@ -7979,9 +7979,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut market: Option<crate::types::Market> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -8013,7 +8013,7 @@ impl Bybit {
             request.insert("orderFilter".into(), Value::Str("StopOrder".into()));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_v5_order_cancel_all(&[__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.private_post_v5_order_cancel_all(&[__ws_arg_28]).await.into_dict();
         //
         // linear / inverse / option
         //     {
@@ -8042,15 +8042,15 @@ impl Bybit {
         //         "time": 1676962409398
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut orders: Option<crate::value::List> = self.safe_list_k(&result, "list", &[]).into_opt_list();
         if !(orders.is_some()) {
             return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         }
@@ -8133,9 +8133,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         if !isUnifiedAccount {
             return self.fetch_order_classic(id.as_str().unwrap_or_default(), symbol.as_str(), &[params.clone()]).await;
@@ -9475,8 +9475,8 @@ impl Bybit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnified: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnified: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut currency: Option<crate::types::Currency> = None;
         let mut currencyKey: String = "coin".to_string();
         if enableUnified {
@@ -10411,9 +10411,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::Dict> = None;
@@ -13325,9 +13325,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
@@ -13470,9 +13470,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {
@@ -13608,9 +13608,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut unifiedEnabled: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedMargin: bool = self.safe_bool(unifiedEnabled.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableUnifiedAccount: bool = self.safe_bool(unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unifiedEnabled: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedMargin: bool = self.safe_bool(&unifiedEnabled, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableUnifiedAccount: bool = self.safe_bool(&unifiedEnabled, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isUnifiedAccount: bool = (enableUnifiedMargin || enableUnifiedAccount);
         let mut accountTypeDefault: String = "eb_convert_spot".to_string();
         if isUnifiedAccount {

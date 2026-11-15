@@ -1130,8 +1130,8 @@ impl Mexc {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut rawOhlcv: Value = self.safe_dict_k(&d, "k", &[Value::from(&d)]);
-            let mut timeframeId: Option<String> = self.safe_string2_opt(rawOhlcv.clone(), Value::Str("i".into()), Value::Str("interval".into()), &[]);
+            let mut rawOhlcv: crate::value::Dict = self.safe_dict_k(&d, "k", &[Value::from(&d)]).into_dict();
+            let mut timeframeId: Option<String> = self.safe_string2_opt(&rawOhlcv, Value::Str("i".into()), Value::Str("interval".into()), &[]);
             let mut timeframes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "timeframes", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1139,7 +1139,7 @@ impl Mexc {
             timeframe = self.find_timeframe(timeframeId.map(Value::from).unwrap_or(Value::Null), &[Value::Dict(timeframes)]);
             let mut marketId: Option<String> = self.safe_string2(message, Value::Str("s".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
             market = Some(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-            parsed = self.parse_ws_ohlcv(rawOhlcv, market.as_ref());
+            parsed = self.parse_ws_ohlcv(Value::Dict(rawOhlcv), market.as_ref());
         }
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", symbol).into()), ":").into()), timeframe.as_deref().unwrap_or("null"));
@@ -1416,7 +1416,7 @@ impl Mexc {
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             __ch.remove_subscription(messageHash.as_str());
             client.reject(e, messageHash.as_str());
             // return;
@@ -2753,7 +2753,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = self.parent.spot_private_post_user_data_stream(&[params.clone()]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("listenKeyFetching".into(), Value::Bool(false)); }
             client.reject(e.clone(), messageHash.as_str());
             panic!("{}", e);
@@ -2793,7 +2793,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut listenKeyRefreshRate: i64 = self.safe_integer_k(self.options.clone(), "listenKeyRefreshRate", &[Value::Int(1200000)]).as_i64().unwrap_or(1200000);
             self.delay(Value::from(listenKeyRefreshRate), &[Value::Str("keep_alive_listen_key".into()).clone(), listenKey.clone(), params]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[]).as_str().map(str::to_owned);
             if (wsUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " keepAliveListenKey() has no spot websocket url")));

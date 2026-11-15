@@ -1182,7 +1182,7 @@ impl Bithumb {
             }
             return Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             client.reject(e, None);
             return Value::Bool(false);
          } }

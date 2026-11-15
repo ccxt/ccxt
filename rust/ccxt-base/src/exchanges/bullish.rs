@@ -1958,8 +1958,8 @@ impl Bullish {
                     return crate::types::IntoRaw::into_raw(self.fetch_trades(symbol.as_str().unwrap_or_default(), since.as_i64(), limit.as_i64(), Value::from(&paramsOmitted)).await);
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+                if e.names("RateLimitExceeded") {
                     panic!("{}", e);
                 }
                 errors = self.parse_to_int(Value::from((if let Some(__l) = errors { Some(__l + 1) } else { None })));

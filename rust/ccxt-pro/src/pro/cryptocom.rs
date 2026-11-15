@@ -380,7 +380,7 @@ impl Cryptocom {
                 m
             })]);
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " pong failed with error ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }
@@ -2200,8 +2200,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-            if is_instance(&e, &Value::Str("AuthenticationError".into())) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+            if e.is_instance_of("AuthenticationError") {
                 let mut messageHash: String = "authenticated".to_string();
                 client.reject(e.clone(), messageHash.as_str());
                 if (__ch.has_subscription(messageHash.as_str())) {
@@ -2316,8 +2316,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             let mut method: String = "public/auth".to_string();
             let mut nonceValue: i64 = self.incrementing_nonce();
             let mut nonce: Option<String> = self.number_to_string(Value::from(nonceValue));

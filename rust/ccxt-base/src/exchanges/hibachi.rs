@@ -1300,13 +1300,13 @@ impl Hibachi {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_trade_account_info(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_get_trade_account_info(&[__ws_arg_4]).await.into_dict();
         //    {
         //        "tradeMakerFeeRate": "0.00000000",
         //        "tradeTakerFeeRate": "0.00020000"
         //    },
-        let mut makerFeeRate: Option<f64> = self.safe_number_k(response.clone(), "tradeMakerFeeRate", &[]).as_f64();
-        let mut takerFeeRate: Option<f64> = self.safe_number_k(response.clone(), "tradeTakerFeeRate", &[]).as_f64();
+        let mut makerFeeRate: Option<f64> = self.safe_number_k(&response, "tradeMakerFeeRate", &[]).as_f64();
+        let mut takerFeeRate: Option<f64> = self.safe_number_k(&response, "tradeTakerFeeRate", &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1319,7 +1319,7 @@ impl Hibachi {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(makerFeeRate));
         m.insert("taker".to_string(), Value::from(takerFeeRate));
@@ -2854,8 +2854,8 @@ impl Hibachi {
         // }
         //
         let mut rowsTradingHistory: crate::value::List = self.safe_list_k(&responseTradingHistory, "tradingHistory", &[Value::from(vec![])]).into_list();
-        let mut rows: Value = self.array_concat(&rowsCapitalHistory, &rowsTradingHistory);
-        return self.parse_ledger(rows, Some(&currency), &[since, limit, params]);
+        let mut rows: crate::value::List = self.array_concat(&rowsCapitalHistory, &rowsTradingHistory).into_list();
+        return self.parse_ledger(&rows, Some(&currency), &[since, limit, params]);
         Value::Null
         }).await?))
     }
@@ -2888,13 +2888,13 @@ impl Hibachi {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_capital_deposit_info(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.private_get_capital_deposit_info(&[__ws_arg_18]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("currency".to_string(), Value::Str("USDT".into()));
         m.insert("network".to_string(), Value::Str("ARBITRUM".into()));
-        m.insert("address".to_string(), self.safe_string_k(response, "depositAddressEvm", &[]));
+        m.insert("address".to_string(), self.safe_string_k(&response, "depositAddressEvm", &[]));
         m.insert("tag".to_string(), Value::Null);
     m
 });
@@ -3236,7 +3236,7 @@ impl Hibachi {
             m
         });
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_market_data_open_interest(&[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.public_get_market_data_open_interest(&[__ws_arg_21]).await.into_dict();
         //
         //   { "totalQuantity" : "2.3299770166" }
         //
@@ -3244,11 +3244,11 @@ impl Hibachi {
         return self.safe_open_interest(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
-        m.insert("openInterestAmount".to_string(), self.safe_string_k(response.clone(), "totalQuantity", &[]));
+        m.insert("openInterestAmount".to_string(), self.safe_string_k(&response, "totalQuantity", &[]));
         m.insert("openInterestValue".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::from(&response));
     m
 }), Some(&market));
         Value::Null

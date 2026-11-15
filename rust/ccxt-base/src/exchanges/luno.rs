@@ -1926,13 +1926,13 @@ impl Luno {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_fee_info(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_get_fee_info(&[__ws_arg_10]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), symbol);
-        m.insert("maker".to_string(), self.safe_number_k(response.clone(), "maker_fee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response, "taker_fee", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&response, "maker_fee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&response, "taker_fee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

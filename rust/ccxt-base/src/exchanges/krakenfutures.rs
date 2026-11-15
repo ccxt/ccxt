@@ -974,7 +974,7 @@ impl Krakenfutures {
             let mut cvtp: Option<String> = self.safe_string_k(&market, "contractValueTradePrecision", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Option<f64> = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
             let mut pricePrecision: Option<f64> = self.safe_number_k(&market, "tickSize", &[]).as_f64();
-            let mut contract: Value = (Value::Bool(((swap || future) || index)));
+            let mut contract: bool = ((swap || future) || index);
             let mut swapOrFutures: bool = (swap || future);
             if swapOrFutures {
                 let mut exchangeType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
@@ -1011,7 +1011,7 @@ impl Krakenfutures {
                     m.insert("option".to_string(), Value::Bool(false));
                     m.insert("index".to_string(), Value::Bool(index));
                     m.insert("active".to_string(), self.safe_bool_k(&market, "tradeable", &[]));
-                    m.insert("contract".to_string(), contract);
+                    m.insert("contract".to_string(), Value::Bool(contract));
                     m.insert("linear".to_string(), linear.map(Value::from).unwrap_or(Value::Null));
                     m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
                     m.insert("contractSize".to_string(), self.safe_number_k(&market, "contractSize", &[]));
@@ -2321,8 +2321,8 @@ impl Krakenfutures {
                 m.insert("order_id".to_string(), id);
             m
         }), &[params]);
-        let mut response: Value = self.private_post_cancelorder(&[__ws_arg_7]).await;
-        let mut status: Option<String> = self.safe_string(self.safe_dict_k(response.clone(), "cancelStatus", &[Value::Map({
+        let mut response: crate::value::Dict = self.private_post_cancelorder(&[__ws_arg_7]).await.into_dict();
+        let mut status: Option<String> = self.safe_string(self.safe_dict_k(&response, "cancelStatus", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("status".into()), &[]).as_str().map(str::to_owned);
@@ -2331,12 +2331,12 @@ impl Krakenfutures {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (matches!(&response, Value::Dict(__d) if __d.contains_key("cancelStatus"))) {
-            order = self.parse_order(response.as_map().and_then(|__m| __m.get("cancelStatus")).cloned().unwrap_or(Value::Null), None).as_map().cloned().unwrap_or_default();
+        if (response.contains_key("cancelStatus")) {
+            order = self.parse_order(crate::value::KeyRead::key_read(&&response, "cancelStatus"), None).as_map().cloned().unwrap_or_default();
         }
         return self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), &[Value::Map(order)]);
         Value::Null

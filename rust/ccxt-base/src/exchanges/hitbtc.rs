@@ -1440,7 +1440,7 @@ impl Hitbtc {
             let mut contract: Value = (Value::Bool(marketType.as_deref() == Some("futures")));
             let mut spot: bool = marketType.as_deref() == Some("spot");
             let mut marginTrading: bool = self.safe_bool_k(&market, "margin_trading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut margin: Value = Value::Bool((spot && marginTrading));
+            let mut margin: bool = (spot && marginTrading);
             let mut future: Value = (Value::Bool(expiry.is_some()));
             let mut swap: Value = Value::Bool(matches!(&contract, Value::Bool(true)) && !(matches!(&future, Value::Bool(true))));
             let mut option: bool = false;
@@ -1491,7 +1491,7 @@ impl Hitbtc {
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(spot));
-                    m.insert("margin".to_string(), margin);
+                    m.insert("margin".to_string(), Value::Bool(margin));
                     m.insert("swap".to_string(), swap);
                     m.insert("future".to_string(), future);
                     m.insert("option".to_string(), Value::Bool(option));
@@ -1741,18 +1741,18 @@ impl Hitbtc {
             paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
         }
         let __ws_arg_0 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_post_wallet_crypto_address(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.private_post_wallet_crypto_address(&[__ws_arg_0]).await.into_dict();
         //
         //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
         //
-        let mut currencyId: Option<String> = self.safe_string_k(response.clone(), "currency", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k(&response, "currency", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
-        m.insert("address".to_string(), self.safe_string_k(response.clone(), "address", &[]));
-        m.insert("tag".to_string(), self.safe_string_k(response.clone(), "payment_id", &[]));
+        m.insert("address".to_string(), self.safe_string_k(&response, "address", &[]));
+        m.insert("tag".to_string(), self.safe_string_k(&response, "payment_id", &[]));
         m.insert("network".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::from(&response));
     m
 });
         Value::Null
@@ -1802,18 +1802,18 @@ impl Hitbtc {
             paramsOmitted = self.omit(params, Value::Str("network".into()), &[]);
         }
         let __ws_arg_1 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut response: Value = self.private_get_wallet_crypto_address(&[__ws_arg_1]).await;
+        let mut response: crate::value::List = self.private_get_wallet_crypto_address(&[__ws_arg_1]).await.into_list();
         //
         //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
         //
-        let mut firstAddress: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[]).into_dict();
+        let mut firstAddress: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&firstAddress, "address", &[]).as_str().map(str::to_owned);
         let mut currencyId: Option<String> = self.safe_string_k(&firstAddress, "currency", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&firstAddress, "payment_id", &[]).as_str().map(str::to_owned);
         let mut parsedCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
         m.insert("currency".to_string(), parsedCode.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -2893,8 +2893,8 @@ impl Hitbtc {
         //         },
         //     ]
         //
-        let mut ohlcvs: Value = self.to_array(response);
-        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, limit]);
+        let mut ohlcvs: crate::value::List = self.to_array(response).into_list();
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, limit]);
         Value::Null
         }).await?))
     }

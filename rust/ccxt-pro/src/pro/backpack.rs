@@ -501,7 +501,7 @@ impl Backpack {
                     panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() stock quote channels require a stock market")));
                 }
                 let mut baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut ticker: Value = Value::from(baseId.replace(".US", ""));
+                let mut ticker: String = baseId.replace(".US", "");
                 topic = format!("{}{}", Value::Str(format!("{}{}", channel.as_deref().unwrap_or("null"), ".").into()), ticker);
             }  else if bidAsk.as_bool() == Some(true) {
                 if (source.as_deref() == Some("External")) || (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) || isRfq {
@@ -509,7 +509,7 @@ impl Backpack {
                         panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() RFQ quote streams require a stock market")));
                     }
                     let mut baseId: String = self.safe_string_k(&market, "baseId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                    let mut ticker: Value = Value::from(baseId.replace(".US", ""));
+                    let mut ticker: String = baseId.replace(".US", "");
                     let mut quoteChannel: String = (if (source.as_deref() == Some("External")) { "stockPrice".to_string() } else { "stockIndicativeQuote".to_string() });
                     topic = format!("{}{}", Value::Str(format!("{}{}", quoteChannel, ".").into()), ticker);
                 }  else {
@@ -2693,7 +2693,7 @@ impl Backpack {
             }
             return Value::Bool(true);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             client.reject(e, None);
          } }
         return Value::Bool(true);

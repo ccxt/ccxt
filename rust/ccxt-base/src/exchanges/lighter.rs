@@ -1927,7 +1927,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.root_get(&[params]).await;
+        let mut response: crate::value::Dict = self.root_get(&[params]).await.into_dict();
         //
         //     {
         //         "status": "1",
@@ -1935,14 +1935,14 @@ if _try_result.is_err() {
         //         "timestamp": "1717777777"
         //     }
         //
-        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k(&response, "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (status.as_deref() == Some("200")) { Value::Str("ok".into()) } else { Value::Str("error".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -2570,8 +2570,8 @@ if _try_result.is_err() {
         let mut response: crate::value::Dict = self.public_get_order_book_details(&[params]).await.into_dict();
         let mut spotTickers: crate::value::List = self.safe_list_k(&response, "spot_order_book_details", &[Value::from(vec![])]).into_list();
         let mut swapTickers: crate::value::List = self.safe_list_k(&response, "order_book_details", &[Value::from(vec![])]).into_list();
-        let mut tickers: Value = self.array_concat(&spotTickers, &swapTickers);
-        return self.parse_tickers(tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut tickers: crate::value::List = self.array_concat(&spotTickers, &swapTickers).into_list();
+        return self.parse_tickers(&tickers, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }
@@ -2814,7 +2814,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsAccountIndex]);
-        let mut response: Value = self.public_get_account(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.public_get_account(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "code": "200",
@@ -2861,10 +2861,10 @@ if _try_result.is_err() {
         //
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
+                m.insert("info".to_string(), Value::from(&response));
             m
         });
-        let mut accounts: crate::value::List = self.safe_list_k(response, "accounts", &[Value::from(vec![])]).into_list();
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "accounts", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_934: bool = true;

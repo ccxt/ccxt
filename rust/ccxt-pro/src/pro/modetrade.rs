@@ -1117,8 +1117,8 @@ impl Modetrade {
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             let mut ts: Value = Value::Str(format!("{}", self.nonce()).into());
             let mut auth: Value = ts.clone();
             let mut secret: Value = self.secret.clone();
@@ -1976,8 +1976,8 @@ impl Modetrade {
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            if is_instance(&error, &Value::Str("AuthenticationError".into())) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+            if error.is_instance_of("AuthenticationError") {
                 let mut messageHash: String = "authenticated".to_string();
                 client.reject(error.clone(), messageHash.as_str());
                 if (__ch.has_subscription(messageHash.as_str())) {

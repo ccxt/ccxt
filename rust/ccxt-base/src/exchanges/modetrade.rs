@@ -1335,7 +1335,7 @@ impl Modetrade {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v1_public_get_public_system_info(&[params]).await;
+        let mut response: crate::value::Dict = self.v1_public_get_public_system_info(&[params]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -1346,10 +1346,10 @@ impl Modetrade {
         //         "timestamp": "1709274106602"
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut status: Option<String> = self.safe_string_k(&data, "status", &[]).as_str().map(str::to_owned);
         if (status.is_none()) {
             status = Some("error".to_string());
@@ -1364,7 +1364,7 @@ impl Modetrade {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -2618,7 +2618,7 @@ impl Modetrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v1_private_get_client_info(&[params]).await;
+        let mut response: crate::value::Dict = self.v1_private_get_client_info(&[params]).await.into_dict();
         //
         // {
         //     "success": true,
@@ -2646,10 +2646,10 @@ impl Modetrade {
         //     }
         // }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut maker: Option<String> = self.safe_string_k(&data, "futures_maker_fee_rate", &[]).as_str().map(str::to_owned);
         let mut taker: Option<String> = self.safe_string_k(&data, "futures_taker_fee_rate", &[]).as_str().map(str::to_owned);
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -2665,7 +2665,7 @@ impl Modetrade {
                 let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&maker, &Value::Str("10000".into())), &[]));
         m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&taker, &Value::Str("10000".into())), &[]));

@@ -1448,8 +1448,8 @@ impl Revolutx {
         //     "stop_loss": { "trigger_price": "115000.00", "type": "market", "trigger_direction": "le", ... }
         //
         let mut conditional: crate::value::Dict = self.safe_dict_k(order.clone(), "conditional", &[]).into_dict();
-        let mut takeProfit: Value = self.safe_dict_k(order.clone(), "take_profit", &[]);
-        let mut stopLoss: Value = self.safe_dict_k(order.clone(), "stop_loss", &[]);
+        let mut takeProfit: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "take_profit", &[]).into_opt_dict();
+        let mut stopLoss: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "stop_loss", &[]).into_opt_dict();
         let mut triggerPrice: Option<String> = None;
         if (orderType.as_deref() == Some("conditional")) {
             triggerPrice = self.safe_string_k(&conditional, "trigger_price", &[]).as_str().map(str::to_owned);
@@ -1459,17 +1459,17 @@ impl Revolutx {
             }
         }  else if (orderType.as_deref() == Some("tpsl")) {
             // a single leg tells us the order type and limit price, with both legs they can differ
-            let mut leg: Value = Value::Null;
-            if (takeProfit != Value::Null) && (stopLoss == Value::Null) {
+            let mut leg: Option<crate::value::Dict> = None;
+            if (takeProfit.is_some()) && (stopLoss.is_none()) {
                 leg = takeProfit.clone();
-            }  else if (stopLoss != Value::Null) && (takeProfit == Value::Null) {
+            }  else if (stopLoss.is_some()) && (takeProfit.is_none()) {
                 leg = stopLoss.clone();
             }
             orderType = None;
-            if (leg != Value::Null) {
-                orderType = self.safe_string_lower_k(leg.clone(), "type", &[]).as_str().map(str::to_owned);
+            if (leg.is_some()) {
+                orderType = self.safe_string_lower_k(&leg, "type", &[]).as_str().map(str::to_owned);
                 if (price.is_none()) {
-                    price = self.safe_string_k(leg, "limit_price", &[]).as_str().map(str::to_owned);
+                    price = self.safe_string_k(&leg, "limit_price", &[]).as_str().map(str::to_owned);
                 }
             }
         }
@@ -1521,8 +1521,8 @@ impl Revolutx {
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), self.parse_number(triggerPrice.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(stopLoss, "trigger_price", &[]), &[]));
-        m.insert("takeProfitPrice".to_string(), self.parse_number(self.safe_string_k(takeProfit, "trigger_price", &[]), &[]));
+        m.insert("stopLossPrice".to_string(), self.parse_number(self.safe_string_k(&stopLoss, "trigger_price", &[]), &[]));
+        m.insert("takeProfitPrice".to_string(), self.parse_number(self.safe_string_k(&takeProfit, "trigger_price", &[]), &[]));
         m.insert("timestamp".to_string(), Value::from(createdDate));
         m.insert("datetime".to_string(), self.iso8601(createdDate));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(updatedDate));

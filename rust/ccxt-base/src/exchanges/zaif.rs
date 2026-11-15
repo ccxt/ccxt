@@ -992,14 +992,14 @@ impl Zaif {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trade(&[__ws_arg_3]).await;
-        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).as_map().cloned().unwrap_or_default();
+        let mut response: crate::value::Dict = self.private_post_trade(&[__ws_arg_3]).await.into_dict();
+        let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).as_map().cloned().unwrap_or_default();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), Value::from(self.number_to_string(data.get("order_id").cloned().unwrap_or(Value::Null))));
     m
 }), Some(&market));

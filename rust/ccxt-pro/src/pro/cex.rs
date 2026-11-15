@@ -595,6 +595,7 @@ impl Cex {
     pub fn handle_trades_inner(&mut self, mut client: Value, mut message: Value) {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
+        // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut symbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
         if (symbol.is_none()) {
@@ -612,8 +613,7 @@ impl Cex {
             let mut __for_first_217: bool = true;
             while { if !__for_first_217 { i += 1; } __for_first_217 = false; i < dataLength } {
             let mut index: Value = Value::Int((((dataLength - 1)) - i));
-            let mut rawTrade: crate::value::Dict = crate::value::KeyRead::read(&&data, &index).into_dict();
-            let mut parsed: crate::value::Dict = self.parse_ws_old_trade(Value::Dict(rawTrade), Some(&market)).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_ws_old_trade(crate::value::KeyRead::read(&&data, &index), Some(&market)).into_dict();
             stored.append(Value::Dict(parsed));
         }
         }
@@ -2222,7 +2222,7 @@ impl Cex {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut messageHash: Option<String> = (match message.get("oid") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut future: Value = self.safe_value(__ch.futures.clone(), messageHash.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (future != Value::Null) {
@@ -2303,8 +2303,8 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(Value::Str("authenticated".into()));
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             self.check_required_credentials(&[]);
             let mut nonce: String = format!("{}", self.seconds());
             let mut auth: String = format!("{}{}", nonce, self.apiKey.clone());

@@ -1541,7 +1541,7 @@ impl Predictfun {
         if (tradingStatus.is_none()) {
             active = ((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
-        let mut resolved: Value = Value::Bool((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
+        let mut resolved: bool = ((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         let mut endDate: Option<String> = (match rawTopic.get("endsAt") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut feeRateBps: String = self.safe_string_k(rawMarket.clone(), "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string(); // todo check
         let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())), &[]).as_f64();
@@ -1631,7 +1631,7 @@ impl Predictfun {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), resolved);
+        m.insert("resolved".to_string(), Value::Bool(resolved));
         m.insert("resolvedOutcome".to_string(), resolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -2776,7 +2776,7 @@ impl Predictfun {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.predictfun_post_v1_orders(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.predictfun_post_v1_orders(&[__ws_arg_9]).await.into_dict();
         //
         //     {
         //         "data": {
@@ -2788,15 +2788,15 @@ impl Predictfun {
         //         "success ": true
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&result, Value::Str("orderHash".into()), Value::Str("hash".into()), &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);
@@ -3012,8 +3012,8 @@ impl Predictfun {
         // tracked apart: the position is resolved, but which side won is not yet known
         let mut outcomeStatus: Option<String> = self.safe_string_k(&rawOutcome, "status", &[]).as_str().map(str::to_owned);
         let mut marketStatus: Option<String> = self.safe_string_k(&rawMarket, "status", &[]).as_str().map(str::to_owned);
-        let mut settled: bool = (outcomeStatus.as_deref() == Some("WON")) || (outcomeStatus.as_deref() == Some("LOST"));
-        let mut resolved: bool = settled || (marketStatus.as_deref() == Some("RESOLVED")) || (marketStatus.as_deref() == Some("SETTLED"));
+        let mut settled: bool = ((outcomeStatus.as_deref() == Some("WON")) || (outcomeStatus.as_deref() == Some("LOST")));
+        let mut resolved: bool = ((settled || (marketStatus.as_deref() == Some("RESOLVED"))) || (marketStatus.as_deref() == Some("SETTLED")));
         let mut won: Option<bool> = None;
         let mut settleFraction: Option<String> = None;
         let mut payout: Option<String> = None;
@@ -5025,7 +5025,7 @@ impl Predictfun {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map(reply)]);
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut error = Value::from(crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " pong failed - ").into()), self.exception_message(e, &[]))));
             client.reset(error);
         }

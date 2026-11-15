@@ -1605,7 +1605,7 @@ impl Cryptomus {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.private_get_v2_user_api_exchange_account_tariffs(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_v2_user_api_exchange_account_tariffs(&[params]).await.into_dict();
         //
         //     {
         //         result: {
@@ -1654,10 +1654,10 @@ impl Cryptomus {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut currentFeeTier: crate::value::Dict = self.safe_dict_k(&data, "current_tariff_step", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1683,7 +1683,7 @@ impl Cryptomus {
             let mut symbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.parse_number(makerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("taker".to_string(), self.parse_number(takerFee.clone().map(Value::from).unwrap_or(Value::Null), &[]));

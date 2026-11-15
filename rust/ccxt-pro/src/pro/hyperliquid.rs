@@ -1889,9 +1889,9 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[paramsValue]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut unifiedResult: Value = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await;
-        let mut isUnifiedEnabled: bool = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsValue2: crate::value::Dict = self.safe_dict(unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
+        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
+        let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
         let mut dex: Option<String> = self.safe_string_k(&paramsValue2, "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
@@ -1953,9 +1953,9 @@ impl Hyperliquid {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[paramsValue]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut unifiedResult: Value = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await;
-        let mut isUnifiedEnabled: bool = self.safe_bool(unifiedResult.clone(), Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut paramsValue2: crate::value::Dict = self.safe_dict(unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
+        let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
+        let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
         let mut dex: Option<String> = self.safe_string_k(&paramsValue2, "dex", &[]).as_str().map(str::to_owned);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
@@ -2580,7 +2580,7 @@ impl Hyperliquid {
         let mut type_var: Option<String> = self.safe_string_k(&payload, "type", &[]).as_str().map(str::to_owned);
         if (type_var.as_deref() == Some("error")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
-            client.reject(error, id.as_deref());
+            client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
@@ -2592,7 +2592,7 @@ impl Hyperliquid {
                 m
             }), Value::Str("".into()));
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());
             return Value::Bool(true);
         }
@@ -2624,8 +2624,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                     crate::exchange_stubs::ws_await_flight(&client.future(unsubHash.as_str())).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                    if !(matches!(&e, Value::Str(__s) if __s.contains("[RequestTimeout]"))) {
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+                    if !(e.names("RequestTimeout")) {
                         panic!("{}", e);
                     }
                 }

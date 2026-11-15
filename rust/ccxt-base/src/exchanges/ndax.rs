@@ -1052,20 +1052,20 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_ping(&[params]).await.into_dict();
         //
         //     {
         //         "msg":"PONG"
         //     }
         //
-        let mut message: Option<String> = self.safe_string_k(response.clone(), "msg", &[]).as_str().map(str::to_owned);
+        let mut message: Option<String> = self.safe_string_k(&response, "msg", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (message.as_deref() == Some("PONG")) { Value::Str("ok".into()) } else { Value::Str("error".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -1095,7 +1095,7 @@ impl Ndax {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-        let mut response: Value = self.public_get_authenticate(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.public_get_authenticate(&[__ws_arg_0]).await.into_dict();
         //
         //     {
         //         "Authenticated":true,
@@ -1105,12 +1105,12 @@ impl Ndax {
         //         "Pending2FaToken": "6f5c4e66-f3ee-493e-9227-31cc0583b55f"
         //     }
         //
-        let mut sessionToken: Option<String> = self.safe_string_k_opt(response.clone(), "SessionToken", &[]);
+        let mut sessionToken: Option<String> = self.safe_string_k_opt(&response, "SessionToken", &[]);
         if (sessionToken.is_some()) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
-            return response;
+            return Value::from(&response);
         }
-        let mut pending2faToken: Option<String> = self.safe_string_k(response.clone(), "Pending2FaToken", &[]).as_str().map(str::to_owned);
+        let mut pending2faToken: Option<String> = self.safe_string_k(&response, "Pending2FaToken", &[]).as_str().map(str::to_owned);
         if (pending2faToken.is_some()) {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " signIn() requires exchange.twofa credentials")));
@@ -1122,7 +1122,7 @@ impl Ndax {
                 m
             });
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            let mut responseInner: Value = self.public_get_authenticate2_fa(&[__ws_arg_1]).await;
+            let mut responseInner: crate::value::Dict = self.public_get_authenticate2_fa(&[__ws_arg_1]).await.into_dict();
             //
             //     {
             //         "Authenticated": true,
@@ -1130,11 +1130,11 @@ impl Ndax {
             //         "SessionToken":"4a2a5857-c4e5-4fac-b09e-2c4c30b591a0"
             //     }
             //
-            sessionToken = self.safe_string_k_opt(responseInner.clone(), "SessionToken", &[]);
+            sessionToken = self.safe_string_k_opt(&responseInner, "SessionToken", &[]);
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.map(Value::from).unwrap_or(Value::Null)); }
-            return responseInner;
+            return Value::Dict(responseInner);
         }
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }

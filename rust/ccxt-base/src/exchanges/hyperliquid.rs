@@ -2982,8 +2982,8 @@ if _try_result.is_err() {
                     response = rawResponse;
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-                if matches!(&e, Value::Str(__s) if __s.contains("[InvalidProxySettings]")) {
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+                if e.names("InvalidProxySettings") {
                     panic!("{}", e);
                 }
                 response = Value::Null; // ignore this error and assume unified margin is not enabled

@@ -1803,11 +1803,11 @@ impl Opinion {
             m
         });
         let __ws_arg_19 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await;
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.opinion_private_post_order_cancel(&[__ws_arg_19]).await.into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut canceled: bool = self.safe_bool_k(&result, "result", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
@@ -1817,7 +1817,7 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), &[]);
         Value::Null

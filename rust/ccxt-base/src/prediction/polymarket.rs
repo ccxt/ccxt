@@ -2513,15 +2513,15 @@ impl Polymarket {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_public_get_fee_rate(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.clob_public_get_fee_rate(&[__ws_arg_5]).await.into_dict();
         //
         //     { "base_fee": 30 }   // base fee in basis points
         //
-        let mut baseFeeBps: Option<String> = self.safe_string_k(response.clone(), "base_fee", &[]).as_str().map(str::to_owned);
+        let mut baseFeeBps: Option<String> = self.safe_string_k(&response, "base_fee", &[]).as_str().map(str::to_owned);
         let mut rate: Option<f64> = (if (baseFeeBps.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&baseFeeBps, &Value::Str("10000".into())), &[]).as_f64() } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj.clone(), "outcomeId", &[]));
         m.insert("market".to_string(), self.safe_string_k(outcomeObj, "market", &[]));
@@ -3829,13 +3829,13 @@ impl Polymarket {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.clob_private_delete_order(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.clob_private_delete_order(&[__ws_arg_14]).await.into_dict();
         // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
         // fields, so report the cancellation outcome explicitly rather than parsing an empty order
-        let mut notCanceled: crate::value::Dict = self.safe_dict_k(response.clone(), "not_canceled", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut notCanceled: crate::value::Dict = self.safe_dict_k(&response, "not_canceled", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut failureReason: Option<String> = self.safe_string(&notCanceled, id.clone(), &[]).as_str().map(str::to_owned);
         let mut status: String = "open".to_string();
         if (failureReason.is_none()) {
@@ -3845,7 +3845,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::from(status));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), &[]);
         Value::Null
@@ -3876,8 +3876,8 @@ impl Polymarket {
 }));
         self.load_api_credentials().await;
         // the request body is the bare array of order ids (DELETE /orders), so params are not merged
-        let mut response: Value = self.clob_private_delete_orders(&[ids]).await;
-        let mut canceled: crate::value::List = self.safe_list_k(response.clone(), "canceled", &[Value::from(vec![])]).into_list();
+        let mut response: crate::value::Dict = self.clob_private_delete_orders(&[ids]).await.into_dict();
+        let mut canceled: crate::value::List = self.safe_list_k(&response, "canceled", &[Value::from(vec![])]).into_list();
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -3887,7 +3887,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(&canceled, Value::Int(i), &[]));
         m.insert("status".to_string(), Value::Str("canceled".into()));
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
     m
 }), &[]));
         }

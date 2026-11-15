@@ -4411,8 +4411,8 @@ impl Mexc {
                 //
                 ordersOfTrigger = self.safe_value_k(&response, "data", &[]);
             }
-            let mut merged: Value = self.array_concat(ordersOfTrigger, ordersOfRegular);
-            return self.parse_orders(merged, market.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
+            let mut merged: crate::value::List = self.array_concat(ordersOfTrigger, ordersOfRegular).into_list();
+            return self.parse_orders(&merged, market.as_ref(), &[since, limit, Value::Dict(paramsOmitted)]);
         }
         Value::Null
         }).await?))
@@ -7657,7 +7657,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.contract_private_get_position_position_mode(&[params]).await;
+        let mut response: crate::value::Dict = self.contract_private_get_position_position_mode(&[params]).await.into_dict();
         //
         //     {
         //         "success":true,
@@ -7665,10 +7665,10 @@ impl Mexc {
         //         "data":2
         //     }
         //
-        let mut positionMode: Option<i64> = self.safe_integer_k(response.clone(), "data", &[]).as_i64();
+        let mut positionMode: Option<i64> = self.safe_integer_k(&response, "data", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("hedged".to_string(), (Value::Bool(positionMode == Some(1))));
     m
 });
@@ -8182,17 +8182,17 @@ impl Mexc {
         let mut url: String = "".to_string();
         if (section.as_deref() == Some("spot")) || (section.as_deref() == Some("broker")) {
             if (section.as_deref() == Some("broker")) {
-                let mut apiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]);
+                let mut apiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]).as_str().map(str::to_owned);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
                 }
-                url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), "/").into()), pathValue);
+                url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), pathValue);
             }  else {
-                let mut apiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]);
+                let mut apiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]).as_str().map(str::to_owned);
                 if (apiUrl.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
                 }
-                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), "/api/").into()), self.version.clone()).into()), "/").into()), pathValue);
+                url = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/api/").into()), self.version.clone()).into()), "/").into()), pathValue);
             }
             let mut urlParams: Value = self.extend(paramsValue.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -8238,11 +8238,11 @@ impl Mexc {
                 if let Some(__d) = &mut requestHeaders { std::sync::Arc::make_mut(__d).insert("Content-Type".to_string(), Value::Str("application/json".into())); }
             }
         }  else if (section.as_deref() == Some("contract")) || (section.as_deref() == Some("spot2")) {
-            let mut apiUrl: Option<String> = self.safe_string_opt((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]);
+            let mut apiUrl: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), section.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::from(access.as_deref()), &[]).as_str().map(str::to_owned);
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.map(Value::from).unwrap_or(Value::Null), "/").into()), self.implode_params(pathValue.clone(), paramsValue.clone()));
+            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(pathValue.clone(), paramsValue.clone()));
             let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(pathValue), &[]);
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {

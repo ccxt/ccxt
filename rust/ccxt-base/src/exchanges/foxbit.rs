@@ -1303,7 +1303,7 @@ impl Foxbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v3_private_get_accounts(&[params]).await;
+        let mut response: crate::value::Dict = self.v3_private_get_accounts(&[params]).await.into_dict();
         // {
         //     "data": [
         //         {
@@ -1314,10 +1314,10 @@ impl Foxbit {
         //         }
         //     ]
         // }
-        let mut accounts: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut accounts: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Dict(response));
             m
         });
         {
@@ -2183,7 +2183,7 @@ impl Foxbit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.status_public_get_status(&[params]).await;
+        let mut response: crate::value::Dict = self.status_public_get_status(&[params]).await.into_dict();
         // {
         //     "data": {
         //       "id": 1,
@@ -2198,10 +2198,10 @@ impl Foxbit {
         //     "meta": {
         //     }
         // }
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut attributes: crate::value::Dict = self.safe_dict_k(&data, "attributes", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2219,7 +2219,7 @@ impl Foxbit {
         m.insert("updated".to_string(), Value::from(self.parse8601(self.safe_string_k(&attributes, "updatedAt", &[]))));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

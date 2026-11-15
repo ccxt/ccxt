@@ -898,25 +898,25 @@ impl Onetrading {
         }
         let mut state: Option<String> = self.safe_string_k(market.clone(), "state", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut isPerp: Value = Value::Bool(type_var.as_deref() == Some("PERP"));
-        let mut isFuture: Value = Value::Bool((type_var.as_deref() == Some("DATED_FUTURE")) || (type_var.as_deref() == Some("EQUITY_FUTURE")));
-        let mut isContract: Value = Value::Bool(matches!(&isPerp, Value::Bool(true)) || matches!(&isFuture, Value::Bool(true)));
+        let mut isPerp: bool = type_var.as_deref() == Some("PERP");
+        let mut isFuture: bool = ((type_var.as_deref() == Some("DATED_FUTURE")) || (type_var.as_deref() == Some("EQUITY_FUTURE")));
+        let mut isContract: bool = (isPerp || isFuture);
         let mut expiry: Option<i64> = None;
         let mut expiryDate: Option<String> = self.safe_string_k(market.clone(), "contract_expiry_date", &[]).as_str().map(str::to_owned);
         if (expiryDate.is_some()) {
             expiry = self.parse8601(Value::Str(format!("{}{}", expiryDate.as_deref().unwrap_or("null"), "T00:00:00Z").into()));
         }
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        if matches!(&isContract, Value::Bool(true)) {
+        if isContract {
             symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, ":").into()), quote.as_deref().unwrap_or("null"));
-            if matches!(&isFuture, Value::Bool(true)) && (expiry.is_some()) {
+            if isFuture && (expiry.is_some()) {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[]));
             }
         }
         let mut marketType: String = "spot".to_string();
-        if matches!(&isPerp, Value::Bool(true)) {
+        if isPerp {
             marketType = "swap".to_string();
-        }  else if matches!(&isFuture, Value::Bool(true)) {
+        }  else if isFuture {
             marketType = "future".to_string();
         }
         return self.safe_market_structure(&[Value::Map({
@@ -925,21 +925,21 @@ impl Onetrading {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), (if matches!(&isContract, Value::Bool(true)) { quote.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("settle".to_string(), (if isContract { quote.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("settleId".to_string(), (if matches!(&isContract, Value::Bool(true)) { quoteId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
+        m.insert("settleId".to_string(), (if isContract { quoteId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }));
         m.insert("type".to_string(), Value::from(marketType));
-        m.insert("spot".to_string(), Value::Bool(!(matches!(&isContract, Value::Bool(true)))));
+        m.insert("spot".to_string(), Value::Bool(!isContract));
         m.insert("margin".to_string(), Value::Bool(false));
-        m.insert("swap".to_string(), isPerp);
-        m.insert("future".to_string(), isFuture);
+        m.insert("swap".to_string(), Value::Bool(isPerp));
+        m.insert("future".to_string(), Value::Bool(isFuture));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool((state.as_deref() == Some("ACTIVE")) || (state.as_deref() == Some("POST_ONLY"))));
-        m.insert("contract".to_string(), isContract.clone());
-        m.insert("linear".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Bool(true) } else { Value::Null }));
-        m.insert("inverse".to_string(), (if matches!(&isContract, Value::Bool(true)) { Value::Bool(false) } else { Value::Null }));
-        m.insert("contractSize".to_string(), (if matches!(&isContract, Value::Bool(true)) { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
+        m.insert("contract".to_string(), Value::Bool(isContract));
+        m.insert("linear".to_string(), (if isContract { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if isContract { Value::Bool(false) } else { Value::Null }));
+        m.insert("contractSize".to_string(), (if isContract { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
         m.insert("expiry".to_string(), Value::from(expiry));
         m.insert("expiryDatetime".to_string(), self.iso8601(expiry));
         m.insert("strike".to_string(), Value::Null);
@@ -1135,7 +1135,7 @@ impl Onetrading {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_account_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_account_fees(&[params]).await.into_dict();
         //
         // {
         //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
@@ -1167,7 +1167,7 @@ impl Onetrading {
         //    ]
         // }
         //
-        let mut activeFeeTier: crate::value::List = self.safe_list_k(response.clone(), "active_fee_tiers", &[]).into_list();
+        let mut activeFeeTier: crate::value::List = self.safe_list_k(&response, "active_fee_tiers", &[]).into_list();
         let mut spotFees: crate::value::Dict = self.safe_dict(&activeFeeTier, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -1201,7 +1201,7 @@ impl Onetrading {
             let mut takerFee: Option<String> = (if (market).spot { spotTakerFee.clone() } else { futuresTakerFee.clone() });
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), self.parse_number(makerFee.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("taker".to_string(), self.parse_number(takerFee.map(Value::from).unwrap_or(Value::Null), &[]));

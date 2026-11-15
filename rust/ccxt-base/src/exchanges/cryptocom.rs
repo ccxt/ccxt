@@ -1416,7 +1416,7 @@ impl Cryptocom {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             response = self.v1_private_post_private_get_currency_networks(&[Value::Dict(paramsSkipFetchCurrencies)]).await;
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut erString: Option<String> = self.exception_message(e.clone(), &[]).as_str().map(str::to_owned);
             if erString.as_deref().unwrap_or_default().contains("SYS_ERROR") {
                 return Value::Map({
@@ -5038,9 +5038,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         let mut i: i64 = 0;
             let mut __for_first_600: bool = true;
             while { if !__for_first_600 { i += 1; } __for_first_600 = false; i < (paramsKeys.len() as i64) } {
-            let mut key: Value = self.safe_string(paramsKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
+            let mut key: String = self.safe_string(paramsKeys.clone(), Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             returnString = Value::Str(format!("{}{}", returnString, key).into());
-            let mut value: Value = get_value(&object, &key);
+            let mut value: Value = get_value(&object, key.as_str());
             if (value.as_str() == Some("undefined")) {
                 returnString = Value::Str(format!("{}{}", returnString, "null").into());
             }  else if (matches!(&value, Value::Arr(_))) {

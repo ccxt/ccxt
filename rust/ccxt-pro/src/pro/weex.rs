@@ -183,7 +183,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
     {
         Box::pin(async move {
             match method {
-                "get_market_from_client_and_message" => self.get_market_from_client_and_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "get_market_from_client_and_message" => crate::types::IntoRaw::into_raw(self.get_market_from_client_and_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_subscription_status" => self.handle_subscription_status(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -239,7 +239,7 @@ impl Weex {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { self.authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-            "get_market_from_client_and_message" => self.get_market_from_client_and_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+            "get_market_from_client_and_message" => crate::types::IntoRaw::into_raw(self.get_market_from_client_and_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null))),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_bid_ask" => { self.handle_bid_ask(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -763,8 +763,8 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut market: Value = self.get_market_from_client_and_message(client.clone(), message);
-        if (market == Value::Null) {
+        let mut market: crate::types::Market = self.get_market_from_client_and_message(client.clone(), message);
+        if (false) {
             return;
         }
         let mut tickers: crate::value::List = __pro_message.get("d").cloned().unwrap_or_default().into_list();
@@ -772,8 +772,8 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).as_map().cloned().unwrap_or_default();
-        let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ws_ticker(&data, Some(&market)).as_map().cloned().unwrap_or_default();
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker::", symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), Value::Map(ticker)); }
         client.resolve((if let (Some(__m), Some(__k)) = (self.tickers.as_map(), Some(symbol.as_str())) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), messageHash.as_str());
@@ -1032,11 +1032,11 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut market: Value = self.get_market_from_client_and_message(client.clone(), message);
-        if (market == Value::Null) {
+        let mut market: crate::types::Market = self.get_market_from_client_and_message(client.clone(), message);
+        if (false) {
             return;
         }
-        let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trade::", symbol);
         if !(self.trades.has(&symbol)) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
@@ -1053,7 +1053,7 @@ impl Weex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
             newTrades.push(Value::Dict(trade));
         }
         }
@@ -1361,11 +1361,11 @@ impl Weex {
         //         ]
         //     }
         //
-        let mut market: Value = self.get_market_from_client_and_message(client.clone(), message);
-        if (market == Value::Null) {
+        let mut market: crate::types::Market = self.get_market_from_client_and_message(client.clone(), message);
+        if (false) {
             return;
         }
-        let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
         }
@@ -1614,11 +1614,11 @@ impl Weex {
         //         "a": [ [ "2227.21", "44.092" ], [ "2227.26", "0" ] ]
         //     }
         //
-        let mut market: Value = self.get_market_from_client_and_message(client.clone(), message.clone());
-        if (market == Value::Null) {
+        let mut market: crate::types::Market = self.get_market_from_client_and_message(client.clone(), message.clone());
+        if (false) {
             return;
         }
-        let mut symbol: String = self.safe_string_k(market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "orderbook::", symbol);
         if !(self.orderbooks.has(&symbol)) {
             let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
@@ -1796,11 +1796,11 @@ impl Weex {
         //         "A": "6.30889"
         //     }
         //
-        let mut market: Value = self.get_market_from_client_and_message(client.clone(), message.clone());
-        if (market == Value::Null) {
+        let mut market: crate::types::Market = self.get_market_from_client_and_message(client.clone(), message.clone());
+        if (false) {
             return;
         }
-        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref()).into_dict();
+        let mut ticker: crate::value::Dict = self.parse_ws_bid_ask(message, Some(&market)).into_dict();
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         if (symbol.is_some()) {
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
@@ -2866,7 +2866,7 @@ impl Weex {
     Value::Null
 }
 
-    pub fn get_market_from_client_and_message(&self, mut client: Value, mut message: Value) -> Value {
+    pub fn get_market_from_client_and_message(&self, mut client: Value, mut message: Value) -> crate::types::Market {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut url: Value = client.url();
@@ -2875,10 +2875,8 @@ impl Weex {
             marketType = "swap".to_string();
         }
         let mut marketId: Option<String> = (match message.get("s") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]));
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
         return market;
-
-    Value::Null
 }
 
     pub async fn pong(&mut self, mut client: Value, mut message: Value) -> Value {
@@ -2955,7 +2953,7 @@ impl Weex {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), Value::from(msg), Value::from(feedback.clone()));
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
              #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 client.reject(error, None);
                 return Value::Bool(true);
             }

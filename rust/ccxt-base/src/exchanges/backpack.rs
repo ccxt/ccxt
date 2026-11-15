@@ -2659,8 +2659,8 @@ impl Backpack {
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
-        let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
+        let mut ohlcvs: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_ohlc_vs(&ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -2957,8 +2957,8 @@ impl Backpack {
             let __ws_arg_11 = self.extend(Value::Map(request), &[&query]);
             response = self.public_get_api_v1_trades(&[__ws_arg_11]).await.into_opt_list();
         }
-        let mut responseList: Value = self.to_array(&response);
-        return self.parse_trades(responseList, Some(&market), &[since, limit]);
+        let mut responseList: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3083,8 +3083,8 @@ impl Backpack {
         }
         let __ws_arg_14 = self.extend(paramsOmitted, &[Value::Map(request)]);
         let mut response: crate::value::List = self.private_get_wapi_v1_history_fills(&[__ws_arg_14]).await.into_list();
-        let mut responseList: Value = self.to_array(&response);
-        return self.parse_trades(responseList, market.as_ref(), &[since, limit]);
+        let mut responseList: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_trades(&responseList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3195,14 +3195,14 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_v1_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_api_v1_status(&[params]).await.into_dict();
         //
         //     {
         //         "message":null,
         //         "status":"Ok"
         //     }
         //
-        let mut status: Option<String> = self.safe_string_k(response.clone(), "status", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k(&response, "status", &[]).as_str().map(str::to_owned);
         if (status.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchStatus() missing status")));
         }
@@ -3212,7 +3212,7 @@ impl Backpack {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

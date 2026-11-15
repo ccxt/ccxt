@@ -4432,11 +4432,11 @@ impl Kucoin {
             }
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[&paramsNetworkCode]);
-        let mut response: Value = self.private_get_withdrawals_quotas(&[__ws_arg_4]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.private_get_withdrawals_quotas(&[__ws_arg_4]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4444,7 +4444,7 @@ impl Kucoin {
         withdrawFees.insert(crate::runtime::stringify_param(&code), self.safe_number_k(&data, "withdrawMinFee", &[]));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("withdraw".to_string(), Value::Map(withdrawFees));
         m.insert("deposit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5894,7 +5894,7 @@ impl Kucoin {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.futures_private_get_deposit_address(&[__ws_arg_18]).await;
+        let mut response: crate::value::Dict = self.futures_private_get_deposit_address(&[__ws_arg_18]).await.into_dict();
         //
         //    {
         //        "code": "200000",
@@ -5904,10 +5904,10 @@ impl Kucoin {
         //        }
         //    }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
         if (currencyId.as_str() != Some("NIM")) {
             // contains spaces
@@ -5915,7 +5915,7 @@ impl Kucoin {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), currencyId);
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&data, "chain", &[]), code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -8460,8 +8460,8 @@ impl Kucoin {
             marketType = self.safe_string_k(&paramsAccountMode, "marketType", &[]).as_str().map(str::to_owned);
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsAccountMode, Value::Str("marketType".into()), &[]).into_dict();
-        let mut isContract: bool = (marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin"));
-        if !(isContract) && (symbol == Value::Null) {
+        let mut isContract: bool = ((marketType.as_deref() != Some("spot")) && (marketType.as_deref() != Some("margin")));
+        if !isContract && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchOrdersByStatus() requires a symbol argument for spot and margin markets when using uta endpoint")));
         }
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".into()), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
@@ -11567,7 +11567,7 @@ impl Kucoin {
             m
         });
         let __ws_arg_104 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.futures_private_get_account_overview(&[__ws_arg_104]).await;
+        let mut response: crate::value::Dict = self.futures_private_get_account_overview(&[__ws_arg_104]).await.into_dict();
         //
         //     {
         //         "code": "200000",
@@ -11585,12 +11585,12 @@ impl Kucoin {
         //
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
+                m.insert("info".to_string(), Value::from(&response));
                 m.insert("timestamp".to_string(), Value::Null);
                 m.insert("datetime".to_string(), Value::Null);
             m
         });
-        let mut data: crate::value::Dict = self.safe_dict_k(response, "data", &[]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
         let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currency));
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -15044,7 +15044,7 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_145 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.futures_private_post_margin_withdraw_margin(&[__ws_arg_145]).await;
+        let mut response: crate::value::Dict = self.futures_private_post_margin_withdraw_margin(&[__ws_arg_145]).await.into_dict();
         //
         //     {
         //         "code": "200000",
@@ -15052,10 +15052,10 @@ if _try_result.is_err() {
         //     }
         //
         let mut currencyId: Option<String> = self.safe_string_k(&market, "settle", &[]).as_str().map(str::to_owned);
-        let mut responseCode: Option<String> = self.safe_string_k(response.clone(), "code", &[]).as_str().map(str::to_owned);
+        let mut responseCode: Option<String> = self.safe_string_k(&response, "code", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("type".to_string(), Value::Str("reduce".into()));
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));
@@ -15948,7 +15948,7 @@ if _try_result.is_err() {
     m
 })]);
             let mut isUtaFuturePrivate: bool = (isUtaPrivate && (tradeType.as_deref() == Some("FUTURES")));
-            let mut isFuturePartner: bool = isFuturePrivate || isUtaFuturePrivate;
+            let mut isFuturePartner: bool = (isFuturePrivate || isUtaFuturePrivate);
             partner = (if isFuturePartner { self.safe_dict_k(partner.clone(), "future", &[partner.clone()]) } else { self.safe_dict_k(partner.clone(), "spot", &[partner.clone()]) });
             let mut partnerId: Option<String> = self.safe_string_k(partner.clone(), "id", &[]).as_str().map(str::to_owned);
             let mut partnerSecret: Option<String> = self.safe_string2(partner.clone(), Value::Str("secret".into()), Value::Str("key".into()), &[]).as_str().map(str::to_owned);

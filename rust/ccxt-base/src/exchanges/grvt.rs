@@ -1541,7 +1541,7 @@ if _try_result.is_err() {
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
         let mut isSwap: bool = type_var.as_deref() == Some("swap");
         let mut isFuture: bool = type_var.as_deref() == Some("future");
-        let mut isContract: Value = Value::Bool((isSwap || isFuture));
+        let mut isContract: bool = (isSwap || isFuture);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -1559,7 +1559,7 @@ if _try_result.is_err() {
         m.insert("future".to_string(), Value::Bool(isFuture));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Null);
-        m.insert("contract".to_string(), isContract);
+        m.insert("contract".to_string(), Value::Bool(isContract));
         m.insert("linear".to_string(), (if isSwap { Value::Bool(true) } else { Value::Null }));
         m.insert("inverse".to_string(), (if isSwap { Value::Bool(false) } else { Value::Null }));
         m.insert("contractSize".to_string(), self.parse_number(Value::Str("1".into()), &[]));
@@ -2908,7 +2908,7 @@ if _try_result.is_err() {
             let __ws_arg_14 = self.extend(self.create_signed_request(&mut request, "EIP712_TRANSFER_TYPE", &[crate::Value::from(Some(&currency))]), &[paramsFundingAccountId]);
             response = self.private_trading_post_full_v1_transfer(&[__ws_arg_14]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             let mut msg: Option<String> = self.exception_message(error.clone(), &[]).as_str().map(str::to_owned);
             let mut isFromFundingAccount: bool = fromSubAccount.as_str() == Some("funding");
             if isFromFundingAccount && (msg.as_deref().unwrap_or_default().contains("You are not authorized")) {

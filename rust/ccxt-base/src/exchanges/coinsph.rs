@@ -1791,8 +1791,8 @@ impl Coinsph {
         //         ]
         //     ]
         //
-        let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
+        let mut ohlcvs: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }

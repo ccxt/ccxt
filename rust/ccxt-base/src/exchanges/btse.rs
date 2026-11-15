@@ -2258,7 +2258,7 @@ impl Btse {
         // hour rounds to the same string, and the vocabulary has no minutes
         if (fundingIntervalMinutes.is_some()) && (fundingIntervalMinutes >= Some(60)) {
             let mut hours: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = fundingIntervalMinutes { Some((__l as f64) / 60.0) } else { None })));
-            interval = Some(format!("{}{}", Value::Str(format!("{}", Value::from(hours)).into()), Value::Str("h".into())));
+            interval = Some(format!("{}{}", Value::from(format!("{}", Value::from(hours))), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4506,7 +4506,7 @@ impl Btse {
         let mut marginType: Option<String> = self.safe_string_k(position.clone(), "marginType", &[]).as_str().map(str::to_owned);
         let mut side: Option<String> = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
         let mut positionMode: Option<String> = self.safe_string_k(position.clone(), "positionMode", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
+        let mut hedged: bool = ((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         let mut takeProfitOrder: crate::value::Dict = self.safe_dict_k(position.clone(), "takeProfitOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4537,7 +4537,7 @@ impl Btse {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::Null);
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), Value::Bool(hedged));
         m.insert("maintenanceMargin".to_string(), self.parse_number(self.safe_string_k(position.clone(), "totalMaintenanceMargin", &[]), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("initialMargin".to_string(), Value::Null);
@@ -4622,11 +4622,11 @@ impl Btse {
     m
 })]).into_dict();
         let mut positionMode: Option<String> = self.safe_string_k(&data, "positionMode", &[]).as_str().map(str::to_owned);
-        let mut hedged: Value = Value::Bool((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
+        let mut hedged: bool = ((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(data));
-        m.insert("hedged".to_string(), hedged);
+        m.insert("hedged".to_string(), Value::Bool(hedged));
     m
 });
         Value::Null

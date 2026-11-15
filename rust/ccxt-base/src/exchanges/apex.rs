@@ -2181,7 +2181,7 @@ impl Apex {
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
-                    m.insert("amount".to_string(), Value::Str(format!("{}", Value::from(amountNumber)).into()));
+                    m.insert("amount".to_string(), Value::from(format!("{}", Value::from(amountNumber))));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), finalClientOrderId.clone());
                     m.insert("timestampSeconds".to_string(), Value::from(expireTime));
@@ -2226,7 +2226,7 @@ impl Apex {
                     m.insert("subAccountId".to_string(), Value::from(subAccountId.clone()));
                     m.insert("receiverSubAccountId".to_string(), Value::from(receiverSubAccountId.clone()));
                     m.insert("tokenId".to_string(), Value::from(tokenId.clone()));
-                    m.insert("amount".to_string(), Value::Str(format!("{}", Value::from(amountNumber)).into()));
+                    m.insert("amount".to_string(), Value::from(format!("{}", Value::from(amountNumber))));
                     m.insert("fee".to_string(), Value::Str("0".into()));
                     m.insert("nonce".to_string(), Value::from(finalNonce.clone()));
                     m.insert("timestampSeconds".to_string(), Value::from(timestampSeconds));

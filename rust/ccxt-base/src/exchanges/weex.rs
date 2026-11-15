@@ -1627,8 +1627,8 @@ impl Weex {
         let mut contractResponse: crate::value::Dict = spotResponsecontractResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut spotArray: crate::value::List = self.safe_list_k(&spotResponse, "symbols", &[Value::from(vec![])]).into_list();
         let mut contractArray: crate::value::List = self.safe_list_k(&contractResponse, "symbols", &[Value::from(vec![])]).into_list();
-        let mut result: Value = self.array_concat(&spotArray, &contractArray);
-        return self.parse_markets(result);
+        let mut result: crate::value::List = self.array_concat(&spotArray, &contractArray).into_list();
+        return self.parse_markets(&result);
         Value::Null
         }).await?))
     }
@@ -5687,15 +5687,15 @@ impl Weex {
             m
         });
         let __ws_arg_46 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await;
-        let mut entry: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(0), &[Value::Map({
+        let mut response: crate::value::List = self.contract_private_get_capi_v3_account_symbol_config(&[__ws_arg_46]).await.into_list();
+        let mut entry: crate::value::Dict = self.safe_dict(&response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
         let mut separatedType: Option<String> = self.safe_string_k(&entry, "separatedType", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
         m.insert("hedged".to_string(), (Value::Bool(separatedType.as_deref() == Some("SEPARATED"))));
     m
 });
@@ -5946,14 +5946,14 @@ impl Weex {
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut endpoint: String = self.implode_params(path.clone(), params.clone());
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path.clone()), &[]).into_dict();
-        let mut isBatch: bool = path.as_str().unwrap_or("").contains("batch");
-        if !(isBatch) && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
+        let mut isBatch: bool = path.as_str().unwrap_or_default().to_string().contains("batch");
+        if !isBatch && ((method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE"))) {
             if !(self.is_empty(&query).as_bool() == Some(true)) {
                 endpoint.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
-        let mut isPrivate: bool = (apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate"));
-        let mut hasJsonBody: bool = isPrivate && ((method.as_str() == Some("POST")) || isBatch);
+        let mut isPrivate: bool = ((apiName.as_deref() == Some("private")) || (apiName.as_deref() == Some("contractPrivate")));
+        let mut hasJsonBody: bool = (isPrivate && ((method.as_str() == Some("POST")) || isBatch));
         let mut requestBody: Option<String> = None;
         if hasJsonBody {
             requestBody = json_stringify(&query).as_str().map(str::to_owned);

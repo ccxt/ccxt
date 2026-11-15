@@ -1408,7 +1408,7 @@ impl Blofin {
         m.insert("active".to_string(), Value::Bool(isActive));
         m.insert("taker".to_string(), Value::from(taker));
         m.insert("maker".to_string(), Value::from(maker));
-        m.insert("contract".to_string(), Value::Bool(contract.clone()));
+        m.insert("contract".to_string(), Value::Bool(contract));
         m.insert("linear".to_string(), (if contract { (Value::Bool(contractType.as_deref() == Some("linear"))) } else { Value::Null }));
         m.insert("inverse".to_string(), (if contract { (Value::Bool(contractType.as_deref() == Some("inverse"))) } else { Value::Null }));
         m.insert("contractSize".to_string(), (if contract { self.safe_number_k(market.clone(), "contractValue", &[]) } else { Value::Null }));

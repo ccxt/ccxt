@@ -2836,7 +2836,7 @@ impl Bigone {
         let mut networkCode: Option<String> = networkCodeparamsOmittedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = networkCodeparamsOmittedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_assets_asset_symbol_address(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_assets_asset_symbol_address(&[__ws_arg_14]).await.into_dict();
         //
         // the actual response format is not the same as the documented one
         // the data key contains an array in the actual response
@@ -2854,7 +2854,7 @@ impl Bigone {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut dataLength: i64 = data.len() as i64;
         if dataLength < 1 {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchDepositAddress() returned empty address response")));
@@ -2870,7 +2870,7 @@ impl Bigone {
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[selectedNetworkId.map(Value::from).unwrap_or(Value::Null), code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

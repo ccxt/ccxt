@@ -991,11 +991,11 @@ impl Gate {
         if (market).spot || (messageType.as_deref() == Some("options")) {
             defaultLimit = 50;
         }
-        let mut limitResolved: Value = (if (limit == Value::Null) { Value::from(defaultLimit) } else { limit.clone() });
+        let mut limitResolved: Option<i64> = Some(limit.as_i64().unwrap_or(defaultLimit));
         if (market).spot {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
-            let mut maxSpotLimit: Value = Value::from(self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)])));
-            limitResolved = crate::runtime::Math::min(&limitResolved, &maxSpotLimit);
+            let mut maxSpotLimit: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("fetchOrderBook".into()), Value::Str("maxSpotLimit".into()), &[Value::Int(1000)]));
+            limitResolved = (if let (Some(__m0), Some(__m1)) = (limitResolved, maxSpotLimit) { Some(i64::min(__m0, __m1)) } else { None });
         }
         let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut channel: String = "".to_string();
@@ -1005,20 +1005,20 @@ impl Gate {
         }  else if (market).spot {
             channel = "spot.obu".to_string();
             let mut finalInterval: Option<String> = interval.clone();
-            if (limitResolved.as_f64() == Some(400.0)) {
+            if (limitResolved == Some(400)) {
                 finalInterval = Some("400".to_string());
             }
             payload = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval.as_deref().unwrap_or("null")).into())]);
         }  else {
             channel = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_book_update");
             payload = std::sync::Arc::new(vec![Value::from(marketId), interval.map(Value::from).unwrap_or(Value::Null)]);
-            let mut stringLimit: Value = Value::Str(format!("{}", limitResolved).into());
-            std::sync::Arc::make_mut(&mut payload).push(stringLimit);
+            let mut stringLimit: String = format!("{}", Value::from(limitResolved));
+            std::sync::Arc::make_mut(&mut payload).push(Value::from(stringLimit));
         }
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from(symbolValue));
-                m.insert("limit".to_string(), limitResolved);
+                m.insert("limit".to_string(), Value::from(limitResolved));
             m
         });
         let mut orderbook: Value = self.subscribe_public(url.as_deref(), messageHash.as_str(), Value::Arr(payload), Some(channel.as_str()), &[Value::Dict(query), Value::Map(subscription)]).await;
@@ -1064,11 +1064,11 @@ impl Gate {
         let mut intervalOption: Option<String> = intervalOptionparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
-        let mut limit: Value = self.safe_integer_k(&paramsInterval, "limit", &[]);
-        if (limit == Value::Null) {
-            limit = (if (market).spot { Value::Int(50) } else { Value::Int(100) }); // max 100 atm
+        let mut limit: Option<i64> = self.safe_integer_k(&paramsInterval, "limit", &[]).as_i64();
+        if (limit.is_none()) {
+            limit = (if (market).spot { Some(50) } else { Some(100) }); // max 100 atm
             if (messageType.as_deref() == Some("options")) {
-                limit = Value::Int(50); // max 50 for options
+                limit = Some(50); // max 50 for options
             }
         }
         let mut payload: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -1079,15 +1079,15 @@ impl Gate {
         }  else if (market).spot {
             channel = "spot.obu".to_string();
             let mut finalInterval: Option<String> = intervalOption.clone();
-            if (limit.as_f64() == Some(400.0)) {
+            if (limit == Some(400)) {
                 finalInterval = Some("400".to_string());
             }
             payload = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ob.", marketId).into()), ".").into()), finalInterval.as_deref().unwrap_or("null")).into())]);
         }  else {
             channel = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_book_update");
             payload = std::sync::Arc::new(vec![Value::from(marketId), intervalOption.map(Value::from).unwrap_or(Value::Null)]);
-            let mut stringLimit: Value = Value::Str(format!("{}", limit).into());
-            std::sync::Arc::make_mut(&mut payload).push(stringLimit);
+            let mut stringLimit: String = format!("{}", Value::from(limit));
+            std::sync::Arc::make_mut(&mut payload).push(Value::from(stringLimit));
         }
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:orderbook", ":").into()), symbolValue);
@@ -2992,7 +2992,7 @@ impl Gate {
                 self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), json_stringify(&message));
                 panic!("{}", crate::exchange_errors::exchange_error(json_stringify(&message)));
              #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 client.reject(e, messageHash.as_deref());
                 if (messageHash.is_some()) && (__ch.has_subscription((&messageHash).as_deref())) {
                     __ch.remove_subscription(messageHash.as_deref());
@@ -3447,8 +3447,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&url));
         let mut messageHash: String = "authenticated".to_string();
         let mut future: Value = Value::from(client.reusable_future(messageHash.as_str()));
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             return self.request_private(url.as_str(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

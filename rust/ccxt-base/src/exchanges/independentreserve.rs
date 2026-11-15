@@ -1794,7 +1794,7 @@ impl Independentreserve {
             // independentreserve requires an increasing nonce
             let mut rawNonce: i64 = self.incrementing_nonce();
             let mut nonce: Option<i64> = self.parse_to_int(Value::from(rawNonce));
-            let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::Str(format!("{}", Value::from(nonce)).into())).into())];
+            let mut auth: Vec<Value> = vec![Value::from(url.clone()), Value::Str(format!("{}{}", "apiKey=", self.apiKey.clone()).into()), Value::Str(format!("{}{}", Value::Str("nonce=".into()), Value::from(format!("{}", Value::from(nonce)))).into())];
             let mut paramsDict: crate::value::Dict = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1804,9 +1804,9 @@ impl Independentreserve {
                                 let mut i: i64 = 0;
                 let mut __for_first_836: bool = true;
                 while { if !__for_first_836 { i += 1; } __for_first_836 = false; i < (keys.len() as i64) } {
-                let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut value: String = self.safe_string(&paramsDict, key.clone(), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into()));
+                let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                let mut value: String = self.safe_string(&paramsDict, Value::from(key.as_deref()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                auth.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value).into()));
             }
             }
             let mut message: String = auth.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",");

@@ -1369,18 +1369,18 @@ impl Whitebit {
             return Value::Null;
         }
         let mut active: Option<bool> = self.safe_bool_k(market.clone(), "tradesEnabled", &[]).as_bool();
-        let mut isCollateral: bool = self.safe_bool_k_opt(market.clone(), "isCollateral", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isCollateral: bool = self.safe_bool_k(market.clone(), "isCollateral", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut typeId: Option<String> = self.safe_string_k(market.clone(), "type", &[]).as_str().map(str::to_owned);
         let mut type_var: Option<String> = None;
         let mut settle: Option<String> = None;
         let mut settleId: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut swap: Value = Value::Bool((typeId.as_deref() == Some("futures")) || (typeId.as_deref() == Some("tradfiFutures")));
-        let mut margin: Value = Value::Bool(isCollateral && !(matches!(&swap, Value::Bool(true))));
+        let mut swap: bool = ((typeId.as_deref() == Some("futures")) || (typeId.as_deref() == Some("tradfiFutures")));
+        let mut margin: bool = (isCollateral && !(swap));
         let mut contract: bool = false;
         let mut linear: Option<bool> = None;
         let mut inverse: Option<bool> = None;
-        if matches!(&swap, Value::Bool(true)) {
+        if swap {
             settleId = quoteId.clone();
             settle = self.safe_currency_code(Value::from(settleId.as_deref()), None);
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), quote.as_deref().unwrap_or("null"));
@@ -1395,7 +1395,7 @@ impl Whitebit {
         let mut taker: Option<String> = crate::precise::Precise::stringDiv(&takerFeeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
         let mut makerFeeRate: Option<String> = self.safe_string_k(market.clone(), "makerFee", &[]).as_str().map(str::to_owned);
         let mut maker: Option<String> = crate::precise::Precise::stringDiv(&makerFeeRate, &Value::Str("100".into())).as_str().map(str::to_owned);
-        let mut isSpot: Value = Value::Bool(!(matches!(&swap, Value::Bool(true))));
+        let mut isSpot: bool = !(swap);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1407,9 +1407,9 @@ impl Whitebit {
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("spot".to_string(), isSpot.clone());
-        m.insert("margin".to_string(), margin);
-        m.insert("swap".to_string(), swap);
+        m.insert("spot".to_string(), Value::Bool(isSpot));
+        m.insert("margin".to_string(), Value::Bool(margin));
+        m.insert("swap".to_string(), Value::Bool(swap));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
@@ -1418,7 +1418,7 @@ impl Whitebit {
         m.insert("inverse".to_string(), inverse.map(Value::from).unwrap_or(Value::Null));
         m.insert("taker".to_string(), self.parse_number(taker.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maker".to_string(), self.parse_number(maker.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("contractSize".to_string(), (if matches!(&isSpot, Value::Bool(true)) { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
+        m.insert("contractSize".to_string(), (if isSpot { Value::Null } else { self.parse_number(Value::Str("1".into()), &[]) }));
         m.insert("expiry".to_string(), Value::Null);
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
@@ -1689,7 +1689,7 @@ impl Whitebit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.v4_public_get_fee(&[params]).await;
+        let mut response: crate::value::Dict = self.v4_public_get_fee(&[params]).await.into_dict();
         //
         //      {
         //          "1INCH":{
@@ -1715,7 +1715,7 @@ impl Whitebit {
         //           {...}
         //      }
         //
-        let mut currenciesIds: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut currenciesIds: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1729,7 +1729,7 @@ impl Whitebit {
             let mut __for_first_1149: bool = true;
             while { if !__for_first_1149 { i += 1; } __for_first_1149 = false; i < (currenciesIds.len() as i64) } {
             let mut currency: Option<&str> = currenciesIds.get(i as usize).and_then(Value::as_str);
-            let mut data: crate::value::Dict = self.safe_dict(response.clone(), Value::from(currency.as_deref()), &[Value::Map({
+            let mut data: crate::value::Dict = self.safe_dict(&response, Value::from(currency.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1754,7 +1754,7 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawFees));
         m.insert("deposit".to_string(), Value::Map(depositFees));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
 
@@ -2223,16 +2223,16 @@ impl Whitebit {
                 continue;
             }
             // Find corresponding fee data for this currency
-            let mut feeData: Value = Value::Null;
+            let mut feeData: Option<crate::value::Dict> = None;
             let mut feeKeys: Vec<Value> = Value::Array(feesData.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_1154: bool = true;
                 while { if !__for_first_1154 { j += 1; } __for_first_1154 = false; j < (feeKeys.len() as i64) } {
                 let mut feeKey: Option<&str> = feeKeys.get(j as usize).and_then(Value::as_str);
-                let mut fee: Value = self.safe_dict(&feesData, Value::from(feeKey.as_deref()), &[]);
-                if ((fee != Value::Null) && (fee != Value::Null)) && (self.safe_string_k(fee.clone(), "ticker", &[]).as_str() == code.as_str()) {
-                    feeData = fee;
+                let mut fee: Option<crate::value::Dict> = self.safe_dict(&feesData, Value::from(feeKey.as_deref()), &[]).into_opt_dict();
+                if ((fee.is_some()) && (fee.is_some())) && (self.safe_string_k(&fee, "ticker", &[]).as_str() == code.as_str()) {
+                    feeData = fee.clone();
                     break;
                 }
             }
@@ -2263,9 +2263,9 @@ impl Whitebit {
                 m
             });
             // Add fee information if available
-            if (feeData != Value::Null) {
-                let mut depositFee: Option<crate::value::Dict> = self.safe_dict_k(feeData.clone(), "deposit", &[]).into_opt_dict();
-                let mut withdrawFee: Option<crate::value::Dict> = self.safe_dict_k(feeData, "withdraw", &[]).into_opt_dict();
+            if (feeData.is_some()) {
+                let mut depositFee: Option<crate::value::Dict> = self.safe_dict_k(&feeData, "deposit", &[]).into_opt_dict();
+                let mut withdrawFee: Option<crate::value::Dict> = self.safe_dict_k(&feeData, "withdraw", &[]).into_opt_dict();
                 if (depositFee.is_some()) && (depositFee.is_some()) {
                     let mut depositFeeData: indexmap::IndexMap<String, Value> = ({
                         let mut m = indexmap::IndexMap::new();
@@ -2568,8 +2568,8 @@ impl Whitebit {
                 }
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-                if !(matches!(&error, Value::Str(__s) if __s.contains("[OrderNotFound]"))) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+                if !(error.names("OrderNotFound")) {
                     panic!("{}", error);
                 }
              } }
@@ -2602,8 +2602,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 }
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-                if !(matches!(&error, Value::Str(__s) if __s.contains("[OrderNotFound]"))) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+                if !(error.names("OrderNotFound")) {
                     panic!("{}", error);
                 }
              } }
@@ -3151,20 +3151,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.v4_public_get_ping(&[params]).await;
+        let mut response: crate::value::List = self.v4_public_get_ping(&[params]).await.into_list();
         //
         //      [
         //          "pong"
         //      ]
         //
-        let mut status: Option<String> = self.safe_string(response.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string(&response, Value::Int(0), &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (status.as_deref() == Some("pong")) { Value::Str("ok".into()) } else { status.clone().map(Value::from).unwrap_or(Value::Null) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
     m
 });
         Value::Null

@@ -835,7 +835,7 @@ impl Bittrade {
             let mut orderbook: Value = self.watch(url.as_str(), &(Value::Str(format!("{}", requestId).into())), Value::Map(request), &(Value::Str(format!("{}", requestId).into())), Value::Map(snapshotSubscription)).await;
             return orderbook.limit();
          #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             __ch.remove_subscription(&(messageHash.clone().map(Value::from).unwrap_or(Value::Null)));
             client.reject(e, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
          } }
@@ -1093,7 +1093,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                     panic!("{}", crate::exchange_errors::exchange_error(feedback));
                  #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                     let mut messageHash: Option<String> = self.safe_string_k(&subscription, "messageHash", &[]).as_str().map(str::to_owned);
                     client.reject(e.clone(), messageHash.as_deref());
                     client.reject(e, id.as_deref());

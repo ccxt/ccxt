@@ -311,12 +311,12 @@ impl Coinbaseexchange {
     pub fn authenticate(&self) -> Value {
         self.check_required_credentials(&[]);
         let mut path: String = "/users/self/verify".to_string();
-        let mut nonce: Value = self.nonce();
-        let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", nonce).into()), Value::Str("GET".into())).into()), path);
+        let mut nonce: Option<i64> = self.nonce().as_i64();
+        let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(nonce))), Value::Str("GET".into())).into()), path);
         let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".into()), &[Value::Str("base64".into())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("timestamp".to_string(), nonce);
+        m.insert("timestamp".to_string(), Value::from(nonce));
         m.insert("key".to_string(), self.apiKey.clone());
         m.insert("signature".to_string(), Value::from(signature));
         m.insert("passphrase".to_string(), self.password.clone());
@@ -1514,7 +1514,7 @@ impl Coinbaseexchange {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), reason)));
             }
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(error, None);
             return Value::Bool(true);
         }

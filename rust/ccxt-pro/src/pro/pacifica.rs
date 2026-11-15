@@ -2196,7 +2196,7 @@ impl Pacifica {
                 m
             }), Value::Str("".into()));
          #[allow(unreachable_code)] { Value::Null }}));
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             client.reject(e, id.as_deref());
             return Value::Bool(true);
         }

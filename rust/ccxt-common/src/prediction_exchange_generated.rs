@@ -1155,10 +1155,10 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
     m
 })).await { panic!("{}", __e) }
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // a query with zero matches surfaces as BadSymbol on some venues — treat it as a
                 // plain miss (the guidance-rich throw below); let real transport errors propagate
-                if !(matches!(&e, Value::Str(__s) if __s.contains("[BadSymbol]"))) {
+                if !(e.names("BadSymbol")) {
                     panic!("{}", e);
                 }
             }

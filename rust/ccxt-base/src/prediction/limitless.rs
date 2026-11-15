@@ -898,7 +898,7 @@ impl Limitless {
         // market is tradeable only while it is FUNDED and not yet expired
         let mut isExpired: bool = self.safe_bool_k(raw.clone(), "expired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut marketStatus: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
-        let mut active: Value = Value::Bool((!(isExpired) && (marketStatus.as_deref() == Some("FUNDED"))));
+        let mut active: bool = (!(isExpired) && (marketStatus.as_deref() == Some("FUNDED")));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
         let mut expiryTimestamp: Option<i64> = self.safe_integer_k(raw.clone(), "expirationTimestamp", &[]).as_i64();
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
@@ -961,7 +961,7 @@ impl Limitless {
                     m.insert("outcomeId".to_string(), tokenId.clone());
                     m.insert("market".to_string(), Value::from(marketSymbol.as_deref()));
                     m.insert("label".to_string(), Value::from(outcomeLabel.as_deref()));
-                    m.insert("active".to_string(), active.clone());
+                    m.insert("active".to_string(), Value::Bool(active));
                     m.insert("winner".to_string(), winner);
                     m.insert("settleFraction".to_string(), Value::from(settleFraction));
                     m.insert("precision".to_string(), Value::Map(precision.clone()));
@@ -1002,7 +1002,7 @@ impl Limitless {
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("resolved".to_string(), marketResolved);
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
@@ -2197,7 +2197,7 @@ impl Limitless {
         // timestamps keep their relative order consistently across languages
         let mut sorted: Vec<Value> = self.sort_by(Value::from(pseudoTrades), Value::Str("timestamp".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut ms: i64 = ((self.parse_timeframe(timeframe)) * 1000);
-        let mut candles: Value = Value::Map({
+        let mut candles: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2216,13 +2216,13 @@ impl Limitless {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchOHLCV() missing pPrice")));
             }
             let mut bucketIndex: Option<i64> = self.parse_to_int((match ((Value::from(pTs)).as_f64(), (Value::from(ms)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
-            let mut bucket: Value = Value::from((if let Some(__l) = bucketIndex { Some(__l * ms) } else { None }));
-            let mut key: Value = Value::Str(format!("{}", bucket).into());
-            if !(matches!((&candles, &key), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), Value::from(vec![bucket, Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::Int(0)])); }
+            let mut bucket: Option<i64> = (if let Some(__l) = bucketIndex { Some(__l * ms) } else { None });
+            let mut key: Value = Value::from(format!("{}", Value::from(bucket)));
+            if !(matches!(&key, Value::Str(__k) if candles.contains_key(__k.as_ref()))) {
+                candles.insert(crate::runtime::stringify_param(&key), Value::from(vec![Value::from(bucket), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::from(pPrice), Value::Int(0)]));
                 bucketOrder.push(key.clone());
             }  else {
-                let mut candle: Value = (if let (Some(__m), Some(__k)) = (candles.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut candle: Value = candles.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 let mut prevHigh: Option<f64> = self.safe_number(candle.clone(), Value::Int(2), &[]).as_f64();
                 if (prevHigh.is_none()) || ((pPrice.is_some() && prevHigh.is_some() && pPrice > prevHigh)) {
                     add_element_to_object(&mut candle, &Value::Int(2), Value::from(pPrice));
@@ -2232,7 +2232,7 @@ impl Limitless {
                     add_element_to_object(&mut candle, &Value::Int(3), Value::from(pPrice));
                 }
                 add_element_to_object(&mut candle, &Value::Int(4), Value::from(pPrice));
-                if let Value::Dict(__d) = &mut candles { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&key), candle); }; // php arrays are value types - write the mutation back
+                candles.insert(crate::runtime::stringify_param(&key), candle); // php arrays are value types - write the mutation back
             }
         }
         }
@@ -2241,7 +2241,7 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1320: bool = true;
             while { if !__for_first_1320 { i += 1; } __for_first_1320 = false; i < (bucketOrder.len() as i64) } {
-            result.push(self.safe_value(candles.clone(), bucketOrder.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
+            result.push(self.safe_value(Value::Map(candles.clone()), bucketOrder.get(i as usize).cloned().unwrap_or(Value::Null), &[]));
         }
         }
         return self.filter_by_since_limit(Value::from(result), since.as_i64(), limit.as_i64(), &[Value::Int(0)]);

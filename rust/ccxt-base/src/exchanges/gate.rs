@@ -8339,9 +8339,9 @@ if _try_result.is_err() {
         let requestrequestParamsVariable: Vec<Value> = self.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut spot: bool = (type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin"));
-        let mut openStatus: bool = status.as_str() == Some("open");
-        let mut openSpotOrders: bool = spot && openStatus && (trigger != Some(true));
+        let mut spot: bool = ((type_var.as_str() == Some("spot")) || (type_var.as_str() == Some("margin")));
+        let mut openStatus: bool = status.as_str().map(str::to_owned).as_deref() == Some("open");
+        let mut openSpotOrders: bool = ((spot && openStatus) && (trigger != Some(true)));
         let mut response: Value = Value::Null;
         if spot {
             if (trigger != Some(true)) {
@@ -10113,16 +10113,16 @@ if _try_result.is_err() {
             let mut bodySignature: String = self.hash(self.encode(bodyPayload.map(Value::from).unwrap_or(Value::Null)), Value::Str("sha512".into()), &[]);
             let mut nonce: i64 = self.nonce().as_i64().unwrap_or_default();
             let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((nonce as f64) / 1000.0)));
-            let mut timestampString: Value = Value::Str(format!("{}", Value::from(timestamp)).into());
+            let mut timestampString: String = format!("{}", Value::from(timestamp));
             let mut signaturePath: String = format!("{}{}", Value::Str(format!("{}{}", "/api/", self.version.clone()).into()), entirePath);
-            let mut payloadArray: Value = Value::from(vec![(if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), Value::from(signaturePath), Value::from(rawQueryString), Value::from(bodySignature), timestampString.clone()]);
+            let mut payloadArray: Value = Value::from(vec![(if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }), Value::from(signaturePath), Value::from(rawQueryString), Value::from(bodySignature), Value::from(timestampString.clone())]);
             // eslint-disable-next-line quotes
             let mut payload: String = payloadArray.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("\n")).unwrap_or_default();
             let mut signature: String = self.hmac(self.encode(Value::from(payload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
             signedHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("KEY".to_string(), self.apiKey.clone());
-                    m.insert("Timestamp".to_string(), timestampString);
+                    m.insert("Timestamp".to_string(), Value::from(timestampString));
                     m.insert("SIGN".to_string(), Value::from(signature));
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                 m

@@ -1325,8 +1325,8 @@ impl Bit2c {
         //         }
         //     ]
         //
-        let mut responseList: Value = self.to_array(&response);
-        return self.parse_trades(responseList, market.as_ref(), &[since, limit]);
+        let mut responseList: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_trades(&responseList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

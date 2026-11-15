@@ -954,8 +954,8 @@ impl Sxbet {
                 if (field.is_none()) {
                     continue;
                 }
-                let mut fieldLower: Value = field.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null);
-                if (Value::Int(query.as_str().zip(fieldLower.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (Value::Int(fieldLower.as_str().zip(query.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) {
+                let mut fieldLower: Option<String> = field.as_deref().map(str::to_lowercase);
+                if (Value::Int(query.as_str().zip(fieldLower.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64)) || (((if let (Some(__h), Some(__n)) = (fieldLower.as_deref(), (query).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) >= 0) {
                     return Value::Bool(true);
                 }
             }
@@ -1359,14 +1359,14 @@ impl Sxbet {
         });
         let mut rest: crate::value::Dict = self.omit(&paramsSpender, &["amount", "tokenAddress", "deadline", "rpcUrl"], &[]).into_dict();
         let __ws_arg_5 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.sxbet_private_post_user_transfer_to_proxy(&[__ws_arg_5]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), self.safe_string_k(&data, "sessionId", &[]));
     m
 });
@@ -1434,7 +1434,7 @@ impl Sxbet {
         let mut isBuy: bool = side.as_str() == Some("buy");
         // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
         // matches the normalize-to-one-book convention used by other prediction venues
-        let mut isMakerBettingOutcomeOne: Value = (if (isBuy) { Value::Bool(isOutcomeOne) } else { Value::Bool(!isOutcomeOne) });
+        let mut isMakerBettingOutcomeOne: bool = (if (isBuy) { isOutcomeOne } else { !(isOutcomeOne) });
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut probability: Option<String> = (if (isBuy) { priceStr.clone() } else { crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned) });
         let mut obv3: crate::value::Dict = self.load_sx_obv3_metadata().await.into_dict();
@@ -1529,7 +1529,7 @@ impl Sxbet {
                 m.insert("salt".to_string(), saltNumber.map(Value::from).unwrap_or(Value::Null));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("maker".to_string(), maker.clone());
-                m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne.clone());
+                m.insert("isMakerBettingOutcomeOne".to_string(), Value::Bool(isMakerBettingOutcomeOne));
             m
         });
         let mut encoded: Value = self.eth_encode_structured_data(Value::Dict(domain), Value::Map(messageTypes), Value::Map(messageData));
@@ -1544,7 +1544,7 @@ impl Sxbet {
                 m.insert("salt".to_string(), Value::from(saltHex));
                 m.insert("expiry".to_string(), Value::from(expiry));
                 m.insert("baseToken".to_string(), baseToken.map(Value::from).unwrap_or(Value::Null));
-                m.insert("isMakerBettingOutcomeOne".to_string(), isMakerBettingOutcomeOne);
+                m.insert("isMakerBettingOutcomeOne".to_string(), Value::Bool(isMakerBettingOutcomeOne));
                 m.insert("timeInForce".to_string(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("orderSignature".to_string(), orderSignature.map(Value::from).unwrap_or(Value::Null));
             m
@@ -1572,11 +1572,11 @@ impl Sxbet {
             m
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.sxbet_private_post_orders_v3(&[__ws_arg_6]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.sxbet_private_post_orders_v3(&[__ws_arg_6]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut results: crate::value::List = self.safe_list_k(&data, "orders", &[Value::from(vec![])]).into_list();
         let mut first: crate::value::Dict = self.safe_dict(&results, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1626,7 +1626,7 @@ impl Sxbet {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(&first, Value::Str("orderId".into()), Value::Str("orderHash".into()), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(&first, "clientOrderId", &[clientOrderId.map(Value::from).unwrap_or(Value::Null)]));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(now));
         m.insert("status".to_string(), orderStatus.map(Value::from).unwrap_or(Value::Null));
@@ -2150,8 +2150,8 @@ impl Sxbet {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut row: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
-        return self.parse_prediction_order(row, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
+        let mut row: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::from(&data)]).into_dict();
+        return self.parse_prediction_order(&row, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomeObj).as_ref());
         Value::Null
         }).await?))
     }
@@ -2377,7 +2377,7 @@ impl Sxbet {
             m
         })]).into_dict();
         let mut usdcAddress: String = self.safe_string_lower_k(&activeAsset, "baseToken", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut response: Value = self.sxbet_private_get_user_balance_v3(&[params]).await;
+        let mut response: crate::value::Dict = self.sxbet_private_get_user_balance_v3(&[params]).await.into_dict();
         //
         //     { "status": "success", "data": { "balances": [ {
         //         "userAddress": "0xC3f4...", "wallet": "0x19D1...",
@@ -2385,14 +2385,14 @@ impl Sxbet {
         //         "availableAmount": "0", "pendingAvailableAmount": "0",
         //         "escrowedAmount": "0", "pendingEscrowAmount": "0" } ] } }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut balances: crate::value::List = self.safe_list_k(&data, "balances", &[Value::from(vec![])]).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Dict(response));
             m
         });
         let mut usdcDecimals: String = "1000000".to_string();

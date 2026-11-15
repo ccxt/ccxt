@@ -1528,7 +1528,7 @@ impl Phemex {
             // "1.0"
             contractSize = self.parse_number(contractSizeString, &[]);
         }
-        let mut isLinear: Value = Value::Bool(!inverse);
+        let mut isLinear: bool = !(inverse);
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -1547,7 +1547,7 @@ impl Phemex {
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("active".to_string(), Value::Bool(status.as_deref() == Some("Listed")));
         m.insert("contract".to_string(), Value::Bool(true));
-        m.insert("linear".to_string(), isLinear);
+        m.insert("linear".to_string(), Value::Bool(isLinear));
         m.insert("inverse".to_string(), Value::Bool(inverse));
         m.insert("taker".to_string(), self.parse_number(self.from_en(takerFeeRateEr.map(Value::from).unwrap_or(Value::Null), ratioScale).map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maker".to_string(), self.parse_number(self.from_en(makerFeeRateEr.map(Value::from).unwrap_or(Value::Null), ratioScale).map(Value::from).unwrap_or(Value::Null), &[]));
@@ -4552,8 +4552,8 @@ impl Phemex {
                 response = self.private_get_spot_orders(&[__ws_arg_35]).await.into_opt_dict();
             }
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if matches!(&e, Value::Str(__s) if __s.contains("[OrderNotFound]")) {
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+            if e.names("OrderNotFound") {
                 return Value::from(vec![]);
             }
             panic!("{}", e);
@@ -4915,7 +4915,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             request.insert("chainName".into(), network.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_exchange_wallets_v2_deposit_address(&[__ws_arg_42]).await;
+        let mut response: crate::value::Dict = self.private_get_exchange_wallets_v2_deposit_address(&[__ws_arg_42]).await.into_dict();
         //
         //     {
         //         "code": 0,
@@ -4931,16 +4931,16 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&data, "tag", &[]).as_str().map(str::to_owned);
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

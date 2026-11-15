@@ -1695,13 +1695,13 @@ impl Latoken {
             m
         });
         let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_trade_fee_currency_quote(&[__ws_arg_3]).await;
+        let mut response: crate::value::Dict = self.public_get_trade_fee_currency_quote(&[__ws_arg_3]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-        m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response, "takerFee", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&response, "makerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&response, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m
@@ -1727,13 +1727,13 @@ impl Latoken {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_auth_trade_fee_currency_quote(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_get_auth_trade_fee_currency_quote(&[__ws_arg_4]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
-        m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerFee", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response, "takerFee", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&response, "makerFee", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&response, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);
         m.insert("tierBased".to_string(), Value::Null);
     m

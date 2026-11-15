@@ -676,20 +676,20 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut fallbackOutcome: Value = self.safe_integer_k(&question, "fallbackOutcome", &[]);
-            if (fallbackOutcome != Value::Null) {
-                let mut fallbackKey: Value = Value::Str(format!("{}", fallbackOutcome).into());
-                outcomesToQuestions.insert(crate::runtime::stringify_param(&fallbackKey), Value::from(&question));
+            let mut fallbackOutcome: Option<i64> = self.safe_integer_k(&question, "fallbackOutcome", &[]).as_i64();
+            if (fallbackOutcome.is_some()) {
+                let mut fallbackKey: String = format!("{}", Value::from(fallbackOutcome));
+                outcomesToQuestions.insert(fallbackKey, Value::from(&question));
             }
             let mut namedOutcomes: crate::value::List = self.safe_list_k(&question, "namedOutcomes", &[Value::from(vec![])]).into_list();
             {
                                 let mut ni: i64 = 0;
                 let mut __for_first_1231: bool = true;
                 while { if !__for_first_1231 { ni += 1; } __for_first_1231 = false; ni < (namedOutcomes.len() as i64) } {
-                let mut namedOutcomeId: Value = self.safe_integer(&namedOutcomes, Value::Int(ni), &[]);
-                if (namedOutcomeId != Value::Null) {
-                    let mut namedKey: Value = Value::Str(format!("{}", namedOutcomeId).into());
-                    outcomesToQuestions.insert(crate::runtime::stringify_param(&namedKey), Value::from(&question));
+                let mut namedOutcomeId: Option<i64> = self.safe_integer(&namedOutcomes, Value::Int(ni), &[]).as_i64();
+                if (namedOutcomeId.is_some()) {
+                    let mut namedKey: String = format!("{}", Value::from(namedOutcomeId));
+                    outcomesToQuestions.insert(namedKey, Value::from(&question));
                 }
             }
             }
@@ -1941,7 +1941,7 @@ impl Hyperliquid {
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
         //
         //     {
         //         "status": "ok",
@@ -1951,10 +1951,10 @@ impl Hyperliquid {
         //         }
         //     }
         //
-        let mut responseObj: crate::value::Dict = self.safe_dict_k(response.clone(), "response", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut responseObj: crate::value::Dict = self.safe_dict_k(&response, "response", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut data: crate::value::Dict = self.safe_dict_k(&responseObj, "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1982,7 +1982,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), oid.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("status".to_string(), Value::from(orderStatus));

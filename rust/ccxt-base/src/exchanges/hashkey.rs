@@ -2271,8 +2271,8 @@ impl Hashkey {
         //         ...
         //     ]
         //
-        let mut ohlcvs: Value = self.to_array(&response);
-        return self.parse_ohlc_vs(ohlcvs, Some(&market), &[timeframeValue, since, limit]);
+        let mut ohlcvs: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframeValue, since, limit]);
         Value::Null
         }).await?))
     }

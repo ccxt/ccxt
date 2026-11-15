@@ -1669,8 +1669,8 @@ impl Tokocrypto {
         //         }
         //     ]
         //
-        let mut responseList: Value = self.to_array(&response);
-        return self.parse_trades(responseList, Some(&market), &[since, limit]);
+        let mut responseList: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_trades(&responseList, Some(&market), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -2262,8 +2262,8 @@ impl Tokocrypto {
         // the order type carries the post only flag on its own, 7 on the open/v1
         // payloads and LIMIT_MAKER on the binance shaped ones, so the time force
         // echoed back by the venue is only the third witness
-        let mut isLimitMaker: bool = (rawOrderType.as_deref() == Some("7")) || (rawOrderType.as_deref() == Some("limit_maker"));
-        let mut postOnly: Value = Value::Bool(isLimitMaker || (timeInForce.as_deref() == Some("PO")));
+        let mut isLimitMaker: bool = ((rawOrderType.as_deref() == Some("7")) || (rawOrderType.as_deref() == Some("limit_maker")));
+        let mut postOnly: bool = (isLimitMaker || (timeInForce.as_deref() == Some("PO")));
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2275,7 +2275,7 @@ impl Tokocrypto {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduceOnly", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
@@ -3004,7 +3004,7 @@ impl Tokocrypto {
         // has support for the 'network' parameter
         // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_get_open_v1_deposits_address(&[__ws_arg_16]).await.into_dict();
         //
         //     {
         //         "code":0,
@@ -3020,10 +3020,10 @@ impl Tokocrypto {
         //         "timestamp":1660685915746
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&data, "addressTag", &[Value::Str("".into())]).as_str().map(str::to_owned);
         if (((tag.as_deref().unwrap_or_default().chars().count() as i64)) == 0) {
@@ -3032,7 +3032,7 @@ impl Tokocrypto {
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&data, "network", &[]), code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

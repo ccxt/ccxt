@@ -983,14 +983,14 @@ impl Grvt {
             paramsLimit = Value::Dict(paramsChannel);
         }
         let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
-        let mut interval: Value = intervalparamsIntervalVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut interval: Option<i64> = intervalparamsIntervalVariable.get(0).and_then(Value::as_i64);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut extraPart: Value = Value::Null;
+        let mut extraPart: Option<String> = None;
         if isSnapshot {
-            extraPart = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}", interval).into()), Value::Str("-".into())).into()), Value::Str(format!("{}", limitResolved).into())).into());
+            extraPart = Some(format!("{}{}", Value::Str(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("-".into())).into()), Value::Str(format!("{}", limitResolved).into())));
         }  else {
-            extraPart = Value::Str(format!("{}", interval).into());
+            extraPart = Some(format!("{}", Value::from(interval)));
         }
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1000,7 +1000,7 @@ impl Grvt {
             while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), extraPart).into()));
+            rawHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@".into())).into()), extraPart.as_deref().unwrap_or("null")).into()));
             messageHashes.push(Value::Str(format!("{}{}", "orderbook::", Value::from((market).symbol.clone())).into()));
         }
         }

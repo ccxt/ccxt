@@ -643,7 +643,7 @@ impl Woo {
                         client.resolve(orderbook.clone(), topic.as_deref());
                     }
                  #[allow(unreachable_code)] { false }}));
-match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
                     CacheStore::forget(&mut self.orderbooks, &symbol);
                     if (topic.is_some()) {
                         __ch.remove_subscription(topic.as_deref());
@@ -1539,8 +1539,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut messageHash: String = "authenticated".to_string();
         let mut event: String = "auth".to_string();
         let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
-        let mut authenticated: Value = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]);
-        if (authenticated == Value::Null) {
+        let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
+        if (!authenticated) {
             let mut ts: String = format!("{}", self.nonce());
             let mut auth: String = format!("{}{}", "|", ts);
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
@@ -2344,8 +2344,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             return Value::Bool(false);
          #[allow(unreachable_code)] { Value::Null }}));
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: Value = panic_to_value(_try_err); 
-            if is_instance(&error, &Value::Str("AuthenticationError".into())) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let error: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+            if error.is_instance_of("AuthenticationError") {
                 let mut messageHash: String = "authenticated".to_string();
                 client.reject(error.clone(), messageHash.as_str());
                 if (__ch.has_subscription(messageHash.as_str())) {

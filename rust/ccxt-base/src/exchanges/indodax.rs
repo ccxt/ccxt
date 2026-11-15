@@ -1518,15 +1518,15 @@ impl Indodax {
             request.insert(crate::runtime::stringify_param(&(Value::from((market).base_id.as_deref()))), Value::from(self.amount_to_precision(symbol, amount)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[paramsOmitted]);
-        let mut result: Value = self.private_post_trade(&[__ws_arg_8]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(result.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut result: crate::value::Dict = self.private_post_trade(&[__ws_arg_8]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&result, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut id: Option<String> = self.safe_string_k(&data, "order_id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), result);
+        m.insert("info".to_string(), Value::Dict(result));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), Some(&market));
@@ -1625,7 +1625,7 @@ impl Indodax {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_withdraw_fee(&[__ws_arg_10]).await;
+        let mut response: crate::value::Dict = self.private_post_withdraw_fee(&[__ws_arg_10]).await.into_dict();
         //
         //     {
         //         "success": 1,
@@ -1636,14 +1636,14 @@ impl Indodax {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "return", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "return", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut currencyId: Option<String> = self.safe_string_k(&data, "currency", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("rate".to_string(), self.safe_number_k(&data, "withdraw_fee", &[]));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currency)).map(Value::from).unwrap_or(Value::Null));
     m

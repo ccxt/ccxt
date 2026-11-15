@@ -2393,8 +2393,8 @@ impl Xt {
         //         ]
         //     }
         //
-        let mut swapAndFutureMarkets: Value = self.array_concat(self.safe_list_k(markets.get(0).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])]), self.safe_list_k(markets.get(1).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])]));
-        return self.parse_markets(swapAndFutureMarkets);
+        let mut swapAndFutureMarkets: crate::value::List = self.array_concat(self.safe_list_k(markets.get(0).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])]), self.safe_list_k(markets.get(1).cloned().unwrap_or(Value::Null), "result", &[Value::from(vec![])])).into_list();
+        return self.parse_markets(&swapAndFutureMarkets);
 
     Value::Null
 }

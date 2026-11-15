@@ -1340,8 +1340,8 @@ impl Coinspot {
             add_element_to_object(get_value_mut(&mut sellTrades, &Value::Int(i)), &Value::Str("side".into()), Value::Str("sell".into()));
         }
         }
-        let mut trades: Value = self.array_concat(buyTrades, sellTrades);
-        return self.parse_trades(trades, market.as_ref(), &[since, limit]);
+        let mut trades: crate::value::List = self.array_concat(buyTrades, sellTrades).into_list();
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

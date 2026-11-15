@@ -1007,7 +1007,7 @@ impl Binance {
         if (tradingStatus.is_none()) {
             active = ((status.as_deref() == Some("REGISTERED")) || (status.as_deref() == Some("OPEN")));
         }
-        let mut resolved: bool = (status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED"));
+        let mut resolved: bool = ((status.as_deref() == Some("RESOLVED")) || (status.as_deref() == Some("SETTLED")));
         let mut endDate: Option<i64> = (match rawTopic.get("endDate") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut feeRateBps: String = (match rawTopic.get("feeRateBps") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("200".into()) }).as_str().unwrap_or("200").to_string();
         let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringDiv(&feeRateBps, &Value::Str("10000".into())), &[]).as_f64();
@@ -1413,7 +1413,7 @@ impl Binance {
         let type_varparamsTypeVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("fetchBalance".into()), Value::Str("type".into()), &[Value::Str("SPOT".into())]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsType: crate::value::Dict = type_varparamsTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = self.sapi_private_get_balance_payment_options(&[Value::Dict(paramsType)]).await;
+        let mut response: crate::value::Dict = self.sapi_private_get_balance_payment_options(&[Value::Dict(paramsType)]).await.into_dict();
         //
         // {
         //     "items": [
@@ -1427,10 +1427,10 @@ impl Binance {
         //
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response.clone());
+                m.insert("info".to_string(), Value::from(&response));
             m
         });
-        let mut balances: crate::value::List = self.safe_list_k(response, "items", &[Value::from(vec![])]).into_list();
+        let mut balances: crate::value::List = self.safe_list_k(&response, "items", &[Value::from(vec![])]).into_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1222: bool = true;
@@ -2407,12 +2407,12 @@ impl Binance {
             m
         })]).into_dict();
         let __ws_arg_16 = self.extend(orderRequest, &[&paramsOmitted]);
-        let mut response: Value = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.sapi_private_post_trade_place_order_bundle(&[__ws_arg_16]).await.into_dict();
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), self.safe_string_k(response.clone(), "orderId", &[]));
+        m.insert("id".to_string(), self.safe_string_k(&response, "orderId", &[]));
         m.insert("clientOrderId".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
         m.insert("status".to_string(), Value::Null);

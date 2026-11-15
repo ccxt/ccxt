@@ -1758,15 +1758,15 @@ impl Bitso {
             request.insert("price".into(), Value::from(self.price_to_precision(Value::from((market).symbol.clone()), price)));
         }
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_orders(&[__ws_arg_8]).await;
-        let mut payload: crate::value::Dict = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_8]).await.into_dict();
+        let mut payload: crate::value::Dict = self.safe_dict_k(&response, "payload", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut id: Option<String> = self.safe_string_k(&payload, "oid", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
     m
 }), Some(&market));
@@ -1805,18 +1805,18 @@ impl Bitso {
             m
         });
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders_oid(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders_oid(&[__ws_arg_9]).await.into_dict();
         //
         //     {
         //         "success": true,
         //         "payload": ["yWTQGxDMZ0VimZgZ"]
         //     }
         //
-        let mut payload: crate::value::List = self.safe_list_k(response.clone(), "payload", &[Value::from(vec![])]).into_list();
+        let mut payload: crate::value::List = self.safe_list_k(&response, "payload", &[Value::from(vec![])]).into_list();
         let mut orderId: Option<String> = self.safe_string(&payload, Value::Int(0), &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
     m
 }), None);
@@ -2286,11 +2286,11 @@ impl Bitso {
             m
         });
         let __ws_arg_15 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_funding_destination(&[__ws_arg_15]).await;
-        let mut payload: crate::value::Dict = self.safe_dict_k(response.clone(), "payload", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.private_get_funding_destination(&[__ws_arg_15]).await.into_dict();
+        let mut payload: crate::value::Dict = self.safe_dict_k(&response, "payload", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&payload, "account_identifier", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = None;
         if address.as_deref().unwrap_or_default().contains("?dt=") {
@@ -2301,7 +2301,7 @@ impl Bitso {
         self.check_address(&[Value::from(address.as_deref())]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));

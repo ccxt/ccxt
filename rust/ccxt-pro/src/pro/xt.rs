@@ -442,7 +442,7 @@ impl Xt {
                 __ch.add_subscription(&Value::Str("token".into()), listenKey.clone());
                 client.resolve(listenKey, messageHash.as_str());
              #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // hand the failure to every waiter so the next caller re-leads instead of
                 // deadlocking on a dead flight. no throw here: the trailing future rethrows
                 // to this caller and keeps a waiterless rejection from crashing the process

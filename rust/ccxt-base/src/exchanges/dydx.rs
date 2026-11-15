@@ -3027,8 +3027,8 @@ impl Dydx {
         let mut response: crate::value::List = self.fetch_transactions_helper("fetchTransfers", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
         let mut transferIn: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("TRANSFER_IN".into()), &[]).into_list();
         let mut transferOut: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("TRANSFER_OUT".into()), &[]).into_list();
-        let mut rows: Value = self.array_concat(&transferIn, &transferOut);
-        return self.parse_transfers(rows, currency.as_ref(), &[since, limit]);
+        let mut rows: crate::value::List = self.array_concat(&transferIn, &transferOut).into_list();
+        return self.parse_transfers(&rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3301,8 +3301,8 @@ impl Dydx {
         let mut response: crate::value::List = self.fetch_transactions_helper("fetchDepositsWithdrawals", code.as_str(), since.as_i64(), limit.as_i64(), &[self.omit(params, Value::Str("methodName".into()), &[])]).await.into_list();
         let mut withdrawals: crate::value::List = self.filter_by(Value::from(&response), Value::Str("type".into()), Value::Str("WITHDRAWAL".into()), &[]).into_list();
         let mut deposits: crate::value::List = self.filter_by(Value::Arr(response), Value::Str("type".into()), Value::Str("DEPOSIT".into()), &[]).into_list();
-        let mut rows: Value = self.array_concat(&withdrawals, &deposits);
-        return self.parse_transactions(rows, currency.as_ref(), &[since, limit]);
+        let mut rows: crate::value::List = self.array_concat(&withdrawals, &deposits).into_list();
+        return self.parse_transactions(&rows, currency.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }

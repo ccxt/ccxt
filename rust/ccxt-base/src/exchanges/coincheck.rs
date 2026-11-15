@@ -640,7 +640,7 @@ impl Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_exchange_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_exchange_status(&[params]).await.into_dict();
         //
         //     {
         //         "exchange_status": [
@@ -657,7 +657,7 @@ impl Coincheck {
         //         ]
         //     }
         //
-        let mut exchangeStatuses: crate::value::List = self.safe_list_k(response.clone(), "exchange_status", &[Value::from(vec![])]).into_list();
+        let mut exchangeStatuses: crate::value::List = self.safe_list_k(&response, "exchange_status", &[Value::from(vec![])]).into_list();
         let mut status: String = "ok".to_string();
         let mut updated: Option<i64> = None;
         {
@@ -680,7 +680,7 @@ impl Coincheck {
         m.insert("updated".to_string(), Value::from(updated));
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -1286,12 +1286,12 @@ impl Coincheck {
             request.insert("amount".into(), amount);
         }
         let __ws_arg_4 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("cost".into()), &[])]);
-        let mut response: Value = self.private_post_exchange_orders(&[__ws_arg_4]).await;
-        let mut id: Option<String> = self.safe_string_k(response.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut response: crate::value::Dict = self.private_post_exchange_orders(&[__ws_arg_4]).await.into_dict();
+        let mut id: Option<String> = self.safe_string_k(&response, "id", &[]).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), Some(&market));
         Value::Null

@@ -3808,8 +3808,8 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_101: bool = true;
             while { if !__for_first_101 { i += 1; } __for_first_101 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut item: Value = get_value(&obj, &key);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut item: Value = get_value(&obj, key.as_deref());
             if (item == Value::Null) {
                 continue;
             }
@@ -3817,7 +3817,7 @@ pub trait ExchangeBase:
                 let mut m = indexmap::IndexMap::new();
                 m
             }), &[item]);
-            if let Value::Dict(__d) = &mut itemWithKey { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&keyName), key); }
+            if let Value::Dict(__d) = &mut itemWithKey { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&keyName), Value::from(key.as_deref())); }
             result.push(itemWithKey);
         }
         }
@@ -3836,10 +3836,10 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_102: bool = true;
             while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = get_value(&dict, &key);
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut value: Value = get_value(&dict, key.as_deref());
             if matches!(&value, Value::Str(_)) {
-                reversed.insert(crate::runtime::stringify_param(&value), key);
+                reversed.insert(crate::runtime::stringify_param(&value), Value::from(key.as_deref()));
             }
         }
         }
@@ -6842,10 +6842,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_137: bool = true;
             while { if !__for_first_137 { i += 1; } __for_first_137 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (string != Value::Null) {
-                if Value::Int(string.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
-                    return key;
+                if Value::Int(string.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+                    return key.map(Value::from).unwrap_or(Value::Null);
                 }
             }
         }
@@ -7920,24 +7920,24 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             return Value::Str("1".into());
         }
         if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
-            let mut parsedPrecision: Value = Value::Str("0.".into());
+            let mut parsedPrecision: String = "0.".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_141: bool = true;
                 while { if !__for_first_141 { i += 1; } __for_first_141 = false; (i as f64) < (match (&(precisionNumber), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
-                parsedPrecision = Value::Str(format!("{}{}", parsedPrecision, "0").into());
+                parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
             return Value::Str(format!("{}{}", parsedPrecision, "1").into());
         }  else {
-            let mut parsedPrecision: Value = Value::Str("1".into());
+            let mut parsedPrecision: String = "1".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_142: bool = true;
                 while { if !__for_first_142 { i += 1; } __for_first_142 = false; (i as f64) < (match (&(Value::Int(-1)), &(precisionNumber)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
                     Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
-                parsedPrecision = Value::Str(format!("{}{}", parsedPrecision, "0").into());
+                parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
             return Value::Str(format!("{}{}", parsedPrecision, "0").into());
@@ -8117,9 +8117,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_145: bool = true;
                 while { if !__for_first_145 { i += 1; } __for_first_145 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, &marketId), Some(&market)), &[params.clone()]));
+                let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+                let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
+                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_last_price(self, get_value(&pricesData, marketId.as_deref()), Some(&market)), &[params.clone()]));
             }
             }
         }
@@ -8172,9 +8172,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_147: bool = true;
                 while { if !__for_first_147 { i += 1; } __for_first_147 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, &marketId), Some(&market)), &[params.clone()]));
+                let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+                let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
+                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_ticker(self, get_value(&tickers, marketId.as_deref()), Some(&market)), &[params.clone()]));
             }
             }
         }
@@ -9349,8 +9349,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     return self.call_dynamic_checked(method.clone(), vec![(symbol).clone(), (since).clone(), (limit).clone(), (paramsMaxRetries).clone()]).await;
                 }
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
-                if matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]")) {
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
+                if e.names("RateLimitExceeded") {
                     panic!("{}", e);
                 }
                 errors += 1;
@@ -9838,9 +9838,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_172: bool = true;
                 while { if !__for_first_172 { i += 1; } __for_first_172 = false; i < (marketIds.len() as i64) } {
-                let mut marketId: Value = marketIds.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::types::Market = self.safe_market(marketId.clone(), None, &[]);
-                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, &marketId), Some(&market)), &[params.clone()]));
+                let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
+                let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[]);
+                results.push(self.extend(<Self as crate::exchange_generated::ExchangeBase>::parse_greeks(self, get_value(&greeks, marketId.as_deref()), Some(&market)), &[params.clone()]));
             }
             }
         }
@@ -11805,7 +11805,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut orderBook: crate::types::OrderBook = (match self.fetch_order_book(symbol.as_str().unwrap_or_default(), limit.as_i64(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 return crate::types::IntoRaw::into_raw(orderBook);
              #[allow(unreachable_code)] { Value::Null }})).await;
-match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: Value = panic_to_value(_try_err); 
+match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
                 if is_equal(&(Value::Int((i + 1))), &fetchSnapshotMaxRetries) {
                     panic!("{}", e);
                 }

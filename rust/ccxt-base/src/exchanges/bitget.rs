@@ -6085,7 +6085,7 @@ if _try_result.is_err() {
         let mut stock: bool = ((assetType.as_deref() == Some("stock")) || ((assetType.is_none()) && isReality));
         let mut category: Option<String> = self.safe_string_k(market.clone(), "category", &[]).as_str().map(str::to_owned);
         if (category.is_some()) {
-            let mut utaMarket: crate::value::Dict = self.parse_uta_market(market.clone(), (stock)).into_dict();
+            let mut utaMarket: crate::value::Dict = self.parse_uta_market(market.clone(), stock).into_dict();
             let __ws_arg_1 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -6458,13 +6458,13 @@ if _try_result.is_err() {
             if isUtaMargin {
                 let mut isolatedBase: Option<String> = self.safe_string_k(market.clone(), "isIsolatedBaseBorrowable", &[]).as_str().map(str::to_owned);
                 let mut isolatedQuote: Option<String> = self.safe_string_k(market.clone(), "isIsolatedQuotedBorrowable", &[]).as_str().map(str::to_owned);
-                let mut isolated: Value = Value::Bool((isolatedBase.as_deref() == Some("YES")) || (isolatedQuote.as_deref() == Some("YES")));
+                let mut isolated: bool = ((isolatedBase.as_deref() == Some("YES")) || (isolatedQuote.as_deref() == Some("YES")));
                 let mut maxCrossLeverage: Option<String> = self.safe_string_k(market.clone(), "maxCrossedLeverage", &[]).as_str().map(str::to_owned);
                 let mut cross: bool = maxCrossLeverage.as_deref() != Some("0");
                 marginModes = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("cross".to_string(), Value::Bool(cross));
-                        m.insert("isolated".to_string(), isolated);
+                        m.insert("isolated".to_string(), Value::Bool(isolated));
                     m
                 }));
                 isMarginTradingAllowed = true;
@@ -10753,8 +10753,8 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut failure: crate::value::List = self.safe_list_k(&data, "failureList", &[Value::from(vec![])]).into_list();
         let mut orderInfo: crate::value::List = self.safe_list_k(&data, "successList", &[Value::from(vec![])]).into_list();
-        let mut both: Value = self.array_concat(&orderInfo, &failure);
-        return self.parse_orders(both, Some(&market), &[]);
+        let mut both: crate::value::List = self.array_concat(&orderInfo, &failure).into_list();
+        return self.parse_orders(&both, Some(&market), &[]);
         Value::Null
         }).await?))
     }

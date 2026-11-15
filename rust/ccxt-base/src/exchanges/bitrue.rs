@@ -1578,7 +1578,7 @@ impl Bitrue {
         let mut filtersByType: crate::value::Dict = self.index_by(Value::Arr(filters), Value::Str("filterType".into())).into_dict();
         let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
         // spot markets say TRADING, futures contracts 1 (0 when offline)
-        let mut active: Value = Value::Bool((status.as_deref() == Some("TRADING")) || (status.as_deref() == Some("1")));
+        let mut active: bool = ((status.as_deref() == Some("TRADING")) || (status.as_deref() == Some("1")));
         let mut priceFilter: crate::value::Dict = self.safe_dict_k(&filtersByType, "PRICE_FILTER", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1618,7 +1618,7 @@ impl Bitrue {
         m.insert("swap".to_string(), Value::Bool(isContract));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("contract".to_string(), Value::Bool(isContract));
         m.insert("linear".to_string(), isLinear.map(Value::from).unwrap_or(Value::Null));
         m.insert("inverse".to_string(), isInverse.map(Value::from).unwrap_or(Value::Null));
@@ -2626,7 +2626,7 @@ impl Bitrue {
         let mut fills: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
         let mut clientOrderId: Option<String> = self.safe_string_k(order.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
         let mut timeInForce: Option<String> = self.safe_string_k(order.clone(), "timeInForce", &[]).as_str().map(str::to_owned);
-        let mut postOnly: Value = Value::Bool((type_var.as_deref() == Some("limit_maker")) || (timeInForce.as_deref() == Some("GTX")) || (type_var.as_deref() == Some("post_only")));
+        let mut postOnly: bool = (((type_var.as_deref() == Some("limit_maker")) || (timeInForce.as_deref() == Some("GTX"))) || (type_var.as_deref() == Some("post_only")));
         if (type_var.as_deref() == Some("limit_maker")) {
             type_var = Some("limit".to_string());
         }
@@ -2642,7 +2642,7 @@ impl Bitrue {
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce.map(Value::from).unwrap_or(Value::Null));
-        m.insert("postOnly".to_string(), postOnly);
+        m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
         m.insert("price".to_string(), price.map(Value::from).unwrap_or(Value::Null));
         m.insert("triggerPrice".to_string(), Value::from(triggerPrice));

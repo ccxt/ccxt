@@ -796,7 +796,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_info_exchange(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_info_exchange(&[params]).await.into_dict();
         //
         //     {
         //         "name": "Polymarket",
@@ -807,14 +807,14 @@ impl Polymarket {
         //         "engine_version": "0.0.69"
         //     }
         //
-        let mut cancelOnly: bool = self.safe_bool_k(response.clone(), "cancel_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut cancelOnly: bool = self.safe_bool_k(&response, "cancel_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if cancelOnly { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) }));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -1903,13 +1903,13 @@ impl Polymarket {
             let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut category: Option<String> = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "category", &[]).as_str().map(str::to_owned);
-            let mut entry: Value = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[Value::from(&fallback)]);
+            let mut entry: crate::value::Dict = self.safe_dict(Value::Map(byCategory.clone()), category.map(Value::from).unwrap_or(Value::Null), &[Value::from(&fallback)]).into_dict();
             result.insert(symbol.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), Value::from(&entry));
         m.insert("symbol".to_string(), Value::from(symbol));
-        m.insert("maker".to_string(), self.safe_number_k(entry.clone(), "maker_fee_rate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(entry, "taker_fee_rate", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&entry, "maker_fee_rate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&entry, "taker_fee_rate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -2639,7 +2639,7 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         self.load_proxy_credentials(&[]).await;
-        let mut response: Value = self.private_get_account_portfolio(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_account_portfolio(&[params]).await.into_dict();
         //
         //     {
         //         "positions": [],
@@ -2655,14 +2655,14 @@ impl Polymarket {
         //         "timestamp": 1788546565789
         //     }
         //
-        let mut margin: crate::value::Dict = self.safe_dict_k(response.clone(), "margin", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
+        let mut margin: crate::value::Dict = self.safe_dict_k(&response, "margin", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Dict(response));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), self.iso8601(timestamp));
             m

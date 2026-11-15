@@ -1173,7 +1173,7 @@ impl Blockchaincom {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
         //
         //     {
         //         "makerRate": "0.002",
@@ -1181,8 +1181,8 @@ impl Blockchaincom {
         //         "volumeInUSD": "0.0"
         //     }
         //
-        let mut makerFee: Option<f64> = self.safe_number_k(response.clone(), "makerRate", &[]).as_f64();
-        let mut takerFee: Option<f64> = self.safe_number_k(response.clone(), "takerRate", &[]).as_f64();
+        let mut makerFee: Option<f64> = self.safe_number_k(&response, "makerRate", &[]).as_f64();
+        let mut takerFee: Option<f64> = self.safe_number_k(&response, "takerRate", &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1195,7 +1195,7 @@ impl Blockchaincom {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(makerFee));
         m.insert("taker".to_string(), Value::from(takerFee));
@@ -1461,8 +1461,8 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_deposits_currency(&[__ws_arg_8]).await;
-        let mut rawAddress: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
+        let mut response: crate::value::Dict = self.private_post_deposits_currency(&[__ws_arg_8]).await.into_dict();
+        let mut rawAddress: Option<String> = self.safe_string_k(&response, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = None;
         let mut address: Option<String> = None;
         if (rawAddress.is_some()) {
@@ -1473,7 +1473,7 @@ impl Blockchaincom {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "code"));
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1809,7 +1809,7 @@ impl Blockchaincom {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_get_accounts(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_get_accounts(&[__ws_arg_14]).await.into_dict();
         //
         //     {
         //         "primary": [
@@ -1825,13 +1825,13 @@ impl Blockchaincom {
         //         ]
         //     }
         //
-        let mut balances: Option<crate::value::List> = self.safe_list(response.clone(), Value::from(accountName.clone()), &[]).into_opt_list();
+        let mut balances: Option<crate::value::List> = self.safe_list(&response, Value::from(accountName.clone()), &[]).into_opt_list();
         if (balances.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() could not find the \"").into()), accountName).into()), "\" account")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Dict(response));
             m
         });
         {

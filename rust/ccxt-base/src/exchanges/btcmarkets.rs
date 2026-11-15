@@ -1590,8 +1590,8 @@ impl Btcmarkets {
         //
         let mut cancelOrders: crate::value::List = self.safe_list_k(&response, "cancelOrders", &[Value::from(vec![])]).into_list();
         let mut unprocessedRequests: crate::value::List = self.safe_list_k(&response, "unprocessedRequests", &[Value::from(vec![])]).into_list();
-        let mut orders: Value = self.array_concat(&cancelOrders, &unprocessedRequests);
-        return self.parse_orders(orders, None, &[]);
+        let mut orders: crate::value::List = self.array_concat(&cancelOrders, &unprocessedRequests).into_list();
+        return self.parse_orders(&orders, None, &[]);
         Value::Null
         }).await?))
     }

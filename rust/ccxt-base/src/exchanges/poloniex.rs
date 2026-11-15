@@ -3837,7 +3837,7 @@ impl Poloniex {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: Value = self.private_get_feeinfo(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_feeinfo(&[params]).await.into_dict();
         //
         //     {
         //         "trxDiscount" : false,
@@ -3858,10 +3858,10 @@ impl Poloniex {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
-        m.insert("maker".to_string(), self.safe_number_k(response.clone(), "makerRate", &[]));
-        m.insert("taker".to_string(), self.safe_number_k(response.clone(), "takerRate", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(&response, "makerRate", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(&response, "takerRate", &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -5016,7 +5016,7 @@ impl Poloniex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.swap_private_get_v3_position_mode(&[params]).await;
+        let mut response: crate::value::Dict = self.swap_private_get_v3_position_mode(&[params]).await.into_dict();
         //
         //    {
         //        "code": "200",
@@ -5026,15 +5026,15 @@ impl Poloniex {
         //        }
         //    }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut posMode: Option<String> = self.safe_string_k(&data, "posMode", &[]).as_str().map(str::to_owned);
         let mut hedged: bool = posMode.as_deref() == Some("HEDGE");
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("hedged".to_string(), Value::Bool(hedged));
     m
 });

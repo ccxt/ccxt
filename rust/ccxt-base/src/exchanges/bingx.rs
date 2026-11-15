@@ -5319,10 +5319,10 @@ impl Bingx {
             let mut parsedResponse: Value = self.parse_json_value(response.clone());
             response = parsedResponse;
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5331,10 +5331,10 @@ impl Bingx {
             if ((market).inverse == Some(true)) {
                 result = response;
             }  else {
-                result = self.safe_dict_k(data.clone(), "order", &[data.clone()]);
+                result = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
             }
         }  else {
-            result = data;
+            result = Value::Dict(data);
         }
         // when the response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         let mut stopLossDict: Option<crate::value::Dict> = self.safe_dict_k(result.clone(), "stopLoss", &[]).into_opt_dict();
@@ -6118,8 +6118,8 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut order: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
-        return self.parse_order(order, market.as_ref());
+        let mut order: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::from(&data)]).into_dict();
+        return self.parse_order(&order, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -6411,8 +6411,8 @@ impl Bingx {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut order: Value = self.safe_dict_k(&data, "order", &[Value::from(&data)]);
-        return self.parse_order(order, market.as_ref());
+        let mut order: crate::value::Dict = self.safe_dict_k(&data, "order", &[Value::from(&data)]).into_dict();
+        return self.parse_order(&order, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -6979,15 +6979,15 @@ impl Bingx {
             m
         });
         let __ws_arg_50 = self.extend(Value::Map(request), &[&paramsSubType]);
-        let mut response: Value = self.api_asset_v1_private_post_transfer(&[__ws_arg_50]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
-        let mut timestamp: Option<i64> = self.safe_integer_k(response.clone(), "timestamp", &[]).as_i64();
+        let mut response: crate::value::Dict = self.api_asset_v1_private_post_transfer(&[__ws_arg_50]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
+        let mut timestamp: Option<i64> = self.safe_integer_k(&response, "timestamp", &[]).as_i64();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), self.safe_string2(&data, Value::Str("transferId".into()), Value::Str("tranId".into()), &[]));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
@@ -8584,7 +8584,7 @@ impl Bingx {
         if (subType.as_deref() == Some("inverse")) || ((market.is_some()) && matches!((self.safe_bool_k(&market, "inverse", &[Value::Bool(false)])), Value::Bool(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchPositionMode() is not supported for inverse swap markets")));
         }
-        let mut response: Value = self.swap_v1_private_get_position_side_dual(&[Value::Dict(paramsSubType)]).await;
+        let mut response: crate::value::Dict = self.swap_v1_private_get_position_side_dual(&[Value::Dict(paramsSubType)]).await.into_dict();
         //
         //     {
         //         "code": "0",
@@ -8595,14 +8595,14 @@ impl Bingx {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut dualSidePosition: Option<String> = self.safe_string_k(&data, "dualSidePosition", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("hedged".to_string(), (Value::Bool(dualSidePosition.as_deref() == Some("true"))));
     m
 });

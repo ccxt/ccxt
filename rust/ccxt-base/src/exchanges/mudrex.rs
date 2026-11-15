@@ -1040,25 +1040,25 @@ impl Mudrex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("spot")) {
             if (requested.is_some()) {
                 request.insert("currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-            response = self.private_get_wallet_funds(&[__ws_arg_5]).await;
+            response = self.private_get_wallet_funds(&[__ws_arg_5]).await.into_opt_dict();
         }  else {
             if (requested.is_some()) {
                 request.insert("trade_currency".into(), requested.clone().map(Value::from).unwrap_or(Value::Null));
             }
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_get_futures_funds(&[__ws_arg_6]).await;
+            response = self.private_get_futures_funds(&[__ws_arg_6]).await.into_opt_dict();
         }
         let mut currency: Option<String> = requested;
         if (currency.is_none()) {
             currency = Some("USDT".to_string());
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchBalance() returned empty response")));
         }
         let __ws_arg_7 = self.extend(response, &[Value::Map({
@@ -1131,14 +1131,14 @@ impl Mudrex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_futures_asset_id_leverage(&[__ws_arg_8]).await;
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut response: crate::value::Dict = self.private_get_futures_asset_id_leverage(&[__ws_arg_8]).await.into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), symbol);
         m.insert("marginMode".to_string(), self.safe_string_lower_k(&data, "margin_type", &[]));
         m.insert("longLeverage".to_string(), self.safe_number_k(&data, "leverage", &[]));

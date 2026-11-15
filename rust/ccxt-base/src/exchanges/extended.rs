@@ -2863,7 +2863,7 @@ impl Extended {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsWithdrawTag, &["chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution"], &[]).into_dict();
         let __ws_arg_13 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await;
+        let mut response: crate::value::Dict = self.v1_private_post_user_withdrawal(&[__ws_arg_13]).await.into_dict();
         //
         //     {
         //         "status": "OK",
@@ -2873,8 +2873,8 @@ impl Extended {
         let mut now: i64 = self.milliseconds();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
-        m.insert("id".to_string(), self.safe_string_k(response, "data", &[]));
+        m.insert("info".to_string(), Value::from(&response));
+        m.insert("id".to_string(), self.safe_string_k(&response, "data", &[]));
         m.insert("txid".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(now));
@@ -3031,7 +3031,7 @@ impl Extended {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution"], &[]).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v1_private_post_user_transfer(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.v1_private_post_user_transfer(&[__ws_arg_15]).await.into_dict();
         //
         //     {
         //         "status": "OK",
@@ -3041,10 +3041,10 @@ impl Extended {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut validSignature: Option<bool> = self.safe_bool_k(&data, "validSignature", &[]).as_bool();
         let mut now: i64 = self.milliseconds();
         let mut status: String = "pending".to_string();
@@ -3053,7 +3053,7 @@ impl Extended {
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), self.safe_string_k(&data, "id", &[]));
         m.insert("timestamp".to_string(), Value::from(now));
         m.insert("datetime".to_string(), self.iso8601(now));

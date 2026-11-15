@@ -1394,8 +1394,8 @@ impl Coinbaseexchange {
         //         },
         //     ]
         //
-        let mut accounts: Value = self.to_array(&response);
-        return self.parse_accounts(accounts, &[params]);
+        let mut accounts: crate::value::List = self.to_array(&response).into_list();
+        return self.parse_accounts(&accounts, &[params]);
         Value::Null
         }).await?))
     }
@@ -1951,7 +1951,7 @@ impl Coinbaseexchange {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_get_fees(&[params]).await;
+        let mut response: crate::value::Dict = self.private_get_fees(&[params]).await.into_dict();
         //
         //    {
         //        "maker_fee_rate": "0.0050",
@@ -1959,8 +1959,8 @@ impl Coinbaseexchange {
         //        "usd_volume": "43806.92"
         //    }
         //
-        let mut maker: Option<f64> = self.safe_number_k(response.clone(), "maker_fee_rate", &[]).as_f64();
-        let mut taker: Option<f64> = self.safe_number_k(response.clone(), "taker_fee_rate", &[]).as_f64();
+        let mut maker: Option<f64> = self.safe_number_k(&response, "maker_fee_rate", &[]).as_f64();
+        let mut taker: Option<f64> = self.safe_number_k(&response, "taker_fee_rate", &[]).as_f64();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1973,7 +1973,7 @@ impl Coinbaseexchange {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response.clone());
+        m.insert("info".to_string(), Value::from(&response));
         m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
@@ -3201,16 +3201,16 @@ impl Coinbaseexchange {
             m
         });
         let __ws_arg_30 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_coinbase_accounts_id_addresses(&[__ws_arg_30]).await;
-        let mut address: Option<String> = self.safe_string_k(response.clone(), "address", &[]).as_str().map(str::to_owned);
-        let mut tag: Option<String> = self.safe_string_k(response.clone(), "destination_tag", &[]).as_str().map(str::to_owned);
+        let mut response: crate::value::Dict = self.private_post_coinbase_accounts_id_addresses(&[__ws_arg_30]).await.into_dict();
+        let mut address: Option<String> = self.safe_string_k(&response, "address", &[]).as_str().map(str::to_owned);
+        let mut tag: Option<String> = self.safe_string_k(&response, "destination_tag", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currency".to_string(), code);
         m.insert("address".to_string(), self.check_address(&[address.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("network".to_string(), Value::Null);
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

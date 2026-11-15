@@ -830,8 +830,8 @@ impl Myriad {
             let __ws_arg_3 = self.extend(Value::Map(request), &[params.clone()]);
             result = self.myriad_public_get_questions_id(&[__ws_arg_3]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            if (matches!(&e, Value::Str(__s) if __s.contains("[RateLimitExceeded]"))) || (is_instance(&e, &Value::Str("AuthenticationError".into()))) {
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
+            if (e.names("RateLimitExceeded")) || (e.is_instance_of("AuthenticationError")) {
                 panic!("{}", e);
             }
             let mut keywordRequest: indexmap::IndexMap<String, Value> = ({
@@ -3144,9 +3144,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut active: bool = state == "open";
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         let mut resolvedOutcomeId: String = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-        let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
-        let mut hasResolution: bool = (resolvedOutcomeId != "-1") && (true) && (resolvedOutcomeId != "");
-        let mut marketResolved: Value = Value::Bool(hasResolution || voided);
+        let mut voided: bool = self.safe_bool_k(raw.clone(), "voided", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut hasResolution: bool = (((resolvedOutcomeId != "-1") && (true)) && (resolvedOutcomeId != ""));
+        let mut marketResolved: bool = (hasResolution || voided);
         let mut resolvedOutcome: Option<String> = None;
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volume24h", &[]).as_f64();
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
@@ -3268,7 +3268,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         m.insert("option".to_string(), Value::Bool(false));
         m.insert("prediction".to_string(), Value::Bool(true));
         m.insert("active".to_string(), Value::Bool(active));
-        m.insert("resolved".to_string(), marketResolved);
+        m.insert("resolved".to_string(), Value::Bool(marketResolved));
         m.insert("resolvedOutcome".to_string(), marketResolvedOutcome.map(Value::from).unwrap_or(Value::Null));
         m.insert("contract".to_string(), Value::Bool(false));
         m.insert("linear".to_string(), Value::Null);
@@ -3402,7 +3402,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let __ws_arg_24 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.myriad_public_get_markets_id(&[__ws_arg_24]).await;
+        let mut response: crate::value::Dict = self.myriad_public_get_markets_id(&[__ws_arg_24]).await.into_dict();
         //
         //     {
         //         "fees": {
@@ -3411,10 +3411,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //         }
         //     }
         //
-        let mut fees: crate::value::Dict = self.safe_dict_k(response.clone(), "fees", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut fees: crate::value::Dict = self.safe_dict_k(&response, "fees", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut buy: crate::value::Dict = self.safe_dict_k(&fees, "buy", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3425,7 +3425,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("outcome".to_string(), self.safe_outcome_symbol(Value::Null, &[outcomeObj.clone()]));
         m.insert("outcomeId".to_string(), self.safe_string_k(outcomeObj, "outcomeId", &[]));
         m.insert("maker".to_string(), self.safe_number_k(&sell, "fee", &[]));

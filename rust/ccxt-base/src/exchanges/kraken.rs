@@ -1302,14 +1302,14 @@ impl Kraken {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_system_status(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_system_status(&[params]).await.into_dict();
         //
         // {
         //     error: [],
         //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
         // }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "result", &[]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "result", &[]).into_dict();
         let mut statusRaw: Option<String> = self.safe_string_k(&result, "status", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1317,7 +1317,7 @@ impl Kraken {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -3709,8 +3709,8 @@ impl Kraken {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut tradesList: Value = self.to_array(Value::Map(trades));
-        return self.parse_trades(tradesList, market.as_ref(), &[since, limit]);
+        let mut tradesList: crate::value::List = self.to_array(Value::Map(trades)).into_list();
+        return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -3760,7 +3760,7 @@ impl Kraken {
             let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
             response = self.private_post_cancel_order(&[__ws_arg_15]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
-if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
+if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             if (self.last_http_response.clone() != Value::Null) && (self.last_http_response.as_str() != Some("")) {
                 if self.last_http_response.as_str().unwrap_or("").contains("EOrder:Unknown order") {
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrder() error ").into()), self.last_http_response.clone())));

@@ -2079,7 +2079,7 @@ impl Lbank {
         let mut intervalString: Option<String> = None;
         if (positionFeeTime.is_some()) {
             let mut interval: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = positionFeeTime { Some((__l as f64) / 60.0) } else { None })) { Some(__l / 60.0) } else { None })));
-            intervalString = Some(format!("{}{}", Value::Str(format!("{}", Value::from(interval)).into()), Value::Str("h".into())));
+            intervalString = Some(format!("{}{}", Value::from(format!("{}", Value::from(interval))), Value::Str("h".into())));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3297,7 +3297,7 @@ impl Lbank {
             request.insert("netWork".into(), network.map(Value::from).unwrap_or(Value::Null)); // ... yes, really lol
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await;
+        let mut response: crate::value::Dict = self.spot_private_post_get_deposit_address(&[__ws_arg_21]).await.into_dict();
         //
         //      {
         //          "result":true,
@@ -3311,12 +3311,12 @@ impl Lbank {
         //          "ts":1648075865103
         //      }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&result, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&result, "memo", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code.clone());
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&result, "netWork", &[]), code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -3354,7 +3354,7 @@ impl Lbank {
             request.insert("networkName".into(), network.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_22 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_private_post_supplement_get_deposit_address(&[__ws_arg_22]).await;
+        let mut response: crate::value::Dict = self.spot_private_post_supplement_get_deposit_address(&[__ws_arg_22]).await.into_dict();
         //
         //      {
         //          "result":true,
@@ -3367,12 +3367,12 @@ impl Lbank {
         //          "ts":1648073818880
         //     }
         //
-        let mut result: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[]).into_dict();
+        let mut result: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&result, "address", &[]).as_str().map(str::to_owned);
         let mut tag: Option<String> = self.safe_string_k(&result, "memo", &[]).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("currency".to_string(), code);
         m.insert("network".to_string(), Value::Null);
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
@@ -3787,7 +3787,7 @@ impl Lbank {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.spot_private_post_supplement_user_info(&[]).await;
+        let mut response: crate::value::Dict = self.spot_private_post_supplement_user_info(&[]).await.into_dict();
         //
         //    {
         //        "result": "true",
@@ -3818,7 +3818,7 @@ impl Lbank {
         //        "code": 0
         //    }
         //
-        let mut result: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3870,7 +3870,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
 
@@ -3898,7 +3898,7 @@ impl Lbank {
             request.insert("assetCode".into(), crate::value::KeyRead::key_read(&&currency, "id"));
         }
         let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.spot_public_get_withdraw_configs(&[__ws_arg_27]).await;
+        let mut response: crate::value::Dict = self.spot_public_get_withdraw_configs(&[__ws_arg_27]).await.into_dict();
         //
         //    {
         //        "result": "true",
@@ -3920,7 +3920,7 @@ impl Lbank {
         //        "ts": "1663364435973"
         //    }
         //
-        let mut result: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+        let mut result: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut withdrawFees: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3960,7 +3960,7 @@ impl Lbank {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
 
@@ -4138,11 +4138,11 @@ impl Lbank {
                 if (code.is_some()) && ((codes == Value::Null) || self.in_array(&code, codes.clone())) {
                     let mut withdrawFee: Option<f64> = self.safe_number_k(fee.clone(), "fee", &[]).as_f64();
                     if (withdrawFee.is_some()) {
-                        let mut resultValue: Value = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]);
-                        if (resultValue == Value::Null) {
+                        let mut resultValue: Option<crate::value::Dict> = self.safe_dict(Value::Map(result.clone()), Value::from(code.as_deref()), &[]).into_opt_dict();
+                        if (resultValue.is_none()) {
                             result.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::from(vec![fee.clone()])));
                         }  else {
-                            let mut infoList: crate::value::List = self.array_concat(resultValue.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::from(vec![fee.clone()])).into_list();
+                            let mut infoList: crate::value::List = self.array_concat(crate::value::KeyRead::key_read(&&resultValue, "info"), Value::from(vec![fee.clone()])).into_list();
                             result.insert(code.as_deref().unwrap_or("null").to_string(), self.extend(resultValue, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Arr(infoList));

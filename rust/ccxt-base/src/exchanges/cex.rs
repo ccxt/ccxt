@@ -1502,8 +1502,8 @@ impl Cex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut arrays: Value = self.to_array(&balances);
-        return self.parse_accounts(arrays, &[params]);
+        let mut arrays: crate::value::List = self.to_array(&balances).into_list();
+        return self.parse_accounts(&arrays, &[params]);
         Value::Null
         }).await?))
     }
