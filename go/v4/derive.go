@@ -1083,7 +1083,7 @@ func (this *Derive) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1110,7 +1110,7 @@ func (this *Derive) fetchSwapMarketsBody(ch chan AsyncResult[[]MarketInterface],
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1137,7 +1137,7 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
 	}
 	var instruments any = nil
 	if r.Value != nil {
-		instruments = MarketInterfacesToList(r.Value)
+		instruments = MapSliceToList(r.Value)
 	}
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ParseMarkets(instruments))}
@@ -1153,12 +1153,12 @@ func (this *Derive) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of raw instrument entries
  */
-func (this *Derive) GetMarketsPaginatedAsync(request map[string]any, optionalArgs ...any) <-chan AsyncResult[[]MarketInterface] {
-	ch := make(chan AsyncResult[[]MarketInterface], 1)
+func (this *Derive) GetMarketsPaginatedAsync(request map[string]any, optionalArgs ...any) <-chan AsyncResult[[]map[string]any] {
+	ch := make(chan AsyncResult[[]map[string]any], 1)
 	go this.getMarketsPaginatedBody(ch, request, optionalArgs...)
 	return ch
 }
-func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterface], request map[string]any, optionalArgs ...any) any {
+func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]map[string]any], request map[string]any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
@@ -1190,7 +1190,7 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]MarketInterfac
 		}
 	}
 
-	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(allInstruments)}
+	ch <- AsyncResult[[]map[string]any]{Value: MapSliceFromList(allInstruments)}
 	return nil
 }
 func (this *Derive) ParseMarket(market any) map[string]any {

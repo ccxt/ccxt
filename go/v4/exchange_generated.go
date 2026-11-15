@@ -1865,7 +1865,7 @@ func (this *BaseExchange) IsRoundNumber(value any) bool {
 	// this method is similar to isInteger, but this is more loyal and does not check for types.
 	// i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
 	var res any = this.ParseToNumeric((Mod(value, 1)))
-	return (res == 0)
+	return (res == int64(0))
 }
 func (this *BaseExchange) IsEmptyString(value any) bool {
 	return !this.ValueIsDefined(value) || (value == "")
