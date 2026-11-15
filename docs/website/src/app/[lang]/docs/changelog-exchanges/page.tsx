@@ -169,6 +169,7 @@ export default async function Page() {
     ...(upcoming ? [{ title: 'Upcoming deadlines', url: '#upcoming', depth: 3 }] : []),
     { title: 'Coverage', url: '#coverage', depth: 2 },
     { title: 'Feeds & API', url: '#feeds', depth: 2 },
+    { title: 'Collector status', url: '#status', depth: 2 },
   ];
   const coverageSummary =
     `${monitoredCount} venues through ${health.sources.length} sources — ` +
@@ -184,27 +185,6 @@ export default async function Page() {
         stays up to date and you don&apos;t have to track them yourself. Every deprecation, breaking change and new
         endpoint in one place.
       </DocsDescription>
-
-      <dl className={`not-prose grid grid-cols-2 gap-2 border-b pb-6 sm:grid-cols-4 ${CHANGELOG_CONTRAST}`}>
-        <Stat label="Venues monitored" value={String(monitoredCount)} />
-        <Stat
-          label="Sources healthy"
-          value={`${healthyCounted}/${countedSources}`}
-          tone={countedSources && healthyCounted < countedSources ? 'warn' : 'ok'}
-          note={blockedCount ? `+${blockedCount} blocked from CI` : undefined}
-          noteTitle={blockedCount ? 'Sources whose sites block datacenter IPs: expected, checked by hand, not counted as failing' : undefined}
-        />
-        <Stat
-          label="Entries (7d / 30d)"
-          value={`${last7} / ${last30}`}
-          hint={upcoming ? <a href="#upcoming" className="underline-offset-2 hover:underline">{upcoming} upcoming</a> : undefined}
-        />
-        <Stat
-          label="Last updated"
-          value={updated ? <time dateTime={updated}>{formatTimestamp(updated)}</time> : 'unavailable'}
-          small
-        />
-      </dl>
 
       <DocsBody>
         <h2 id="timeline">Timeline</h2>
@@ -265,6 +245,29 @@ export default async function Page() {
           returned) — pass it as <code>seenSince</code> on the next poll. With <code>seenSince</code>, <code>limit</code> pages forward through the
           oldest unseen entries and <code>hasMore: true</code> says to ask again right away.
         </p>
+
+        <h2 id="status">Collector status</h2>
+        <p>How the daily collector did on its last run. Sources blocked from CI are checked by hand and not counted as failing.</p>
+        <dl className={`not-prose grid grid-cols-2 gap-2 sm:grid-cols-4 ${CHANGELOG_CONTRAST}`}>
+          <Stat label="Venues monitored" value={String(monitoredCount)} />
+          <Stat
+            label="Sources healthy"
+            value={`${healthyCounted}/${countedSources}`}
+            tone={countedSources && healthyCounted < countedSources ? 'warn' : 'ok'}
+            note={blockedCount ? `+${blockedCount} blocked from CI` : undefined}
+            noteTitle={blockedCount ? 'Sources whose sites block datacenter IPs: expected, checked by hand, not counted as failing' : undefined}
+          />
+          <Stat
+            label="Entries (7d / 30d)"
+            value={`${last7} / ${last30}`}
+            hint={upcoming ? <a href="#upcoming" className="underline-offset-2 hover:underline">{upcoming} upcoming</a> : undefined}
+          />
+          <Stat
+            label="Last updated"
+            value={updated ? <time dateTime={updated}>{formatTimestamp(updated)}</time> : 'unavailable'}
+            small
+          />
+        </dl>
       </DocsBody>
     </DocsPage>
   );

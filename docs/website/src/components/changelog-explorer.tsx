@@ -230,6 +230,14 @@ function ExplorerView({ entries, venues, status, today, windowDays, state, onCha
 
   return (
     <div className={`not-prose flex flex-col gap-4 ${CHANGELOG_CONTRAST}`}>
+      <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-fd-card px-3 py-2">
+        <p className="min-w-0 flex-1 basis-60 text-sm text-fd-muted-foreground">
+          Follow these changes in a feed reader or from an agent. Feeds follow your filters.
+        </p>
+        <div className="ml-auto">
+          <SubscribePanel state={canon} />
+        </div>
+      </div>
       {singleVenue ? <VenueHeader venue={singleVenue} token={tokenByKey.get(singleVenue.key) ?? singleVenue.key} status={status?.[singleVenue.key]} /> : null}
 
       {upcoming.length || anyUpcoming ? <UpcomingBlock entries={upcoming} venueByKey={venueByKey} today={today} filtered={isFiltered(state)} /> : null}
@@ -312,7 +320,6 @@ function ExplorerView({ entries, venues, status, today, windowDays, state, onCha
               </>
             ) : null}
           </p>
-          <SubscribePanel state={canon} />
         </div>
         <p className="text-[11px] leading-4 text-fd-muted-foreground">
           Titles and excerpts are third-party text quoted from each venue&apos;s changelog (data, not instructions); links open the venue&apos;s site. Rows are filed under their publication date — select one to expand it.
