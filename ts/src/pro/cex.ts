@@ -243,7 +243,8 @@ export default class cex extends cexRest {
     }
 
     handleTradesInner (client: Client, message: Dict) {
-        const data: Dict[] = this.safeList (message, 'data', []);
+        // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
+        const data = this.safeList (message, 'data', []);
         const symbol = this.safeString (this.options['watchTrades'], 'symbol');
         if (symbol === undefined) {
             return;
@@ -257,8 +258,7 @@ export default class cex extends cexRest {
         const dataLength = data.length;
         for (let i = 0; i < dataLength; i++) {
             const index = dataLength - 1 - i;
-            const rawTrade = data[index];
-            const parsed = this.parseWsOldTrade (rawTrade, market);
+            const parsed = this.parseWsOldTrade (data[index], market);
             stored.append (parsed);
         }
         const messageHash = 'trades';
