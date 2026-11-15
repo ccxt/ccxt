@@ -8,7 +8,7 @@ export type Example = {
   label: string;
   description: string;
   // Rich snippets exist for the interpreted trio (TypeScript, Python, PHP) plus
-  // Java; Go/C# fall back to their language defaultCode.
+  // Java and Rust; Go/C# fall back to their language defaultCode.
   code: Partial<Record<RunnableLanguageId, string>>;
 };
 
@@ -46,6 +46,16 @@ public class Main {
     }
 }
 `,
+      rust: `use ccxt::{Binance, Params};
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Binance::new(None);
+    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+    println!("{}  last={:?}  bid={:?}  ask={:?}", ticker.symbol, ticker.last, ticker.bid, ticker.ask);
+    Ok(())
+}
+`,
     },
   },
   {
@@ -74,6 +84,23 @@ echo "bids:\\n";
 foreach ($ob['bids'] as $bid) { echo '  ' . $bid[0] . ' x ' . $bid[1] . "\\n"; }
 echo "asks:\\n";
 foreach ($ob['asks'] as $ask) { echo '  ' . $ask[0] . ' x ' . $ask[1] . "\\n"; }
+`,
+      rust: `use ccxt::{Kraken, Params};
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Kraken::new(None);
+    let ob = exchange.fetch_order_book("BTC/USD", Some(5), Params::none()).await?;
+    println!("bids:");
+    for [price, amount] in &ob.bids {
+        println!("  {price} x {amount}");
+    }
+    println!("asks:");
+    for [price, amount] in &ob.asks {
+        println!("  {price} x {amount}");
+    }
+    Ok(())
+}
 `,
     },
   },
@@ -105,6 +132,20 @@ foreach ($candles as $c) {
     echo gmdate('c', intval($c[0] / 1000)) . '  O ' . $c[1] . '  H ' . $c[2] . '  L ' . $c[3] . '  C ' . $c[4] . "\\n";
 }
 `,
+      rust: `use ccxt::{Binance, Params};
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Binance::new(None);
+    // timeframe, since and limit are positional Options: None means "unset".
+    let candles = exchange.fetch_ohlcv("ETH/USDT", Some("1h"), None, Some(5), Params::none()).await?;
+    for [ts, o, h, l, c, _v] in candles {
+        let datetime = exchange.iso8601(ccxt::Value::Int(ts as i64));
+        println!("{datetime}  O {o}  H {h}  L {l}  C {c}");
+    }
+    Ok(())
+}
+`,
     },
   },
   {
@@ -134,6 +175,18 @@ $markets = $exchange->load_markets();
 $symbols = array_keys($markets);
 echo $exchange->id . ' lists ' . count($symbols) . " markets\\n";
 echo implode(', ', array_slice($symbols, 0, 20)) . "\\n";
+`,
+      rust: `use ccxt::Coinbase;
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Coinbase::new(None);
+    let markets = exchange.try_load_markets(false).await?;
+    let symbols: Vec<&str> = markets.iter().map(|m| m.symbol.as_str()).collect();
+    println!("{} lists {} markets", exchange.id(), symbols.len());
+    println!("{}", symbols[..symbols.len().min(20)].join(", "));
+    Ok(())
+}
 `,
     },
   },
@@ -177,6 +230,25 @@ foreach ($ids as $id) {
     } catch (\\Exception $e) {
         echo str_pad($id, 10) . ' (no BTC/USDT: ' . get_class($e) . ")\\n";
     }
+}
+`,
+      rust: `use ccxt::{Params, TypedExchangeExt};
+
+#[tokio::main]
+async fn main() {
+    let ids = ["binance", "kraken", "coinbase", "bitfinex", "okx"];
+    // ccxt::from_id builds any exchange by its id as a Box<dyn TypedExchange>;
+    // the typed unified methods come from the TypedExchangeExt trait.
+    // Fan out all five requests concurrently, like Promise.all.
+    let rows = futures::future::join_all(ids.iter().map(|id| async move {
+        let mut exchange = ccxt::from_id(id, None).expect("unknown exchange id");
+        match exchange.fetch_ticker("BTC/USDT", Params::none()).await {
+            Ok(ticker) => format!("{id:<10} {:?}", ticker.last),
+            Err(e) => format!("{id:<10} (no BTC/USDT: {})", e.kind),
+        }
+    }))
+    .await;
+    println!("{}", rows.join("\\n"));
 }
 `,
     },
@@ -481,6 +553,61 @@ public class Main {
     }
 }
 `,
+      rust: `use ccxt::{safe_bool, safe_string, Params, Value};
+use ccxt_prediction::{Polymarket, TypedExchange};
+
+// Prediction markets live in the ccxt-prediction crate (Polymarket, Kalshi,
+// Limitless, Myriad, Hyperliquid, ...).
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Polymarket::new(None);
+
+    // 1) search events by keyword (fetch_events must be scoped — by query, queries, tags, eventId or slug).
+    //    It has no typed wrapper yet, so call it through call_raw and walk the returned Value.
+    let query = Params::new().with_str("query", "Bitcoin").with_int("limit", 5);
+    let events = exchange.call_raw("fetch_events", vec![query.into_value()]).await?;
+    let events = events.as_array().cloned().unwrap_or_default();
+    println!("found {} events for \\"Bitcoin\\"", events.len());
+
+    // 2) collect the outcome tokens of still-open markets (resolved ones have no book)
+    let list = |v: &Value, key: &str| ccxt::value::get_value_k(v, key).as_array().cloned().unwrap_or_default();
+    let mut candidates = Vec::new();
+    for event in &events {
+        for market in list(event, "markets") {
+            if safe_bool(&market, "resolved", None) == Some(true) {
+                continue;
+            }
+            for outcome in list(&market, "outcomes") {
+                if let Some(handle) = safe_string(&outcome, "outcome", None) {
+                    candidates.push((
+                        safe_string(event, "title", None),
+                        safe_string(&market, "market", None),
+                        safe_string(&outcome, "label", None),
+                        handle,
+                    ));
+                }
+            }
+        }
+    }
+
+    // 3) fetch the ticker of the first outcome that has a live order book —
+    //    its price is the market-implied probability of that outcome.
+    for (event, market, label, handle) in candidates {
+        let Ok(ticker) = exchange.fetch_ticker(&handle, Params::none()).await else {
+            continue; // no order book for this outcome — try the next one
+        };
+        println!("event:   {}", event.unwrap_or_default());
+        println!("market:  {}", market.unwrap_or_default());
+        println!("outcome: {} -> {}", label.unwrap_or_default(), handle);
+        println!("bid={:?}  ask={:?}  last={:?}", ticker.bid, ticker.ask, ticker.last);
+        if let Some(prob) = ticker.last.or(ticker.bid) {
+            println!("implied probability: {:.1}%", prob * 100.0);
+        }
+        break;
+    }
+    Ok(())
+}
+`,
     },
   },
   {
@@ -528,6 +655,23 @@ public class Main {
         }
         exchange.close();
     }
+}
+`,
+      rust: `use ccxt::Params;
+use ccxt_pro::Binance; // ccxt-pro = WebSockets (watch_* methods)
+
+#[tokio::main]
+async fn main() -> Result<(), ccxt::ExchangeError> {
+    let mut exchange = Binance::new(None);
+    // ccxt-rust dials WebSockets directly, ignoring proxy env vars, so tunnel
+    // watch_* through the sandbox's egress proxy (empty = no proxy elsewhere).
+    exchange.set_ws_proxy(&std::env::var("HTTPS_PROXY").unwrap_or_default());
+    // Stream a few live updates, then return so the run finishes.
+    for _ in 0..5 {
+        let ticker = exchange.watch_ticker("BTC/USDT", Params::none()).await?;
+        println!("{}  {}  last={:?}", ticker.datetime.unwrap_or_default(), ticker.symbol, ticker.last);
+    }
+    Ok(())
 }
 `,
     },
