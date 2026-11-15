@@ -9862,7 +9862,7 @@ export class RustTranspilerBuilder {
                   `        }`
                 : `\n        // async-virtual: try the derived exchange first\n` +
                 `        if let Some(__v) = self.dispatch_to_derived("${name}", ${vecBuild}).await {\n` +
-                `            if !matches!(__v, crate::Value::Null) { return __v; }\n` +
+                `            if !matches!(__v, crate::Value::Null) { return ${/->\s*Option<crate::types::Market>/.test(m[0]) ? 'crate::types::FromRaw::from_raw(__v)' : '__v'}; }\n` +
                 `        }\n`;
             if (typed) {
                 const argsEnd = content.indexOf('\n', content.indexOf('let __args: Vec<Value>', m.index + m[0].length));

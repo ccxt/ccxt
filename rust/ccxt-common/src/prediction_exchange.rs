@@ -51,7 +51,7 @@ impl PredictionExchange {
 /// Core. Blanket-impl'd for every `PredictionBase`.
 pub trait PredictionRuntime: crate::prediction_exchange_generated::PredictionBase {
     /// Venue `super.fetchOutcome(outcome)` → the PredictionExchange base impl.
-    fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
+    fn super_fetch_outcome(&mut self, outcome_symbol: Value) -> impl ::std::future::Future<Output = Option<crate::types::Market>> + Send { async move {
         <Self as crate::prediction_exchange_generated::PredictionBase>::fetch_outcome(self, outcome_symbol).await
     } }
     /// Base `super.fetchOHLCV(...)` → the shared `Exchange` implementation.
