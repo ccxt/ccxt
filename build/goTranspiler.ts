@@ -8151,6 +8151,7 @@ ${caseStatements.join('\n')}
         // the `any` local carries the plain value, matching every other language port.
         const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
         const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601|' + CCXT_GO_STRING_PTR_METHOD_NAMES.join ('|') + ')\\((?:[^()]|\\([^()]*\\))*\\)';
+        const safeCallNoOmitZero = safeCall.replace ('|OmitZero)', ')');
         content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
         // A SafeBool* call compared directly to a bool literal has no local for the unwrap
         // above, and the printer emits the comparison raw -- `this.SafeBool(..) == true`.
@@ -8190,7 +8191,10 @@ ${caseStatements.join('\n')}
             });
             const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
-            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
+            // ral-84g4: OmitZero answers *string (ral-77g4) but an `any` local it reassigns was never
+            // unwrapped (its old `any` return held the plain string); keep those writes unwrapped:
+            // every nil test of such a local is the deref-aware IsEqual (GO_HELPER_RETURN_TYPES)
+            fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCallNoOmitZero + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
             // An `any` name can still receive a typed pointer from its caller (an `any` parameter
             // fed a *string by another exchange method), so `name == "literal"` compares an
             // interface against an untyped constant and is always false. Route those via IsEqual.

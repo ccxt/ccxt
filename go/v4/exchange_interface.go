@@ -314,7 +314,7 @@ type ICoreExchange interface {
 	ParseNumber(v any, a ...any) *float64
 	ParsePrecision(precision any) any
 	PrecisionFromString(str2 any) int
-	OmitZero(v any) any
+	OmitZero(v any) *string
 	FetchLeverageTiersAsync(optionalArgs ...any) <-chan AsyncResult[LeverageTiers]
 	FetchMarginModeAsync(symbol any, optionalArgs ...any) <-chan AsyncResult[MarginMode]
 	FetchMarketLeverageTiersAsync(symbol string, optionalArgs ...any) <-chan AsyncResult[[]LeverageTier]
