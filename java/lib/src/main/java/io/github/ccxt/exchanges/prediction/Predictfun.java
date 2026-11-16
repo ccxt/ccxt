@@ -1637,7 +1637,7 @@ public class Predictfun extends PredictfunApi
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("signerAddress", signerAddress);
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1936,8 +1936,8 @@ public class Predictfun extends PredictfunApi
      */
     public String hashMessage(String message)
     {
-        Object binaryMessage = this.encode(message);
-        Object binaryMessageLength = this.binaryLength(binaryMessage);
+        byte[] binaryMessage = this.encode(message);
+        Integer binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
@@ -2092,7 +2092,7 @@ public class Predictfun extends PredictfunApi
 }}));
         // ethEncodeStructuredData returns the EIP-712 digest, which is both what gets signed and
         // the order hash the venue indexes the order by
-        Object encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
+        byte[] encoded = this.ethEncodeStructuredData(domain, new HashMap<String, Object>() {{
             put( "Order", orderStruct );
         }}, order);
         // ethEncodeStructuredData returns the 0x1901 || domainSeparator || structHash preimage,
@@ -2578,7 +2578,7 @@ public class Predictfun extends PredictfunApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -2777,7 +2777,7 @@ public class Predictfun extends PredictfunApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -3104,13 +3104,13 @@ public class Predictfun extends PredictfunApi
      */
     public Object signEvmTransaction(Map<String, Object> tx, Object privateKey)
     {
-        Object accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
+        String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
         List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Map<String,Object> signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
-        Object rHex = this.safeString(signature, "r");
-        Object sHex = this.safeString(signature, "s");
+        String rHex = this.safeString(signature, "r");
+        String sHex = this.safeString(signature, "s");
         rHex = this.padHexToEven((String) (rHex));
         sHex = this.padHexToEven((String) (sHex));
         Long yParity = this.safeInteger(signature, "v");

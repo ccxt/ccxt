@@ -3159,10 +3159,10 @@ public class Mexc extends MexcApi
                 request.put("triggerType", triggerType);
                 request.put("executeCycle", this.safeInteger(paramsOmitted, "executeCycle", 1));
                 request.put("trend", this.safeInteger(paramsOmitted, "trend", 1));
-                Object planOrderType = orderType;
+                Long planOrderType = orderType;
                 if ((orderType != null && orderType == 6))
                 {
-                    planOrderType = 5; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
+                    planOrderType = 5L; // 6 (convert to current price) does not exist for trigger orders, 5 is their market type
                 }
                 request.put("orderType", this.safeInteger(paramsOmitted, "orderType", planOrderType));
                 response = (this.contractPrivatePostPlanorderPlace(this.extend(request, paramsTriggerDirection))).join();
@@ -5781,7 +5781,7 @@ public class Mexc extends MexcApi
 
             String network = this.safeString(parameters, "network");
             Object addressStructures = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
-            Object key = null;
+            String key = null;
             if (!java.util.Objects.equals(network, null))
             {
                 key = this.networkIdToCode(network, code);
@@ -6019,7 +6019,7 @@ public class Mexc extends MexcApi
             currencyId = (currencyParts == null || 0 >= currencyParts.size() ? null : currencyParts.get(0));
         }
         String code = this.safeCurrencyCode((String) (currencyId), currency);
-        Object network = null;
+        String network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (!java.util.Objects.equals(rawNetwork, null))
         {

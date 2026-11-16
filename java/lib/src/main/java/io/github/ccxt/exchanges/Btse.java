@@ -4341,10 +4341,10 @@ public class Btse extends BtseApi
             this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), legacyMessage, feedback);
             throw new ExchangeError(feedback) ;
         }
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((response instanceof List))
         {
-            rows = response;
+            rows = (List<Object>) response;
         } else
         {
             rows = new ArrayList<Object>(Arrays.asList(response));

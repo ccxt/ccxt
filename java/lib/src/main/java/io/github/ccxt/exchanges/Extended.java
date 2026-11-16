@@ -1619,14 +1619,14 @@ public class Extended extends ExtendedApi
             }
             Map<String, Object> market = this.market(symbol);
             String symbolValue = this.safeString(market, "symbol", "");
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(paramsPaginate, "until", this.milliseconds());
             Long endTime = this.safeInteger(paramsPaginate, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Long sinceResolved = since;
             if ((!java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(since, null)))
             {
-                sinceResolved = (endTime - (((limitResolved * 60L) * 60L) * 1000L));
+                sinceResolved = (endTime - ((((limitResolved * 60L) * 60L) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", market.get("id"));
@@ -1718,14 +1718,14 @@ public class Extended extends ExtendedApi
             {
                 throw new BadRequest((this.id + " fetchOpenInterestHistory() supports 1h and 1d timeframes only")) ;
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Long endTime = this.safeInteger(parameters, "endTime", until);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("endTime", "until")));
             Object sinceResolved = since;
             if ((!java.util.Objects.equals(endTime, null)) && (java.util.Objects.equals(since, null)))
             {
-                sinceResolved = (endTime - ((limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h"))) * 1000L));
+                sinceResolved = (endTime - (((limitResolved * ((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1h")))) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", market.get("id"));
@@ -4091,11 +4091,11 @@ public class Extended extends ExtendedApi
         return value;
     }
 
-    public Object getExtendedDecimalToBase16(String value)
+    public String getExtendedDecimalToBase16(String value)
     {
         String decimalString = value;
         List<String> hexChars = new ArrayList<String>(Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
-        Object result = "";
+        String result = "";
         while (Precise.stringGt(decimalString, "0"))
         {
             Long remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));

@@ -543,10 +543,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         // as a single object, so both shapes are handled here
         //
         Object data = this.safeValue(message, "data");
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
-            rows = data;
+            rows = (List<Object>) data;
         } else
         {
             ((List<Object>)rows).add(data);
@@ -858,10 +858,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //     }
         //
         Object data = this.safeValue(message, "data");
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
-            rows = data;
+            rows = (List<Object>) data;
         } else
         {
             ((List<Object>)rows).add(data);
@@ -968,10 +968,10 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         //     }
         //
         Object data = this.safeValue(message, "data");
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
-            rows = data;
+            rows = (List<Object>) data;
         } else
         {
             ((List<Object>)rows).add(data);

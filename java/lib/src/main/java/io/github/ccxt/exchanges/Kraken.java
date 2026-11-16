@@ -721,7 +721,7 @@ public class Kraken extends KrakenApi
             {
                 ((List<Object>)promises).add(this.loadTimeDifference(new HashMap<String, Object>() {{}}));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> assetsResponse = (Map<String, Object>) this.safeDict(responses, 0, (Object) null);
             //
             //     {
@@ -4343,9 +4343,9 @@ public class Kraken extends KrakenApi
                 mapLiteral14.put("nonce", nonce);
                 bodySigned = this.urlencodeNested(this.extend(mapLiteral14, parameters));
             }
-            Object auth = this.encode((nonce + bodySigned));
+            byte[] auth = this.encode((nonce + bodySigned));
             Object hash = this.hash(auth, sha256(), "binary");
-            Object binary = this.encode(url);
+            byte[] binary = this.encode(url);
             byte[] binhash = this.binaryConcat(binary, hash);
             byte[] secret = this.base64ToBinary(this.secret);
             String signature = (String) this.hmac(binhash, secret, sha512(), "base64");

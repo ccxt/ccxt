@@ -378,12 +378,12 @@ public class Opinion extends OpinionApi
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesLabel", "YES"), this.safeString(raw, "noLabel", "NO")));
         List<String> outcomeTokenIds = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        Object resolvedOutcome = null;
+        String resolvedOutcome = null;
         for (var i = 0; i < ((List<?>)outcomeLabels).size(); i++)
         {
             String label = this.safeString(outcomeLabels, i);
             String tokenId = this.safeString(outcomeTokenIds, i);
-            Object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
+            String outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, (String) (slug), (String) (label));
             Boolean winner = null;
             Object settleFraction = null;
             if (Boolean.TRUE.equals(hasResult))
@@ -407,7 +407,7 @@ public class Opinion extends OpinionApi
             mapLiteral1.put("info", raw);
             ((List<Object>)outcomes).add(mapLiteral1);
         }
-        Object marketResolvedOutcome = resolvedOutcome;
+        String marketResolvedOutcome = resolvedOutcome;
         // the venue sends cutoffAt 0 for markets without a scheduled cutoff - map it to
         // undefined instead of the epoch, same for the event-level end date
         Long expiryTimestamp = null;
@@ -895,7 +895,7 @@ public class Opinion extends OpinionApi
                     put( "token_id", tokenId );
                 }}, parameters)));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             for (var i = 0; (outcomesLength != null && i < outcomesLength); i++)
             {
@@ -1164,7 +1164,7 @@ public class Opinion extends OpinionApi
     put( "type", "uint8" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
         return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }
@@ -1898,7 +1898,7 @@ public class Opinion extends OpinionApi
             put( "action", action );
             put( "timestamp", timestamp );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
         return ((("0x" + this.remove0xPrefix(this.safeString(sig, "r"))) + this.remove0xPrefix(this.safeString(sig, "s"))) + this.intToBase16(this.safeInteger(sig, "v")));
     }

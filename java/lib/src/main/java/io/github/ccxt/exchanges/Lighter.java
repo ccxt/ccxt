@@ -813,8 +813,8 @@ public class Lighter extends LighterApi
 
     public String hashMessage(String message)
     {
-        Object binaryMessage = this.encode(message);
-        Object binaryMessageLength = this.binaryLength(binaryMessage);
+        byte[] binaryMessage = this.encode(message);
+        Integer binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
@@ -1126,7 +1126,7 @@ public class Lighter extends LighterApi
         String amountScale = this.pow("10", (String) (marketInfo.get("size_decimals")));
         String priceScale = this.pow("10", (String) (marketInfo.get("price_decimals")));
         String triggerPriceStr = "0"; // default is 0
-        Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
+        Integer defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
         Long clientOrderId = (Long) this.safeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId);
         Map<String, Object> paramsRequest = this.omit(paramsOmitted, new ArrayList<Object>(Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
         if (Boolean.TRUE.equals(isConditional))

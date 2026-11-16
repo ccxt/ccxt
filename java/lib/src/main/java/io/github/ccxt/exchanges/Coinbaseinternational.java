@@ -1258,10 +1258,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             Map<String, Object> market = this.market(symbol);
             Long duration = (((long) this.parseTimeframe("1h")) * 1000L);
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
-                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+                sinceResolved = (Long) (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("instrument_name", market.get("id"));
@@ -1269,7 +1269,7 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             request.put("end_timestamp", now);
             if (!java.util.Objects.equals(limit, null))
             {
-                Object endTimestamp = this.sum(sinceResolved, (limit * duration));
+                Long endTimestamp = (Long) this.sum(sinceResolved, (limit * duration));
                 request.put("end_timestamp", endTimestamp);
             }
             Long until = this.safeInteger(paramsPaginate, "until");
@@ -1921,13 +1921,13 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object summaries = new ArrayList<Object>(Arrays.asList(response));
+        List<Object> summaries = new ArrayList<Object>(Arrays.asList(response));
         if ((response instanceof List))
         {
-            summaries = response;
+            summaries = (List<Object>) response;
         } else if (this.isNativeDeribitCredentials())
         {
-            summaries = this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
+            summaries = (List<Object>) this.safeList(response, "summaries", new ArrayList<Object>(Arrays.asList(response)));
         }
         for (var i = 0; i < ((List<?>)summaries).size(); i++)
         {
@@ -1979,10 +1979,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
-                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+                sinceResolved = (Long) (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("currency", currency.get("id"));
@@ -2349,10 +2349,10 @@ public class Coinbaseinternational extends CoinbaseinternationalApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Long now = this.milliseconds();
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if (java.util.Objects.equals(since, null))
             {
-                sinceResolved = (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
+                sinceResolved = (Long) (now - (((((30L * 24L) * 60L) * 60L) * 1000L)));
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("currency", currency.get("id"));

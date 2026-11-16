@@ -3144,7 +3144,7 @@ public class Bitfinex extends BitfinexApi
         String feeCost = null;
         String txid = null;
         String addressTo = null;
-        Object network = null;
+        String network = null;
         String comment = null;
         if (java.util.Objects.equals(transactionLength, 8))
         {

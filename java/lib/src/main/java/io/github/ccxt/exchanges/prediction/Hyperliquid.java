@@ -1020,8 +1020,8 @@ public class Hyperliquid extends HyperliquidApi
             if (java.util.Objects.equals(since, null))
             {
                 int tf = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-                Long candleCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100L;
-                Object startOffset = ((tf * candleCount) * -1000L);
+                Long candleCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
+                Object startOffset = ((((long) tf) * candleCount) * -1000L);
                 Object shiftedStart = this.sum(until, startOffset);
                 startTime = shiftedStart;
                 if (java.util.Objects.equals(startTime, null))
@@ -1059,10 +1059,10 @@ public class Hyperliquid extends HyperliquidApi
             //         }
             //     ]
             //
-            Object candles = new ArrayList<Object>(Arrays.asList());
+            List<Object> candles = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                candles = response;
+                candles = (List<Object>) response;
             }
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1197,7 +1197,7 @@ public class Hyperliquid extends HyperliquidApi
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicPostInfo(this.extend(request, paramsPublicAddress)), this.publicPostInfo(new HashMap<String, Object>() {{
         put( "type", "allMids" );
     }})));
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> response = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
             Object midsResponse = (results == null || 1 >= ((List<?>)results).size() ? null : ((List<?>)results).get(1));
             List<Object> balances = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
@@ -1770,14 +1770,14 @@ public class Hyperliquid extends HyperliquidApi
             }};
             Object response = (this.publicPostInfo(this.extend(request, paramsMethod))).join();
             List<Object> ordersWithStatus = new ArrayList<Object>(Arrays.asList());
-            Object rawOrders = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawOrders = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                rawOrders = response;
+                rawOrders = (List<Object>) response;
             }
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
-                Object order = (rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i));
+                Object order = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
                 ((List<Object>)ordersWithStatus).add(this.extend(order, new HashMap<String, Object>() {{
                     put( "ccxtStatus", "open" );
                 }}));
@@ -1822,14 +1822,14 @@ public class Hyperliquid extends HyperliquidApi
             Object response = (this.publicPostInfo(this.extend(request, paramsPublicAddress))).join();
             // Deduplicate by oid keeping most recent statusTimestamp
             Map<String, Object> deduped = new HashMap<String, Object>() {{}};
-            Object historicalOrders = new ArrayList<Object>(Arrays.asList());
+            List<Object> historicalOrders = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                historicalOrders = response;
+                historicalOrders = (List<Object>) response;
             }
             for (var i = 0; i < ((List<?>)historicalOrders).size(); i++)
             {
-                Object raw = (historicalOrders == null || i < 0 || i >= ((List<?>)historicalOrders).size() ? null : ((List<?>)historicalOrders).get(i));
+                Object raw = (historicalOrders == null || i < 0 || i >= historicalOrders.size() ? null : historicalOrders.get(i));
                 Object entry = this.safeDict(raw, "order", (Object) null);
                 if (java.util.Objects.equals(entry, null))
                 {
@@ -2084,10 +2084,10 @@ public class Hyperliquid extends HyperliquidApi
             }};
             // recentTrades returns the coin's most recent public trades (newest first)
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
-            Object trades = new ArrayList<Object>(Arrays.asList());
+            List<Object> trades = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                trades = response;
+                trades = (List<Object>) response;
             } else if (!(response instanceof String))
             {
                 trades = this.toArray(response);
@@ -2147,10 +2147,10 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("endTime", until);
             }
             Object response = (this.publicPostInfo(this.extend(request, paramsOmitted))).join();
-            Object fills = new ArrayList<Object>(Arrays.asList());
+            List<Object> fills = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                fills = response;
+                fills = (List<Object>) response;
             } else if (!(response instanceof String))
             {
                 fills = this.toArray(response);
@@ -2562,7 +2562,7 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "bytes32" );
 }})) );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
         return this.signMessage(msg, (String) (this.privateKey));
     }
 
@@ -2576,7 +2576,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "verifyingContract", zeroAddress );
             put( "version", "1" );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }

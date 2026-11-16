@@ -1256,7 +1256,7 @@ public class Aster extends AsterApi
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
             ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> sapiResult = (Map<String, Object>) this.safeDict(results, 0, new HashMap<String, Object>() {{}});
             List<Object> sapiRows = (List<Object>) this.safeList(sapiResult, "symbols", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> fapiResult = (Map<String, Object>) this.safeDict(results, 1, new HashMap<String, Object>() {{}});
@@ -4370,7 +4370,7 @@ public class Aster extends AsterApi
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     String leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    Integer quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
@@ -4387,7 +4387,7 @@ public class Aster extends AsterApi
                     }
                     String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Integer basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
@@ -4771,7 +4771,7 @@ public class Aster extends AsterApi
                 String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
+            Integer pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
             Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v1 -> (Object) (hx4J40v1 + 1L); case Integer hx4J40v1 -> (Object) (hx4J40v1.longValue() + 1L); case Double hx4J40v1 -> (Object) (hx4J40v1 + ((double) 1L)); case String hx4J40v1 -> (Object) (hx4J40v1 + "1"); default -> (Object) null; }));
             // round half up
             String pricePrecisionPlusOneString = this.numberToString(pricePrecisionPlusOne);
@@ -4975,7 +4975,7 @@ public class Aster extends AsterApi
             put( "nonce", Aster.this.safeInteger(withdrawPayload, "userNonce") );
             put( "aster chain", "Mainnet" );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, request);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, request);
         String signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
@@ -5152,7 +5152,7 @@ public class Aster extends AsterApi
     public String hashMessage(Object binaryMessage)
     {
         // const binaryMessage = this.encode (message);
-        Object binaryMessageLength = this.binaryLength(binaryMessage);
+        Integer binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
@@ -5263,7 +5263,7 @@ public class Aster extends AsterApi
                     paramsToEncode = hx4NewMap0;
                 }
             }
-            Object encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
+            byte[] encodedMessage = this.ethEncodeStructuredData(domain, messageTypes, paramsToEncode);
             String signature = this.signMessage(encodedMessage, (String) (this.privateKey));
             String queryString = (((paramString + "&") + "signature=") + signature);
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))

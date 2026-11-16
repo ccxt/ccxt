@@ -747,7 +747,7 @@ public class Polymarket extends PolymarketApi
                     pageRequest = this.extend(this.extend(pageRequest, baseRequest), rest);
                     ((List<Object>)restPromises).add(this.gammaPublicGetPublicSearch(pageRequest));
                 }
-                Object restResponses = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> restResponses = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 List<Object> allEvents = new ArrayList<Object>(Arrays.asList());
                 for (var fi = 0; fi < ((List<?>)firstEvents).size(); fi++)
                 {
@@ -755,7 +755,7 @@ public class Polymarket extends PolymarketApi
                 }
                 for (var ri = 0; ri < ((List<?>)restResponses).size(); ri++)
                 {
-                    List<Object> pageEvents = (List<Object>) this.safeList((restResponses == null || ri < 0 || ri >= ((List<?>)restResponses).size() ? null : ((List<?>)restResponses).get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
+                    List<Object> pageEvents = (List<Object>) this.safeList((restResponses == null || ri < 0 || ri >= restResponses.size() ? null : restResponses.get(ri)), "events", new ArrayList<Object>(Arrays.asList()));
                     for (var ei = 0; ei < ((List<?>)pageEvents).size(); ei++)
                     {
                         ((List<Object>)allEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
@@ -928,7 +928,7 @@ public class Polymarket extends PolymarketApi
                     pageRequest = this.extend(pageRequest, baseRequest);
                     ((List<Object>)restPromises).add(this.gammaPublicGetEvents(pageRequest));
                 }
-                Object restPages = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> restPages = (((List<?>)(restPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 for (var ri = 0; ri < ((List<?>)restPages).size(); ri++)
                 {
                     List<Object> page = (List<Object>) this.safeList(restPages, ri, new ArrayList<Object>(Arrays.asList()));
@@ -1050,7 +1050,7 @@ public class Polymarket extends PolymarketApi
             Boolean closed = (Boolean) this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             Boolean marketResolved = Boolean.TRUE.equals(closed) || (java.util.Objects.equals(this.safeStringLower(market, "umaResolutionStatus"), "resolved"));
-            Object resolvedOutcome = null;
+            String resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             Double tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
@@ -1111,7 +1111,7 @@ public class Polymarket extends PolymarketApi
                 {
                     continue;
                 }
-                Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (marketSlug), (String) (outcomeLabel));
+                String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (marketSlug), (String) (outcomeLabel));
                 Boolean winnerRaw = null;
                 Object settleFractionRaw = null;
                 if (Boolean.TRUE.equals(marketResolved) && (!java.util.Objects.equals(outcomePrice, null)))
@@ -1155,7 +1155,7 @@ public class Polymarket extends PolymarketApi
             String baseId = (((!java.util.Objects.equals(conditionId, null)))) ? conditionId : marketId;
             String marketType = ((((outcomeLabelsLength != null && outcomeLabelsLength > 2)))) ? "categorical" : "binary";
             // effectively-final copy for the market object literal below (reassigned in the loop)
-            Object marketResolvedOutcome = resolvedOutcome;
+            String marketResolvedOutcome = resolvedOutcome;
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", conditionId);
             j39v1.put("market", marketSymbol);
@@ -1495,7 +1495,7 @@ public class Polymarket extends PolymarketApi
                     ((List<Object>)bookParams).add(j39v3);
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList(this.clobPublicPostBooks(bookParams), this.clobPublicPostMidpoints(bookParams), this.clobPublicPostLastTradesPrices(bookParams)));
-                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 Object booksResponse = (responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0));
                 Object midpoints = (responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1));
                 Object lastTradesResponse = (responses == null || 2 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(2));
@@ -1727,8 +1727,8 @@ public class Polymarket extends PolymarketApi
                 }
             } else
             {
-                Long barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100L;
-                startS = (nowS - ((barCount * fidelityMin) * 60L));
+                Long barCount = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
+                startS = (nowS - (((barCount * fidelityMin) * 60L)));
             }
             // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
             // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -2012,11 +2012,11 @@ public class Polymarket extends PolymarketApi
             request.put("market", conditionId);
             request.put("limit", this.safeInteger(this.options, "tradesPageSize", 500));
             List<Object> response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
-            Object rawTrades = (((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+            List<Object> rawTrades = (List<Object>) ((((response instanceof List))) ? response : this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())));
             List<Object> filteredTrades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
             {
-                Object trade = (rawTrades == null || i < 0 || i >= ((List<?>)rawTrades).size() ? null : ((List<?>)rawTrades).get(i));
+                Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
                 String tradeAsset = this.safeString(trade, "asset");
                 if (java.util.Objects.equals(tradeAsset, tokenId))
                 {
@@ -2134,7 +2134,7 @@ public class Polymarket extends PolymarketApi
             side = rawSide;
         }
         String assetId = this.safeString2(trade, "asset", "asset_id");
-        Object mkt = null;
+        Map<String, Object> mkt = null;
         if (!java.util.Objects.equals(market, null))
         {
             mkt = market;
@@ -2951,7 +2951,7 @@ public class Polymarket extends PolymarketApi
         if (!java.util.Objects.equals(this.parseToInt(sigType), 3L))
         {
             // standard EOA EIP-712 order signature
-            Object encoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
+            byte[] encoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
                 put( "Order", orderStruct );
             }}, message);
             Map<String, Object> eoaSig = this.signMessage(encoded, (String) (this.privateKey));
@@ -2964,12 +2964,12 @@ public class Polymarket extends PolymarketApi
         // ethAbiEncode needs portable value types: bytes32 as binary, uint256 as bigint
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         Object orderTypeHash = this.hash(this.encode(orderTypeString), keccak(), "binary");
-        Object contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(message.get("salt")), message.get("maker"), message.get("signer"), this.convertToBigInt(message.get("tokenId")), this.convertToBigInt(message.get("makerAmount")), this.convertToBigInt(message.get("takerAmount")), message.get("side"), message.get("signatureType"), this.convertToBigInt(message.get("timestamp")), this.base16ToBinary(this.remove0xPrefix(message.get("metadata"))), this.base16ToBinary(this.remove0xPrefix(message.get("builder"))))));
+        byte[] contentsData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "uint256", "address", "address", "uint256", "uint256", "uint256", "uint8", "uint8", "uint256", "bytes32", "bytes32")), new ArrayList<Object>(Arrays.asList(orderTypeHash, this.convertToBigInt(message.get("salt")), message.get("maker"), message.get("signer"), this.convertToBigInt(message.get("tokenId")), this.convertToBigInt(message.get("makerAmount")), this.convertToBigInt(message.get("takerAmount")), message.get("side"), message.get("signatureType"), this.convertToBigInt(message.get("timestamp")), this.base16ToBinary(this.remove0xPrefix(message.get("metadata"))), this.base16ToBinary(this.remove0xPrefix(message.get("builder"))))));
         String contentsHash = ("0x" + this.hash(contentsData, keccak(), "hex"));
         Object domainTypeHash = this.hash(this.encode("EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"), keccak(), "binary");
         Object nameHash = this.hash(this.encode(domainName), keccak(), "binary");
         Object versionHash = this.hash(this.encode(domainVersion), keccak(), "binary");
-        Object appDomainData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new ArrayList<Object>(Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
+        byte[] appDomainData = this.ethAbiEncode(new ArrayList<Object>(Arrays.asList("bytes32", "bytes32", "bytes32", "uint256", "address")), new ArrayList<Object>(Arrays.asList(domainTypeHash, nameHash, versionHash, this.convertToBigInt(this.numberToString(chainIdValue)), exchangeAddress)));
         String appDomainSep = ("0x" + this.hash(appDomainData, keccak(), "hex"));
         List<Object> typedDataSignStruct = new ArrayList<Object>(Arrays.asList(new HashMap<String, Object>() {{
     put( "name", "contents" );
@@ -2999,7 +2999,7 @@ public class Polymarket extends PolymarketApi
             put( "verifyingContract", message.get("signer") );
             put( "salt", bytes32Zero );
         }};
-        Object innerEncoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
+        byte[] innerEncoded = this.ethEncodeStructuredData(orderDomain, new HashMap<String, Object>() {{
             put( "TypedDataSign", typedDataSignStruct );
             put( "Order", orderStruct );
         }}, innerValue);
@@ -3697,7 +3697,7 @@ public class Polymarket extends PolymarketApi
             put( "nonce", nonce );
             put( "message", "This message attests that I control the given wallet" );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
         Map<String, Object> sig = this.signMessage(encoded, (String) (this.privateKey));
         return ((("0x" + this.remove0xPrefix(sig.get("r"))) + this.remove0xPrefix(sig.get("s"))) + this.intToBase16(sig.get("v")));
     }

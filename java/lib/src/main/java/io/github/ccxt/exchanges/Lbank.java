@@ -682,7 +682,7 @@ public class Lbank extends LbankApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
-            Object resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> spotMarkets = (List<Object>) this.safeList(resolvedMarkets, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> swapMarkets = (List<Object>) this.safeList(resolvedMarkets, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, swapMarkets);
@@ -1129,7 +1129,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 60 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 60 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
             }};
@@ -2458,7 +2458,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -2524,7 +2524,7 @@ public class Lbank extends LbankApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", market.get("id") );
                 put( "current_page", 1 );
@@ -3637,7 +3637,7 @@ public class Lbank extends LbankApi
                 put( "signature_method", finalSig );
                 put( "timestamp", timestamp );
             }}, signedQuery)));
-            Object encoded = this.encode(auth);
+            byte[] encoded = this.encode(auth);
             String uppercaseHash = ((String)this.hash(encoded, md5())).toUpperCase();
             Object sign = "";
             if (java.util.Objects.equals(signatureMethod, "RSA"))

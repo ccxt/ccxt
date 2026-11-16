@@ -524,7 +524,7 @@ public class Polymarket extends PolymarketApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetInfoInstruments(parameters), this.publicGetInfoAssets(parameters)));
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> instruments = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> assets = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
@@ -763,7 +763,7 @@ public class Polymarket extends PolymarketApi
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> promises = new ArrayList<Object>(Arrays.asList(this.publicGetInfoTickers(parameters), this.publicGetInfoStatistics(parameters), this.publicGetInfoBbo(parameters)));
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             //
             // tickers
             //
@@ -1134,7 +1134,7 @@ public class Polymarket extends PolymarketApi
                 // current one, so the newest candle never falls off the range
                 Long end = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
                 Long requestedLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 100;
-                request.put("start_timestamp", (end - ((requestedLimit - 1L) * duration)));
+                request.put("start_timestamp", (end - (((requestedLimit - 1L)) * duration)));
             }
             Map<String, Object> response = (this.publicGetInfoKlines(this.extend(request, paramsOmitted))).join();
             //
@@ -2722,12 +2722,12 @@ public class Polymarket extends PolymarketApi
             Map<String, Object> collateral = (Map<String, Object>) this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
             String tokenAddress = this.safeString(collateral, "address");
             String decimals = this.safeString(collateral, "decimals", "6");
-            String precision = (String) this.parsePrecision(decimals);
+            String precision = this.parsePrecision(decimals);
             // the signed amount is denominated using raw base units of the token
             String precised = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, this.parseNumber(precision), TICK_SIZE);
             String baseUnits = Precise.stringDiv(precised, precision);
             Long ts = this.seconds();
-            Object salt = this.randNumber(9);
+            Integer salt = this.randNumber(9);
             Long chainId = this.safeInteger(this.options, "chainId", 137);
             String contract = this.safeString(this.options, "depositContract", "0xDCa4af75705dbB50f62437045afF9921947917d2");
             Map<String, Object> domain = new HashMap<String, Object>() {{
@@ -2769,7 +2769,7 @@ public class Polymarket extends PolymarketApi
                 put( "salt", salt );
                 put( "ts", ts );
             }};
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
             String signature = this.signMessage(encoded, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
@@ -2990,7 +2990,7 @@ public class Polymarket extends PolymarketApi
             Long instrumentId = this.parseToInt(market.get("id"));
             Map<String, Object> collateral = (Map<String, Object>) this.safeDict(this.options, "collateral", new HashMap<String, Object>() {{}});
             String decimals = this.safeString(collateral, "decimals", "6");
-            String precision = (String) this.parsePrecision(decimals);
+            String precision = this.parsePrecision(decimals);
             String amountString = this.decimalToPrecision(this.numberToString(amount), TRUNCATE, this.parseNumber(precision), TICK_SIZE);
             if (java.util.Objects.equals(type, "reduce"))
             {
@@ -3110,7 +3110,7 @@ public class Polymarket extends PolymarketApi
             Long ts = this.milliseconds();
             Long lifetime = this.safeInteger(this.options, "proxyExpiry", 604800000);
             Object expiry = this.sum(ts, lifetime);
-            Object salt = this.randNumber(9);
+            Integer salt = this.randNumber(9);
             Long chainId = this.safeInteger(this.options, "chainId", 137);
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Polymarket" );
@@ -3138,7 +3138,7 @@ public class Polymarket extends PolymarketApi
                 put( "salt", salt );
                 put( "ts", ts );
             }};
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
             String signature = this.signMessage(encoded, this.privateKey);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "op", new HashMap<String, Object>() {{
@@ -3220,7 +3220,7 @@ public class Polymarket extends PolymarketApi
             Object packed = this.packb(signable);
             String dataHash = this.hashMessage(packed);
             Long ts = this.milliseconds();
-            Object salt = this.randNumber(9);
+            Integer salt = this.randNumber(9);
             Long chainId = this.safeInteger(this.options, "chainId", 137);
             Map<String, Object> domain = new HashMap<String, Object>() {{
                 put( "name", "Polymarket" );
@@ -3244,7 +3244,7 @@ public class Polymarket extends PolymarketApi
                 put( "salt", salt );
                 put( "ts", ts );
             }};
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, message);
             String proxyPrivateKey = this.safeString(credentials, "privateKey");
             String signature = this.signMessage(encoded, proxyPrivateKey);
             Map<String, Object> envelope = new HashMap<String, Object>() {{

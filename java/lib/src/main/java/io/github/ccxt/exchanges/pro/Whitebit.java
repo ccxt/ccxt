@@ -195,7 +195,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
             String messageHash = (("orderbook" + ":") + market.get("symbol"));
             String method = "depth_subscribe";
             String defaultPriceInterval = this.safeString(this.options.get("watchOrderBook"), "priceInterval", "0");

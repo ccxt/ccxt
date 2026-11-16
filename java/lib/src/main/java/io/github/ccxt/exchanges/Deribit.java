@@ -1714,7 +1714,7 @@ public class Deribit extends DeribitApi
         String marketId = this.safeString(ticker, "instrument_name");
         String symbol = this.safeSymbol(marketId, market, (String) null, (String) null);
         String last = this.safeString2(ticker, "last_price", "last");
-        Object stats = this.safeDict(ticker, "stats", ticker);
+        Map<String, Object> stats = (Map<String, Object>) this.safeDict(ticker, "stats", ticker);
         return this.safeTicker(new HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );

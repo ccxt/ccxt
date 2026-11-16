@@ -4766,7 +4766,7 @@ public class Binance extends BinanceApi
             {
                 ((List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Object responseCurrencies = this.safeValue(results, 0);
             Map<String, Object> marginablesById = null;
             if (Boolean.TRUE.equals(fetchMargins))
@@ -5086,7 +5086,7 @@ public class Binance extends BinanceApi
                     throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
                 }
             }
-            Object results = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             this.options.put("crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
             this.options.put("isolatedMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -9543,7 +9543,7 @@ public class Binance extends BinanceApi
         {
             request.put(clientOrderIdRequest, clientOrderId);
         }
-        Object postOnly = null;
+        Boolean postOnly = null;
         if (!Boolean.TRUE.equals(isPortfolioMargin))
         {
             postOnly = this.isPostOnly(isMarketOrder, java.util.Objects.equals(initialUppercaseType, "LIMIT_MAKER"), paramsPapi);
@@ -14179,7 +14179,7 @@ public class Binance extends BinanceApi
                 String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
+            Integer pricePrecision = this.precisionFromString(this.safeString(marketResolved.get("precision"), "price"));
             Object pricePrecisionPlusOne = ((Object) (switch ((Object) (pricePrecision)) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; }));
             String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
@@ -14388,7 +14388,7 @@ public class Binance extends BinanceApi
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     String leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    Integer quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
                 } else
                 {
@@ -14405,7 +14405,7 @@ public class Binance extends BinanceApi
                     }
                     String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Integer basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
                 }
             }
@@ -16860,7 +16860,7 @@ public class Binance extends BinanceApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 93 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 93 : limit;
             if (!java.util.Objects.equals(limit, null) && (limit > 93))
             {
                 throw new BadRequest((this.id + " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
@@ -16872,7 +16872,7 @@ public class Binance extends BinanceApi
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("startTime", since);
-                Object endTime = ((((Number) (this.sum(since, ((((Number) limitResolved).longValue()) * 86400000L)))).longValue()) - 1L); // required when startTime is further than 93 days in the past
+                Object endTime = ((((Number) (this.sum(since, (limitResolved * 86400000L)))).longValue()) - 1L); // required when startTime is further than 93 days in the past
                 Long now = this.milliseconds();
                 request.put("endTime", ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u < j38v) ? j38a : j38b; }).apply(endTime, now)); // cannot have an endTime later than current time
             }
@@ -17479,9 +17479,9 @@ public class Binance extends BinanceApi
             } else if ((!java.util.Objects.equals(since, null)) && ((since != 0)))
             {
                 // exchange default
-                Long limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30L : limit;
+                Long limitDefault = (((java.util.Objects.equals(limit, null)))) ? 30 : limit;
                 int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "5m"));
-                request.put("endTime", this.sum(since, ((duration * limitDefault) * 1000L)));
+                request.put("endTime", this.sum(since, ((((long) duration) * limitDefault) * 1000L)));
             }
             List<Object> response = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "inverse", false)))
@@ -18745,7 +18745,7 @@ public class Binance extends BinanceApi
                 response = (this.sapiGetAssetConvertTransferQueryByPage(this.extend(request, paramsOmitted))).join();
             } else
             {
-                if (((msInThirtyDays == null || (endTimeResolved - startTime) > msInThirtyDays)))
+                if (((msInThirtyDays == null || ((endTimeResolved - startTime)) > msInThirtyDays)))
                 {
                     throw new BadRequest((this.id + " fetchConvertTradeHistory () the max interval between startTime and endTime is 30 days.")) ;
                 }

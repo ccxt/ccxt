@@ -1074,7 +1074,7 @@ public class Upbit extends UpbitApi
                     mapLiteral5.put("markets", this.safeString(queries, i, ""));
                     ((List<Object>)promises).add(this.publicGetTicker(this.extend(mapLiteral5, parameters)));
                 }
-                Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 tickers = this.arraysConcat(responses);
             }
             //
@@ -1257,7 +1257,7 @@ public class Upbit extends UpbitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "market", market.get("id") );
                 put( "count", limitResolved );
@@ -1450,7 +1450,7 @@ public class Upbit extends UpbitApi
             Map<String, Object> market = this.market(symbol);
             int timeframePeriod = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             String timeframeValue = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("market", market.get("id"));
             request.put("timeframe", timeframeValue);
@@ -1459,7 +1459,7 @@ public class Upbit extends UpbitApi
             if (!java.util.Objects.equals(since, null))
             {
                 // convert `since` to `to` value
-                request.put("to", this.iso8601(this.sum(since, ((timeframePeriod * limitResolved) * 1000L))));
+                request.put("to", this.iso8601(this.sum(since, ((((long) timeframePeriod) * limitResolved) * 1000L))));
             }
             if (java.util.Objects.equals(timeframeValue, "minutes"))
             {

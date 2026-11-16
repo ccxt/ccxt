@@ -856,7 +856,7 @@ public class Indodax extends IndodaxApi
                 put( "tf", selectedTimeframe );
                 put( "symbol", market.get("id") );
             }};
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1000 : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", (Math.floor(Double.parseDouble(String.valueOf((((double) since) / ((double) 1000)))))));

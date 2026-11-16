@@ -452,7 +452,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
             String messageHash = ((name + ":") + marketId);
             String url = this.safeString(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws");
             Long requestId = this.requestId();
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> payload = new HashMap<String, Object>() {{
                 put( "OMSId", omsId );
                 put( "InstrumentId", Ndax.this.safeInteger(market, "id") );

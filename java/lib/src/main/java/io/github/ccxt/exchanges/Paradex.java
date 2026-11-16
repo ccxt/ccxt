@@ -1267,7 +1267,7 @@ public class Paradex extends ParadexApi
             Boolean hasEnd = (request.containsKey("end_at"));
             Map<String, Object> paramsOmitted = this.omit(paramsUntil, new ArrayList<Object>(Arrays.asList("price")));
             // exchange has undocumented limit slightly above, but 1000 is reliable limit
-            Object limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
+            Long limitResolved = ((((java.util.Objects.equals(limit, null)) || ((limit > 1000))))) ? 1000 : limit;
             Long windowLength = this.parseToInt(Helpers.multiply(Helpers.multiply(duration, (((Object) (switch ((Object) (this.parseToInt(limitResolved))) { case null -> (Object) null; case Long hx4J40v2 -> (Object) (hx4J40v2 + 1L); case Integer hx4J40v2 -> (Object) (hx4J40v2.longValue() + 1L); case Double hx4J40v2 -> (Object) (hx4J40v2 + ((double) 1L)); case String hx4J40v2 -> (Object) (hx4J40v2 + "1"); default -> (Object) null; })))), 1000));
             if (!java.util.Objects.equals(since, null))
             {
@@ -1970,7 +1970,7 @@ public class Paradex extends ParadexApi
                 Map<String, Object> message = new HashMap<String, Object>() {{
                     put( "action", "STARK Key" );
                 }};
-                Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+                byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
                 String signature = this.signMessage(msg, (String) (this.privateKey));
                 Object account = this.retrieveStarkAccount(signature, this.safeString(systemConfig, "paraclear_account_hash"), this.safeString(systemConfig, "paraclear_account_proxy_hash"));
                 this.options.put("paradexAccount", account);

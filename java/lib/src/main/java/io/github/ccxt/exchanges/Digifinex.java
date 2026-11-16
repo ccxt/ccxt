@@ -825,7 +825,7 @@ public class Digifinex extends DigifinexApi
                 ((List<Object>)promisesRaw).add(this.publicSpotGetTradesSymbols(query));
             }
             ((List<Object>)promisesRaw).add(this.publicSwapGetPublicInstruments(parameters));
-            Object promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promises = (((List<?>)(promisesRaw)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> spotMarkets = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
             Map<String, Object> swapMarkets = (Map<String, Object>) this.safeDict(promises, 1, (Object) null);
             //
@@ -1970,8 +1970,8 @@ public class Digifinex extends DigifinexApi
                 if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                 {
                     Long endTime = (((!java.util.Objects.equals(until, null)))) ? until : this.milliseconds();
-                    Long startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200L;
-                    Long startTime = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt((((double) since) / ((double) 1000))) : this.parseToInt((((double) (endTime - ((startLimit * duration) * 1000L))) / ((double) 1000)));
+                    Long startLimit = (((!java.util.Objects.equals(limit, null)))) ? limit : 200;
+                    Long startTime = (((!java.util.Objects.equals(since, null)))) ? this.parseToInt((((double) since) / ((double) 1000))) : this.parseToInt((((double) ((endTime - (((startLimit * ((long) duration)) * 1000L))))) / ((double) 1000)));
                     request.put("start_time", startTime);
                     if ((!java.util.Objects.equals(limit, null)) || (!java.util.Objects.equals(until, null)))
                     {
@@ -3902,7 +3902,7 @@ public class Digifinex extends DigifinexApi
         //
         String fromAccount = null;
         String toAccount = null;
-        Object data = this.safeDict(transfer, "data", transfer);
+        Map<String, Object> data = (Map<String, Object>) this.safeDict(transfer, "data", transfer);
         Long type = this.safeInteger(data, "type");
         if ((type != null && type == 1))
         {

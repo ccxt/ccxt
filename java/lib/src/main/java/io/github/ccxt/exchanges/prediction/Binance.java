@@ -1292,12 +1292,12 @@ public class Binance extends BinanceApi
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(outcomeObj.get("market"));
                 request.put("marketId", market.get("id"));
             }
             if (!java.util.Objects.equals(limit, null))
@@ -1389,7 +1389,7 @@ public class Binance extends BinanceApi
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -1572,12 +1572,12 @@ public class Binance extends BinanceApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                Map<String, Object> market = this.market(((Map<String, Object>)outcomeObj).get("market"));
+                Map<String, Object> market = this.market(outcomeObj.get("market"));
                 request.put("marketTopicId", Helpers.GetValue(market.get("info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
@@ -1694,7 +1694,7 @@ public class Binance extends BinanceApi
             {
                 request.put("offset", offSet);
             }
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -2163,7 +2163,7 @@ public class Binance extends BinanceApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();

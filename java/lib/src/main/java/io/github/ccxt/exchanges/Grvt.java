@@ -981,7 +981,7 @@ public class Grvt extends GrvtApi
             {
                 ((List<Object>)promises).add(this.signIn(new HashMap<String, Object>() {{}}));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> response = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             return this.parseMarkets(result);
@@ -2067,7 +2067,7 @@ public class Grvt extends GrvtApi
         //
         String direction = null;
         String txId = null;
-        Object networkCode = null;
+        String networkCode = null;
         String addressFrom = this.safeString(transaction, "from_account_id");
         String addressTo = this.safeString(transaction, "to_account_id");
         String currencyId = this.safeString(transaction, "currency");
@@ -2390,7 +2390,7 @@ public class Grvt extends GrvtApi
             //         "sub_account_ids": ["4724219064482495","2095919380","1170592370"]
             //     }
             //
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> result1 = (Map<String, Object>) this.safeDict((responses == null || 0 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(0)), "result", new HashMap<String, Object>() {{}});
             String mainAccountId = this.safeString(result1, "main_account_id");
             this.options.put("userMainAccountId", mainAccountId);
@@ -2723,7 +2723,7 @@ public class Grvt extends GrvtApi
         {
             Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
             Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
-            Object precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
+            Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
             Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
             String size = this.safeString(leg, "size");
             if (java.util.Objects.equals(size, null))
@@ -3888,7 +3888,7 @@ public class Grvt extends GrvtApi
         }
         Map<String, Object> domainData = this.eipDomainData();
         Map<String, Object> definitions = this.eipDefinitions();
-        Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
+        byte[] ethEncodedMessage = this.ethEncodeStructuredData(domainData, (definitions == null || structureType == null ? null : definitions.get(structureType)), messageData);
         Boolean usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Boolean.TRUE.equals(usesPrivKey))) ? this.privateKey : this.secret;
         String privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);

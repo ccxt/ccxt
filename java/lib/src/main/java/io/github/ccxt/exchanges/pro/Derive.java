@@ -122,7 +122,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
             Map<String, Object> market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
             String topic = ((("orderbook." + marketId) + ".10.") + this.numberToString(limitResolved));
@@ -394,7 +394,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Long limitRaw = this.safeInteger(parameters, "limit");
-            Object limit = (((java.util.Objects.equals(limitRaw, null)))) ? 10 : limitRaw;
+            Long limit = (((java.util.Objects.equals(limitRaw, null)))) ? 10 : limitRaw;
             Map<String, Object> market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
             String topic = ((("orderbook." + marketId) + ".10.") + String.valueOf(limit));

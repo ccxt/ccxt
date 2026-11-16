@@ -841,11 +841,11 @@ public class Kalshi extends KalshiApi
         List<String> outcomeLabels = new ArrayList<String>(Arrays.asList("YES", "NO"));
         List<String> outcomeIds = new ArrayList<String>(Arrays.asList(ticker, (ticker + "-NO")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
-        Object resolvedOutcome = null;
+        String resolvedOutcome = null;
         for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
         {
             String label = (String) (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
+            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
             Boolean winnerRaw = null;
             Object settleFractionRaw = null;
             if (Boolean.TRUE.equals(resolved) && (!java.util.Objects.equals(result, null)) && (!java.util.Objects.equals(result, "")))
@@ -884,7 +884,7 @@ public class Kalshi extends KalshiApi
             ((List<Object>)outcomes).add(j39v2);
         }
         // effectively-final copy for the market object literal below (reassigned in the loop)
-        Object marketResolvedOutcome = resolvedOutcome;
+        String marketResolvedOutcome = resolvedOutcome;
         HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
         mapLiteral4.put("id", ticker);
         mapLiteral4.put("market", marketSymbol);
@@ -1760,7 +1760,7 @@ public class Kalshi extends KalshiApi
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(outcomeObj.get("info"), "ticker"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -2202,7 +2202,7 @@ public class Kalshi extends KalshiApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "resting" );
             }};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = this.outcome((String) (outcome));
@@ -2210,7 +2210,7 @@ public class Kalshi extends KalshiApi
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(outcomeObj.get("info"), "ticker"));
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));
@@ -2241,7 +2241,7 @@ public class Kalshi extends KalshiApi
             }
             // no status filter — the endpoint returns every order; pass params.status to narrow
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 outcomeObj = this.outcome((String) (outcome));
@@ -2249,7 +2249,7 @@ public class Kalshi extends KalshiApi
                 {
                     throw new ArgumentsRequired((this.id + " requires a valid outcome")) ;
                 }
-                request.put("ticker", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "ticker"));
+                request.put("ticker", this.safeString(outcomeObj.get("info"), "ticker"));
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             List<Object> orders = (List<Object>)(this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList())));

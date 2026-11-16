@@ -1492,7 +1492,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
     public Long requestId()
     {
         String ts = String.valueOf(this.milliseconds());
-        Object randomNumber = this.randNumber(4);
+        Integer randomNumber = this.randNumber(4);
         String randomPart = String.valueOf(randomNumber);
         return this.parseToInt((ts + randomPart));
     }

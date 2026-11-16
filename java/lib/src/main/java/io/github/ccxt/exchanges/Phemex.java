@@ -1469,7 +1469,7 @@ public class Phemex extends PhemexApi
         Double precision = null;
         if (!java.util.Objects.equals(valueScaleString, null))
         {
-            String precisionString = (String) this.parsePrecision(valueScaleString);
+            String precisionString = this.parsePrecision(valueScaleString);
             precision = this.parseNumber(precisionString);
             minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
             maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
@@ -5036,7 +5036,7 @@ public class Phemex extends PhemexApi
         }
         Map<String, Object> currency = this.safeCurrency((String) (currencyCode), (Map<String, Object>) null);
         String scale = this.safeString(currency.get("info"), "valueScale");
-        String tickPrecision = (String) this.parsePrecision(scale);
+        String tickPrecision = this.parsePrecision(scale);
         return Precise.stringMul(value, tickPrecision);
     }
 

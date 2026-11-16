@@ -1013,7 +1013,7 @@ public class Ndax extends NdaxApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> market = this.market(symbol);
-            Object limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 100 : limit; // default 100
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "omsId", omsId );
                 put( "InstrumentId", market.get("id") );

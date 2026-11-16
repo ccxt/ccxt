@@ -910,7 +910,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
@@ -947,7 +947,7 @@ public class Independentreserve extends IndependentreserveApi
                 request.put("primaryCurrencyCode", market.get("baseId"));
                 request.put("secondaryCurrencyCode", market.get("quoteId"));
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 50 : limit;
             request.put("pageIndex", 1);
             request.put("pageSize", limitResolved);
             Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();

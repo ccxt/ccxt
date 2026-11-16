@@ -410,12 +410,12 @@ public class Mudrex extends MudrexApi
             }};
             // the endpoint requires an explicit time window (in seconds)
             int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : limit;
+            Long requestLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : limit;
             Long now = this.seconds();
-            Long windowLength = (duration * requestLimit);
+            Long windowLength = (((long) duration) * requestLimit);
             Object defaultStart = (now - windowLength);
             Long startTime = this.parseToInt((((!java.util.Objects.equals(since, null)))) ? ((((double) since) / ((double) 1000))) : defaultStart);
-            Long windowEnd = this.parseToInt(((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(startTime, (duration * requestLimit)));
+            Long windowEnd = this.parseToInt((startTime + (((long) duration) * requestLimit)));
             Long until = this.safeInteger(parameters, "until");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("price", "until")));
             Long cappedEnd = ((((windowEnd != null && (now == null || windowEnd > now))))) ? now : windowEnd;

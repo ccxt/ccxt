@@ -1274,8 +1274,8 @@ public class Weex extends WeexApi
         Double pricePrecision = this.safeNumber(market, "tickSize", (Object) null);
         if (java.util.Objects.equals(amountPrecision, null))
         {
-            String amountPrecisionString = (String) this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            String pricePrecisionString = (String) this.parsePrecision(this.safeString(market, "pricePrecision"));
+            String amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            String pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }

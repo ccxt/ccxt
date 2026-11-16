@@ -238,7 +238,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public Long requestId(String url)
     {
-        Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
+        Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "requestId", this.createSafeDictionary());
         Long previousValue = this.safeInteger(options, url, 0);
         Long newValue = (Long) this.sum(previousValue, 1);
         Helpers.addElementToObject((this.options == null ? null : ((Map<?, ?>)this.options).get("requestId")), url, newValue);
@@ -252,7 +252,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
 
     public String stream(String type, String subscriptionHash, Long numSubscriptions)
     {
-        Object streamBySubscriptionsHash = this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
+        Map<String, Object> streamBySubscriptionsHash = (Map<String, Object>) this.safeDict(this.options, "streamBySubscriptionsHash", this.createSafeDictionary());
         String stream = this.safeString(streamBySubscriptionsHash, subscriptionHash);
         if (java.util.Objects.equals(stream, null))
         {
@@ -3355,11 +3355,11 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         }
         String channelName = null;
         List<Object> resolvedMessageHashes = new ArrayList<Object>(Arrays.asList());
-        Object rawTickers = new ArrayList<Object>(Arrays.asList());
+        List<Object> rawTickers = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
         if ((message instanceof List))
         {
-            rawTickers = message;
+            rawTickers = (List<Object>) message;
         } else
         {
             ((List<Object>)rawTickers).add(message);
@@ -6917,7 +6917,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         Map<String, Object> error = (Map<String, Object>) this.safeDict(message, "error", new HashMap<String, Object>() {{}});
         Long code = this.safeInteger(error, "code");
         String msg = this.safeString(error, "msg");
-        Object codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
+        Long codeValue = (((java.util.Objects.equals(code, null)))) ? 0 : code;
         try
         {
             this.handleErrors(codeValue, ((String)msg), client.url, "", new HashMap<String, Object>() {{}}, this.json(error), error, new HashMap<String, Object>() {{}}, "");
@@ -6982,18 +6982,18 @@ public class Binance extends io.github.ccxt.exchanges.Binance
         // eOptions combined stream endpoints (/public/stream, /market/stream) wrap events as:
         //   { "stream": "<streamName>", "data": { "e": "...", ... } }
         String streamWrapper = this.safeString(message, "stream");
-        Object messageValue3 = (((!java.util.Objects.equals(streamWrapper, null)))) ? this.safeDict(message, "data", message) : message;
+        Map<String, Object> messageValue3 = (Map<String, Object>) ((((!java.util.Objects.equals(streamWrapper, null)))) ? this.safeDict(message, "data", message) : message);
         // handle WebSocketAPI
         Map<String, Object> eventMsg = (Map<String, Object>) this.safeDict(messageValue3, "event", (Object) null);
-        Object messageValue2 = (((!java.util.Objects.equals(eventMsg, null)))) ? eventMsg : messageValue3;
+        Map<String, Object> messageValue2 = (((!java.util.Objects.equals(eventMsg, null)))) ? eventMsg : messageValue3;
         // handle combined stream wrapper payloads
         Map<String, Object> eventData = (Map<String, Object>) this.safeDict(messageValue2, "data", (Object) null);
-        Object messageValue = (((!java.util.Objects.equals(eventData, null)))) ? eventData : messageValue2;
+        Map<String, Object> messageValue = (((!java.util.Objects.equals(eventData, null)))) ? eventData : messageValue2;
         String status = this.safeString(messageValue, "status");
         Map<String, Object> error = (Map<String, Object>) this.safeDict(messageValue, "error", (Object) null);
         if ((!java.util.Objects.equals(error, null)) || (!java.util.Objects.equals(status, null) && !java.util.Objects.equals(status, "200")))
         {
-            this.handleWsError(client, (Map<String, Object>) (messageValue));
+            this.handleWsError(client, messageValue);
             return;
         }
         // user subscription wraps message in subscriptionId and event
@@ -7055,7 +7055,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             String requestId = this.safeString(messageValue, "id");
             if (!java.util.Objects.equals(requestId, null))
             {
-                this.handleSubscriptionStatus(client, (Map<String, Object>) (messageValue));
+                this.handleSubscriptionStatus(client, messageValue);
                 return;
             }
             // special case for the real-time bookTicker, since it comes without an event identifier
@@ -7069,7 +7069,7 @@ public class Binance extends io.github.ccxt.exchanges.Binance
             //         "A": "2.52500800"
             //     }
             //
-            if (java.util.Objects.equals(eventVar, null) && ((switch ((Object)(messageValue)) { case List<?> j39v6 -> j39v6.contains("a"); case Map<?, ?> j39v5 -> j39v5.containsKey("a"); case null, default -> false; })) && ((switch ((Object)(messageValue)) { case List<?> j39v4 -> j39v4.contains("b"); case Map<?, ?> j39v3 -> j39v3.containsKey("b"); case null, default -> false; })))
+            if (java.util.Objects.equals(eventVar, null) && (messageValue.containsKey("a")) && (messageValue.containsKey("b")))
             {
                 this.handleBidsAsks(client, messageValue);
             }

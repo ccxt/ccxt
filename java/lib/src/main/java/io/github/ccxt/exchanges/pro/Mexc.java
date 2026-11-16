@@ -785,7 +785,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //
         Object parsed = null;
         Map<String, Object> market = null;
-        Object timeframe = null;
+        String timeframe = null;
         if (message.containsKey("publicSpotKline"))
         {
             market = this.safeMarket(this.symbol(this.safeString(message, "symbol")), (Map<String, Object>) null, (String) null, (String) null);

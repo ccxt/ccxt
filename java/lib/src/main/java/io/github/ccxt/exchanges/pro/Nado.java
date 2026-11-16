@@ -1471,7 +1471,7 @@ public class Nado extends io.github.ccxt.exchanges.Nado
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 

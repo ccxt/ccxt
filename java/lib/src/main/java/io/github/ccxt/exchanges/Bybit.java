@@ -2433,7 +2433,7 @@ public class Bybit extends BybitApi
                     return new ArrayList<Object>(Arrays.asList(this.options.get("enableUnifiedMargin"), this.options.get("enableUnifiedAccount")));
                 }
                 List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetV5UserQueryApi(parameters), this.privateGetV5AccountInfo(parameters)));
-                Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 Map<String, Object> response = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
                 Map<String, Object> accountInfo = (Map<String, Object>) this.safeDict(promises, 1, (Object) null);
                 //
@@ -2974,11 +2974,11 @@ public class Bybit extends BybitApi
                     throw new ExchangeError((((this.id + " fetchMarkets() this.options fetchMarkets \"") + marketType) + "\" is not a supported market type")) ;
                 }
             }
-            Object promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
-                Object parsedMarket = (promises == null || i < 0 || i >= ((List<?>)promises).size() ? null : ((List<?>)promises).get(i));
+                Object parsedMarket = (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
                 result = (List<Object>) this.arrayConcat(result, parsedMarket);
             }
             // const spotMarkets = this.safeList (promises, 0, []);
@@ -3146,7 +3146,7 @@ public class Bybit extends BybitApi
                 List<Object> linearPromises = new ArrayList<Object>(Arrays.asList(this.publicGetV5MarketInstrumentsInfo(paramsExtended), this.publicGetV5MarketInstrumentsInfo(this.extend(paramsExtended, new HashMap<String, Object>() {{
         put( "status", "PreLaunch" );
     }}))));
-                Object promises = (((List<?>)(linearPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> promises = (((List<?>)(linearPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 response = (Map<String, Object>) this.safeDict(promises, 0, new HashMap<String, Object>() {{}});
                 preLaunchMarkets = this.safeDict(promises, 1, new HashMap<String, Object>() {{}});
             }
@@ -3870,7 +3870,7 @@ public class Bybit extends BybitApi
                 }
                 tickerList = spotTickers;
             }
-            return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), new HashMap<String, Object>() {{}});
+            return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v4 -> (List<String>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v4.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 
     }
@@ -4250,7 +4250,7 @@ public class Bybit extends BybitApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 200L, true)).join();
             }
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 200 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", limitResolved );
             }};
@@ -5707,7 +5707,7 @@ public class Bybit extends BybitApi
             request.put("orderType", this.capitalize(lowerCaseType));
             String timeInForce = this.safeStringLower(query, "timeInForce"); // this is same as exchange specific param
             Boolean postOnly = null;
-            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarket, java.util.Objects.equals(timeInForce, "postonly"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            List<Object> postOnlyqueryVariable = (List<Object>) this.handlePostOnly(isMarket, java.util.Objects.equals(timeInForce, "postonly"), ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             postOnly = (Boolean) ((List<Object>) postOnlyqueryVariable).get(0);
             query = ((List<Object>) postOnlyqueryVariable).get(1);
             if (Boolean.TRUE.equals(postOnly))
@@ -5749,7 +5749,7 @@ public class Bybit extends BybitApi
             }
         }
         String category = null;
-        var categoryqueryVariable = this.getBybitType("createOrderRequest", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
+        var categoryqueryVariable = this.getBybitType("createOrderRequest", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
         category = (String) ((List<Object>) categoryqueryVariable).get(0);
         query = ((List<Object>) categoryqueryVariable).get(1);
         request.put("category", category);
@@ -6546,7 +6546,7 @@ public class Bybit extends BybitApi
                 String symbol = this.safeString(order, "symbol");
                 Map<String, Object> market = this.market(symbol);
                 String currentCategory = null;
-                var currentCategoryqueryVariable = this.getBybitType("cancelOrders", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
+                var currentCategoryqueryVariable = this.getBybitType("cancelOrders", market, ((Map<String, Object>) (switch ((Object) (query)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })));
                 currentCategory = (String) ((List<Object>) currentCategoryqueryVariable).get(0);
                 query = ((List<Object>) currentCategoryqueryVariable).get(1);
                 if (java.util.Objects.equals(currentCategory, "inverse"))
@@ -9577,13 +9577,13 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
             }};
-            Object sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - 2592000000L) : since; // last 30 days
+            Long sinceResolved = (((java.util.Objects.equals(since, null)))) ? (this.milliseconds() - 2592000000L) : since; // last 30 days
             request.put("startTime", sinceResolved);
             Object endTime = this.safeInteger2(parameters, "until", "endTime");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until")));
             if (java.util.Objects.equals(endTime, null))
             {
-                endTime = ((Object) (switch ((Object) (sinceResolved)) { case null -> (Object) null; case Long hx4J40v0 -> (Object) (hx4J40v0 + 2592000000L); case Integer hx4J40v0 -> (Object) (hx4J40v0.longValue() + 2592000000L); case Double hx4J40v0 -> (Object) (hx4J40v0 + ((double) 2592000000L)); case String hx4J40v0 -> (Object) (hx4J40v0 + "2592000000"); default -> (Object) null; })); // since + 30 days
+                endTime = (sinceResolved + 2592000000L); // since + 30 days
             }
             request.put("endTime", endTime);
             Map<String, Object> response = (this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, paramsOmitted))).join();

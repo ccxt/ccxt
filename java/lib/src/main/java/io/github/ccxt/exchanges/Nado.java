@@ -3449,7 +3449,7 @@ public class Nado extends NadoApi
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected
-        Object entropy = this.randNumber(6);
+        Integer entropy = this.randNumber(6);
         return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
@@ -3585,7 +3585,7 @@ public class Nado extends NadoApi
     put( "type", "uint128" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3612,7 +3612,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3636,7 +3636,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 
@@ -3657,7 +3657,7 @@ public class Nado extends NadoApi
     put( "type", "uint64" );
 }})) );
         }};
-        Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
+        byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
         return this.signHash((String) (this.hash(encoded, keccak(), "hex")), (String) (this.privateKey));
     }
 

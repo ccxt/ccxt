@@ -1917,10 +1917,10 @@ public class Bullish extends BullishApi
         if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(untilParam, null)))
         {
             Long timeDelta = ((((7L * 24L) * 60L) * 60L) * 1000L); // 7 days
-            Object sinceResolved = since;
+            Long sinceResolved = since;
             if ((java.util.Objects.equals(since, null)) && (!java.util.Objects.equals(untilParam, null)))
             {
-                sinceResolved = (untilParam - timeDelta);
+                sinceResolved = (Long) (untilParam - timeDelta);
             }
             if ((!java.util.Objects.equals(since, null)) && (java.util.Objects.equals(untilParam, null)))
             {
@@ -3340,7 +3340,7 @@ public class Bullish extends BullishApi
                 put( "tradingAccountId", tradingAccountId );
             }};
             Long now = this.milliseconds();
-            Object startTimestamp = since;
+            Long startTimestamp = since;
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("createdAtDatetime[lte]", request, (Map<String, Object>) (parameters), 1);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
             Map<String, Object> paramsUntil = requestUntilparamsUntilVariable.second();
@@ -3348,7 +3348,7 @@ public class Bullish extends BullishApi
             // current endpoint requires both since and until parameters
             if (java.util.Objects.equals(since, null))
             {
-                startTimestamp = (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
+                startTimestamp = (Long) (now - ((((1000L * 60L) * 60L) * 24L) * 90L)); // Only the last 90 days of data is available for querying
             }
             if (java.util.Objects.equals(until, null))
             {

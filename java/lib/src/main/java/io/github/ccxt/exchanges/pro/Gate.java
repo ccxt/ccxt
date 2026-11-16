@@ -3018,7 +3018,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
                 }
             }
             List<Object> idArray = new ArrayList<Object>(Arrays.asList(this.uid));
-            Object payloadWithUid = (((java.util.Objects.equals(payload, null)))) ? idArray : this.arrayConcat(idArray, payload);
+            List<Object> payloadWithUid = (List<Object>) ((((java.util.Objects.equals(payload, null)))) ? idArray : this.arrayConcat(idArray, payload));
             Object payloadValue = payload;
             if (java.util.Objects.requireNonNullElse(requiresUid, false))
             {

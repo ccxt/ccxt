@@ -1632,7 +1632,7 @@ public class Luno extends LunoApi
 
             // by default without entry number or limit number, return most recent entry
             Object entryValue = (((java.util.Objects.equals(entry, null)))) ? -1 : entry;
-            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1L : limit;
+            Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 1 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "min_row", entryValue );
                 put( "max_row", Luno.this.sum(entryValue, limitValue) );
@@ -1689,11 +1689,11 @@ public class Luno extends LunoApi
             Long maxRowBase = this.safeInteger(parameters, "max_row", 0); // Default to most recent transactions
             Long minRowBase = this.safeInteger(parameters, "min_row", -1000); // Maximum number of records supported
             Boolean limitApplies = (!java.util.Objects.equals(limit, null)) && (((maxRowBase - minRowBase) > limit));
-            Object min_row = (((Boolean.TRUE.equals(limitApplies) && (!java.util.Objects.equals(limit, null)) && (maxRowBase == null || maxRowBase <= 0)))) ? (maxRowBase - limit) : minRowBase;
-            Object max_row = maxRowBase;
+            Long min_row = (((Boolean.TRUE.equals(limitApplies) && (!java.util.Objects.equals(limit, null)) && (maxRowBase == null || maxRowBase <= 0)))) ? (maxRowBase - limit) : minRowBase;
+            Long max_row = maxRowBase;
             if (Boolean.TRUE.equals(limitApplies) && (maxRowBase != null && maxRowBase > 0) && (minRowBase != null && minRowBase > 0))
             {
-                max_row = ((minRowBase == null || limit == null) ? null : (minRowBase + limit));
+                max_row = (Long) ((minRowBase == null || limit == null) ? null : (minRowBase + limit));
             }
             Boolean limitAdjusts = Boolean.TRUE.equals(limitApplies) && ((maxRowBase == null || maxRowBase <= 0) || (minRowBase != null && minRowBase > 0)); // max_row - min_row becomes limit
             if ((Boolean.TRUE.equals(limitAdjusts) && (limit != null && limit > 1000)) || (!Boolean.TRUE.equals(limitAdjusts) && (maxRowBase - minRowBase) > 1000))

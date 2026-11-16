@@ -3738,7 +3738,7 @@ public class Woofipro extends WoofiproApi
             withdrawRequest.put("amount", this.numberToString(amount));
             withdrawRequest.put("withdrawNonce", withdrawNonce);
             withdrawRequest.put("timestamp", nonce);
-            Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
+            byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );

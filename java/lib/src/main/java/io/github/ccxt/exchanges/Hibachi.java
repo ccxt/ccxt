@@ -1042,8 +1042,8 @@ public class Hibachi extends HibachiApi
         Map<String, Object> market = this.market(symbol);
         Double takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
         Double makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
-        Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
-        Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
+        Double takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
+        Double makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
         Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
         String sideInternal = "";
         if (java.util.Objects.equals(side, "sell"))
@@ -2284,7 +2284,7 @@ public class Hibachi extends HibachiApi
                 put( "accountId", Hibachi.this.getAccountId() );
             }};
             List<Object> rawPromises = new ArrayList<Object>(Arrays.asList(this.privateGetCapitalHistory(this.extend(request, parameters)), this.privateGetTradeAccountTradingHistory(this.extend(request, parameters))));
-            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> responseCapitalHistory = (Map<String, Object>) this.safeDict(promises, 0, (Object) null);
             //
             // {

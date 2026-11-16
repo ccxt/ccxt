@@ -1823,7 +1823,7 @@ public class Backpack extends BackpackApi
                 {
                     String underlyingId = ((this.safeString(market, "baseId", "") + "_") + this.safeString(market, "quoteId", ""));
                     Boolean useExternal = (java.util.Objects.equals(source, "External")) || Boolean.TRUE.equals(needsExternalRfqTickers);
-                    Object tickerSource = ((Boolean.TRUE.equals(useExternal))) ? externalResponseById : responseById;
+                    Map<String, Object> tickerSource = ((Boolean.TRUE.equals(useExternal))) ? externalResponseById : responseById;
                     Map<String, Object> underlyingTicker = (Map<String, Object>) this.safeDict(tickerSource, underlyingId, (Object) null);
                     if (!java.util.Objects.equals(underlyingTicker, null))
                     {

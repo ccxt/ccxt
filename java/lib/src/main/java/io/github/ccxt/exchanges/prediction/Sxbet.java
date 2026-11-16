@@ -422,7 +422,7 @@ public class Sxbet extends SxbetApi
         for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
         {
             String label = (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
+            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), marketSlug, label);
             HashMap<String, Object> j39v1 = new HashMap<String, Object>();
             j39v1.put("id", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
             j39v1.put("outcomeId", (outcomeIds == null || oi < 0 || oi >= outcomeIds.size() ? null : outcomeIds.get(oi)));
@@ -991,7 +991,7 @@ public class Sxbet extends SxbetApi
             mapLiteral5.put("to", tokenAddress);
             mapLiteral5.put("data", nonceCallData);
             Object nonceResult = (this.ethRpc((String) (rpcUrl), "eth_call", new ArrayList<Object>(Arrays.asList(mapLiteral5, "latest")))).join();
-            Object nonceHex = this.hexToRlpBytes((String) (nonceResult));
+            String nonceHex = this.hexToRlpBytes((String) (nonceResult));
             String nonce = (((java.util.Objects.equals(nonceHex, "")))) ? "0" : this.numberToString(this.hexToInt((String) (nonceHex)));
             String tokenName = (this.fetchErc20Name((String) (rpcUrl), (String) (tokenAddress))).join();
             Long defaultDeadlineSeconds = this.safeInteger(this.options, "approveDeadlineSeconds", 7200);
@@ -1026,7 +1026,7 @@ public class Sxbet extends SxbetApi
             messageData.put("value", value);
             messageData.put("nonce", nonce);
             messageData.put("deadline", deadline);
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String signature = this.signDigest((String) (digest), (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>();
@@ -1101,7 +1101,7 @@ public class Sxbet extends SxbetApi
             Boolean isBuy = (java.util.Objects.equals(side, "buy"));
             // 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
             // matches the normalize-to-one-book convention used by other prediction venues
-            Object isMakerBettingOutcomeOne = ((Boolean.TRUE.equals(isBuy))) ? isOutcomeOne : !Boolean.TRUE.equals(isOutcomeOne);
+            Boolean isMakerBettingOutcomeOne = ((Boolean.TRUE.equals(isBuy))) ? isOutcomeOne : !Boolean.TRUE.equals(isOutcomeOne);
             String priceStr = this.numberToString(price);
             String probability = ((Boolean.TRUE.equals(isBuy))) ? priceStr : Precise.stringSub("1", priceStr);
             Map<String, Object> obv3 = (this.loadSxObv3Metadata()).join();
@@ -1175,7 +1175,7 @@ public class Sxbet extends SxbetApi
                 put( "maker", maker );
                 put( "isMakerBettingOutcomeOne", isMakerBettingOutcomeOne );
             }};
-            Object encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
+            byte[] encoded = this.ethEncodeStructuredData(domain, messageTypes, messageData);
             String digest = this.hashEip712Digest(encoded);
             String orderSignature = this.signDigest((String) (digest), (String) (this.privateKey));
             Map<String, Object> orderItem = new HashMap<String, Object>();
@@ -1622,12 +1622,12 @@ public class Sxbet extends SxbetApi
         return BaseExchange.supplyAsync(() -> {
 
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash"));
+                request.put("marketHash", this.safeString(outcomeObj.get("info"), "marketHash"));
             }
             if (!java.util.Objects.equals(limit, null))
             {
@@ -1762,7 +1762,7 @@ public class Sxbet extends SxbetApi
 
             this.checkRequiredCredentials(true);
             Map<String, Object> request = new HashMap<String, Object>() {{}};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
@@ -2061,12 +2061,12 @@ public class Sxbet extends SxbetApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "status", "SETTLED" );
             }};
-            Object outcomeObj = null;
+            Map<String, Object> outcomeObj = null;
             if (!java.util.Objects.equals(outcome, null))
             {
                 (this.loadOutcome((String) (outcome), false)).join();
                 outcomeObj = this.outcome((String) (outcome));
-                request.put("marketHash", this.safeString(((Map<String, Object>)outcomeObj).get("info"), "marketHash", ""));
+                request.put("marketHash", this.safeString(outcomeObj.get("info"), "marketHash", ""));
             }
             String wantedOutcomeId = this.safeString(outcomeObj, "outcomeId");
             if (!java.util.Objects.equals(since, null))
@@ -2537,8 +2537,8 @@ public class Sxbet extends SxbetApi
     {
         String oneDenom = "100000000000000000000";
         String usdcDecimals = "1000000";
-        Object ownLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList()));
-        Object oppositeLevels = ((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList()));
+        List<Object> ownLevels = (List<Object>) (((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())));
+        List<Object> oppositeLevels = (List<Object>) (((Boolean.TRUE.equals(isOutcomeOne))) ? this.safeList(snapshot, "outcomeTwo", new ArrayList<Object>(Arrays.asList())) : this.safeList(snapshot, "outcomeOne", new ArrayList<Object>(Arrays.asList())));
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         Integer ownLevelsLength = ((List<?>)ownLevels).size();
         for (var i = 0; (ownLevelsLength != null && i < ownLevelsLength); i++)
@@ -2799,10 +2799,10 @@ public class Sxbet extends SxbetApi
             return;
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
-        Object rows = new ArrayList<Object>(Arrays.asList());
+        List<Object> rows = new ArrayList<Object>(Arrays.asList());
         if ((data instanceof List))
         {
-            rows = data;
+            rows = (List<Object>) data;
         } else
         {
             rows = new ArrayList<Object>(Arrays.asList(data));

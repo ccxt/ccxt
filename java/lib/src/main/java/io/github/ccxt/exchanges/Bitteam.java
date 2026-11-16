@@ -1583,7 +1583,7 @@ public class Bitteam extends BitteamApi
         {
             return null;
         }
-        String precisionString = (String) this.parsePrecision(precisionRawString);
+        String precisionString = this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 

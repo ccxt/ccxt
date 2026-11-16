@@ -2416,7 +2416,7 @@ public class Alpaca extends AlpacaApi
         String txid = null;
         Long timestamp = null;
         String datetime = null;
-        Object network = null;
+        String network = null;
         String address = null;
         String addressTo = null;
         String addressFrom = null;

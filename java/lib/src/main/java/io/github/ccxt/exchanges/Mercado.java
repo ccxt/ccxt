@@ -1087,16 +1087,16 @@ public class Mercado extends MercadoApi
                 put( "symbol", ((Mercado.this.safeString(market, "base", "") + "-") + Mercado.this.safeString(market, "quote", "")) );
             }};
             // set some default limit, as it's required if user doesn't provide it
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             if (!java.util.Objects.equals(since, null))
             {
                 request.put("from", this.parseToInt((((double) since) / ((double) 1000))));
-                request.put("to", this.sum(request.get("from"), (limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))));
+                request.put("to", this.sum(request.get("from"), (limitResolved * ((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m"))))));
             } else
             {
                 Long to = this.seconds();
                 request.put("to", to);
-                request.put("from", (to - (limitResolved * this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))));
+                request.put("from", (to - ((limitResolved * ((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "15m")))))));
             }
             Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and

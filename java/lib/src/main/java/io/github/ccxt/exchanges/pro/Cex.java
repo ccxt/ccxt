@@ -1136,7 +1136,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             String symbolValue = this.safeString(market, "symbol", "");
             String url = this.safeString(this.urls.get("api"), "ws", "");
             String messageHash = ("orderbook:" + symbolValue);
-            Object depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
+            Long depth = (((java.util.Objects.equals(limit, null)))) ? 0 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "e", "order-book-subscribe" );
                 put( "data", new HashMap<String, Object>() {{

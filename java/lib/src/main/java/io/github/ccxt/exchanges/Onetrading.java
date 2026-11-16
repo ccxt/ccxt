@@ -1272,7 +1272,7 @@ public class Onetrading extends OnetradingApi
             String unit = (String) (periodUnitParts == null || 1 >= periodUnitParts.size() ? null : periodUnitParts.get(1));
             int durationInSeconds = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
             Long duration = (((long) durationInSeconds) * 1000L);
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 1500 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "instrument_code", market.get("id") );
                 put( "period", period );
@@ -1343,7 +1343,7 @@ public class Onetrading extends OnetradingApi
         //     }
         //
         Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(trade, "fee", new HashMap<String, Object>() {{}});
-        Object tradeValue = this.safeDict(trade, "trade", trade);
+        Map<String, Object> tradeValue = (Map<String, Object>) this.safeDict(trade, "trade", trade);
         Long timestamp = this.safeInteger(tradeValue, "trade_timestamp");
         if (java.util.Objects.equals(timestamp, null))
         {
@@ -1536,7 +1536,7 @@ public class Onetrading extends OnetradingApi
         //         ]
         //     }
         //
-        Object rawOrder = this.safeDict(order, "order", order);
+        Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(order, "order", order);
         String id = this.safeString(rawOrder, "order_id");
         String clientOrderId = this.safeString(rawOrder, "client_id");
         Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));

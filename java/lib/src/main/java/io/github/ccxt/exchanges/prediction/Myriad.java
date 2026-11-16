@@ -775,7 +775,7 @@ public class Myriad extends MyriadApi
     {
         String marketSlug = this.safeString(position, "marketSlug", "");
         String outcomeTitle = this.safeString(position, "outcomeTitle", "");
-        Object outcome = this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
+        String outcome = this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
         Object marketSymbol = this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
         String outcomeId = this.safeString(position, "outcomeId");
         String id = ((((this.safeString(position, "networkId", "") + ":") + this.safeString(position, "marketId", "")) + "/") + this.safeString(position, "outcomeId", ""));
@@ -918,7 +918,7 @@ public class Myriad extends MyriadApi
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex.
         // tx fields (nonce/gas/fees/value) are hex strings; chainId is an int. Verified
         // byte-identical to ethers' serialization
-        Object accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
+        String accessList = this.rlpEncodeList(new ArrayList<Object>(Arrays.asList()));
         List<Object> fields = new ArrayList<Object>(Arrays.asList(this.rlpEncodeBytes((String) (this.intToRlpHex(this.safeInteger(tx, "chainId")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "nonce")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "gasLimit")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "to")))), this.rlpEncodeBytes((String) (this.hexToRlpBytes(this.safeString(tx, "value", "0x0")))), this.rlpEncodeBytes((String) (this.remove0xPrefix(this.safeString(tx, "data", "0x")))), accessList));
         String payload = ("02" + this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
@@ -993,9 +993,9 @@ public class Myriad extends MyriadApi
         put( "to", token );
         put( "data", allowanceData );
     }}, "latest")))).join();
-            Object trimmed = this.hexToRlpBytes((String) (current));
+            String trimmed = this.hexToRlpBytes((String) (current));
             // a max-approved allowance is ~32 bytes (64 nibbles); anything much smaller needs (re)approval
-            if (((String)trimmed).length() >= 50)
+            if (trimmed.length() >= 50)
             {
                 return null;
             }
@@ -1413,7 +1413,7 @@ public class Myriad extends MyriadApi
         domain.put("version", domainVersion);
         domain.put("chainId", this.parseToInt(networkId));
         domain.put("verifyingContract", exchangeAddress);
-        Object encoded = this.ethEncodeStructuredData(domain, types, message);
+        byte[] encoded = this.ethEncodeStructuredData(domain, types, message);
         Object digest = this.hash(encoded, keccak(), "hex");
         Map<String,Object> signature = ecdsa(digest, this.remove0xPrefix(this.privateKey), secp256k1(), null);
         Object rRaw = signature.get("r");
@@ -1713,7 +1713,7 @@ public class Myriad extends MyriadApi
         String marketSlug = this.safeString(trade, "marketSlug", marketId);
         String outcomeTitle = this.safeString(trade, "outcomeTitle", rawOutcomeId);
         String outcomeValue = this.safeString(outcomeObj, "outcome");
-        Object outcome = (((!java.util.Objects.equals(outcomeValue, null)))) ? outcomeValue : this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
+        String outcome = (((!java.util.Objects.equals(outcomeValue, null)))) ? outcomeValue : this.slugToOutcomeSymbol((String) (marketSlug), (String) (marketSlug), (String) (outcomeTitle));
         String marketSymbolValue = this.safeString(outcomeObj, "market");
         Object marketSymbol = (((!java.util.Objects.equals(marketSymbolValue, null)))) ? marketSymbolValue : this.slugToMarketSymbol((String) (marketSlug), (String) (marketSlug));
         String label = this.safeString(outcomeObj, "label");
@@ -2561,7 +2561,7 @@ public class Myriad extends MyriadApi
         Boolean voided = (Boolean) this.safeBool(raw, "voided", false);
         Boolean hasResolution = (!java.util.Objects.equals(resolvedOutcomeId, "-1")) && (!java.util.Objects.equals(resolvedOutcomeId, null)) && (!java.util.Objects.equals(resolvedOutcomeId, ""));
         Boolean marketResolved = Boolean.TRUE.equals(hasResolution) || Boolean.TRUE.equals(voided);
-        Object resolvedOutcome = null;
+        String resolvedOutcome = null;
         Double volume24h = this.safeNumber(raw, "volume24h", (Object) null);
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
         // globally unique, so do NOT fall back to networkId — that would prefix every handle.
@@ -2585,7 +2585,7 @@ public class Myriad extends MyriadApi
             String outcomeId = this.safeString(outcome, "outcomeId", this.safeString(outcome, "id", String.valueOf(i)));
             String outcomeLabel = this.safeString(outcome, "label", this.safeString(outcome, "title", outcomeId));
             Double price = this.safeNumber(outcome, "price", (Object) null);
-            Object outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (slug), (String) (outcomeLabel));
+            String outcomeHandle = this.slugToOutcomeSymbol((String) (eventSlug), (String) (slug), (String) (outcomeLabel));
             String outcomeCompositeId = ((((networkId + ":") + marketId) + "/") + outcomeId);
             Boolean winnerRaw = null;
             Object settleFractionRaw = null;
@@ -2641,7 +2641,7 @@ public class Myriad extends MyriadApi
         }
         Integer outcomesLength = ((List<?>)outcomes).size();
         // effectively-final copy for the market object literal below (reassigned in the loop)
-        Object marketResolvedOutcome = resolvedOutcome;
+        String marketResolvedOutcome = resolvedOutcome;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("id", ((networkId + ":") + marketId));
@@ -3407,11 +3407,11 @@ public class Myriad extends MyriadApi
                     put( "network_id", Myriad.this.safeString(info, "networkId") );
                 }}, parameters)));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
             {
                 Object key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
-                Object response = (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i));
+                Object response = (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i));
                 Object grouped = (List<Object>)((outcomesByMarket == null || key == null ? null : outcomesByMarket.get(key)));
                 for (var j = 0; j < ((List<?>)grouped).size(); j++)
                 {

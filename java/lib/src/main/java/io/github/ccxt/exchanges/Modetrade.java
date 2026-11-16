@@ -1061,14 +1061,14 @@ public class Modetrade extends ModetradeApi
         String currencyId = this.safeString(rawCurrency, "token");
         List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chain_details", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        Object minPrecision = null;
+        String minPrecision = null;
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)networks).size(); j++)
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             // TODO: transform chain id to human readable name
             String networkId = this.safeString(network, "chain_id", "");
-            String precision = (String) this.parsePrecision(this.safeString(network, "decimals"));
+            String precision = this.parsePrecision(this.safeString(network, "decimals"));
             if (!java.util.Objects.equals(precision, null))
             {
                 minPrecision = (((java.util.Objects.equals(minPrecision, null)))) ? precision : Precise.stringMin(precision, minPrecision);
@@ -3729,7 +3729,7 @@ public class Modetrade extends ModetradeApi
             withdrawRequest.put("amount", this.numberToString(amount));
             withdrawRequest.put("withdrawNonce", withdrawNonce);
             withdrawRequest.put("timestamp", nonce);
-            Object msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
+            byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, withdrawRequest);
             String signature = this.signMessage(msg, (String) (this.privateKey));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "signature", signature );

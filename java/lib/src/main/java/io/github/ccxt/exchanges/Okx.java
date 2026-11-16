@@ -2467,7 +2467,7 @@ public class Okx extends OkxApi
         String expiry = this.safeString(optionParts, 2, "");
         String strike = this.safeString(optionParts, 3, "");
         String optionType = this.safeString(optionParts, 4, "");
-        Object datetime = (((java.util.Objects.equals(expiry, "")))) ? null : this.convertExpireDate(expiry);
+        String datetime = (String) ((((java.util.Objects.equals(expiry, "")))) ? null : this.convertExpireDate(expiry));
         Long timestamp = this.parse8601(datetime);
         HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
         mapLiteral1.put("id", ((((((((base + "-") + quote) + "-") + expiry) + "-") + strike) + "-") + optionType));
@@ -2749,10 +2749,10 @@ public class Okx extends OkxApi
             {
                 ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i, ""), parameters));
             }
-            Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             for (var i = 0; i < ((List<?>)responses).size(); i++)
             {
-                result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(i)));
+                result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
             return result;
         });
@@ -2968,7 +2968,7 @@ public class Okx extends OkxApi
                     request.put("uly", underlying);
                     ((List<Object>)promises).add(this.publicGetPublicInstruments(this.extend(request, parameters)));
                 }
-                Object promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+                List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 List<Object> markets = new ArrayList<Object>(Arrays.asList());
                 for (var i = 0; i < ((List<?>)promisesResult).size(); i++)
                 {
@@ -3846,7 +3846,7 @@ public class Okx extends OkxApi
                     // limitResolved is already at most 100 for mark or index candles and 300 otherwise
                     defaultType = "HistoryCandles";
                 }
-                Object startTime = ((((since > 1)))) ? ((since - 1L)) : 0;
+                Long startTime = ((((since > 1)))) ? ((since - 1L)) : 0;
                 request.put("before", startTime);
                 request.put("after", this.sum(since, (durationInMilliseconds * limitResolved)));
             }
@@ -6996,7 +6996,7 @@ public class Okx extends OkxApi
         String chain = this.safeString(depositAddress, "chain");
         Map<String, Object> networks = (Map<String, Object>) this.safeDict(currencyResolved, "networks", new HashMap<String, Object>() {{}});
         Map<String,Object> networksById = this.indexBy(networks, "id");
-        Object networkData = (((java.util.Objects.equals(chain, null)))) ? null : this.safeDict(networksById, chain, (Object) null);
+        Map<String, Object> networkData = (Map<String, Object>) ((((java.util.Objects.equals(chain, null)))) ? null : this.safeDict(networksById, chain, (Object) null));
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
         //
@@ -7040,7 +7040,7 @@ public class Okx extends OkxApi
         //
         if (java.util.Objects.equals(chain, "USDT-Polygon"))
         {
-            networkData = this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon", (Object) null);
+            networkData = (Map<String, Object>) this.safeDict2(networksById, "USDT-Polygon-Bridge", "USDT-Polygon", (Object) null);
         }
         String network = this.safeString(networkData, "network");
         String networkCode = this.networkIdToCode(network, code);
@@ -7627,7 +7627,7 @@ public class Okx extends OkxApi
         }
         String currencyId = this.safeString(transaction, "ccy");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        Object network = null;
+        String network = null;
         String chain = this.safeString(transaction, "chain");
         if (!java.util.Objects.equals(chain, null))
         {
@@ -11728,7 +11728,7 @@ public class Okx extends OkxApi
             String marginMode = this.safeString(parameters, "marginMode");
             String instType = this.safeStringUpper(parameters, "instType");
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("until", "marginMode", "instType")));
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "limit", limitResolved );
             }};

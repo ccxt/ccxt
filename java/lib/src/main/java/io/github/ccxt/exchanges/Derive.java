@@ -1839,7 +1839,7 @@ public class Derive extends DeriveApi
             if (!java.util.Objects.equals(limit, null))
             {
                 // the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-                Object pageSize = ((((limit > 500)))) ? 1000 : (limit * 2L); // default 100, max 1000
+                Long pageSize = ((((limit > 500)))) ? 1000 : (limit * 2L); // default 100, max 1000
                 request.put("page_size", pageSize);
             }
             if (!java.util.Objects.equals(since, null))
@@ -2358,7 +2358,7 @@ public class Derive extends DeriveApi
         // incrementingNonce guarantees unique milliseconds within one instance; the result matches the official derive-ts client nonce format (error 11017 = duplicate nonce)
         // the mutating calls stay hoisted out of other call arguments, nesting them breaks the rust borrow checker (E0502)
         Long rawNonce = this.incrementingNonce();
-        Object randomPart = this.randNumber(6); // guards against collisions of different instances with the same wallet
+        Integer randomPart = this.randNumber(6); // guards against collisions of different instances with the same wallet
         Object milliseconds = this.numberToString(rawNonce);
         String suffix = this.numberToString(randomPart);
         String padded = (((String)suffix).length() >= 6 ? ((String)suffix).substring(((String)suffix).length() - 6) : String.format("%" + (6 - ((String)suffix).length()) + "s", "").replace(' ', '0') + ((String)suffix));
@@ -2367,8 +2367,8 @@ public class Derive extends DeriveApi
 
     public String hashMessage(String message)
     {
-        Object binaryMessage = this.encode(message);
-        Object binaryMessageLength = this.binaryLength(binaryMessage);
+        byte[] binaryMessage = this.encode(message);
+        Integer binaryMessageLength = this.binaryLength(binaryMessage);
         byte[] x19 = this.base16ToBinary("19");
         byte[] newline = this.base16ToBinary("0a");
         byte[] prefix = this.binaryConcat(x19, this.encode("Ethereum Signed Message:"), newline, this.encode(this.numberToString(binaryMessageLength)));
@@ -3306,7 +3306,7 @@ public class Derive extends DeriveApi
         //         "algo_slices_completed": null
         //     }
         //
-        Object order = this.safeDict(rawOrder, "data", rawOrder);
+        Map<String, Object> order = (Map<String, Object>) this.safeDict(rawOrder, "data", rawOrder);
         Long timestamp = this.safeInteger(rawOrder, "creation_timestamp"); // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
         String orderId = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "instrument_name");

@@ -624,7 +624,7 @@ public class Hyperliquid extends HyperliquidApi
                     ((List<Object>)rawPromises).add(this.fetchHip3Markets(parameters));
                 }
             }
-            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
             {
@@ -724,7 +724,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("dex", this.safeString(fetchDexesList, i));
                 ((List<Object>)rawPromises).add(this.publicPostInfo(this.extend(request, parameters)));
             }
-            Object promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> promises = (((List<?>)(rawPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             this.options.put("hip3TokensByName", new HashMap<String, Object>() {{}});
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)promises).size(); i++)
@@ -1754,10 +1754,10 @@ public class Hyperliquid extends HyperliquidApi
             //         }
             //     ]
             //
-            Object candles = new ArrayList<Object>(Arrays.asList());
+            List<Object> candles = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                candles = response;
+                candles = (List<Object>) response;
             }
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), originalSince, limit, useTail);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
@@ -1853,10 +1853,10 @@ public class Hyperliquid extends HyperliquidApi
             //         }
             //     ]
             //
-            Object fills = new ArrayList<Object>(Arrays.asList());
+            List<Object> fills = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                fills = response;
+                fills = (List<Object>) response;
             }
             return this.parseTrades(fills, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -1987,7 +1987,7 @@ public class Hyperliquid extends HyperliquidApi
     put( "type", "bytes32" );
 }})) );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, phantomAgent);
         Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
@@ -2002,7 +2002,7 @@ public class Hyperliquid extends HyperliquidApi
             put( "verifyingContract", zeroAddress );
             put( "version", "1" );
         }};
-        Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
+        byte[] msg = this.ethEncodeStructuredData(domain, messageTypes, message);
         Map<String, Object> signature = this.signMessage(msg, (String) (this.privateKey));
         return signature;
     }
@@ -3661,7 +3661,7 @@ public class Hyperliquid extends HyperliquidApi
                 request.put("startTime", since);
             } else
             {
-                Long maxLimit = (((java.util.Objects.equals(limit, null)))) ? 500L : limit;
+                Long maxLimit = (((java.util.Objects.equals(limit, null)))) ? 500 : limit;
                 request.put("startTime", (this.milliseconds() - (((maxLimit * 60L) * 60L) * 1000L)));
             }
             Long until = this.safeInteger(parameters, "until");
@@ -3682,10 +3682,10 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Object fundings = new ArrayList<Object>(Arrays.asList());
+            List<Object> fundings = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                fundings = response;
+                fundings = (List<Object>) response;
             }
             for (var i = 0; i < ((List<?>)fundings).size(); i++)
             {
@@ -3776,10 +3776,10 @@ public class Hyperliquid extends HyperliquidApi
             //     ]
             //
             List<Object> orderWithStatus = new ArrayList<Object>(Arrays.asList());
-            Object rawOrders = new ArrayList<Object>(Arrays.asList());
+            List<Object> rawOrders = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                rawOrders = response;
+                rawOrders = (List<Object>) response;
             }
             for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
             {
@@ -3938,14 +3938,14 @@ public class Hyperliquid extends HyperliquidApi
             // so a canceled order appears twice: once as 'open' and once as 'canceled'.
             // Deduplicate by oid, keeping the entry with the most recent statusTimestamp.
             Map<String, Object> deduplicatedByOid = new HashMap<String, Object>() {{}};
-            Object historicalOrders = new ArrayList<Object>(Arrays.asList());
+            List<Object> historicalOrders = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                historicalOrders = response;
+                historicalOrders = (List<Object>) response;
             }
             for (var i = 0; i < ((List<?>)historicalOrders).size(); i++)
             {
-                Object rawOrder = (historicalOrders == null || i < 0 || i >= ((List<?>)historicalOrders).size() ? null : ((List<?>)historicalOrders).get(i));
+                Object rawOrder = (historicalOrders == null || i < 0 || i >= historicalOrders.size() ? null : historicalOrders.get(i));
                 Object entry = this.safeDict(rawOrder, "order", rawOrder);
                 String oid = this.safeString(entry, "oid");
                 if (!java.util.Objects.equals(oid, null))
@@ -4154,7 +4154,7 @@ public class Hyperliquid extends HyperliquidApi
                 put( "status", "rejected" );
             }}, (Map<String, Object>) null);
         }
-        Object entry = this.safeDictN(order, new ArrayList<Object>(Arrays.asList("order", "resting", "filled")), order);
+        Map<String, Object> entry = (Map<String, Object>) this.safeDictN(order, new ArrayList<Object>(Arrays.asList("order", "resting", "filled")), order);
         Map<String, Object> filled = (Map<String, Object>) this.safeDict(order, "filled", new HashMap<String, Object>() {{}});
         String coin = this.safeString(entry, "coin");
         String marketId = null;
@@ -4336,10 +4336,10 @@ public class Hyperliquid extends HyperliquidApi
             //         }
             //     ]
             //
-            Object myFills = new ArrayList<Object>(Arrays.asList());
+            List<Object> myFills = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                myFills = response;
+                myFills = (List<Object>) response;
             }
             return this.parseTrades(myFills, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -5275,7 +5275,7 @@ public class Hyperliquid extends HyperliquidApi
             String vaultAddress = this.formatVaultAddress(vaultAddressOption);
             Long nonce = this.incrementingNonce();
             Map<String, Object> action = new HashMap<String, Object>() {{}};
-            Object sig = null;
+            Map<String, Object> sig = null;
             if (!java.util.Objects.equals(vaultAddress, null))
             {
                 {
@@ -5666,10 +5666,10 @@ public class Hyperliquid extends HyperliquidApi
             //     }
             // ]
             //
-            Object depositLedger = new ArrayList<Object>(Arrays.asList());
+            List<Object> depositLedger = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                depositLedger = response;
+                depositLedger = (List<Object>) response;
             }
             List<Object> records = (List<Object>) this.extractTypeFromDelta(depositLedger);
             String vaultAddress = null;
@@ -5753,10 +5753,10 @@ public class Hyperliquid extends HyperliquidApi
             //     }
             // ]
             //
-            Object withdrawalLedger = new ArrayList<Object>(Arrays.asList());
+            List<Object> withdrawalLedger = new ArrayList<Object>(Arrays.asList());
             if ((response instanceof List))
             {
-                withdrawalLedger = response;
+                withdrawalLedger = (List<Object>) response;
             }
             List<Object> records = (List<Object>) this.extractTypeFromDelta(withdrawalLedger);
             String vaultAddress = null;

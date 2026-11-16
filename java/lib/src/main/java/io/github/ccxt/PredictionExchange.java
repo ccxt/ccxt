@@ -699,7 +699,7 @@ public Map<String, Object> describe()
         return ((eventPart + "_") + marketPart);
     }
 
-    public Object slugToOutcomeSymbol(String eventSlug, String marketSlug, String outcome)
+    public String slugToOutcomeSymbol(String eventSlug, String marketSlug, String outcome)
     {
         // build on slugToMarketSymbol so the outcome handle stays consistent with the market symbol
         // — both event-qualified or both not — otherwise a qualified market + unqualified outcome mismatch.
@@ -1926,7 +1926,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
             ((List<Object>)results).add(trade);
         }
@@ -1954,7 +1954,7 @@ public Map<String, Object> describe()
         List<Object> results = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)rows).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
+            Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             Map<String, Object> order = this.extend(parsed, parameters);
             ((List<Object>)results).add(order);
         }
@@ -2000,14 +2000,14 @@ public Map<String, Object> describe()
         return this.filterBySinceLimit(result, since, limit, "timestamp", java.util.Objects.requireNonNullElse(tail, false));
     }
 
-    public Object amountToPredictionPrecision(String outcome, Object amount)
+    public String amountToPredictionPrecision(String outcome, Object amount)
     {
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String marketSymbol = this.safeString(outcomeObj, "market");
         return this.amountToPrecision(marketSymbol, amount);
     }
 
-    public Object priceToPredictionPrecision(String outcome, Object price)
+    public String priceToPredictionPrecision(String outcome, Object price)
     {
         Map<String, Object> outcomeObj = this.outcome((String) (outcome));
         String marketSymbol = this.safeString(outcomeObj, "market");
@@ -2028,7 +2028,7 @@ public Map<String, Object> describe()
     // it needs the noble crypto imports (keccak/ecdsa/secp256k1) which the
     // per-language prediction base skeletons don't carry; this base
     // sendEvmTransaction dispatches to the exchange's signEvmTransaction override
-    public Object padHexToEven(String hex)
+    public String padHexToEven(String hex)
     {
         if (java.util.Objects.equals(hex, null))
         {
@@ -2074,13 +2074,13 @@ public Map<String, Object> describe()
         {
             return (this.intToBase16((128L + byteLength)) + hex);
         }
-        Object lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven((String) (lengthHex));
-        Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
-        return Helpers.add((this.intToBase16((183L + lengthOfLength)) + lengthHex), hex);
+        String lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        Long lengthOfLength = this.parseToInt((((double) lengthHex.length()) / ((double) 2)));
+        return ((this.intToBase16((183L + lengthOfLength)) + lengthHex) + hex);
     }
 
-    public Object rlpEncodeList(Object items)
+    public String rlpEncodeList(Object items)
     {
         String concatenated = "";
         for (var i = 0; i < ((List<?>)items).size(); i++)
@@ -2092,9 +2092,9 @@ public Map<String, Object> describe()
         {
             return (this.intToBase16((192L + byteLength)) + concatenated);
         }
-        Object lengthHex = this.intToBase16(byteLength);
-        lengthHex = this.padHexToEven((String) (lengthHex));
-        Long lengthOfLength = this.parseToInt((((double) ((String)lengthHex).length()) / ((double) 2)));
+        String lengthHex = this.intToBase16(byteLength);
+        lengthHex = this.padHexToEven(lengthHex);
+        Long lengthOfLength = this.parseToInt((((double) lengthHex.length()) / ((double) 2)));
         return ((this.intToBase16((247L + lengthOfLength)) + lengthHex) + concatenated);
     }
 
@@ -2109,12 +2109,12 @@ public Map<String, Object> describe()
         {
             return "";
         }
-        Object hex = this.intToBase16(value);
-        hex = this.padHexToEven((String) (hex));
+        String hex = this.intToBase16(value);
+        hex = this.padHexToEven(hex);
         return hex;
     }
 
-    public Object hexToRlpBytes(String hexValue)
+    public String hexToRlpBytes(String hexValue)
     {
         // a hex value (e.g. an RPC result) as minimal big-endian byte hex; leading zero bytes
         // are stripped and 0 becomes the empty byte string (RLP integer encoding)

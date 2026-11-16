@@ -544,7 +544,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket(market, "fetchTradesWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchTrades:" + market.get("symbol"));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 10 : limit;
             Map<String, Object> message = new HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "trade" );
@@ -1013,7 +1013,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket(market, "fetchOrderBookWs");
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("fetchOrderbook:" + market.get("symbol"));
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "depth" );
@@ -1051,7 +1051,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = ("orderbook:" + market.get("symbol"));
             Map<String, Object> paramsOmitted = this.omit(parameters, "aggregation");
-            Object limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 100 : limit;
             Map<String, Object> subscribe = new HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "depth" );

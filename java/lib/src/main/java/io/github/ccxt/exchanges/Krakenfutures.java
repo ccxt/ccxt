@@ -1126,7 +1126,7 @@ public class Krakenfutures extends KrakenfuturesApi
             request.put("price_type", priceType);
             request.put("interval", this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m")));
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, "price");
-            Object windowLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 2000))))) ? 2000 : limit;
+            Long windowLimit = ((((java.util.Objects.equals(limit, null)) || ((limit > 2000))))) ? 2000 : limit;
             Long windowSize = this.parseToInt(windowLimit);
             Long limitResolved = null;
             if ((!java.util.Objects.equals(since, null)) || (!java.util.Objects.equals(limit, null)))

@@ -989,7 +989,7 @@ public class Apex extends ApexApi
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
             // default is 200 when requested with `since`, max 200
-            Long limitResolved = (((java.util.Objects.equals(limit, null) || (limit > 200)))) ? 200L : limit;
+            Long limitResolved = (((java.util.Objects.equals(limit, null) || (limit > 200)))) ? 200 : limit;
             request.put("limit", limitResolved);
             Pair<Map<String, Object>, Map<String, Object>> requestUntilparamsUntilVariable = this.handleUntilOption("end", request, (Map<String, Object>) (parameters), 0.001);
             Map<String, Object> requestUntil = requestUntilparamsUntilVariable.first();
@@ -1110,7 +1110,7 @@ public class Apex extends ApexApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Apex.this.safeString(market, "id2") );
             }};
-            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 500L : limit; // default is 50
+            Long limitResolved = (((java.util.Objects.equals(limit, null)))) ? 500 : limit; // default is 50
             request.put("limit", limitResolved);
             Map<String, Object> response = (this.publicGetV3Trades(this.extend(request, parameters))).join();
             //
@@ -1497,7 +1497,7 @@ public class Apex extends ApexApi
                 }
             }
         }
-        return super.safeMarket(marketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v1 -> (Map<String, Object>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v1.getClass().getName()); })), delimiter, marketType);
+        return super.safeMarket(marketId, ((Map<String, Object>) (switch ((Object) (marketResolved)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v0 -> (Map<String, Object>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v0.getClass().getName()); })), delimiter, marketType);
     }
 
     public String generateRandomClientIdOmni(String _accountId)
@@ -1737,8 +1737,8 @@ public class Apex extends ApexApi
             }
             String tokenId = this.safeString(currency, "tokenId", "");
             Double decimalsNum = this.safeNumber(currency, "decimals", 0);
-            Object decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
-            Double mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(decimalsNumber, null))));
+            Double decimalsNumber = (((java.util.Objects.equals(decimalsNum, null)))) ? 0 : decimalsNum;
+            Double mathPowResult = (Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(String.valueOf(decimalsNumber))));
             Double amountNum = this.parseNumber(amount);
             Double amountValue = (((java.util.Objects.equals(amountNum, null)))) ? 0 : amountNum;
             Long amountNumber = this.parseToInt((amountValue * mathPowResult));

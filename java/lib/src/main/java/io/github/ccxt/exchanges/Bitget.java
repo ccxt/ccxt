@@ -3850,7 +3850,7 @@ public class Bitget extends BitgetApi
                     put( "category", "SPOT" );
                 }}));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             Map<String, Object> spotInstruments = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(fetchMargins))
             {
@@ -4050,8 +4050,8 @@ public class Bitget extends BitgetApi
             spot = true;
             String priceDecimals = this.safeString(market, "pricePrecision");
             String amountDecimals = this.safeString(market, "quantityPrecision");
-            String priceStep = (String) this.parsePrecision(priceDecimals);
-            String amountStep = (String) this.parsePrecision(amountDecimals);
+            String priceStep = this.parsePrecision(priceDecimals);
+            String amountStep = this.parsePrecision(amountDecimals);
             pricePrecision = this.parseNumber(priceStep);
             amountPrecision = this.parseNumber(amountStep);
             List<Object> crossMarginPairs = (List<Object>) this.safeList(this.options, "crossMarginPairsData", new ArrayList<Object>(Arrays.asList()));
@@ -4190,7 +4190,7 @@ public class Bitget extends BitgetApi
                 Map<String, Object> req = this.extend(parameters, (switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>(); j39v2.put("category", (subTypes == null || i < 0 || i >= subTypes.size() ? null : subTypes.get(i))); yield j39v2; } }));
                 ((List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
             }
-            Object results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
+            List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)results).size(); i++)
             {
@@ -4407,8 +4407,8 @@ public class Bitget extends BitgetApi
         }
         String priceDecimals = this.safeString(market, "pricePrecision");
         String amountDecimals = this.safeString(market, "quantityPrecision");
-        String priceStep = (String) this.parsePrecision(priceDecimals);
-        String amountStep = (String) this.parsePrecision(amountDecimals);
+        String priceStep = this.parsePrecision(priceDecimals);
+        String amountStep = this.parsePrecision(amountDecimals);
         pricePrecision = this.parseNumber(priceStep);
         amountPrecision = this.parseNumber(amountStep);
         String status = this.safeString(market, "status");
@@ -4556,7 +4556,7 @@ public class Bitget extends BitgetApi
             withdraw = Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable);
             deposit = Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable);
             String withdrawMinScale = this.safeString(chain, "withdrawMinScale");
-            String precision = (String) this.parsePrecision(withdrawMinScale);
+            String precision = this.parsePrecision(withdrawMinScale);
             networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
                 j39v3.put("info", chain);
                 j39v3.put("id", networkId);
@@ -5448,7 +5448,7 @@ public class Bitget extends BitgetApi
         String currencyId = this.safeString(depositAddress, "coin");
         String networkId = this.safeString(depositAddress, "chain");
         String parsedCurrency = this.safeCurrencyCode(currencyId, currency);
-        Object network = null;
+        String network = null;
         if (!java.util.Objects.equals(networkId, null))
         {
             network = this.networkIdToCode(networkId, parsedCurrency);
