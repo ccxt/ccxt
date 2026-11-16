@@ -8719,13 +8719,12 @@ export class BaseExchange {
                     errors = 0;
                     result = this.arrayConcat (result, response);
                     const firstElement = this.safeDict (response, 0);
-                    const firstTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
-                    paginationTimestamp = firstTimestamp;
-                    if (firstTimestamp === undefined) {
+                    paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
+                    if (paginationTimestamp === undefined) {
                         shouldBreak = true;
                         break;
                     }
-                    if ((since !== undefined) && (firstTimestamp <= since)) {
+                    if ((since !== undefined) && (paginationTimestamp <= since)) {
                         shouldBreak = true;
                         break;
                     }
