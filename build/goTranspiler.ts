@@ -11195,24 +11195,14 @@ function goTypedInopClientMaps (content: string): string {
 }
 
 function goTypedInopSelfTest (): string[] {
-    const problems: string[] = [];
-    const f = (body: string) => goTypedInopClientMaps ('func (this *X) H(client any, p any) {\n' + body + '}\n');
-    const hit = f ('\tvar h string = \"a\"\n\tif !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h)) {\n\t}\n');
-    if (!hit.includes ('\tif _, ok := client.(ccxt.ClientInterface).GetFutures()[h]; !ok {')) {
-        problems.push ('go-typed-deref-self-test-inop: string key not converted: ' + hit);
-    }
-    if (!f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp(')) {
-        problems.push ('go-typed-deref-self-test-inop: any key must keep InOp');
-    }    if (!f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp(')) {
-        problems.push ('go-typed-deref-self-test-inop: two calls must keep InOp');
-    }
-    return problems;
+    return runSelfTest ('go-typed-deref-self-test-inop: ', (ok) => {
+        const f = (body: string) => goTypedInopClientMaps ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+        const hit = f ('\tvar h string = \"a\"\n\tif !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h)) {\n\t}\n');
+        ok (hit.includes ('\tif _, ok := client.(ccxt.ClientInterface).GetFutures()[h]; !ok {'), 'string key not converted: ' + hit);
+        ok (f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp('), 'any key must keep InOp');
+        ok (f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp('), 'two calls must keep InOp');
+    });
 }
-
-
-
-
-
 
 // ===== bare `x := GetValue(s, N)` on a `[]any` local -> native element read =====
 // Every read of x is a whole argument a helper derefScalars at entry, so GetValue's own deref is
@@ -11706,32 +11696,38 @@ function goSelfMapRebind (write: string, name: string): boolean {
         || (write === 'MapTyped(this.SafeBalance(' + name + '))'); // SafeBalance returns its argument
 }
 
+// transpiles TS sources (path relative to a fresh temp dir -> text) with the ccxt go local/indexable type hooks
+function goSelfTestTranspile (prefix: string, files: { [rel: string]: string }, entry: string): string {
+    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), prefix));
+    try {
+        for (const rel in files) {
+            fs.mkdirSync (path.dirname (path.join (tmp, rel)), { 'recursive': true });
+            fs.writeFileSync (path.join (tmp, rel), files[rel]);
+        }
+        const t = new Transpiler ({ 'verbose': false, 'go': {} });
+        installCcxtGoLocalTypes (t.goTranspiler);
+        installCcxtGoIndexableTypes (t.goTranspiler);
+        return t.transpileGoByPath (path.join (tmp, entry)).content;
+    } finally {
+        fs.rmSync (tmp, { 'recursive': true, 'force': true });
+    }
+}
+
 // a map-literal local rebound by base omit/mergeBalanceAccount of itself stays map[string]any and
 // its writes go native; the same shape on a non-base callee keeps the box
 function goSelfMapRebindSelfTest (): string[] {
-    const problems: string[] = [];
-    const src = 'type Dict = { [key: string]: any };\ntype Str = string | undefined;\nclass Test {\n'
-        + '    omit (x: Dict, ...args: any[]): any { return x; }\n'
-        + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
-        + '    f1 (side: string) { let request = { \'a\': 1 }; if (side === \'sell\') { request = this.omit (request, \'b\'); } request[\'c\'] = 3; return request; }\n'
-        + '    f2 (codes: string[]) { let result = {}; for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result[\'info\'] = 1; return result; }\n'
-        + '    f4 (side: string, p: Str) { let request = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } request = this.omit (request, \'a\'); return request; }\n'
-        + '    f3 (other: Dict) { let request = { \'a\': 1 }; request = this.omit (other, \'b\'); request[\'c\'] = 3; return request; }\n'
-        + '}\n';
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-self-map-rebind-self-'));
-    try {
-        const print = (dir: string) => {
-            fs.mkdirSync (path.join (tmp, dir), { 'recursive': true });
-            const file = path.join (tmp, dir, 'Exchange.ts');
-            fs.writeFileSync (file, src);
-            const t = new Transpiler ({ 'verbose': false, 'go': {} });
-            installCcxtGoLocalTypes (t.goTranspiler);
-            installCcxtGoIndexableTypes (t.goTranspiler);
-            return t.transpileGoByPath (file).content;
-        };
+    return runSelfTest ('go self map rebind self: ', (ok) => {
+        const src = 'type Dict = { [key: string]: any };\ntype Str = string | undefined;\nclass Test {\n'
+            + '    omit (x: Dict, ...args: any[]): any { return x; }\n'
+            + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
+            + '    f1 (side: string) { let request = { \'a\': 1 }; if (side === \'sell\') { request = this.omit (request, \'b\'); } request[\'c\'] = 3; return request; }\n'
+            + '    f2 (codes: string[]) { let result = {}; for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result[\'info\'] = 1; return result; }\n'
+            + '    f4 (side: string, p: Str) { let request = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } request = this.omit (request, \'a\'); return request; }\n'
+            + '    f3 (other: Dict) { let request = { \'a\': 1 }; request = this.omit (other, \'b\'); request[\'c\'] = 3; return request; }\n'
+            + '}\n';
+        const print = (dir: string) => goSelfTestTranspile ('go-self-map-rebind-self-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
         const base = print ('base');
         const body = (go: string, name: string) => (go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? '');
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go self map rebind self: ' + msg); } };
         ok (/var request map\[string\]any = /.test (body (base, 'F1')) && /request\["c"\] = 3/.test (body (base, 'F1'))
             && /request = MapTyped\(this\.Omit\(request, "b"\)\)/.test (body (base, 'F1')), 'self-omit local typed + native write');
         ok (/var result map\[string\]any = /.test (body (base, 'F2')) && /result = MapTyped\(this\.MergeBalanceAccount\(result, /.test (body (base, 'F2'))
@@ -11743,40 +11739,24 @@ function goSelfMapRebindSelfTest (): string[] {
         ok (!/request\["p"\] = p\b/.test (body (base, 'F4')), 'a pointer value is never stored un-deref\'d');
         const other = print ('other');
         ok (/var request any = /.test (body (other, 'F1')) && /var result any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
-    } catch (e: any) {
-        problems.push ('go self map rebind self threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'go self map rebind self threw: ');
 }
 
 // a map-literal local rebound by base safeBalance of itself (or a const declared from it) is map[string]any
 function b02SafeBalanceSelfTest (): string[] {
-    const problems: string[] = [];
-    const src = 'type Dict = { [key: string]: any };\nclass Test {\n'
-        + '    safeBalance (balance: Dict): any { return balance; }\n'
-        + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
-        + '    deepExtend (...args: any[]): any { return args[0]; }\n'
-        + '    f1 (codes: string[], spot: boolean) { let result: Dict = { \'info\': 1 }; if (spot) { for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result = this.safeBalance (result); } else { result[\'x\'] = 2; result = this.safeBalance (result); } return result; }\n'
-        + '    f2 () { const result: Dict = { \'info\': 1 }; result[\'a\'] = {}; const balance = this.safeBalance (result); return this.deepExtend ({}, balance); }\n'
-        + '    f3 (other: Dict) { let result: Dict = { \'info\': 1 }; result = this.safeBalance (other); result[\'x\'] = 2; return result; }\n'
-        + '    f4 (other: Dict) { const balance = this.safeBalance (other); return balance; }\n'
-        + '}\n';
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'safe-balance-self-test-'));
-    try {
-        const print = (dir: string) => {
-            fs.mkdirSync (path.join (tmp, dir), { 'recursive': true });
-            const file = path.join (tmp, dir, 'Exchange.ts');
-            fs.writeFileSync (file, src);
-            const t = new Transpiler ({ 'verbose': false, 'go': {} });
-            installCcxtGoLocalTypes (t.goTranspiler);
-            installCcxtGoIndexableTypes (t.goTranspiler);
-            return t.transpileGoByPath (file).content;
-        };
+    return runSelfTest ('safe balance self test: ', (ok) => {
+        const src = 'type Dict = { [key: string]: any };\nclass Test {\n'
+            + '    safeBalance (balance: Dict): any { return balance; }\n'
+            + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
+            + '    deepExtend (...args: any[]): any { return args[0]; }\n'
+            + '    f1 (codes: string[], spot: boolean) { let result: Dict = { \'info\': 1 }; if (spot) { for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result = this.safeBalance (result); } else { result[\'x\'] = 2; result = this.safeBalance (result); } return result; }\n'
+            + '    f2 () { const result: Dict = { \'info\': 1 }; result[\'a\'] = {}; const balance = this.safeBalance (result); return this.deepExtend ({}, balance); }\n'
+            + '    f3 (other: Dict) { let result: Dict = { \'info\': 1 }; result = this.safeBalance (other); result[\'x\'] = 2; return result; }\n'
+            + '    f4 (other: Dict) { const balance = this.safeBalance (other); return balance; }\n'
+            + '}\n';
+        const print = (dir: string) => goSelfTestTranspile ('safe-balance-self-test-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
         const base = print ('base');
         const body = (go: string, name: string) => (go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? '');
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('safe balance self test: ' + msg); } };
         ok (/var result map\[string\]any = /.test (body (base, 'F1')) && /result = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F1'))
             && /result\["x"\] = 2/.test (body (base, 'F1')), 'self-safeBalance local typed + native write');
         ok (/var balance map\[string\]any = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F2')), 'const from safeBalance of a map local typed');
@@ -11787,46 +11767,29 @@ function b02SafeBalanceSelfTest (): string[] {
         ok (post.indexOf ('result["info"] = 1') > 0, 'map write after a self-safeBalance goes native in the post pass');
         const other = print ('other');
         ok (/var result any = /.test (body (other, 'F1')) && /var balance any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
-    } catch (e: any) {
-        problems.push ('safe balance self test threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'safe balance self test threw: ');
 }
 
 // Dict[] / never-nil Dict-local returns print their native type; Str locals written only as *string are *string
 function goAnnotatedReturnSelfTest (): string[] {
-    const problems: string[] = [];
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-annotated-return-self-test-'));
-    try {
-        const src = path.join (tmp, 'ts', 'src');
-        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
-        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
-            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n    safeValue (a, b, c?): any { return undefined; }\n}\n');
-        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+    return runSelfTest ('go annotated return self test: ', (ok) => {
+        const go = goSelfTestTranspile ('go-annotated-return-self-test-', {
+            'ts/src/base/Exchange.ts': 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
+            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n    safeValue (a, b, c?): any { return undefined; }\n}\n',
+            'ts/src/ex.ts': 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
             + '    rows (xs: any[]): Dict[] { const result: Dict[] = []; for (let i = 0; i < xs.length; i++) { result.push ({ \'a\': xs[i] }); } return result; }\n'
             + '    request (p: Str): Dict { const request: Dict = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } return request; }\n'
             + '    rebound (o): Dict { let r: Dict = { \'a\': 1 }; r = this.safeValue (o, \'x\'); return r; }\n'
             + '    pick (o, side: string) { const a = this.safeString (o, \'a\'); let id: Str = undefined; if (side === \'buy\') { id = a; } return { \'id\': id }; }\n'
             + '    pick2 (o) { let id: Str = undefined; id = this.safeValue (o, \'a\'); return { \'id\': id }; }\n'
-            + '    use (o) { return [ this.rows ([ 1 ]), this.request (\'x\'), this.rebound (o), this.pick (o, \'buy\'), this.pick2 (o) ]; }\n}\n');
-        const t = new Transpiler ({ 'verbose': false, 'go': {} });
-        installCcxtGoLocalTypes (t.goTranspiler);
-        installCcxtGoIndexableTypes (t.goTranspiler);
-        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go annotated return self test: ' + msg); } };
+            + '    use (o) { return [ this.rows ([ 1 ]), this.request (\'x\'), this.rebound (o), this.pick (o, \'buy\'), this.pick2 (o) ]; }\n}\n'
+        }, 'ts/src/ex.ts');
         ok (go.includes ('func (this *ex) Rows(xs []any) []any {'), 'Dict[] return of a slice local prints []any');
         ok (go.includes ('func (this *ex) Request(p *string) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
         ok (go.includes ('func (this *ex) Rebound(o any) any {'), 'a local rebound to an any value keeps the any return');
         ok (/\tvar id \*string = nil\n\tif side == "buy"/.test (go), 'Str local written only as *string is *string');
         ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
-    } catch (e: any) {
-        problems.push ('go annotated return self test threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'go annotated return self test threw: ');
 }
 
 // address taken or multi-value rebinding of a map local; a comparison (`f(m, k) != nil`) is not a write
@@ -11860,45 +11823,32 @@ function goEnclosingNilGuard (masked: string[], start: number, k: number, name: 
 }
 
 function goMapWriteNilGuardSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go map write nil guard: ' + msg); } };
-    const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n'
-        + '\tvar since *int64 = this.SafeInteger(p, "s")\n' + body + '\treturn request\n}');
-    ok (run ('\tif since != nil {\n\t\tif this.SafeString(request, "a") != nil {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t} else {\n'
-        + '\t\t\tAddElementToObject(request, "t", since)\n\t\t}\n\t}\n').match (/request\["[st]"\] = \*since/g)?.length === 2, 'outer nil guard + nil comparison on the map');
-    ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, '== nil guard prints no bare deref');
-    ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
-    ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
-    ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
-    // any-typed value locals fed only by deref'd producers (printer-go-addelem-map-local-any-key-value)
-    const anyRun = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar result map[string]any = map[string]any{}\n' + body + '\treturn result\n}');
-    ok (anyRun ('\tvar item any = this.SafeDict(p, "k", map[string]any{})\n\tvar id *string = this.SafeString(item, "id")\n\tAddElementToObject(result, id, item)\n').includes ('if id != nil {\n\t\tresult[*id] = item\n\t}'), 'SafeDict any local under a *string key');
-    ok (anyRun ('\tvar item any = GetValue(p, "k")\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item'), 'GetValue any local under a literal key');
-    ok (anyRun ('\tvar item any = this.SafeDict(p, "k")\n\titem = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'a non-deref\'d rewrite keeps the helper');
-    ok (anyRun ('\tvar item any = this.SafeList(p, "k", []any{})\n\tAppendToArray(&item, 1)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an address-taken local keeps the helper');
-    ok (anyRun ('\tvar item any = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an unknown producer keeps the helper');
-    const src = 'type List = any[];\nclass Test {\n'
-        + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
-        + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
-        + '    g (r: any) { const data = this.safeList (r, \'data\', []); return (data as List); }\n'
-        + '}\n';
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-map-write-nil-guard-'));
-    try {
-        const file = path.join (tmp, 'test.ts');
-        fs.writeFileSync (file, src);
-        const t = new Transpiler ({ 'verbose': false, 'go': {} });
-        installCcxtGoLocalTypes (t.goTranspiler);
-        installCcxtGoIndexableTypes (t.goTranspiler);
-        const go = t.transpileGoByPath (file).content;
+    return runSelfTest ('go map write nil guard: ', (ok) => {
+        const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n'
+            + '\tvar since *int64 = this.SafeInteger(p, "s")\n' + body + '\treturn request\n}');
+        ok (run ('\tif since != nil {\n\t\tif this.SafeString(request, "a") != nil {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t} else {\n'
+            + '\t\t\tAddElementToObject(request, "t", since)\n\t\t}\n\t}\n').match (/request\["[st]"\] = \*since/g)?.length === 2, 'outer nil guard + nil comparison on the map');
+        ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, '== nil guard prints no bare deref');
+        ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
+        ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
+        ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
+        // any-typed value locals fed only by deref'd producers (printer-go-addelem-map-local-any-key-value)
+        const anyRun = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar result map[string]any = map[string]any{}\n' + body + '\treturn result\n}');
+        ok (anyRun ('\tvar item any = this.SafeDict(p, "k", map[string]any{})\n\tvar id *string = this.SafeString(item, "id")\n\tAddElementToObject(result, id, item)\n').includes ('if id != nil {\n\t\tresult[*id] = item\n\t}'), 'SafeDict any local under a *string key');
+        ok (anyRun ('\tvar item any = GetValue(p, "k")\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item'), 'GetValue any local under a literal key');
+        ok (anyRun ('\tvar item any = this.SafeDict(p, "k")\n\titem = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'a non-deref\'d rewrite keeps the helper');
+        ok (anyRun ('\tvar item any = this.SafeList(p, "k", []any{})\n\tAppendToArray(&item, 1)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an address-taken local keeps the helper');
+        ok (anyRun ('\tvar item any = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an unknown producer keeps the helper');
+        const src = 'type List = any[];\nclass Test {\n'
+            + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
+            + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
+            + '    g (r: any) { const data = this.safeList (r, \'data\', []); return (data as List); }\n'
+            + '}\n';
+        const go = goSelfTestTranspile ('go-map-write-nil-guard-', { 'test.ts': src }, 'test.ts');
         const body = (name: string) => (go.split (/\nfunc /).find ((f) => f.startsWith ('(this *Test) ' + name + '(')) ?? '');
         ok (/var data \[\]any = SafeListTyped\(r, "data"\)/.test (body ('F')), 'safeList [] default read through `as List` unboxes');
         ok (/var data \[\]any = SafeListTypedDefault\(r, "data", \[\]any\{\}\)/.test (body ('G')), 'an `as` wrapper that hands the list out keeps its default');
-    } catch (e: any) {
-        problems.push ('go map write nil guard threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'go map write nil guard threw: ');
 }
 
 // ===== plain tuple slots of exchange producers; pro files see their REST producers =====
@@ -12286,33 +12236,21 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
 // closed non-parse `: Str` methods returning a *string on every path print *string (caller locals follow);
 // an `undefined` path keeps `any`; `: string[]` never-nil returns print []any
 function goStrReturnSelfTest (): string[] {
-    const problems: string[] = [];
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-str-return-self-test-'));
-    try {
-        const src = path.join (tmp, 'ts', 'src');
-        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
-        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
-            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n');
-        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+    return runSelfTest ('go str return self test: ', (ok) => {
+        const go = goSelfTestTranspile ('go-str-return-self-test-', {
+            'ts/src/base/Exchange.ts': 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
+            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n',
+            'ts/src/ex.ts': 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
             + '    encodeSide (side): Str { const sides: Dict = { \'buy\': \'BID\' }; return this.safeString (sides, side, side); }\n'
             + '    maybeSide (side): Str { if (side === undefined) { return undefined; } return this.safeString ({}, side, side); }\n'
             + '    names (): string[] { const out = []; out.push (\'a\'); return out; }\n'
-            + '    use (o) { const s = this.encodeSide (o); const m = this.maybeSide (o); const n = this.names (); return [ s, m, n.length ]; }\n}\n');
-        const t = new Transpiler ({ 'verbose': false, 'go': {} });
-        installCcxtGoLocalTypes (t.goTranspiler);
-        installCcxtGoIndexableTypes (t.goTranspiler);
-        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go str return self test: ' + msg); } };
+            + '    use (o) { const s = this.encodeSide (o); const m = this.maybeSide (o); const n = this.names (); return [ s, m, n.length ]; }\n}\n'
+        }, 'ts/src/ex.ts');
         ok (go.includes ('func (this *ex) EncodeSide(side any) *string {'), 'Str method returning safeString on every path prints *string');
         ok (go.includes ('var s *string = this.EncodeSide(o)'), 'caller local of a *string method is *string');
         ok (go.includes ('func (this *ex) MaybeSide(side any) any {'), 'Str method with an undefined path keeps any');
         ok (go.includes ('func (this *ex) Names() []any {') && go.includes ('var n []any = this.Names()'), 'never-nil string[] return prints []any');
-    } catch (e: any) {
-        problems.push ('go str return self test threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'go str return self test threw: ');
 }
 // More `any`-local writes whose box never holds a nil scalar pointer or a typed-nil map/[]any/[]string:
 // SortBy2 with a literal key, Safe{Dict,List}* whose default is itself such a write.
@@ -12524,7 +12462,6 @@ function goBaseNativePasses (content: string): string {
     content = nativeGuardedListElementReads (content);  // the guard literals in the base files too
     content = goTypedFieldNilFold (content);  // RateLimit/Id are never nil
     return gb09CredentialStrings (content);  // the credential fields are plain strings
-    return goTypedLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
 
 function goBaseNativePassesSelfTest (ok: SelfTestOk): void {
@@ -12643,29 +12580,17 @@ function goUnboxDefaultedSafeIntegerSelfTest (ok: SelfTestOk): void {
 }
 // `limit === undefined ? D : limit` over a `*int64` param types as `int64` when every read is a helper argument
 function goDefaultedLimitInt64SelfTest (): string[] {
-    const problems: string[] = [];
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-defaulted-limit-int64 self-test-'));
-    try {
-        const src = path.join (tmp, 'ts', 'src');
-        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
-        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Int = number | undefined;\nexport class Exchange {\n    sum (a, b) { return a; }\n    parseTimeframe (t): number { return 60; }\n}\n');
-        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Int } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+    return runSelfTest ('go defaulted limit int64 self test: ', (ok) => {
+        const go = goSelfTestTranspile ('go-defaulted-limit-int64 self-test-', {
+            'ts/src/base/Exchange.ts': 'export type Int = number | undefined;\nexport class Exchange {\n    sum (a, b) { return a; }\n    parseTimeframe (t): number { return 60; }\n}\n',
+            'ts/src/ex.ts': 'import { Exchange, Int } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
             + '    a (since: Int = undefined, limit: Int = undefined) { const duration = this.parseTimeframe (\'1m\'); const lr = (limit === undefined) ? 200 : limit; return this.sum (since, lr * duration * 1000); }\n'
             + '    b (since: Int = undefined, limit: Int = undefined) { const lr = (limit === undefined) ? 200 : limit; lr.toString (); return lr; }\n'
-            + '    c (since: Int = undefined, limit: Int = undefined) { const d = (since === undefined) ? limit : 5; return d; }\n}\n');
-        const t = new Transpiler ({ 'verbose': false, 'go': {} });
-        installCcxtGoLocalTypes (t.goTranspiler);
-        installCcxtGoIndexableTypes (t.goTranspiler);
-        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go defaulted limit int64 self test: ' + msg); } };
+            + '    c (since: Int = undefined, limit: Int = undefined) { const d = (since === undefined) ? limit : 5; return d; }\n}\n'
+        }, 'ts/src/ex.ts');
         ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
         ok (!/var d int64/.test (go), 'a non-defaulting shape keeps its type');
-    } catch (e: any) {
-        problems.push ('go defaulted limit int64 self test threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+    }, 'go defaulted limit int64 self test threw: ');
 }
 
 // Row-string Add leaves `m["symbol"].(string)` / `c["id"|"code"].(string)`: TS types them `string` and rows are plain;
@@ -12896,18 +12821,14 @@ function goBlockScopedDeclCheck (ok: SelfTestOk): void {
 
 // comparisons reach both the per-exchange (formatGoSource) and base-file pass chains
 function goFloatComparisonsWiredCheck (): string[] {
-    const problems: string[] = [];
-    try {
+    return runSelfTest ('', (ok) => {
         const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
         const body = 'func (this *Exchange) F(o any) any {\n\tvar d *float64 = this.SafeNumber(o, \"d\")\n\tif (d != nil) && IsLessThan(d, 0) {\n\t}\n\tvar start int64 = this.Milliseconds()\n\tfor IsLessThan((this.Milliseconds() - start), 5) {\n\t}\n\treturn nil\n}\n';
         const ex = formatGoSource ('selftest.go', head + body);
-        if (!ex.includes ('(d != nil) && (!(*d >= 0))')) { problems.push ('formatGoSource float < : ' + ex); }
+        ok (ex.includes ('(d != nil) && (!(*d >= 0))'), 'formatGoSource float < : ' + ex);
         const base = goBaseNativePasses (head + body);
-        if (!base.includes ('!(*d >= 0)') || base.includes ('IsLessThan((this.Milliseconds()')) { problems.push ('base passes: ' + base); }
-    } catch (e) {
-        problems.push ('go float comparisons wired check threw: ' + e.message);
-    }
-    return problems;
+        ok (!(!base.includes ('!(*d >= 0)') || base.includes ('IsLessThan((this.Milliseconds()')), 'base passes: ' + base);
+    }, 'go float comparisons wired check threw: ');
 }
 
 // IsEqual(this.Safe{String,StringLower,StringUpper,Integer,Bool}(args), <literal of that kind>) -> nil-checked `*call == lit`:
@@ -13175,20 +13096,14 @@ function goCompositeKeyAligner (): any {
 
 function goArithHelpersWiredCheck (): string[] {
     // proven operands go native, unproven ones keep the helper call, never an inline closure
-    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
-    const problems: string[] = [];
-    if (/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')) {
-        problems.push ('inline closure emitted: ' + out);
-    }
-    for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
-        if (!out.includes (want)) {
-            problems.push ('unproven call lost its helper (' + want + '): ' + out);
+    return runSelfTest ('', (ok) => {
+        const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
+        ok (!(/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')), 'inline closure emitted: ' + out);
+        for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
+            ok (out.includes (want), 'unproven call lost its helper (' + want + '): ' + out);
         }
-    }
-    if (out.includes ('IsLessThan(n, 10)')) {
-        problems.push ('proven int64 comparison not native: ' + out);
-    }
-    return problems;
+        ok (!out.includes ('IsLessThan(n, 10)'), 'proven int64 comparison not native: ' + out);
+    });
 }
 
 // IsEqual -> native ==/!= where the operand box is provably plain (no scalar pointer, no nil *sync.Map): credential
@@ -13406,51 +13321,37 @@ function goParseNativeWiredCheck (): string[] {
 // map[string]any receiver with a proven string key; every other site keeps the InOp(dict, key) helper call.
 // No pass may paste the helper body as an inline `func(a, b any) bool {..}(X, Y)` closure.
 function goInOpHelperCheck (): string[] {
-    const problems: string[] = [];
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const cases = [
-        head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
-        'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
-        head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
-    ];
-    for (const src of cases) {
-        const out = goWrittenThrough (src);
-        if (/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)) {
-            problems.push ('unproven InOp must stay a helper call: ' + out);
+    return runSelfTest ('', (ok) => {
+        const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+        const cases = [
+            head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
+            'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
+            head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
+        ];
+        for (const src of cases) {
+            const out = goWrittenThrough (src);
+            ok (!(/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)), 'unproven InOp must stay a helper call: ' + out);
         }
-    }
-    return problems;
+    });
 }
 
 // a nullable `Str` parameter whose callers pass `*string` or a proven Go `string` prints `*string`;
 // the string callers are boxed with SafeStringPtr (never nil); any other caller keeps the `any` box
 function goNullableStrParamSelfTest (): string[] {
-    const problems: string[] = [];
-    const tmp = fs.mkdtempSync (path.join (os.tmpdir (), 'go-nullable-str-param-self-'));
-    try {
-        const src = path.join (tmp, 'ts', 'src');
-        fs.mkdirSync (path.join (src, 'base'), { 'recursive': true });
-        fs.writeFileSync (path.join (src, 'base', 'Exchange.ts'), 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
-            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n');
-        fs.writeFileSync (path.join (src, 'ex.ts'), 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+    return runSelfTest ('go nullable str param self: ', (ok) => {
+        const go = goSelfTestTranspile ('go-nullable-str-param-self-', {
+            'ts/src/base/Exchange.ts': 'export type Dict = { [key: string]: any };\nexport type Str = string | undefined;\n'
+            + 'export class Exchange {\n    safeString (a, b, c?): Str { return undefined; }\n}\n',
+            'ts/src/ex.ts': 'import { Exchange, Dict, Str } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
             + '    req (symbol: Str, side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } if (symbol !== undefined) { r[\'y\'] = 2; } return r; }\n'
             + '    boxed (side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } return r; }\n'
-            + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n}\n');
-        const t = new Transpiler ({ 'verbose': false, 'go': {} });
-        installCcxtGoLocalTypes (t.goTranspiler);
-        installCcxtGoIndexableTypes (t.goTranspiler);
-        const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
-        const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go nullable str param self: ' + msg + '\n' + go); } };
-        ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params');
-        ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr');
-        ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box');
-        ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively');
-    } catch (e: any) {
-        problems.push ('go nullable str param self threw: ' + e.message);
-    } finally {
-        fs.rmSync (tmp, { 'recursive': true, 'force': true });
-    }
-    return problems;
+            + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n}\n'
+        }, 'ts/src/ex.ts');
+        ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params\n' + go);
+        ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr\n' + go);
+        ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box\n' + go);
+        ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively\n' + go);
+    }, 'go nullable str param self threw: ');
 }
 
 // Split/Join/Replace: a proven non-pointer `string` subject (`[]string` for Join) whose other operands are literals or proven
@@ -13522,41 +13423,31 @@ export function goStdlibStringHelpers (content: string): string {
 }
 
 function goStdlibStringHelpersCheck (): string[] {
-    const problems: string[] = [];
-    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const run = (body: string, sig = 'a any, b any') => goStdlibStringHelpers (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n');
-    // proven local subject + literal operands: plain stdlib call, no parens, import added
-    const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(x, "-")\n\treturn Replace(Join(a, b), "x", "")');
-    if (!out.includes ('var x string = strings.Join(ids, ",")') || !out.includes ('var y []string = strings.Split(x, "-")') || !out.includes ('return Replace(Join(a, b), "x", "")') || !out.includes ('import "strings"\n') || out.includes ('func(') || out.includes ('(strings.')) {
-        problems.push ('shape: ' + out);
-    }
-    // widened proof: `string` / grouped parameters and proven-string separators
-    const par = run ('\treturn Replace(s, sep, "")', 'a any, s, sep string');
-    if (!par.includes ('return strings.ReplaceAll(s, sep, "")')) {
-        problems.push ('string parameter not proven: ' + par);
-    }
-    // unproven: *string, any, := rebinding, call-expression subject, unproven separator -> helper call left alone
-    const keep = [
-        run ('\tvar m *string = this.SafeString(a, "m")\n\treturn Split(m, "_")'),
-        run ('\treturn Split(a, "_")'),
-        run ('\tvar s string = "x"\n\tif true {\n\t\ts := a\n\t\t_ = s\n\t}\n\treturn Split(s, "_")'),
-        run ('\treturn Split(ToString(a), "_")'),
-        run ('\tvar s string = "x"\n\treturn Split(s, b)'),
-        run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
-    ];
-    for (const k of keep) {
-        if (!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')) {
-            problems.push ('unproven site not left as the helper call: ' + k);
+    return runSelfTest ('', (ok) => {
+        const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
+        const run = (body: string, sig = 'a any, b any') => goStdlibStringHelpers (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n');
+        // proven local subject + literal operands: plain stdlib call, no parens, import added
+        const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(x, "-")\n\treturn Replace(Join(a, b), "x", "")');
+        ok (!(!out.includes ('var x string = strings.Join(ids, ",")') || !out.includes ('var y []string = strings.Split(x, "-")') || !out.includes ('return Replace(Join(a, b), "x", "")') || !out.includes ('import "strings"\n') || out.includes ('func(') || out.includes ('(strings.')), 'shape: ' + out);
+        // widened proof: `string` / grouped parameters and proven-string separators
+        const par = run ('\treturn Replace(s, sep, "")', 'a any, s, sep string');
+        ok (par.includes ('return strings.ReplaceAll(s, sep, "")'), 'string parameter not proven: ' + par);
+        // unproven: *string, any, := rebinding, call-expression subject, unproven separator -> helper call left alone
+        const keep = [
+            run ('\tvar m *string = this.SafeString(a, "m")\n\treturn Split(m, "_")'),
+            run ('\treturn Split(a, "_")'),
+            run ('\tvar s string = "x"\n\tif true {\n\t\ts := a\n\t\t_ = s\n\t}\n\treturn Split(s, "_")'),
+            run ('\treturn Split(ToString(a), "_")'),
+            run ('\tvar s string = "x"\n\treturn Split(s, b)'),
+            run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
+        ];
+        for (const k of keep) {
+            ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k);
         }
-    }
-    if (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') !== goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")'))) {
-        problems.push ('not idempotent');
-    }
-    const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
-    if (goStdlibStringHelpers (hand) !== hand) {
-        problems.push ('hand-written file rewritten');
-    }
-    return problems;
+        ok (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') === goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")')), 'not idempotent');
+        const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
+        ok (goStdlibStringHelpers (hand) === hand, 'hand-written file rewritten');
+    });
 }
 
 // ===== credential fields are plain Go strings =====
