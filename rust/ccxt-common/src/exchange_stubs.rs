@@ -1287,22 +1287,26 @@ impl Exchange {
 
     /// `randNumber(size)` — a random integer with `size` decimal digits.
     pub fn rand_number(&self, size: Value) -> Value {
-        use rand::Rng;
+        use rsa::rand_core::{OsRng, RngCore};
         let n = size.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
         let mut s = String::new();
-        for _ in 0..n {
-            s.push(char::from(b'0' + rng.gen_range(0..10u8)));
+        let mut byte = [0u8; 1];
+        while s.len() < n {
+            OsRng.fill_bytes(&mut byte);
+            // Reject 250..=255 so every digit is equally likely.
+            if byte[0] < 250 {
+                s.push(char::from(b'0' + byte[0] % 10));
+            }
         }
         Value::Int(s.parse::<i64>().unwrap_or(0))
     }
 
     /// `randomBytes(length)` — `length` random bytes as a hex string.
     pub fn random_bytes(&self, length: Value) -> Value {
-        use rand::Rng;
+        use rsa::rand_core::{OsRng, RngCore};
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
-        let mut rng = rand::thread_rng();
-        let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
+        let mut bytes = vec![0u8; n];
+        OsRng.fill_bytes(&mut bytes);
         Value::Str(crate::exchange::hex_encode(bytes).into())
     }
 
@@ -3521,5 +3525,35 @@ mod packb_tests {
         assert_eq!(&one(Value::Str("\u{e9}".repeat(128).into()))[..6], "da0100");
         let m16: Value = Value::from_json(&serde_json::from_str(&format!("{{{}}}", (0..65536).map(|i| format!("\"{}\":0", i)).collect::<Vec<_>>().join(","))).unwrap());
         assert_eq!(&one(m16)[..10], "df00010000");
+    }
+}
+
+#[cfg(test)]
+mod random_tests {
+    use super::*;
+
+    #[test]
+    fn random_bytes_is_lowercase_hex_of_requested_length() {
+        let ex = Exchange::new(None);
+        let a = ex.random_bytes(Value::Int(32));
+        let b = ex.random_bytes(Value::Int(32));
+        let a = a.as_str().expect("hex string").to_string();
+        assert_eq!(a.len(), 64);
+        assert!(a.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')), "{a}");
+        assert_ne!(Some(a.as_str()), b.as_str(), "two calls differ");
+        assert_eq!(ex.random_bytes(Value::Int(0)).as_str(), Some(""));
+    }
+
+    #[test]
+    fn rand_number_has_requested_digit_count() {
+        let ex = Exchange::new(None);
+        let mut seen = std::collections::HashSet::new();
+        for _ in 0..20 {
+            let v = ex.rand_number(Value::Int(12)).as_i64().expect("int");
+            assert!((0..1_000_000_000_000).contains(&v), "{v}");
+            seen.insert(v);
+        }
+        assert!(seen.len() > 1, "two calls differ");
+        assert_eq!(ex.rand_number(Value::Int(0)).as_i64(), Some(0));
     }
 }

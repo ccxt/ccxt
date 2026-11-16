@@ -148,7 +148,6 @@ dependencies = [
  "md-5",
  "num-bigint",
  "num-traits",
- "rand 0.8.6",
  "reqwest",
  "rsa",
  "serde_json",
