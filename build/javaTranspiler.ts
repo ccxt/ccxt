@@ -5466,6 +5466,26 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     return content;
 }
 
+// the single declared type of a name in a printed member (params included); undefined when the name
+// is shadowed by a lambda parameter or declared with mixed types. Memoised per member.
+function memberDeclaredTypeOf (member: string, skipYield = false): (name: string) => string | undefined {
+    const typeCache = new Map<string, string | undefined> ();
+    const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', ...(skipYield ? [ 'yield' ] : []) ];
+    return (name: string): string | undefined => {
+        if (typeCache.has (name)) return typeCache.get (name);
+        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
+        const types = new Set<string> ();
+        for (const m of member.matchAll (re)) {
+            const t = m[1].replace (/^final /, '');
+            if (!keywords.includes (t)) types.add (t);
+        }
+        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
+        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
+        typeCache.set (name, out);
+        return out;
+    };
+}
+
 // Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already
 // prints the slot type: a name the member declares that type only, or a base call that returns it.
 export function nativeJavaCoreArgIdentities (content: string): string {
@@ -5498,24 +5518,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!H.test (member)) continue;
-        // the single declaration type of a name in this member (params included), else undefined
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            let count = 0;
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t); count++;
-            }
-            // lambda parameters `(name) ->` / `name ->` shadow the declaration
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && count >= 1 && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         for (let i = from; i < to; i++) {
             let line = lines[i];
             if (!H.test (line)) continue;
@@ -6027,22 +6030,7 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (member)) continue;
-        // the single declared type of a name in this member (params included), undefined when shadowed/mixed
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const counter = (name: string): boolean => declaredType (name) === 'var'
             && new RegExp (`\\bfor \\(var ${name} = \\d+;`).test (member);
         for (let i = from; i < to; i++) {
@@ -6614,21 +6602,7 @@ export function nativeJavaMapLocalOps (content: string): string {
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (member)) continue;
         const sig = lines[from];
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const isMap = (n: string) => MAP.test (declaredType (n) ?? '');
         const isParam = (n: string) => new RegExp (`[(,]\\s*[\\w.<>, ?]+ ${n}\\s*[,)]`).test (sig.replace (/\{.*$/, ''));
         // every write is a fresh HashMap / LinkedHashMap built by a base producer (never a ConcurrentHashMap)
@@ -7162,21 +7136,7 @@ function containerOpsHoistStatement (t: string, at: number, close: number, args:
 }
 
 function containerOpsMember (member: string, fresh: () => string): string {
-    const typeCache = new Map<string, string | undefined> ();
-    const declaredType = (name: string): string | undefined => {
-        if (typeCache.has (name)) return typeCache.get (name);
-        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-        const types = new Set<string> ();
-        for (const m of member.matchAll (re)) {
-            const t = m[1].replace (/^final /, '');
-            if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ].includes (t)) continue;
-            types.add (t);
-        }
-        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-        typeCache.set (name, out);
-        return out;
-    };
+    const declaredType = memberDeclaredTypeOf (member, true);
     const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false)$/.test (e);
     const strLit = (e: string) => /^"(?:[^"\\]|\\.)*"$/.test (e);
     const numLit = (e: string) => /^\d+L?$/.test (e);
