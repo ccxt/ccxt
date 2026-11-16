@@ -2863,9 +2863,9 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
         };
         // default is 200 when requested with `since`
-        let limitResolved = 200;
-        if (limit !== undefined) {
-            limitResolved = limit;
+        let limitResolved: Int = limit;
+        if (limitResolved === undefined) {
+            limitResolved = 200;
         }
         if (since !== undefined) {
             // bybit returns the candle that contains `start`, whose timestamp is
