@@ -1670,7 +1670,7 @@ class BaseExchange(object):
 
     @staticmethod
     def packb(o):
-        from ccxt.static_dependencies.msgpack import packb
+        from ccxt.base.msgpack import packb
         return packb(o)
 
     @staticmethod

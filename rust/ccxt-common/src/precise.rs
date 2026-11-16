@@ -4,30 +4,69 @@
 // representations to avoid floating-point rounding issues, and all inputs
 // / outputs are Strings (just like the TypeScript version).
 
-use rust_decimal::Decimal;
-use rust_decimal::prelude::*;
-use std::str::FromStr;
+use num_bigint::BigInt;
+use num_traits::{Signed, Zero};
 
-/// Parse a string to a `Decimal`, returning `None` on failure.
-fn parse(s: &str) -> Option<Decimal> {
-    Decimal::from_str(s).ok()
+/// Strict decimal syntax for `string_div` / `string_to_precision`: optional
+/// leading sign, digits with one optional `.`, `_` separators after a digit,
+/// and an optional `e`/`E` exponent of at most 28. Returns `(integer, decimals)`.
+fn decimal_parse(s: &str) -> Option<(BigInt, i32)> {
+    fn mantissa_ok(t: &str) -> bool {
+        let body = t.strip_prefix(['+', '-']).unwrap_or(t);
+        let (mut digit, mut point) = (false, false);
+        for c in body.bytes() {
+            match c {
+                b'0'..=b'9' => digit = true,
+                b'.' if !point => point = true,
+                b'_' if digit => {}
+                _ => return false,
+            }
+        }
+        digit
+    }
+    if mantissa_ok(s) {
+        return precise_parse_big(&s.replace('_', ""));
+    }
+    let epos = s.find(['e', 'E'])?;
+    let (base, exp) = (&s[..epos], &s[epos + 1..]);
+    if !mantissa_ok(base) {
+        return None;
+    }
+    let (negative_exp, digits) = match exp.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, exp),
+    };
+    let e: u32 = digits.parse().ok()?;
+    if e > 28 {
+        return None;
+    }
+    let (integer, decimals) = precise_parse_big(&base.replace('_', ""))?;
+    Some((integer, if negative_exp { decimals + e as i32 } else { decimals - e as i32 }))
 }
 
-/// Format a `Decimal` back to a string without trailing zeros.
-fn fmt(d: Decimal) -> String {
-    let s = d.to_string();
-    // Remove trailing zeros after decimal point (but keep at least one digit)
-    let out = if s.contains('.') {
-        s.trim_end_matches('0').trim_end_matches('.').to_owned()
+/// `(|a| * 10^shift) / |b|` as a numerator/denominator pair, `shift` may be negative.
+fn scaled_ratio(a: &BigInt, b: &BigInt, shift: i32) -> (BigInt, BigInt) {
+    if shift >= 0 {
+        (a.abs() * big_pow10(shift), b.abs())
     } else {
-        s
-    };
-    // Normalise negative zero ("-0") → "0".
-    if out.bytes().all(|b| matches!(b, b'-' | b'0' | b'.')) {
-        "0".to_string()
-    } else {
-        out
+        (a.abs(), b.abs() * big_pow10(-shift))
     }
+}
+
+/// `num / den` rounded half to even (both non-negative).
+fn div_half_even(num: &BigInt, den: &BigInt) -> BigInt {
+    let (q, r) = (num / den, num % den);
+    let twice: BigInt = r * 2u8;
+    if twice > *den || (twice == *den && !(&q % 2u8).is_zero()) { q + 1u8 } else { q }
+}
+
+/// Fixed-point rendering of `integer / 10^decimals` with exactly `decimals` places.
+fn fixed_to_string(negative: bool, integer: &BigInt, decimals: u32) -> String {
+    let k = decimals as usize;
+    let digits = format!("{:0>width$}", integer.to_string(), width = k + 1);
+    let (whole, frac) = digits.split_at(digits.len() - k);
+    let sign = if negative { "-" } else { "" };
+    if k == 0 { format!("{sign}{whole}") } else { format!("{sign}{whole}.{frac}") }
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
@@ -56,10 +95,7 @@ fn big_align(
 }
 
 pub fn string_add(a: &str, b: &str) -> Option<String> {
-    // Arbitrary precision, not `Decimal`: `rust_decimal` holds only 28
-    // significant digits, so 30-digit operands failed to parse and the sum
-    // came back as `None`. CCXT's `Precise` is BigInt-backed, so the result
-    // must not depend on rust_decimal's range.
+    // Arbitrary precision, like CCXT's BigInt-backed `Precise`.
     let (ai, bi, dec) = big_align(precise_parse_big(a)?, precise_parse_big(b)?);
     Some(bigint_to_precise_string(&(ai + bi), dec))
 }
@@ -70,31 +106,42 @@ pub fn string_sub(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_mul(a: &str, b: &str) -> Option<String> {
-    // Fast path: rust_decimal. Its `*` PANICS on overflow ("Multiplication
-    // overflowed"), so use `checked_mul` and fall back to the arbitrary-
-    // precision BigInt path (like `string_div_prec`) when the 96-bit mantissa
-    // can't hold the product — e.g. nado's parse_position multiplying large
-    // contract sizes by price. CCXT's `Precise` is arbitrary-precision, so the
-    // result must not depend on rust_decimal's range.
     string_mul_big(a, b)
 }
 
 /// Arbitrary-precision `a * b`: product integer is `a_int * b_int`, with the
-/// decimal counts summed. Used when the i128/decimal fast path overflows.
+/// decimal counts summed.
 fn string_mul_big(a: &str, b: &str) -> Option<String> {
     let (a_int, a_dec) = precise_parse_big(a)?;
     let (b_int, b_dec) = precise_parse_big(b)?;
     Some(bigint_to_precise_string(&(a_int * b_int), a_dec + b_dec))
 }
 
+/// `a / b` rounded half to even at the largest scale (at most 28) whose
+/// integer stays below 2^96, then trailing zeros trimmed.
 pub fn string_div(a: &str, b: &str) -> Option<String> {
-    let divisor = parse(b)?;
-    if divisor.is_zero() { return None; }
-    Some(fmt(parse(a)? / divisor))
+    let (ai, ad) = decimal_parse(a)?;
+    let (bi, bd) = decimal_parse(b)?;
+    if bi.is_zero() { return None; }
+    let limit = BigInt::from(1u8) << 96usize;
+    let mut scale = 28;
+    while scale > 0 {
+        let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+        if num / den < limit { break; }
+        scale -= 1;
+    }
+    let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+    let mut q = div_half_even(&num, &den);
+    if q >= limit && scale > 0 {
+        scale -= 1;
+        let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+        q = div_half_even(&num, &den);
+    }
+    let negative = ai.is_negative() != bi.is_negative();
+    Some(bigint_to_precise_string(&if negative { -q } else { q }, scale))
 }
 
 pub fn string_mod(a: &str, b: &str) -> Option<String> {
-    use num_traits::Zero;
     // Mirrors TS `mod()`: rationalize both sides onto a common scale, then
     // take the remainder of the scaled integers.
     let (ai, ad) = precise_parse_big(a)?;
@@ -108,11 +155,7 @@ pub fn string_mod(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_eq(a: &str, b: &str) -> Option<bool> {
-    // NOT via `Decimal`: `rust_decimal` caps at 28 decimal places, so an
-    // extreme scale like `1e-200` (or its 200-digit expansion) fails to parse
-    // outright and equality silently came back false. Mirror TS `equals()`
-    // instead — reduce both and compare (integer, decimals) — which needs no
-    // rescaling and so has no magnitude limit beyond the digit count itself.
+    // Mirrors TS `equals()`: reduce both and compare (integer, decimals).
     let (ia, da) = precise_parse(a)?;
     let (ib, db) = precise_parse(b)?;
     let (ia, da) = precise_reduce(ia, da);
@@ -143,7 +186,6 @@ pub fn string_le(a: &str, b: &str) -> Option<bool> {
 }
 
 pub fn string_abs(a: &str) -> Option<String> {
-    use num_traits::Signed;
     let (i, d) = precise_parse_big(a)?;
     Some(bigint_to_precise_string(&i.abs(), d))
 }
@@ -154,40 +196,27 @@ pub fn string_neg(a: &str) -> Option<String> {
 }
 
 /// Round to `decimals` decimal places using the specified rounding mode.
-/// mode 0 = TRUNCATE, mode 2 = ROUND (half-up), mode 3 = ROUND_UP, mode 4 = ROUND_DOWN
+/// mode 0 = truncate (keeps a `-` on a negative input truncated to zero),
+/// 3 = ceiling, 4 = floor, any other = round half to even.
 pub fn string_to_precision(a: &str, decimals: u32, mode: u8) -> Option<String> {
-    let d = parse(a)?;
-    let rounded = match mode {
-        0 => d.trunc_with_scale(decimals),
-        3 => {
-            // ROUND_UP (away from zero)
-            let scale = Decimal::from(10u64.pow(decimals));
-            (d * scale).ceil() / scale
-        }
-        4 => {
-            // ROUND_DOWN (toward zero)
-            let scale = Decimal::from(10u64.pow(decimals));
-            (d * scale).floor() / scale
-        }
-        _ => d.round_dp(decimals), // ROUND half-up
+    let (integer, d) = decimal_parse(a)?;
+    let (num, den) = scaled_ratio(&integer, &BigInt::from(1u8), decimals as i32 - d);
+    let num = if integer.is_negative() { -num } else { num };
+    let (q, r) = (&num / &den, &num % &den);
+    let (negative, magnitude) = match mode {
+        0 => (integer.is_negative(), q.abs()),
+        3 => { let v = if r.is_positive() { q + 1u8 } else { q }; (v.is_negative(), v.abs()) }
+        4 => { let v = if r.is_negative() { q - 1u8 } else { q }; (v.is_negative(), v.abs()) }
+        _ => { let v = div_half_even(&num.abs(), &den); (integer.is_negative() && !v.is_zero(), v) }
     };
-    let s = format!("{:.prec$}", rounded, prec = decimals as usize);
-    Some(s)
-}
-
-/// Parses the number of significant digits in a decimal string.
-pub fn precise_from_string(s: &str) -> Option<Decimal> {
-    parse(s)
+    Some(fixed_to_string(negative, &magnitude, decimals))
 }
 
 // ── precision-aware division ────────────────────────────────────────────────
 //
-// `string_div` above uses `rust_decimal` (fixed ~28-digit precision, rounds).
-// The TS `Precise.stringDiv (a, b, precision)` uses arbitrary-precision
-// big-integer math and *truncates* the result to exactly `precision`
-// decimal places. `string_div_prec` ports that algorithm with `i128`
-// (sufficient for the realistic value range; falls back to `string_div`
-// on overflow).
+// The TS `Precise.stringDiv (a, b, precision)` *truncates* the result to
+// exactly `precision` decimal places; `string_div_prec` ports it with an
+// `i128` fast path and a BigInt fallback.
 
 /// Parses a decimal string into `(integer, decimals)` exactly like the
 /// TS `Precise` constructor (handles scientific `e` notation).
@@ -330,8 +359,6 @@ fn precise_parse_big(s: &str) -> Option<(num_bigint::BigInt, i32)> {
 /// Mirrors the TS BigInt algorithm exactly; used when the i128 fast path
 /// in [`string_div_prec`] would overflow.
 pub fn string_div_prec_big(a: &str, b: &str, precision: i64) -> Option<String> {
-    use num_bigint::BigInt;
-    use num_traits::Zero;
     let (a_int, a_dec) = precise_parse_big(a)?;
     let (b_int, b_dec) = precise_parse_big(b)?;
     if b_int.is_zero() {
@@ -372,10 +399,7 @@ fn bigint_to_precise_string(integer: &num_bigint::BigInt, decimals: i32) -> Stri
     let bytes = abs.as_bytes();
     let start = abs.len() as i32 - 1;
     if start == 0 && abs == "0" {
-        // TS `reduceDigits()` zeroes the scale for a bare "0", so `0 * 1e-6`
-        // renders as "0" and not "0.000000". The i128 `precise_reduce` already
-        // did this; the BigInt path did not, and only showed up once the
-        // Decimal fast path stopped masking it.
+        // TS `reduceDigits()` zeroes the scale for a bare "0": `0 * 1e-6` is "0".
         decimals = 0;
     }
     if start > 0 {
@@ -601,5 +625,256 @@ impl Precise {
             out
         };
         crate::Value::Str(reduce_string(&s).into())
+    }
+}
+
+#[cfg(test)]
+mod decimal_path_tests {
+    use super::*;
+
+    #[test]
+    fn string_div_pins_outputs() {
+        let cases: &[(&str, &str, &str)] = &[
+            ("10", "4", "2.5"),
+            ("1", "3", "0.3333333333333333333333333333"),
+            ("2", "3", "0.6666666666666666666666666667"),
+            ("-2", "3", "-0.6666666666666666666666666667"),
+            ("2", "-3", "-0.6666666666666666666666666667"),
+            ("-2", "-3", "0.6666666666666666666666666667"),
+            ("10", "3", "3.3333333333333333333333333333"),
+            ("100", "3", "33.333333333333333333333333333"),
+            ("1", "7", "0.1428571428571428571428571429"),
+            ("22", "7", "3.1428571428571428571428571429"),
+            ("5", "2", "2.5"),
+            ("1", "8", "0.125"),
+            ("0", "5", "0"),
+            ("-0", "5", "0"),
+            ("0", "-5", "0"),
+            ("1.50", "0.5", "3"),
+            ("1.5e3", "2", "750"),
+            ("1E-5", "3", "0.0000033333333333333333333333"),
+            ("123456789012345678", "7", "17636684144620811.142857142857"),
+            ("0.123456789012345678", "3", "0.041152263004115226"),
+            ("0.1234567890123456789012345678", "2", "0.0617283945061728394506172839"),
+            ("0.1234567890123456789012345678", "3", "0.0411522630041152263004115226"),
+            ("-0.1234567890123456789012345678", "7", "-0.0176366841446208112716049383"),
+            ("79228162514264337593543950335", "1", "79228162514264337593543950335"),
+            ("79228162514264337593543950335", "3", "26409387504754779197847983445"),
+            ("-79228162514264337593543950335", "7", "-11318308930609191084791992905"),
+            ("1", "3000000", "0.0000003333333333333333333333"),
+            ("1", "0.0003", "3333.3333333333333333333333333"),
+            ("0.0000000000000000000000000001", "3", "0"),
+            ("0.0000000000000000000000000002", "3", "0.0000000000000000000000000001"),
+            ("0.0000000000000000000000000005", "10", "0"),
+            ("0.0000000000000000000000000015", "10", "0.0000000000000000000000000002"),
+            ("-0.0000000000000000000000000015", "10", "-0.0000000000000000000000000002"),
+            ("0.1", "0.3", "0.3333333333333333333333333333"),
+            ("100.000", "8.00", "12.5"),
+            ("+6", "4", "1.5"),
+            (".5", "2", "0.25"),
+            ("5.", "2", "2.5"),
+            ("1_000", "4", "250"),
+        ];
+        for (a, b, want) in cases {
+            assert_eq!(string_div(a, b).as_deref(), Some(*want), "string_div({a:?}, {b:?})");
+        }
+        for (a, b) in [("1", "0"), ("1", "0.000"), ("0", "0"), ("abc", "1"), ("1", ""), ("", "1"), ("1.2.3", "1"), ("-", "1"), ("1e", "1"), (" 1", "1")] {
+            assert_eq!(string_div(a, b), None, "string_div({a:?}, {b:?})");
+        }
+    }
+
+    #[test]
+    fn string_to_precision_pins_outputs() {
+        let cases: &[(&str, u32, u8, &str)] = &[
+            ("1.23456", 2, 0, "1.23"),
+            ("1.23456", 2, 1, "1.23"),
+            ("1.23456", 2, 2, "1.23"),
+            ("1.23456", 2, 3, "1.24"),
+            ("1.23456", 2, 4, "1.23"),
+            ("1.235", 2, 0, "1.23"),
+            ("1.235", 2, 1, "1.24"),
+            ("1.235", 2, 2, "1.24"),
+            ("1.235", 2, 3, "1.24"),
+            ("1.235", 2, 4, "1.23"),
+            ("1.225", 2, 0, "1.22"),
+            ("1.225", 2, 1, "1.22"),
+            ("1.225", 2, 2, "1.22"),
+            ("1.225", 2, 3, "1.23"),
+            ("1.225", 2, 4, "1.22"),
+            ("1.245", 2, 0, "1.24"),
+            ("1.245", 2, 1, "1.24"),
+            ("1.245", 2, 2, "1.24"),
+            ("1.245", 2, 3, "1.25"),
+            ("1.245", 2, 4, "1.24"),
+            ("-1.235", 2, 0, "-1.23"),
+            ("-1.235", 2, 1, "-1.24"),
+            ("-1.235", 2, 2, "-1.24"),
+            ("-1.235", 2, 3, "-1.23"),
+            ("-1.235", 2, 4, "-1.24"),
+            ("-1.225", 2, 0, "-1.22"),
+            ("-1.225", 2, 1, "-1.22"),
+            ("-1.225", 2, 2, "-1.22"),
+            ("-1.225", 2, 3, "-1.22"),
+            ("-1.225", 2, 4, "-1.23"),
+            ("1.231", 2, 0, "1.23"),
+            ("1.231", 2, 1, "1.23"),
+            ("1.231", 2, 2, "1.23"),
+            ("1.231", 2, 3, "1.24"),
+            ("1.231", 2, 4, "1.23"),
+            ("-1.231", 2, 0, "-1.23"),
+            ("-1.231", 2, 1, "-1.23"),
+            ("-1.231", 2, 2, "-1.23"),
+            ("-1.231", 2, 3, "-1.23"),
+            ("-1.231", 2, 4, "-1.24"),
+            ("1.239", 2, 0, "1.23"),
+            ("1.239", 2, 1, "1.24"),
+            ("1.239", 2, 2, "1.24"),
+            ("1.239", 2, 3, "1.24"),
+            ("1.239", 2, 4, "1.23"),
+            ("-1.239", 2, 0, "-1.23"),
+            ("-1.239", 2, 1, "-1.24"),
+            ("-1.239", 2, 2, "-1.24"),
+            ("-1.239", 2, 3, "-1.23"),
+            ("-1.239", 2, 4, "-1.24"),
+            ("0", 2, 0, "0.00"),
+            ("0", 2, 1, "0.00"),
+            ("0", 2, 2, "0.00"),
+            ("0", 2, 3, "0.00"),
+            ("0", 2, 4, "0.00"),
+            ("-0", 2, 0, "0.00"),
+            ("-0", 2, 1, "0.00"),
+            ("-0", 2, 2, "0.00"),
+            ("-0", 2, 3, "0.00"),
+            ("-0", 2, 4, "0.00"),
+            ("-0.001", 2, 0, "-0.00"),
+            ("-0.001", 2, 1, "0.00"),
+            ("-0.001", 2, 2, "0.00"),
+            ("-0.001", 2, 3, "0.00"),
+            ("-0.001", 2, 4, "-0.01"),
+            ("0.001", 2, 0, "0.00"),
+            ("0.001", 2, 1, "0.00"),
+            ("0.001", 2, 2, "0.00"),
+            ("0.001", 2, 3, "0.01"),
+            ("0.001", 2, 4, "0.00"),
+            ("5", 0, 0, "5"),
+            ("5", 0, 1, "5"),
+            ("5", 0, 2, "5"),
+            ("5", 0, 3, "5"),
+            ("5", 0, 4, "5"),
+            ("-5", 0, 0, "-5"),
+            ("-5", 0, 1, "-5"),
+            ("-5", 0, 2, "-5"),
+            ("-5", 0, 3, "-5"),
+            ("-5", 0, 4, "-5"),
+            ("1.5", 0, 0, "1"),
+            ("1.5", 0, 1, "2"),
+            ("1.5", 0, 2, "2"),
+            ("1.5", 0, 3, "2"),
+            ("1.5", 0, 4, "1"),
+            ("2.5", 0, 0, "2"),
+            ("2.5", 0, 1, "2"),
+            ("2.5", 0, 2, "2"),
+            ("2.5", 0, 3, "3"),
+            ("2.5", 0, 4, "2"),
+            ("-2.5", 0, 0, "-2"),
+            ("-2.5", 0, 1, "-2"),
+            ("-2.5", 0, 2, "-2"),
+            ("-2.5", 0, 3, "-2"),
+            ("-2.5", 0, 4, "-3"),
+            ("0.5", 0, 0, "0"),
+            ("0.5", 0, 1, "0"),
+            ("0.5", 0, 2, "0"),
+            ("0.5", 0, 3, "1"),
+            ("0.5", 0, 4, "0"),
+            ("-0.5", 0, 0, "-0"),
+            ("-0.5", 0, 1, "0"),
+            ("-0.5", 0, 2, "0"),
+            ("-0.5", 0, 3, "0"),
+            ("-0.5", 0, 4, "-1"),
+            ("1.2", 5, 0, "1.20000"),
+            ("1.2", 5, 1, "1.20000"),
+            ("1.2", 5, 2, "1.20000"),
+            ("1.2", 5, 3, "1.20000"),
+            ("1.2", 5, 4, "1.20000"),
+            ("1.5e3", 2, 0, "1500.00"),
+            ("1.5e3", 2, 1, "1500.00"),
+            ("1.5e3", 2, 2, "1500.00"),
+            ("1.5e3", 2, 3, "1500.00"),
+            ("1.5e3", 2, 4, "1500.00"),
+            ("123456789.123456789", 4, 0, "123456789.1234"),
+            ("123456789.123456789", 4, 1, "123456789.1235"),
+            ("123456789.123456789", 4, 2, "123456789.1235"),
+            ("123456789.123456789", 4, 3, "123456789.1235"),
+            ("123456789.123456789", 4, 4, "123456789.1234"),
+            ("0.123456789012345678", 10, 0, "0.1234567890"),
+            ("0.123456789012345678", 10, 1, "0.1234567890"),
+            ("0.123456789012345678", 10, 2, "0.1234567890"),
+            ("0.123456789012345678", 10, 3, "0.1234567891"),
+            ("0.123456789012345678", 10, 4, "0.1234567890"),
+            ("0.1234567890123456789012345678", 1, 0, "0.1"),
+            ("0.1234567890123456789012345678", 1, 1, "0.1"),
+            ("0.1234567890123456789012345678", 1, 2, "0.1"),
+            ("0.1234567890123456789012345678", 1, 3, "0.2"),
+            ("0.1234567890123456789012345678", 1, 4, "0.1"),
+            ("1.123456785", 8, 0, "1.12345678"),
+            ("1.123456785", 8, 1, "1.12345678"),
+            ("1.123456785", 8, 2, "1.12345678"),
+            ("1.123456785", 8, 3, "1.12345679"),
+            ("1.123456785", 8, 4, "1.12345678"),
+            ("-1.123456775", 8, 0, "-1.12345677"),
+            ("-1.123456775", 8, 1, "-1.12345678"),
+            ("-1.123456775", 8, 2, "-1.12345678"),
+            ("-1.123456775", 8, 3, "-1.12345677"),
+            ("-1.123456775", 8, 4, "-1.12345678"),
+            ("9.999", 2, 0, "9.99"),
+            ("9.999", 2, 1, "10.00"),
+            ("9.999", 2, 2, "10.00"),
+            ("9.999", 2, 3, "10.00"),
+            ("9.999", 2, 4, "9.99"),
+            ("-9.999", 2, 0, "-9.99"),
+            ("-9.999", 2, 1, "-10.00"),
+            ("-9.999", 2, 2, "-10.00"),
+            ("-9.999", 2, 3, "-9.99"),
+            ("-9.999", 2, 4, "-10.00"),
+            ("79228162514264337593543950335", 0, 0, "79228162514264337593543950335"),
+            ("79228162514264337593543950335", 0, 1, "79228162514264337593543950335"),
+            ("79228162514264337593543950335", 0, 2, "79228162514264337593543950335"),
+            ("79228162514264337593543950335", 0, 3, "79228162514264337593543950335"),
+            ("79228162514264337593543950335", 0, 4, "79228162514264337593543950335"),
+            ("100", 3, 0, "100.000"),
+            ("100", 3, 1, "100.000"),
+            ("100", 3, 2, "100.000"),
+            ("100", 3, 3, "100.000"),
+            ("100", 3, 4, "100.000"),
+            ("0.000", 2, 0, "0.00"),
+            ("0.000", 2, 1, "0.00"),
+            ("0.000", 2, 2, "0.00"),
+            ("0.000", 2, 3, "0.00"),
+            ("0.000", 2, 4, "0.00"),
+            ("-0.000", 1, 0, "0.0"),
+            ("-0.000", 1, 1, "0.0"),
+            ("-0.000", 1, 2, "0.0"),
+            ("-0.000", 1, 3, "0.0"),
+            ("-0.000", 1, 4, "0.0"),
+            ("1_0.5", 0, 0, "10"),
+            ("1_0.5", 0, 1, "10"),
+            ("1_0.5", 0, 2, "10"),
+            ("1_0.5", 0, 3, "11"),
+            ("1_0.5", 0, 4, "10"),
+            ("0.1234567890123456789012345678", 27, 0, "0.123456789012345678901234567"),
+            ("0.1234567890123456789012345678", 27, 2, "0.123456789012345678901234568"),
+            ("-0.1234567890123456789012345678", 27, 0, "-0.123456789012345678901234567"),
+            ("-0.1234567890123456789012345678", 27, 2, "-0.123456789012345678901234568"),
+            ("-0.1234567890123456789012345678", 18, 0, "-0.123456789012345678"),
+            ("-0.1234567890123456789012345678", 18, 2, "-0.123456789012345679"),
+        ];
+        for (a, k, m, want) in cases {
+            assert_eq!(string_to_precision(a, *k, *m).as_deref(), Some(*want), "string_to_precision({a:?}, {k}, {m})");
+        }
+        for a in ["abc", "", "1.2.3", "-", "1e"] {
+            for m in [0u8, 2, 3, 4] {
+                assert_eq!(string_to_precision(a, 2, m), None, "string_to_precision({a:?}, 2, {m})");
+            }
+        }
     }
 }
