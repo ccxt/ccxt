@@ -3,7 +3,7 @@
 
 // native ts test, intentionally not transpiled - validateServerSsl = false must let both REST and WS
 // connect to a server with a self-signed, expired, hostname-mismatching certificate, while the default
-// (true) must reject it. the shared server lives in ts/src/test/static/ssl/server.cjs
+// (true) must reject it. the shared server lives in ts/src/test/static/ssl-server/server.cjs
 
 import assert from 'assert';
 import fs from 'fs';
@@ -21,7 +21,7 @@ function findSslServerScript () {
         }
         dir = path.dirname (dir);
     }
-    throw new Error ('ts/src/test/static/ssl/server.cjs not found');
+    throw new Error ('ts/src/test/static/ssl-server/server.cjs not found');
 }
 
 async function startSslServer () {
