@@ -6075,7 +6075,7 @@ export class RustTranspilerBuilder {
                 'pub async fn $1(&mut self)'],
 
             // Specific sync methods known to mutate self.
-            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string)\(&self,/g,
+            [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|number_to_string|sign|handle_errors)\(&self,/g,
                 'pub fn $1(&mut self,'],
             [/\bpub fn (set_sandbox_mode|set_markets|set_markets_from_exchange|set_currencies|set_proxy|set_default_options|set_api_key|set_secret|init_throttler|after_construct|init_rest_rate_limiter|features_generator|create_networks_by_id_object|enable_demo_trading|clean_cache|clean_rest_data|clean_ws_data|features_mapper|load_accounts|load_options|on_jsonresponse|on_restresponse|on_resterror|incrementing_nonce)\(&self\)/g,
                 'pub fn $1(&mut self)'],
@@ -6795,6 +6795,7 @@ export class RustTranspilerBuilder {
             // WS Client / handler infra
             'client', 'get_listen_key', 'spawn', 'delay',
             'fetch_rest_order_book_safe',
+            ...this.mutReceiverTraitMethods(),
         ]);
         if (extraMutSeeds) {
             for (const name of extraMutSeeds) mutSet.add(name);
@@ -6815,13 +6816,8 @@ export class RustTranspilerBuilder {
             // handle_* cache handlers (and the dispatch entry points) so their
             // writes persist. Gated to WS so the REST/prediction transpile — and
             // its long-green output — is byte-for-byte unchanged.
-            // handle_errors is the one `&self` virtual where venues persist session state read
-            // from the response headers (grvt stores its auth cookie / account id in
-            // this.options there). Promote it when it writes a self field so those writes are
-            // not cloned away; the DerivedExchange forwarder already casts for mut virtuals.
             const seeded = directMutRe.test(body)
-                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)))
-                || (f.name === 'handle_errors' && refMutRe.test(body));
+                || (wsSeeds && (refMutRe.test(body) || dispatchRe.test(body)));
             if (seeded) mutSet.add(f.name);
         }
         // Fixed-point: any fn that calls a known-mut method joins the set.
@@ -10300,6 +10296,11 @@ ${arms.join('\n')}
 }`;
     }
 
+    /** DerivedExchange methods with a `&mut self` receiver: venue overrides persist state (nonce, session) there. */
+    mutReceiverTraitMethods(): Set<string> {
+        return new Set([ 'sign', 'handle_errors' ]);
+    }
+
     /**
      * Emits `impl DerivedExchange for <CoreName>` with one forwarding
      * method per trait signature that this exchange provides as an
@@ -10310,17 +10311,48 @@ ${arms.join('\n')}
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
+        // The trait defaults reach the parent through these accessors.
+        const accessors = [
+            `    fn derived_parent(&self) -> Option<&dyn crate::exchange::DerivedExchange> { Some(&self.parent) }`,
+            `    fn derived_parent_mut(&mut self) -> Option<&mut dyn crate::exchange::DerivedExchange> { Some(&mut self.parent) }`,
+        ];
+        const pushParentAccessors = () => { if (!out.includes(accessors[0])) out.push(...accessors); };
         for (const [name, args] of Object.entries(traitSigs)) {
             const inh = inherentSigs.get(name);
+            // Trait methods whose overrides write exchange state take `&mut self` end to end.
+            if (this.mutReceiverTraitMethods().has(name)) {
+                const traitParams = rustDispatch.slotParams(args);
+                if (!inherent.has(name) || !inh || inh.isAsync) {
+                    if (parentCore) pushParentAccessors();
+                    continue;
+                }
+                const callArgs: string[] = [];
+                let traitIdx = 0;
+                for (const kind of inh.paramKinds) {
+                    if (kind === 'value') {
+                        callArgs.push(rustDispatch.isSlotStr(args[traitIdx] ?? '', traitIdx) ? `crate::Value::from(${args[traitIdx]})` : args[traitIdx] ?? 'crate::Value::Null');
+                        traitIdx++;
+                    } else if (rustDispatch.isTyped(kind)) {
+                        callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
+                        traitIdx++;
+                    } else if (kind === 'slice') {
+                        callArgs.push(`&[${args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ')}]`);
+                        break;
+                    }
+                }
+                out.push(`    fn ${name}(&mut self, ${traitParams}) -> crate::Value {`);
+                out.push(`        // Forward to the inherent method on ${coreName}.`);
+                out.push(`        ${rustDispatch.result(`${coreName}::${name}(self, ${callArgs.join(', ')})`, (inh as any).isTyped)}`);
+                out.push(`    }`);
+                continue;
+            }
             // A method this exchange doesn't override (or overrides only
             // as an async variant the sync trait can't forward to) must,
             // for a subclass, delegate to the parent's trait impl — that
             // is Go-style inheritance. A base exchange falls back to the
             // trait default.
             if (!inherent.has(name) || !inh || inh.isAsync) {
-                // The trait defaults reach the parent through this one accessor.
-                const accessor = `    fn derived_parent(&self) -> Option<&dyn crate::exchange::DerivedExchange> { Some(&self.parent) }`;
-                if (parentCore && !out.includes(accessor)) out.push(accessor);
+                if (parentCore) pushParentAccessors();
                 continue;
             }
             const traitParams = rustDispatch.slotParams(args);
@@ -10994,7 +11026,7 @@ impl std::ops::DerefMut for ${coreName} {
                     const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
                     const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
                         if (fact.isAsync) return 'async';
-                        if (fact.isMut) return 'mut-cast';
+                        if (fact.isMut && !this.mutReceiverTraitMethods().has(sig.name)) return 'mut-cast';
                         if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
                         if (sig.ret !== 'value') return 'typed-return';
                         const slotTypes = rustDispatch.slotParams(slots).split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
@@ -11008,11 +11040,12 @@ impl std::ops::DerefMut for ${coreName} {
                         const fact = facts.get(sig.name);
                         const slots = traitSigs[sig.name];
                         if (fact === undefined || slots === undefined || !liftClasses.has(forwarderClass(sig, fact, slots))) continue;
-                        const fwdOpen = `\n    fn ${sig.name}(&self`;
+                        const recv = this.mutReceiverTraitMethods().has(sig.name) ? '&mut self' : '&self';
+                        const fwdOpen = `\n    fn ${sig.name}(${recv}`;
                         const implAt = rustContent.indexOf(implHead![0]);
                         const fwdAt = rustContent.indexOf(fwdOpen, implAt);
                         const fwdBrace = rustContent.indexOf('{\n', fwdAt);
-                        const inhAt = rustContent.indexOf(`\n    pub fn ${sig.name}(&self`);
+                        const inhAt = rustContent.indexOf(`\n    pub fn ${sig.name}(${recv}`);
                         if (fwdAt < 0 || inhAt < 0 || !rustContent.startsWith(`        // Forward to the inherent method on ${implHead![1]}.`, fwdBrace + 2)) continue;
                         const inhBrace = rustContent.indexOf('{\n', inhAt);
                         const inhEnd = this.findMatchingBrace(rustContent, inhBrace) + 1;

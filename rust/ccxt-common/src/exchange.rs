@@ -224,6 +224,8 @@ impl<T> TypedById<T> {
 pub trait DerivedExchange {
     /// The parent core of a subclass; each default below delegates to it, or returns Null without one.
     fn derived_parent(&self) -> Option<&dyn DerivedExchange> { None }
+    /// The same parent for the `&mut self` slots (sign, handle_errors).
+    fn derived_parent_mut(&mut self) -> Option<&mut dyn DerivedExchange> { None }
     // ── parsers (the dominant override surface) ──────────────────────────
     fn parse_ticker(&self, ticker: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ticker(ticker, market)) }
     fn parse_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_trade(trade, market)) }
@@ -274,8 +276,8 @@ pub trait DerivedExchange {
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| p.nonce()) }
-    fn sign(&self, path: &str, api: Value, method: Value, params: Value, headers: Value, body: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.sign(path, api, method, params, headers, body)) }
-    fn handle_errors(&self, code: Value, reason: Value, url: Value, method: Value, headers: Value, body: Value, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.handle_errors(code, reason, url, method, headers, body, response, request_headers, request_body)) }
+    fn sign(&mut self, path: &str, api: Value, method: Value, params: Value, headers: Value, body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| p.sign(path, api, method, params, headers, body)) }
+    fn handle_errors(&mut self, code: Value, reason: Value, url: Value, method: Value, headers: Value, body: Value, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| p.handle_errors(code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
@@ -3121,7 +3123,7 @@ mod http_error_tests {
         fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
     }
     impl DerivedExchange for EnvelopeCore {
-        fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
+        fn handle_errors(&mut self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, response: Value, _request_headers: Value, _request_body: Value) -> Value {
             let code = crate::get_value(&response, &Value::Str("code".into()));
             if !matches!(code, Value::Null) && code != Value::Str("0".into()) {
                 panic!("{}", crate::exchange_errors::create_error("InsufficientFunds", "code 51008"));
