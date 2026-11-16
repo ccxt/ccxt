@@ -7,6 +7,8 @@
 /data
 # converted from wiki/ by build/wiki-to-fumadocs.ts (regenerate with `npm run fumadocs-content`)
 /content/docs
+# OG/social-card PNGs rendered at build time by scripts/generate-og-images.mjs (`npm run og-images`)
+/public/og
 
 # test & build
 /coverage

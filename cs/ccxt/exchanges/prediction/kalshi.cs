@@ -751,7 +751,7 @@ public partial class kalshi : PredictionExchange
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         string? result = this.safeStringLower(raw, "result");
         bool resolved = (status == "settled") || (((result != null)) && (result != ""));
-        string? endDate = this.safeString(raw, "expiration_time");
+        string? endDate = this.safeString2(raw, "latest_expiration_time", "expiration_time");
         double? volume = this.safeNumber2(raw, "volume_fp", "volume");
         double? liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
         double? openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");

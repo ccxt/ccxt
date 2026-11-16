@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cryptomus API documentation:** [doc.cryptomus.com](https://doc.cryptomus.com/personal)
 
-> 31 implicit endpoints across 2 access groups.
+> 29 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -64,11 +64,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `publicGetV2UserApiExchangeMarkets` | GET | `v2/user-api/exchange/markets` | 1 |
-| `publicGetV2UserApiExchangeMarketPrice` | GET | `v2/user-api/exchange/market/price` | 1 |
 | `publicGetV2UserApiExchangeMarketsPrice` | GET | `v2/user-api/exchange/markets/price` | 1 |
 | `publicGetV1ExchangeMarketAssets` | GET | `v1/exchange/market/assets` | 1 |
 | `publicGetV1ExchangeMarketOrderBookCurrencyPair` | GET | `v1/exchange/market/order-book/{currencyPair}` | 1 |
-| `publicGetV1ExchangeMarketTickers` | GET | `v1/exchange/market/tickers` | 1 |
 | `publicGetV1ExchangeMarketTradesCurrencyPair` | GET | `v1/exchange/market/trades/{currencyPair}` | 1 |
 
 ## private

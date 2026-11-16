@@ -2228,7 +2228,7 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?symbol=BTC-USDT&timestamp=1709992985897",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?symbol=BTC-USDT&timestamp=1709992985897",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -2246,7 +2246,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?timestamp=1709992986125",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?timestamp=1709992986125",
                 "input": [
                     [
                         "BTC/USDT",

@@ -61,10 +61,10 @@ async def watch_ohlcv(color, duration, exchange, symbol, timeframe, limit):
 
 
 async def main():
-    exchange = ccxt.pro.bitmex()
+    exchange = ccxt.pro.binance()
     await exchange.load_markets()
     duration = 1200000  # run 20 minutes = 1200000 milliseconds
-    symbol = 'BTC/USD'
+    symbol = 'BTC/USDT'
     limit = 10
     loops = [
         watch_ticker('\033[35m', duration, exchange, symbol),              # magenta

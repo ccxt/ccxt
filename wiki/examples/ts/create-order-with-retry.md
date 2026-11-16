@@ -33,21 +33,10 @@ const tryToCreateOrder = async function (exchange, symbol, type, side, amount, p
 // ----------------------------------------------------------------------------
 
 const exchange = new ccxt.okx ({
-    'apiKey': 'classic123', // edit here
-    'secret': 'ebcefff7de475ffe15e864ca3e3e410edf7e94fffd1f9af34edf9434e2bfff1b',  // edit here
+    'apiKey': 'YOUR_API_KEY',   // edit here
+    'secret': 'YOUR_SECRET',    // edit here
+    'password': 'YOUR_PASSWORD', // edit here
 })
-
-//
-// make a classic bytetrade account - one that is linked to an email or phone number
-// then click on your username in the top right and then export
-// you will get a file like this:
-//
-// future garage icon motion panda garage motion task science head garage notable
-// ebcefff7de475ffe15e864ca3e3e410edf7e94fffd1f9af34edf9434e2bfff1b
-// classic123
-//
-// the second line is your secret and the third line is your apiKey
-//
 
 const symbol = 'XRP/USDT' // edit here
 const type = 'limit '     // edit here

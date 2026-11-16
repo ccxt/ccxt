@@ -2085,7 +2085,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response: dict
         if self.safe_bool(market, 'spot', False):
-            response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            response = self.spotV2PublicGetQuoteTicker(self.extend(request, params))
         else:
             if self.safe_bool(market, 'inverse', False):
                 response = self.cswapV1PublicGetMarketTicker(self.extend(request, params))
@@ -2188,7 +2188,7 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('fetchTickers', market, paramsMarketType)
         response: dict
         if type == 'spot':
-            response = self.spotV1PublicGetTicker24hr(paramsSubType)
+            response = self.spotV2PublicGetQuoteTicker(paramsSubType)
         else:
             if subType == 'inverse':
                 response = self.cswapV1PublicGetMarketTicker(paramsSubType)
