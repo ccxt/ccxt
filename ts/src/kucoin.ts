@@ -1637,7 +1637,7 @@ export default class kucoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
-        let fetchTickersFees: Bool = undefined;
+        let fetchTickersFees: boolean = true;
         let paramsRequest = undefined;
         [ fetchTickersFees, paramsRequest ] = this.handleOptionBoolAndParams (params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = false;
