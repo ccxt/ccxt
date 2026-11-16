@@ -1369,6 +1369,16 @@ impl LatokenCore {
         }
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "lastPrice", &[]);
         let mut timestamp: Value = self.safe_integer_omit_zero(ticker.clone(), Value::Str("updateTimestamp".into()), &[]); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        let mut bidVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "bestBidQuantity", &[]);
+        if (bidVolume.is_some()) && crate::precise::Precise::stringLt(&bidVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            bidVolume = None;
+        }
+        let mut askVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "bestAskQuantity", &[]);
+        if (askVolume.is_some()) && crate::precise::Precise::stringLt(&askVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            askVolume = None;
+        }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol);
@@ -1377,9 +1387,9 @@ impl LatokenCore {
         m.insert("low".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("bid".to_string(), self.safe_string_k(ticker.clone(), "bestBid", &[]));
-        m.insert("bidVolume".to_string(), self.safe_string_k(ticker.clone(), "bestBidQuantity", &[]));
+        m.insert("bidVolume".to_string(), bidVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("ask".to_string(), self.safe_string_k(ticker.clone(), "bestAsk", &[]));
-        m.insert("askVolume".to_string(), self.safe_string_k(ticker.clone(), "bestAskQuantity", &[]));
+        m.insert("askVolume".to_string(), askVolume.map(Value::from).unwrap_or(Value::Null));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
         m.insert("close".to_string(), last.clone().map(Value::from).unwrap_or(Value::Null));

@@ -50,7 +50,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "endDate=1792540799&limit=3": [
+                    "endDate=1792540799": [
                         {
                             "fundingTime": "1792512000",
                             "fundingRate": "-0.00001955",
@@ -73,7 +73,7 @@
                             "rateCalculatedTime": "1792425600"
                         }
                     ],
-                    "endDate=1792454399&limit=3": [
+                    "endDate=1792454399": [
                         {
                             "fundingTime": "1792425600",
                             "fundingRate": "0.0001",
@@ -96,30 +96,7 @@
                             "rateCalculatedTime": "1792339200"
                         }
                     ],
-                    "startDate=1792368000&until_timestamp=1792540799&limit=3": [
-                        {
-                            "fundingTime": "1792915200",
-                            "fundingRate": "0.0001",
-                            "market": "BTC_PERP",
-                            "settlementPrice": "80657.3",
-                            "rateCalculatedTime": "1792886400"
-                        },
-                        {
-                            "fundingTime": "1792886400",
-                            "fundingRate": "0.0001",
-                            "market": "BTC_PERP",
-                            "settlementPrice": "80802.6",
-                            "rateCalculatedTime": "1792857600"
-                        },
-                        {
-                            "fundingTime": "1792857600",
-                            "fundingRate": "0.0001",
-                            "market": "BTC_PERP",
-                            "settlementPrice": "79768.3",
-                            "rateCalculatedTime": "1792828800"
-                        }
-                    ],
-                    "startDate=1792454400&until_timestamp=1792540799&limit=3": [
+                    "until_timestamp=1792540799": [
                         {
                             "fundingTime": "1792915200",
                             "fundingRate": "0.0001",
