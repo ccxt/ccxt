@@ -5102,7 +5102,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "contract_code=BTC-USDT&limit=3&end_time=1792540799999": {
+                    "end_time=1792540799999": {
                         "code": 200,
                         "message": "Success",
                         "data": [
@@ -5131,7 +5131,7 @@
                         "args": null,
                         "ts": 1793059530472
                     },
-                    "contract_code=BTC-USDT&limit=3&end_time=1792454399999": {
+                    "end_time=1792454399999": {
                         "code": 200,
                         "message": "Success",
                         "data": [
@@ -5160,7 +5160,7 @@
                         "args": null,
                         "ts": 1793059530847
                     },
-                    "contract_code=BTC-USDT&limit=3&start_time=1792368000000&until=1792540799999": {
+                    "until=1792540799999": {
                         "code": 200,
                         "message": "Success",
                         "data": [
