@@ -2122,23 +2122,7 @@ impl Ndax {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: crate::value::List = self.public_get_summary(&[params]).await.into_list();
-        //
-        //     [
-        //         {
-        //             "trading_pairs":"BTC_CAD",
-        //             "last_price":75925.37,
-        //             "lowest_ask":75926.63,
-        //             "highest_bid":66.435340000000000000000000000,
-        //             "base_volume":75774.93,
-        //             "quote_volume":5112197.7830825000000000000000,
-        //             "price_change_percent_24h":-5.3894893561980828521107542600,
-        //             "highest_price_24h":79813.51,
-        //             "lowest_price_24h":73700.01
-        //         }
-        //     ]
-        //
-        let mut tickers: Value = self.parse_tickers(&response, &[]);
-        return self.filter_by_array_tickers(tickers, Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        return self.filter_by_array_tickers(self.parse_tickers(&response, &[]), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

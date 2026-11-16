@@ -1336,22 +1336,21 @@ impl Apex {
         let authenticated: bool = self.safe_value((client).subscriptions.clone(), Value::from(messageHash.clone()), &[]) != Value::Null;
         if (!authenticated) {
             // auth sign
-            let mut request: Value = Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("type".to_string(), Value::Str("login".into()));
-                    m.insert("topics".to_string(), Value::from(vec![Value::Str("ws_zk_accounts_v3".into())]));
-                    m.insert("httpMethod".to_string(), Value::from(http_method));
-                    m.insert("requestPath".to_string(), Value::from(request_path));
-                    m.insert("apiKey".to_string(), self.apiKey.clone());
-                    m.insert("passphrase".to_string(), self.password.clone());
-                    m.insert("timestamp".to_string(), Value::from(timestamp));
-                    m.insert("signature".to_string(), Value::from(signature));
-                m
-            });
             let mut message: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("op".to_string(), Value::Str("login".into()));
-                    m.insert("args".to_string(), Value::from(vec![json_stringify(&request)]));
+                    m.insert("args".to_string(), Value::from(vec![json_stringify(&Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("type".to_string(), Value::Str("login".into()));
+        m.insert("topics".to_string(), Value::from(vec![Value::Str("ws_zk_accounts_v3".into())]));
+        m.insert("httpMethod".to_string(), Value::from(http_method));
+        m.insert("requestPath".to_string(), Value::from(request_path));
+        m.insert("apiKey".to_string(), self.apiKey.clone());
+        m.insert("passphrase".to_string(), self.password.clone());
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("signature".to_string(), Value::from(signature));
+    m
+}))]));
                 m
             });
             self.watch(url, &messageHash[..], Value::Map(message), &messageHash[..], Value::Null).await;

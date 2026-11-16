@@ -1668,11 +1668,14 @@ impl Hollaex {
             let mut __for_first_762: bool = true;
             while { if !__for_first_762 { i += 1; } __for_first_762 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut ticker: Value = self.safe_value(tickers.clone(), Value::from(key.as_deref()), &[]);
-            let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[Value::from(key.as_deref())]);
+            let mut ticker: crate::value::Dict = self.safe_dict(tickers.clone(), Value::from(key.as_deref()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
+            let mut marketId: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[Value::from(key.as_deref())]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let __ws_arg_2 = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market));
+            let __ws_arg_2 = <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.extend(__ws_arg_2, &[params.clone()]));
         }
         }

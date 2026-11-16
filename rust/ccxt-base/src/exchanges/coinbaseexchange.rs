@@ -2067,10 +2067,9 @@ impl Coinbaseexchange {
             while { if !__for_first_553 { i += 1; } __for_first_553 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
             let mut entry: crate::value::List = self.safe_list(&response, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
-            let mut first: Value = self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]);
             let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::from(delimiter.clone())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, first, Some(&market)));
+            result.insert(symbol.as_deref().unwrap_or("null").to_string(), <Self as crate::exchange::DerivedExchange>::parse_ticker(self, self.safe_list(&entry, Value::Int(0), &[Value::from(vec![])]), Some(&market)));
         }
         }
         return self.filter_by_array_tickers(Value::Map(result), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

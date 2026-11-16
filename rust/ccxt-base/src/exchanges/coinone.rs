@@ -453,8 +453,7 @@ impl crate::exchange::DerivedExchange for Coinone {
             let mut json: Option<String> = self.json(__ws_arg_10).as_str().map(str::to_owned);
             let mut payload: String = self.string_to_base64(json.map(Value::from).unwrap_or(Value::Null), &[]);
             requestBody = Some(payload.clone());
-            let mut secret: Value = (if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null });
-            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode(secret), Value::Str("sha512".into()), &[]);
+            let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), self.encode((if let Some(__s) = self.secret.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })), Value::Str("sha512".into()), &[]);
             requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));

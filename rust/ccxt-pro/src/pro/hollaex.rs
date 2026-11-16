@@ -604,10 +604,13 @@ impl Hollaex {
                         let mut i: i64 = 0;
             let mut __for_first_380: bool = true;
             while { if !__for_first_380 { i += 1; } __for_first_380 = false; i < (rawOrders.len() as i64) } {
-            let mut order: Value = self.safe_value(&rawOrders, Value::Int(i), &[]);
-            let mut parsed: crate::value::Dict = self.parse_order(order.clone(), None).into_dict();
+            let mut order: crate::value::Dict = self.safe_dict(&rawOrders, Value::Int(i), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order(Value::from(&order), None).into_dict();
             stored.append(Value::Dict(parsed));
-            let mut symbol: Option<String> = self.safe_string_k_opt(order, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             if (marketId.is_some()) {

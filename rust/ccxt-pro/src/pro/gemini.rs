@@ -426,11 +426,14 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_342: bool = true;
             while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (trades.len() as i64) } {
-            let mut rawTrade: Value = self.safe_value(trades.clone(), Value::Int(i), &[]);
-            let mut marketId: Value = (self.safe_string_k(rawTrade.clone(), "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
+            let mut rawTrade: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(i), &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
+            let mut marketId: Value = (self.safe_string_k(&rawTrade, "symbol", &[Value::Str("".into())])).as_str().map(|__s| Value::Str(__s.to_lowercase().into())).unwrap_or(Value::Null);
             let mut market: crate::types::Market = self.safe_market(marketId, None, &[]);
             let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut trade: crate::value::Dict = self.parse_ws_trade(rawTrade, Some(&market)).into_dict();
+            let mut trade: crate::value::Dict = self.parse_ws_trade(&rawTrade, Some(&market)).into_dict();
             std::sync::Arc::make_mut(&mut trade).insert("timestamp".into(), timestamp.clone());
             std::sync::Arc::make_mut(&mut trade).insert("datetime".into(), self.iso8601(timestamp.clone()));
             let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -566,8 +569,7 @@ impl Gemini {
                         let mut i: i64 = 0;
             let mut __for_first_344: bool = true;
             while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < changesLength } {
-            let mut index: Value = Value::Int((((changesLength - i)) - 1));
-            let mut parsed: Value = self.parse_ohlcv(self.safe_value(&changes, index, &[]), Some(&market));
+            let mut parsed: Value = self.parse_ohlcv(self.safe_value(&changes, Value::Int((((changesLength - i)) - 1)), &[]), Some(&market));
             stored.append(parsed);
         }
         }
@@ -1265,18 +1267,21 @@ impl Gemini {
                                 let mut i: i64 = 0;
                 let mut __for_first_351: bool = true;
                 while { if !__for_first_351 { i += 1; } __for_first_351 = false; i < (events.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
-                let mut event: Value = self.safe_value(&events, Value::Int(i), &[]);
-                let mut eventType: Option<String> = self.safe_string_k_opt(event.clone(), "type", &[]);
-                let mut side: Option<String> = self.safe_string_k_opt(event.clone(), "side", &[]);
+                let mut event: crate::value::Dict = self.safe_dict(&events, Value::Int(i), &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
+                let mut eventType: Option<String> = self.safe_string_k_opt(&event, "type", &[]);
+                let mut side: Option<String> = self.safe_string_k_opt(&event, "side", &[]);
                 let mut isOrderBook: bool = (eventType.as_deref() == Some("change")) && (side.is_some()) && self.in_array(&side, Value::from(vec![Value::Str("ask".into()), Value::Str("bid".into())]));
-                let mut eventReason: Option<String> = self.safe_string_k_opt(event.clone(), "reason", &[]);
+                let mut eventReason: Option<String> = self.safe_string_k_opt(&event, "reason", &[]);
                 let mut isBidAsk: bool = (eventReason.as_deref() == Some("top-of-book")) || (isOrderBook && (eventReason.as_deref() == Some("initial")) && (eventsLength == 2));
                 if isBidAsk {
-                    bidaskItems.push(event.clone());
+                    bidaskItems.push(Value::from(&event));
                 }  else if isOrderBook {
-                    orderBookItems.push(event.clone());
+                    orderBookItems.push(Value::from(&event));
                 }  else if (eventType.as_deref() == Some("trade")) {
-                    collectedEventsOfTrades.push(event);
+                    collectedEventsOfTrades.push(Value::Dict(event));
                 }
             }
             }
