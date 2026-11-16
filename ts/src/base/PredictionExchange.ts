@@ -134,11 +134,11 @@ export default class PredictionExchange extends BaseExchange {
         if ((eventId !== undefined) || (slug !== undefined)) {
             const filtered: Dict[] = [];
             for (let i = 0; i < result.length; i++) {
-                const event = this.safeValue (result, i);
+                const event = this.safeDict (result, i);
                 const idMatch = (eventId !== undefined) && (this.safeString (event, 'id') === eventId);
                 const slugMatch = (slug !== undefined) && (this.safeString (event, 'slug') === slug);
                 if (idMatch || slugMatch) {
-                    filtered.push (event);
+                    filtered.push (this.safeValue (result, i));
                 }
             }
             result = filtered;
@@ -196,11 +196,11 @@ export default class PredictionExchange extends BaseExchange {
         const wantActive = (status === 'active');
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue (events, i);
+            const event = this.safeDict (events, i);
             const isActive = this.safeBool (event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((isActive === undefined) || (isActive === wantActive)) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
@@ -220,7 +220,7 @@ export default class PredictionExchange extends BaseExchange {
         const checkDescription = (searchIn === 'description') || (searchIn === 'both');
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue (events, i);
+            const event = this.safeDict (events, i);
             const title = this.safeStringLower (event, 'title', '');
             const description = this.safeStringLower (event, 'description', '');
             let matched = false;
@@ -242,7 +242,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
@@ -294,7 +294,7 @@ export default class PredictionExchange extends BaseExchange {
         }
         const result: Dict[] = [];
         for (let i = 0; i < events.length; i++) {
-            const event = this.safeValue (events, i);
+            const event = this.safeDict (events, i);
             const eventTags = this.safeList (event, 'tags', []);
             let matched = false;
             for (let ti = 0; ti < eventTags.length; ti++) {
@@ -319,7 +319,7 @@ export default class PredictionExchange extends BaseExchange {
                 }
             }
             if (matched) {
-                result.push (event);
+                result.push (this.safeValue (events, i));
             }
         }
         return result;
