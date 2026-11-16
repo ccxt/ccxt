@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Upbit {
                 let mut __for_first_1144: bool = true;
                 while { if !__for_first_1144 { i += 1; } __for_first_1144 = false; i < numTrades } {
                 let mut trade: crate::value::Dict = self.safe_dict(&trades, Value::Int(i), &[]).into_dict();
-                cost = crate::precise::Precise::stringAdd(&cost.map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringAdd(&cost, &self.safe_string_k(&trade, "cost", &[])).as_str().map(str::to_owned);
                 if getFeesFromTrades {
                     let mut tradeFee: crate::value::Dict = self.safe_dict_k(&trade, "fee", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -332,7 +332,7 @@ impl crate::exchange::DerivedExchange for Upbit {
                 }
             }
             }
-            average = crate::precise::Precise::stringDiv(&cost.clone().map(Value::from).unwrap_or(Value::Null), &filled).as_str().map(str::to_owned);
+            average = crate::precise::Precise::stringDiv(&cost, &filled).as_str().map(str::to_owned);
         }
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({

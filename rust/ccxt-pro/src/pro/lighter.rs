@@ -1151,7 +1151,7 @@ impl Lighter {
             }  else {
                 feeRateRaw = self.safe_string_k_opt(trade.clone(), "taker_fee", &[]);
             }
-            let mut feeRate: Option<String> = (if (feeRateRaw.is_some()) { crate::precise::Precise::stringDiv(&feeRateRaw.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned) } else { Some("0".to_string()) });
+            let mut feeRate: Option<String> = (if (feeRateRaw.is_some()) { crate::precise::Precise::stringDiv(&feeRateRaw, &Value::Str("1000000".into())).as_str().map(str::to_owned) } else { Some("0".to_string()) });
             let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&costString, &feeRate).as_str().map(str::to_owned);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();

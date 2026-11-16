@@ -3746,7 +3746,7 @@ impl Extended {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]);
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }
@@ -4106,7 +4106,7 @@ impl Extended {
         }
         let mut totalFee: Option<String> = Some(fee.clone());
         if (builderFeeRate.is_some()) {
-            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            totalFee = crate::precise::Precise::stringAdd(&fee, &builderFeeRate).as_str().map(str::to_owned);
         }
         let mut now: i64 = self.milliseconds();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(&paramsBuilder, "expiryEpochMillis", &[Value::Int((now + 3600000))]).as_i64();

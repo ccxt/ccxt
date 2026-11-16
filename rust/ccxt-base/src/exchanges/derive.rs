@@ -3363,7 +3363,7 @@ impl Derive {
         //         }
         //     ]
         //
-        let mut data: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(response), Value::Int(0), &[]).into_opt_dict();
+        let mut data: Option<crate::value::Dict> = (match response.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, None);
         Value::Null
         }).await?))

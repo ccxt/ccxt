@@ -207,7 +207,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                         let mut i: i64 = 0;
                     let mut __for_first_188: bool = true;
                     while { if !__for_first_188 { i += 1; } __for_first_188 = false; i < (result.len() as i64) } {
-                    { let __be_tmp = self.safe_number(get_value(&result, &Value::Int(i)), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &Value::Int(i)), &sortKey, __be_tmp); };
+                    { let __be_tmp = self.safe_number(get_value(&result, &Value::Int(i)), sortKey.clone(), &[Value::Int(0)]); add_element_to_object(get_value_mut(&mut result, &Value::Int(i)), &sortKey, __be_tmp); }
                 }
                 }
                 result = self.sort_by(result, sortKey, &[Value::Bool(true), Value::Int(0)]);
@@ -808,7 +808,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             { let __be_tmp = self.omit(self.safe_dict(stored.clone(), key.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("symbol".into()), &[]); add_element_to_object(&mut stored, &key, __be_tmp); };
+})]), Value::Str("symbol".into()), &[]); add_element_to_object(&mut stored, &key, __be_tmp); }
         }
         }
         self.populate_outcomes();
@@ -848,7 +848,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
             add_element_to_object(&mut oc, &Value::Str("outcomeId".into()), ocId.clone());
-            { let __be_tmp = self.safe_string2(oc.clone(), Value::Str("market".into()), Value::Str("marketSymbol".into()), &[]); add_element_to_object(&mut oc, &Value::Str("market".into()), __be_tmp); };
+            { let __be_tmp = self.safe_string2(oc.clone(), Value::Str("market".into()), Value::Str("marketSymbol".into()), &[]); add_element_to_object(&mut oc, &Value::Str("market".into()), __be_tmp); }
             if (ocSymbol != Value::Null) {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
                 // on a real collision of same handle but different outcomeId, disambiguate the

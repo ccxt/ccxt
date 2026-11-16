@@ -365,7 +365,7 @@ impl crate::exchange::DerivedExchange for Bitbank {
         }
         let mut url: String = format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into()));
         let mut requestBody: Option<String> = None;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) || (apiName.as_deref() == Some("markets")) {
             url.push_str(&(self.implode_params(path.clone(), params.clone())).to_string());
             if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
@@ -399,36 +399,36 @@ impl crate::exchange::DerivedExchange for Bitbank {
                     auth.push_str(&format!("{}{}", "?", queryString));
                 }
             }
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("ACCESS-KEY".to_string(), self.apiKey.clone());
                     m.insert("ACCESS-SIGNATURE".to_string(), Value::from(self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[])));
                 m
-            });
+            }));
             if isTimeWindow {
-                requestHeaders = self.extend(requestHeaders, &[Value::Map({
+                requestHeaders = Some(self.extend(requestHeaders.take(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("ACCESS-REQUEST-TIME".to_string(), Value::from(requestTime));
                         m.insert("ACCESS-TIME-WINDOW".to_string(), Value::from(timeWindow));
                     m
-                })]);
+                })]).into_dict());
             }  else {
-                requestHeaders = self.extend(requestHeaders, &[Value::Map({
+                requestHeaders = Some(self.extend(requestHeaders.take(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("ACCESS-NONCE".to_string(), Value::from(nonce));
                     m
-                })]);
+                })]).into_dict());
             }
         }
         let mut bodyResolved: Option<String> = requestBody;
-        let mut headersResolved: Value = requestHeaders;
+        let mut headersResolved: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResolved.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResolved);
+        m.insert("headers".to_string(), headersResolved.map_or(Value::Null, Value::Dict));
     m
 });
 

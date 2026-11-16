@@ -352,7 +352,7 @@ impl Extended {
     let mut m = indexmap::IndexMap::new();
         m.insert("headers".to_string(), __ws_arg_1);
     m
-})]); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), __be_tmp); } } };
+})]); if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), __be_tmp); } } }
             self.client(url.as_str());
             if let Value::Dict(__rda) = &mut self.options { if let Value::Dict(__rdb) = std::sync::Arc::make_mut(__rda).entry("ws".to_string()).or_insert(Value::Null) { std::sync::Arc::make_mut(__rdb).insert("options".to_string(), originalOptions); } }
         }

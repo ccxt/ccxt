@@ -2113,7 +2113,7 @@ impl Cex {
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
         let mut result: Vec<crate::types::Order> = (match self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_5).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match result.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2151,7 +2151,7 @@ impl Cex {
         });
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut result: Vec<crate::types::Order> = (match self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_6).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(result), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match result.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

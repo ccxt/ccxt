@@ -142,7 +142,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             ask = self.safe_string_opt(ticker.clone(), Value::Int((3 - minusIndex)), &[]);
             change = self.safe_string_opt(ticker.clone(), Value::Int((5 - minusIndex)), &[]);
             percentage = self.safe_string_opt(ticker.clone(), Value::Int((6 - minusIndex)), &[]);
-            percentage = crate::precise::Precise::stringMul(&percentage.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            percentage = crate::precise::Precise::stringMul(&percentage, &Value::Str("100".into())).as_str().map(str::to_owned);
             volume = self.safe_string_opt(ticker.clone(), Value::Int((8 - minusIndex)), &[]);
             high = self.safe_string_opt(ticker.clone(), Value::Int((9 - minusIndex)), &[]);
             low = self.safe_string_opt(ticker.clone(), Value::Int((10 - minusIndex)), &[]);
@@ -862,7 +862,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             }
             feeCost = self.safe_string_opt(&data, Value::Int(8), &[]);
             if (feeCost.is_some()) {
-                feeCost = crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                feeCost = crate::precise::Precise::stringAbs(&feeCost).as_str().map(str::to_owned);
             }
             amount = self.safe_number(&data, Value::Int(5), &[]);
             let mut withdrawId: Option<i64> = self.safe_integer(&data, Value::Int(0), &[]).as_i64();
@@ -896,7 +896,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
             }
             feeCost = self.safe_string_opt(transaction.clone(), Value::Int(13), &[]);
             if (feeCost.is_some()) {
-                feeCost = crate::precise::Precise::stringAbs(&feeCost.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                feeCost = crate::precise::Precise::stringAbs(&feeCost).as_str().map(str::to_owned);
             }
             addressTo = self.safe_string_opt(transaction.clone(), Value::Int(16), &[]);
             txid = self.safe_string_opt(transaction.clone(), Value::Int(20), &[]);
@@ -3929,7 +3929,7 @@ impl Bitfinex {
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
         let mut orders: Vec<crate::types::Order> = (match self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_10).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), id).into()), " not found")));
         }
@@ -3968,7 +3968,7 @@ impl Bitfinex {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut orders: Vec<crate::types::Order> = (match self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_11).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), id).into()), " not found")));
         }

@@ -4267,10 +4267,10 @@ if _try_result.is_err() {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[Value::Map({
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         Value::Null
         }).await?))
     }

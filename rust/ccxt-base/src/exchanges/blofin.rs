@@ -627,25 +627,25 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut unrealizedPnlString: Option<String> = self.safe_string_k_opt(position.clone(), "unrealizedPnl", &[]);
         let mut leverageString: Option<String> = self.safe_string_k_opt(position.clone(), "leverage", &[]);
         let mut initialMarginPercentage: Value = Value::Null;
-        let mut collateralString: Value = Value::Null;
+        let mut collateralString: Option<String> = None;
         let mut marginString: Option<String> = None;
         if (marginMode.as_deref() == Some("cross")) {
             initialMarginString = self.safe_string_k_opt(position.clone(), "initialMargin", &[]);
-            collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnlString) } else { initialMarginString.clone().map(Value::from).unwrap_or(Value::Null) });
+            collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&initialMarginString, &unrealizedPnlString).as_str().map(str::to_owned) } else { initialMarginString.clone() });
         }  else if (marginMode.as_deref() == Some("isolated")) {
             initialMarginPercentage = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &leverageString);
             let mut isolatedMarginString: Option<String> = self.omit_zero(self.safe_string2(position.clone(), Value::Str("margin".into()), Value::Str("initialMargin".into()), &[]));
             if (isolatedMarginString.is_some()) {
                 initialMarginString = isolatedMarginString.clone();
                 marginString = isolatedMarginString.clone();
-                collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&isolatedMarginString, &unrealizedPnlString) } else { isolatedMarginString.clone().map(Value::from).unwrap_or(Value::Null) });
+                collateralString = (if (unrealizedPnlString.is_some()) { crate::precise::Precise::stringAdd(&isolatedMarginString, &unrealizedPnlString).as_str().map(str::to_owned) } else { isolatedMarginString.clone() });
             }
         }
         let mut maintenanceMarginString: Option<String> = self.safe_string_k_opt(position.clone(), "maintenanceMargin", &[]);
         let mut maintenanceMargin: Option<f64> = self.parse_number(maintenanceMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut maintenanceMarginPercentageString: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notionalString).as_str().map(str::to_owned);
         if (initialMarginPercentage == Value::Null) {
-            initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &notionalString, &Value::Int(4)), &[]);
+            initialMarginPercentage = self.parse_number(crate::precise::Precise::stringDivPrec(&initialMarginString, &notionalString, &Value::Int(4)), &[]);
         }  else if (initialMarginString.is_none()) {
             let mut initialMarginPercentageString: Option<String> = self.number_to_string(initialMarginPercentage.clone());
             initialMarginString = crate::precise::Precise::stringMul(&initialMarginPercentageString, &notionalString).as_str().map(str::to_owned);
@@ -657,7 +657,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             let mut takerFeeRate: String = self.safe_string_k(&marketResolved, "taker", &[Value::Str("0.0006".into())]).as_str().unwrap_or("0.0006").to_string();
             let mut mmpWithFee: Option<String> = crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(maintenanceMarginPercentage))), &takerFeeRate).as_str().map(str::to_owned);
             let mut totalSize: Option<String> = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString).as_str().map(str::to_owned);
-            let mut marginPerUnit: Option<String> = crate::precise::Precise::stringDiv(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &totalSize).as_str().map(str::to_owned);
+            let mut marginPerUnit: Option<String> = crate::precise::Precise::stringDiv(&initialMarginString, &totalSize).as_str().map(str::to_owned);
             let mut num: Option<String> = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&entryPriceString, &marginPerUnit).as_str().map(str::to_owned) } else { crate::precise::Precise::stringAdd(&entryPriceString, &marginPerUnit).as_str().map(str::to_owned) });
             let mut denom: Option<String> = (if (side.as_deref() == Some("long")) { crate::precise::Precise::stringSub(&Value::Str("1".into()), &mmpWithFee).as_str().map(str::to_owned) } else { crate::precise::Precise::stringAdd(&Value::Str("1".into()), &mmpWithFee).as_str().map(str::to_owned) });
             if (denom.is_some()) && crate::precise::Precise::stringGt(&denom, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -694,7 +694,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         m.insert("maintenanceMargin".to_string(), Value::from(maintenanceMargin));
         m.insert("maintenanceMarginPercentage".to_string(), Value::from(maintenanceMarginPercentage));
         m.insert("positionMargin".to_string(), self.parse_number(marginString.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("initialMarginPercentage".to_string(), self.parse_number(initialMarginPercentage, &[]));
         m.insert("leverage".to_string(), self.parse_number(leverageString.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -3350,7 +3350,7 @@ impl Blofin {
         let mut query: crate::value::Dict = self.omit(params.clone(), &["orderId", "clientOrderId", "stop", "trigger", "tpsl"], &[]).into_dict();
         if isTpsl {
             let mut tpslResponse: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut first: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(tpslResponse), Value::Int(0), &[]).into_opt_dict();
+            let mut first: Option<crate::value::Dict> = (match tpslResponse.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
             return first.map_or(Value::Null, Value::Dict);
         }  else if isTrigger {
             let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[&query]);

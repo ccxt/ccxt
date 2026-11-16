@@ -2439,7 +2439,7 @@ pub trait ExchangeBase:
                         let mut __for_first_82: bool = true;
                         while { if !__for_first_82 { j += 1; } __for_first_82 = false; j < (subTypes.len() as i64) } {
                         let mut subType: Value = subTypes.get(j as usize).cloned().unwrap_or(Value::Null);
-                        { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); };
+                        { let __be_tmp = self.features_mapper(initialFeatures.clone(), marketType.clone(), &[subType.clone()]); add_element_to_object(get_value_mut(&mut self.features, &marketType), &subType, __be_tmp); }
                     }
                     }
                 }
@@ -2652,7 +2652,7 @@ pub trait ExchangeBase:
         }
         let mut fee: Value = self.safe_value_k(entry.clone(), "fee", &[]);
         if (fee != Value::Null) {
-            { let __be_tmp = self.safe_number_k(fee.clone(), "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".into()), __be_tmp); };
+            { let __be_tmp = self.safe_number_k(fee.clone(), "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".into()), __be_tmp); }
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "timestamp", &[]).as_i64();
         let mut info: crate::value::Dict = self.safe_dict_k(entry.clone(), "info", &[Value::Map({
@@ -3339,18 +3339,18 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_95: bool = true;
                 while { if !__for_first_95 { i += 1; } __for_first_95 = false; i < reducedLength } {
-                { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("cost".into()), __be_tmp); };
+                { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("cost".into()), __be_tmp); }
                 if (in_op(&reducedFees.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &Value::Str("rate".into()))) {
-                    { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("rate".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("rate".into()), __be_tmp); };
+                    { let __be_tmp = self.safe_number(get_value(&reducedFees, &Value::Int(i)), Value::Str("rate".into()), &[]); add_element_to_object(get_value_mut(&mut reducedFees, &Value::Int(i)), &Value::Str("rate".into()), __be_tmp); }
                 }
             }
             }
             if !(parseFee) && (reducedLength == 0) {
                 // copy fee to avoid modification by reference
                 let mut feeCopy: Value = self.deep_extend(fee, &[]);
-                { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); };
+                { let __be_tmp = self.safe_number_k(feeCopy.clone(), "cost", &[]); add_element_to_object(&mut feeCopy, &Value::Str("cost".into()), __be_tmp); }
                 if (feeCopy.as_map().is_some_and(|__m| __m.contains_key("rate"))) {
-                    { let __be_tmp = self.safe_number_k(feeCopy.clone(), "rate", &[]); add_element_to_object(&mut feeCopy, &Value::Str("rate".into()), __be_tmp); };
+                    { let __be_tmp = self.safe_number_k(feeCopy.clone(), "rate", &[]); add_element_to_object(&mut feeCopy, &Value::Str("rate".into()), __be_tmp); }
                 }
                 append_to_array(&mut reducedFees, feeCopy);
             }
@@ -3416,9 +3416,9 @@ pub trait ExchangeBase:
             // contract trading
             let mut filledTimesContractSize: Value = crate::precise::Precise::stringMul(&filled, &contractSize);
             if inverse {
-                cost = crate::precise::Precise::stringDiv(&filledTimesContractSize, &multiplyPrice.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringDiv(&filledTimesContractSize, &multiplyPrice).as_str().map(str::to_owned);
             }  else {
-                cost = crate::precise::Precise::stringMul(&filledTimesContractSize, &multiplyPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                cost = crate::precise::Precise::stringMul(&filledTimesContractSize, &multiplyPrice).as_str().map(str::to_owned);
             }
         }
         // support for market orders
@@ -3432,9 +3432,9 @@ pub trait ExchangeBase:
             let mut __for_first_97: bool = true;
             while { if !__for_first_97 { i += 1; } __for_first_97 = false; i < (trades.len() as i64) } {
             let mut entry: Value = get_value(&trades, &Value::Int(i));
-            { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); };
-            { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); };
-            { let __be_tmp = self.safe_number_k(entry.clone(), "cost", &[]); add_element_to_object(&mut entry, &Value::Str("cost".into()), __be_tmp); };
+            { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); }
+            { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); }
+            { let __be_tmp = self.safe_number_k(entry.clone(), "cost", &[]); add_element_to_object(&mut entry, &Value::Str("cost".into()), __be_tmp); }
             let mut tradeFee: Value = self.safe_dict_k(entry.clone(), "fee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3448,7 +3448,7 @@ pub trait ExchangeBase:
                                 let mut j: i64 = 0;
                 let mut __for_first_96: bool = true;
                 while { if !__for_first_96 { j += 1; } __for_first_96 = false; j < (entryFees.len() as i64) } {
-                { let __be_tmp = self.safe_number(get_value(&entryFees, &Value::Int(j)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut entryFees, &Value::Int(j)), &Value::Str("cost".into()), __be_tmp); };
+                { let __be_tmp = self.safe_number(get_value(&entryFees, &Value::Int(j)), Value::Str("cost".into()), &[]); add_element_to_object(get_value_mut(&mut entryFees, &Value::Int(j)), &Value::Str("cost".into()), __be_tmp); }
             }
             }
             add_element_to_object(&mut entry, &Value::Str("fees".into()), entryFees);
@@ -3746,7 +3746,7 @@ pub trait ExchangeBase:
                                 let mut i: i64 = 0;
                 let mut __for_first_99: bool = true;
                 while { if !__for_first_99 { i += 1; } __for_first_99 = false; i < reducedLength } {
-                { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &Value::Int(i))); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); };
+                { let __be_tmp = self.parse_fee_numeric(get_value(&reducedFees, &Value::Int(i))); add_element_to_object(&mut reducedFees, &Value::Int(i), __be_tmp); }
             }
             }
             fees = reducedFees.clone();
@@ -3776,7 +3776,7 @@ pub trait ExchangeBase:
     fn parse_fee_numeric(&self, mut fee: Value) -> Value {
         { let __be_tmp = self.safe_number_k(fee.clone(), "cost", &[]); add_element_to_object(&mut fee, &Value::Str("cost".into()), __be_tmp); }; // ensure numeric
         if (in_op(&fee, &Value::Str("rate".into()))) {
-            { let __be_tmp = self.safe_number_k(fee.clone(), "rate", &[]); add_element_to_object(&mut fee, &Value::Str("rate".into()), __be_tmp); };
+            { let __be_tmp = self.safe_number_k(fee.clone(), "rate", &[]); add_element_to_object(&mut fee, &Value::Str("rate".into()), __be_tmp); }
         }
         return fee;
 
@@ -4998,7 +4998,7 @@ pub trait ExchangeBase:
                     let mut __for_first_121: bool = true;
                     while { if !__for_first_121 { i += 1; } __for_first_121 = false; (i as f64) < get_array_length(&symbolsArray).as_f64().unwrap_or(f64::NAN) } {
                     let mut symbol: Value = get_value(&symbolsArray, &Value::Int(i));
-                    { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); };
+                    { let __be_tmp = self.deep_extend(get_value(&markets, &symbol), &[get_value(&response, &symbol)]); add_element_to_object(&mut markets, &symbol, __be_tmp); }
                 }
                 }
                 { let __be_tmp = Value::Int(self.milliseconds()); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("limitsLoaded".into(), __be_tmp); } }
@@ -5085,16 +5085,16 @@ pub trait ExchangeBase:
                     }
                 }
             }
-            let mut hasPriceDiff: bool = (priceDiff.is_some()) && crate::precise::Precise::stringGt(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true);
+            let mut hasPriceDiff: bool = (priceDiff.is_some()) && crate::precise::Precise::stringGt(&priceDiff, &Value::Str("0".into())).as_bool() == Some(true);
             if (maintenanceMarginString == Value::Null) && hasEntryMargin && hasPriceDiff && hasContracts && hasContractSize {
-                let mut lossFromEntry: Option<String> = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
+                let mut lossFromEntry: Option<String> = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
                 let mut derivedMm: Value = crate::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
                 if crate::precise::Precise::stringGt(&derivedMm, &Value::Str("0".into())).as_bool() == Some(true) {
                     maintenanceMarginString = derivedMm.clone();
                     if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("maintenanceMargin".into(), self.parse_number(derivedMm, &[])); }
                 }
             }  else if (collateralString.is_none()) && (initialMarginString.is_none()) && hasMm && hasPriceDiff && hasContracts && hasContractSize {
-                let mut lossFromEntry: Option<String> = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
+                let mut lossFromEntry: Option<String> = crate::precise::Precise::stringMul(&priceDiff, &crate::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
                 let mut derivedEntryMargin: Option<String> = crate::precise::Precise::stringAdd(&maintenanceMarginString, &lossFromEntry).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&derivedEntryMargin, &Value::Str("0".into())).as_bool() == Some(true) {
                     initialMarginString = derivedEntryMargin.clone();
@@ -5160,7 +5160,7 @@ pub trait ExchangeBase:
                 }
             }  else if (contractsString.is_none()) && hasEntryMargin && hasMm && hasPriceDiff && hasContractSize {
                 let mut marginBuffer: Option<String> = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString).as_str().map(str::to_owned);
-                let mut denom: Option<String> = crate::precise::Precise::stringMul(&priceDiff.clone().map(Value::from).unwrap_or(Value::Null), &contractSizeString).as_str().map(str::to_owned);
+                let mut denom: Option<String> = crate::precise::Precise::stringMul(&priceDiff, &contractSizeString).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&denom, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut derivedContracts: Option<String> = crate::precise::Precise::stringDiv(&marginBuffer, &denom).as_str().map(str::to_owned);
                     if crate::precise::Precise::stringGt(&derivedContracts, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5170,7 +5170,7 @@ pub trait ExchangeBase:
                 }
             }  else if (contractSizeString.is_none()) && hasEntryMargin && hasMm && hasPriceDiff && hasContracts {
                 let mut marginBuffer: Option<String> = crate::precise::Precise::stringSub(&entryMarginString, &maintenanceMarginString).as_str().map(str::to_owned);
-                let mut denom: Option<String> = crate::precise::Precise::stringMul(&priceDiff.map(Value::from).unwrap_or(Value::Null), &contractsString).as_str().map(str::to_owned);
+                let mut denom: Option<String> = crate::precise::Precise::stringMul(&priceDiff, &contractsString).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringGt(&marginBuffer, &Value::Str("0".into())).as_bool() == Some(true) && crate::precise::Precise::stringGt(&denom, &Value::Str("0".into())).as_bool() == Some(true) {
                     let mut derivedContractSize: Option<String> = crate::precise::Precise::stringDiv(&marginBuffer, &denom).as_str().map(str::to_owned);
                     if crate::precise::Precise::stringGt(&derivedContractSize, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -5254,7 +5254,7 @@ pub trait ExchangeBase:
                         }
                     }
                     if (pnlDiff.is_some()) {
-                        let mut candidateUpnl: Option<String> = crate::precise::Precise::stringMul(&pnlDiff.map(Value::from).unwrap_or(Value::Null), &totalSize).as_str().map(str::to_owned);
+                        let mut candidateUpnl: Option<String> = crate::precise::Precise::stringMul(&pnlDiff, &totalSize).as_str().map(str::to_owned);
                         if crate::precise::Precise::stringEq(&candidateUpnl, &Value::Str("0".into())).as_bool() == Some(true) || crate::precise::Precise::stringGe(&crate::precise::Precise::stringAbs(&candidateUpnl), &Value::Str("0.000001".into())).as_bool() == Some(true) {
                             unrealizedPnlString = candidateUpnl;
                             if let Value::Dict(__d) = &mut position { std::sync::Arc::make_mut(__d).insert("unrealizedPnl".into(), self.parse_number(unrealizedPnlString.clone().map(Value::from).unwrap_or(Value::Null), &[])); }
@@ -7104,7 +7104,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbolResolved: String = (market).symbol.clone();
             let mut ranks: Vec<crate::types::ADL> = (match self.fetch_positions_adl_rank((Value::from(vec![Value::from(symbolResolved.as_str())])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut rank: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(ranks), Value::Int(0), &[]).into_opt_dict();
+            let mut rank: Option<crate::value::Dict> = (match ranks.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
             if (rank.is_none()) {
                 panic!("{}", crate::exchange_errors::null_response(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchPositionsADLRank() could not find a rank for ").into()), symbolResolved)));
             }  else {

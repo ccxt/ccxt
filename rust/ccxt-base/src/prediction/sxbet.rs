@@ -2620,7 +2620,7 @@ impl Sxbet {
         }  else {
             ownOdds = self.safe_string_k_opt(&odds, "outcomeTwo", &[]);
         }
-        let mut entryPrice: Option<f64> = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds.map(Value::from).unwrap_or(Value::Null), &oneDenom), &[]).as_f64() } else { None });
+        let mut entryPrice: Option<f64> = (if (ownOdds.is_some()) { self.parse_number(crate::precise::Precise::stringDiv(&ownOdds, &oneDenom), &[]).as_f64() } else { None });
         let mut totalStake: String = self.safe_string_k(raw.clone(), "totalStake", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
         let mut pnl: Option<String> = self.safe_string_k_opt(raw.clone(), "pnl", &[]);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(raw.clone(), "betTime", &[]));

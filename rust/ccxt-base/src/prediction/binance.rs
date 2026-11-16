@@ -1119,7 +1119,7 @@ impl Binance {
     m
 }), &[params]);
         let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(__ws_arg_4).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(events), Value::Int(0), &[]);
+        return (match events.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }
@@ -2538,10 +2538,10 @@ impl Binance {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut first: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut first: crate::value::Dict = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }) }).into_dict();
         return Value::Dict(first);
         Value::Null
         }).await?))

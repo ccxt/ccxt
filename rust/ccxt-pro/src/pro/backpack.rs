@@ -447,9 +447,9 @@ impl Backpack {
                         m.insert("params".to_string(), topics.clone());
                     m
                 }), &[&payload]).into_dict();
-                let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())).into());
-                self.watch_multiple(url.as_str(), Value::from(vec![messageHash.clone()]), &request, Value::Null, Value::Null).await;
-                client.resolve(Value::Bool(true), &messageHash);
+                let mut messageHash: String = format!("{}{}", Value::Str("unsubscribe:marketData:".into()), Value::Str(topics.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
+                self.watch_multiple(url.as_str(), Value::from(vec![Value::from(messageHash.clone())]), &request, Value::Null, Value::Null).await;
+                client.resolve(Value::Bool(true), messageHash.as_str());
             }
         }  else {
             self.watch_public(topics, Value::from(messageHashes), &[Value::Dict(payload)]).await;

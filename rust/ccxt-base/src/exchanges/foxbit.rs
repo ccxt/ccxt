@@ -151,7 +151,7 @@ impl crate::exchange::DerivedExchange for Foxbit {
         if (cost.is_none()) || (cost.as_deref() == Some("")) {
             let mut priceAverage: Option<String> = self.safe_string_k_opt(order.clone(), "price_avg", &[]);
             let mut priceToCalculate: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[priceAverage.map(Value::from).unwrap_or(Value::Null)]);
-            cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringMul(&priceToCalculate, &amount).as_str().map(str::to_owned);
         }
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
         let mut feeCurrency: Option<String> = self.safe_string_upper_k_opt(&marketResolved, "quoteId", &[]);

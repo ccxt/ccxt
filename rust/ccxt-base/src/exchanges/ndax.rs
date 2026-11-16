@@ -633,9 +633,9 @@ impl crate::exchange::DerivedExchange for Ndax {
         let mut before: Option<String> = None;
         let mut after: Option<String> = self.safe_string_k_opt(item.clone(), "Balance", &[]);
         if (direction.as_deref() == Some("out")) {
-            before = crate::precise::Precise::stringAdd(&after, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            before = crate::precise::Precise::stringAdd(&after, &amount).as_str().map(str::to_owned);
         }  else if (direction.as_deref() == Some("in")) {
-            before = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after, &amount.clone().map(Value::from).unwrap_or(Value::Null))).as_str().map(str::to_owned);
+            before = crate::precise::Precise::stringMax(&Value::Str("0".into()), &crate::precise::Precise::stringSub(&after, &amount)).as_str().map(str::to_owned);
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "TimeStamp", &[]).as_i64();
         return self.safe_ledger_entry(Value::Map({

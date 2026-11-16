@@ -4009,13 +4009,13 @@ impl Digifinex {
                                 let mut i: i64 = 0;
                 let mut __for_first_650: bool = true;
                 while { if !__for_first_650 { i += 1; } __for_first_650 = false; i < (ids.len() as i64) } {
-                let mut orderId: Value = ids.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut isCanceled: bool = self.in_array(orderId.clone(), Value::from(&data));
+                let mut orderId: Option<String> = ids.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut isCanceled: bool = self.in_array(&orderId, Value::from(&data));
                 let mut status: String = (if isCanceled { "canceled".to_string() } else { "failed".to_string() });
                 result.push(self.safe_order(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), orderId.clone());
-                        m.insert("id".to_string(), orderId);
+                        m.insert("info".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
+                        m.insert("id".to_string(), orderId.clone().map(Value::from).unwrap_or(Value::Null));
                         m.insert("symbol".to_string(), symbols.get(i as usize).cloned().unwrap_or(Value::Null));
                         m.insert("status".to_string(), Value::from(status));
                     m

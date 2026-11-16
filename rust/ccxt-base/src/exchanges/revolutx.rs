@@ -66,7 +66,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         }
         let mut percentage: Option<f64> = None;
         if (open.is_some()) && (priceChange.is_some()) {
-            let mut percentageString: Option<String> = crate::precise::Precise::stringDivPrec(&priceChange, &open.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(8)).as_str().map(str::to_owned);
+            let mut percentageString: Option<String> = crate::precise::Precise::stringDivPrec(&priceChange, &open, &Value::Int(8)).as_str().map(str::to_owned);
             percentage = self.parse_number(crate::precise::Precise::stringMul(&percentageString, &Value::Str("100".into())), &[]).as_f64();
         }
         return self.safe_ticker(Value::Map({
@@ -438,7 +438,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut implodedPath: String = self.implode_params(path.clone(), params.clone());
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
@@ -469,19 +469,19 @@ impl crate::exchange::DerivedExchange for Revolutx {
             let mut requestPath: String = format!("{}{}", "/api/", implodedPath);
             let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, (if let Some(__s) = method.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into()), requestPath).into()), queryString).into()), bodyString.as_deref().unwrap_or("null"));
             let mut signature: String = eddsa(self.encode(Value::from(message)), self.privateKey.clone(), Value::Str("ed25519".into()));
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Revx-API-Key".to_string(), self.apiKey.clone());
                     m.insert("X-Revx-Timestamp".to_string(), Value::from(timestamp));
                     m.insert("X-Revx-Signature".to_string(), Value::from(signature));
                 m
-            });
+            }));
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
-                requestHeaders = self.extend(requestHeaders, &[Value::Map({
+                requestHeaders = Some(self.extend(requestHeaders.take(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                })]);
+                })]).into_dict());
             }
         }  else {
             if (method.as_str() == Some("GET")) {
@@ -491,21 +491,21 @@ impl crate::exchange::DerivedExchange for Revolutx {
                 }
             }  else {
                 bodyString = json_stringify(&query).as_str().map(str::to_owned);
-                requestHeaders = Value::Map({
+                requestHeaders = Some(crate::value::Dict::new({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                });
+                }));
             }
         }
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         let mut bodyResult: Option<String> = (if (bodyString.as_deref() != Some("")) { bodyString } else { None });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResult);
+        m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });
 

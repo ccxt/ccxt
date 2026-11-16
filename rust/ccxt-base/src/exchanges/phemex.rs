@@ -620,7 +620,7 @@ impl crate::exchange::DerivedExchange for Phemex {
                 priceDiff = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &markPriceString), &crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceString)).as_str().map(str::to_owned);
             }
         }
-        let mut unrealizedPnl: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceDiff.map(Value::from).unwrap_or(Value::Null), &contracts), &contractSizeString).as_str().map(str::to_owned);
+        let mut unrealizedPnl: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringMul(&priceDiff, &contracts), &contractSizeString).as_str().map(str::to_owned);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         let mut apiUnrealizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "unRealisedPnlRv", &[unrealizedPnl.map(Value::from).unwrap_or(Value::Null)]);
         let mut marginRatio: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateral).as_str().map(str::to_owned);

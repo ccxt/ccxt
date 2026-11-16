@@ -315,7 +315,7 @@ impl crate::exchange::DerivedExchange for Coinbase {
             priceString = v3Price;
         }
         if (priceString.is_some()) && (amountString.is_some()) {
-            let mut baseCost: Option<String> = crate::precise::Precise::stringMul(&priceString.clone().map(Value::from).unwrap_or(Value::Null), &amountString).as_str().map(str::to_owned);
+            let mut baseCost: Option<String> = crate::precise::Precise::stringMul(&priceString, &amountString).as_str().map(str::to_owned);
             let mut contractSize: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
             if (contractSize.is_some()) {
                 cost = crate::precise::Precise::stringMul(&baseCost, &contractSize).as_str().map(str::to_owned);
@@ -2740,7 +2740,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
         m.insert("next_starting_after".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); };
+})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); }
         }
         return self.parse_accounts(&data, &[Value::Dict(paramsPaginate)]);
 
@@ -2811,7 +2811,7 @@ impl Coinbase {
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); };
+})]); add_element_to_object(&mut accounts, &Value::from(lastIndex), __be_tmp); }
         }
         return self.parse_accounts(accounts, &[Value::Dict(paramsPaginate)]);
 
@@ -5302,10 +5302,10 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut order: crate::value::Dict = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }) }).into_dict();
         return Value::Dict(order);
         Value::Null
         }).await?))
@@ -5630,7 +5630,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); };
+})]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); }
         }
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
@@ -5726,7 +5726,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); };
+})]); add_element_to_object(&mut orders, &Value::Int(0), __be_tmp); }
         }
         return self.parse_orders(&orders, market.as_ref(), &[since, Value::from(limitResolved)]);
 
@@ -5897,14 +5897,14 @@ if _try_result.is_err() {
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["until"], &[]).into_dict();
         let mut duration: i64 = self.parse_timeframe(timeframe.clone());
         let mut requestedDuration: Option<i64> = (if let Some(__l) = limitValue { Some(__l * duration) } else { None });
-        let mut sinceString: Value = Value::Null;
+        let mut sinceString: Option<String> = None;
         if (since != Value::Null) {
-            sinceString = Value::from(self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })))));
+            sinceString = self.number_to_string(Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }  else {
             let mut now: String = format!("{}", self.seconds());
-            sinceString = crate::precise::Precise::stringSub(&now, &Value::from(format!("{}", Value::from(requestedDuration))));
+            sinceString = crate::precise::Precise::stringSub(&now, &Value::from(format!("{}", Value::from(requestedDuration)))).as_str().map(str::to_owned);
         }
-        request.insert("start".into(), sinceString.clone());
+        request.insert("start".into(), sinceString.clone().map(Value::from).unwrap_or(Value::Null));
         // 300 candles max
         let mut windowEnd: Option<String> = crate::precise::Precise::stringAdd(&sinceString, &Value::from(format!("{}", Value::from(requestedDuration)))).as_str().map(str::to_owned);
         if (until.is_some()) {
@@ -6123,7 +6123,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
         m.insert("cursor".to_string(), cursor.map(Value::from).unwrap_or(Value::Null));
     m
-})]); add_element_to_object(&mut trades, &Value::Int(0), __be_tmp); };
+})]); add_element_to_object(&mut trades, &Value::Int(0), __be_tmp); }
         }
         return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null

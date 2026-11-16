@@ -242,7 +242,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                 cost = crate::precise::Precise::stringDiv(&amount, &price).as_str().map(str::to_owned); // in base
             }
             let mut contractSize: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
-            cost = crate::precise::Precise::stringMul(&cost.map(Value::from).unwrap_or(Value::Null), &contractSize).as_str().map(str::to_owned);
+            cost = crate::precise::Precise::stringMul(&cost, &contractSize).as_str().map(str::to_owned);
         }
         let mut takerOrMaker: Option<String> = None;
         let mut fillType: Option<String> = self.safe_string_k_opt(trade.clone(), "fillType", &[]);
@@ -276,7 +276,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
             }
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), crate::precise::Precise::stringMul(&cost.clone().map(Value::from).unwrap_or(Value::Null), &feeRate));
+                    m.insert("cost".to_string(), crate::precise::Precise::stringMul(&cost, &feeRate));
                     m.insert("currency".to_string(), feeCurrency.map(Value::from).unwrap_or(Value::Null));
                     m.insert("rate".to_string(), feeRate.clone().map(Value::from).unwrap_or(Value::Null));
                 m
@@ -1171,11 +1171,11 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                 // the fee is already deducted from the balance delta, add it
                 // back so that amount does not include the fee, matching the
                 // unified ledger contract: after = before +/- amount - fee
-                amount = crate::precise::Precise::stringAdd(&amount.map(Value::from).unwrap_or(Value::Null), &feeCost).as_str().map(str::to_owned);
+                amount = crate::precise::Precise::stringAdd(&amount, &feeCost).as_str().map(str::to_owned);
             }
-            if crate::precise::Precise::stringLt(&amount.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringLt(&amount, &Value::Str("0".into())).as_bool() == Some(true) {
                 direction = Some("out".to_string());
-                amount = crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
             }  else {
                 direction = Some("in".to_string());
             }
@@ -2783,8 +2783,8 @@ impl Krakenfutures {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee);
         m.insert("symbol".to_string(), self.safe_symbol(Value::Null, market, &[]));
-        m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
-        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerFee.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())), &[]));
+        m.insert("maker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&makerFee, &Value::Str("100".into())), &[]));
+        m.insert("taker".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&takerFee, &Value::Str("100".into())), &[]));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("tierBased".to_string(), Value::Bool(true));
     m
@@ -3764,7 +3764,7 @@ impl Krakenfutures {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(None, None, None, __ws_arg_11).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder could not find order id ").into()), id)));
         }

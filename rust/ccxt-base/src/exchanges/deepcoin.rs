@@ -2486,7 +2486,7 @@ impl Deepcoin {
             network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
         }
         let mut paramsOmitted: crate::value::Dict = (if (network.is_some()) { self.omit(params.clone(), Value::Str("network".into()), &[]) } else { params }).into_dict();
-        let mut addressess: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await);
+        let mut addressess: Vec<crate::types::DepositAddress> = (match self.fetch_deposit_addresses((Value::from(vec![code])).to_opt_str_vec(), Value::Dict(paramsOmitted)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut length: i64 = addressess.len() as i64;
         let mut index: i64 = 0;
         if (network.is_some()) && (length > 1) {
@@ -2494,20 +2494,20 @@ impl Deepcoin {
                                 let mut i: i64 = 0;
                 let mut __for_first_611: bool = true;
                 while { if !__for_first_611 { i += 1; } __for_first_611 = false; i < length } {
-                let mut entryNetwork: Option<String> = self.safe_string_k_opt(self.safe_dict(addressess.clone(), Value::Int(i), &[Value::Map({
+                let mut entryNetwork: Option<String> = self.safe_string_k_opt((match addressess.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), "network", &[]);
+}) }), "network", &[]);
                 if (entryNetwork == network) {
                     index = i;
                 }
             }
             }
         }
-        return self.safe_dict(addressess, index, &[Value::Map({
+        return (match addressess.get(index as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         Value::Null
         }).await?))
     }

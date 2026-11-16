@@ -1880,7 +1880,7 @@ impl crate::exchange::DerivedExchange for Bingx {
             }
         }
         url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "/", version.as_deref().unwrap_or("null")).into()), "/").into()), pathValue)));
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut requestBody: Option<String> = None;
         let __ws_arg_82 = self.extend(self.omit(params, self.extract_params(pathValue), &[]), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1905,18 +1905,18 @@ impl crate::exchange::DerivedExchange for Bingx {
             }
             let mut encodeRequestSafe: Option<String> = (if (encodeRequest.is_none()) { Some("".to_string()) } else { encodeRequest });
             let mut signature: String = self.hmac(self.encode(encodeRequestSafe.map(Value::from).unwrap_or(Value::Null)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-            requestHeaders = Value::Map({
+            requestHeaders = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-BX-APIKEY".to_string(), self.apiKey.clone());
                     m.insert("X-SOURCE-KEY".to_string(), self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]));
                 m
-            });
+            }));
             if isJsonContentType {
-                requestHeaders = self.extend(requestHeaders, &[Value::Map({
+                requestHeaders = Some(self.extend(requestHeaders.take(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
-                })]);
+                })]).into_dict());
                 std::sync::Arc::make_mut(&mut paramsSorted).insert("signature".into(), Value::from(signature.clone()));
                 requestBody = json_stringify(&paramsSorted).as_str().map(str::to_owned);
             }  else {
@@ -1929,7 +1929,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

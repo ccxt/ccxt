@@ -2003,10 +2003,10 @@ impl Dydx {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[Value::Map({
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         Value::Null
         }).await?))
     }
@@ -2953,7 +2953,7 @@ impl Dydx {
             denom = self.safe_string_k_opt(&feeDenom, "CHAINTOKEN_DENOM", &[]);
         }
         let mut gasLimit: Value = (self.parse_to_numeric(crate::precise::Precise::stringMul(&gasUsed, &defaultFeeMultiplier))).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
-        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut feeAmount: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(gasLimit.clone())), &gasPrice).as_str().map(str::to_owned);
         if (feeAmount.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " estimateTxFee() missing feeAmount")));
         }

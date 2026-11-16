@@ -1047,11 +1047,11 @@ impl crate::exchange::DerivedExchange for Bybit {
         }
         // positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
         let mut positionMarginString: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "positionBalance", &[]));
-        let mut collateralString: Value = Value::Null;
+        let mut collateralString: Option<String> = None;
         if (positionMarginString.is_some()) {
-            collateralString = positionMarginString.clone().map(Value::from).unwrap_or(Value::Null);
+            collateralString = positionMarginString.clone();
             if (unrealisedPnl.is_some()) {
-                collateralString = crate::precise::Precise::stringAdd(&positionMarginString, &unrealisedPnl);
+                collateralString = crate::precise::Precise::stringAdd(&positionMarginString, &unrealisedPnl).as_str().map(str::to_owned);
             }
         }
         let mut entryPrice: Option<String> = self.omit_zero(self.safe_string_n(position.clone(), Value::from(vec![Value::Str("entryPrice".into()), Value::Str("avgPrice".into()), Value::Str("avgEntryPrice".into())]), &[]));
@@ -1067,7 +1067,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                     price = markPrice.clone();
                 }
                 let mut difference: Option<String> = crate::precise::Precise::stringAbs(&crate::precise::Precise::stringSub(&price, &liquidationPrice)).as_str().map(str::to_owned);
-                collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl);
+                collateralString = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&difference, &size), &maintenanceMarginString), &unrealisedPnl).as_str().map(str::to_owned);
                 positionMarginString = None; // derived from collateral by safePosition
             }  else {
                 let mut bustPrice: Option<String> = self.omit_zero(self.safe_string_k(position.clone(), "bustPrice", &[]));
@@ -1108,7 +1108,7 @@ impl crate::exchange::DerivedExchange for Bybit {
                 }
             }
         }
-        let mut maintenanceMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notional.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut maintenanceMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &notional).as_str().map(str::to_owned);
         let mut marginRatio: Option<String> = crate::precise::Precise::stringDivPrec(&maintenanceMarginString, &collateralString, &Value::Int(4)).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1119,7 +1119,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("initialMargin".to_string(), self.parse_number(initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional.clone().map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("initialMarginPercentage".to_string(), self.parse_number(crate::precise::Precise::stringDiv(&initialMarginString, &notional), &[]));
         m.insert("maintenanceMargin".to_string(), self.parse_number(maintenanceMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("maintenanceMarginPercentage".to_string(), self.parse_number(maintenanceMarginPercentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("entryPrice".to_string(), self.parse_number(entryPrice.map(Value::from).unwrap_or(Value::Null), &[]));
@@ -1133,7 +1133,7 @@ impl crate::exchange::DerivedExchange for Bybit {
         m.insert("liquidationPrice".to_string(), self.parse_number(liquidationPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("markPrice".to_string(), self.parse_number(markPrice.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "avgExitPrice", &[]));
-        m.insert("collateral".to_string(), self.parse_number(collateralString, &[]));
+        m.insert("collateral".to_string(), self.parse_number(collateralString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("positionMargin".to_string(), self.parse_number(positionMarginString.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("marginMode".to_string(), Value::Null);
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
@@ -1296,7 +1296,7 @@ impl crate::exchange::DerivedExchange for Bybit {
             }  else {
                 difference = crate::precise::Precise::stringNeg(&amountString).as_str().map(str::to_owned);
             }
-            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString, &difference.map(Value::from).unwrap_or(Value::Null)));
+            before = self.parse_to_numeric(crate::precise::Precise::stringAdd(&afterString, &difference));
             after = self.parse_to_numeric(afterString.map(Value::from).unwrap_or(Value::Null));
             amount = self.parse_to_numeric(crate::precise::Precise::stringAbs(&amountString));
         }
@@ -8464,7 +8464,7 @@ impl Bybit {
             let mut code: crate::value::Dict = codes.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
-                { let __be_tmp = self.extend(get_value(&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); };
+                { let __be_tmp = self.extend(get_value(&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); }
             }
         }
         }
@@ -8713,7 +8713,7 @@ impl Bybit {
             let mut code: crate::value::Dict = codes.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut retCode: Option<i64> = self.safe_integer_k(&code, "code", &[]).as_i64();
             if (retCode != Some(0)) {
-                { let __be_tmp = self.extend(get_value(&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); };
+                { let __be_tmp = self.extend(get_value(&data, &Value::Int(i)), &[&code]); add_element_to_object(&mut data, &Value::Int(i), __be_tmp); }
             }
         }
         }
@@ -9541,7 +9541,7 @@ impl Bybit {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_32).await);
+        let mut result: Vec<crate::types::Order> = (match self.fetch_closed_orders(symbol.as_str(), None, None, __ws_arg_32).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut length: i64 = result.len() as i64;
         if (length == 0) {
             let mut isTrigger: bool = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -9551,7 +9551,7 @@ impl Bybit {
         if length > 1 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " returned more than one order")));
         }
-        let mut order: Option<crate::value::Dict> = self.safe_dict(result, Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match result.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -9595,7 +9595,7 @@ impl Bybit {
             m
         });
         let __ws_arg_33 = self.extend(Value::Map(request), &[params.clone()]);
-        let mut result: Value = crate::types::IntoRaw::into_raw(self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_33).await);
+        let mut result: Vec<crate::types::Order> = (match self.fetch_open_orders(symbol.as_str(), None, None, __ws_arg_33).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut length: i64 = result.len() as i64;
         if (length == 0) {
             let mut isTrigger: bool = self.safe_bool2(params, Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
@@ -9605,7 +9605,7 @@ impl Bybit {
         if length > 1 {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " returned more than one order")));
         }
-        let mut order: Option<crate::value::Dict> = self.safe_dict(result, Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match result.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

@@ -1809,13 +1809,13 @@ impl Bithumb {
                                 let mut i: i64 = 0;
                 let mut __for_first_392: bool = true;
                 while { if !__for_first_392 { i += 1; } __for_first_392 = false; i < (quotes.len() as i64) } {
-                let mut quote: Value = quotes.get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut quote: Option<&str> = quotes.get(i as usize).and_then(Value::as_str);
                 let mut response: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
                 let mut data: indexmap::IndexMap<String, Value> = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).as_map().cloned().unwrap_or_default();
-                let mut extension: crate::value::Dict = self.safe_dict(&quoteCurrencies, quote.clone(), &[Value::Map({
+                let mut extension: crate::value::Dict = self.safe_dict(&quoteCurrencies, Value::from(quote.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1843,12 +1843,12 @@ impl Bithumb {
                     let mut entry: Value = self.deep_extend(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("id".to_string(), Value::from(currencyId.as_deref()));
-                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote).into()));
+                            m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
                             m.insert("base".to_string(), Value::from(base.as_deref()));
-                            m.insert("quote".to_string(), quote.clone());
+                            m.insert("quote".to_string(), Value::from(quote.as_deref()));
                             m.insert("settle".to_string(), Value::Null);
                             m.insert("baseId".to_string(), Value::from(currencyId.as_deref()));
-                            m.insert("quoteId".to_string(), quote.clone());
+                            m.insert("quoteId".to_string(), Value::from(quote.as_deref()));
                             m.insert("settleId".to_string(), Value::Null);
                             m.insert("type".to_string(), Value::Str("spot".into()));
                             m.insert("spot".to_string(), Value::Bool(true));

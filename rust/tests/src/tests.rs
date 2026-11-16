@@ -463,13 +463,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // - if 'timestamp' is skipped, we should do so for 'datetime' too
         // - if 'bid' is skipped, skip 'ask' too
         if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("timestamp"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("datetime"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".into())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".into()), __be_tmp); };
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("timestamp".into())); add_element_to_object(&mut finalSkips, &Value::Str("datetime".into()), __be_tmp); }
         }
         if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("bid"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("ask"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".into())); add_element_to_object(&mut finalSkips, &Value::Str("ask".into()), __be_tmp); };
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("bid".into())); add_element_to_object(&mut finalSkips, &Value::Str("ask".into()), __be_tmp); }
         }
         if (matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("baseVolume"))) && !(matches!(&finalSkips, Value::Dict(__d) if __d.contains_key("quoteVolume"))) {
-            { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".into())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".into()), __be_tmp); };
+            { let __be_tmp = get_value(&finalSkips, &Value::Str("baseVolume".into())); add_element_to_object(&mut finalSkips, &Value::Str("quoteVolume".into()), __be_tmp); }
         }
         return finalSkips;
 

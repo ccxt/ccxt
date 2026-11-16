@@ -995,7 +995,7 @@ impl Whitebit {
         if (status == Some(1)) || (status == Some(2)) {
             unifiedStatus = Some("open".to_string());
         }  else {
-            if crate::precise::Precise::stringEquals(&remaining.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEquals(&remaining, &Value::Str("0".into())).as_bool() == Some(true) {
                 unifiedStatus = Some("closed".to_string());
             }  else {
                 unifiedStatus = Some("canceled".to_string());

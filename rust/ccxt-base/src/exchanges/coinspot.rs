@@ -132,7 +132,7 @@ impl crate::exchange::DerivedExchange for Coinspot {
         let mut solddate: Option<i64> = self.safe_integer_k(trade.clone(), "solddate", &[]).as_i64();
         if (solddate.is_some()) {
             priceString = self.safe_string_k_opt(trade.clone(), "rate", &[]);
-            timestamp = solddate.take();
+            timestamp = solddate;
         }  else {
             priceString = crate::precise::Precise::stringDiv(&costString, &amountString).as_str().map(str::to_owned);
             let mut createdString: Option<String> = self.safe_string_k_opt(trade.clone(), "created", &[]);

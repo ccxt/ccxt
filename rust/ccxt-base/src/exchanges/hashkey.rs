@@ -3997,15 +3997,12 @@ impl Hashkey {
             request.insert("type".into(), Value::Str("LIMIT_MAKER".into()));
         }
         let mut clientOrderId: Option<String> = None;
-        let mut paramsClientOrderId: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        { let __destr_tmp: Vec<Value> = self.handle_param_string(&paramsPostOnly, Value::Str("clientOrderId".into()), &[]).as_array().cloned().unwrap_or_default(); clientOrderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsClientOrderId = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsClientOrderId: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_param_string(&paramsPostOnly, Value::Str("clientOrderId".into()), &[]).as_array().cloned().unwrap_or_default(); clientOrderId = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsClientOrderId = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (clientOrderId.is_some()) {
-            if let Value::Dict(__d) = &mut paramsClientOrderId { std::sync::Arc::make_mut(__d).insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null)); }
+            std::sync::Arc::make_mut(&mut paramsClientOrderId).insert("newClientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        return self.extend(Value::Map(request), &[paramsClientOrderId]);
+        return self.extend(Value::Map(request), &[&paramsClientOrderId]);
 
     Value::Null
 }

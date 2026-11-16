@@ -5236,7 +5236,7 @@ impl Weex {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions_for_symbol(symbol.as_str().unwrap_or_default(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]);
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }

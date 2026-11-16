@@ -564,7 +564,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         if (marginMode.as_deref() == Some("isolated")) {
             positionMargin = self.omit_zero(self.safe_string_k(position.clone(), "mgn", &[]));
             let mut upl: Option<String> = self.safe_string_k_opt(position.clone(), "upl", &[]);
-            collateral = (if ((positionMargin.is_some()) && (upl.is_some())) { crate::precise::Precise::stringAdd(&positionMargin.clone().map(Value::from).unwrap_or(Value::Null), &upl).as_str().map(str::to_owned) } else { None });
+            collateral = (if ((positionMargin.is_some()) && (upl.is_some())) { crate::precise::Precise::stringAdd(&positionMargin, &upl).as_str().map(str::to_owned) } else { None });
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();

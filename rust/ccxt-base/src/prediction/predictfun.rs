@@ -195,7 +195,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         }
         let mut amountFilled: Option<String> = self.safe_string_k_opt(order.clone(), "amountFilled", &[]);
         let mut filled: Option<String> = crate::precise::Precise::stringDiv(&amountFilled, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
-        let mut filledCost: Option<String> = crate::precise::Precise::stringMul(&filled, &price.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut filledCost: Option<String> = crate::precise::Precise::stringMul(&filled, &price).as_str().map(str::to_owned);
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderHash.map(Value::from).unwrap_or(Value::Null));
@@ -961,7 +961,7 @@ impl Predictfun {
     m
 }), &[params]);
         let mut events: Vec<crate::types::PredictionEvent> = (match self.fetch_events(__ws_arg_0).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(events), Value::Int(0), &[]);
+        return (match events.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }
@@ -3235,7 +3235,7 @@ impl Predictfun {
         });
         let __ws_arg_11 = self.extend(Value::Map(request), &[params]);
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![outcome])).to_opt_str_vec(), __ws_arg_11).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]);
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }
@@ -3273,7 +3273,7 @@ impl Predictfun {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id.clone()])).to_str_vec(), outcome.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         if (order.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " cancelOrder() could not remove ").into()), id)));
         }

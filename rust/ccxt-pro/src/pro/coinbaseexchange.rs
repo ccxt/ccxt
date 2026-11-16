@@ -947,7 +947,7 @@ impl Coinbaseexchange {
         let mut feeCost: Option<String> = None;
         let mut cost: Option<String> = self.safe_string_k_opt(parsed.clone(), "cost", &[]);
         if (cost.is_some()) && (feeRate.is_some()) {
-            feeCost = crate::precise::Precise::stringMul(&cost, &feeRate.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            feeCost = crate::precise::Precise::stringMul(&cost, &feeRate).as_str().map(str::to_owned);
         }
         add_element_to_object(&mut parsed, &Value::Str("fee".into()), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1116,7 +1116,7 @@ impl Coinbaseexchange {
                         if (previousOrderFilled.is_some()) {
                             add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), self.parse_number(crate::precise::Precise::stringAdd(&previousOrderFilled, &self.safe_string_k(trade.clone(), "amount", &[])), &[]));
                             if (self.safe_string_k(previousOrder.clone(), "amount", &[]) != Value::Null) {
-                                { let __be_tmp = self.parse_number(crate::precise::Precise::stringSub(&self.safe_string_k(previousOrder.clone(), "amount", &[]), &self.safe_string_k(previousOrder.clone(), "filled", &[])), &[]); add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), __be_tmp); };
+                                { let __be_tmp = self.parse_number(crate::precise::Precise::stringSub(&self.safe_string_k(previousOrder.clone(), "amount", &[]), &self.safe_string_k(previousOrder.clone(), "filled", &[])), &[]); add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), __be_tmp); }
                             }
                         }
                         if (self.safe_dict_k(previousOrder.clone(), "fee", &[]) == Value::Null) {
@@ -1185,7 +1185,7 @@ impl Coinbaseexchange {
         }  else if (type_var.as_deref() == Some("received")) {
             filled = Some("0".to_string());
             if (amount.is_some()) {
-                remaining = crate::precise::Precise::stringSub(&amount, &filled.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                remaining = crate::precise::Precise::stringSub(&amount, &filled).as_str().map(str::to_owned);
             }
         }
         return self.safe_order(Value::Map({

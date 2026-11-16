@@ -2177,10 +2177,10 @@ impl Limitless {
             volumeStr = crate::precise::Precise::stringDiv(&rawVolume, &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
         if (bidSizeStr.is_some()) {
-            bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
+            bidSizeStr = crate::precise::Precise::stringDiv(&bidSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
         if (askSizeStr.is_some()) {
-            askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr.map(Value::from).unwrap_or(Value::Null), &Value::Str("1000000".into())).as_str().map(str::to_owned);
+            askSizeStr = crate::precise::Precise::stringDiv(&askSizeStr, &Value::Str("1000000".into())).as_str().map(str::to_owned);
         }
         let mut outcomeSymbol: Option<String> = self.safe_outcome_symbol(Value::Null, &[crate::Value::from(market)]).as_str().map(str::to_owned);
         return self.safe_prediction_ticker(Value::Map({
@@ -2278,16 +2278,16 @@ impl Limitless {
                         let mut i: i64 = 0;
             let mut __for_first_1311: bool = true;
             while { if !__for_first_1311 { i += 1; } __for_first_1311 = false; i < (slugs.len() as i64) } {
-            let mut slug: Value = slugs.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut slug: Option<String> = slugs.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let __ws_arg_18 = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("addressOrSlug".to_string(), slug.clone());
+                    m.insert("addressOrSlug".to_string(), Value::from(slug.as_deref()));
                 m
             }), &[params.clone()]);
             promises.push(self.limitless_public_get_markets_address_or_slug(&[__ws_arg_18]).await);
             promises.push(self.limitless_public_get_markets_slug_orderbook(&[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("slug".to_string(), slug);
+                    m.insert("slug".to_string(), slug.map(Value::from).unwrap_or(Value::Null));
                 m
             })]).await);
         }

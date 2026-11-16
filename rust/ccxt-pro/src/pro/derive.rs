@@ -1440,13 +1440,13 @@ impl Derive {
                 m
             });
             let mut snapshotParams: crate::value::Dict = self.extend(Value::Map(snapshotRequest), &[&paramsDeriveSubaccountId]).into_dict();
-            let mut positionsSnapshot: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Dict(snapshotParams)).await);
+            let mut positionsSnapshot: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Dict(snapshotParams)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut cache: Option<crate::pro::cache::Cache> = self.positionsByType.lookup(&subaccountIdKey);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_302: bool = true;
                 while { if !__for_first_302 { i += 1; } __for_first_302 = false; i < (positionsSnapshot.len() as i64) } {
-                let mut snapshotPosition: Value = self.safe_dict(positionsSnapshot.clone(), Value::Int(i), &[]);
+                let mut snapshotPosition: Value = (match positionsSnapshot.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
                 cache.append(snapshotPosition);
             }
             }

@@ -564,7 +564,7 @@ impl Poloniex {
             if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("clientOrderIds".into(), self.array_concat(&clientOrderIds, Value::from(vec![clientOrderId.map(Value::from).unwrap_or(Value::Null)]))); }
         }
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut order: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut order: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return order.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

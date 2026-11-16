@@ -5020,12 +5020,12 @@ impl Aster {
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }
-                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                     let mut leftSide: Option<String> = crate::precise::Precise::stringAdd(&inner, &entryPriceSignString).as_str().map(str::to_owned);
                     let mut quotePrecision: i64 = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs), &Value::Str("1".into()), &Value::from(quotePrecision)).as_str().map(str::to_owned);
@@ -5034,13 +5034,13 @@ impl Aster {
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }
                     let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString).as_str().map(str::to_owned);
-                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &liquidationPriceString)).as_str().map(str::to_owned);
+                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString)).as_str().map(str::to_owned);
                     let mut basePrecision: i64 = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide), &Value::Str("1".into()), &Value::from(basePrecision)).as_str().map(str::to_owned);
                 }
@@ -5058,7 +5058,7 @@ impl Aster {
             timestamp = None;
         }
         let mut maintenanceMarginPercentage: Option<f64> = self.parse_number(maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
-        let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &notionalStringAbs).as_str().map(str::to_owned);
+        let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString, &notionalStringAbs).as_str().map(str::to_owned);
         if (maintenanceMarginString.is_none()) {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = self.safe_string_k_opt(position.clone(), "maintMargin", &[]);
@@ -5072,20 +5072,20 @@ impl Aster {
             let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
             if !rational {
-                initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())).as_str().map(str::to_owned);
+                initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".into())).as_str().map(str::to_owned);
             }
-            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&notionalStringAbs, &initialMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&notionalStringAbs, &initialMarginPercentageString).as_str().map(str::to_owned);
             initialMarginString = crate::precise::Precise::stringDivPrec(&unrounded, &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
         }  else {
             initialMarginString = self.safe_string_k_opt(position.clone(), "initialMargin", &[]);
-            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
+            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&initialMarginString, &Value::Str("1".into())).as_str().map(str::to_owned);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&unrounded, &notionalStringAbs, &Value::Int(8)).as_str().map(str::to_owned);
         }
         let mut marginRatio: Option<f64> = None;
         let mut percentage: Option<f64> = None;
-        if !(crate::precise::Precise::stringEquals(&collateralString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true)) {
-            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
+        if !(crate::precise::Precise::stringEquals(&collateralString, &Value::Str("0".into())).as_bool() == Some(true)) {
+            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
         }
         let mut positionSide: Option<String> = self.safe_string_k_opt(position.clone(), "positionSide", &[]);
         let mut hedged: bool = positionSide.as_deref() != Some("BOTH");
@@ -5318,7 +5318,7 @@ impl Aster {
             let mut leverage: Option<i64> = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             if !rational {
-                initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
+                initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
             }
         }
         // as oppose to notionalValue
@@ -5377,7 +5377,7 @@ impl Aster {
         if isolated {
             marginMode = Some("isolated".to_string());
             walletBalance = self.safe_string_k_opt(position.clone(), "isolatedWallet", &[]);
-            collateralString = crate::precise::Precise::stringAdd(&walletBalance.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnlString).as_str().map(str::to_owned);
+            collateralString = crate::precise::Precise::stringAdd(&walletBalance, &unrealizedPnlString).as_str().map(str::to_owned);
         }  else {
             marginMode = Some("cross".to_string());
             walletBalance = self.safe_string_k_opt(position.clone(), "crossWalletBalance", &[]);
@@ -5395,7 +5395,7 @@ impl Aster {
             entryPrice = None;
         }  else {
             side = (if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
-            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
+            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
             if usdm {
                 // calculate liquidation price
@@ -5405,15 +5405,15 @@ impl Aster {
                 // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
-                let mut onePlusMaintenanceMarginPercentageString: Value = Value::Null;
+                let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                 let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
                 if (side.as_deref() == Some("short")) {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                 }
-                let mut leftSide: Option<String> = crate::precise::Precise::stringDiv(&walletBalance.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsStringAbs, &onePlusMaintenanceMarginPercentageString)).as_str().map(str::to_owned);
+                let mut leftSide: Option<String> = crate::precise::Precise::stringDiv(&walletBalance, &crate::precise::Precise::stringMul(&contractsStringAbs, &onePlusMaintenanceMarginPercentageString)).as_str().map(str::to_owned);
                 let mut rightSide: Option<String> = crate::precise::Precise::stringDiv(&entryPriceSignString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                 liquidationPriceStringRaw = crate::precise::Precise::stringAdd(&leftSide, &rightSide).as_str().map(str::to_owned);
             }  else {
@@ -5424,14 +5424,14 @@ impl Aster {
                 let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                 let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                 if (side.as_deref() == Some("short")) {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                 }
                 let mut size: Option<String> = crate::precise::Precise::stringMul(&contractsStringAbs, &contractSizeString).as_str().map(str::to_owned);
-                let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&size, &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &size), &walletBalance.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&size, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
+                let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &size), &walletBalance).as_str().map(str::to_owned);
                 liquidationPriceStringRaw = crate::precise::Precise::stringDiv(&leftSide, &rightSide).as_str().map(str::to_owned);
             }
             let mut pricePrecision: i64 = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&marketResolved, "precision"), "price", &[]));
@@ -5439,7 +5439,7 @@ impl Aster {
             // round half up
             let mut pricePrecisionPlusOneString: Option<String> = self.number_to_string(Value::from(pricePrecisionPlusOne));
             let mut rounderString: String = format!("{}{}", "5e-", pricePrecisionPlusOneString.as_deref().unwrap_or("null"));
-            let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw).as_str().map(str::to_owned);
             let mut truncatedLiquidationPrice: Option<String> = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString, &Value::Str("1".into()), &Value::from(pricePrecision)).as_str().map(str::to_owned);
             if (truncatedLiquidationPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing truncatedLiquidationPrice")));

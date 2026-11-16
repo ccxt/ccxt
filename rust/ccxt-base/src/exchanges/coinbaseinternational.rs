@@ -559,7 +559,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             notional = crate::precise::Precise::stringMul(&size, &self.safe_string_k(position.clone(), "mark_price", &[])).as_str().map(str::to_owned);
         }  else if ((marketResolved).linear == Some(true)) {
             amount = self.safe_string_k_opt(position.clone(), "size_currency", &[]); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
-            notional = size.take();
+            notional = size;
         }  else {
             // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
             notional = self.safe_string_k_opt(position.clone(), "size_currency", &[]);
@@ -572,7 +572,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "average_price", &[]));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "mark_price", &[]));
-        m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&notional.map(Value::from).unwrap_or(Value::Null)), &[]));
+        m.insert("notional".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&notional), &[]));
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "floating_profit_loss", &[]));
         m.insert("side".to_string(), side.clone().map(Value::from).unwrap_or(Value::Null));

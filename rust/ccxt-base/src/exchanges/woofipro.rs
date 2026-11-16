@@ -868,7 +868,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), version.as_deref().unwrap_or("null")).into()), "/");
         let mut requestParams: indexmap::IndexMap<String, Value> = self.keysort(self.omit(params, self.extract_params(path.clone()), &[]), &[]).as_map().cloned().unwrap_or_default();
         let mut requestBody: Option<String> = None;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (access.as_deref() == Some("public")) {
             url.push_str(&pathWithParams.to_string());
             if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
@@ -931,14 +931,14 @@ impl crate::exchange::DerivedExchange for Woofipro {
             }
             let mut signature: String = eddsa(self.encode(Value::from(auth)), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
             if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(Value::from(signature), &[]), &[])); }
-            requestHeaders = authHeaders;
+            requestHeaders = authHeaders.into_opt_dict();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 

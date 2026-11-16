@@ -2381,10 +2381,10 @@ impl Polymarket {
             m
         });
         let mut orders: Vec<crate::types::Order> = (match self.create_orders(crate::types::FromRaw::from_raw(Value::from(vec![order])), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut first: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(orders.clone()), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut first: crate::value::Dict = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }) }).into_dict();
         let mut firstStatus: Option<String> = self.safe_string_k_opt(&first, "status", &[]);
         if (firstStatus.as_deref() == Some("rejected")) {
             let mut firstInfo: crate::value::Dict = self.safe_dict_k(&first, "info", &[Value::Map({
@@ -2397,7 +2397,7 @@ impl Polymarket {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorId.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::invalid_order(feedback));
         }
-        let mut created: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut created: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return created.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2529,7 +2529,7 @@ impl Polymarket {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut canceled: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]).into_opt_dict();
+        let mut canceled: Option<crate::value::Dict> = (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return canceled.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
@@ -2967,7 +2967,7 @@ impl Polymarket {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut position: Option<crate::value::Dict> = self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]).into_opt_dict();
+        let mut position: Option<crate::value::Dict> = (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
         return position.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))

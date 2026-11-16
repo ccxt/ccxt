@@ -2789,7 +2789,7 @@ impl Bitget {
                 }
             }
         }
-        remaining = crate::precise::Precise::stringSub(&totalAmount.clone().map(Value::from).unwrap_or(Value::Null), &totalFilled).as_str().map(str::to_owned);
+        remaining = crate::precise::Precise::stringSub(&totalAmount, &totalFilled).as_str().map(str::to_owned);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

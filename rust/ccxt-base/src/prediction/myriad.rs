@@ -5404,11 +5404,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub async fn seed_position_balances(&mut self, trader: &str) -> Value {
         let mut trader: Value = trader.into();
-        let mut positions: Value = crate::types::IntoRaw::into_raw(self.fetch_positions(None, Value::Map({
+        let mut positions: Vec<crate::types::Position> = (match self.fetch_positions(None, Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("address".to_string(), trader);
     m
-})).await);
+})).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut balances: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -5418,7 +5418,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1383: bool = true;
             while { if !__for_first_1383 { i += 1; } __for_first_1383 = false; i < positionsLength } {
-            let mut p: crate::value::Dict = self.safe_dict(positions.clone(), Value::Int(i), &[]).into_dict();
+            let mut p: crate::value::Dict = (match positions.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_dict();
             let mut id: Option<String> = self.safe_string_k_opt(&p, "id", &[]);
             if (id.is_some()) {
                 balances.insert(id.as_deref().unwrap_or("null").to_string(), Value::from(self.number_to_string(self.safe_number_k(&p, "contracts", &[Value::Int(0)]))));

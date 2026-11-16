@@ -629,7 +629,7 @@ impl crate::exchange::DerivedExchange for Bitstamp {
         }
         if (amount.is_some()) {
             // withdrawals have a negative amount
-            amount = crate::precise::Precise::stringAbs(&amount.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amount = crate::precise::Precise::stringAbs(&amount).as_str().map(str::to_owned);
         }
         let mut status: Value = Value::Str("ok".into());
         if (matches!(&transaction, Value::Dict(__d) if __d.contains_key("status"))) {

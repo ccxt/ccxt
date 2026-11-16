@@ -350,7 +350,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                 if (minWithdrawFeeString.is_none()) {
                     minWithdrawFeeString = withdrawFeeString.clone();
                 }  else {
-                    minWithdrawFeeString = crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minWithdrawFeeString = crate::precise::Precise::stringMin(&withdrawFeeString, &minWithdrawFeeString).as_str().map(str::to_owned);
                 }
             }
             let mut minNetworkWithdrawString: Option<String> = self.safe_string_k_opt(&chain, "withdrawalMinSize", &[]);
@@ -358,7 +358,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                 if (minWithdrawString.is_none()) {
                     minWithdrawString = minNetworkWithdrawString.clone();
                 }  else {
-                    minWithdrawString = crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minWithdrawString = crate::precise::Precise::stringMin(&minNetworkWithdrawString, &minWithdrawString).as_str().map(str::to_owned);
                 }
             }
             let mut minNetworkDepositString: Option<String> = self.safe_string_k_opt(&chain, "depositMinSize", &[]);
@@ -366,7 +366,7 @@ impl crate::exchange::DerivedExchange for Zebpay {
                 if (minDepositString.is_none()) {
                     minDepositString = minNetworkDepositString.clone();
                 }  else {
-                    minDepositString = crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    minDepositString = crate::precise::Precise::stringMin(&minNetworkDepositString, &minDepositString).as_str().map(str::to_owned);
                 }
             }
             if (networkCode.is_some()) {

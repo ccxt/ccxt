@@ -103,7 +103,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             let mut contractSize: Option<String> = self.safe_string_k_opt(&marketResolved, "contractSize", &[]);
             if isSwap && (contractSize.is_some()) {
                 // volume24 counts contracts, amount24 is in the settle currency
-                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &contractSize).as_str().map(str::to_owned);
+                let mut contractVolume: Option<String> = crate::precise::Precise::stringMul(&baseVolume, &contractSize).as_str().map(str::to_owned);
                 if ((marketResolved).inverse == Some(true)) {
                     baseVolume = quoteVolume.clone();
                     quoteVolume = contractVolume.clone();
@@ -115,7 +115,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             low = self.safe_string_k_opt(ticker.clone(), "lower24Price", &[]);
             changeValue = self.safe_string_k_opt(ticker.clone(), "riseFallValue", &[]);
             changePcnt = self.safe_string_k_opt(ticker.clone(), "riseFallRate", &[]);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into())).as_str().map(str::to_owned);
         }  else {
             //
             //     {
@@ -144,10 +144,10 @@ impl crate::exchange::DerivedExchange for Mexc {
             ask = self.safe_string_k_opt(ticker.clone(), "askPrice", &[]);
             bidVolume = self.safe_string_k_opt(ticker.clone(), "bidQty", &[]);
             askVolume = self.safe_string_k_opt(ticker.clone(), "askQty", &[]);
-            if crate::precise::Precise::stringEq(&bidVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEq(&bidVolume, &Value::Str("0".into())).as_bool() == Some(true) {
                 bidVolume = None.clone();
             }
-            if crate::precise::Precise::stringEq(&askVolume.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+            if crate::precise::Precise::stringEq(&askVolume, &Value::Str("0".into())).as_bool() == Some(true) {
                 askVolume = None.clone();
             }
             baseVolume = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
@@ -158,7 +158,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             prevClose = self.safe_string_k_opt(ticker.clone(), "prevClosePrice", &[]);
             changeValue = self.safe_string_k_opt(ticker.clone(), "priceChange", &[]);
             changePcnt = self.safe_string_k_opt(ticker.clone(), "priceChangePercent", &[]);
-            changePcnt = crate::precise::Precise::stringMul(&changePcnt.map(Value::from).unwrap_or(Value::Null), &Value::Str("100".into())).as_str().map(str::to_owned);
+            changePcnt = crate::precise::Precise::stringMul(&changePcnt, &Value::Str("100".into())).as_str().map(str::to_owned);
         }
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -666,7 +666,7 @@ impl crate::exchange::DerivedExchange for Mexc {
             collateralString = initialMargin.clone();
             marginString = collateralString.clone();
             if (unrealizedPnl.is_some()) {
-                collateralString = crate::precise::Precise::stringAdd(&collateralString.map(Value::from).unwrap_or(Value::Null), &unrealizedPnl).as_str().map(str::to_owned);
+                collateralString = crate::precise::Precise::stringAdd(&collateralString, &unrealizedPnl).as_str().map(str::to_owned);
             }
         }
         let mut leverage: Option<f64> = self.safe_number_k(position.clone(), "leverage", &[]).as_f64();
@@ -7364,7 +7364,7 @@ impl Mexc {
         });
         let __ws_arg_53 = self.extend(Value::Map(request), &[params]);
         let mut response: Vec<crate::types::Position> = (match self.fetch_positions(None, __ws_arg_53).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(response), Value::Int(0), &[]);
+        return (match response.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }

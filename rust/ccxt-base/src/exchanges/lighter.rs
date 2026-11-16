@@ -2248,7 +2248,7 @@ if _try_result.is_err() {
         request.insert("time_in_force".into(), Value::from(timeInForceNum));
         request.insert("reduce_only".into(), (if reduceOnly { Value::Int(1) } else { Value::Int(0) }));
         request.insert("client_order_index".into(), Value::from(clientOrderId));
-        request.insert("base_amount".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &amountScale))));
+        request.insert("base_amount".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale))));
         request.insert("avg_execution_price".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale))));
         request.insert("trigger_price".into(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale))));
         if matches!(self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]), Value::Bool(true)) {
@@ -2542,7 +2542,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
                 m.insert("index".to_string(), Value::from(self.parse_to_int(id)));
-                m.insert("base_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr.map(Value::from).unwrap_or(Value::Null), &amountScale))));
+                m.insert("base_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&amountStr, &amountScale))));
                 m.insert("price".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&priceStr, &priceScale))));
                 m.insert("trigger_price".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&triggerPriceStr, &priceScale))));
                 m.insert("nonce".to_string(), Value::from(nonce));
@@ -3409,10 +3409,10 @@ if _try_result.is_err() {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[Value::Map({
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+}) });
         Value::Null
         }).await?))
     }

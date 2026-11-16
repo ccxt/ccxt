@@ -144,7 +144,7 @@ pub fn testPosition(mut exchange: Value, mut skippedProperties: Value, mut metho
             }  else {
                 priceDiff = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&entryPriceString, &liquidationPriceString)).as_str().map(str::to_owned);
             }
-            let mut lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff.map(Value::from).unwrap_or(Value::Null), &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
+            let mut lossFromEntry: Option<String> = ccxt::precise::Precise::stringMul(&priceDiff, &ccxt::precise::Precise::stringMul(&contractsString, &contractSizeString)).as_str().map(str::to_owned);
             let mut calculatedMm: Value = ccxt::precise::Precise::stringSub(&entryMarginString, &lossFromEntry);
             assert!(ccxt::runtime::is_true(&(ccxt::precise::Precise::stringGt(&calculatedMm, &Value::Str("0".into())))));
             let mut mmDiff: Option<String> = ccxt::precise::Precise::stringAbs(&ccxt::precise::Precise::stringSub(&calculatedMm, &maintenanceMarginString)).as_str().map(str::to_owned);

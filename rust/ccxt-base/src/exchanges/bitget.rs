@@ -1114,7 +1114,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         let mut markPrice: Option<String> = self.safe_string_k_opt(position.clone(), "markPrice", &[]);
         let mut notional: Option<String> = crate::precise::Precise::stringMul(&baseAmount, &markPrice).as_str().map(str::to_owned);
-        let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &notional).as_str().map(str::to_owned);
+        let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin, &notional).as_str().map(str::to_owned);
         let mut liquidationPriceString: Option<String> = self.safe_string_k_opt(position.clone(), "liquidationPrice", &[]);
         let mut rawLiquidationPrice: Option<String> = self.omit_zero(liquidationPriceString.map(Value::from).unwrap_or(Value::Null));
         let mut liquidationPrice: Option<f64> = None;
@@ -1144,7 +1144,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         }
         let mut feeToClose: Option<String> = crate::precise::Precise::stringMul(&notional, &calcTakerFeeRate).as_str().map(str::to_owned);
         let mut maintenanceMargin: Option<String> = crate::precise::Precise::stringAdd(&crate::precise::Precise::stringMul(&maintenanceMarginPercentage, &notional), &feeToClose).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
+        let mut percentage: Option<String> = crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnl, &initialMargin, &Value::Int(4)), &Value::Str("100".into())).as_str().map(str::to_owned);
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -1775,7 +1775,7 @@ impl crate::exchange::DerivedExchange for Bitget {
                     m.insert("cost".to_string(), self.parse_number(feeCostAbsString.clone().map(Value::from).unwrap_or(Value::Null), &[]));
                 m
             }));
-            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostAbsString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            amountString = crate::precise::Precise::stringSub(&amountString, &feeCostAbsString).as_str().map(str::to_owned);
         }
         let mut transactionType: Option<String> = self.safe_string_k_opt(transaction.clone(), "type", &[]);
         return Value::Map({
@@ -8929,10 +8929,10 @@ if _try_result.is_err() {
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
         let mut deposits: Vec<crate::types::Transaction> = (match self.fetch_deposits(code.as_str(), None, None, __ws_arg_8).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut deposit: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(deposits), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut deposit: crate::value::Dict = (match deposits.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }) }).into_dict();
         return Value::Dict(deposit);
 
     Value::Null
@@ -9199,10 +9199,10 @@ if _try_result.is_err() {
         });
         let __ws_arg_13 = self.extend(Value::Map(request), &[params]);
         let mut withdrawals: Vec<crate::types::Transaction> = (match self.fetch_withdrawals(code.as_str(), None, None, __ws_arg_13).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut withdrawal: crate::value::Dict = self.safe_dict(crate::types::IntoRaw::into_raw(withdrawals), Value::Int(0), &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+        let mut withdrawal: crate::value::Dict = (match withdrawals.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }) }).into_dict();
         return Value::Dict(withdrawal);
 
     Value::Null
@@ -10189,14 +10189,14 @@ if _try_result.is_err() {
         let mut response: Option<crate::value::Dict> = None;
         let mut marginMode: Option<String> = None;
         let mut marketType: Option<String> = None;
-        let mut paramsMarginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchTradingFees".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[paramsMarginMode.clone()]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsMarginMode: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchTradingFees".into()), &[params]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut uta: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(paramsMarginMode.clone(), Some("fetchTradingFees"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsMarginMode, Some("fetchTradingFees"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (uta == Some(true)) {
-            let mut utaMargin: bool = self.safe_bool_k(paramsMarginMode.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            paramsMarginMode = self.omit(paramsMarginMode, Value::Str("margin".into()), &[]);
+            let mut utaMargin: bool = self.safe_bool_k(&paramsMarginMode, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("margin".into()), &[]).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -10209,12 +10209,12 @@ if _try_result.is_err() {
                 }
             }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
                 let mut utaProductType: Option<String> = None;
-                { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[paramsMarginMode.clone()]).as_array().cloned().unwrap_or_default(); utaProductType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+                { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default(); utaProductType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
                 request.insert("category".into(), utaProductType.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " market")));
             }
-            let __ws_arg_35 = self.extend(Value::Map(request), &[paramsMarginMode.clone()]);
+            let __ws_arg_35 = self.extend(Value::Map(request), &[&paramsMarginMode]);
             let mut utaResponse: crate::value::Dict = self.private_uta_get_v3_account_all_fee_rate(&[__ws_arg_35]).await.into_dict();
             //
             //     {
@@ -10255,18 +10255,18 @@ if _try_result.is_err() {
             return Value::Map(utaResult);
         }
         if (marketType.as_deref() == Some("spot")) {
-            let mut margin: bool = self.safe_bool_k(paramsMarginMode.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            paramsMarginMode = self.omit(paramsMarginMode, Value::Str("margin".into()), &[]);
+            let mut margin: bool = self.safe_bool_k(&paramsMarginMode, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("margin".into()), &[]).into_dict();
             if (marginMode.is_some()) || margin {
-                response = self.public_margin_get_v2_margin_currencies(&[paramsMarginMode.clone()]).await.into_opt_dict();
+                response = self.public_margin_get_v2_margin_currencies(&[Value::from(&paramsMarginMode)]).await.into_opt_dict();
             }  else {
-                response = self.public_spot_get_v2_spot_public_symbols(&[paramsMarginMode.clone()]).await.into_opt_dict();
+                response = self.public_spot_get_v2_spot_public_symbols(&[Value::from(&paramsMarginMode)]).await.into_opt_dict();
             }
         }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             let mut productType: Option<String> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[paramsMarginMode.clone()]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            add_element_to_object(&mut paramsMarginMode, &Value::Str("productType".into()), productType.map(Value::from).unwrap_or(Value::Null));
-            response = self.public_mix_get_v2_mix_market_contracts(&[paramsMarginMode]).await.into_opt_dict();
+            { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsMarginMode)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            std::sync::Arc::make_mut(&mut paramsMarginMode).insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
+            response = self.public_mix_get_v2_mix_market_contracts(&[Value::Dict(paramsMarginMode)]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " market")));
         }

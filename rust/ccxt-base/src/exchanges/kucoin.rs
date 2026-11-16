@@ -9236,15 +9236,15 @@ impl Kucoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut uta: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();
-        let mut paramsRequest: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsRequest: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrdersByStatus".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut marketType: Value = Value::Null;
         if (symbol == Value::Null) {
-            let mut type_var: Option<String> = self.safe_string_k_opt(paramsRequest.clone(), "type", &[]); // exchange has specific param for order type
+            let mut type_var: Option<String> = self.safe_string_k_opt(&paramsRequest, "type", &[]); // exchange has specific param for order type
             // todo check for better way to determine market type without symbol
             if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("margin")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) || (type_var.as_deref() == Some("contract")) {
                 marketType = type_var.map(Value::from).unwrap_or(Value::Null);
-                paramsRequest = self.omit(paramsRequest, Value::Str("type".into()), &[]);
+                paramsRequest = self.omit(&paramsRequest, Value::Str("type".into()), &[]).into_dict();
             }  else {
                 let mut methodOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "fetchOrdersByStatus", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -9262,17 +9262,17 @@ impl Kucoin {
             marketType = Value::from((market).market_type.clone());
         }
         if uta {
-            paramsRequest = self.omit(paramsRequest, Value::Str("uta".into()), &[]);
-            paramsRequest = self.extend(paramsRequest, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("marketType".to_string(), marketType.clone());
-                m
-            })]);
-            return self.fetch_uta_orders_by_status(status.clone(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest.clone()]).await;
+            paramsRequest = self.omit(&paramsRequest, Value::Str("uta".into()), &[]).into_dict();
+            paramsRequest = self.extend(&paramsRequest, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marketType".to_string(), marketType.clone());
+    m
+})]).into_dict();
+            return self.fetch_uta_orders_by_status(status.clone(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsRequest)]).await;
         }  else if self.in_array(marketType, Value::from(vec![Value::Str("spot".into()), Value::Str("margin".into())])) {
-            return self.fetch_spot_orders_by_status(status.clone(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest.clone()]).await;
+            return self.fetch_spot_orders_by_status(status.clone(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsRequest)]).await;
         }  else {
-            return self.fetch_contract_orders_by_status(status.as_str(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest]).await;
+            return self.fetch_contract_orders_by_status(status.as_str(), symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::Dict(paramsRequest)]).await;
         }
 
     Value::Null
@@ -10754,22 +10754,22 @@ impl Kucoin {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut paramsRequest: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsRequest: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut uta: bool = self.is_uta_enabled(&[]).await.as_bool().unwrap_or_default();
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsRequest.clone(), Value::Str("fetchMyTrades".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsRequest, Value::Str("fetchMyTrades".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if uta {
-            paramsRequest = self.extend(paramsRequest, &[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("marketType".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
-                m
-            })]);
-            return self.fetch_my_uta_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest.clone()]).await;
+            paramsRequest = self.extend(&paramsRequest, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("marketType".to_string(), marketType.clone().map(Value::from).unwrap_or(Value::Null));
+    m
+})]).into_dict();
+            return self.fetch_my_uta_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsRequest)]).await;
         }
         if (marketType.as_deref() == Some("spot")) || (marketType.as_deref() == Some("margin")) {
-            return self.fetch_my_spot_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest.clone()]).await;
+            return self.fetch_my_spot_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::from(&paramsRequest)]).await;
         }  else {
-            return self.fetch_my_contract_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[paramsRequest]).await;
+            return self.fetch_my_contract_trades(symbol.as_str(), since.as_i64(), limit.as_i64(), &[Value::Dict(paramsRequest)]).await;
         }
         Value::Null
         }).await?))

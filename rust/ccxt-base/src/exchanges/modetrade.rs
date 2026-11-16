@@ -640,7 +640,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
             let mut networkId: String = self.safe_string_k(&network, "chain_id", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut precision: Option<String> = self.parse_precision(&[self.safe_string_k(&network, "decimals", &[])]).as_str().map(str::to_owned);
             if (precision.is_some()) {
-                minPrecision = (if (minPrecision.is_none()) { precision.clone() } else { crate::precise::Precise::stringMin(&precision, &minPrecision.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned) });
+                minPrecision = (if (minPrecision.is_none()) { precision.clone() } else { crate::precise::Precise::stringMin(&precision, &minPrecision).as_str().map(str::to_owned) });
             }
             resultingNetworks.insert(networkId.clone(), Value::Map({
     let mut m = indexmap::IndexMap::new();

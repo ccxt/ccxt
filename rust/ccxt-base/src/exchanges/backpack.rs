@@ -540,17 +540,17 @@ impl crate::exchange::DerivedExchange for Backpack {
                     let mut __for_first_248: bool = true;
                     while { if !__for_first_248 { i += 1; } __for_first_248 = false; i < (sessions.len() as i64) } {
                     let mut sessionStep: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "stepSize", &[]);
-                    if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep, &stepSize.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (sessionStep.is_some()) && ((stepSize.is_none()) || crate::precise::Precise::stringLt(&sessionStep, &stepSize).as_bool() == Some(true)) {
                         stepSize = sessionStep;
                     }
                     let mut sessionMin: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "minQuantity", &[]);
                     let mut sessionMax: Option<String> = self.safe_string_k_opt(sessions.get(i as usize).cloned().unwrap_or(Value::Null), "maxQuantity", &[]);
-                    if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin, &minimum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true)) {
+                    if (sessionMin.is_some()) && ((minimum.is_none()) || crate::precise::Precise::stringLt(&sessionMin, &minimum).as_bool() == Some(true)) {
                         minimum = sessionMin;
                     }
                     if (sessionMax.is_none()) {
                         unbounded = true;
-                    }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax, &maximum.clone().map(Value::from).unwrap_or(Value::Null)).as_bool() == Some(true) {
+                    }  else if (maximum.is_none()) || crate::precise::Precise::stringGt(&sessionMax, &maximum).as_bool() == Some(true) {
                         maximum = sessionMax;
                     }
                 }
@@ -2480,11 +2480,11 @@ impl Backpack {
                 if (assetId.is_none()) {
                     continue;
                 }
-                let mut marketId: Value = Value::Str(format!("{}{}", assetId.as_deref().unwrap_or("null"), "_USDC_RFQ").into());
-                if !(matches!(&marketId, Value::Str(__k) if marketIds.contains_key(__k.as_ref()))) {
+                let mut marketId: String = format!("{}{}", assetId.as_deref().unwrap_or("null"), "_USDC_RFQ");
+                if !(marketIds.contains_key(marketId.as_str())) {
                     let mut market: Value = <Self as crate::exchange::DerivedExchange>::parse_market(self, Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("symbol".to_string(), marketId.clone());
+                            m.insert("symbol".to_string(), Value::from(marketId.clone()));
                             m.insert("baseSymbol".to_string(), assetId.map(Value::from).unwrap_or(Value::Null));
                             m.insert("quoteSymbol".to_string(), Value::Str("USDC".into()));
                             m.insert("marketType".to_string(), Value::Str("RFQ".into()));
@@ -2493,7 +2493,7 @@ impl Backpack {
                         m
                     }));
                     if (market != Value::Null) {
-                        marketIds.insert(crate::runtime::stringify_param(&marketId), Value::Bool(true));
+                        marketIds.insert(marketId, Value::Bool(true));
                         markets.push(market);
                     }
                 }

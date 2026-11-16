@@ -1975,11 +1975,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // kalshi occasionally reports a negative size for settling/closed markets; a size
         // can't be negative, so drop it rather than emit an invalid volume
         let mut bidVolume: Option<f64> = None;
-        if (bidSizeString.is_some()) && crate::precise::Precise::stringGe(&bidSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (bidSizeString.is_some()) && crate::precise::Precise::stringGe(&bidSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
             bidVolume = self.parse_number(bidSizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut askVolume: Option<f64> = None;
-        if (askSizeString.is_some()) && crate::precise::Precise::stringGe(&askSizeString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("0".into())).as_bool() == Some(true) {
+        if (askSizeString.is_some()) && crate::precise::Precise::stringGe(&askSizeString, &Value::Str("0".into())).as_bool() == Some(true) {
             askVolume = self.parse_number(askSizeString.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         }
         let mut average: Option<f64> = None;

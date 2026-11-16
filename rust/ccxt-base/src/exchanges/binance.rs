@@ -225,7 +225,7 @@ impl crate::exchange::DerivedExchange for Binance {
         if isCoinm {
             baseVolume = self.safe_string_k_opt(ticker.clone(), "baseVolume", &[]);
             // 'volume' field in inverse markets is not quoteVolume, but traded amount (per contracts)
-            quoteVolume = crate::precise::Precise::stringMul(&baseVolume.clone().map(Value::from).unwrap_or(Value::Null), &wAvg).as_str().map(str::to_owned);
+            quoteVolume = crate::precise::Precise::stringMul(&baseVolume, &wAvg).as_str().map(str::to_owned);
         }  else {
             baseVolume = self.safe_string_k_opt(ticker.clone(), "volume", &[]);
             quoteVolume = self.safe_string2_opt(ticker.clone(), Value::Str("quoteVolume".into()), Value::Str("amount".into()), &[]);
@@ -10691,13 +10691,13 @@ impl Binance {
         let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("fetchBalance".into()), Value::Str("defaultType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
         let mut type_var: Option<String> = self.safe_string_k_opt(params.clone(), "type", &[Value::from(defaultType)]);
         let mut subType: Option<String> = None;
-        let mut paramsSubType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsSubType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType.clone(), Value::Str("fetchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_bool_and_params2(&paramsSubType, Value::Str("fetchBalance".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut marginMode: Option<String> = None;
         let mut query: crate::value::Dict = Default::default();
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[paramsSubType.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsSubType)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         query = self.omit(&query, Value::Str("type".into()), &[]).into_dict();
         let mut response: Value = Value::Null;
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -10716,19 +10716,19 @@ impl Binance {
         }  else if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("linear".to_string());
             let mut useV2: Option<bool> = None;
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsSubType.clone(), Value::Str("fetchBalance".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); useV2 = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            paramsSubType = self.extend(Value::Map(request.clone()), &[&query]);
+            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchBalance".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); useV2 = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            paramsSubType = self.extend(Value::Map(request.clone()), &[&query]).into_dict();
             if !(useV2 == Some(true)) {
-                response = self.fapi_private_v3_get_account(&[paramsSubType.clone()]).await;
+                response = self.fapi_private_v3_get_account(&[Value::from(&paramsSubType)]).await;
             }  else {
-                response = self.fapi_private_v2_get_account(&[paramsSubType.clone()]).await;
+                response = self.fapi_private_v2_get_account(&[Value::from(&paramsSubType)]).await;
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             type_var = Some("inverse".to_string());
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.dapi_private_get_account(&[__ws_arg_5]).await;
         }  else if (marginMode.as_deref() == Some("isolated")) {
-            let mut paramSymbols: Option<crate::value::List> = self.safe_list_k(paramsSubType, "symbols", &[]).into_opt_list();
+            let mut paramSymbols: Option<crate::value::List> = self.safe_list_k(&paramsSubType, "symbols", &[]).into_opt_list();
             query = self.omit(&query, Value::Str("symbols".into()), &[]).into_dict();
             if (paramSymbols.is_some()) {
                 let mut symbols: Value = Value::Str("".into());
@@ -13912,8 +13912,8 @@ impl Binance {
 }));
         let mut market: Option<crate::types::Market> = None;
         let mut stock: bool = false;
-        let mut paramsStock: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsStock: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchClosedOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = false;
@@ -13924,10 +13924,10 @@ impl Binance {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchClosedOrders() requires a symbol argument")));
         }
         if stock {
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("stock".into(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("orderStatus".into(), Value::Str("FILLED".into())); }
+            std::sync::Arc::make_mut(&mut paramsStock).insert("stock".into(), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut paramsStock).insert("orderStatus".into(), Value::Str("FILLED".into()));
         }
-        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsStock).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, Value::Dict(paramsStock)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut filteredOrders: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
         return self.filter_by_since_limit(&filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -13973,8 +13973,8 @@ impl Binance {
 }));
         let mut market: Option<crate::types::Market> = None;
         let mut stock: bool = false;
-        let mut paramsStock: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsStock: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = false;
@@ -13985,10 +13985,10 @@ impl Binance {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchCanceledOrders() requires a symbol argument")));
         }
         if stock {
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("stock".into(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("orderStatus".into(), Value::Str("CANCELED".into())); }
+            std::sync::Arc::make_mut(&mut paramsStock).insert("stock".into(), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut paramsStock).insert("orderStatus".into(), Value::Str("CANCELED".into()));
         }
-        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsStock).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, Value::Dict(paramsStock)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut filteredOrders: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("canceled".into()), &[]).into_list();
         return self.filter_by_since_limit(&filteredOrders, since.as_i64(), limit.as_i64(), &[]);
         Value::Null
@@ -14034,8 +14034,8 @@ impl Binance {
 }));
         let mut market: Option<crate::types::Market> = None;
         let mut stock: bool = false;
-        let mut paramsStock: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsStock: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchCanceledAndClosedOrders".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); stock = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsStock = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             stock = false;
@@ -14046,10 +14046,10 @@ impl Binance {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchCanceledAndClosedOrders() requires a symbol argument")));
         }
         if stock {
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("stock".into(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut paramsStock { std::sync::Arc::make_mut(__d).insert("orderStatus".into(), Value::Str("FILLED,CANCELED".into())); }
+            std::sync::Arc::make_mut(&mut paramsStock).insert("stock".into(), Value::Bool(true));
+            std::sync::Arc::make_mut(&mut paramsStock).insert("orderStatus".into(), Value::Str("FILLED,CANCELED".into()));
         }
-        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, paramsStock).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut orders: Vec<crate::types::Order> = (match self.fetch_orders(symbol.as_str(), since.as_i64(), None, Value::Dict(paramsStock)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut canceledOrders: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(orders.clone()), Value::Str("status".into()), Value::Str("canceled".into()), &[]).into_list();
         let mut closedOrders: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
         let mut filteredOrders: crate::value::List = self.array_concat(&canceledOrders, &closedOrders).into_list();
@@ -14949,7 +14949,7 @@ impl Binance {
         let mut priceString: Option<String> = None;
         if (costString.is_some()) {
             if (amountString.is_some()) && (amountString.as_deref() != Some("")) {
-                priceString = crate::precise::Precise::stringDiv(&costString.clone().map(Value::from).unwrap_or(Value::Null), &amountString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                priceString = crate::precise::Precise::stringDiv(&costString, &amountString).as_str().map(str::to_owned);
             }
         }
         let mut id: Option<String> = None;
@@ -16041,17 +16041,17 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
                 while { if !__for_first_298 { i += 1; } __for_first_298 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::value::Dict = get_value(&markets, &symbol).into_dict();
+                let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut market: crate::value::Dict = (if let (Some(__m), Some(__k)) = (markets.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
                 if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                    linearFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    linearFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("feeTier".to_string(), Value::from(feeTier));
     m
 }));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
     m
@@ -16087,17 +16087,17 @@ impl Binance {
                                 let mut i: i64 = 0;
                 let mut __for_first_299: bool = true;
                 while { if !__for_first_299 { i += 1; } __for_first_299 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = symbols.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut market: crate::value::Dict = get_value(&markets, &symbol).into_dict();
+                let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                let mut market: crate::value::Dict = (if let (Some(__m), Some(__k)) = (markets.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
                 if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
-                    inverseFees.insert(crate::runtime::stringify_param(&symbol), Value::Map({
+                    inverseFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("feeTier".to_string(), Value::from(feeTier));
     m
 }));
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), Value::from(maker));
         m.insert("taker".to_string(), Value::from(taker));
     m
@@ -16490,7 +16490,7 @@ impl Binance {
             let mut leverage: Option<i64> = self.parse_to_int(leverageString.clone().map(Value::from).unwrap_or(Value::Null));
             let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             if !rational {
-                initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
+                initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".into())), &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
             }
         }
         // as oppose to notionalValue
@@ -16546,7 +16546,7 @@ impl Binance {
         if isolated.as_bool() == Some(true) {
             marginMode = Some("isolated".to_string());
             walletBalance = self.safe_string_k_opt(position.clone(), "isolatedWallet", &[]);
-            collateralString = crate::precise::Precise::stringAdd(&walletBalance.clone().map(Value::from).unwrap_or(Value::Null), &unrealizedPnlString).as_str().map(str::to_owned);
+            collateralString = crate::precise::Precise::stringAdd(&walletBalance, &unrealizedPnlString).as_str().map(str::to_owned);
         }  else {
             marginMode = Some("cross".to_string());
             walletBalance = self.safe_string_k_opt(position.clone(), "crossWalletBalance", &[]);
@@ -16564,7 +16564,7 @@ impl Binance {
             entryPrice = None;
         }  else {
             side = (if crate::precise::Precise::stringLt(&notionalString, &Value::Str("0".into())).as_bool() == Some(true) { Some("short".to_string()) } else { Some("long".to_string()) });
-            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString.map(Value::from).unwrap_or(Value::Null)), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
+            marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
             percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
             if usdm {
                 // calculate liquidation price
@@ -16574,15 +16574,15 @@ impl Binance {
                 // mmp = maintenanceMarginPercentage
                 // where ± is negative for long and positive for short
                 // TODO: calculate liquidation price for coinm contracts
-                let mut onePlusMaintenanceMarginPercentageString: Value = Value::Null;
+                let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                 let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
                 if (side.as_deref() == Some("short")) {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null));
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                 }
-                let mut leftSide: Option<String> = crate::precise::Precise::stringDiv(&walletBalance.clone().map(Value::from).unwrap_or(Value::Null), &crate::precise::Precise::stringMul(&contractsStringAbs, &onePlusMaintenanceMarginPercentageString)).as_str().map(str::to_owned);
+                let mut leftSide: Option<String> = crate::precise::Precise::stringDiv(&walletBalance, &crate::precise::Precise::stringMul(&contractsStringAbs, &onePlusMaintenanceMarginPercentageString)).as_str().map(str::to_owned);
                 let mut rightSide: Option<String> = crate::precise::Precise::stringDiv(&entryPriceSignString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                 liquidationPriceStringRaw = crate::precise::Precise::stringAdd(&leftSide, &rightSide).as_str().map(str::to_owned);
             }  else {
@@ -16593,14 +16593,14 @@ impl Binance {
                 let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                 let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                 if (side.as_deref() == Some("short")) {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                 }  else {
-                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                 }
                 let mut size: Option<String> = crate::precise::Precise::stringMul(&contractsStringAbs, &contractSizeString).as_str().map(str::to_owned);
-                let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&size, &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
-                let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &size), &walletBalance.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&size, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
+                let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringMul(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &size), &walletBalance).as_str().map(str::to_owned);
                 liquidationPriceStringRaw = crate::precise::Precise::stringDiv(&leftSide, &rightSide).as_str().map(str::to_owned);
             }
             let mut pricePrecision: i64 = self.precision_from_string(self.safe_string_k(crate::value::KeyRead::key_read(&&marketResolved, "precision"), "price", &[]));
@@ -16609,7 +16609,7 @@ impl Binance {
             // round half up
             let mut rounder = Precise::new(Value::Str(format!("{}{}", "5e-", pricePrecisionPlusOneString).into()));
             let mut rounderString: Value = to_string_val(&rounder);
-            let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut liquidationPriceRoundedString: Option<String> = crate::precise::Precise::stringAdd(&rounderString, &liquidationPriceStringRaw).as_str().map(str::to_owned);
             let mut truncatedLiquidationPrice: Option<String> = crate::precise::Precise::stringDivPrec(&liquidationPriceRoundedString, &Value::Str("1".into()), &Value::from(pricePrecision)).as_str().map(str::to_owned);
             if (truncatedLiquidationPrice.is_some()) && (self.safe_value(truncatedLiquidationPrice.clone().map(Value::from).unwrap_or(Value::Null), Value::Int(0), &[]).as_str() == Some("-")) {
                 // user cannot be liquidated
@@ -16804,12 +16804,12 @@ impl Binance {
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.clone().map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringAdd(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }
-                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                    let mut inner: Option<String> = crate::precise::Precise::stringMul(&liquidationPriceString, &onePlusMaintenanceMarginPercentageString).as_str().map(str::to_owned);
                     let mut leftSide: Option<String> = crate::precise::Precise::stringAdd(&inner, &entryPriceSignString).as_str().map(str::to_owned);
                     let mut quotePrecision: i64 = self.precision_from_string(self.safe_string2(&precision, Value::Str("quote".into()), Value::Str("price".into()), &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &contractsAbs), &Value::Str("1".into()), &Value::from(quotePrecision));
@@ -16818,13 +16818,13 @@ impl Binance {
                     let mut onePlusMaintenanceMarginPercentageString: Option<String> = None;
                     let mut entryPriceSignString: Value = entryPriceString.map(Value::from).unwrap_or(Value::Null);
                     if (side.as_deref() == Some("short")) {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                     }  else {
-                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+                        onePlusMaintenanceMarginPercentageString = crate::precise::Precise::stringSub(&Value::Str("-1".into()), &maintenanceMarginPercentageString).as_str().map(str::to_owned);
                         entryPriceSignString = crate::precise::Precise::stringMul(&Value::Str("-1".into()), &entryPriceSignString);
                     }
                     let mut leftSide: Option<String> = crate::precise::Precise::stringMul(&contractsAbs, &contractSizeString).as_str().map(str::to_owned);
-                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &liquidationPriceString)).as_str().map(str::to_owned);
+                    let mut rightSide: Option<String> = crate::precise::Precise::stringSub(&crate::precise::Precise::stringDiv(&Value::Str("1".into()), &entryPriceSignString), &crate::precise::Precise::stringDiv(&onePlusMaintenanceMarginPercentageString, &liquidationPriceString)).as_str().map(str::to_owned);
                     let mut basePrecision: i64 = self.precision_from_string(self.safe_string_k(&precision, "base", &[]));
                     collateralString = crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringMul(&leftSide, &rightSide), &Value::Str("1".into()), &Value::from(basePrecision));
                 }
@@ -16840,7 +16840,7 @@ impl Binance {
             timestamp = None;
         }
         let mut maintenanceMarginPercentage: Option<f64> = self.parse_number(maintenanceMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
-        let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &notionalStringAbs).as_str().map(str::to_owned);
+        let mut maintenanceMarginString: Option<String> = crate::precise::Precise::stringMul(&maintenanceMarginPercentageString, &notionalStringAbs).as_str().map(str::to_owned);
         if (maintenanceMarginString.is_none()) {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
             maintenanceMarginString = self.safe_string_k_opt(position.clone(), "maintMargin", &[]);
@@ -16854,20 +16854,20 @@ impl Binance {
             let mut rational: bool = self.is_round_number(Value::from((if let Some(__r) = leverage { if __r != 0 { Some(1000 % __r) } else { None } } else { None }))).as_bool() == Some(true);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&Value::Str("1".into()), &leverageString, &Value::Int(8)).as_str().map(str::to_owned);
             if !rational {
-                initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString.map(Value::from).unwrap_or(Value::Null), &Value::Str("1e-8".into())).as_str().map(str::to_owned);
+                initialMarginPercentageString = crate::precise::Precise::stringAdd(&initialMarginPercentageString, &Value::Str("1e-8".into())).as_str().map(str::to_owned);
             }
-            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&notionalStringAbs, &initialMarginPercentageString.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&notionalStringAbs, &initialMarginPercentageString).as_str().map(str::to_owned);
             initialMarginString = crate::precise::Precise::stringDivPrec(&unrounded, &Value::Str("1".into()), &Value::Int(8)).as_str().map(str::to_owned);
         }  else {
             initialMarginString = self.safe_string_k_opt(position.clone(), "initialMargin", &[]);
-            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Str("1".into())).as_str().map(str::to_owned);
+            let mut unrounded: Option<String> = crate::precise::Precise::stringMul(&initialMarginString, &Value::Str("1".into())).as_str().map(str::to_owned);
             initialMarginPercentageString = crate::precise::Precise::stringDivPrec(&unrounded, &notionalStringAbs, &Value::Int(8)).as_str().map(str::to_owned);
         }
         let mut marginRatio: Option<f64> = None;
         let mut percentage: Option<f64> = None;
         if !(crate::precise::Precise::stringEquals(&collateralString, &Value::Str("0".into())).as_bool() == Some(true)) {
             marginRatio = self.parse_number(crate::precise::Precise::stringDivPrec(&crate::precise::Precise::stringAdd(&crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateralString), &Value::Str("5e-5".into())), &Value::Str("1".into()), &Value::Int(4)), &[]).as_f64();
-            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString.clone().map(Value::from).unwrap_or(Value::Null), &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
+            percentage = self.parse_number(crate::precise::Precise::stringMul(&crate::precise::Precise::stringDivPrec(&unrealizedPnlString, &initialMarginString, &Value::Int(4)), &Value::Str("100".into())), &[]).as_f64();
         }
         let mut positionSide: Option<String> = self.safe_string_k_opt(position.clone(), "positionSide", &[]);
         let mut hedged: bool = positionSide.as_deref() != Some("BOTH");
@@ -17391,33 +17391,32 @@ impl Binance {
         defaultType = self.safe_string_k_opt(self.options.clone(), "defaultType", &[defaultType.map(Value::from).unwrap_or(Value::Null)]);
         let mut type_var: Option<String> = self.safe_string_k_opt(params.clone(), "type", &[defaultType.map(Value::from).unwrap_or(Value::Null)]);
         let mut subType: Option<String> = None;
-        let mut paramsSubType: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsRisk".into()), None, &[params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsSubType: crate::value::Dict = Default::default();
+        { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchPositionsRisk".into()), None, &[params, Value::Str("linear".into())]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isPortfolioMargin: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params2(paramsSubType.clone(), Value::Str("fetchPositionsRisk".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool);
-            paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        paramsSubType = self.omit(paramsSubType, Value::Str("type".into()), &[]);
+        { let __destr_tmp = self.handle_option_bool_and_params2(&paramsSubType, Value::Str("fetchPositionsRisk".into()), Value::Str("papi".into()), Value::Str("portfolioMargin".into()), &[Value::Bool(false)]).into_list(); isPortfolioMargin = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        paramsSubType = self.omit(&paramsSubType, Value::Str("type".into()), &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if self.is_linear(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_162 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+                let __ws_arg_162 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
                 response = self.papi_get_um_position_risk(&[__ws_arg_162]).await.into_opt_list();
             }  else {
                 let mut useV2: Option<bool> = None;
-                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsSubType.clone(), Value::Str("fetchPositionsRisk".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); useV2 = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-                paramsSubType = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+                { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchPositionsRisk".into()), Value::Str("useV2".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); useV2 = __destr_tmp.get(0).and_then(Value::as_bool); paramsSubType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+                paramsSubType = self.extend(Value::Map(request.clone()), &[&paramsSubType]).into_dict();
                 if !(useV2 == Some(true)) {
-                    response = self.fapi_private_v3_get_position_risk(&[paramsSubType.clone()]).await.into_opt_list();
+                    response = self.fapi_private_v3_get_position_risk(&[Value::from(&paramsSubType)]).await.into_opt_list();
                 }  else {
-                    response = self.fapi_private_v2_get_position_risk(&[paramsSubType.clone()]).await.into_opt_list();
+                    response = self.fapi_private_v2_get_position_risk(&[Value::from(&paramsSubType)]).await.into_opt_list();
                 }
             }
         }  else if self.is_inverse(type_var.as_deref().unwrap_or_default(), subType.as_deref()).as_bool() == Some(true) {
             if (isPortfolioMargin == Some(true)) {
-                let __ws_arg_163 = self.extend(Value::Map(request.clone()), &[paramsSubType.clone()]);
+                let __ws_arg_163 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
                 response = self.papi_get_cm_position_risk(&[__ws_arg_163]).await.into_opt_list();
             }  else {
-                let __ws_arg_164 = self.extend(Value::Map(request), &[paramsSubType]);
+                let __ws_arg_164 = self.extend(Value::Map(request), &[&paramsSubType]);
                 response = self.dapi_private_get_position_risk(&[__ws_arg_164]).await.into_opt_list();
             }
         }  else {

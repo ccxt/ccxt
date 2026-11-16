@@ -1856,25 +1856,25 @@ impl Polymarket {
             let mut parsedOutcomes: Value = self.parse_json_value(self.safe_string_k(&market, "outcomes", &[Value::Str("[]".into())]));
             let mut parsedTokenIds: Value = self.parse_json_value(self.safe_string_k(&market, "clobTokenIds", &[Value::Str("[]".into())]));
             let mut parsedPrices: Value = self.parse_json_value(self.safe_string_k(&market, "outcomePrices", &[Value::Str("[]".into())]));
-            let mut parsedOutcomesLength: Value = Value::Null;
+            let mut parsedOutcomesLength: Option<i64> = None;
             if (parsedOutcomes != Value::Null) {
-                parsedOutcomesLength = Value::Int(parsedOutcomes.len() as i64);
+                parsedOutcomesLength = Some(parsedOutcomes.len() as i64);
             }
-            let mut parsedTokenIdsLength: Value = Value::Null;
+            let mut parsedTokenIdsLength: Option<i64> = None;
             if (parsedTokenIds != Value::Null) {
-                parsedTokenIdsLength = Value::Int(parsedTokenIds.len() as i64);
+                parsedTokenIdsLength = Some(parsedTokenIds.len() as i64);
             }
-            let mut parsedPricesLength: Value = Value::Null;
+            let mut parsedPricesLength: Option<i64> = None;
             if (parsedPrices != Value::Null) {
-                parsedPricesLength = Value::Int(parsedPrices.len() as i64);
+                parsedPricesLength = Some(parsedPrices.len() as i64);
             }
-            if (parsedOutcomes != Value::Null) && (parsedOutcomesLength != Value::Null) {
+            if (parsedOutcomes != Value::Null) && (parsedOutcomesLength.is_some()) {
                 outcomeLabels = parsedOutcomes;
             }
-            if (parsedTokenIds != Value::Null) && (parsedTokenIdsLength != Value::Null) {
+            if (parsedTokenIds != Value::Null) && (parsedTokenIdsLength.is_some()) {
                 clobTokenIds = parsedTokenIds;
             }
-            if (parsedPrices != Value::Null) && (parsedPricesLength != Value::Null) {
+            if (parsedPrices != Value::Null) && (parsedPricesLength.is_some()) {
                 outcomePrices = parsedPrices;
             }
             let mut outcomeLabelsLength: i64 = outcomeLabels.len() as i64;
@@ -3185,7 +3185,7 @@ impl Polymarket {
     m
 }));
         let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![outcome])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(positions), Value::Int(0), &[]);
+        return (match positions.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }
@@ -3735,23 +3735,23 @@ impl Polymarket {
         let mut amountDecimals: Option<i64> = self.safe_integer_k(&cfg, "amount", &[]).as_i64();
         let mut priceStr: Option<String> = self.number_to_string(price);
         let mut rawPrice: Option<String> = self.decimal_to_precision(priceStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::ROUND), Value::from(priceDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
-        let mut makerRaw: Value = Value::Null;
-        let mut takerRaw: Value = Value::Null;
+        let mut makerRaw: Option<String> = None;
+        let mut takerRaw: Option<String> = None;
         if (cost != Value::Null) && (side.as_str() == Some("BUY")) {
             // cost-sized market buy: maker pays `cost` USDC, taker receives cost/price shares.
             // truncate the shares so the implied price (cost/shares) stays >= the limit, otherwise
             // a marketable FOK would round just under the ask and fail to cross
             let mut costStr: Option<String> = self.number_to_string(cost);
-            makerRaw = self.decimal_to_precision(costStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-            takerRaw = self.decimal_to_precision(crate::precise::Precise::stringDiv(&makerRaw, &rawPrice), Value::Int(crate::runtime::TRUNCATE), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+            makerRaw = self.decimal_to_precision(costStr.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+            takerRaw = self.decimal_to_precision(crate::precise::Precise::stringDiv(&makerRaw, &rawPrice), Value::Int(crate::runtime::TRUNCATE), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         }  else if (side.as_str() == Some("BUY")) {
             let mut sizeStr: Value = Value::from(self.number_to_string(size.clone()));
-            takerRaw = self.decimal_to_precision(sizeStr, Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-            makerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&takerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+            takerRaw = self.decimal_to_precision(sizeStr, Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+            makerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&takerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         }  else {
             let mut sizeStr: Value = Value::from(self.number_to_string(size));
-            makerRaw = self.decimal_to_precision(sizeStr, Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
-            takerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]);
+            makerRaw = self.decimal_to_precision(sizeStr, Value::Int(crate::runtime::TRUNCATE), Value::from(sizeDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
+            takerRaw = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &rawPrice), Value::Int(crate::runtime::ROUND), Value::from(amountDecimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         }
         // scale to collateral units (USDC has 6 decimals; shares are also scaled by 1e6)
         let mut makerAmount: Option<String> = self.decimal_to_precision(crate::precise::Precise::stringMul(&makerRaw, &Value::Str("1000000".into())), Value::Int(crate::runtime::TRUNCATE), Value::Int(0), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
@@ -4352,9 +4352,9 @@ impl Polymarket {
         let mut updatedAt: Option<String> = self.safe_string2_opt(rawEvent.clone(), Value::Str("updatedAt".into()), Value::Str("last_updated_date_iso".into()), &[]);
         let mut rawActive: Option<bool> = self.safe_bool_k_opt(rawEvent.clone(), "active", &[]);
         let mut closed: bool = self.safe_bool_k_opt(rawEvent.clone(), "closed", &[Value::Bool(false)]).unwrap_or(false);
-        let mut active: Value = Value::Null;
+        let mut active: Option<bool> = None;
         if (rawActive.is_some()) {
-            active = Value::Bool(rawActive == Some(true) && (!(closed)));
+            active = Some(rawActive == Some(true) && (!(closed)));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -4392,7 +4392,7 @@ impl Polymarket {
         m.insert("title".to_string(), __ws_arg_20);
         m.insert("tags".to_string(), Value::from(parsedTags));
         m.insert("markets".to_string(), Value::Arr(marketsList));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
         m.insert("url".to_string(), __ws_arg_21);
         m.insert("image".to_string(), __ws_arg_22);
         m.insert("created".to_string(), Value::from(__ws_arg_23));

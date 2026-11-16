@@ -1585,7 +1585,7 @@ impl Nado {
     m
 }));
         let mut orders: Vec<crate::types::Order> = (match self.cancel_orders_ws((Value::from(vec![id])).to_str_vec(), symbol.as_str(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return self.safe_dict(crate::types::IntoRaw::into_raw(orders), Value::Int(0), &[]);
+        return (match orders.get(0) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null });
         Value::Null
         }).await?))
     }

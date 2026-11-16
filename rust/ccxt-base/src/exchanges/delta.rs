@@ -1336,7 +1336,7 @@ impl crate::exchange::DerivedExchange for Delta {
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), requestPath);
         let mut query: crate::value::Dict = self.omit(params, self.extract_params(path), &[]).into_dict();
         let mut requestBody: Option<String> = None;
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if (apiName.as_deref() == Some("public")) {
             if !(self.is_empty(&query).as_bool() == Some(true)) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
@@ -1364,16 +1364,16 @@ impl crate::exchange::DerivedExchange for Delta {
             }
             let mut signature: String = self.hmac(self.encode(Value::from(auth)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
             if let Value::Dict(__d) = &mut privateHeaders { std::sync::Arc::make_mut(__d).insert("signature".into(), Value::from(signature)); }
-            requestHeaders = privateHeaders;
+            requestHeaders = privateHeaders.into_opt_dict();
         }
         let mut bodyResult: Option<String> = requestBody;
-        let mut headersResult: Value = requestHeaders;
+        let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResult);
+        m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });
 
