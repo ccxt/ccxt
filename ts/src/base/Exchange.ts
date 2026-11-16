@@ -3253,9 +3253,6 @@ export class BaseExchange {
          * @returns {object | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary (value)) {
             return value;
         }
@@ -3272,9 +3269,6 @@ export class BaseExchange {
          * @returns {object | undefined}
          */
         const value = this.safeValue (dictionaryOrList, key, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (this.isDictionary (value)) {
             return value;
         }
@@ -3311,9 +3305,6 @@ export class BaseExchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (Array.isArray (value)) {
             return value;
         }
@@ -3350,9 +3341,6 @@ export class BaseExchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValue (dictionaryOrList, key, defaultValue);
-        if (value === undefined) {
-            return defaultValue;
-        }
         if (Array.isArray (value)) {
             return value;
         }
@@ -8725,12 +8713,13 @@ export class BaseExchange {
                     errors = 0;
                     result = this.arrayConcat (result, response);
                     const firstElement = this.safeDict (response, 0);
-                    paginationTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
-                    if (paginationTimestamp === undefined) {
+                    const firstTimestamp = this.safeInteger2 (firstElement, 'timestamp', 0);
+                    paginationTimestamp = firstTimestamp;
+                    if (firstTimestamp === undefined) {
                         shouldBreak = true;
                         break;
                     }
-                    if ((since !== undefined) && (paginationTimestamp <= since)) {
+                    if ((since !== undefined) && (firstTimestamp <= since)) {
                         shouldBreak = true;
                         break;
                     }
@@ -9041,8 +9030,12 @@ export class BaseExchange {
         const uniqueResult: Dict = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            let id = this.safeString (entry, 'id');
-            if (id === undefined) {
+            const rawId = this.safeString (entry, 'id');
+            if (rawId !== undefined) {
+                if (!(rawId in uniqueResult)) {
+                    uniqueResult[rawId] = entry;
+                }
+            } else {
                 const price = this.safeString (entry, 'price', '');
                 const amount = this.safeString (entry, 'amount', '');
                 const timestamp = this.safeString (entry, 'timestamp');
@@ -9052,11 +9045,10 @@ export class BaseExchange {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
                 // optional parts are empty when absent, separators keep positions distinct
-                id = 't_' + timestamp.toString () + '_' + side + '_';
-                id = id + (price + '_' + amount);
-            }
-            if (id !== undefined && !(id in uniqueResult)) {
-                uniqueResult[id] = entry;
+                const id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
+                if (!(id in uniqueResult)) {
+                    uniqueResult[id] = entry;
+                }
             }
         }
         const values = Object.values (uniqueResult);
