@@ -6502,35 +6502,11 @@ class NewTranspiler {
     // cut a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any) out of
     // `body`, returning the remaining body and the removed method text (for relocation)
     stripCSharpMethod (body: string, name: string): { body: string, method: string } {
-        const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
-        const m = sigRe.exec (body);
-        if (!m) {
+        const found = findCSharpMethodSpan (body, name);
+        if (!found) {
             return { 'body': body, 'method': '' };
         }
-        let start = m.index; // the '\n' just before the signature line
-        const before = body.substring (0, start);
-        const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
-        if (docMatch) {
-            start = docMatch.index as number;
-        }
-        // brace-match the method body
-        let depth = 0;
-        let end = body.indexOf ('{', m.index + m[0].length - 1);
-        for (; end < body.length; end++) {
-            const c = body[end];
-            if (c === '{') {
-                depth++;
-            } else if (c === '}') {
-                depth--;
-                if (depth === 0) {
-                    end++;
-                    break;
-                }
-            }
-        }
-        const method = body.substring (start, end);
-        const newBody = body.substring (0, start) + body.substring (end);
-        return { 'body': newBody, 'method': method };
+        return { 'body': body.substring (0, found.start) + body.substring (found.end), 'method': found.method };
     }
 
     // retype the generated safeDict/safeList family in Exchange.BaseMethods.cs (see
