@@ -10694,7 +10694,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -19337,3 +19337,180 @@ Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
     'features': 'Dictionary<string, object>',
     'networkAliases': 'Dictionary<string, object>',
 });
+
+// ===== 84c2: conditional initialisers over cast-proven arms =====
+//
+// `const isSpot = c ? flag : market['spot']`, `const stored = isTrigger ? this.triggerOrders : this.orders`,
+// `const tradesArray = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol)`.
+// An arm whose C# static type is `object` but whose BOX one of the whole-initialiser families
+// already proves (the market-row bool keys, the ws cache member / bucket reads, the ws
+// `triggerOrders` field whose every write in the file stores an ArrayCache) holds exactly that box
+// or null. The other arm is null, a statically typed value
+// (conditionalArmType) or another such arm. The conditional is not target-typed: its natural
+// type stays `object`, so the declaration names the join behind ONE cast on the whole
+// conditional (castWhole) -- the same value, no use-site cast; csharpLocalIsSafeToRetype then
+// re-checks every later read and write. Decided from the TS AST only.
+function castProvenArmType (csharp, arm, context) {
+    const node = stripParens (arm);
+    if (node === undefined) {
+        return undefined;
+    }
+    if (node.kind === ts.SyntaxKind.NullKeyword || (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined')) {
+        return { type: 'null', proven: false };
+    }
+    // only the boxes whose reads print natively once named: a bool? row tests `== true` instead of
+    // `is true`, an ArrayCache receiver calls `.append` instead of BaseCache.appendTo. A string /
+    // dict / Delegate arm would only gain the declaration cast (its uses are object-taking helpers),
+    // so those keep `object` (84c2 per-local accounting).
+    if (marketRowBoolReadType (csharp, node) === 'bool') {
+        return { type: 'bool?', proven: true };
+    }
+    // a market-row / typed-dict string read: proven, but only native where the local is a key
+    // (castProvenArmConditionalLocal checks that use before accepting a string? join)
+    if (marketRowStringReadType (csharp, node) === 'string' || typedDictStringReadType (csharp, node) === 'string') {
+        return { type: 'string?', proven: true, keyOnly: true };
+    }
+    if (thisMemberAccess (node, 'triggerOrders') && !isPredictionSource (node)
+            && wsCacheFieldFileCensus (node.getSourceFile?.(), 'triggerOrders')) {
+        return { type: WS_CACHE_FIELD_CAST, proven: true };
+    }
+    const cached = wsCacheMemberReadType (csharp, node) ?? wsCacheBucketReadType (csharp, node);
+    if (cached !== undefined && cached.startsWith ('ccxt.pro.ArrayCache')) {
+        return { type: cached, proven: true };
+    }
+    const minMax = nativeIntegralMinMaxArmType (csharp, node);
+    if (minMax !== undefined) {
+        return { type: minMax, proven: true, natural: true };
+    }
+    const direct = conditionalArmType (csharp, arm, context);
+    return (direct === undefined) ? undefined : { type: direct, proven: false };
+}
+
+// `Math.min (limit, 1000)` that the printer itself prints natively (csharpNativeMathMinMax:
+// `Math.Min(limit.Value, 1000)` over integral operands): its C# type is `long` when an operand is
+// Int64 / Int64?, else `int`. Beside an `int` arm the conditional's natural type is that `long`, so
+// the `object` declaration already stores an Int64 box in BOTH arms (the int arm converts before
+// boxing) and naming `Int64` moves no value and needs no cast. The mathMin helper form is never
+// accepted (it hands back the original operand box).
+function nativeIntegralMinMaxArmType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.CallExpression || node.arguments?.length !== 2) {
+        return undefined;
+    }
+    const callee = node.expression;
+    const name = callee?.name?.text;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.Identifier
+            || callee.expression.text !== 'Math' || (name !== 'min' && name !== 'max')) {
+        return undefined;
+    }
+    if (typeof csharp.csharpNativeIntegralMinMax !== 'function' || typeof csharp.csharpIntegralOperand !== 'function') {
+        return undefined;
+    }
+    if (csharp.csharpNativeIntegralMinMax (node, (name === 'min') ? 'Min' : 'Max', 'a', 'b') === undefined) {
+        return undefined;
+    }
+    const kinds = node.arguments.map ((argument) => csharp.csharpIntegralOperand (argument));
+    if (kinds.some ((kind) => kind === undefined)) {
+        return undefined;
+    }
+    return kinds.some ((kind) => !kind.literal && kind.kind.replace ('?', '') === 'Int64') ? 'Int64' : undefined;
+}
+
+function localIsReadAsKey (csharp, scope, declaration) {
+    if (scope === undefined) {
+        return false;
+    }
+    const index = indexScope (csharp, scope);
+    for (const n of (index.identifiers.get (declaration.name.text) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) !== true) {
+            continue;
+        }
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.argumentExpression === n)
+                || (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.InKeyword)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+const CAST_PROVEN_NULLABLE_SPELLINGS = [ 'string?', 'bool?', 'Int64?', 'double?', 'int?' ];
+
+function castProvenArmConditionalLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    const conditional = stripParens (declaration.initializer);
+    if (conditional?.kind !== ts.SyntaxKind.ConditionalExpression) {
+        return undefined;
+    }
+    const sourceFile = declaration.getSourceFile?.()?.fileName ?? '';
+    if (/(^|[\\/])test[\\/]/.test (sourceFile)) {
+        return undefined; // the generated tests call the BaseTest getValue shim
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    const whenTrue = castProvenArmType (csharp, conditional.whenTrue, ctx);
+    const whenFalse = castProvenArmType (csharp, conditional.whenFalse, ctx);
+    if (whenTrue === undefined || whenFalse === undefined || !(whenTrue.proven || whenFalse.proven)) {
+        return undefined;
+    }
+    // an int arm beside a native Int64 Math.Min / Math.Max arm: the conditional's own type is long
+    // (see nativeIntegralMinMaxArmType), so the declaration names it with no cast
+    const natural = whenTrue.natural === true || whenFalse.natural === true;
+    if (natural) {
+        const other = (whenTrue.natural === true) ? whenFalse : whenTrue;
+        const type = (other.type === 'int' || other.type === 'Int64') ? 'Int64' : (other.type === 'null') ? 'Int64?' : undefined;
+        return (type !== undefined && csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx)) ? { type } : undefined;
+    }
+    // a string join is accepted only when some read of the local is a dictionary key (`obj[x]`,
+    // `x in obj`): the printer's `(string)x` key cast and `is string` key guard then go native;
+    // any other string? local would only gain the declaration cast
+    if ((whenTrue.keyOnly === true || whenFalse.keyOnly === true) && !localIsReadAsKey (csharp, scope, declaration)) {
+        return undefined;
+    }
+    let type = unifyArms (whenTrue.type, whenFalse.type, true);
+    // a reference type beside a null arm keeps its own spelling (the families above declare
+    // `Delegate` / `ccxt.pro.ArrayCache`, never the annotated form); only scalars and string take `?`
+    if (type !== undefined && type.endsWith ('?') && !CAST_PROVEN_NULLABLE_SPELLINGS.includes (type)) {
+        type = type.slice (0, -1);
+    }
+    if (type === undefined || type === 'object' || type === csharp.VAR_TOKEN) {
+        return undefined;
+    }
+    const cast = (type === 'string?') ? 'string' : type;
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast, castWhole: true } : undefined;
+}
+
+// ===== 84c2: the printer's null-guard string concat =====
+//
+// `const symbol = base + '/' + quote` over an `object` local the PRINTER proves holds a string or
+// null (csharpObjectStringLocal) prints `(bs == null ? null : bs + "/" + quote)`: the C# type of
+// that conditional is already `string` (null beside an object + string concatenation), so the
+// declaration names it with no cast (the printer's `((object)…)` box around the guard goes, as
+// for the `as any` copies: stripObjectBox). The same printer predicates decide (base local proof, an
+// effect-free right operand each), so the declaration and the printed initializer agree; every
+// later read and write is re-checked by csharpLocalIsSafeToRetype.
+function nullGuardStringConcatLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration)) {
+        return undefined;
+    }
+    if (typeof csharp.csharpPlusSpine !== 'function' || typeof csharp.csharpObjectStringLocal !== 'function'
+            || typeof csharp.csharpEvaluationHasEffects !== 'function') {
+        return undefined;
+    }
+    const initializer = stripParens (declaration.initializer);
+    if (initializer?.kind !== ts.SyntaxKind.BinaryExpression || initializer.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const spine = csharp.csharpPlusSpine (initializer);
+    const base = stripParens (spine?.base);
+    if (base?.kind !== ts.SyntaxKind.Identifier || !csharp.csharpObjectStringLocal (base)
+            || spine.rights.some ((right) => csharp.csharpEvaluationHasEffects (right))) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx) ? { type: 'string?', stripObjectBox: true } : undefined;
+}
