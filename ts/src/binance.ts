@@ -11020,8 +11020,8 @@ export default class binance extends Exchange {
             const linearFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = this.safeValue (this.safeValue (this.safeValue (this.fees, 'linear'), 'trading'), 'tiers');
-            const maker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
@@ -11055,8 +11055,8 @@ export default class binance extends Exchange {
             const inverseFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
             const feeTiers = this.safeValue (this.safeValue (this.safeValue (this.fees, 'inverse'), 'trading'), 'tiers');
-            const maker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
-            const taker = this.safeValue (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
+            const maker = this.safeNumber (this.safeValue (this.safeValue (feeTiers, 'maker'), feeTier), 1);
+            const taker = this.safeNumber (this.safeValue (this.safeValue (feeTiers, 'taker'), feeTier), 1);
             for (let i = 0; i < symbols.length; i++) {
                 const symbol = symbols[i];
                 const market = markets[symbol];
