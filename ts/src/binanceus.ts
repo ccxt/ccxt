@@ -29,20 +29,17 @@ export default class binanceus extends binance {
                 'www': 'https://www.binance.us',
                 'referral': 'https://www.binance.us/?ref=35005074',
                 'doc': 'https://github.com/binance-us/binance-official-api-docs',
-                'fees': 'https://www.binance.us/fees',
+                'fees': 'https://www.binance.us/en/fee/schedule',
             },
             'fees': {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.0002'),
-                    'maker': this.parseNumber ('0'),
+                    'taker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
+                    'maker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1.
                 },
             },
             'options': {
-                'spotTakerFees': {
-                    'BNBUSD': this.parseNumber ('0.0001'),
-                },
                 'fetchMarkets': {
                     'types': [ 'spot' ],
                 },

@@ -3883,11 +3883,6 @@ export default class binance extends Exchange {
             }
         }
         const feesTrading: Dict = this.safeDict (fees, 'trading', {});
-        let taker = feesTrading['taker'];
-        const spotTakerFees = this.safeDict (this.options, 'spotTakerFees');
-        if (spot && (spotTakerFees !== undefined)) {
-            taker = this.safeNumber (spotTakerFees, id, taker);
-        }
         const entry: Dict = {
             'id': id,
             'lowercaseId': lowercaseId,
@@ -3911,7 +3906,7 @@ export default class binance extends Exchange {
             'linear': linear,
             'inverse': inverse,
             'subType': subType,
-            'taker': taker,
+            'taker': feesTrading['taker'],
             'maker': feesTrading['maker'],
             'contractSize': contractSize,
             'expiry': expiry,
