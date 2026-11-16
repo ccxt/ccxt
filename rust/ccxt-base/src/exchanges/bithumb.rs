@@ -706,7 +706,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut endpoint: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path.clone(), params.clone()));
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
@@ -747,7 +747,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 if (method.as_str() != Some("GET")) && (method.as_str() != Some("DELETE")) {
                     requestHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                     if hasQuery {
-                        requestBody = json_stringify(&query);
+                        requestBody = json_stringify(&query).as_str().map(str::to_owned);
                         auth = self.urlencode_with_array_brackets(&query);
                     }
                 }  else if hasQuery {
@@ -769,9 +769,9 @@ impl crate::exchange::DerivedExchange for Bithumb {
                 let mut encodedBody: String = self.urlencode(__ws_arg_49, &[]);
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
                 let mut bodyParts: crate::value::List = Value::Array(encodedBody.split("%20").map(Value::from).collect()).into_list();
-                requestBody = Value::Str(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+").into());
+                requestBody = Some(bodyParts.iter().map(Value::to_string).collect::<Vec<String>>().join("+"));
                 let mut nonce: Option<String> = self.number_to_string(<Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-                let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, "\\").into()), requestBody).into()), "\\").into()), nonce.as_deref().unwrap_or("null")); // eslint-disable-line quotes
+                let mut authPayload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", endpoint, "\\").into()), requestBody.as_deref().unwrap_or("null")).into()), "\\").into()), nonce.as_deref().unwrap_or("null")); // eslint-disable-line quotes
                 let mut signature: String = self.hmac(self.encode(Value::from(authPayload)), self.encode(self.secret.clone()), Value::Str("sha512".into()), &[]);
                 let mut signature64: String = self.string_to_base64(Value::from(signature), &[]);
                 requestHeaders = ({
@@ -790,7 +790,7 @@ impl crate::exchange::DerivedExchange for Bithumb {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), requestBody);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Map(requestHeaders));
     m
 });

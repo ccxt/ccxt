@@ -9538,18 +9538,18 @@ impl Okx {
         }
         let mut rawNetwork: Option<String> = self.safe_string_k_opt(params.clone(), "network", &[]); // some networks are like "Dora Vota Mainnet"
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
-        let mut codeValue: Value = self.safe_currency_code(code, None).map(Value::from).unwrap_or(Value::Null);
-        let mut network: Option<String> = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), codeValue.clone()]);
-        let mut responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_str().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
+        let mut codeValue: Option<String> = self.safe_currency_code(code, None);
+        let mut network: Option<String> = self.network_id_to_code(&[rawNetwork.map(Value::from).unwrap_or(Value::Null), Value::from(codeValue.as_deref())]);
+        let mut responseRaw: Value = crate::types::IntoRaw::into_raw(self.fetch_deposit_addresses_by_network(codeValue.as_deref().unwrap_or_default(), Value::Dict(paramsOmitted)).await);
         let mut response: Value = responseRaw;
         if (network.is_some()) {
             let mut result: Option<crate::value::Dict> = self.safe_dict(response.clone(), network.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
             if (result.is_none()) {
-                panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositAddress() cannot find ").into()), network.as_deref().unwrap_or("null")).into()), " deposit address for ").into()), codeValue)));
+                panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDepositAddress() cannot find ").into()), network.as_deref().unwrap_or("null")).into()), " deposit address for ").into()), codeValue.as_deref().unwrap_or("null"))));
             }
             return result.map_or(Value::Null, Value::Dict);
         }
-        let mut codeNetwork: Option<String> = self.network_id_to_code(&[codeValue.clone(), codeValue.clone()]);
+        let mut codeNetwork: Option<String> = self.network_id_to_code(&[Value::from(codeValue.as_deref()), Value::from(codeValue.as_deref())]);
         if (codeNetwork.is_some()) && (matches!((&response, codeNetwork.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             return self.safe_dict(response.clone(), codeNetwork.map(Value::from).unwrap_or(Value::Null), &[]);
         }

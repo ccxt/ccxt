@@ -259,12 +259,12 @@ impl Backpack {
         let mut params: Value = params.into();
         let stockqueryVariable: Vec<Value> = self.handle_option_bool_and_params(params, methodName, Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut stock: Option<bool> = stockqueryVariable.get(0).and_then(Value::as_bool);
-        let mut query: Value = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut query: crate::value::Dict = stockqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         if (stock.is_none()) {
-            return query;
+            return Value::from(&query);
         }
         return self.extend(query, &[Value::Map({
     let mut m = indexmap::IndexMap::new();

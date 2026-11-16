@@ -1709,18 +1709,18 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut ids: Value = Value::Null;
+        let mut ids: Option<String> = None;
         if (symbols == Value::Null) {
             if (self.ids.clone() != Value::Null) {
-                ids = Value::Str(self.ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into());
+                ids = Some(self.ids.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default());
             }
         }  else {
             let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
-            ids = Value::Str(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
+            ids = Some(marketIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(","));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("markets".to_string(), ids);
+                m.insert("markets".to_string(), ids.map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (limit != Value::Null) {
@@ -2110,7 +2110,7 @@ impl Upbit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut fetchMarketResponse: Value = crate::types::IntoRaw::into_raw(self.fetch_markets(params).await);
+        let mut fetchMarketResponse: Vec<crate::types::Market> = (match self.fetch_markets(params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2119,7 +2119,7 @@ impl Upbit {
                         let mut i: i64 = 0;
             let mut __for_first_1143: bool = true;
             while { if !__for_first_1143 { i += 1; } __for_first_1143 = false; i < (fetchMarketResponse.len() as i64) } {
-            let mut item: Option<crate::value::Dict> = self.safe_dict(fetchMarketResponse.clone(), Value::Int(i), &[]).into_opt_dict();
+            let mut item: Option<crate::value::Dict> = (match fetchMarketResponse.get(i as usize) { Some(__row) if matches!(__row.raw, Value::Dict(_)) => crate::Value::from(__row), _ => Value::Null }).into_opt_dict();
             let mut element: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m

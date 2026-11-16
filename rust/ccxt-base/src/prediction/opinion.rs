@@ -2671,16 +2671,16 @@ impl Opinion {
         if (self.walletAddress.clone() == Value::Null) || (self.privateKey.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " private endpoints require an apiKey, or a walletAddress and privateKey to self-issue one")));
         }
-        let mut creds: Value = Value::Null;
+        let mut creds: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            creds = self.fetch_api_key(&[]).await;
+            creds = self.fetch_api_key(&[]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
             // no key exists for this wallet yet (11010) - self-issue one; any other
             // failure (unregistered wallet, disabled issuance) surfaces from the create call
-            creds = self.create_api_key(&[]).await;
+            creds = self.create_api_key(&[]).await.into_opt_dict();
         }
-        return self.safe_string_k(creds, "apiKey", &[]);
+        return self.safe_string_k(&creds, "apiKey", &[]);
 
     Value::Null
 }

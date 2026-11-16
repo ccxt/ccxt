@@ -3577,28 +3577,28 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted3, &["reduceOnly", "postOnly", "timeInForce"], &[]).into_dict();
         // Trigger & SL & TP
         let triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable: Vec<Value> = self.handle_trigger_prices_and_params(symbol, &paramsOmitted2, &[]).as_array().cloned().unwrap_or_default();
-        let mut triggerPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut stopLossPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut takeProfitPrice: Value = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).cloned().unwrap_or(Value::Null);
+        let mut triggerPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(0).and_then(Value::as_str).map(str::to_owned);
+        let mut stopLossPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(1).and_then(Value::as_str).map(str::to_owned);
+        let mut takeProfitPrice: Option<String> = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(2).and_then(Value::as_str).map(str::to_owned);
         let mut paramsTriggerPrices: crate::value::Dict = triggerPricestopLossPricetakeProfitPriceparamsTriggerPricesVariable.get(3).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isTriggerOrder: bool = (triggerPrice != Value::Null) || (stopLossPrice != Value::Null) || (takeProfitPrice != Value::Null);
+        let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
         if isTriggerOrder {
             // trigger price
-            let mut selectedPrice: Value = Value::Null;
-            if (triggerPrice != Value::Null) {
+            let mut selectedPrice: Option<String> = None;
+            if (triggerPrice.is_some()) {
                 selectedPrice = triggerPrice;
-            }  else if (stopLossPrice != Value::Null) {
+            }  else if (stopLossPrice.is_some()) {
                 selectedPrice = stopLossPrice.clone();
-            }  else if (takeProfitPrice != Value::Null) {
+            }  else if (takeProfitPrice.is_some()) {
                 selectedPrice = takeProfitPrice.clone();
             }
             // trigger type
-            let mut selectedType: Value = Value::Null;
+            let mut selectedType: Option<String> = None;
             let mut isBuy: bool = side.as_str() == Some("buy");
-            if (stopLossPrice != Value::Null) {
-                selectedType = (if isBuy { Value::Str("STOP_LOSS".into()) } else { Value::Str("TAKE_PROFIT".into()) });
-            }  else if (takeProfitPrice != Value::Null) {
-                selectedType = (if isBuy { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("STOP_LOSS".into()) });
+            if (stopLossPrice.is_some()) {
+                selectedType = (if isBuy { Some("STOP_LOSS".to_string()) } else { Some("TAKE_PROFIT".to_string()) });
+            }  else if (takeProfitPrice.is_some()) {
+                selectedType = (if isBuy { Some("TAKE_PROFIT".to_string()) } else { Some("STOP_LOSS".to_string()) });
             }  else {
                 let mut triggerDirection: Option<String> = self.safe_string_k_opt(&paramsTriggerPrices, "triggerDirection", &[]);
                 if (triggerDirection.is_none()) {
@@ -3606,21 +3606,21 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 }
                 if (triggerDirection.is_some()) {
                     if (triggerDirection.as_deref() == Some("ascending")) {
-                        selectedType = (if isBuy { Value::Str("STOP_LOSS".into()) } else { Value::Str("TAKE_PROFIT".into()) });
+                        selectedType = (if isBuy { Some("STOP_LOSS".to_string()) } else { Some("TAKE_PROFIT".to_string()) });
                     }  else if (triggerDirection.as_deref() == Some("descending")) {
-                        selectedType = (if isBuy { Value::Str("TAKE_PROFIT".into()) } else { Value::Str("STOP_LOSS".into()) });
+                        selectedType = (if isBuy { Some("TAKE_PROFIT".to_string()) } else { Some("STOP_LOSS".to_string()) });
                     }
                 }
             }
             // trigger by
-            let mut triggerPriceType: Value = self.safe_string_upper_k(&paramsTriggerPrices, "triggerPriceType", &[Value::Str("LAST".into())]);
+            let mut triggerPriceType: String = self.safe_string_upper_k(&paramsTriggerPrices, "triggerPriceType", &[Value::Str("LAST".into())]).as_str().unwrap_or("LAST").to_string();
             if let Value::Dict(__d) = orderRequest.entry("metadata".into()).or_default() { std::sync::Arc::make_mut(__d).insert("trigger".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trigger_type".to_string(), selectedType);
+        m.insert("trigger_type".to_string(), selectedType.map(Value::from).unwrap_or(Value::Null));
         m.insert("tpsl".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("trigger_by".to_string(), triggerPriceType);
-        m.insert("trigger_price".to_string(), selectedPrice);
+        m.insert("trigger_by".to_string(), Value::from(triggerPriceType));
+        m.insert("trigger_price".to_string(), selectedPrice.map(Value::from).unwrap_or(Value::Null));
         m.insert("close_position".to_string(), self.safe_bool_k(&paramsTriggerPrices, "closePosition", &[Value::Bool(false)]));
     m
 }));

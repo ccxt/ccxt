@@ -1102,12 +1102,12 @@ impl crate::exchange::DerivedExchange for Gate {
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = self.safe_string_k_opt(item.clone(), "type", &[]);
         let mut rawTimestamp: Value = self.safe_string_k(item.clone(), "time", &[]);
-        let mut timestamp: Value = Value::Null;
+        let mut timestamp: Option<i64> = None;
         if ((rawTimestamp.len() as i64) as f64) > ((10i64) as f64) {
-            timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+            timestamp = (match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
         }  else {
             timestamp = (match (&((match &rawTimestamp { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null })), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y),
-                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }).as_i64();
         }
         let mut balanceString: Option<String> = self.safe_string_k_opt(item.clone(), "balance", &[]);
         let mut changeString: Option<String> = self.safe_string_k_opt(item.clone(), "change", &[]);
@@ -1123,8 +1123,8 @@ impl crate::exchange::DerivedExchange for Gate {
         m.insert("type".to_string(), self.parse_ledger_entry_type(type_var.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), Some(&currencyResolved)).map(Value::from).unwrap_or(Value::Null));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));
-        m.insert("timestamp".to_string(), timestamp.clone());
-        m.insert("datetime".to_string(), self.iso8601(timestamp));
+        m.insert("timestamp".to_string(), Value::from(timestamp));
+        m.insert("datetime".to_string(), self.iso8601(Value::from(timestamp)));
         m.insert("before".to_string(), Value::from(before));
         m.insert("after".to_string(), self.safe_number_k(item, "balance", &[]));
         m.insert("status".to_string(), Value::Null);

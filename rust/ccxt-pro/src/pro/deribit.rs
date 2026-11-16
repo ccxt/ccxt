@@ -1374,19 +1374,19 @@ impl Deribit {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMultipleWrapper() symbolsArray is required")));
             }
             let mut market: Option<crate::types::Market> = None;
-            let mut currentDescriptor: Value = Value::Null;
+            let mut currentDescriptor: Option<String> = None;
             if isOHLCV {
                 let mut currentPair: crate::value::List = self.safe_list(symbolsArray.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                 market = Some(match self.market((self.safe_string(&currentPair, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 let mut unifiedTf: Option<String> = self.safe_string_opt(&currentPair, Value::Int(1), &[]);
-                currentDescriptor = self.safe_string(self.timeframes.clone(), unifiedTf.clone().map(Value::from).unwrap_or(Value::Null), &[unifiedTf.clone().map(Value::from).unwrap_or(Value::Null)]);
+                currentDescriptor = self.safe_string_opt(self.timeframes.clone(), unifiedTf.clone().map(Value::from).unwrap_or(Value::Null), &[unifiedTf.clone().map(Value::from).unwrap_or(Value::Null)]);
             }  else {
                 market = Some(match self.market((self.safe_string(symbolsArray.clone(), Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                currentDescriptor = channelDescriptor.clone();
+                currentDescriptor = channelDescriptor.as_str().map(str::to_owned);
             }
-            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, ".").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), ".").into()), currentDescriptor);
+            let mut message: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, ".").into()), self.safe_string_k(&market, "id", &[Value::Str("".into())])).into()), ".").into()), currentDescriptor.as_deref().unwrap_or("null"));
             rawSubscriptions.push(Value::from(message));
-            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, "|").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), "|").into()), currentDescriptor).into()));
+            messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", channelName, "|").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())])).into()), "|").into()), currentDescriptor.as_deref().unwrap_or("null")).into()));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({

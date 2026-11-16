@@ -19761,7 +19761,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }));
         // this method should not be called directly, use loadTradingLimits () instead
-        let mut markets: Value = crate::types::IntoRaw::into_raw(self.fetch_markets(Value::Null).await);
+        let mut markets: Vec<crate::types::Market> = (match self.fetch_markets(Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut tradingLimits: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -19770,7 +19770,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_314: bool = true;
             while { if !__for_first_314 { i += 1; } __for_first_314 = false; i < (markets.len() as i64) } {
-            let mut market: Value = self.safe_value(markets.clone(), Value::Int(i), &[]);
+            let mut market: Value = (match markets.get(i as usize) { Some(__row) if !__row.raw.is_null() && __row.raw.as_str() != Some("") => crate::Value::from(__row), _ => Value::Null });
             let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             if (market == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchTradingLimits() could not resolve market")));

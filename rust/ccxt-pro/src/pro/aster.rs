@@ -324,8 +324,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: Value = self.safe_symbol(symbol, None, &[]);
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tickers: crate::types::Tickers = (match self.watch_tickers((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }
@@ -526,8 +526,8 @@ impl Aster {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolValue: Value = self.safe_symbol(symbol, None, &[]);
-        let mut tickers: Value = crate::types::IntoRaw::into_raw(self.watch_mark_prices((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await);
-        return (if let (Some(__m), Some(__k)) = (tickers.as_map(), symbolValue.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+        let mut tickers: crate::types::Tickers = (match self.watch_mark_prices((Value::from(vec![symbolValue.clone()])).to_opt_str_vec(), params).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return crate::value::KeyRead::read(&&tickers, &symbolValue);
         Value::Null
         }).await?))
     }

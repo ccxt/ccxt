@@ -5632,8 +5632,8 @@ impl Derive {
         // excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
         let mut amountString: Option<String> = self.decimal_to_precision(Value::from(self.number_to_string(amount)), Value::Int(crate::runtime::TRUNCATE), Value::from(decimals), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
         // the withdrawal amount is the protocol's only non-e18 action value, it is signed at the native decimals of the underlying erc20
-        let mut one: Value = Value::Str("1".into());
-        let mut scale: Value = pad_end(&one, &Value::from((if let Some(__l) = decimals { Some(__l + 1) } else { None })), &Value::Str("0".into()));
+        let mut one: String = "1".to_string();
+        let mut scale: Value = pad_end(&Value::from(one), &Value::from((if let Some(__l) = decimals { Some(__l + 1) } else { None })), &Value::Str("0".into()));
         let mut amountScaled: Option<String> = crate::precise::Precise::stringMul(&amountString, &scale).as_str().map(str::to_owned);
         let mut nonce: Option<String> = self.nonce_string();
         let __rd_signatureExpiry: i64 = ((self.seconds()) + 7776000);
@@ -5871,7 +5871,7 @@ impl Derive {
         let mut params: Value = params.into();
         let derivesubAccountIdparamsSubaccountIdVariable: Vec<Value> = self.handle_option_and_params(params, methodName.clone(), Value::Str("subaccount_id".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut derivesubAccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(0).cloned().unwrap_or(Value::Null);
-        let mut paramsSubaccountId: Value = derivesubAccountIdparamsSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsSubaccountId: crate::value::Dict = derivesubAccountIdparamsSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (derivesubAccountId != Value::Null) && (derivesubAccountId.as_str() != Some("")) {
             // the venue rejects a string subaccount_id ("expected i64"), so coerce early
             let mut subaccountIdInt: Option<i64> = self.parse_to_int(derivesubAccountId);
@@ -5879,7 +5879,7 @@ impl Derive {
                 // remember the first explicitly used subaccount as the instance default, but never overwrite a configured default: a one-off param must not silently re-route later calls
                 if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("subaccount_id".into(), Value::from(subaccountIdInt)); }
             }
-            return Value::from(vec![Value::from(subaccountIdInt), self.extend(paramsSubaccountId.clone(), &[])]);
+            return Value::from(vec![Value::from(subaccountIdInt), self.extend(&paramsSubaccountId, &[])]);
         }
         let mut optionsWallet: Option<i64> = self.safe_integer_k(self.options.clone(), "subaccount_id", &[]).as_i64();
         if (optionsWallet.is_some()) {
@@ -5895,14 +5895,14 @@ impl Derive {
         let mut params: Value = params.into();
         let deriveWalletAddressparamsDeriveWalletAddressVariable: Vec<Value> = self.handle_option_string_and_params(params, methodName.clone(), Value::Str("deriveWalletAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut deriveWalletAddress: Option<String> = deriveWalletAddressparamsDeriveWalletAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut paramsDeriveWalletAddress: Value = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null);
+        let mut paramsDeriveWalletAddress: crate::value::Dict = deriveWalletAddressparamsDeriveWalletAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (deriveWalletAddress.is_some()) && (deriveWalletAddress.as_deref() != Some("")) {
             if let Value::Dict(__d) = &mut self.options.clone() { std::sync::Arc::make_mut(__d).insert("deriveWalletAddress".into(), deriveWalletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
-            return Value::from(vec![deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.extend(paramsDeriveWalletAddress.clone(), &[])]);
+            return Value::from(vec![deriveWalletAddress.map(Value::from).unwrap_or(Value::Null), self.extend(&paramsDeriveWalletAddress, &[])]);
         }
         let mut optionsWallet: Option<String> = self.safe_string_k_opt(self.options.clone(), "deriveWalletAddress", &[]);
         if (optionsWallet.is_some()) && (optionsWallet.as_deref() != Some("")) {
-            return Value::from(vec![optionsWallet.map(Value::from).unwrap_or(Value::Null), self.extend(paramsDeriveWalletAddress.clone(), &[])]);
+            return Value::from(vec![optionsWallet.map(Value::from).unwrap_or(Value::Null), self.extend(&paramsDeriveWalletAddress, &[])]);
         }
         // v3 abolished the separate derive wallet: the owner wallet is the user's own EOA, so the walletAddress credential is the default; set deriveWalletAddress explicitly only when signing with a session key registered to another owner wallet
         if (self.walletAddress.clone() != Value::Null) && (self.walletAddress.as_str() != Some("")) {

@@ -6287,16 +6287,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         // transfer between main account and subaccount
         let mut isDeposit: bool = false;
-        let mut subAccountAddress: Value = Value::Null;
+        let mut subAccountAddress: Option<String> = None;
         if (fromAccount.as_str() == Some("main")) {
-            subAccountAddress = toAccount.clone();
+            subAccountAddress = toAccount.as_str().map(str::to_owned);
             isDeposit = true;
         }  else if (toAccount.as_str() == Some("main")) {
-            subAccountAddress = fromAccount;
+            subAccountAddress = fromAccount.as_str().map(str::to_owned);
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " transfer() only support main <> subaccount transfer")));
         }
-        self.check_address(&[subAccountAddress.clone()]);
+        self.check_address(&[subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut transferType: Option<String> = self.safe_string_k_opt(params.clone(), "type", &[]);
         // subAccountTransfer and subAccountSpotTransfer are rejected with "Action disabled when
         // unified account is active", a unified account has to move balances with sendAsset instead
@@ -6331,12 +6331,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut sendAssetPayload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
-                    m.insert("destination".to_string(), (if isDeposit { subAccountAddress.clone() } else { masterAddress.map(Value::from).unwrap_or(Value::Null) }));
+                    m.insert("destination".to_string(), (if isDeposit { subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null) } else { masterAddress.map(Value::from).unwrap_or(Value::Null) }));
                     m.insert("sourceDex".to_string(), Value::from(sourceDex.as_deref()));
                     m.insert("destinationDex".to_string(), Value::from(destinationDex.as_deref()));
                     m.insert("token".to_string(), Value::from(sendAssetToken.clone()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount.clone())));
-                    m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone() }));
+                    m.insert("fromSubAccount".to_string(), (if isDeposit { Value::Str("".into()) } else { subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null) }));
                     m.insert("nonce".to_string(), Value::from(nonce));
                 m
             });
@@ -6374,7 +6374,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut action: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountTransfer".into()));
-                    m.insert("subAccountUser".to_string(), subAccountAddress.clone());
+                    m.insert("subAccountUser".to_string(), subAccountAddress.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("usd".to_string(), Value::from(usd));
                 m
@@ -6403,7 +6403,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut action: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("type".to_string(), Value::Str("subAccountSpotTransfer".into()));
-                    m.insert("subAccountUser".to_string(), subAccountAddress);
+                    m.insert("subAccountUser".to_string(), subAccountAddress.map(Value::from).unwrap_or(Value::Null));
                     m.insert("isDeposit".to_string(), Value::Bool(isDeposit));
                     m.insert("token".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.safe_string_k(&currencyInfo, "name", &[Value::Str("".into())]), Value::Str(":".into())).into()), self.safe_string_k(&currencyInfo, "tokenId", &[Value::Str("".into())])).into()));
                     m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));

@@ -4609,17 +4609,17 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut creds: Value = Value::Null;
+        let mut creds: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-            creds = self.derive_api_key(&[params.clone()]).await;
+            creds = self.derive_api_key(&[params.clone()]).await.into_opt_dict();
          #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
-            creds = self.create_api_key(&[params]).await;
+            creds = self.create_api_key(&[params]).await.into_opt_dict();
         }
-        if (creds == Value::Null) {
+        if (creds.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrDeriveApiKey() returned no credentials")));
         }
-        return creds;
+        return creds.map_or(Value::Null, Value::Dict);
 
     Value::Null
 }

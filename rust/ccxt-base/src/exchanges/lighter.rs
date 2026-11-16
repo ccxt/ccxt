@@ -1652,22 +1652,22 @@ impl Lighter {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires accountIndex or account_index")));
         }
         let mut strAccountIndex: Option<String> = self.number_to_string(accountIndex.clone());
-        let mut strApiKeyIndex: Value = Value::from(self.number_to_string(Value::from(apiKeyIndex)));
-        self.init_auth_object(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_str().unwrap_or_default());
+        let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
+        self.init_auth_object(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default());
         let mut signer: Value = self.safe_dict(self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), strAccountIndex.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), strApiKeyIndex.clone(), &[Value::Map({
+})]), Value::from(strApiKeyIndex.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("signer".into()), &[]);
         if (signer != Value::Null) {
             return Value::Bool(true);
         }
-        signer = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_str().unwrap_or_default())).as_str(), strApiKeyIndex.as_str().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[]).await;
+        signer = self.load_account(self.safe_integer_k(self.options.clone(), "chainId", &[]), (self.get_lighter_private_key(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default())).as_str(), strApiKeyIndex.as_deref().unwrap_or_default(), strAccountIndex.as_deref().unwrap_or_default(), &[]).await;
         self.handle_builder_fee_approval(accountIndex, Value::from(apiKeyIndex)).await;
         let mut loaded: Value = (Value::Bool(signer != Value::Null));
         return loaded;

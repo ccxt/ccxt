@@ -860,12 +860,12 @@ impl Bitget {
         let mut interval: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         let mut messageHash: Option<String> = None;
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isStock: Option<bool> = (market).stock;
         let mut paramsStock: crate::value::Dict = self.omit(&paramsUta, Value::Str("stock".into()), &[]).into_dict();
         let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
-        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
+        let mut isStockOrUta: bool = isStockSpot || uta;
         let instTypeparamsInstTypeVariable: Vec<Value> = self.get_inst_type(Value::Str("watchOHLCV".into()), Some(&market), &[Value::Bool(isStockOrUta.clone()), Value::Dict(paramsStock)]).as_array().cloned().unwrap_or_default();
         let mut instType: Option<String> = instTypeparamsInstTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInstType: crate::value::Dict = instTypeparamsInstTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -1305,9 +1305,9 @@ impl Bitget {
         }
         let mut paramsStock: crate::value::Dict = self.omit(params, Value::Str("stock".into()), &[]).into_dict();
         let utaparamsUtaVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsStock, Value::Str("watchOrderBookForSymbols".into()), Value::Str("uta".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
-        let mut uta: Value = utaparamsUtaVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut uta: bool = utaparamsUtaVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isStockOrUta: bool = isStockSpot || uta.as_bool() == Some(true);
+        let mut isStockOrUta: bool = isStockSpot || uta;
         let mut channel: Value = Value::Str("books".into());
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
