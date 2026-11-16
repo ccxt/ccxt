@@ -1626,7 +1626,6 @@ export default class bybit extends Exchange {
         const strike = this.safeString (optionParts, 2);
         const optionType = this.safeString (optionParts, 3);
         const datetime = this.convertExpireDate (expiry);
-        const timestamp = this.parse8601 (datetime);
         let amountPrecision: Num = undefined;
         let pricePrecision: Num = undefined;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -1662,7 +1661,7 @@ export default class bybit extends Exchange {
             'margin': false,
             'contract': true,
             'contractSize': this.parseNumber ('1'),
-            'expiry': timestamp,
+            'expiry': this.parse8601 (datetime),
             'expiryDatetime': datetime,
             'optionType': (optionType === 'C') ? 'call' : 'put',
             'strike': this.parseNumber (strike),
@@ -2045,8 +2044,6 @@ export default class bybit extends Exchange {
         const responseResult = this.safeDict (response, 'result', {});
         const markets: Dict[] = this.safeList (responseResult, 'list', []);
         const result: List = [];
-        const takerFee = this.parseNumber ('0.001');
-        const makerFee = this.parseNumber ('0.001');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'symbol');
@@ -2064,7 +2061,6 @@ export default class bybit extends Exchange {
             const priceFilter = this.safeDict (market, 'priceFilter');
             const quotePrecision = this.safeNumber (lotSizeFilter, 'quotePrecision');
             const marginTrading = this.safeString (market, 'marginTrading', 'none');
-            const allowsMargin = marginTrading !== 'none';
             result.push (this.safeMarketStructure ({
                 'id': id,
                 'symbol': symbol,
@@ -2076,7 +2072,7 @@ export default class bybit extends Exchange {
                 'settleId': undefined,
                 'type': 'spot',
                 'spot': true,
-                'margin': allowsMargin,
+                'margin': (marginTrading !== 'none'),
                 'swap': false,
                 'future': false,
                 'option': false,
@@ -2084,8 +2080,8 @@ export default class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': takerFee,
-                'maker': makerFee,
+                'taker': this.parseNumber ('0.001'),
+                'maker': this.parseNumber ('0.001'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -10203,7 +10199,7 @@ export default class bybit extends Exchange {
                         };
                     }
                 } else {
-                    url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (sortedQuery, true) + '&sign=' + signature;
+                    url = baseUrl + '?' + this.rawencode (sortedQuery, true) + '&sign=' + signature;
                 }
             }
         }

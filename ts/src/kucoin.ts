@@ -8665,10 +8665,10 @@ export default class kucoin extends Exchange {
             toId = 'ISOLATED';
         }
         const utaAccountsByType = this.safeDict (this.options, 'utaAccountsByType', {});
-        const fromType = this.safeString (utaAccountsByType, fromId, fromId);
-        const toType = this.safeString (utaAccountsByType, toId, toId);
-        request['fromAccountType'] = fromType.toUpperCase ();
-        request['toAccountType'] = toType.toUpperCase ();
+        fromId = this.safeString (utaAccountsByType, fromId, fromId);
+        toId = this.safeString (utaAccountsByType, toId, toId);
+        request['fromAccountType'] = fromId.toUpperCase ();
+        request['toAccountType'] = toId.toUpperCase ();
         const types: Dict = {
             'INTERNAL': '0',
             'PARENT_TO_SUB': '1',
@@ -10989,10 +10989,9 @@ export default class kucoin extends Exchange {
         if (crossMode !== undefined) {
             marginMode = (crossMode) ? 'cross' : 'isolated';
         }
-        const maintMargin = this.safeString (position, 'maintMargin');
-        let collateralString = maintMargin;
+        let collateralString = this.safeString (position, 'maintMargin');
         let marginString: Str = undefined;
-        if ((maintMargin === undefined) && (marginMode === 'isolated')) {
+        if ((collateralString === undefined) && (marginMode === 'isolated')) {
             let posMargin = this.safeString (position, 'posMargin');
             if (posMargin === undefined) {
                 const posComm = this.safeString (position, 'posComm');
@@ -11642,15 +11641,14 @@ export default class kucoin extends Exchange {
             throw new ArgumentsRequired (this.id + ' fetchLeverageTiers() requires a symbols argument');
         }
         const symbolsNormalized: Strings = this.marketSymbols (symbols, 'swap', false, true);
-        const [ marginModeOption, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchLeverageTiers', 'marginMode', 'cross');
-        const marginMode = marginModeOption.toUpperCase ();
-        if (marginMode !== 'CROSS') {
+        const [ marginMode, paramsRequest ] = this.handleOptionStringAndParams (params, 'fetchLeverageTiers', 'marginMode', 'cross');
+        if (marginMode.toUpperCase () !== 'CROSS') {
             throw new BadRequest (this.id + ' fetchLeverageTiers() supports cross margin only');
         }
         const marketIds = this.marketIds (symbolsNormalized);
         const request: Dict = {
             'tradeType': 'FUTURES',
-            'marginMode': marginMode,
+            'marginMode': 'CROSS',
             'data': 'RISK_LIMIT',
             'accountType': 'UNIFIED',
             'symbol': marketIds.join (','),
