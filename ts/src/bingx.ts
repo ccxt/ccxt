@@ -1244,7 +1244,7 @@ export default class bingx extends Exchange {
             'symbol': market['id'],
         };
         request['interval'] = this.safeString (this.timeframes, timeframe, timeframe);
-        const requestLimit = (limit === undefined) ? 500 : Math.min (limit, maxLimit);
+        const requestLimit = this.parseToInt ((limit === undefined) ? 500 : Math.min (limit, maxLimit));
         if (since !== undefined) {
             request['startTime'] = Math.max (since - 1, 0);
         }
