@@ -1130,7 +1130,8 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	var incrementalFeed bool = true
 	if (ccxt.IsEqual(limit, 1)) || (ccxt.IsEqual(limit, 5)) || (ccxt.IsEqual(limit, 15)) || (ccxt.IsEqual(limit, 50)) {
 		channel += ccxt.ToString(limit)
-		incrementalFeed = false
+		// books50 sends a snapshot first and incremental updates afterwards
+		incrementalFeed = (ccxt.IsEqual(limit, 50))
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
@@ -1242,7 +1243,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		return
 	}
 	var timestamp *int64 = this.SafeInteger(rawOrderBook, "ts")
-	var incrementalBook bool = (channel != nil && *channel == "books")
+	var incrementalBook bool = ((channel != nil && *channel == "books") || (channel != nil && *channel == "books50"))
 	if incrementalBook {
 		// storedOrderBook = this.safeValue (this.orderbooks, symbol)
 		if !(this.Orderbooks[*symbol] != nil) {
