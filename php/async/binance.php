@@ -6891,7 +6891,16 @@ class binance extends Exchange {
         $marketResolved = $this->safe_market($marketId, $market, null, $marketType);
         $symbol = $marketResolved['symbol'];
         $filled = $this->safe_string_n($order, array( 'executedQty', 'filledQty', 'actualQty' ), '0'); // actualQty: algo orders
-        $timestamp = $this->safe_integer_n($order, array( 'time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt' )); // order of the keys matters here
+        $timestamp = $this->safe_integer_2($order, 'time', 'createTime'); // order of the keys matters here
+        if ($timestamp === null) {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            $workingTime = $this->safe_integer($order, 'workingTime');
+            if (($workingTime !== null) && ($workingTime > 0)) {
+                $timestamp = $workingTime;
+            } else {
+                $timestamp = $this->safe_integer_n($order, array( 'transactTime', 'updateTime', 'createdAt' ));
+            }
+        }
         $lastTradeTimestamp = null;
         if ((is_array($order) && array_key_exists('transactTime' ?? '', $order)) || (is_array($order) && array_key_exists('updateTime' ?? '', $order)) || (is_array($order) && array_key_exists('updatedAt' ?? '', $order))) {
             $timestampValue = $this->safe_integer_n($order, array( 'updateTime', 'transactTime', 'updatedAt' ));

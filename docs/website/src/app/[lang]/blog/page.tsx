@@ -22,7 +22,7 @@ export const metadata: Metadata = {
     title: `${appName} Blog`,
     description: blogDescription,
     url: `${blogAbsoluteBase}/blog`,
-    images: [{ url: `${basePath}/og/home`, width: 1200, height: 630 }],
+    images: [{ url: `${basePath}/og/home.png`, width: 1200, height: 630 }],
   },
 };
 

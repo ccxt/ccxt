@@ -189,6 +189,9 @@ impl crate::exchange_generated::ExchangeBase for BitrueCore {
                 "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
                 "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "pong" => self.pong(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)).await,
+                "un_subscribe" => self.un_subscribe(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
+                "un_watch_ohlcv" => self.un_watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+                "un_watch_trades" => self.un_watch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_balance" => self.watch_balance(&args[..]).await,
                 "watch_ohlcv" => self.watch_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "watch_order_book" => self.watch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
@@ -227,6 +230,9 @@ impl BitrueCore {
             "parse_ws_ticker" => self.parse_ws_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "parse_ws_trade" => self.parse_ws_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "pong" => { crate::exchange_stubs::enqueue_spawn("pong", args.to_vec()); crate::Value::Null },
+            "un_subscribe" => { crate::exchange_stubs::enqueue_spawn("un_subscribe", args.to_vec()); crate::Value::Null },
+            "un_watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("un_watch_ohlcv", args.to_vec()); crate::Value::Null },
+            "un_watch_trades" => { crate::exchange_stubs::enqueue_spawn("un_watch_trades", args.to_vec()); crate::Value::Null },
             "watch_balance" => { crate::exchange_stubs::enqueue_spawn("watch_balance", args.to_vec()); crate::Value::Null },
             "watch_ohlcv" => { crate::exchange_stubs::enqueue_spawn("watch_ohlcv", args.to_vec()); crate::Value::Null },
             "watch_order_book" => { crate::exchange_stubs::enqueue_spawn("watch_order_book", args.to_vec()); crate::Value::Null },
@@ -262,6 +268,8 @@ impl BitrueCore {
         m.insert("watchOrders".to_string(), Value::Bool(true));
         m.insert("watchOrderBook".to_string(), Value::Bool(true));
         m.insert("watchOHLCV".to_string(), Value::Bool(true));
+        m.insert("unWatchTrades".to_string(), Value::Bool(true));
+        m.insert("unWatchOHLCV".to_string(), Value::Bool(true));
     m
 }));
         m.insert("urls".to_string(), Value::Map({
@@ -766,6 +774,9 @@ impl BitrueCore {
 }
 
     pub fn find_swap_market_by_ws_base_quote(&self, mut wsBaseQuote: Value) -> Value {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if (self.markets.clone() == Value::Null) {
             return Value::Null;
         }
@@ -831,6 +842,53 @@ impl BitrueCore {
 }
 
 /*
+ * @ignore
+ * @method
+ * @description sends an unsubscribe request and drops the subscription and its cache
+ * @param {string} subHash the messageHash the watch method subscribed with
+ * @param {string} channel the channel the watch method subscribed to
+ * @param {string} cbId the cb_id the watch method subscribed with
+ * @param {object} subscription the cache to clean, see cleanCache
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true
+ */
+    pub async fn un_subscribe(&mut self, mut subHash: Value, mut channel: Value, mut cbId: Value, mut subscription: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        let mut url: Value = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "futurePublic");
+        let mut client: Value = self.client(&[url]);
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
+        if (__ch.has_subscription(&subHash)) {
+            let mut request: indexmap::IndexMap<String, Value> = ({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("event".to_string(), Value::Str("unsub".into()));
+                    m.insert("params".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cb_id".to_string(), cbId);
+        m.insert("channel".to_string(), channel);
+    m
+}));
+                m
+            });
+            let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
+                client.send(&[self.deep_extend(Value::Map(request), &[params])]);
+             #[allow(unreachable_code)] { Value::Null }})).await;
+if _try_result.is_err() {
+                panic!("{}", crate::exchange_errors::network_error(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" could not unsubscribe ".into())).into()), subHash).into()), Value::Str(", the websocket connection is not open".into()))));
+            }
+        }
+        // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        self.clean_cache(subscription);
+        self.clean_unsubscription(client, subHash.clone(), Value::Str(format!("{}{}", Value::Str("unsubscribe:".into()), subHash).into()), &[]);
+        return Value::Bool(true);
+
+    Value::Null
+}
+
+/*
  * @method
  * @name bitrue#watchTrades
  * @description watches public trades for a swap (futures) market
@@ -888,7 +946,45 @@ impl BitrueCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name bitrue#unWatchTrades
+ * @description unWatches public trades for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch trades for
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+    pub async fn un_watch_trades(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchTrades is only supported for swap markets".into()))));
+        }
+        let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[]).unwrap_or_default();
+        let quoteIdLower: String = self.safe_string_lower_k_opt(market, "quoteId", &[]).unwrap_or_default();
+        let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_trade_ticker".into())).into());
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("trades".into()));
+                m.insert("symbols".to_string(), Value::from(vec![symbolValue.clone()]));
+            m
+        });
+        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str("trades:".into()), symbolValue).into()), channel, wsId, Value::Map(subscription), &[params]).await;
+
+    Value::Null
+}
+
     pub fn handle_trades(&mut self, mut client: Value, mut message: Value) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -919,6 +1015,10 @@ impl BitrueCore {
         if (symbol.is_none()) {
             return;
         }
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
+        if !(__ch.has_subscription(&messageHash)) {
+            return;
+        }
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -941,7 +1041,6 @@ impl BitrueCore {
         }
         }
         if appended {
-            let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str("trades:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into());
             client.resolve(&[stored, messageHash]);
         }
 }
@@ -1042,7 +1141,55 @@ impl BitrueCore {
     Value::Null
 }
 
+/*
+ * @method
+ * @name bitrue#unWatchOHLCV
+ * @description unWatches OHLCV candles for a swap (futures) market
+ * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+ * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+ * @param {string} timeframe the length of time each candle represents
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+ */
+    pub async fn un_watch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut timeframe = get_arg(optional_args, 0, Value::Str("1m".into()));
+        let mut params = get_arg(optional_args, 1, Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+}));
+        if (self.markets.clone() == Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut market: Value = self.market(symbol);
+        let mut symbolValue: Value = market.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null);
+        if (market.as_map().and_then(|__m| __m.get("swap")).cloned().unwrap_or(Value::Null).as_bool() != Some(true)) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV is only supported for swap markets".into()))));
+        }
+        let mut futuresTimeframes: Value = self.safe_dict_k(self.options.clone(), "futuresTimeframes", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]);
+        let mut interval: Option<String> = self.safe_string_opt(futuresTimeframes, timeframe.clone(), &[]);
+        if (interval.is_none()) {
+            panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" unWatchOHLCV does not support timeframe ".into())).into()), timeframe)));
+        }
+        let baseIdLower: String = self.safe_string_lower_k_opt(market.clone(), "baseId", &[]).unwrap_or_default();
+        let quoteIdLower: String = self.safe_string_lower_k_opt(market, "quoteId", &[]).unwrap_or_default();
+        let mut wsId: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("e_".into()), baseIdLower).into()), quoteIdLower).into());
+        let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("market_".into()), wsId).into()), Value::Str("_kline_".into())).into()), interval.map(Value::from).unwrap_or(Value::Null)).into());
+        let mut subscription: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("topic".to_string(), Value::Str("ohlcv".into()));
+                m.insert("symbolsAndTimeframes".to_string(), Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])]));
+            m
+        });
+        return self.un_subscribe(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbolValue).into()), Value::Str(":".into())).into()), timeframe).into()), channel, wsId, Value::Map(subscription), &[params]).await;
+
+    Value::Null
+}
+
     pub fn handle_ohlcv(&mut self, mut client: Value, mut message: Value) {
+        let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         //
@@ -1080,6 +1227,10 @@ impl BitrueCore {
         if (timeframe == Value::Null) {
             return;
         }
+        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.clone().map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe).into());
+        if !(__ch.has_subscription(&messageHash)) {
+            return;
+        }
         let mut tick: Value = (match message.get("tick") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         if (tick == Value::Null) {
             return;
@@ -1097,7 +1248,6 @@ impl BitrueCore {
         }
         let mut stored: Value = (if let (Some(__m), Some(__k)) = (self.ohlcvs.as_map(), symbol.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).as_map().and_then(|__m| timeframe.as_str().and_then(|__k| __m.get(__k))).cloned().unwrap_or(Value::Null);
         stored.append(parsed);
-        let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("ohlcv:".into()), symbol.map(Value::from).unwrap_or(Value::Null)).into()), Value::Str(":".into())).into()), timeframe).into());
         client.resolve(&[stored, messageHash]);
 }
 

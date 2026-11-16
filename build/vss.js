@@ -94,6 +94,15 @@ async function vssEverything () {
     vss ('./README.md',       "ccxt@{version}", version, true)
     vss ('./wiki/Install.md', "ccxt@{version}", version, true)
 
+    // AI-facing docs pin the release in copy-paste install snippets;
+    // `npm run check-ai-docs` fails if these lag behind package.json
+    for (const doc of [ './llms.txt', './llms-full.txt', './.claude/skills/ccxt-rust/SKILL.md', './.claude/skills/ccxt-java/SKILL.md' ]) {
+        vss (doc, 'io.github.ccxt:ccxt:{version}', version, true)  // Maven / Gradle
+        vss (doc, 'ccxt = "{version}"', version, true)             // Cargo
+        vss (doc, 'ccxt-pro = "{version}"', version, true)
+        vss (doc, 'ccxt-prediction = "{version}"', version, true)
+    }
+
     log.bright.green ('Version single-sourced successfully.')
 }
 

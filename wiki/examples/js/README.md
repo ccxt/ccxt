@@ -59,8 +59,6 @@ node path/to/example.js # substitute for actual filename here
 
 - [Bitfinex Fetch Trades](./examples/js/bitfinex-fetch-trades.md)
 
-- [Bitmex Browser Cors Proxy](./examples/js/bitmex-browser-cors-proxy.md)
-
 - [Bitpanda FetchMyTrades Reduce](./examples/js/bitpanda-fetchMyTrades-reduce.md)
 
 - [Bitrue Fetch Balance](./examples/js/bitrue-fetch-balance.md)

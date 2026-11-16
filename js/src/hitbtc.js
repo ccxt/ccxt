@@ -2981,7 +2981,7 @@ export default class hitbtc extends Exchange {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         let market = undefined;
         const request = {
@@ -2989,11 +2989,11 @@ export default class hitbtc extends Exchange {
         // 'symbols': Comma separated list of symbol codes,
         // 'sort': 'DESC' or 'ASC'
         // 'from': 'Datetime or Number',
-        // 'until': 'Datetime or Number',
+        // 'till': 'Datetime or Number',
         // 'limit': 100,
         // 'offset': 0,
         };
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until', request, paramsPaginate);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('till', request, paramsPaginate);
         if (symbol !== undefined) {
             market = this.market(symbol);
             requestUntil['symbols'] = market['id'];

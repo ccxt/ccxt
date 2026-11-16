@@ -42,8 +42,6 @@
 
 - [Bitfinex Fetch Trades](./examples/ts/bitfinex-fetch-trades.md)
 
-- [Bitmex Browser Cors Proxy](./examples/ts/bitmex-browser-cors-proxy.md)
-
 - [Bitpanda FetchMyTrades Reduce](./examples/ts/bitpanda-fetchMyTrades-reduce.md)
 
 - [Bitrue Fetch Balance](./examples/ts/bitrue-fetch-balance.md)
