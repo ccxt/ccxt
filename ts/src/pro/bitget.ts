@@ -1647,7 +1647,7 @@ export default class bitget extends bitgetRest {
         const percentage = Precise.stringMul (percentageDecimal, '100');
         let contractSize: Num = undefined;
         if (market !== undefined) {
-            contractSize = market['contractSize'];
+            contractSize = this.safeNumber (market, 'contractSize');
         }
         return this.safePosition ({
             'info': position,
