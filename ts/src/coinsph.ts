@@ -1421,7 +1421,7 @@ export default class coinsph extends Exchange {
         let orderType: Str = this.safeString (paramsOmitted, 'type', type);
         orderType = this.encodeOrderType (orderType);
         const paramsType: Dict = this.omit (paramsOmitted, 'type');
-        let paramsQuote = undefined;
+        let paramsQuote: Dict = paramsType;
         const orderSide = this.encodeOrderSide (side);
         const request: Dict = {
             'symbol': market['id'],
@@ -1477,8 +1477,7 @@ export default class coinsph extends Exchange {
             request['stopPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        const paramsBase: Dict = (paramsQuote !== undefined) ? paramsQuote : paramsType;
-        const paramsRequest: Dict = this.omit (paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsRequest: Dict = this.omit (paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response: Dict = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest (this.extend (request, paramsRequest));

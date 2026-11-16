@@ -3915,8 +3915,6 @@ export default class predictfun extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        const existingHeaders = {};
-        const headersValue: any = existingHeaders;
         const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3959,7 +3957,7 @@ export default class predictfun extends Exchange {
             authHeaders['Content-Type'] = 'application/json';
             bodyValue = this.json (params);
         }
-        const headersExtended: any = this.extend (headersValue, authHeaders);
+        const headersExtended: any = this.extend ({}, authHeaders);
         return { 'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended };
     }
 }
