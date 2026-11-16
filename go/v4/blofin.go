@@ -1427,7 +1427,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	var market map[string]any = this.Market(symbol)
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 
@@ -1443,12 +1443,12 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		}
 		return nil
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}() // default 100, max 100
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	} // default 100, max 100
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 		"bar":    this.SafeString(this.Timeframes, timeframe, timeframe),
@@ -1462,7 +1462,7 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketCandles(this.Extend(request, query))
@@ -1516,7 +1516,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		}
 	}
 	var paginate bool = false
-	var query any = nil
+	var query map[string]any = nil
 	paginate, query = this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
@@ -1545,7 +1545,7 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 	var until *int64 = this.SafeInteger(query, "until")
 	if until != nil {
 		request["after"] = until
-		query = this.Omit(query, "until")
+		query = this.OmitDict(query, "until")
 	}
 
 	r2 := <-this.PublicGetMarketFundingRateHistory(this.Extend(request, query))
@@ -3235,10 +3235,10 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id, in case the
 	// venue ignores the filter and returns the latest records instead
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if IsEqual(this.SafeString(entry, "depositId"), id) {
@@ -3297,10 +3297,10 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 		panic(r1.Err)
 	}
 	var response map[string]any = r1.Value
-	var data any = this.SafeList(response, "data", []any{})
+	var data []any = SafeListTyped(response, "data")
 	// only accept a row that matches the requested id (or clientId), in
 	// case the venue ignores the filter and returns the latest records
-	var dataLength int = GetArrayLength(data)
+	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var matches bool = false
@@ -3362,7 +3362,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var tagValue *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	tagValue, query = this.HandleParamString(params, "tag")
 
 	r := <-this.LoadMarketsAsync()
@@ -3377,7 +3377,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	}
 	var dest *string = this.SafeString(query, "dest", "onchain")
 	request["dest"] = dest
-	query = this.Omit(query, "dest")
+	query = this.OmitDict(query, "dest")
 	if dest != nil && *dest == "onchain" {
 		this.CheckAddress(address, code, tagValue)
 		// the doc's Request Parameters table marks addrType "Required:
@@ -3385,7 +3385,7 @@ func (this *Blofin) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		// it (152001 "Parameter addrType cannot be empty") - default to
 		// 1 = wallet address, callers can override for other kinds
 		request["addrType"] = this.SafeString(query, "addrType", "1")
-		query = this.Omit(query, "addrType")
+		query = this.OmitDict(query, "addrType")
 	}
 	if tagValue != nil {
 		request["tag"] = *tagValue
@@ -4117,7 +4117,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var leverageString *string = this.SafeString(position, "leverage")
 	var initialMarginPercentageString *string = nil
 	var collateralString any = nil
-	var marginString any = nil
+	var marginString *string = nil
 	if marginMode != nil && *marginMode == "cross" {
 		if derefPtr := this.SafeString(position, "initialMargin"); derefPtr != nil {
 			initialMarginString = *derefPtr
@@ -4132,7 +4132,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentageString = Precise.StringDiv("1", leverageString)
-		var isolatedMarginString any = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
+		var isolatedMarginString *string = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
 		if isolatedMarginString != nil {
 			initialMarginString = isolatedMarginString
 			marginString = isolatedMarginString
@@ -4159,7 +4159,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		}
 		return nil
 	}()
-	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	if (liquidationPriceString == nil) && (marginMode != nil && *marginMode == "isolated") && (!IsEqual(initialMarginString, nil)) && (entryPriceString != nil) && (contractsAbs != nil) && Precise.StringGt(contractsAbs, "0") && (contractSizeString != nil) && (maintenanceMarginPercentage != nil) {
 		var takerFeeRate *string = this.SafeString(marketResolved, "taker", "0.0006")
 		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)

@@ -1215,7 +1215,7 @@ func (this *Hashkey) ParseMarket(market any) map[string]any {
 	var priceFilter map[string]any = SafeMapTyped(filters, "PRICE_FILTER")
 	var amountFilter map[string]any = SafeMapTyped(filters, "LOT_SIZE")
 	var costFilter map[string]any = SafeMapTyped(filters, "MIN_NOTIONAL")
-	var minCostString any = this.OmitZero(this.SafeString(costFilter, "min_notional"))
+	var minCostString *string = this.OmitZero(this.SafeString(costFilter, "min_notional"))
 	var contractSizeString *string = this.SafeString(market, "contractMultiplier")
 	var amountPrecisionString *string = this.SafeString(amountFilter, "stepSize")
 	var amountMinLimitString *string = this.SafeString(amountFilter, "minQty")
@@ -4314,7 +4314,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	if priceType != nil && *priceType == "MARKET" {
 		typeVar = "market"
 	}
-	var price any = this.OmitZero(this.SafeString(order, "price"))
+	var price *string = this.OmitZero(this.SafeString(order, "price"))
 	if typeVar == "STOP" {
 		if price == nil {
 			typeVar = "market"
@@ -4328,7 +4328,7 @@ func (this *Hashkey) ParseOrder(order any, optionalArgs ...any) Order {
 	typeVar = GetValue(typeVartimeInForcepostOnlyVariable, 0)
 	timeInForce = GetValue(typeVartimeInForcepostOnlyVariable, 1)
 	postOnly = typeVartimeInForcepostOnlyVariable[2]
-	var average any = this.OmitZero(this.SafeString(order, "avgPrice"))
+	var average *string = this.OmitZero(this.SafeString(order, "avgPrice"))
 	if price == nil {
 		price = average
 	}

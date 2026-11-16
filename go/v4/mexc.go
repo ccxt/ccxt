@@ -2410,9 +2410,9 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 	var candles any = []any{}
 	var until *int64 = this.SafeInteger2(paramsPaginate, "until", "endTime")
 	var omitUntil bool = (until != nil) && (since == nil)
-	var paramsUntil any = paramsPaginate
+	var paramsUntil map[string]any = paramsPaginate
 	if omitUntil {
-		paramsUntil = this.Omit(paramsPaginate, []any{"until"})
+		paramsUntil = this.OmitDict(paramsPaginate, []any{"until"})
 	}
 	if *this.SafeBool(market, "spot", false) {
 		if since != nil {
@@ -2481,7 +2481,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			}
 		}
 		var priceType string = *this.SafeString(paramsUntil, "price", "default")
-		var paramsOmitted any = this.Omit(paramsUntil, "price")
+		var paramsOmitted map[string]any = this.OmitDict(paramsUntil, "price")
 		var swapResponse map[string]any = nil
 		if priceType == "default" {
 
@@ -3496,13 +3496,8 @@ func (this *Mexc) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, o
 		var amount any = this.SafeValue(rawOrder, "amount")
 		var price any = this.SafeValue(rawOrder, "price")
 		var orderParams map[string]any = this.SafeDictMap(rawOrder, "params", map[string]any{})
-		var marginMode any = nil
-		var marginModePtr *string = nil
-		marginModePtr, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
-		marginMode = nil
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		var marginMode *string = nil
+		marginMode, paramsLoop = this.HandleMarginModeAndParams("createOrder", paramsLoop)
 		var orderRequest map[string]any = this.CreateSpotOrderRequest(market, typeVar, side, amount, price, marginMode, orderParams)
 		ordersRequests = append(ordersRequests, orderRequest)
 	}
@@ -7019,7 +7014,7 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
 	var symbol *string = this.SafeString(marketResolved, "symbol", "")
 	var contracts *string = this.SafeString(position, "holdVol")
 	var entryPrice *float64 = this.SafeNumber(position, "openAvgPrice")
-	var initialMargin any = this.OmitZero(this.SafeString(position, "im"))
+	var initialMargin *string = this.OmitZero(this.SafeString(position, "im"))
 	var unrealizedPnl *string = this.SafeString(position, "unRealizedPnl")
 	var rawSide *string = this.SafeString(position, "positionType")
 	var side string
@@ -7035,8 +7030,8 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
 	} else {
 		marginType = "cross"
 	}
-	var collateralString any = nil
-	var marginString any = nil
+	var collateralString *string = nil
+	var marginString *string = nil
 	if (marginType == "isolated") && (initialMargin != nil) {
 		// im is the margin mexc holds in the position; funding settles to the available balance
 		collateralString = initialMargin

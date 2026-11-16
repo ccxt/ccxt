@@ -3678,7 +3678,7 @@ func (this *Limitless) GetPositionFromClobEntry(label *string, optionalArgs ...a
 		return nil
 	}
 	var tokensBalance map[string]any = ccxt.SafeMapTyped(entry, "tokensBalance")
-	var contracts any = this.OmitZero(this.SafeString(tokensBalance, label))
+	var contracts *string = this.OmitZero(this.SafeString(tokensBalance, label))
 	if contracts == nil {
 		return nil
 	}

@@ -5823,8 +5823,8 @@ func (this *Gate) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var side *string = this.SafeString2(trade, "side", "type", contractSide)
 	var orderId *string = this.SafeString(trade, "order_id")
 	var feeAmount *string = this.SafeString(trade, "fee")
-	var gtFee any = this.OmitZero(this.SafeString(trade, "gt_fee"))
-	var pointFee any = this.OmitZero(this.SafeString(trade, "point_fee"))
+	var gtFee *string = this.OmitZero(this.SafeString(trade, "gt_fee"))
+	var pointFee *string = this.OmitZero(this.SafeString(trade, "point_fee"))
 	var fees []any = []any{}
 	if feeAmount != nil {
 		var feeCurrencyId *string = this.SafeString(trade, "fee_currency")
@@ -8914,10 +8914,10 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) Position {
 	}
 	// gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
 	var marginBalance *string = this.SafeString(position, "margin")
-	var initialMarginString any = this.OmitZero(this.SafeString(position, "initial_margin"))
+	var initialMarginString *string = this.OmitZero(this.SafeString(position, "initial_margin"))
 	// gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
 	// it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
-	var maintenanceMarginString any = this.OmitZero(this.SafeString(position, "maintenance_margin"))
+	var maintenanceMarginString *string = this.OmitZero(this.SafeString(position, "maintenance_margin"))
 	var marketInfo map[string]any = SafeMapTyped(marketResolved, "info")
 	var takerFeeRate *string = this.SafeString(marketInfo, "taker_fee_rate", "0.00075")
 	var hasPositiveMarginBalance bool = (marginBalance == nil) || Precise.StringGt(marginBalance, "0")
@@ -8925,8 +8925,8 @@ func (this *Gate) ParsePosition(position any, optionalArgs ...any) Position {
 		var closeFee *string = Precise.StringMul(notional, takerFeeRate)
 		initialMarginString = Precise.StringAdd(Precise.StringDiv(notional, leverage), closeFee)
 	}
-	var liqPriceString any = this.OmitZero(this.SafeString(position, "liq_price"))
-	var maintenanceRate any = this.OmitZero(this.SafeString(position, "maintenance_rate"))
+	var liqPriceString *string = this.OmitZero(this.SafeString(position, "liq_price"))
+	var maintenanceRate *string = this.OmitZero(this.SafeString(position, "maintenance_rate"))
 	if (maintenanceMarginString == nil) && (liqPriceString == nil) && hasPositiveMarginBalance && (notional != nil) && (maintenanceRate != nil) {
 		maintenanceMarginString = Precise.StringMul(notional, Precise.StringAdd(maintenanceRate, takerFeeRate))
 	}
@@ -10691,9 +10691,9 @@ func (this *Gate) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 		request["settle"] = settle
 	}
 	var isContract bool = (typeVar != nil && *typeVar == "swap") || (typeVar != nil && *typeVar == "future")
-	var paramsSettle any = paramsMarketType
+	var paramsSettle map[string]any = paramsMarketType
 	if isContract {
-		paramsSettle = this.Omit(paramsMarketType, "settle")
+		paramsSettle = this.OmitDict(paramsMarketType, "settle")
 	}
 	if since != nil {
 		request["from"] = since
@@ -11915,7 +11915,7 @@ func (this *Gate) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opt
 		}
 		response = responseRecv.Value
 	} else {
-		panic(NotSupported(Add(this.Id+" fetchPositionsHistory() does not support markets of type ", marketType)))
+		panic(NotSupported(this.Id + " fetchPositionsHistory() does not support markets of type " + *marketType))
 	}
 	//
 	//    [

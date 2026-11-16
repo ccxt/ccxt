@@ -121,7 +121,7 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash strin
 	var marketType *string = nil
 	var subType *string = nil
 	var url any = nil
-	var query any = nil
+	var query map[string]any = nil
 	marketType, query = this.HandleMarketTypeAndParams(methodName, market, params)
 	subType, query = this.HandleSubTypeAndParams(methodName, market, query, "linear")
 	if marketType != nil && *marketType == "swap" {
@@ -158,7 +158,7 @@ func (this *Bingx) unWatchBody(ch chan ccxt.AsyncResult[bool], messageHash strin
 	var symbolsAndTimeframes any = this.SafeList(query, "symbolsAndTimeframes")
 	if symbolsAndTimeframes != nil {
 		subscription["symbolsAndTimeframes"] = symbolsAndTimeframes
-		query = this.Omit(query, "symbolsAndTimeframes")
+		query = this.OmitDict(query, "symbolsAndTimeframes")
 	}
 
 	r := <-this.Watch(url, messageHash, this.Extend(request, query), subscribeHash, subscription)
@@ -1103,14 +1103,14 @@ func (this *Bingx) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	for i := 0; i < len(candles); i++ {
 		var candle any = ccxt.GetValue(candles, i)
 		var parsed any = this.ParseWsOHLCV(candle, market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash string = this.GetMessageHash("ohlcv", symbol, unifiedTimeframe)
@@ -1620,8 +1620,8 @@ func (this *Bingx) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], clien
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil

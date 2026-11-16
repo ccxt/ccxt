@@ -2580,9 +2580,9 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -2593,7 +2593,7 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolveData, messageHash)
 }
@@ -6353,11 +6353,11 @@ func (this *Binance) ParseWsOrder(order any, optionalArgs ...any) map[string]any
 	if (clientOrderId == nil) || (len(*clientOrderId) == 0) {
 		clientOrderId = this.SafeString(order, "c")
 	}
-	var stopPrice any = this.OmitZero(this.SafeStringN(order, []any{"P", "sp", "tp"}))
+	var stopPrice *string = this.OmitZero(this.SafeStringN(order, []any{"P", "sp", "tp"}))
 	var orderType *string = this.SafeStringLower(order, "o")
 	// stop types are also sent for plain trigger orders, only the take profit types identify the price unambiguously
 	var isTakeProfitType bool = this.InArray(orderType, []any{"take_profit", "take_profit_market", "take_profit_limit"})
-	var takeProfitPrice any = func() any {
+	var takeProfitPrice *string = func() *string {
 		if isTakeProfitType {
 			return stopPrice
 		}
@@ -7421,12 +7421,12 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 				var order map[string]any = this.SafeDictMap(orders, orderId)
 				if order != nil {
 					// accumulate order fees
-					var fees any = this.SafeList(order, "fees")
+					var fees []any = ccxt.SafeListTyped(order, "fees")
 					var fee map[string]any = this.SafeDictMap(order, "fee")
 					if (fees != nil) && !this.IsEmpty(fees) {
 						var insertNewFeeCurrency bool = true
-						for i := 0; i < ccxt.GetArrayLength(fees); i++ {
-							var orderFee map[string]any = ccxt.MapTyped(ccxt.GetValue(fees, i))
+						for i := 0; i < len(fees); i++ {
+							var orderFee map[string]any = ccxt.MapTyped(fees[i])
 							if this.SafeString(orderFee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(orderFee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(orderFee, "currency") == *this.SafeString(tradeFee, "currency")) {
 								var feeCost any = this.Sum(tradeFee["cost"], orderFee["cost"])
 								var feeCostString any = this.CurrencyToPrecision(tradeFee["currency"], feeCost)

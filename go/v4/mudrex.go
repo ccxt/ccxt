@@ -384,15 +384,15 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	}
 	// the endpoint requires an explicit time window (in seconds)
 	var duration int64 = this.ParseTimeframe(timeframe)
-	var requestLimit int64 = func() int64 {
-		if limit == nil {
-			return 500
-		}
-		return *limit
-	}()
+	var requestLimit int64
+	if limit == nil {
+		requestLimit = 500
+	} else {
+		requestLimit = *limit
+	}
 	var now int64 = this.Seconds()
 	var windowLength int64 = (duration * requestLimit)
-	var defaultStart any = (now - windowLength)
+	var defaultStart int64 = now - windowLength
 	var startTime int64 = this.ParseToInt(func() any {
 		if since != nil {
 			return (float64(*since) / 1000)

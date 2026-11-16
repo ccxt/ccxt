@@ -1960,9 +1960,9 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var isMarketNotConditional bool = isMarket && !isConditional
-	var paramsCost any = paramsMarginMode
+	var paramsCost map[string]any = paramsMarginMode
 	if isMarketNotConditional {
-		paramsCost = this.Omit(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
+		paramsCost = this.OmitDict(paramsMarginMode, []any{"cost", "order_amount", "orderAmount"})
 	}
 	if isMarketNotConditional {
 		// for market buy it requires the amount of quote currency to spend
@@ -2043,7 +2043,7 @@ func (this *Woo) createOrderBody(ch chan AsyncResult[Order], symbol string, type
 		}
 		request["childOrders"] = []any{outterOrder}
 	}
-	var paramsRequest any = this.Omit(paramsCost, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"})
+	var paramsRequest map[string]any = this.OmitDict(paramsCost, []any{"clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice"})
 	var response map[string]any = nil
 	if isConditional {
 
@@ -2809,7 +2809,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) Order {
 		timestamp = this.SafeInteger(order, "timestamp")
 	}
 	var orderId *string = this.SafeString2(order, "orderId", "algoOrderId")
-	var clientOrderId any = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
+	var clientOrderId *string = this.OmitZero(this.SafeString2(order, "clientOrderId", "clientAlgoOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = this.SafeString(marketResolved, "symbol")
@@ -2819,7 +2819,7 @@ func (this *Woo) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString2(order, "status", "algoStatus")
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeString2(order, "executed", "totalExecutedQuantity")
-	var average any = this.OmitZero(this.SafeString(order, "averageExecutedPrice"))
+	var average *string = this.OmitZero(this.SafeString(order, "averageExecutedPrice"))
 	// const remaining = Precise.stringSub (cost, filled);
 	var fee *float64 = this.SafeNumber(order, "totalFee")
 	var feeCurrency *string = this.SafeString(order, "feeAsset")
@@ -3126,7 +3126,7 @@ func (this *Woo) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], option
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", true, true)
-	var paramsRequest any = params
+	var paramsRequest map[string]any = params
 	if symbolsNormalized == nil {
 		marketType, paramsMarketType := this.HandleMarketTypeAndParams("fetchTickers", nil, params, "swap")
 		if marketType == nil || *marketType != "swap" {

@@ -1234,14 +1234,14 @@ func (this *Deribit) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*unifiedTimeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	var ohlcv map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	// data contains a single ccxt.OHLCV candle
 	var parsed any = this.ParseWsOHLCV(ohlcv, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	if symbol != nil && unifiedTimeframe != nil && this.Ohlcvs[*symbol] != nil {
 		this.Ohlcvs[*symbol][*unifiedTimeframe] = stored
 	}

@@ -12891,11 +12891,11 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) Position {
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"cTime", "ctime", "createdTime"})
 	var marginMode *string = this.SafeString(position, "marginMode")
 	var collateral any = nil
-	var marginString any = nil
-	var initialMargin any = nil
+	var marginString *string = nil
+	var initialMargin *string = nil
 	var unrealizedPnl *string = this.SafeString2(position, "unrealizedPL", "unrealisedPnl")
 	var collateralString *string = this.SafeString2(position, "marginSize", "positionBalance")
-	var rawCollateral any = this.OmitZero(collateralString)
+	var rawCollateral *string = this.OmitZero(collateralString)
 	if marginMode != nil && *marginMode == "isolated" {
 		collateral = func() any {
 			if unrealizedPnl != nil {
@@ -12935,7 +12935,7 @@ func (this *Bitget) ParsePosition(position any, optionalArgs ...any) Position {
 	var notional *string = Precise.StringMul(baseAmount, markPrice)
 	var initialMarginPercentage *string = Precise.StringDiv(initialMargin, notional)
 	var liquidationPriceString *string = this.SafeString(position, "liquidationPrice")
-	var rawLiquidationPrice any = this.OmitZero(liquidationPriceString)
+	var rawLiquidationPrice *string = this.OmitZero(liquidationPriceString)
 	var liquidationPrice *float64 = nil
 	if (rawLiquidationPrice != nil) && Precise.StringGt(rawLiquidationPrice, "0") {
 		liquidationPrice = this.ParseNumber(rawLiquidationPrice)
@@ -13708,9 +13708,9 @@ func (this *Bitget) ParseFundingHistories(contracts any, optionalArgs ...any) []
 		result = append(result, parsedFunding)
 	}
 	var sorted []any = this.SortBy(result, "timestamp")
-	var symbol any = nil
+	var symbol *string = nil
 	if market != nil {
-		symbol = DerefScalar(this.SafeString(market, "symbol"))
+		symbol = this.SafeString(market, "symbol")
 	}
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }
@@ -14364,14 +14364,14 @@ func (this *Bitget) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opt
 		}
 	}
 	var typeVar any = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	var typeVarPtr *string = nil
 	typeVarPtr, paramsMarketType = this.HandleMarketTypeAndParams("fetchTransfers", nil, params)
 	if typeVarPtr != nil {
 		typeVar = *typeVarPtr
 	}
 	var fromAccount *string = this.SafeString(paramsMarketType, "fromAccount", typeVar)
-	paramsMarketType = this.Omit(paramsMarketType, "fromAccount")
+	paramsMarketType = this.OmitDict(paramsMarketType, "fromAccount")
 	var accountsByType map[string]any = SafeMapTyped(this.Options, "accountsByType")
 	if derefPtr := this.SafeString(accountsByType, fromAccount); derefPtr != nil {
 		typeVar = *derefPtr

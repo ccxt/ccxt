@@ -3065,8 +3065,8 @@ func (this *Sxbet) connectSxbetCentrifugoBody(ch chan ccxt.AsyncResult[bool], ur
 	// per connection and resolves when the connect reply arrives (see handleCentrifugoFrame). The base
 	// clears client.(*ccxt.WSClient).Subscriptions on reconnect, so an absent 'connect' marker means a fresh handshake.
 	var client any = this.Client(url)
-	var connectSent any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect")
-	if connectSent == nil {
+	var connectSent bool = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "connect") != nil
+	if !connectSent {
 		this.Options["wsConnected"] = false
 
 		r := <-this.FetchSxbetRealtimeTokenAsync()

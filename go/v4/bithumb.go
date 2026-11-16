@@ -2094,9 +2094,9 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
 	var isPostOnly bool = postOnly || (timeInForce == "PO")
-	var paramsOrder any = paramsPostOnly
+	var paramsOrder map[string]any = paramsPostOnly
 	if isPostOnly {
-		paramsOrder = this.Omit(paramsPostOnly, "postOnly")
+		paramsOrder = this.OmitDict(paramsPostOnly, "postOnly")
 	}
 	if isPostOnly {
 		request["time_in_force"] = "post_only"
@@ -2141,9 +2141,9 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
 	}
-	var paramsRequest any = func() any {
+	var paramsRequest map[string]any = func() map[string]any {
 		if clientOrderId != nil {
-			return this.Omit(paramsOrder, "clientOrderId")
+			return this.OmitDict(paramsOrder, "clientOrderId")
 		}
 		return paramsOrder
 	}()
@@ -2406,7 +2406,7 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		market = this.Market(symbol)
 	}
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var data any = nil
@@ -2450,9 +2450,9 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 			data = this.SafeDict(orders, 0, map[string]any{})
 		} else {
 			var clientOrderId *string = this.SafeString2(paramsOmitted, "clientOrderId", "client_order_id")
-			var paramsClientOrderId any = func() any {
+			var paramsClientOrderId map[string]any = func() map[string]any {
 				if clientOrderId != nil {
-					return this.Omit(paramsOmitted, []any{"clientOrderId"})
+					return this.OmitDict(paramsOmitted, []any{"clientOrderId"})
 				}
 				return paramsOmitted
 			}()
@@ -2931,16 +2931,16 @@ func (this *Bithumb) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 	}
 	var request map[string]any = map[string]any{}
 	var twap *bool = this.SafeBool(paramsGeneration, "twap", false)
-	var paramsOmitted any = this.Omit(paramsGeneration, "twap")
+	var paramsOmitted map[string]any = this.OmitDict(paramsGeneration, "twap")
 	var clientOrderIds any = nil
 	if twap != nil && *twap {
 		clientOrderIds = nil
 	} else {
 		clientOrderIds = this.SafeList2(paramsOmitted, "client_order_ids", "clientOrderIds")
 	}
-	var paramsRequest any = func() any {
+	var paramsRequest map[string]any = func() map[string]any {
 		if clientOrderIds != nil {
-			return this.Omit(paramsOmitted, []any{"clientOrderIds"})
+			return this.OmitDict(paramsOmitted, []any{"clientOrderIds"})
 		}
 		return paramsOmitted
 	}()
@@ -3365,18 +3365,18 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "withdraw", "generation", 2)
 	var tagWithdrawTag *string = this.SafeString(paramsGeneration, "tag")
-	var paramsWithdrawTag any = this.Omit(paramsGeneration, "tag")
+	var paramsWithdrawTag map[string]any = this.OmitDict(paramsGeneration, "tag")
 	this.CheckAddress(address, code, tagWithdrawTag)
 	var network *string = this.SafeString2(paramsWithdrawTag, "network", "net_type")
-	var paramsNetwork any = this.Omit(paramsWithdrawTag, "network")
+	var paramsNetwork map[string]any = this.OmitDict(paramsWithdrawTag, "network")
 	var currency map[string]any = this.Currency(code)
 	var request map[string]any = map[string]any{}
 	var response map[string]any = nil
 	var destinationRequest *string = nil
 	var requiresDestination bool = ((code == "XRP") || (code == "XMR") || (code == "EOS") || (code == "STEEM") || (code == "TON"))
-	var paramsDestination any = paramsNetwork
+	var paramsDestination map[string]any = paramsNetwork
 	if requiresDestination {
-		paramsDestination = this.Omit(paramsNetwork, []any{"destination", "secondary_address"})
+		paramsDestination = this.OmitDict(paramsNetwork, []any{"destination", "secondary_address"})
 	}
 	if requiresDestination {
 		var destination *string = this.SafeString2(paramsNetwork, "destination", "secondary_address")
@@ -3389,7 +3389,7 @@ func (this *Bithumb) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		}
 	}
 	var receiverType *string = this.SafeString2(paramsDestination, "receiver_type", "cust_type_cd")
-	var paramsReceiverType any = this.Omit(paramsDestination, []any{"receiver_type", "cust_type_cd"})
+	var paramsReceiverType map[string]any = this.OmitDict(paramsDestination, []any{"receiver_type", "cust_type_cd"})
 	if generation == 2 {
 		if code == "KRW" {
 			var twoFactorType *string = this.SafeString(paramsReceiverType, "two_factor_type")

@@ -1404,12 +1404,12 @@ func (this *Onetrading) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	}())
 	var durationInSeconds int64 = this.ParseTimeframe(timeframe)
 	var duration int64 = durationInSeconds * 1000
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1500
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1500
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"instrument_code": market["id"],
 		"period":          period,

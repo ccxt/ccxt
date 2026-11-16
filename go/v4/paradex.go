@@ -2368,11 +2368,11 @@ func (this *Paradex) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var side *string = this.SafeStringLower(order, "side")
-	var average any = this.OmitZero(this.SafeString(order, "avg_fill_price"))
-	var remaining any = this.OmitZero(this.SafeString(order, "remaining_size"))
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "trigger_price"))
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var average *string = this.OmitZero(this.SafeString(order, "avg_fill_price"))
+	var remaining *string = this.OmitZero(this.SafeString(order, "remaining_size"))
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "trigger_price"))
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if orderType != nil {
 		if strings.Index(*orderType, "STOP_LOSS") >= 0 {
 			stopLossPrice = triggerPrice

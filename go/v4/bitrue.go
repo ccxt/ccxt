@@ -2417,9 +2417,9 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		request["contractName"] = market["id"]
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuyWithPrice bool = isMarket && (side == "buy") && createMarketBuyOrderRequiresPrice
-		var paramsNoCost any = paramsRequiresPrice
+		var paramsNoCost map[string]any = paramsRequiresPrice
 		if isMarketBuyWithPrice {
-			paramsNoCost = this.Omit(paramsRequiresPrice, "cost")
+			paramsNoCost = this.OmitDict(paramsRequiresPrice, "cost")
 		}
 		if isMarketBuyWithPrice {
 			var cost *string = this.SafeString(paramsRequiresPrice, "cost")
@@ -2450,7 +2450,7 @@ func (this *Bitrue) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		}()
 		var leverage *string = this.SafeString(paramsNoCost, "leverage", "1")
 		request["leverage"] = this.ParseToNumeric(leverage)
-		var paramsSwap any = this.Omit(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
+		var paramsSwap map[string]any = this.OmitDict(paramsNoCost, []any{"leverage", "reduceOnly", "reduce_only", "timeInForce"})
 		if *this.SafeBool(market, "linear", false) {
 
 			r1 := <-this.FapiV2PrivatePostOrder(this.Extend(request, paramsSwap))

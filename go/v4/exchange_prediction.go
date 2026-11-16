@@ -1800,12 +1800,12 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 	// outcome-addressed row). prediction is always linear with a contract size of 1.
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var amount any = this.OmitZero(this.SafeString(outcomeOrder, "amount"))
+	var amount *string = this.OmitZero(this.SafeString(outcomeOrder, "amount"))
 	var filled *string = this.SafeString(outcomeOrder, "filled")
 	var remaining *string = this.SafeString(outcomeOrder, "remaining")
 	var cost *string = this.SafeString(outcomeOrder, "cost")
-	var average any = this.OmitZero(this.SafeString(outcomeOrder, "average"))
-	var price any = this.OmitZero(this.SafeString(outcomeOrder, "price"))
+	var average *string = this.OmitZero(this.SafeString(outcomeOrder, "average"))
+	var price *string = this.OmitZero(this.SafeString(outcomeOrder, "price"))
 	var side *string = this.SafeString(outcomeOrder, "side")
 	var status *string = this.SafeString(outcomeOrder, "status")
 	var lastTradeTimestamp *int64 = this.SafeInteger(outcomeOrder, "lastTradeTimestamp")
@@ -1862,12 +1862,12 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 		average = Precise.StringDiv(cost, filled)
 	}
 	if (cost == nil) && (filled != nil) {
-		var multiplyPrice any = func() any {
-			if average != nil {
-				return average
-			}
-			return price
-		}()
+		var multiplyPrice *string
+		if average != nil {
+			multiplyPrice = average
+		} else {
+			multiplyPrice = price
+		}
 		if multiplyPrice != nil {
 			cost = Precise.StringMul(filled, multiplyPrice)
 		}
@@ -1977,12 +1977,12 @@ func (this *PredictionExchange) SafePredictionTicker(ticker any, optionalArgs ..
 	// prediction venues report those directly, so the crypto back-derivation from percentage is moot.
 	var outcomeObj map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var open any = this.OmitZero(this.SafeString(ticker, "open"))
-	var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
-	var last any = this.OmitZero(this.SafeString2(ticker, "last", "close"))
+	var open *string = this.OmitZero(this.SafeString(ticker, "open"))
+	var close *string = this.OmitZero(this.SafeString2(ticker, "close", "last"))
+	var last *string = this.OmitZero(this.SafeString2(ticker, "last", "close"))
 	var change *string = this.SafeString(ticker, "change")
-	var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
-	var average any = this.OmitZero(this.SafeString(ticker, "average"))
+	var percentage *string = this.OmitZero(this.SafeString(ticker, "percentage"))
+	var average *string = this.OmitZero(this.SafeString(ticker, "average"))
 	if (change == nil) && (open != nil) && (close != nil) {
 		change = Precise.StringSub(close, open)
 	}

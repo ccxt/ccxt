@@ -2932,9 +2932,9 @@ func (this *Coinbaseinternational) createOrderBody(ch chan AsyncResult[Order], s
 		request["reject_post_only"] = true
 		request["time_in_force"] = "good_til_cancelled"
 	}
-	var paramsOrder any = this.Omit(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
+	var paramsOrder map[string]any = this.OmitDict(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "tif", "timeInForce", "triggerPrice", "stopPrice", "stop_price"})
 	if this.IsNativeDeribitCredentials() {
-		paramsOrder = this.Omit(paramsOrder, []any{"reduceOnly", "reduce_only"})
+		paramsOrder = this.OmitDict(paramsOrder, []any{"reduceOnly", "reduce_only"})
 	}
 
 	r1 := <-this.AuthenticateV2Async()

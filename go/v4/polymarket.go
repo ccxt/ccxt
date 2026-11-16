@@ -1085,9 +1085,9 @@ func (this *Polymarket) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -1253,12 +1253,12 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		} else {
 			end = this.Milliseconds()
 		}
-		var requestedLimit int64 = func() int64 {
-			if limit != nil {
-				return *limit
-			}
-			return 100
-		}()
+		var requestedLimit int64
+		if limit != nil {
+			requestedLimit = *limit
+		} else {
+			requestedLimit = 100
+		}
 		request["start_timestamp"] = (end - ((requestedLimit - 1) * duration))
 	}
 
@@ -2395,7 +2395,7 @@ func (this *Polymarket) ParseOrder(order any, optionalArgs ...any) Order {
 			return "sell"
 		}())
 	}
-	var price any = this.OmitZero(this.SafeString2(order, "price", "p"))
+	var price *string = this.OmitZero(this.SafeString2(order, "price", "p"))
 	var typeVar *string = nil
 	var tif *string = this.SafeString(order, "tif")
 	if tif != nil {
@@ -2782,14 +2782,14 @@ func (this *Polymarket) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 	var clientOrderId *string = this.SafeString(paramsOmitted, "clientOrderId")
 	if clientOrderId != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "clientOrderId")
+		paramsOmitted = this.OmitDict(paramsOmitted, "clientOrderId")
 		request["client_order_id"] = clientOrderId
 	}
 
@@ -2910,9 +2910,9 @@ func (this *Polymarket) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optional
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3002,9 +3002,9 @@ func (this *Polymarket) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHis
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3185,9 +3185,9 @@ func (this *Polymarket) fetchDepositsBody(ch chan AsyncResult[[]Transaction], op
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 
@@ -3249,9 +3249,9 @@ func (this *Polymarket) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction],
 		request["start_timestamp"] = since
 	}
 	var until *int64 = this.SafeInteger(params, "until")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if until != nil {
-		paramsOmitted = this.Omit(paramsOmitted, "until")
+		paramsOmitted = this.OmitDict(paramsOmitted, "until")
 		request["end_timestamp"] = until
 	}
 

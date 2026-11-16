@@ -4312,12 +4312,12 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 	}
 	var isContract bool = (market["contract"] == true)
 	var marketType *string = SafeStringPtr(market["type"])
-	var contractLimit any = func() any {
-		if limit != nil {
-			return limit
-		}
-		return 2000
-	}() // only used for from/to calculation
+	var contractLimit int64
+	if limit != nil {
+		contractLimit = *limit
+	} else {
+		contractLimit = 2000
+	} // only used for from/to calculation
 	var rangeLimit any = limit
 	if isContract {
 		rangeLimit = contractLimit
@@ -4331,12 +4331,12 @@ func (this *Htx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			var calcualtedEnd any = nil
 			if since == nil {
 				var now int64 = this.Seconds()
-				request["from"] = Subtract(now, Multiply(duration, (Subtract(contractLimit, 1))))
+				request["from"] = now - duration*(contractLimit-1)
 				calcualtedEnd = now
 			} else {
 				var start int64 = this.ParseToInt(float64(*since) / 1000)
 				request["from"] = start
-				calcualtedEnd = this.Sum(start, Multiply(duration, (Subtract(contractLimit, 1))))
+				calcualtedEnd = this.Sum(start, duration*(contractLimit-1))
 			}
 			request["to"] = func() any {
 				if untilSeconds != nil {
@@ -7172,7 +7172,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 		return typeVar
 	}()
 	subType, paramsSubType := this.HandleSubTypeAndParams("createOrder", market, paramsPostOnly)
-	var query any = paramsSubType
+	var query map[string]any = paramsSubType
 	var isLinear bool = (subType != nil && *subType == "linear")
 	var reduceOnly *bool = this.SafeBool2(query, "reduceOnly", "reduce_only", false)
 	var hedged *bool = this.SafeBool(query, "hedged", false)
@@ -7204,7 +7204,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 			if stopLossType != nil {
 				request["sl_type"] = stopLossType
 			}
-			query = this.Omit(query, "stopLoss")
+			query = this.OmitDict(query, "stopLoss")
 		}
 		if takeProfit != nil {
 			if takeProfitTriggerPriceAttached != nil {
@@ -7216,7 +7216,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 			if takeProfitType != nil {
 				request["tp_type"] = takeProfitType
 			}
-			query = this.Omit(query, "takeProfit")
+			query = this.OmitDict(query, "takeProfit")
 		}
 	} else {
 		if hedged != nil && *hedged {
@@ -7246,7 +7246,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 	if isLinear && (isTrailingPercentOrder || isTrigger || isStopLossTriggerOrder || isTakeProfitTriggerOrder) {
 		if clientOrderId != nil {
 			request["algo_client_order_id"] = clientOrderId
-			query = this.Omit(query, []any{"clientOrderId", "client_order_id"})
+			query = this.OmitDict(query, []any{"clientOrderId", "client_order_id"})
 		}
 	}
 	if isTrigger {
@@ -7296,7 +7296,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 	} else {
 		if clientOrderId != nil {
 			request["client_order_id"] = clientOrderId
-			query = this.Omit(query, []any{"clientOrderId"})
+			query = this.OmitDict(query, []any{"clientOrderId"})
 		}
 		if (IsEqual(orderType, "limit")) || (IsEqual(orderType, "ioc")) || (IsEqual(orderType, "fok")) || (IsEqual(orderType, "post_only")) {
 			if price != nil {
@@ -7322,7 +7322,7 @@ func (this *Htx) CreateContractOrderRequest(symbol *string, typeVar *string, sid
 	var broker map[string]any = SafeMapTyped(this.Options, "broker")
 	var brokerId *string = this.SafeString(broker, "id")
 	request["channel_code"] = brokerId
-	var paramsOmitted any = this.Omit(query, []any{"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"})
+	var paramsOmitted map[string]any = this.OmitDict(query, []any{"reduceOnly", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "triggerType", "leverRate", "timeInForce", "leverage", "trailingPercent", "trailingTriggerPrice", "hedged"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -7863,7 +7863,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 	var trigger *bool = this.SafeBool2(paramsSubType, "stop", "trigger")
 	var stopLossTakeProfit *bool = this.SafeBoolN(paramsSubType, []any{"stopLossTakeProfit", "stopLoss", "takeProfit"})
 	var trailing *bool = this.SafeBool(paramsSubType, "trailing", false)
-	var query any = this.Omit(paramsSubType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
+	var query map[string]any = this.OmitDict(paramsSubType, []any{"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"})
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 		var clientOrderId *string = this.SafeString2(query, "client-order-id", "clientOrderId")
@@ -7877,7 +7877,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 			response = r1.Raw
 		} else {
 			request["client-order-id"] = clientOrderId
-			query = this.Omit(query, []any{"client-order-id", "clientOrderId"})
+			query = this.OmitDict(query, []any{"client-order-id", "clientOrderId"})
 
 			r2 := <-this.SpotPrivatePostV1OrderOrdersSubmitCancelClientOrder(this.Extend(request, query))
 			if r2.Err != nil {
@@ -7895,7 +7895,7 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 				request["order_id"] = id
 			} else {
 				request["client_order_id"] = clientOrderId
-				query = this.Omit(query, []any{"client_order_id", "clientOrderId"})
+				query = this.OmitDict(query, []any{"client_order_id", "clientOrderId"})
 			}
 		}
 		if *this.SafeBool(market, "future", false) {
@@ -7910,10 +7910,10 @@ func (this *Htx) cancelOrderBody(ch chan AsyncResult[Order], id string, optional
 				}
 				if clientOrderId == nil {
 					requestItem["algo_id"] = id
-					query = this.Omit(query, "algo_id")
+					query = this.OmitDict(query, "algo_id")
 				} else {
 					requestItem["algo_client_order_id"] = clientOrderId
-					query = this.Omit(query, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
+					query = this.OmitDict(query, []any{"client_order_id", "clientOrderId", "algo_client_order_id"})
 				}
 				var requestBody []any = []any{this.Extend(requestItem, query)}
 
@@ -8104,7 +8104,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 	var request map[string]any = map[string]any{}
 	var trigger *bool = this.SafeBool2(paramsMarketType, "stop", "trigger")
 	var stopLossTakeProfit *bool = this.SafeBool(paramsMarketType, "stopLossTakeProfit", false)
-	var query any = this.Omit(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trigger"})
+	var query map[string]any = this.OmitDict(paramsMarketType, []any{"stop", "stopLossTakeProfit", "trigger"})
 	var response any = nil
 	if marketType != nil && *marketType == "spot" {
 		var clientOrderIds any = this.SafeValue2(query, "client-order-id", "clientOrderId")
@@ -8121,7 +8121,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 			} else {
 				request["client-order-ids"] = clientOrderIds
 			}
-			query = this.Omit(query, []any{"client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"})
+			query = this.OmitDict(query, []any{"client-order-id", "client-order-ids", "clientOrderId", "clientOrderIds"})
 		}
 
 		r1 := <-this.SpotPrivatePostV1OrderOrdersBatchcancel(this.Extend(request, query))
@@ -8135,7 +8135,7 @@ func (this *Htx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, op
 		}
 		var clientOrderIds any = this.SafeValue2(query, "client_order_id", "clientOrderId")
 		clientOrderIds = this.SafeValue2(query, "client_order_ids", "clientOrderIds", clientOrderIds)
-		query = this.Omit(query, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
+		query = this.OmitDict(query, []any{"client_order_id", "client_order_ids", "clientOrderId", "clientOrderIds"})
 		if !(*this.SafeBool(market, "linear", false)) {
 			if IsEqual(clientOrderIds, nil) {
 				request["order_id"] = strings.Join(ids, ",")
@@ -9171,9 +9171,9 @@ func (this *Htx) withdrawBody(ch chan AsyncResult[Transaction], code string, amo
 	var amountValue *float64 = this.ParseNumber(amountPrecision)
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)
-	var paramsFee any = paramsNetwork
+	var paramsFee map[string]any = paramsNetwork
 	if includeFee != nil && *includeFee {
-		paramsFee = this.Omit(paramsNetwork, "fee")
+		paramsFee = this.OmitDict(paramsNetwork, "fee")
 	}
 	if includeFee != nil && *includeFee {
 		var fee *float64 = this.SafeNumber(paramsNetwork, "fee")
@@ -9391,7 +9391,7 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 		}
 		response = r5.Value
 	} else {
-		var query any = paramsSubType
+		var query map[string]any = paramsSubType
 		if subType != nil && *subType == "linear" {
 			if (IsEqual(fromAccountIdStr, "swap")) || (fromAccount == "linear-swap") {
 				fromAccountId = "linear-swap"
@@ -9400,7 +9400,7 @@ func (this *Htx) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 			}
 			// check if cross-margin or isolated
 			var symbol any = DerefScalar(this.SafeString(paramsSubType, "symbol"))
-			query = this.Omit(paramsSubType, "symbol")
+			query = this.OmitDict(paramsSubType, "symbol")
 			if !IsEqual(symbol, nil) {
 				symbol = this.MarketId(symbol)
 				request["margin-account"] = symbol

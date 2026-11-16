@@ -2671,8 +2671,8 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	var remaining *string = this.SafeString(orderDict, "remaining")
 	var filled any = this.SafeString(orderDict, "filled")
 	var cost *string = this.SafeString(orderDict, "cost")
-	var average any = this.OmitZero(this.SafeString(orderDict, "average"))
-	var price any = this.OmitZero(this.SafeString(orderDict, "price"))
+	var average *string = this.OmitZero(this.SafeString(orderDict, "average"))
+	var price *string = this.OmitZero(this.SafeString(orderDict, "price"))
 	var lastTradeTimeTimestamp *int64 = this.SafeInteger(orderDict, "lastTradeTimestamp")
 	var symbol *string = this.SafeString(orderDict, "symbol")
 	var side *string = this.SafeString(orderDict, "side")
@@ -2843,9 +2843,9 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	//
 	// linear
 	// cost = filled * contract size * price
-	var costPriceExists bool = (average != nil) || (!IsEqual(price, nil))
+	var costPriceExists bool = (average != nil) || (price != nil)
 	if parseCost && (!IsEqual(filled, nil)) && costPriceExists {
-		var multiplyPrice any = nil
+		var multiplyPrice *string = nil
 		if average == nil {
 			multiplyPrice = price
 		} else {
@@ -2861,7 +2861,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 	}
 	// support for market orders
 	var orderType *string = this.SafeString(orderDict, "type")
-	var emptyPrice bool = (IsEqual(price, nil)) || Precise.StringEquals(price, "0")
+	var emptyPrice bool = (price == nil) || Precise.StringEquals(price, "0")
 	if emptyPrice && (orderType != nil && *orderType == "market") {
 		price = average
 	}
@@ -3340,11 +3340,11 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) []any {
 func (this *BaseExchange) SafeTicker(ticker map[string]any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var open any = this.OmitZero(this.SafeString(ticker, "open"))
-	var close any = this.OmitZero(this.SafeString2(ticker, "close", "last"))
+	var open *string = this.OmitZero(this.SafeString(ticker, "open"))
+	var close *string = this.OmitZero(this.SafeString2(ticker, "close", "last"))
 	var change *string = this.SafeString(ticker, "change") // change can be a legitimate zero on a flat day, do not omitZero it, see https://github.com/ccxt/ccxt/issues/25971
-	var percentage any = this.OmitZero(this.SafeString(ticker, "percentage"))
-	var average any = this.OmitZero(this.SafeString(ticker, "average"))
+	var percentage *string = this.OmitZero(this.SafeString(ticker, "percentage"))
+	var average *string = this.OmitZero(this.SafeString(ticker, "average"))
 	var vwap *string = this.SafeString(ticker, "vwap")
 	var baseVolume *string = this.SafeString(ticker, "baseVolume")
 	var quoteVolume *string = this.SafeString(ticker, "quoteVolume")
@@ -3364,12 +3364,12 @@ func (this *BaseExchange) SafeTicker(ticker map[string]any, optionalArgs ...any)
 			var openAddClose *string = Precise.StringMul(average, "2")
 			// openAddClose = open * (1 + (100 + percentage)/100)
 			var denominator *string = Precise.StringAdd("2", Precise.StringDiv(percentage, "100"))
-			var calcOpen any = func() any {
-				if open != nil {
-					return open
-				}
-				return Precise.StringDiv(openAddClose, denominator)
-			}()
+			var calcOpen *string
+			if open != nil {
+				calcOpen = open
+			} else {
+				calcOpen = Precise.StringDiv(openAddClose, denominator)
+			}
 			close = Precise.StringMul(calcOpen, Precise.StringAdd("1", Precise.StringDiv(percentage, "100")))
 		}
 		if (open == nil) && (close != nil) {
@@ -5817,13 +5817,13 @@ func (this *BaseExchange) RequireValue(value any, optionalArgs ...any) any {
 	var message *string = GetArgStringPtr(optionalArgs, 0, nil)
 	_ = message
 	if IsEqual(value, nil) {
-		var errorMessage any = func() any {
-			if message != nil {
-				return message
-			}
-			return "value is required"
-		}()
-		panic(ArgumentsRequired(Add(this.Id+" ", errorMessage)))
+		var errorMessage string
+		if message != nil {
+			errorMessage = *message
+		} else {
+			errorMessage = "value is required"
+		}
+		panic(ArgumentsRequired(this.Id + " " + errorMessage))
 	}
 	return value
 }

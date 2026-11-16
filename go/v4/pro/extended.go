@@ -668,13 +668,13 @@ func (this *Extended) HandleOrders(client any, message map[string]any) {
 	}
 	var orders ccxt.WsArrayCache = this.Orders
 	var data map[string]any = ccxt.SafeMapTyped(message, "data")
-	var rawOrders any = this.SafeList(data, "orders")
+	var rawOrders []any = ccxt.SafeListTyped(data, "orders")
 	var symbols map[string]any = map[string]any{}
 	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
 	if first == nil {
 		return
 	}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
+	for i := 0; i < len(rawOrders); i++ {
 		var order map[string]any = ccxt.OrderToMap(this.ParseOrder(this.SafeDict(rawOrders, i, map[string]any{})))
 		var symbol *string = this.SafeString(order, "symbol")
 		if symbol != nil {

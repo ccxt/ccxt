@@ -869,7 +869,8 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	if timeframe == nil {
 		return
 	}
-	var stored any = this.Ohlcvs[symbol][*timeframe]
+	var stored ccxt.WsArrayCache
+	stored, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
@@ -880,7 +881,7 @@ func (this *Bitget) HandleOHLCV(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
 		var parsed any = this.ParseWsOHLCV(data[i], market)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash string
 	if isUta {
@@ -1001,7 +1002,7 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	uta, paramsUta := this.HandleOptionBoolAndParams(paramsStock, "unWatchOrderBook", "uta", false)
 	var isStockSpot bool = (isStock != nil && *isStock) && (market["spot"] == true)
 	var isStockOrUta bool = (isStockSpot || uta)
-	var paramsRequest any = paramsUta
+	var paramsRequest map[string]any = paramsUta
 	if isStockOrUta {
 		paramsRequest = this.Extend(paramsUta, map[string]any{
 			"uta": true,
@@ -1010,9 +1011,9 @@ func (this *Bitget) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbol 
 	var channel string = "books"
 	var limit *int64 = this.SafeInteger(paramsRequest, "limit")
 	var isFixedDepth bool = (limit != nil && *limit == 1) || (limit != nil && *limit == 5) || (limit != nil && *limit == 15) || (limit != nil && *limit == 50)
-	var paramsOmitted any = paramsRequest
+	var paramsOmitted map[string]any = paramsRequest
 	if isFixedDepth {
-		paramsOmitted = this.Omit(paramsRequest, "limit")
+		paramsOmitted = this.OmitDict(paramsRequest, "limit")
 	}
 	if isFixedDepth {
 		channel += ccxt.ToString(limit)
@@ -1138,7 +1139,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 	}
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	var paramsCursor any = paramsUta
+	var paramsCursor map[string]any = paramsUta
 	for i := 0; i < symbolsLength; i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -1163,7 +1164,7 @@ func (this *Bitget) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.O
 		messageHashes = append(messageHashes, "orderbook:"+symbol)
 	}
 	if isStockOrUta {
-		ccxt.AddElementToObject(paramsCursor, "uta", true)
+		paramsCursor["uta"] = true
 	}
 
 	r1 := <-this.WatchPublicMultipleAsync(isStockOrUta, messageHashes, topics, paramsCursor)
@@ -2589,7 +2590,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		price = this.SafeNumber(order, "executePrice")
 	}
 	var avgPriceString *string = this.SafeStringLowerN(order, []any{"priceAvg", "fillPrice", "avgPrice"})
-	var avgPrice any = func() any {
+	var avgPrice *string = func() *string {
 		if avgPriceString == nil {
 			return nil
 		}
@@ -2598,29 +2599,21 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	var side *string = this.SafeString(order, "side")
 	var typeVar *string = this.SafeString(order, "orderType")
 	var accBaseVolumeString *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")
-	var accBaseVolume any = this.OmitZero(accBaseVolumeString)
+	var accBaseVolume *string = this.OmitZero(accBaseVolumeString)
 	var newSizeString *string = this.SafeString2(order, "newSize", "cumExecValue")
-	var newSizeValue any = this.OmitZero(newSizeString)
+	var newSizeValue *string = this.OmitZero(newSizeString)
 	var isMarketOrder bool = (typeVar != nil && *typeVar == "market")
 	var isBuy bool = (side != nil && *side == "buy")
-	var totalAmount any = nil
+	var totalAmount *string = nil
 	var filledAmount *string = nil
-	var cost any = nil
+	var cost *string = nil
 	var remaining *string = nil
 	var totalFilled *string = this.SafeString2(order, "accBaseVolume", "cumExecQty")
 	if isSpot {
 		if isMargin {
-			if derefPtr := this.SafeString2(order, "baseSize", "qty"); derefPtr != nil {
-				totalAmount = *derefPtr
-			} else {
-				totalAmount = nil
-			}
+			totalAmount = this.SafeString2(order, "baseSize", "qty")
 			totalFilled = this.SafeString2(order, "baseVolume", "cumExecQty")
-			if derefPtr := this.SafeString2(order, "fillTotalAmount", "cumExecValue"); derefPtr != nil {
-				cost = *derefPtr
-			} else {
-				cost = nil
-			}
+			cost = this.SafeString2(order, "fillTotalAmount", "cumExecValue")
 		} else {
 			filledAmount = totalFilled
 			if isMarketOrder {
@@ -2631,11 +2624,7 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 					totalAmount = newSizeValue
 				}
 			} else {
-				if derefPtr := this.SafeString2(order, "newSize", "qty"); derefPtr != nil {
-					totalAmount = *derefPtr
-				} else {
-					totalAmount = nil
-				}
+				totalAmount = this.SafeString2(order, "newSize", "qty")
 			}
 		}
 	} else {
@@ -2643,18 +2632,10 @@ func (this *Bitget) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 		// and cost is priceAvg * cumulative filled, quote-denominated for linear and inverse alike (same as quoteVolume in REST parseOrder)
 		// the channel has no cumulative notional field, so without a priceAvg no cost is set (cumExecValue stays the first read)
 		filledAmount = totalFilled
-		if derefPtr := this.SafeString2(order, "size", "qty"); derefPtr != nil {
-			totalAmount = *derefPtr
-		} else {
-			totalAmount = nil
-		}
-		if derefPtr := this.SafeString(order, "cumExecValue"); derefPtr != nil {
-			cost = *derefPtr
-		} else {
-			cost = nil
-		}
-		if ccxt.IsEqual(cost, nil) {
-			var priceAvgString any = this.OmitZero(this.SafeString(order, "priceAvg"))
+		totalAmount = this.SafeString2(order, "size", "qty")
+		cost = this.SafeString(order, "cumExecValue")
+		if cost == nil {
+			var priceAvgString *string = this.OmitZero(this.SafeString(order, "priceAvg"))
 			if (priceAvgString != nil) && (totalFilled != nil) {
 				cost = ccxt.Precise.StringMul(totalFilled, priceAvgString)
 			}
@@ -3374,8 +3355,8 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
 		var auth string = timestamp + "GET" + "/user/verify"
 		var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), ccxt.Sha256, "base64")
@@ -3461,8 +3442,8 @@ func (this *Bitget) HandleAuthenticate(client any, message map[string]any) {
 	//  { event: "login", code: 0 }
 	//
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-	future.(*ccxt.Future).Resolve(true)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	future.Resolve(true)
 }
 func (this *Bitget) HandleErrorMessage(client any, message map[string]any) any {
 	//

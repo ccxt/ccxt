@@ -903,10 +903,11 @@ func (this *Polymarket) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[symbol][*timeframe] = stored
 		}
 	}
-	var ohlcv any = this.Ohlcvs[symbol][*timeframe]
+	var ohlcv ccxt.WsArrayCache
+	ohlcv, _ = this.Ohlcvs[symbol][*timeframe].(ccxt.WsArrayCache)
 	for i := 0; i < len(rows); i++ {
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(rows[i], market))
-		ohlcv.(ccxt.Appender).Append(parsed)
+		ohlcv.Append(parsed)
 	}
 	var messageHash string = "candles:" + *timeframe + ":" + symbol
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
@@ -940,8 +941,8 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var id int64 = this.RequestId()
 		var pending map[string]any = map[string]any{
 			"method":           "auth",
@@ -1345,8 +1346,8 @@ func (this *Polymarket) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool]
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(cache)
 	}
 	client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	return nil
@@ -1441,8 +1442,8 @@ func (this *Polymarket) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 	this.Balance = this.Extend(this.Balance, balance)
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(this.Balance)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(this.Balance)
 	}
 	client.(ccxt.ClientInterface).Resolve(this.Balance, "balance")
 	return nil
@@ -1545,9 +1546,9 @@ func (this *Polymarket) HandleAck(client any, message any) {
 					if authStatus != nil && *authStatus == "ok" {
 						// resolve the future object directly so it stays
 						// cached and later authenticate calls reuse it
-						var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
+						var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 						if future != nil {
-							future.(*ccxt.Future).Resolve(true)
+							future.Resolve(true)
 						}
 					} else {
 						authError := ccxt.AuthenticationError(this.Id + " authentication failed " + this.Json(data))

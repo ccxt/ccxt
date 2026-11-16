@@ -288,9 +288,9 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && tf != nil {
-		stored = this.Ohlcvs[*symbol][*tf]
+		stored, _ = this.Ohlcvs[*symbol][*tf].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -301,7 +301,7 @@ func (this *Mudrex) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var messageHash *string = stream
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }

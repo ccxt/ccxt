@@ -4837,7 +4837,7 @@ func (this *Aster) ParsePositionRisk(position any, optionalArgs ...any) any {
 	var contracts *float64 = this.ParseNumber(contractsAbs)
 	var unrealizedPnlString *string = this.SafeString(position, "unRealizedProfit")
 	var unrealizedPnl *float64 = this.ParseNumber(unrealizedPnlString)
-	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liquidationPrice"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liquidationPrice"))
 	var liquidationPrice *float64 = this.ParseNumber(liquidationPriceString)
 	var collateralString *string = nil
 	var marginMode *string = this.SafeString(position, "marginType")

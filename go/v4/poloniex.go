@@ -5159,7 +5159,7 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 	var leverage *string = this.SafeString(position, "lever")
 	var initialMargin *string = this.SafeString(position, "im")
 	var notional *string = Precise.StringMul(leverage, initialMargin)
-	var positionMargin any = nil
+	var positionMargin *string = nil
 	var collateral any = nil
 	if marginMode != nil && *marginMode == "isolated" {
 		positionMargin = this.OmitZero(this.SafeString(position, "mgn"))

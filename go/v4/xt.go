@@ -3493,9 +3493,9 @@ func (this *Xt) createSpotOrderBody(ch chan AsyncResult[Order], symbol string, t
 		request["price"] = this.PriceToPrecision(symbol, price)
 	}
 	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
-	var paramsWithoutCost any = paramsMarginMode
+	var paramsWithoutCost map[string]any = paramsMarginMode
 	if isMarketBuy {
-		paramsWithoutCost = this.Omit(paramsMarginMode, "cost")
+		paramsWithoutCost = this.OmitDict(paramsMarginMode, "cost")
 	}
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (timeInForce != nil && *timeInForce == "GTX"), paramsWithoutCost)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
@@ -7450,7 +7450,7 @@ func (this *Xt) ParsePosition(position any, optionalArgs ...any) Position {
 	}
 	var collateral *float64 = this.SafeNumber(position, "isolatedMargin")
 	// history entries carry the liquidation price in forceMarkPrice when force is true
-	var liquidationPriceString any = this.OmitZero(this.SafeString2(position, "breakPrice", "forceMarkPrice"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString2(position, "breakPrice", "forceMarkPrice"))
 	var timestamp *int64 = this.SafeInteger(position, "closeTime")
 	return this.SafePosition(map[string]any{
 		"info":                        position,

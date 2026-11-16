@@ -596,9 +596,9 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -607,11 +607,11 @@ func (this *Modetrade) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var ohlcvCache any
+	var ohlcvCache ccxt.WsArrayCache
 	if symbol != nil {
-		ohlcvCache = this.Ohlcvs[*symbol][*timeframe]
+		ohlcvCache, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
-	ohlcvCache.(ccxt.Appender).Append(parsed)
+	ohlcvCache.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(ohlcvCache, topic)
 }
 
@@ -798,8 +798,8 @@ func (this *Modetrade) HandleAuth(client any, message map[string]any) {
 	var success *bool = this.SafeBool(message, "success", false)
 	if success != nil && *success {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -831,8 +831,8 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var messageHash string = "authenticated"
 	var event string = "auth"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		var secret any = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
@@ -1250,7 +1250,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 		for i := 0; i < dataListLength; i++ {
 			var order any = dataList[i]
 			var tradeIdStr *string = this.SafeString(data, "tradeId")
-			var tradeId any = func() any {
+			var tradeId *string = func() *string {
 				if tradeIdStr == nil {
 					return nil
 				}
@@ -1264,7 +1264,7 @@ func (this *Modetrade) HandleOrderUpdate(client any, message map[string]any) {
 	} else {
 		// executionreport
 		var tradeIdStr *string = this.SafeString(data, "tradeId")
-		var tradeId any = func() any {
+		var tradeId *string = func() *string {
 			if tradeIdStr == nil {
 				return nil
 			}
@@ -1410,8 +1410,8 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 	var url string = *wsUrl + "/" + this.AccountId
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1445,7 +1445,7 @@ func (this *Modetrade) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Positi
 func (this *Modetrade) SetPositionsCache(client any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1480,9 +1480,9 @@ func (this *Modetrade) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool],
 		}
 	}
 	// don't remove the future from the .futures cache
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(cache)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil

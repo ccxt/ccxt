@@ -454,9 +454,9 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if symbol != nil {
 		if stored == nil {
@@ -466,7 +466,7 @@ func (this *P2b) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol][*timeframe] = stored
 			}
 		}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		if channel != nil {
 			var messageHash string = *channel + "::" + *symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)

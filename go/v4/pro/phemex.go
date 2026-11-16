@@ -125,7 +125,7 @@ func (this *Phemex) ParseSwapTicker(ticker map[string]any, optionalArgs ...any) 
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, "open"), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -187,7 +187,7 @@ func (this *Phemex) ParsePerpetualTicker(ticker any, optionalArgs ...any) any {
 	var change *float64 = nil
 	var percentage *float64 = nil
 	var average *float64 = nil
-	var openString any = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
+	var openString *string = this.OmitZero(this.FromEp(this.SafeString(ticker, 1), marketValue))
 	var open *float64 = this.ParseNumber(openString)
 	if (openString != nil) && (lastString != nil) {
 		change = this.ParseNumber(ccxt.Precise.StringSub(lastString, openString))
@@ -534,9 +534,9 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil && timeframe != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -547,7 +547,7 @@ func (this *Phemex) HandleOHLCV(client any, message any) {
 		}
 		for i := 0; i < len(ohlcvs); i++ {
 			var candle any = ohlcvs[i]
-			stored.(ccxt.Appender).Append(candle)
+			stored.Append(candle)
 		}
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 	}

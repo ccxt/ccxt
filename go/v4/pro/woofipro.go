@@ -584,9 +584,9 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -597,7 +597,7 @@ func (this *Woofipro) HandleOHLCV(client any, message map[string]any) {
 			}
 		}
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(stored, topic)
 }
 
@@ -781,8 +781,8 @@ func (this *Woofipro) HandleAuth(client any, message map[string]any) {
 	var success *bool = this.SafeBool(message, "success", false)
 	if success != nil && *success {
 		// client.resolve (message, messageHash)
-		var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -808,8 +808,8 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var messageHash string = "authenticated"
 	var event string = "auth"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		var secret any = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
@@ -1217,7 +1217,7 @@ func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 		// algoexecutionreport
 		for i := 0; i < ccxt.GetArrayLength(data); i++ {
 			var order any = ccxt.GetValue(data, i)
-			var tradeId any = this.OmitZero(this.SafeString(data, "tradeId"))
+			var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 			if tradeId != nil {
 				this.HandleMyTrade(client, order)
 			}
@@ -1225,7 +1225,7 @@ func (this *Woofipro) HandleOrderUpdate(client any, message map[string]any) {
 		}
 	} else {
 		// executionreport
-		var tradeId any = this.OmitZero(this.SafeString(data, "tradeId"))
+		var tradeId *string = this.OmitZero(this.SafeString(data, "tradeId"))
 		if tradeId != nil {
 			this.HandleMyTrade(client, data)
 		}
@@ -1431,9 +1431,9 @@ func (this *Woofipro) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], 
 		}
 	}
 	// don't remove the future from the .futures cache
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(cache)
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	}
 	return nil

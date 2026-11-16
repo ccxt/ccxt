@@ -1652,9 +1652,9 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
 	}
-	var ohlcv any
+	var ohlcv ccxt.WsArrayCache
 	if symbol != nil {
-		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+		ohlcv, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if ohlcv == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1664,7 +1664,7 @@ func (this *Pacifica) HandleOHLCV(client any, message map[string]any) {
 		}
 	}
 	var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(data))
-	ohlcv.(ccxt.Appender).Append(parsed)
+	ohlcv.Append(parsed)
 	client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 }
 
@@ -1708,14 +1708,10 @@ func (this *Pacifica) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 	var paramsOriginAndSingleAddress map[string]any = ccxt.MapTyped(userAddressparamsOriginAndSingleAddressVariable[1])
 	var market map[string]any = nil
 	var messageHash string = "order"
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		messageHash = messageHash + ":" + *this.SafeString(market, "symbol", "")
 	}
 	var isTestnet bool = this.IsSandboxModeEnabled

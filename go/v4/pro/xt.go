@@ -1344,8 +1344,8 @@ func (this *Xt) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	}
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(cache)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(cache)
 		client.(ccxt.ClientInterface).Resolve(cache, "position::contract")
 	}
 	return nil
@@ -1648,9 +1648,9 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil {
-			stored = this.Ohlcvs[*symbol][timeframe]
+			stored, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1659,7 +1659,7 @@ func (this *Xt) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol][timeframe] = stored
 			}
 		}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 		var event *string = this.SafeString(message, "event")
 		if event != nil {
 			var messageHash string = *event + "::" + tradeType

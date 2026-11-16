@@ -112,8 +112,8 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 		var timestamp int64 = this.Milliseconds()
 		var timestampString *string = this.NumberToString(timestamp)
 		var timestampEncoded *string = timestampString
@@ -1265,9 +1265,9 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		if symbol != nil && this.Ohlcvs[*symbol] == nil {
 			this.Ohlcvs[*symbol] = map[string]any{}
 		}
-		var stored any
+		var stored ccxt.WsArrayCache
 		if symbol != nil {
-			stored = this.Ohlcvs[*symbol][*timeframe]
+			stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 		}
 		if stored == nil {
 			var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1280,7 +1280,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message map[string]any) any {
 		var rawOhlcvs []any = ccxt.SafeListTyped(data, marketId)
 		for j := 0; j < len(rawOhlcvs); j++ {
 			var parsed any = this.ParseWsOHLCV(ccxt.DerefScalar(rawOhlcvs[j]), market)
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 		}
 		var messageHash string = channel + "::" + *symbol
 		client.(ccxt.ClientInterface).Resolve(stored, messageHash)
@@ -2153,8 +2153,8 @@ func (this *Hitbtc) HandleAuthenticate(client any, message map[string]any) any {
 	var success *bool = this.SafeBool(message, "result", false)
 	var messageHash string = "authenticated"
 	if success != nil && *success {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve(true)
 	} else {
 		error := ccxt.AuthenticationError(this.Id + " " + this.Json(message))
 		client.(ccxt.ClientInterface).Reject(error, messageHash)

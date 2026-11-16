@@ -1214,12 +1214,12 @@ func (this *Mercado) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"symbol":     *this.SafeString(market, "base", "") + "-" + *this.SafeString(market, "quote", ""),
 	}
 	// set some default limit, as it's required if user doesn't provide it
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["from"] = this.ParseToInt(float64(*since) / 1000)
 		request["to"] = this.Sum(request["from"], (limitResolved * this.ParseTimeframe(timeframe)))

@@ -902,12 +902,12 @@ func (this *Revolutx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["since"] = since
 	}
 	var defaultLimit int = 1000 // default max limit if not specified
-	var limitValue int64 = func() int64 {
-		if limit != nil {
-			return *limit
-		}
-		return int64(defaultLimit)
-	}()
+	var limitValue int64
+	if limit != nil {
+		limitValue = *limit
+	} else {
+		limitValue = int64(defaultLimit)
+	}
 	var duration int64 = this.ParseTimeframe(timeframe) * 1000
 	var until *int64 = this.SafeInteger2(params, "until", "until")
 	if until != nil {

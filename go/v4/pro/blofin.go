@@ -824,9 +824,9 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && unifiedTimeframe != nil {
-		stored = this.Ohlcvs[*symbol][*unifiedTimeframe]
+		stored, _ = this.Ohlcvs[*symbol][*unifiedTimeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -838,7 +838,7 @@ func (this *Blofin) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var candle any = this.SafeList(data, i)
 		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(candle, market))
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var resolveData []any = []any{symbol, unifiedTimeframe, stored}
 	var messageHash string = "candle" + interval + ":" + *symbol
@@ -1477,8 +1477,8 @@ func (this *Blofin) HandleMessage(client any, message map[string]any) {
 		this.HandleUnsubscription(client, message)
 		return
 	} else if event != nil && *event == "login" {
-		var future any = client.(ccxt.ClientInterface).FutureGet("authenticate_hash")
-		future.(*ccxt.Future).Resolve(true)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticate_hash"]
+		future.Resolve(true)
 		return
 	} else if event != nil && *event == "error" {
 		panic(ccxt.ExchangeError(this.Id + " error: " + this.Json(message)))

@@ -952,12 +952,12 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			// the exchange do not have a since param for this endpoint
 			// we calculate until (after) for correct pagination
 			var duration int64 = this.ParseTimeframe(timeframe)
-			var numberOfCandles int64 = func() int64 {
-				if limit == nil {
-					return int64(maxLimit)
-				}
-				return *limit
-			}()
+			var numberOfCandles int64
+			if limit == nil {
+				numberOfCandles = int64(maxLimit)
+			} else {
+				numberOfCandles = *limit
+			}
 			var endTime any = this.ParseToInt(Add(since, ((duration * numberOfCandles) * 1000)))
 			if until != nil {
 				endTime = mathMin(endTime, until)
@@ -2201,7 +2201,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 	} else if !isMarketOrder {
 		panic(BadRequest(this.Id + " createOrder() requires a price argument for limit orders"))
 	}
-	var paramsRequest any = nil
+	var paramsRequest map[string]any = nil
 	if *this.SafeBool(market, "spot", false) {
 		var cost *string = this.SafeString(paramsOrderType, "cost")
 		if cost != nil {
@@ -2217,7 +2217,7 @@ func (this *Deepcoin) CreateRegularOrderRequest(symbol string, typeVar string, s
 		}
 		request["side"] = side
 		request["tdMode"] = "cash"
-		paramsRequest = this.Omit(paramsOrderType, keysToOmit)
+		paramsRequest = this.OmitDict(paramsOrderType, keysToOmit)
 	} else {
 		request["sz"] = this.AmountToPrecision(symbol, amount)
 		var paramsOmitted map[string]any = this.OmitDict(paramsOrderType, keysToOmit)

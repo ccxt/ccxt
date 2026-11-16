@@ -3840,9 +3840,9 @@ func (this *Hitbtc) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 			request["network_code"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = paramsWithdrawTag
+	var paramsOmitted map[string]any = paramsWithdrawTag
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(paramsWithdrawTag, "network")
+		paramsOmitted = this.OmitDict(paramsWithdrawTag, "network")
 	}
 	var withdrawOptions map[string]any = SafeMapTyped(this.Options, "withdraw")
 	var includeFee *bool = this.SafeBool(withdrawOptions, "includeFee", false)

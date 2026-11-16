@@ -1600,12 +1600,12 @@ func (this *Bigone) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	if sinceIsDefined && untilIsDefined {
 		defaultLimit = 500
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return int64(defaultLimit)
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = int64(defaultLimit)
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"asset_pair_name": market["id"],
 		"period":          this.SafeString(this.Timeframes, timeframe, timeframe),

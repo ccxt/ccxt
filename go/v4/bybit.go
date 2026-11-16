@@ -3162,7 +3162,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		preLaunchMarkets = this.SafeDict(promises, 1, map[string]any{})
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(data, "list", []any{})
+	var markets []any = SafeListTyped(data, "list")
 	var paginationCursor *string = this.SafeString(data, "nextPageCursor")
 	if paginationCursor != nil {
 		for paginationCursor != nil {
@@ -3242,8 +3242,8 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	markets = this.ArrayConcat(markets, preLaunchMarketsList)
 	var result []any = []any{}
 	var category *string = this.SafeString(data, "category")
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = markets[i]
 		if category == nil {
 			category = this.SafeString(market, "category")
 		}
@@ -3289,7 +3289,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		var expiry any = nil
 		// some swaps have deliveryTime meaning delisting time
 		if !swap {
-			var deliveryTime any = this.OmitZero(this.SafeString(market, "deliveryTime"))
+			var deliveryTime *string = this.OmitZero(this.SafeString(market, "deliveryTime"))
 			if deliveryTime != nil {
 				expiry = this.ParseToInt(deliveryTime)
 			}
@@ -3396,7 +3396,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		response = r1.Value
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
-	var markets any = this.SafeList(data, "list", []any{})
+	var markets []any = SafeListTyped(data, "list")
 	var loadAllOptions bool = this.HandleOption("fetchMarkets", "loadAllOptions") == true
 	if loadAllOptions == true {
 		request["limit"] = 1000
@@ -3467,8 +3467,8 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	//     }
 	//
 	var result []any = []any{}
-	for i := 0; i < GetArrayLength(markets); i++ {
-		var market any = GetValue(markets, i)
+	for i := 0; i < len(markets); i++ {
+		var market any = markets[i]
 		var id *string = this.SafeString(market, "symbol")
 		var baseId *string = this.SafeString(market, "baseCoin")
 		var quoteId *string = this.SafeString(market, "quoteCoin")
@@ -5496,13 +5496,13 @@ func (this *Bybit) ParseOrder(order any, optionalArgs ...any) Order {
 	if (clientOrderId != nil) && (len(*clientOrderId) < 1) {
 		clientOrderId = nil
 	}
-	var avgPrice any = this.OmitZero(this.SafeString(order, "avgPrice"))
+	var avgPrice *string = this.OmitZero(this.SafeString(order, "avgPrice"))
 	var rawTimeInForce *string = this.SafeString(order, "timeInForce")
 	var timeInForce *string = this.ParseTimeInForce(rawTimeInForce)
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "triggerPrice"))
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "triggerPrice"))
 	var reduceOnly *bool = this.SafeBool(order, "reduceOnly")
-	var takeProfitPrice any = this.OmitZero(this.SafeString(order, "takeProfit"))
-	var stopLossPrice any = this.OmitZero(this.SafeString(order, "stopLoss"))
+	var takeProfitPrice *string = this.OmitZero(this.SafeString(order, "takeProfit"))
+	var stopLossPrice *string = this.OmitZero(this.SafeString(order, "stopLoss"))
 	var triggerDirection *string = this.SafeString(order, "triggerDirection")
 	var isAscending bool = (triggerDirection != nil && *triggerDirection == "1")
 	var isStopOrderType2 bool = (triggerPrice != nil) && (reduceOnly != nil && *reduceOnly)
@@ -9407,7 +9407,7 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
 	} else {
 		notional = this.SafeString2(position, "positionValue", "cumExitValue")
 	}
-	var unrealisedPnl any = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
+	var unrealisedPnl *string = this.OmitZero(this.SafeString(position, "unrealisedPnl"))
 	var initialMarginString *string = this.SafeString2(position, "positionIM", "cumEntryValue")
 	var maintenanceMarginString *string = this.SafeString(position, "positionMM")
 	var timestamp *int64 = this.SafeInteger2(position, "createdTime", "createdAt")
@@ -9416,23 +9416,23 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
 		lastUpdateTimestamp = this.SafeInteger2(position, "updatedTime", "updatedAt")
 	}
 	// positionBalance is position margin excluding uPnL (deprecated, often '' on UTA)
-	var positionMarginString any = this.OmitZero(this.SafeString(position, "positionBalance"))
-	var collateralString any = nil
+	var positionMarginString *string = this.OmitZero(this.SafeString(position, "positionBalance"))
+	var collateralString *string = nil
 	if positionMarginString != nil {
 		collateralString = positionMarginString
 		if unrealisedPnl != nil {
 			collateralString = Precise.StringAdd(positionMarginString, unrealisedPnl)
 		}
 	}
-	var entryPrice any = this.OmitZero(this.SafeStringN(position, []any{"entryPrice", "avgPrice", "avgEntryPrice"}))
-	var liquidationPrice any = this.OmitZero(this.SafeString(position, "liqPrice"))
+	var entryPrice *string = this.OmitZero(this.SafeStringN(position, []any{"entryPrice", "avgPrice", "avgEntryPrice"}))
+	var liquidationPrice *string = this.OmitZero(this.SafeString(position, "liqPrice"))
 	var leverage *string = this.SafeString(position, "leverage")
 	if liquidationPrice != nil {
 		var settle *string = this.SafeString(marketResolved, "settle")
 		if settle != nil && *settle == "USDC" {
 			//  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
 			var useMarkPrice *bool = this.SafeBool(this.Options, "useMarkPriceForPositionCollateral", false)
-			var price any = entryPrice
+			var price *string = entryPrice
 			if useMarkPrice != nil && *useMarkPrice {
 				price = markPrice
 			}
@@ -9440,8 +9440,8 @@ func (this *Bybit) ParsePosition(position any, optionalArgs ...any) Position {
 			collateralString = Precise.StringAdd(Precise.StringAdd(Precise.StringMul(difference, size), maintenanceMarginString), unrealisedPnl)
 			positionMarginString = nil // derived from collateral by safePosition
 		} else {
-			var bustPrice any = this.OmitZero(this.SafeString(position, "bustPrice"))
-			var closingFee any = this.OmitZero(this.SafeString(position, "occClosingFee"))
+			var bustPrice *string = this.OmitZero(this.SafeString(position, "bustPrice"))
+			var closingFee *string = this.OmitZero(this.SafeString(position, "occClosingFee"))
 			if *this.SafeBool(marketResolved, "linear", false) {
 				// derived from the following formula:
 				//  (Entry price - Bust price) * Contracts = Collateral
@@ -10381,12 +10381,12 @@ func (this *Bybit) fetchBorrowRateHistoryBody(ch chan AsyncResult[[]map[string]a
 	var request map[string]any = map[string]any{
 		"currency": currency["id"],
 	}
-	var sinceResolved any = func() any {
-		if since == nil {
-			return this.Milliseconds() - 2592000000
-		}
-		return since
-	}() // last 30 days
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = this.Milliseconds() - 2592000000
+	} else {
+		sinceResolved = *since
+	} // last 30 days
 	request["startTime"] = sinceResolved
 	var endTime any = DerefScalar(this.SafeInteger2(params, "until", "endTime"))
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until"})
@@ -12055,7 +12055,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 			panic(r.Err)
 		}
 	}
-	var symbol any = nil
+	var symbol *string = nil
 	if symbols != nil {
 		var market map[string]any = this.Market(func() any {
 			if 0 >= 0 && 0 < len(symbols) {
@@ -12066,7 +12066,7 @@ func (this *Bybit) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], op
 		if *this.SafeBool(market, "spot", false) {
 			panic(NotSupported(this.Id + " fetchLeverageTiers() is not supported for spot market"))
 		}
-		symbol = DerefScalar(this.SafeString(market, "symbol"))
+		symbol = this.SafeString(market, "symbol")
 	}
 
 	r1 := <-this.GetLeverageTiersPaginatedAsync(symbol, this.Extend(map[string]any{

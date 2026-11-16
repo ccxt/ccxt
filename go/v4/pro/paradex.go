@@ -575,8 +575,8 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
-	if authenticated == nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash) != nil
+	if !authenticated {
 
 		r := <-this.AuthenticateRestAsync()
 		if r.Err != nil {
@@ -623,9 +623,9 @@ func (this *Paradex) HandleAuthenticationMessage(client any, message any) {
 	//     }
 	//
 	// the future stays resolved, so later private watches on this connection skip the auth request
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(true)
+		future.Resolve(true)
 	}
 }
 func (this *Paradex) HandleRequestReply(client any, message any) {

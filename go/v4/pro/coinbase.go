@@ -820,9 +820,9 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 			if symbol != nil && this.Ohlcvs[*symbol] == nil {
 				this.Ohlcvs[*symbol] = map[string]any{}
 			}
-			var stored any
+			var stored ccxt.WsArrayCache
 			if symbol != nil {
-				stored = this.Ohlcvs[*symbol][timeframe]
+				stored, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 			}
 			if stored == nil {
 				var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -831,7 +831,7 @@ func (this *Coinbase) HandleOHLCV(client any, message any) {
 					this.Ohlcvs[*symbol][timeframe] = stored
 				}
 			}
-			stored.(ccxt.Appender).Append(parsed)
+			stored.Append(parsed)
 			var messageHash string = "candles::" + *symbol
 			client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 			this.TryResolveUsdc(client, messageHash, stored)

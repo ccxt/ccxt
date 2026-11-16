@@ -2355,9 +2355,9 @@ func (this *Bitopro) withdrawBody(ch chan AsyncResult[Transaction], code string,
 		"address":  address,
 	}
 	var hasNetwork bool = (func() bool { _, ok := paramsWithdrawTag["network"]; return ok }())
-	var paramsOmitted any = paramsWithdrawTag
+	var paramsOmitted map[string]any = paramsWithdrawTag
 	if hasNetwork {
-		paramsOmitted = this.Omit(paramsWithdrawTag, []any{"network"})
+		paramsOmitted = this.OmitDict(paramsWithdrawTag, []any{"network"})
 	}
 	if hasNetwork {
 		var networks map[string]any = SafeMapTyped(this.Options, "networks")

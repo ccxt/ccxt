@@ -4292,14 +4292,14 @@ func (this *Weex) ParseOrder(order any, optionalArgs ...any) Order {
 	}(), market, nil, orderMarketType)
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"transactTime", "time", "createTime"})
 	var rawStatus *string = this.SafeStringLower2(order, "status", "algoStatus") // algo (trigger) order payloads carry algoStatus instead of status
-	var triggerPrice any = this.OmitZero(this.SafeString2(order, "triggerPrice", "stopPrice"))
+	var triggerPrice *string = this.OmitZero(this.SafeString2(order, "triggerPrice", "stopPrice"))
 	var rawType *string = this.SafeStringUpper2(order, "type", "orderType")
 	var isReduceOnly *bool = this.SafeBool(order, "reduceOnly")
 	// entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
 	// a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
 	var isEntryTrigger bool = !(*this.SafeBool(order, "reduceOnly", true))
-	var takeProfitPrice any = nil
-	var stopLossPrice any = nil
+	var takeProfitPrice *string = nil
+	var stopLossPrice *string = nil
 	if !isEntryTrigger {
 		if (rawType != nil && *rawType == "TAKE_PROFIT_MARKET") || (rawType != nil && *rawType == "TAKE_PROFIT") {
 			takeProfitPrice = triggerPrice
@@ -5166,7 +5166,7 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 	var size *string = this.SafeString(position, "size")
 	var entryPrice *string = Precise.StringDiv(notional, size)
 	var unrealizePnl *string = this.SafeString(position, "unrealizePnl")
-	var isolatedMargin any = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
+	var isolatedMargin *string = this.OmitZero(this.SafeString2(position, "isolatedMargin", "marginSize"))
 	var collateralString any = nil
 	if (marginMode == "isolated") && (isolatedMargin != nil) {
 		collateralString = func() any {
@@ -5176,8 +5176,8 @@ func (this *Weex) ParsePosition(position any, optionalArgs ...any) Position {
 			return isolatedMargin
 		}()
 	}
-	var initialMarginString any = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
-	var marginString any = nil
+	var initialMarginString *string = this.OmitZero(this.SafeString2(position, "marginSize", "isolatedMargin"))
+	var marginString *string = nil
 	if marginMode == "isolated" {
 		marginString = isolatedMargin
 	}

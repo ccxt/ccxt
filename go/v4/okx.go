@@ -3271,22 +3271,22 @@ func (this *Okx) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol strin
 		}
 		return 100
 	}()
-	var requestedLimit any = func() any {
-		if limit == nil {
-			return defaultLimit
-		}
-		return limit
-	}()
+	var requestedLimit int64
+	if limit == nil {
+		requestedLimit = int64(defaultLimit)
+	} else {
+		requestedLimit = *limit
+	}
 	// the rpi book hard-errors with 51000 "Parameter sz error." above 400,
 	// including the 5000 that publicGetMarketBooksFull defaults to
 	var isFullBook bool = (method != nil && *method == "publicGetMarketBooksFull")
 	var largeLimit bool = ((limit == nil) && isFullBook) || ((limit != nil) && (*limit > 400))
-	var limitResolved any = func() any {
-		if rpi && largeLimit {
-			return 400
-		}
-		return requestedLimit
-	}()
+	var limitResolved int64
+	if rpi && largeLimit {
+		limitResolved = 400
+	} else {
+		limitResolved = requestedLimit
+	}
 	request["sz"] = limitResolved // max 400
 	var response map[string]any = nil
 	if rpi {
@@ -4706,7 +4706,7 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 	// position side / hedged options only apply to swap and future orders
 	var isSwapOrFuture bool = (contract != nil && *contract == true) && ((market["swap"] == true) || (market["future"] == true))
 	positionSide, paramsPositionSide := this.HandleOptionStringAndParams(params, "createOrder", "positionSide")
-	var paramsSwapOrFuture any = params
+	var paramsSwapOrFuture map[string]any = params
 	if isSwapOrFuture {
 		paramsSwapOrFuture = paramsPositionSide
 	}
@@ -4717,14 +4717,14 @@ func (this *Okx) CreateOrderRequest(symbol string, typeVar string, side any, amo
 		hedged = p
 	}
 	var paramsHedgedOption map[string]any = MapTyped(hedgedparamsHedgedOptionVariable[1])
-	var paramsHedged any = paramsSwapOrFuture
+	var paramsHedged map[string]any = paramsSwapOrFuture
 	if usesHedged {
 		paramsHedged = paramsHedgedOption
 	}
 	var omitReduceOnly bool = usesHedged && (hedged != nil && *hedged == true) && isReduceOnly
-	var paramsReduceOnly any = paramsHedged
+	var paramsReduceOnly map[string]any = paramsHedged
 	if omitReduceOnly {
-		paramsReduceOnly = this.Omit(paramsHedged, "reduceOnly")
+		paramsReduceOnly = this.OmitDict(paramsHedged, "reduceOnly")
 	}
 	if spot != nil && *spot {
 		if margin {
@@ -8765,7 +8765,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
 	var leverageString *string = this.SafeString(position, "lever")
 	var initialMarginPercentage any = nil
 	var collateralString any = nil
-	var marginString any = nil
+	var marginString *string = nil
 	if marginMode != nil && *marginMode == "cross" {
 		if derefPtr := this.SafeString(position, "imr"); derefPtr != nil {
 			initialMarginString = *derefPtr
@@ -8780,7 +8780,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
 		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
 		initialMarginPercentage = Precise.StringDiv("1", leverageString)
-		var isolatedMarginString any = this.OmitZero(this.SafeString(position, "margin"))
+		var isolatedMarginString *string = this.OmitZero(this.SafeString(position, "margin"))
 		if isolatedMarginString != nil {
 			initialMarginString = isolatedMarginString
 			marginString = isolatedMarginString
@@ -8813,7 +8813,7 @@ func (this *Okx) ParsePosition(position any, optionalArgs ...any) Position {
 		return nil
 	}()
 	// okx always reports liqPx for open positions; no local estimate (it depends on the account fee tier)
-	var liquidationPriceString any = this.OmitZero(this.SafeString(position, "liqPx"))
+	var liquidationPriceString *string = this.OmitZero(this.SafeString(position, "liqPx"))
 	var liquidationPrice *float64 = func() *float64 {
 		if (liquidationPriceString != nil) && Precise.StringGt(liquidationPriceString, "0") {
 			return this.ParseNumber(liquidationPriceString)

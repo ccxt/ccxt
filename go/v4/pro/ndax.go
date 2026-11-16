@@ -445,7 +445,8 @@ func (this *Ndax) HandleOHLCV(client any, message map[string]any) {
 			var messageHash string = name + ":" + timeframe + ":" + marketId
 			var market map[string]any = this.SafeMarket(marketId)
 			var symbol *string = this.SafeString(market, "symbol", "")
-			var symbolOhlcv any = this.Ohlcvs[*symbol][timeframe]
+			var symbolOhlcv ccxt.WsArrayCache
+			symbolOhlcv, _ = this.Ohlcvs[*symbol][timeframe].(ccxt.WsArrayCache)
 			client.(ccxt.ClientInterface).Resolve(symbolOhlcv, messageHash)
 		}
 	}

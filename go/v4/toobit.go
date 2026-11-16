@@ -2504,7 +2504,7 @@ func (this *Toobit) ParseOrder(order any, optionalArgs ...any) Order {
 		rawSideLower = this.SafeString(sideParts, 0)
 	}
 	// omitZero already maps '0.0' to undefined
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "stopPrice"))
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "stopPrice"))
 	return this.SafeOrder(map[string]any{
 		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),

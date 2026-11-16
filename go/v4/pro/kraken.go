@@ -795,9 +795,9 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 	var interval *int64 = this.SafeInteger(first, "interval")
 	var timeframe *string = this.FindTimeframe(interval)
 	var messageHash string = this.GetMessageHash("ohlcv", nil, symbol)
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
@@ -815,7 +815,7 @@ func (this *Kraken) HandleOHLCV(client any, message map[string]any) {
 		var datetime *string = this.SafeString(candle, "interval_begin")
 		var timestamp *int64 = this.Parse8601(datetime)
 		var parsed []any = []any{timestamp, this.SafeNumber(candle, "open"), this.SafeNumber(candle, "high"), this.SafeNumber(candle, "low"), this.SafeNumber(candle, "close"), this.SafeNumber(candle, "volume")}
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, messageHash)
 }
@@ -1532,7 +1532,7 @@ func (this *Kraken) HandleOrderBook(client any, message map[string]any) {
 	}
 	orderbook.Limit()
 	// checksum temporarily disabled because the exchange checksum was not reliable
-	var checksum any = this.HandleOption("watchOrderBook", "checksum", false)
+	var checksum bool = this.HandleOption("watchOrderBook", "checksum", false) == true
 	if checksum == true {
 		var payloadArray []string = []string{}
 		if c != nil {

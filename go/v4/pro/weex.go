@@ -1111,9 +1111,9 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 	var firstEntry map[string]any = ccxt.SafeMapTyped(data, 0)
 	var interval *string = this.SafeString(firstEntry, "i")
 	var timeframe *string = this.FindTimeframe(interval)
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
@@ -1127,7 +1127,7 @@ func (this *Weex) HandleOHLCV(client any, message map[string]any) {
 	for i := 0; i < len(data); i++ {
 		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = this.ParseWsOHLCV(entry)
-		stored.(ccxt.Appender).Append(parsed)
+		stored.Append(parsed)
 	}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", timeframe))
 	var resolveData []any = []any{symbol, timeframe, stored}
@@ -2199,9 +2199,9 @@ func (this *Weex) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	}
 	var rawStatus *string = this.SafeStringLower(order, "status")
 	var rawType *string = this.SafeString(order, "type")
-	var triggerPrice any = this.OmitZero(this.SafeString(order, "triggerPrice"))
-	var stopLossPrice any = nil
-	var takeProfitPrice any = nil
+	var triggerPrice *string = this.OmitZero(this.SafeString(order, "triggerPrice"))
+	var stopLossPrice *string = nil
+	var takeProfitPrice *string = nil
 	if (rawType != nil && *rawType == "TAKE_PROFIT_MARKET") || (rawType != nil && *rawType == "TAKE_PROFIT") {
 		takeProfitPrice = triggerPrice
 	} else if (rawType != nil && *rawType == "STOP_LOSS") || (rawType != nil && *rawType == "STOP") || (rawType != nil && *rawType == "STOP_MARKET") {
@@ -2333,8 +2333,8 @@ func (this *Weex) loadBalanceSnapshotBody(ch chan ccxt.AsyncResult[bool], client
 	this.Balance[typeVar] = this.Extend(response, this.SafeDict(this.Balance, typeVar, map[string]any{}))
 	// don't remove the future from the .futures cache
 	if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; ok {
-		var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-		future.(*ccxt.Future).Resolve()
+		var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+		future.Resolve()
 		client.(ccxt.ClientInterface).Resolve(this.Balance[typeVar], typeVar+":balance")
 	}
 	return nil
@@ -2550,8 +2550,8 @@ func (this *Weex) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], clie
 		cache.Append(position)
 	}
 	// don't remove the future from the .futures cache
-	var future any = client.(ccxt.ClientInterface).FutureGet(messageHash)
-	future.(*ccxt.Future).Resolve(cache)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()[messageHash]
+	future.Resolve(cache)
 	client.(ccxt.ClientInterface).Resolve(cache, "positions")
 	return nil
 }

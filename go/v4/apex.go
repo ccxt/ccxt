@@ -1553,7 +1553,7 @@ func (this *Apex) ParseOrder(order any, optionalArgs ...any) Order {
 	var status *string = this.SafeString(order, "status")
 	var side *string = this.SafeStringLower(order, "side")
 	// const average = this.omitZero (this.safeString (order, 'avg_fill_price'));
-	var remaining any = this.OmitZero(this.SafeString(order, "remainingSize"))
+	var remaining *string = this.OmitZero(this.SafeString(order, "remainingSize"))
 	var lastUpdateTimestamp *int64 = this.SafeInteger(order, "updatedTime")
 	return this.SafeOrder(map[string]any{
 		"id":                  orderId,

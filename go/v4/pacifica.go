@@ -5284,7 +5284,7 @@ func (this *Pacifica) PostActionRequest(operationType string, sigPayload map[str
 		panic(ArgumentsRequired(this.Id + " action: " + operationType + " postActionRequest() requires \"operationType\""))
 	}
 	if !this.IsSandboxModeEnabled {
-		var useBuilder any = this.HandleOption("postActionRequest", "builderFee", true)
+		var useBuilder bool = this.HandleOption("postActionRequest", "builderFee", true) == true
 		var builderCode any = nil
 		if useBuilder == true {
 			builderCode = this.HandleOption("postActionRequest", "builderCode")

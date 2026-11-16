@@ -1183,12 +1183,12 @@ func (this *Backpack) HandleOHLCV(client any, message map[string]any) {
 			this.Ohlcvs[*symbol][*timeframe] = stored
 		}
 	}
-	var ohlcv any
+	var ohlcv ccxt.WsArrayCache
 	if symbol != nil {
-		ohlcv = this.Ohlcvs[*symbol][*timeframe]
+		ohlcv, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	var parsed any = this.ParseWsOHLCV(data)
-	ohlcv.(ccxt.Appender).Append(parsed)
+	ohlcv.Append(parsed)
 	var messageHash string = "candles:" + *symbol + ":" + *timeframe
 	client.(ccxt.ClientInterface).Resolve([]any{symbol, timeframe, ohlcv}, messageHash)
 }

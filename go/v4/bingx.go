@@ -4327,13 +4327,13 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 		var hasStopLoss bool = (stopLossDict != nil)
 		var hasTakeProfit bool = (takeProfitDict != nil)
 		// only omit these keys if they are set ! https://github.com/ccxt/ccxt/pull/29185
-		var paramsStopLoss any = paramsPostOnly
+		var paramsStopLoss map[string]any = paramsPostOnly
 		if hasStopLoss {
-			paramsStopLoss = this.Omit(paramsPostOnly, "stopLoss")
+			paramsStopLoss = this.OmitDict(paramsPostOnly, "stopLoss")
 		}
-		var paramsTakeProfit any = paramsStopLoss
+		var paramsTakeProfit map[string]any = paramsStopLoss
 		if hasTakeProfit {
-			paramsTakeProfit = this.Omit(paramsStopLoss, "takeProfit")
+			paramsTakeProfit = this.OmitDict(paramsStopLoss, "takeProfit")
 		}
 		if ((typeValue == "LIMIT") || (typeValue == "TRIGGER_LIMIT") || (typeValue == "STOP") || (typeValue == "TAKE_PROFIT")) && !isTrailing {
 			request["price"] = this.ParseToNumeric(this.PriceToPrecision(symbol, price))
@@ -5190,7 +5190,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	var stopLoss any = this.SafeValue(orderData, "stopLoss")
-	var stopLossPrice any = nil
+	var stopLossPrice *string = nil
 	if (stopLoss != nil) && (!IsEqual(stopLoss, "")) {
 		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopLoss"))
 	}
@@ -5202,7 +5202,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		stopLossPrice = this.OmitZero(this.SafeString(stopLoss, "stopPrice"))
 	}
 	var takeProfit any = this.SafeValue(orderData, "takeProfit")
-	var takeProfitPrice any = nil
+	var takeProfitPrice *string = nil
 	if (takeProfit != nil) && (!IsEqual(takeProfit, "")) {
 		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "takeProfit"))
 	}
@@ -5214,8 +5214,8 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		takeProfitPrice = this.OmitZero(this.SafeString(takeProfit, "stopPrice"))
 	}
 	var rawType *string = this.SafeStringLower2(orderData, "type", "o")
-	var stopPrice any = this.OmitZero(this.SafeString2(orderData, "StopPrice", "stopPrice"))
-	var triggerPrice any = stopPrice
+	var stopPrice *string = this.OmitZero(this.SafeString2(orderData, "StopPrice", "stopPrice"))
+	var triggerPrice *string = stopPrice
 	// spot TAKE_STOP_* is a plain conditional order, the venue does not say whether it protects a position
 	var isTakeStop bool = (rawType != nil) && (strings.Index(*rawType, "take_stop") > -1)
 	if (stopPrice != nil) && !isTakeStop {
@@ -6342,7 +6342,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		response = r2.Value
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
-		var paramsOmitted any = this.Omit(paramsStandard, "twap")
+		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
 		if !(isTwapOrder != nil && *isTwapOrder) {
 			if limit != nil {
 				request["limit"] = mathMin(limit, 1000)
@@ -6353,7 +6353,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 			var until *int64 = this.SafeInteger(paramsOmitted, "until")
 			if until != nil {
 				request["endTime"] = until
-				paramsOmitted = this.Omit(paramsOmitted, "until")
+				paramsOmitted = this.OmitDict(paramsOmitted, "until")
 			}
 		}
 		if isTwapOrder != nil && *isTwapOrder {
@@ -6371,7 +6371,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 				return since
 			}()
 			var until *int64 = this.SafeInteger(paramsOmitted, "until", this.Milliseconds())
-			var paramsUntil any = this.Omit(paramsOmitted, "until")
+			var paramsUntil map[string]any = this.OmitDict(paramsOmitted, "until")
 			request["endTime"] = until
 
 			r3 := <-this.SwapV1PrivateGetTwapHistoryOrders(this.Extend(request, paramsUntil))

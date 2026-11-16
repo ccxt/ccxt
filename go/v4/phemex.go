@@ -2458,7 +2458,7 @@ func (this *Phemex) ParseTrade(trade any, optionalArgs ...any) Trade {
 				var currencyId *string = this.SafeString(trade, "currency")
 				feeCurrencyCode = this.SafeCurrencyCode(currencyId)
 			} else {
-				var ptFeeRv any = this.OmitZero(this.SafeString(trade, "ptFeeRv"))
+				var ptFeeRv *string = this.OmitZero(this.SafeString(trade, "ptFeeRv"))
 				if ptFeeRv != nil {
 					feeCostString = ptFeeRv
 					feeCurrencyCode = SafeStringPtr("PT")
@@ -2969,7 +2969,7 @@ func (this *Phemex) ParseSpotOrder(order any, optionalArgs ...any) map[string]an
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
 	var price any = this.FromEp(this.SafeString(order, "priceEp"), marketResolved)
 	var amount any = this.FromEv(this.SafeString(order, "baseQtyEv"), marketResolved)
-	var remaining any = this.OmitZero(this.FromEv(this.SafeString(order, "leavesBaseQtyEv"), marketResolved))
+	var remaining *string = this.OmitZero(this.FromEv(this.SafeString(order, "leavesBaseQtyEv"), marketResolved))
 	var filled any = this.FromEv(this.SafeString2(order, "cumBaseQtyEv", "cumBaseValueEv"), marketResolved)
 	var cost any = this.FromEr(this.SafeString2(order, "cumQuoteValueEv", "quoteQtyEv"), marketResolved)
 	var average any = this.FromEp(this.SafeString(order, "avgPriceEp"), marketResolved)
@@ -3158,7 +3158,7 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 		lastTradeTimestamp = nil
 	}
 	var timeInForce *string = this.ParseTimeInForce(this.SafeString(order, "timeInForce"))
-	var triggerPrice any = this.OmitZero(this.SafeString2(order, "stopPx", "stopPxRp"))
+	var triggerPrice *string = this.OmitZero(this.SafeString2(order, "stopPx", "stopPxRp"))
 	var postOnly bool = (timeInForce != nil && *timeInForce == "PO")
 	var reduceOnly any = DerefScalar(this.SafeBool(order, "reduceOnly"))
 	var execInst *string = this.SafeString(order, "execInst")
@@ -3167,8 +3167,8 @@ func (this *Phemex) ParseSwapOrder(order any, optionalArgs ...any) map[string]an
 	}
 	var takeProfit *string = this.SafeString(order, "takeProfitRp")
 	var stopLoss *string = this.SafeString(order, "stopLossRp")
-	var feeValue any = this.OmitZero(this.SafeString(order, "execFeeRv"))
-	var ptFeeRv any = this.OmitZero(this.SafeString(order, "ptFeeRv"))
+	var feeValue *string = this.OmitZero(this.SafeString(order, "execFeeRv"))
+	var ptFeeRv *string = this.OmitZero(this.SafeString(order, "ptFeeRv"))
 	var fee map[string]any = nil
 	if feeValue != nil {
 		fee = map[string]any{

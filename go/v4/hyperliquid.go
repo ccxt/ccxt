@@ -3380,7 +3380,7 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id stri
 	var market map[string]any = this.Market(symbol)
 	vaultAddressOption, paramsUnwrapped := this.HandleOptionStringAndParams(params, "cancelTwapOrder", "vaultAddress")
 	var vaultAddress any = this.FormatVaultAddress(vaultAddressOption)
-	var params2 any = paramsUnwrapped
+	var params2 map[string]any = paramsUnwrapped
 	var action map[string]any = map[string]any{
 		"type": "twapCancel",
 		"a":    this.ParseToInt(market["baseId"]),
@@ -3394,13 +3394,13 @@ func (this *Hyperliquid) cancelTwapOrderBody(ch chan AsyncResult[Order], id stri
 		"signature": signature,
 	}
 	if vaultAddress != nil {
-		params2 = this.Omit(params2, "vaultAddress")
+		params2 = this.OmitDict(params2, "vaultAddress")
 		request["vaultAddress"] = vaultAddress
 	}
 	var expiresAfter *int64 = this.SafeInteger(params2, "expiresAfter")
 	if expiresAfter != nil {
 		request["expiresAfter"] = expiresAfter
-		params2 = this.Omit(params2, "expiresAfter")
+		params2 = this.OmitDict(params2, "expiresAfter")
 	}
 
 	r1 := <-this.PrivatePostExchange(request)
@@ -4095,12 +4095,12 @@ func (this *Hyperliquid) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Fundi
 	if since != nil {
 		request["startTime"] = since
 	} else {
-		var maxLimit int64 = func() int64 {
-			if limit == nil {
-				return 500
-			}
-			return *limit
-		}()
+		var maxLimit int64
+		if limit == nil {
+			maxLimit = 500
+		} else {
+			maxLimit = *limit
+		}
 		request["startTime"] = (this.Milliseconds() - (((maxLimit * 60) * 60) * 1000))
 	}
 	var until *int64 = this.SafeInteger(params, "until")

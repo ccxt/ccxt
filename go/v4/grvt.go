@@ -2297,7 +2297,7 @@ func (this *Grvt) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var addressTo *string = this.SafeString(transaction, "to_account_id")
 	var currencyId *string = this.SafeString(transaction, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
-	var metaData any = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
+	var metaData *string = this.OmitZero(this.SafeString(transaction, "transfer_metadata"))
 	if metaData != nil {
 		var parsedMeta any = this.ParseJson(metaData)
 		direction = this.SafeStringLower(parsedMeta, "direction")
@@ -2490,7 +2490,7 @@ func (this *Grvt) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	var isInternal bool = this.InArray(fromAccount, []any{"trading", "funding"}) && this.InArray(toAccount, []any{"trading", "funding"})
 	var fromSubAccount any = fromAccount
 	var toSubAccount any = toAccount
-	var paramsFundingAccountId any = params
+	var paramsFundingAccountId map[string]any = params
 	if isInternal {
 		tradingAccountId, paramsTradingAccountId := this.HandleOptionStringAndParams(params, "transfer", "tradingAccountId")
 		fundingAccountId, paramsFunding := this.HandleOptionStringAndParams(paramsTradingAccountId, "transfer", "fundingAccountId")
@@ -3036,7 +3036,7 @@ func (this *Grvt) EipMessageForOrder(order map[string]any, structureType string)
 			"isBuyingContract": leg["is_buying_asset"],
 		}
 		var limitPrice *string = this.SafeString(leg, "limit_price")
-		if (limitPrice != nil) && (!IsEqual(this.OmitZero(limitPrice), nil)) {
+		if (limitPrice != nil) && (this.OmitZero(limitPrice) != nil) {
 			var price *string = limitPrice
 			var limitParts []string = strings.Split(*price, ".")
 			var limitDec string = *this.SafeString(limitParts, 1, "")

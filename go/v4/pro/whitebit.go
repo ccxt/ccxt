@@ -170,11 +170,11 @@ func (this *Whitebit) HandleOHLCV(client any, message map[string]any) any {
 				this.Ohlcvs[*symbol]["unknown"] = stored
 			}
 		}
-		var ohlcv any
+		var ohlcv ccxt.WsArrayCache
 		if symbol != nil {
-			ohlcv = this.Ohlcvs[*symbol]["unknown"]
+			ohlcv, _ = this.Ohlcvs[*symbol]["unknown"].(ccxt.WsArrayCache)
 		}
-		ohlcv.(ccxt.Appender).Append(parsed)
+		ohlcv.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(ohlcv, messageHash)
 	}
 	return message
@@ -854,7 +854,7 @@ func (this *Whitebit) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var marketId *string = this.SafeString(order, "market")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var id *string = this.SafeString(order, "id")
-	var clientOrderId any = this.OmitZero(this.SafeString(order, "client_order_id"))
+	var clientOrderId *string = this.OmitZero(this.SafeString(order, "client_order_id"))
 	var price *string = this.SafeString(order, "price")
 	var filled *string = this.SafeString(order, "deal_stock")
 	var cost *string = this.SafeString(order, "deal_money")
@@ -1319,8 +1319,8 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 		ch <- ccxt.AsyncResult[int]{Value: authorized}
 		return nil
 	}
-	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash)
-	if authenticated != nil {
+	var authenticated bool = client.(ccxt.ClientInterface).SubscriptionSafe(subscribeHash) != nil
+	if authenticated {
 
 		// a previous flight already completed the handshake on the client
 		ch <- ccxt.AsyncResult[int]{Value: authorized}
@@ -1414,8 +1414,8 @@ func (this *Whitebit) HandleAuthenticate(client any, message map[string]any) any
 	//
 	//     { error: null, result: { status: "success" }, id: 1656084550 }
 	//
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
-	future.(*ccxt.Future).Resolve(1)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
+	future.Resolve(1)
 	return message
 }
 func (this *Whitebit) HandleErrorMessage(client any, message map[string]any) any {

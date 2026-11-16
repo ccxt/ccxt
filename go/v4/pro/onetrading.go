@@ -1418,15 +1418,15 @@ func (this *Onetrading) HandleOHLCV(client any, message map[string]any) {
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
 		this.Ohlcvs[*symbol] = map[string]any{}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if symbol != nil && timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	if stored == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "OHLCVLimit", 1000)
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 	}
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	if (symbol != nil) && (timeframe != nil) {
 		if this.Ohlcvs[*symbol] != nil {
 			this.Ohlcvs[*symbol][*timeframe] = stored
@@ -1551,9 +1551,9 @@ func (this *Onetrading) HandleAuthenticationMessage(client any, message map[stri
 	//        "time": "2022-06-24T20:45:25.447488Z"
 	//    }
 	//
-	var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).GetFutures()["authenticated"]
 	if future != nil {
-		future.(*ccxt.Future).Resolve(true)
+		future.Resolve(true)
 	}
 	return message
 }

@@ -1620,13 +1620,13 @@ func (this *Coinbaseinternational) HandleOHLCV(client any, message map[string]an
 			this.Ohlcvs[*symbol][*timeframe] = ccxt.NewArrayCacheByTimestamp(limit)
 		}
 	}
-	var stored any
+	var stored ccxt.WsArrayCache
 	if timeframe != nil {
-		stored = this.Ohlcvs[*symbol][*timeframe]
+		stored, _ = this.Ohlcvs[*symbol][*timeframe].(ccxt.WsArrayCache)
 	}
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
 	var parsed any = this.ParseWsOHLCV(data, market)
-	stored.(ccxt.Appender).Append(parsed)
+	stored.Append(parsed)
 	var resolved []any = []any{symbol, timeframe, stored}
 	client.(ccxt.ClientInterface).Resolve(resolved, messageHash)
 }
@@ -2497,9 +2497,9 @@ func (this *Coinbaseinternational) createOrderWsBody(ch chan ccxt.AsyncResult[cc
 			request["label"] = *brokerId + "-" + this.Uuid22()
 		}
 	}
-	var paramsRequest any = this.Omit(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"})
+	var paramsRequest map[string]any = this.OmitDict(paramsResolved, []any{"clientOrderId", "client_order_id", "postOnly", "post_only", "timeInForce", "tif", "triggerPrice", "stopPrice", "stop_price"})
 	if this.IsNativeDeribitCredentials() == true {
-		paramsRequest = this.Omit(paramsRequest, []any{"reduceOnly", "reduce_only"})
+		paramsRequest = this.OmitDict(paramsRequest, []any{"reduceOnly", "reduce_only"})
 	}
 
 	r1 := <-this.RequestWsAsync("private/"+side, this.Extend(request, paramsRequest), true)

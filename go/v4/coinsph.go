@@ -1408,12 +1408,12 @@ func (this *Coinsph) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"symbol":   market["id"],
 		"interval": interval,
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["startTime"] = since
 		// since work properly only when it is "younger" than last "limit" candle
@@ -2958,7 +2958,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 	var query map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = query
 	var encodedArrayParams any = ""
-	var remainingQuery any = query
+	var remainingQuery map[string]any = query
 	var keys []string = nil
 	if query != nil {
 		keys = make([]string, 0, len(query))
@@ -2973,7 +2973,7 @@ func (this *Coinsph) UrlEncodeQuery(optionalArgs ...any) any {
 				encodedArrayParams = Add(encodedArrayParams, "&")
 			}
 			var innerArray any = query[key]
-			remainingQuery = this.Omit(remainingQuery, key)
+			remainingQuery = this.OmitDict(remainingQuery, key)
 			var encodedArrayParam any = this.ParseArrayParam(innerArray, key)
 			encodedArrayParams = Add(encodedArrayParams, encodedArrayParam)
 		}

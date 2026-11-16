@@ -1482,14 +1482,7 @@ func (this *Lighter) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 		}
 	}
 	var defaultType *string = this.SafeString2(this.Options, "watchBalance", "defaultType", "spot")
-	var typeVarPtr *string = nil
-	typeVarPtr, paramsType := this.HandleParamString(params, "type", defaultType)
-	typeVar := func() any {
-		if typeVarPtr != nil {
-			return *typeVarPtr
-		}
-		return nil
-	}()
+	typeVar, paramsType := this.HandleParamString(params, "type", defaultType)
 	r1 := <-this.HandleAccountIndexAsync(paramsType, "watchBalance", "accountIndex", "account_index")
 	if r1.Err != nil {
 		panic(r1.Err)
@@ -1499,7 +1492,7 @@ func (this *Lighter) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], o
 	paramsAccountIndex := accountIndexparamsAccountIndexVariable[1]
 	var messageHash string = this.GetMessageHash("balances", nil, typeVar)
 	var request map[string]any = map[string]any{}
-	if typeVar == "spot" {
+	if typeVar != nil && *typeVar == "spot" {
 		request["channel"] = ccxt.Add("account_all_assets/", this.NumberToString(accountIndex))
 
 		r2 := <-this.SubscribePrivateAsync(messageHash, this.Extend(request, paramsAccountIndex))

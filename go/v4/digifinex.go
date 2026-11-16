@@ -2090,12 +2090,12 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 			} else {
 				endTime = this.Milliseconds()
 			}
-			var startLimit int64 = func() int64 {
-				if limit != nil {
-					return *limit
-				}
-				return 200
-			}()
+			var startLimit int64
+			if limit != nil {
+				startLimit = *limit
+			} else {
+				startLimit = 200
+			}
 			var startTime int64
 			if since != nil {
 				startTime = this.ParseToInt(float64(*since) / 1000)
@@ -5349,7 +5349,7 @@ func (this *Digifinex) ParsePosition(position any, optionalArgs ...any) Position
 		}
 	}
 	var maintenanceMarginString *string = this.SafeString(position, "maintain_margin")
-	var forceCloseFee any = this.OmitZero(this.SafeString(position, "force_close_fee"))
+	var forceCloseFee *string = this.OmitZero(this.SafeString(position, "force_close_fee"))
 	if (maintenanceMarginString != nil) && (forceCloseFee != nil) {
 		maintenanceMarginString = Precise.StringAdd(maintenanceMarginString, forceCloseFee)
 	}

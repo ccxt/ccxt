@@ -4264,25 +4264,25 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	var denominator int = 1000
 	// For each query, the system would return at most 1500 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
 	var endAt int64
 	if since != nil {
-		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+		endAt = this.ParseToInt(this.Sum(since, *windowLimit*duration))
 	} else {
 		endAt = now
 	}
@@ -4401,25 +4401,25 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	var denominator int = 1000
 	// For each query, the system would return at most 1500 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
 	var endAt int64
 	if since != nil {
-		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+		endAt = this.ParseToInt(this.Sum(since, *windowLimit*duration))
 	} else {
 		endAt = now
 	}
@@ -4519,18 +4519,18 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	var now int64 = this.Milliseconds() // required param
 	// For each query, the system would return at most 200 pieces of data.
 	// To obtain more data, please page the data by time.
-	var windowLimit any = func() any {
-		if limit == nil {
-			return this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
-		if since != nil {
-			return windowLimit
-		}
-		return limit
-	}()
+	var windowLimit *int64
+	if limit == nil {
+		windowLimit = this.SafeInteger(this.Options, "fetchOHLCVLimit", maxLimit)
+	} else {
+		windowLimit = limit
+	}
+	var limitResolved *int64
+	if since != nil {
+		limitResolved = windowLimit
+	} else {
+		limitResolved = limit
+	}
 	var sinceResolved any = since
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
@@ -4538,7 +4538,7 @@ func (this *Kucoin) fetchContractOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol 
 	var endAt any = now
 	if since != nil {
 		request["from"] = since
-		endAt = this.Sum(since, Multiply(windowLimit, duration))
+		endAt = this.Sum(since, *windowLimit*duration)
 	} else if limit != nil {
 		request["from"] = sinceResolved
 	}
@@ -5862,12 +5862,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 		accountMode = *accountModePtr
 	}
 	var isUnified bool = (accountMode == "unified")
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsRequest = this.HandleMarginModeAndParams("createOrder", paramsRequest)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsRequest = this.HandleMarginModeAndParams("createOrder", paramsRequest)
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsRequest)
 	var clientOrderId *string = this.SafeString2(paramsRequest, "clientOid", "clientOrderId", this.Uuid())
 	paramsRequest = this.Omit(paramsRequest, []any{"clientOid", "clientOrderId"})
@@ -5929,8 +5925,8 @@ func (this *Kucoin) CreateUtaOrderRequest(symbol string, typeVar string, side st
 	if isContract != nil && *isContract == true {
 		if !isUnified {
 			if marginMode != nil {
-				request["marginMode"] = ToUpper(marginMode)
-				if marginMode == "isolated" {
+				request["marginMode"] = strings.ToUpper(*marginMode)
+				if marginMode != nil && *marginMode == "isolated" {
 					var leverage *int64 = this.SafeInteger(paramsOmitted, "leverage")
 					if leverage == nil {
 						request["leverage"] = 1
@@ -6944,12 +6940,8 @@ func (this *Kucoin) cancelUtaOrderBody(ch chan AsyncResult[Order], id string, op
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("cancelOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -8531,12 +8523,8 @@ func (this *Kucoin) fetchUtaOrderBody(ch chan AsyncResult[Order], id string, opt
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchOrder", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(market["contract"], marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -9645,12 +9633,8 @@ func (this *Kucoin) fetchMyUtaTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		accountMode = *accountModePtr
 	}
 	request["accountMode"] = accountMode
-	var marginMode any = nil
-	var marginModePtr *string = nil
-	marginModePtr, paramsOmitted = this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted)
-	if marginModePtr != nil {
-		marginMode = *marginModePtr
-	}
+	var marginMode *string = nil
+	marginMode, paramsOmitted = this.HandleMarginModeAndParams("fetchMyTrades", paramsOmitted)
 	var isUnified bool = (accountMode == "unified")
 	var tradeType *string = this.HandleTradeType(isContract, marginMode, isUnified, paramsOmitted)
 	request["tradeType"] = tradeType
@@ -12172,7 +12156,7 @@ func (this *Kucoin) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntry 
 	}
 	var fee map[string]any = nil
 	var feeCostString *string = this.SafeString(item, "fee")
-	var feeCost any = func() any {
+	var feeCost *string = func() *string {
 		if feeCostString == nil {
 			return nil
 		}
@@ -14920,12 +14904,8 @@ func (this *Kucoin) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string,
 			accountMode = *accountModePtr
 		}
 		request["accountMode"] = accountMode
-		var marginMode any = nil
-		var marginModePtr *string = nil
-		marginModePtr, paramsRequest = this.HandleMarginModeAndParams("cancelOrders", paramsRequest)
-		if marginModePtr != nil {
-			marginMode = *marginModePtr
-		}
+		var marginMode *string = nil
+		marginMode, paramsRequest = this.HandleMarginModeAndParams("cancelOrders", paramsRequest)
 		var isUnified bool = (accountMode == "unified")
 		var tradeType *string = this.HandleTradeType(isContractMarket, marginMode, isUnified, paramsRequest)
 		request["tradeType"] = tradeType

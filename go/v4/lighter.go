@@ -1182,7 +1182,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var isMarketOrder bool = (orderType == "MARKET")
 	var timeInForce string = *this.SafeStringLower(paramsOrderExpiry, "timeInForce", "gtt")
 	var postOnly bool = this.IsPostOnly(isMarketOrder, nil, paramsOrderExpiry)
-	var paramsOmitted any = this.Omit(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsOrderExpiry, []any{"stopLoss", "takeProfit", "timeInForce"})
 	var orderTypeNum int
 	var timeInForceNum any = nil
 	if isMarketOrder {
@@ -1218,7 +1218,7 @@ func (this *Lighter) CreateOrderRequest(symbol any, typeVar any, side any, amoun
 	var triggerPriceStr any = "0"                       // default is 0
 	var defaultClientOrderId int64 = this.RandNumber(9) // c# only support int32 2147483647.
 	var clientOrderId *int64 = this.SafeInteger2(paramsOmitted, "client_order_index", "clientOrderId", defaultClientOrderId)
-	var paramsRequest any = this.Omit(paramsOmitted, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
+	var paramsRequest map[string]any = this.OmitDict(paramsOmitted, []any{"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"})
 	if isConditional {
 		amountStr = this.NumberToString(amount)
 		if stopLossPrice != nil {

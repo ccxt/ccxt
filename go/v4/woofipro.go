@@ -1925,14 +1925,10 @@ func (this *Woofipro) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		return nil
 	}
 	var request map[string]any = map[string]any{}
-	var symbolResolved any = nil
+	var symbolResolved *string = nil
 	if symbol != nil {
 		var market map[string]any = this.Market(symbol)
-		if derefPtr := this.SafeString(market, "symbol"); derefPtr != nil {
-			symbolResolved = *derefPtr
-		} else {
-			symbolResolved = nil
-		}
+		symbolResolved = this.SafeString(market, "symbol")
 		request["symbol"] = market["id"]
 	}
 	if since != nil {
@@ -2405,7 +2401,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"timestamp", "created_time", "createdTime"})
 	var orderId *string = this.SafeStringN(order, []any{"order_id", "orderId", "algoOrderId"})
-	var clientOrderId any = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
+	var clientOrderId *string = this.OmitZero(this.SafeString2(order, "client_order_id", "clientOrderId")) // Somehow, this always returns 0 for limit order
 	var marketId *string = this.SafeString(order, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var symbol *string = SafeStringPtr(marketResolved["symbol"])
@@ -2425,7 +2421,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	var side *string = this.SafeStringLower(order, "side")
 	var filled *string = this.SafeStringN(order, []any{"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"})
-	var average any = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
+	var average *string = this.OmitZero(this.SafeString2(order, "average_executed_price", "averageExecutedPrice"))
 	var fee any = this.SafeValue2(order, "total_fee", "totalFee")
 	var feeCurrency *string = this.SafeString2(order, "fee_asset", "feeAsset")
 	var transactions []any = SafeListTyped(order, "Transactions")
