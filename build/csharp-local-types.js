@@ -16581,7 +16581,91 @@ export default installCsharpLocalTypes;
 // The narrowing table `typeCoreArgs` reads, kept here so the narrowing pass and the element-read
 // proof share ONE copy. Below: methods whose trailing `params` prints `Dictionary<string, object>
 // parameters = null`, admitted only when every declaration, body write and call-site argument is a dictionary.
-export const PARAMETERS_ARG_TYPED_METHODS = [ 'FetchMyBuys', 'FetchMySells', 'WatchPosition', 'isUTAEnabled', 'redeem' ];
+// ral-77c1: every name whose declarations, overrides and call-site arguments all hold an
+// IDictionary bag (farm probe jobs 15304 / 15307 / 15316). Names that receive an `object`
+// argument somewhere (tuple slots, object locals) stay out: a cast at the call is not a typing.
+export const PARAMETERS_ARG_TYPED_METHODS = [
+    'addMargin', 'authenticateRest', 'borrowCrossMargin', 'borrowIsolatedMargin', 'borrowMargin',
+    'buildMessageHash', 'calculateFee', 'calculateFeeWithRate', 'CancelAllContractOrders', 'CancelAllOrders',
+    'CancelAllOrdersAfter', 'CancelAllOrdersRequest', 'cancelAllOrdersRequest', 'CancelAllOrdersWs',
+    'CancelAllSpotOrders', 'CancelAllUtaOrders', 'CancelContractOrder', 'CancelOrdersForSymbols',
+    'CancelOrdersWs', 'CancelOrderWs', 'CancelSpotOrder', 'CancelUnifiedOrder', 'CancelUtaOrder',
+    'closeAllPositions', 'ClosePosition', 'CreateAmmOrder', 'CreateConvertTrade', 'CreateDepositAddress',
+    'CreateMarketBuyOrderWithCost', 'CreateMarketOrderWithCost', 'CreateMarketSellOrderWithCost',
+    'createOrderAppendix', 'CreateOrdersWs', 'createProxyCredentials', 'CreateSubAccount',
+    'createTpslOrderRequest', 'CreateTrailingAmountOrder', 'CreateTrailingPercentOrder',
+    'createTransferSettlementData', 'CreateTwapOrder', 'CreateUtaOrder', 'createWithdrawalSettlementData',
+    'customHandleMarginModeAndParams', 'EditOrders', 'editOrdersRequest', 'EditOrderWs',
+    'FetchAccountIdByType', 'FetchAccounts', 'FetchAccountsV2', 'FetchAccountsV3', 'FetchADLRank',
+    'FetchAllGreeks', 'FetchBalance', 'FetchBalanceWs', 'FetchBidsAsks', 'FetchBorrowInterest',
+    'FetchBorrowRate', 'FetchCanceledOrders', 'FetchClosedContractOrders', 'FetchClosedOrdersWs',
+    'FetchClosedSpotOrders', 'FetchContractOrders', 'FetchContractTickers', 'FetchConvertCurrencies',
+    'FetchConvertQuote', 'FetchConvertTrade', 'FetchConvertTradeHistory', 'FetchCrossBorrowRate',
+    'FetchCrossBorrowRates', 'fetchCurrencies', 'FetchCurrenciesFromCache', 'FetchCurrenciesFromWeb',
+    'fetchCurrenciesWs', 'FetchDepositAddress', 'FetchDepositAddressesByNetwork', 'FetchDeposits',
+    'FetchDepositsOrWithdrawalsHelper', 'fetchDepositsRequest', 'FetchDepositsWithdrawals', 'FetchDepositsWs',
+    'FetchDepositWithdrawFee', 'FetchDepositWithdrawFees', 'FetchDerivativesMarketLeverageTiers',
+    'FetchDerivativesOpenInterestHistory', 'FetchEvent', 'FetchEvents', 'FetchFreeBalance',
+    'FetchFundingHistory', 'FetchFundingInterval', 'FetchFundingIntervals', 'FetchFundingRate',
+    'FetchFundingRateHistory', 'FetchFundingRates', 'FetchFutureMarkets', 'FetchGreeks', 'FetchHip3Markets',
+    'FetchIndexOHLCV', 'FetchIsolatedBorrowRate', 'FetchIsolatedBorrowRates', 'FetchL3OrderBook',
+    'FetchLastPrices', 'FetchLedger', 'FetchLedgerEntriesByIds', 'FetchLedgerEntry', 'FetchLeverage',
+    'FetchLeverages', 'FetchLeverageTiers', 'FetchLiquidations', 'FetchLongShortRatio',
+    'FetchLongShortRatioHistory', 'FetchMarginAdjustmentHistory', 'FetchMarginMode', 'FetchMarginModes',
+    'FetchMarketLeverageTiers', 'FetchMarkets', 'FetchMarketsByType', 'FetchMarketsFromAPI',
+    'FetchMarketsFromCache', 'FetchMarketsFromWeb', 'FetchMarketsV1', 'FetchMarketsV2', 'FetchMarketsV3',
+    'FetchMarketsWs', 'FetchMarkOHLCV', 'FetchMarkPrice', 'FetchMarkPrices', 'FetchMyBuys',
+    'FetchMyLiquidations', 'FetchMySells', 'FetchMyTrades', 'fetchMyTradesRequest', 'FetchMyTradesWs',
+    'FetchOHLCV', 'fetchOHLCVRequest', 'FetchOHLCVWs', 'FetchOpenInterest', 'FetchOpenInterestHistory',
+    'FetchOpenInterests', 'FetchOpenOrdersWs', 'FetchOption', 'FetchOptionChain', 'FetchOptionMarkets',
+    'FetchOptionOHLCV', 'FetchOrderBookWs', 'FetchOrdersByStatusWs', 'fetchOrdersRequest', 'FetchOrderStatus',
+    'FetchOrdersWs', 'FetchOrderTrades', 'FetchOrderWs', 'fetchPaginatedCallCursor',
+    'fetchPaginatedCallDeterministic', 'fetchPaginatedCallDynamic', 'fetchPaginatedCallIncremental',
+    'FetchPartialBalance', 'FetchPaymentMethods', 'FetchPosition', 'FetchPositionADLRank',
+    'FetchPositionHistory', 'FetchPositionMode', 'FetchPositions', 'FetchPositionsADLRank',
+    'FetchPositionsForSymbol', 'FetchPositionsHistory', 'FetchPositionsWs', 'FetchPositionWs',
+    'FetchPremiumIndexOHLCV', 'FetchPublicDepositWithdrawFees', 'FetchPublicTransactionFees',
+    'FetchRawActiveMarkets', 'FetchRawEventByTicker', 'FetchRawMarketById', 'FetchRawMarketsByTags',
+    'FetchRawQuestionById', 'fetchSecurities', 'FetchSettlements', 'FetchSpotMarkets', 'FetchSpotOrders',
+    'FetchSpotOrdersByStates', 'FetchSpotOrderTrades', 'FetchSpotTickers', 'FetchStatus',
+    'FetchSwapAndFutureMarkets', 'FetchSwapMarkets', 'fetchSxbetBestOdds', 'FetchTicker', 'FetchTickers',
+    'FetchTickersV2', 'FetchTickersV3', 'FetchTickerV1', 'FetchTickerV1AndV2', 'FetchTickerV2',
+    'FetchTickerV3', 'FetchTickerWs', 'FetchTime', 'FetchTotalBalance', 'FetchTrades', 'FetchTradesWs',
+    'FetchTradingFee', 'FetchTradingFees', 'FetchTradingFeesWs', 'FetchTradingLimits',
+    'FetchTradingLimitsById', 'FetchTransactionFee', 'FetchTransactionFees', 'FetchTransactions',
+    'FetchTransactionsByType', 'FetchTransactionsHelper', 'FetchTransactionsWithMethod', 'FetchTransfer',
+    'FetchTransfers', 'FetchUSDTMarkets', 'FetchUsedBalance', 'FetchUtaBalance', 'FetchWithdrawals',
+    'fetchWithdrawalsRequest', 'FetchWithdrawalsWs', 'findAccountId', 'getAssetHistoryRows',
+    'getMarketsPaginated', 'getWithdrawNonce', 'handleMarketTypeAndParams',
+    'handleMaxEntriesPerRequestAndParams', 'handleSinceAndUntil', 'handleSubTypeAndParams', 'handleToken',
+    'handleTradingStatisticsWindow', 'handleUntilOptionString', 'initializeClient', 'isUTAEnabled',
+    'loadAccounts', 'loadMarkets', 'loadOutcomes', 'loadProxyCredentials', 'loadTimeDifference',
+    'loadTradingLimits', 'modifyLeverageAndMarginMode', 'modifyMarginHelper', 'multiOrderSpotPrepareRequest',
+    'orderBookSuffix', 'override', 'parseADLRanks', 'parseAllGreeks', 'parseConversions',
+    'parseDepositAddresses', 'parseLastPrices', 'parseLedger', 'parseTickers', 'parseTransfers',
+    'parseWsTrades', 'preLoadLighterLibrary', 'prepareAccountRequestWithCurrencyCode',
+    'prepareRequestForDepositAddress', 'queryContracts', 'queryTransactionsByEventType', 'redeem',
+    'reduceMargin', 'repayCrossMargin', 'repayIsolatedMargin', 'repayMargin', 'requestWalletHistoryRows',
+    'safeDeterministicCall', 'sendSubscription', 'sendUnsubscribe', 'setBalanceCache', 'SetLeverage',
+    'SetMargin', 'SetMarginMode', 'SetPositionMode', 'signAndCancelAllOrders', 'signIn', 'signInWithApiKey',
+    'signInWithPrivateKey', 'spotOrderPrepareRequest', 'subscribeMyriadChannel', 'subscribePublicMultiple',
+    'subscribePublicUta', 'subscribeUserChannel', 'subscribeWsTickers', 'tradeRequest', 'Transfer',
+    'TransferBetweenMainAndSubAccount', 'TransferBetweenSubAccounts', 'TransferClassic', 'TransferUta',
+    'unsubscribeChannelAt', 'unsubscribeChannels', 'unsubscribeChannelsFrom', 'unSubscribeMultiple',
+    'unsubscribeMultipleWrapper', 'unSubscribePublic', 'unsubscribePublic', 'unSubscribePublicMultiple',
+    'unWatch', 'unWatchBidsAsks', 'unWatchChannels', 'unWatchFundingRate', 'unWatchFundingRates',
+    'unWatchMarkPrice', 'unWatchMarkPrices', 'unWatchMyTrades', 'unWatchOHLCV', 'unWatchOHLCVForSymbols',
+    'unWatchOrderBook', 'unWatchOrderBookForSymbols', 'unWatchOrders', 'unWatchPositions', 'unwatchPublic',
+    'unWatchPublicMultiple', 'unWatchTicker', 'unWatchTickers', 'unWatchTopics', 'unWatchTrades',
+    'unWatchTradesForSymbols', 'unWatchWalletEvents', 'virtual', 'WatchBalance', 'WatchFundingRate',
+    'WatchFundingRates', 'WatchFundingRatesForSymbols', 'WatchLiquidations', 'WatchLiquidationsForSymbols',
+    'WatchMarkPrice', 'WatchMarkPrices', 'watchMultipleSubscription', 'watchMultiTickerHelper',
+    'WatchMyLiquidations', 'WatchMyLiquidationsForSymbols', 'WatchMyTrades', 'WatchMyTradesForSymbols',
+    'WatchOHLCV', 'WatchOHLCVForSymbols', 'WatchOrderBook', 'WatchOrderBookForSymbols', 'WatchOrders',
+    'WatchOrdersForSymbols', 'WatchPosition', 'watchPrivateSubscribe', 'watchSpotPrivate', 'watchSpotPublic',
+    'watchStockMarketStream', 'watchSwapPrivate', 'watchSwapPublic', 'WatchTicker', 'WatchTrades',
+    'WatchTradesForSymbols', 'watchWalletEvents', 'wathPublic', 'Withdraw', 'withdrawRequest', 'WithdrawWs',
+];
 
 // the retyped trailing `params` of an admitted method, read inside its own body and never written
 function dictionaryParameterType (csharp, declaration) {
@@ -16595,7 +16679,7 @@ function dictionaryParameterType (csharp, declaration) {
     if ((PARAMETERS_ARG_TYPED_METHODS.indexOf (name) === -1) && (PARAMETERS_ARG_TYPED_METHODS.indexOf (pascal) === -1)) {
         return undefined;
     }
-    return csharpParameterIsWritten (csharp, owner, declaration) ? undefined : 'Dictionary<string, object>';
+    return csharpParameterIsWritten (csharp, owner, declaration) ? undefined : 'IDictionary<string, object>';
 }
 
 // Core `Strings` parameters narrowed from `object` to a list (same keying/agreement gate as

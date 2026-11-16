@@ -1553,7 +1553,7 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "canceled" } });
         }
 
-        public override Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, object parameters2 = null)
+        public override Task<IDictionary<string, object>> loadMarkets(bool? reload2 = null, IDictionary<string, object> parameters2 = null)
         {
             this.calls.Add("loadMarkets");
             return Task.FromResult((IDictionary<string, object>)this.markets);
@@ -1576,7 +1576,7 @@ public class OrderRouterTest
         //  execute would place one
         public OrderRouter invalidateDuringRead = null;
 
-        public override async Task<ccxt.Balances> FetchBalance(object parameters = null)
+        public override async Task<ccxt.Balances> FetchBalance(IDictionary<string, object> parameters = null)
         {
             this.calls.Add("fetchBalance");
             await Task.CompletedTask;
