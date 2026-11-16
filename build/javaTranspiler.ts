@@ -5814,6 +5814,24 @@ function auditSelfTest (): string[] {
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
 function mapLocalsSelfTest (): string[] {
     const problems: string[] = [];
+    // ral-77j3: `url = <string> + url` keeps a non-null String local String (its own read anchors the native concat)
+    const selfAnchored = path.join(process.cwd(), 'ts', 'src', `zz77j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(selfAnchored, [
+            "import Exchange from './abstract/binance.js';",
+            'export default class zz77j3selftest extends Exchange {',
+            "    pos (path: string, host: string) { let url = '/'; url += path; url = host + url; return url; }",
+            "    neg (path: string, host: any) { let other = '/'; other += path; other = host + other; return other; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(selfAnchored).content as string;
+        if (!/String url = "\/";/.test(out) || !/url = \(host \+ url\);/.test(out)) problems.push("ral-77j3: 'url' (every write a non-null String, `host + url` self-anchored) must print String with a native concat");
+        if (!/Object other = "\/";/.test(out)) problems.push("ral-77j3: 'other' (an `any` left operand) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-77j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(selfAnchored, { force: true });
+    }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",

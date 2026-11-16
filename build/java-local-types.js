@@ -14734,9 +14734,29 @@ function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
             return false;
         }
         return javaNonNullStringValue (printer, declaration, retyped, value.left, depth + 1)
-            || printedJavaIsString (printer, value.left) || printedConcatIsNative (printer, value.left, value.right);
+            || printedJavaIsString (printer, value.left) || printedConcatIsNative (printer, value.left, value.right)
+            || javaNonNullStringSelfAnchoredConcat (printer, declaration, value);
     }
     return false;
+}
+
+// ral-77j3: `x = <string> + x` where x is the declaration being classified. Once x prints
+// String, the printer's concat rule (javaStringConcatIsProvable: both sides plain string
+// family, one side provable) prints the native `(left + x)`, a non-null String whatever
+// left holds; Helpers.add (left, x) gave the same text (String.valueOf branch, no Double arm
+// for a string-family left). Before the retype the resolver cannot see x, so the proof
+// reads the self anchor directly.
+function javaNonNullStringSelfAnchoredConcat (printer, declaration, value) {
+    const right = unwrapParens (value.right);
+    if (right === undefined || !ts.isIdentifier (right) || javaNonNullStringDeclarationOf (printer, right) !== declaration) {
+        return false;
+    }
+    try {
+        return printer.javaScalarFamily (value.left) === 'string' && printer.javaScalarFamily (right) === 'string'
+            && javaConcatRightCannotBeDouble (printer, value.left);
+    } catch (e) {
+        return false;
+    }
 }
 
 // Helpers.add takes its Double branch before the String ones; a right operand that can hold a
