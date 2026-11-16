@@ -2954,8 +2954,8 @@ impl Sxbet {
         if (outcomes == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchTickers() requires an outcomes argument - sx.bet has thousands of markets and serves best odds per market list")));
         }
-        let mut outcomesList: Value = outcomes;
-        let mut outcomesLength: i64 = outcomesList.len() as i64;
+        let mut outcomesList: Option<crate::value::List> = outcomes.into_opt_list();
+        let mut outcomesLength: i64 = outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64;
         let mut hashesOrder: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut seenHashes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2965,8 +2965,8 @@ impl Sxbet {
                         let mut i: i64 = 0;
             let mut __for_first_1517: bool = true;
             while { if !__for_first_1517 { i += 1; } __for_first_1517 = false; i < outcomesLength } {
-            self.load_outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).await;
-            let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            self.load_outcome(outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), &[]).await;
+            let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut marketHash: Value = self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]);
             if (self.safe_bool(&seenHashes, marketHash.clone(), &[]) == Value::Null) {
                 seenHashes.insert(crate::runtime::stringify_param(&marketHash), Value::Bool(true));
@@ -2993,7 +2993,7 @@ impl Sxbet {
                 rowsByHash.insert(marketHash.as_deref().unwrap_or("null").to_string(), self.parse_sxbet_snapshot_best_odds(&snapshot));
             }
             }
-            return self.parse_sxbet_tickers_by_hash(outcomesList.clone(), Value::Map(rowsByHash.clone()));
+            return self.parse_sxbet_tickers_by_hash(outcomesList.map_or(Value::Null, Value::Arr), Value::Map(rowsByHash.clone()));
         }
         let mut chunkSize: Value = self.safe_integer_k(self.options.clone(), "bestOddsBatchSize", &[Value::Int(100)]);
         let mut chunkCount: Option<i64> = self.parse_to_int((match ((self.sum(&[Value::from(hashesLength), (match (&(chunkSize), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
@@ -3027,7 +3027,7 @@ impl Sxbet {
             }
         }
         }
-        return self.parse_sxbet_tickers_by_hash(outcomesList, Value::Map(rowsByHash));
+        return self.parse_sxbet_tickers_by_hash(outcomesList.map_or(Value::Null, Value::Arr), Value::Map(rowsByHash));
         Value::Null
         }).await?))
     }

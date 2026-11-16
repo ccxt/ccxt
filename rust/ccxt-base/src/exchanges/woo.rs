@@ -3426,7 +3426,7 @@ impl Woo {
         let mut isConditional: bool = isTrailing || (triggerPrice.is_some()) || hasStopLoss || hasTakeProfit || (self.safe_list_k(&paramsMarginMode, "childOrders", &[]) != Value::Null);
         let mut isMarket: bool = orderType == "MARKET";
         let mut timeInForce: Option<String> = self.safe_string_lower_k_opt(&paramsMarginMode, "timeInForce", &[]);
-        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket.clone()), Value::Null, &[Value::from(&paramsMarginMode)]);
+        let mut postOnly: bool = self.is_post_only(Value::Bool(isMarket), Value::Null, &[Value::from(&paramsMarginMode)]);
         let mut clientOrderIdKey: String = "clientOrderId".to_string();
         if isConditional {
             clientOrderIdKey = "clientAlgoOrderId".to_string();
@@ -3444,7 +3444,7 @@ impl Woo {
         if (reduceOnly == Some(true)) {
             request.insert("reduceOnly".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }
-        if !(isMarket) && (price != Value::Null) {
+        if !isMarket && (price != Value::Null) {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone())));
         }
         let mut isMarketNotConditional: bool = isMarket && !isConditional;
@@ -3649,7 +3649,7 @@ impl Woo {
                 request.insert("callbackRate".into(), convertedTrailingPercent.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"], &[]).into_dict();
         let mut isConditional: bool = isTrigger || isTrailing || (triggerPrice.is_some()) || (self.safe_list_k(&paramsOmitted, "childOrders", &[]) != Value::Null);
         let mut response: Option<crate::value::Dict> = None;

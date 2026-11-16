@@ -9731,10 +9731,10 @@ if _try_result.is_err() {
             let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsUTA]);
             response = self.public_mix_get_v2_mix_market_tickers(&[__ws_arg_26]).await.into_opt_dict();
         }
-        let mut symbolsResolved: Value = symbols.clone();
+        let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
         if isStock && (symbols == Value::Null) {
             // for returning only tokenized stock symbols
-            symbolsResolved = Value::from(vec![]);
+            symbolsResolved = Value::from(vec![]).into_opt_list();
             let mut allSymbols: crate::value::List = self.symbols.clone();
             {
                                 let mut i: i64 = 0;
@@ -9746,7 +9746,7 @@ if _try_result.is_err() {
                 if isStockMarket {
                     let mut marketSymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                     if (marketSymbol.is_some()) {
-                        append_to_array(&mut symbolsResolved, marketSymbol.map(Value::from).unwrap_or(Value::Null));
+                        if let Some(__a) = &mut symbolsResolved { std::sync::Arc::make_mut(__a).push(marketSymbol.map(Value::from).unwrap_or(Value::Null)); }
                     }
                 }
             }
@@ -9869,7 +9869,7 @@ if _try_result.is_err() {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        return self.parse_tickers(&data, &[symbolsResolved]);
+        return self.parse_tickers(&data, &[symbolsResolved.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

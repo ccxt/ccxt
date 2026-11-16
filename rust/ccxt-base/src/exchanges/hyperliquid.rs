@@ -6952,8 +6952,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut swapMarkets: Value = self.fetch_swap_markets(&[__ws_arg_35]).await;
-        return self.parse_open_interests(swapMarkets, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
+        let mut swapMarkets: Option<crate::value::List> = self.fetch_swap_markets(&[__ws_arg_35]).await.into_opt_list();
+        return self.parse_open_interests(&swapMarkets, &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);
         Value::Null
         }).await?))
     }

@@ -1434,9 +1434,9 @@ impl Gate {
         if (rawMarketType.as_deref() == Some("futures")) {
             marketType = "contract".to_string();
         }
-        let mut result: Value = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null });
+        let mut result: Option<crate::value::List> = (match message.get("result") { Some(__v) if !matches!(__v, Value::Null) && !matches!(__v, Value::Str(__s) if __s.is_empty()) => __v.clone(), _ => Value::Null }).into_opt_list();
         let mut results: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&result, Value::Arr(_))) {
+        if (result.is_some()) {
             results = (match message.get("result") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
         }  else {
             let mut rawTicker: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();

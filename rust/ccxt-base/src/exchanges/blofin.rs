@@ -3063,7 +3063,7 @@ impl Blofin {
         if isHedged {
             request.insert("positionSide".into(), (if (side.as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         }
-        let mut isMarketOrder: bool = type_var.as_str() == Some("market");
+        let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
         query = self.omit(&query, &["timeInForce"], &[]).into_dict();
         let mut ioc: bool = (timeInForce.as_deref() == Some("IOC")) || (type_var.as_str() == Some("ioc"));
         let mut marketIOC: bool = isMarketOrder && ioc;
@@ -3077,7 +3077,7 @@ impl Blofin {
             request.insert(key, Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         let mut postOnly: bool = false;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if postOnly {
             request.insert("type".into(), Value::Str("post_only".into()));
         }
@@ -3180,14 +3180,14 @@ impl Blofin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isStopLossPriceDefined: bool = self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null;
-        let mut isTakeProfitPriceDefined: bool = self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null;
+        let mut isStopLossPriceDefined: bool = (self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null);
+        let mut isTakeProfitPriceDefined: bool = (self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null);
         let mut isTriggerOrder: bool = self.safe_string_k(params.clone(), "triggerPrice", &[]) != Value::Null;
         let isTpslEndpointparamsTpslVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("createOrder".into()), Value::Str("tpsl".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut isTpslEndpoint: bool = isTpslEndpointparamsTpslVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsTpsl: crate::value::Dict = isTpslEndpointparamsTpslVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
-        let mut isSlOrTp: bool = isStopLossPriceDefined || isTakeProfitPriceDefined;
+        let mut isSlOrTp: bool = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let mut response: Option<crate::value::Dict> = None;
         let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsTpsl, "reduceOnly", &[]).as_bool();
         if (reduceOnly.is_some()) {

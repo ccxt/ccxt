@@ -516,7 +516,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let mut amountPrecision: Option<f64> = self.safe_number_k(&quantityFilter, "stepSize", &[]).as_f64();
         let mut type_var: Option<String> = None;
         let mut rawType: Option<String> = self.safe_string_k_opt(market.clone(), "marketType", &[]);
-        let mut rfq: Value = Value::Bool(rawType.as_deref() == Some("RFQ"));
+        let mut rfq: bool = rawType.as_deref() == Some("RFQ");
         let mut security: Option<crate::value::Dict> = self.safe_dict_k(market.clone(), "security", &[]).into_opt_dict();
         let mut baseSymbol: String = self.safe_string_k(market.clone(), "baseSymbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stock: Value = Value::Bool((self.safe_string_k(market.clone(), "rwaMarketType", &[]).as_str() == Some("STOCK")) || (security.is_some()) || (baseSymbol.ends_with(".US")) || (baseSymbol.ends_with(".HK")));
@@ -526,9 +526,9 @@ impl crate::exchange::DerivedExchange for Backpack {
         let mut settle: Option<String> = None;
         let mut settleId: Option<String> = None;
         let mut contractSize: Option<i64> = None;
-        if (typeOfMarket.as_deref() == Some("spot")) || matches!(&rfq, Value::Bool(true)) {
+        if (typeOfMarket.as_deref() == Some("spot")) || rfq {
             type_var = Some("spot".to_string());
-            if matches!(&rfq, Value::Bool(true)) {
+            if rfq {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), ".RFQ/").into()), quote.as_deref().unwrap_or("null"));
                 let mut sessions: crate::value::List = self.safe_list_k(&security, "sessions", &[Value::from(vec![])]).into_list();
                 let mut stepSize: Option<String> = None;
@@ -575,7 +575,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         }
         let mut orderBookState: Option<String> = self.safe_string_k_opt(market.clone(), "orderBookState", &[]);
         // RFQ active means listed, not currently in session; an explicit order book state takes precedence.
-        let mut active: Value = (if (matches!(&rfq, Value::Bool(true)) && (orderBookState.is_none())) { (Value::Bool((id.is_some()) || (self.safe_string_k(&security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
+        let mut active: Value = (if (rfq && (orderBookState.is_none())) { (Value::Bool((id.is_some()) || (self.safe_string_k(&security, "asset", &[]) != Value::Null))) } else { (Value::Bool(orderBookState.as_deref() == Some("Open"))) });
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -588,9 +588,9 @@ impl crate::exchange::DerivedExchange for Backpack {
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), Value::Bool(type_var.as_deref() == Some("spot")));
-        m.insert("margin".to_string(), Value::Bool((type_var.as_deref() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !(matches!(&rfq, Value::Bool(true)))));
+        m.insert("margin".to_string(), Value::Bool((type_var.as_deref() == Some("spot")) && !(matches!(&stock, Value::Bool(true))) && !rfq));
         m.insert("stock".to_string(), stock);
-        m.insert("executionModel".to_string(), (if (rfq).as_bool() == Some(true) { Value::Str("rfq".into()) } else { Value::Null }));
+        m.insert("executionModel".to_string(), (if rfq { Value::Str("rfq".into()) } else { Value::Null }));
         m.insert("swap".to_string(), Value::Bool(type_var.as_deref() == Some("swap")));
         m.insert("future".to_string(), Value::Bool(false));
         m.insert("option".to_string(), Value::Bool(false));
@@ -3606,7 +3606,7 @@ impl Backpack {
             request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
         }
         let mut selection: crate::value::List = self.handle_stock_params("fetchMyTrades", params, &[crate::Value::from(market.as_ref())]).into_list();
-        let mut stock: bool = self.safe_bool_opt(&selection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
+        let mut stock: bool = self.safe_bool(&selection, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -1998,7 +1998,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut price: Option<String> = self.omit_zero(self.safe_string_k(outcomeOrder.clone(), "price", &[]));
         let mut side: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "side", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "status", &[]);
-        let mut lastTradeTimestamp: Value = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]);
+        let mut lastTradeTimestamp: Option<i64> = self.safe_integer_k(outcomeOrder.clone(), "lastTradeTimestamp", &[]).as_i64();
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         let mut rawTrades: crate::value::List = self.safe_list_k(outcomeOrder.clone(), "trades", &[Value::from(vec![])]).into_list();
         let mut trades: crate::value::List = self.parse_prediction_trades(Value::Arr(rawTrades), &[outcomeObj]).into_list();
@@ -2029,10 +2029,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 let mut tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
                 if (tradeTimestamp.is_some()) {
-                    if (lastTradeTimestamp == Value::Null) {
-                        lastTradeTimestamp = Value::from(tradeTimestamp);
-                    }  else if matches!(tradeTimestamp, Some(__p) if (__p as f64) > lastTradeTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                        lastTradeTimestamp = Value::from(tradeTimestamp);
+                    if (lastTradeTimestamp.is_none()) {
+                        lastTradeTimestamp = tradeTimestamp;
+                    }  else if (tradeTimestamp.is_some() && lastTradeTimestamp.is_some() && tradeTimestamp > lastTradeTimestamp) {
+                        lastTradeTimestamp = tradeTimestamp;
                     }
                 }
                 let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(&trade, "fee", &[]).into_opt_dict();
@@ -2095,7 +2095,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("clientOrderId".to_string(), self.safe_string_k(outcomeOrder.clone(), "clientOrderId", &[]));
                 m.insert("timestamp".to_string(), Value::from(timestamp));
                 m.insert("datetime".to_string(), datetime.map(Value::from).unwrap_or(Value::Null));
-                m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+                m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
                 m.insert("lastUpdateTimestamp".to_string(), self.safe_integer_k(outcomeOrder.clone(), "lastUpdateTimestamp", &[]));
                 m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), orderType.map(Value::from).unwrap_or(Value::Null));

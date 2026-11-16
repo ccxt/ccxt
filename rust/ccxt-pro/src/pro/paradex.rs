@@ -1285,10 +1285,10 @@ if _try_result.is_err() {
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
             // snapshot feed is being unsubscribed included
-            let mut deltasHash: Value = Value::Str(format!("{}{}", deltasChannel.as_deref().unwrap_or("null"), ":requested").into());
-            let mut isDeltas: bool = deltas || (__ch.has_subscription(&deltasHash));
+            let mut deltasHash: String = format!("{}{}", deltasChannel.as_deref().unwrap_or("null"), ":requested");
+            let mut isDeltas: bool = deltas || (__ch.has_subscription(deltasHash.as_str()));
             if isDeltas {
-                __ch.add_subscription(&deltasHash, Value::Bool(true));
+                __ch.add_subscription(deltasHash.as_str(), Value::Bool(true));
             }
             if isDeltas && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &snapshotChannel), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
                 // the snapshot feed is unsubscribed before the deltas one is subscribed, no snapshot of it

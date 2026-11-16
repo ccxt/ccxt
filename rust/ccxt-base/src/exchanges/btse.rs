@@ -3212,11 +3212,11 @@ impl Btse {
             request.insert("clOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
         let mut query: crate::value::Dict = self.omit(params, Value::Str("clientOrderId".into()), &[]).into_dict();
-        let mut isMarketOrder: Value = (Value::Bool(typeValue == "MARKET"));
+        let mut isMarketOrder: bool = typeValue == "MARKET";
         let mut isLimitOrder: bool = typeValue == "LIMIT";
         let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }; // this will remove PO from params.timeInForce if present
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(postOnly), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }; // this will remove PO from params.timeInForce if present
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -3227,10 +3227,10 @@ impl Btse {
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&query, "triggerPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&query, "takeProfitPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&query, "stopLossPrice", &[]);
-        let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
+        let mut isTriggerOrder: bool = ((triggerPrice.is_some()) || (takeProfitPrice.is_some()));
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
-        let mut isAlgoOrder: bool = isConditionalOrder || (!(matches!(&isMarketOrder, Value::Bool(true))) && !isLimitOrder);
+        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
+        let mut isAlgoOrder: bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if isLimitOrder || (typeValue == "PEG") || (typeValue == "OCO") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for ").into()), typeValue).into()), " orders")));
@@ -3239,7 +3239,7 @@ impl Btse {
         // market and trailing buys are denominated in the quote currency while
         // every other combination is denominated in the base currency, the
         // sizing rules are strict on both sides, verified live
-        let mut needsQuoteSize: bool = (matches!(&isMarketOrder, Value::Bool(true)) || (typeValue == "TRAILING")) && (upperSide == "BUY");
+        let mut needsQuoteSize: bool = ((isMarketOrder || (typeValue == "TRAILING")) && (upperSide == "BUY"));
         if needsQuoteSize {
             let mut quoteAmount: Option<String> = None;
             let mut createMarketBuyOrderRequiresPrice: bool = true;
@@ -3453,11 +3453,11 @@ impl Btse {
                 request.insert("positionMode".into(), Value::Str("HEDGE".into()));
             }
         }
-        let mut isMarketOrder: Value = (Value::Bool(typeValue == "MARKET"));
+        let mut isMarketOrder: bool = typeValue == "MARKET";
         let mut isLimitOrder: bool = typeValue == "LIMIT";
         let mut postOnly: bool = false;
         // exchange-specific postOnly is the same as the unified one
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(isMarketOrder.clone(), Value::Bool(postOnly), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }; // this will remove PO from params.timeInForce if present
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(postOnly), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }; // this will remove PO from params.timeInForce if present
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
@@ -3468,10 +3468,10 @@ impl Btse {
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&query, "triggerPrice", &[]);
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&query, "takeProfitPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&query, "stopLossPrice", &[]);
-        let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (takeProfitPrice.is_some());
+        let mut isTriggerOrder: bool = ((triggerPrice.is_some()) || (takeProfitPrice.is_some()));
         let mut isStopLossOrder: bool = stopLossPrice.is_some();
-        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (matches!(&isMarketOrder, Value::Bool(true)) || isLimitOrder);
-        let mut isAlgoOrder: bool = isConditionalOrder || (!(matches!(&isMarketOrder, Value::Bool(true))) && !isLimitOrder);
+        let mut isConditionalOrder: bool = (isTriggerOrder || isStopLossOrder) && (isMarketOrder || isLimitOrder);
+        let mut isAlgoOrder: bool = isConditionalOrder || (!isMarketOrder && !isLimitOrder);
         if isLimitOrder || (typeValue == "OCO") {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a price argument for ").into()), typeValue).into()), " orders")));

@@ -2621,8 +2621,8 @@ impl Polymarket {
             while { if !__for_first_1434 { i += 1; } __for_first_1434 = false; i < (history.len() as i64) } {
             let mut item: crate::value::Dict = self.safe_dict(&history, Value::Int(i), &[]).into_dict();
             let mut t: Option<i64> = self.safe_integer_k(&item, "t", &[]).as_i64();
-            let mut price: Value = self.safe_number_k(&item, "p", &[]);
-            if (t.is_none()) || (price == Value::Null) {
+            let mut price: Option<f64> = self.safe_number_k(&item, "p", &[]).as_f64();
+            if (t.is_none()) || (price.is_none()) {
                 continue;
             }
             let mut rawMs: Option<i64> = (if let Some(__l) = t { Some(__l * 1000) } else { None });
@@ -2635,12 +2635,12 @@ impl Polymarket {
             }
             let mut bucketKey: String = format!("{}", Value::from(snappedMs));
             if !(matches!((&buckets, Some(bucketKey.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey.clone(), Value::from(vec![Value::from(snappedMs), price.clone(), price.clone(), price.clone(), price.clone(), Value::from(vol)])); }
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey.clone(), Value::from(vec![Value::from(snappedMs), Value::from(price), Value::from(price), Value::from(price), Value::from(price), Value::from(vol)])); }
             }  else {
                 let mut candle: Value = self.safe_list(buckets.clone(), Value::from(bucketKey.clone()), &[Value::from(vec![])]);
-                { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &price); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
-                { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &price); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
-                add_element_to_object(&mut candle, &Value::Int(4), price); // close (last tick wins)
+                { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
+                { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
+                add_element_to_object(&mut candle, &Value::Int(4), Value::from(price)); // close (last tick wins)
                 if (vol.is_some()) {
                     let mut prevVol: Value = candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null);
                     add_element_to_object(&mut candle, &Value::Int(5), (if (prevVol == Value::Null) { Value::from(vol) } else { self.sum(&[prevVol, Value::from(vol)]) })); // volume

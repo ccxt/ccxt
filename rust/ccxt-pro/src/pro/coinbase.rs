@@ -556,12 +556,12 @@ impl Coinbase {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = symbols.clone();
+        let mut symbolsResolved: Option<crate::value::List> = symbols.clone().into_opt_list();
         if (symbols == Value::Null) {
-            symbolsResolved = Value::Arr(self.symbols.clone());
+            symbolsResolved = Value::Arr(self.symbols.clone()).into_opt_list();
         }
         let mut name: String = "ticker_batch".to_string();
-        let mut ticker: crate::value::Dict = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved, params]).await.into_dict();
+        let mut ticker: crate::value::Dict = self.subscribe_multiple(name.as_str(), &[Value::Bool(false), symbolsResolved.map_or(Value::Null, Value::Arr), params]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut tickers: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

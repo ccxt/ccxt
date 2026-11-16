@@ -1736,8 +1736,8 @@ impl Kraken {
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "private").as_str().map(str::to_owned);
         let mut client: Value = self.client(url.as_deref());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut authenticated: Value = Value::Str("authenticated".into());
-        let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), authenticated.clone(), &[]);
+        let mut authenticated: String = "authenticated".to_string();
+        let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(authenticated.clone()), &[]);
         let mut now: i64 = self.seconds();
         let mut start: Option<i64> = self.safe_integer_k(subscription.clone(), "start", &[]).as_i64();
         let mut expires: i64 = self.safe_integer_k(subscription.clone(), "expires", &[Value::Int(-1)]).as_i64().unwrap_or(-1);
@@ -1758,7 +1758,7 @@ impl Kraken {
                 // a flight is already in progress - wake when the leader
                 // settles it: the token is then in the subscriptions bucket
                 crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
-                subscription = self.safe_dict(__ch.subscriptions.clone(), authenticated.clone(), &[]);
+                subscription = self.safe_dict(__ch.subscriptions.clone(), Value::from(authenticated.clone()), &[]);
                 return self.safe_string_k(subscription.clone(), "token", &[]);
             }
             let mut future: crate::pro::ws_client::Flight = client.reusable_future(messageHash.as_str());
@@ -1784,7 +1784,7 @@ impl Kraken {
                 if (token.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty token")));
                 }
-                __ch.add_subscription(&authenticated, subscription.clone());
+                __ch.add_subscription(authenticated.as_str(), subscription.clone());
                 // settle the flight and wake every waiter - resolve () also
                 // clears the registry entry, so the next refresh re-leads
                 client.resolve(token.map(Value::from).unwrap_or(Value::Null), messageHash.as_str());
@@ -1797,7 +1797,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // rethrows the leader's own failure and attaches the handler that
             // keeps an alone leader's rejection from killing the process
             crate::exchange_stubs::ws_await_flight(&future).await;
-            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), authenticated, &[]);
+            subscription = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(authenticated), &[]);
         }
         return self.safe_string_k(subscription, "token", &[]);
 

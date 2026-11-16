@@ -359,11 +359,11 @@ impl Okx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsRequested: Value = symbols.clone();
+        let mut symbolsRequested: Option<crate::value::List> = symbols.clone().into_opt_list();
         if (symbols == Value::Null) {
-            symbolsRequested = Value::Arr(self.symbols.clone());
+            symbolsRequested = Value::Arr(self.symbols.clone()).into_opt_list();
         }
-        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested]).into_opt_list();
+        let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbolsRequested.map_or(Value::Null, Value::Arr)]).into_opt_list();
         let mut url: Option<String> = self.get_url(channel.clone(), &[access]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
@@ -3690,8 +3690,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut msg: Option<String> = (match __pro_message.get("msg") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 if (msg.is_some()) && (msg.as_deref().unwrap_or_default().starts_with("Illegal request: {")) {
                     let mut stringifiedJson: Option<String> = (if let Some(__s) = msg.as_deref() { Some(__s.replace("Illegal request: ", "")) } else { None });
-                    let mut parsedJson: Value = self.parse_json_value(stringifiedJson.map(Value::from).unwrap_or(Value::Null));
-                    id = self.safe_string_k_opt(parsedJson, "id", &[]);
+                    let mut parsedJson: crate::value::Dict = self.parse_json_value(stringifiedJson.map(Value::from).unwrap_or(Value::Null)).into_dict();
+                    id = self.safe_string_k_opt(&parsedJson, "id", &[]);
                 }
             }
             if (id.is_some()) {

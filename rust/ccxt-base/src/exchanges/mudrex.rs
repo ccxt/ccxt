@@ -1086,12 +1086,12 @@ impl Mudrex {
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.private_get_futures(&[__ws_arg_4]).await.into_dict();
-        let mut data: Value = self.safe_value_k(&response, "data", &[Value::from(vec![])]);
+        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::from(vec![])]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&data, Value::Arr(_))) {
-            rows = self.to_array(data.clone()).into_list();
+        if (data.is_some()) {
+            rows = self.to_array(data.clone().map_or(Value::Null, Value::Arr)).into_list();
         }  else {
-            rows = self.safe_list_k(data, "items", &[Value::from(vec![])]).into_list();
+            rows = self.safe_list_k(&data__map, "items", &[Value::from(vec![])]).into_list();
         }
         let mut resultTickers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

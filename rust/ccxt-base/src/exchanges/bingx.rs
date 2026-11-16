@@ -5879,7 +5879,7 @@ impl Bingx {
             if ((typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TRIGGER_LIMIT")) || (typeValue.as_deref() == Some("STOP")) || (typeValue.as_deref() == Some("TAKE_PROFIT"))) && !isTrailing {
                 request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price))));
             }
-            let mut reduceOnlyParam: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+            let mut reduceOnlyParam: bool = self.safe_bool_k(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             // stop loss / take profit price orders are always reduce only
             let mut reduceOnly: bool = reduceOnlyParam || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             let mut triggerPriceType: Option<String> = self.safe_string2_opt(paramsTakeProfit.clone(), Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[]);

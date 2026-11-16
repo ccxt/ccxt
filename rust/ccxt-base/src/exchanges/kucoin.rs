@@ -8867,7 +8867,7 @@ impl Kucoin {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOid", "clientOrderId"], &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOid", "clientOrderId"], &[]) } else { params }).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("clientOid".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -8882,15 +8882,14 @@ impl Kucoin {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         request.insert("symbol".into(), Value::from((market).id.as_deref()));
         let mut accountMode: Option<String> = Some("unified".to_string());
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted.clone(), Value::Str("cancelOrder".into()), Value::Str("accountMode".into()), &[Value::from(&accountMode)]).as_array().cloned().unwrap_or_default(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-            paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("cancelOrder".into()), Value::Str("accountMode".into()), &[Value::from(&accountMode)]).into_list(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         request.insert("accountMode".into(), accountMode.clone().map(Value::from).unwrap_or(Value::Null));
         let mut marginMode: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isUnified: bool = accountMode.as_deref() == Some("unified");
-        let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool((market).contract), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), paramsOmitted.clone()]);
+        let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool((market).contract), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), Value::from(&paramsOmitted)]);
         request.insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
-        let __ws_arg_46 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.uta_private_post_account_mode_order_cancel(&[__ws_arg_46]).await.into_dict();
         //
         //     {

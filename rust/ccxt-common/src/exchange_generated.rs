@@ -3217,13 +3217,13 @@ pub trait ExchangeBase:
         let mut cost: Option<String> = self.safe_string_k_opt(orderDict.clone(), "cost", &[]);
         let mut average: Option<String> = self.omit_zero(self.safe_string_k(orderDict.clone(), "average", &[]));
         let mut price: Option<String> = self.omit_zero(self.safe_string_k(orderDict.clone(), "price", &[]));
-        let mut lastTradeTimeTimestamp: Value = self.safe_integer_k(orderDict.clone(), "lastTradeTimestamp", &[]);
+        let mut lastTradeTimeTimestamp: Option<i64> = self.safe_integer_k(orderDict.clone(), "lastTradeTimestamp", &[]).as_i64();
         let mut symbol: Option<String> = self.safe_string_k_opt(orderDict.clone(), "symbol", &[]);
         let mut side: Option<String> = self.safe_string_k_opt(orderDict.clone(), "side", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(orderDict.clone(), "status", &[]);
         let mut parseFilled: bool = filled.is_none();
         let mut parseCost: bool = cost.is_none();
-        let mut parseLastTradeTimeTimestamp: bool = lastTradeTimeTimestamp == Value::Null;
+        let mut parseLastTradeTimeTimestamp: bool = lastTradeTimeTimestamp.is_none();
         let mut fee: Value = self.safe_value_k(orderDict.clone(), "fee", &[]);
         let mut parseFee: bool = fee == Value::Null;
         let mut parseFees: bool = self.safe_value_k(orderDict.clone(), "fees", &[]) == Value::Null;
@@ -3294,8 +3294,8 @@ pub trait ExchangeBase:
                     }
                     let mut tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
                     if parseLastTradeTimeTimestamp && (tradeTimestamp.is_some()) {
-                        if (lastTradeTimeTimestamp == Value::Null) || matches!(tradeTimestamp, Some(__p) if (__p as f64) > lastTradeTimeTimestamp.as_f64().unwrap_or(f64::NAN)) {
-                            lastTradeTimeTimestamp = Value::from(tradeTimestamp);
+                        if (lastTradeTimeTimestamp.is_none()) || (tradeTimestamp.is_some() && lastTradeTimeTimestamp.is_some() && tradeTimestamp > lastTradeTimeTimestamp) {
+                            lastTradeTimeTimestamp = tradeTimestamp;
                         }
                     }
                     if shouldParseFees {
@@ -3488,7 +3488,7 @@ pub trait ExchangeBase:
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), self.safe_string_k(orderDict.clone(), "type", &[]));
         m.insert("side".to_string(), side.map(Value::from).unwrap_or(Value::Null));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimeTimestamp);
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimeTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdateTimestamp));
         m.insert("price".to_string(), self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("amount".to_string(), self.parse_number(amount.map(Value::from).unwrap_or(Value::Null), &[]));

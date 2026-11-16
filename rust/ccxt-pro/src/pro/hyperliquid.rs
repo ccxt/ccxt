@@ -2058,12 +2058,12 @@ impl Hyperliquid {
         let mut topic: String = "clearinghouseState".to_string();
         let mut messageHash: String = format!("{}{}", topic, "::positions");
         let mut hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
-        let mut symbolsNormalized: Value = symbols.clone();
+        let mut symbolsNormalized: Option<crate::value::List> = symbols.clone().into_opt_list();
         if hasSymbols {
-            symbolsNormalized = self.market_symbols(&[symbols]);
+            symbolsNormalized = self.market_symbols(&[symbols]).into_opt_list();
         }
-        if hasSymbols && (symbolsNormalized != Value::Null) {
-            messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())));
+        if hasSymbols && (symbolsNormalized.is_some()) {
+            messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut subscription: indexmap::IndexMap<String, Value> = ({
@@ -2072,7 +2072,7 @@ impl Hyperliquid {
                 m.insert("user".to_string(), userAddress.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut dexName: Option<String> = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone()]);
+        let mut dexName: Option<String> = self.parent.get_dex_from_symbols("watchPositions", &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         if (dexName.is_some()) {
             subscription.insert("dex".into(), dexName.map(Value::from).unwrap_or(Value::Null));
         }
@@ -2088,13 +2088,13 @@ impl Hyperliquid {
         // too - its ack tears the shared stream down and sweeps both futures
         self.wait_for_pending_unsubscribe(url.as_deref().unwrap_or_default(), topic.as_str()).await;
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
-        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone()]);
+        self.set_positions_cache(client.as_value(), &[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]);
         let mut cache: Option<crate::pro::cache::Cache> = self.positions.clone();
         let mut newPositions: Value = self.watch(url.as_deref(), messageHash.as_str(), &message, topic.as_str(), Value::Null).await;
         if self.newUpdates.as_bool() == Some(true) {
             return newPositions;
         }
-        return self.filter_by_symbols_since_limit(&cache, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(&cache, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

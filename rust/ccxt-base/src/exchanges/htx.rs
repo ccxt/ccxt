@@ -5553,11 +5553,11 @@ impl Htx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsValue: Value = symbols.clone();
+        let mut symbolsValue: Option<crate::value::List> = symbols.clone().into_opt_list();
         if (symbols == Value::Null) {
-            symbolsValue = Value::Arr(self.symbols.clone());
+            symbolsValue = Value::Arr(self.symbols.clone()).into_opt_list();
         }
-        if (symbolsValue == Value::Null) {
+        if (symbolsValue.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " markets not loaded")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -5567,8 +5567,8 @@ impl Htx {
         {
                         let mut i: i64 = 0;
             let mut __for_first_766: bool = true;
-            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (symbolsValue.len() as i64) } {
-            let mut symbol: Option<String> = symbolsValue.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_766 { i += 1; } __for_first_766 = false; i < (symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut symbol: Option<String> = symbolsValue.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.fetch_trading_limits_by_id((self.market_id(Value::from(symbol.as_deref()))).as_str(), &[params.clone()]).await);
         }
         }

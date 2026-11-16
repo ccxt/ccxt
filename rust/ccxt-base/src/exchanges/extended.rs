@@ -3786,22 +3786,22 @@ impl Extended {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut symbolsList: Value = symbols.clone();
+        let mut symbolsList: Option<crate::value::List> = symbols.clone().into_opt_list();
         if matches!(&symbols, Value::Str(_)) {
-            symbolsList = Value::from(vec![symbols]);
+            symbolsList = Value::from(vec![symbols]).into_opt_list();
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchPositionsHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_cursor(Value::Str("fetchPositionsHistory".into()), &[symbolsList.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(10000)]).await;
+            return self.fetch_paginated_call_cursor(Value::Str("fetchPositionsHistory".into()), &[symbolsList.map_or(Value::Null, Value::Arr), since.clone(), limit.clone(), Value::from(&paramsPaginate), Value::Str("cursor".into()), Value::Str("cursor".into()), Value::Null, Value::Int(10000)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (symbolsList != Value::Null) {
-            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsList.clone()]).into_opt_list();
+        if (symbolsList.is_some()) {
+            let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsList.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
             request.insert("market".into(), marketIds.map_or(Value::Null, Value::Arr));
         }
         let __ws_arg_20 = self.extend(Value::Map(request), &[&paramsPaginate]);
@@ -3858,7 +3858,7 @@ impl Extended {
             result.push(Value::Dict(entry));
         }
         }
-        let mut positions: crate::value::List = self.parse_positions(Value::from(result), &[symbolsList]).into_list();
+        let mut positions: crate::value::List = self.parse_positions(Value::from(result), &[symbolsList.map_or(Value::Null, Value::Arr)]).into_list();
         return self.filter_by_since_limit(&positions, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into())]);
         Value::Null
         }).await?))

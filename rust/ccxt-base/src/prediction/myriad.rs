@@ -1789,8 +1789,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m
             })]).into_dict();
             let __ws_arg_11 = self.extend(orderParams, &[params.clone()]);
-            let mut placed: Value = self.create_orderbook_order(outcome.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), __ws_arg_11]).await;
-            result.push(placed);
+            let mut placed: crate::value::Dict = self.create_orderbook_order(outcome.as_deref(), type_var.as_deref(), side.as_deref(), Value::from(amount), &[Value::from(price), __ws_arg_11]).await.into_dict();
+            result.push(Value::Dict(placed));
         }
         }
         return Value::from(result);

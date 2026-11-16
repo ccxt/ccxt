@@ -180,11 +180,11 @@ impl Upbit {
 }));
         let mut client: Value = self.client(url.as_str());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
-        let mut subscriptionsKey: Value = Value::Str("upbitPublicSubscriptions".into());
-        if !(__ch.has_subscription(&subscriptionsKey)) {
-            __ch.add_subscription(&subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
+        let mut subscriptionsKey: String = "upbitPublicSubscriptions".to_string();
+        if !(__ch.has_subscription(subscriptionsKey.as_str())) {
+            __ch.add_subscription(subscriptionsKey.as_str(), self.create_safe_dictionary(&[Value::Bool(true)]));
         }
-        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionsKey, &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(subscriptionsKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -656,11 +656,11 @@ impl Upbit {
         let mut client: Value = self.client(url.as_str());
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         // Track private channel subscriptions to support multiple concurrent watches
-        let mut subscriptionsKey: Value = Value::Str("upbitPrivateSubscriptions".into());
-        if !(__ch.has_subscription(&subscriptionsKey)) {
-            __ch.add_subscription(&subscriptionsKey, self.create_safe_dictionary(&[Value::Bool(true)]));
+        let mut subscriptionsKey: String = "upbitPrivateSubscriptions".to_string();
+        if !(__ch.has_subscription(subscriptionsKey.as_str())) {
+            __ch.add_subscription(subscriptionsKey.as_str(), self.create_safe_dictionary(&[Value::Bool(true)]));
         }
-        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), subscriptionsKey, &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict(get_value(&client, &Value::Str("subscriptions".into())), Value::from(subscriptionsKey), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

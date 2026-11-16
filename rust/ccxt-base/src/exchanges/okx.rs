@@ -7326,8 +7326,8 @@ impl Okx {
             }
             request.insert("tdMode".into(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::Dict(paramsReduceOnly)]).as_array().cloned().unwrap_or_default();
+        let mut isMarketOrder: bool = type_var.as_str().map(str::to_owned).as_deref() == Some("market");
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::Dict(paramsReduceOnly)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orderParams: crate::value::Dict = self.omit(&paramsPostOnly, &["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"], &[]).into_dict();

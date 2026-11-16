@@ -3631,14 +3631,14 @@ impl Kraken {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOrderId".into()), Value::Str("cl_ord_id".into()), &[]);
-        let mut paramsOmitted: Value = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId", "cl_ord_id"], &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["clientOrderId", "cl_ord_id"], &[]) } else { params }).into_dict();
         if (clientOrderId.is_some()) {
             request.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             request = self.omit(Value::Map(request.clone()), Value::Str("txid".into()), &[]).as_map().cloned().unwrap_or_default();
         }
         let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: Option<bool> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (postOnly == Some(true)) {
             request.insert("post_only".into(), Value::Str("true".into())); // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
         }
@@ -3648,17 +3648,17 @@ impl Kraken {
         if (price != Value::Null) {
             request.insert("limit_price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
-        let mut allTriggerPrices: Option<String> = self.safe_string_n_opt(paramsOmitted.clone(), Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()), Value::Str("trailingLimitPercent".into())]), &[]);
+        let mut allTriggerPrices: Option<String> = self.safe_string_n_opt(&paramsOmitted, Value::from(vec![Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("trailingAmount".into()), Value::Str("trailingPercent".into()), Value::Str("trailingLimitAmount".into()), Value::Str("trailingLimitPercent".into())]), &[]);
         if (allTriggerPrices.is_some()) {
-            let mut offset: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "offset", &[]);
-            paramsOmitted = self.omit(paramsOmitted, &["stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"], &[]);
+            let mut offset: Option<String> = self.safe_string_k_opt(&paramsOmitted, "offset", &[]);
+            paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset"], &[]).into_dict();
             if (offset.is_some()) {
                 request.insert("trigger_price".into(), Value::Str(format!("{}{}", offset.as_deref().unwrap_or("null"), allTriggerPrices.as_deref().unwrap_or("null")).into()));
             }  else {
                 request.insert("trigger_price".into(), Value::from(self.price_to_precision(symbol, allTriggerPrices.map(Value::from).unwrap_or(Value::Null))));
             }
         }
-        let __ws_arg_9 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_amend_order(&[__ws_arg_9]).await.into_dict();
         //
         //     {
@@ -4248,16 +4248,16 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut userref: Option<i64> = self.safe_integer_k(params.clone(), "userref", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params }).into_dict();
         if (userref.is_some()) {
             request.insert("userref".into(), Value::from(userref));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "clientOrderId", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&paramsOmitted, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("clientOrderId".into()), &[]);
+            paramsOmitted = self.omit(Value::Dict(paramsOmitted), Value::Str("clientOrderId".into()), &[]).into_dict();
         }
-        let __ws_arg_18 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_18 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_open_orders(&[__ws_arg_18]).await.into_dict();
         //
         //     {
@@ -4366,17 +4366,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             std::sync::Arc::make_mut(&mut request).insert("start".into(), Value::from(self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }))));
         }
         let mut userref: Option<i64> = self.safe_integer_k(params.clone(), "userref", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params });
+        let mut paramsOmitted: crate::value::Dict = (if (userref.is_some()) { self.omit(params.clone(), Value::Str("userref".into()), &[]) } else { params }).into_dict();
         if (userref.is_some()) {
             std::sync::Arc::make_mut(&mut request).insert("userref".into(), Value::from(userref));
         }
-        let mut clientOrderId: Option<String> = self.safe_string_k_opt(paramsOmitted.clone(), "clientOrderId", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&paramsOmitted, "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             std::sync::Arc::make_mut(&mut request).insert("cl_ord_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("clientOrderId".into()), &[]);
+            paramsOmitted = self.omit(Value::Dict(paramsOmitted), Value::Str("clientOrderId".into()), &[]).into_dict();
         }
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Dict(request), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_19 = self.extend(request, &[paramsOmitted]);
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("end".into()), Value::Dict(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let __ws_arg_19 = self.extend(request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_closed_orders(&[__ws_arg_19]).await.into_dict();
         //
         //     {

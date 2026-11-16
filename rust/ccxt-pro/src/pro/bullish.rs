@@ -1061,12 +1061,12 @@ impl Bullish {
         let mut subscribeHash: String = "positions".to_string();
         let mut messageHash: String = subscribeHash.clone();
         let mut hasSymbols: bool = (symbols != Value::Null) && !(self.is_empty(symbols.clone()).as_bool() == Some(true));
-        let mut symbolsNormalized: Value = symbols.clone();
+        let mut symbolsNormalized: Option<crate::value::List> = symbols.clone().into_opt_list();
         if hasSymbols {
-            symbolsNormalized = self.market_symbols(&[symbols]);
+            symbolsNormalized = self.market_symbols(&[symbols]).into_opt_list();
         }
-        if hasSymbols && (symbolsNormalized != Value::Null) {
-            messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into())));
+        if hasSymbols && (symbolsNormalized.is_some()) {
+            messageHash.push_str(&format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into())));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1077,7 +1077,7 @@ impl Bullish {
         if self.newUpdates.as_bool() == Some(true) {
             return positions;
         }
-        return self.filter_by_symbols_since_limit(positions, symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
+        return self.filter_by_symbols_since_limit(positions, &symbolsNormalized, since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);
         Value::Null
         }).await?))
     }

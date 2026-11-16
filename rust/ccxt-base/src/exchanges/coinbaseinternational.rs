@@ -388,7 +388,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut isSpot: bool = kind == "spot";
         let mut isPerpetual: bool = settlementPeriod.as_deref() == Some("perpetual");
         let mut isFuture: bool = (!(isPerpetual) && (kind.contains("future")));
-        let mut isOption: Value = (Value::Bool(kind.contains("option")));
+        let mut isOption: bool = kind.contains("option");
         let mut comboPosition: i64 = (if let (Some(__h), Some(__n)) = (Some(kind.as_str()), Some("combo")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 });
         let mut isComboMarket: bool = comboPosition >= 0;
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
@@ -399,7 +399,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             type_var = "spot".to_string();
         }  else if isFuture {
             type_var = "future".to_string();
-        }  else if matches!(&isOption, Value::Bool(true)) {
+        }  else if isOption {
             type_var = "option".to_string();
         }
         let mut symbol: Option<String> = instrumentName.clone();
@@ -415,16 +415,16 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut marketSettleId: Option<String> = (if isSpot { None } else { settleId });
         let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
-        let mut isFutureOrOption: bool = isFuture || matches!(&isOption, Value::Bool(true));
+        let mut isFutureOrOption: bool = isFuture || isOption;
         let mut expiry: Option<i64> = (if isFutureOrOption { self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64() } else { None });
         let mut active: Option<bool> = self.safe_bool_k(market.clone(), "is_active", &[]).as_bool();
         let mut strike: Option<f64> = self.safe_number_k(market.clone(), "strike", &[]).as_f64();
         let mut optionType: Option<String> = self.safe_string_k_opt(market.clone(), "option_type", &[]);
-        if !isComboMarket && (matches!(&isOption, Value::Bool(true)) || isFuture) {
+        if !isComboMarket && (isOption || isFuture) {
             let mut expiryString: Option<String> = self.yymmdd(Value::from(expiry), &[Value::Str("".into())]).as_str().map(str::to_owned);
             symbol = Some(format!("{}{}", Value::Str(format!("{}{}", symbol.as_deref().unwrap_or("null"), "-").into()), expiryString.as_deref().unwrap_or("null")));
         }
-        if !isComboMarket && matches!(&isOption, Value::Bool(true)) {
+        if !isComboMarket && isOption {
             let mut optionTypeLetter: String = "P".to_string();
             if (optionType.as_deref() == Some("call")) {
                 optionTypeLetter = "C".to_string();
@@ -448,7 +448,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 m.insert("margin".to_string(), Value::Bool(false));
                 m.insert("swap".to_string(), Value::Bool(isPerpetual));
                 m.insert("future".to_string(), Value::Bool(isFuture));
-                m.insert("option".to_string(), isOption);
+                m.insert("option".to_string(), Value::Bool(isOption));
                 m.insert("active".to_string(), active.map_or(Value::Null, Value::Bool));
                 m.insert("contract".to_string(), Value::Bool(!isSpot));
                 m.insert("linear".to_string(), linear.map_or(Value::Null, Value::Bool));
@@ -4696,8 +4696,8 @@ impl Coinbaseinternational {
         if secretIsPem {
             return Value::Bool(false);
         }
-        let mut useV2CloudApiKey: Value = self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]);
-        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey.as_bool() == Some(true) || (self.secret.as_str().unwrap_or("").ends_with("=")));
+        let mut useV2CloudApiKey: bool = self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey || (self.secret.as_str().unwrap_or("").ends_with("=")));
 
     Value::Null
 }

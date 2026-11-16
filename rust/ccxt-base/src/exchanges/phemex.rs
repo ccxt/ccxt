@@ -3586,7 +3586,7 @@ impl Phemex {
         let mut until: Option<i64> = self.safe_integer2(params.clone(), Value::Str("until".into()), Value::Str("to".into()), &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["until"], &[]).into_dict();
         let mut marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
-        let mut isStableSettled: bool = (marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC"));
+        let mut isStableSettled: bool = ((marketSettle.as_deref() == Some("USDT")) || (marketSettle.as_deref() == Some("USDC")));
         let mut usesSpecialFromToEndpoint: bool = (((market).linear == Some(true)) || isStableSettled) && ((since != Value::Null) || (until.is_some()));
         let mut maxLimit: i64 = 1000;
         if usesSpecialFromToEndpoint {
@@ -3927,11 +3927,11 @@ impl Phemex {
             let mut lockedTradingBalance: Option<String> = self.from_en(lockedTradingBalanceEv.map(Value::from).unwrap_or(Value::Null), Some(scale));
             let mut lockedWithdraw: Option<String> = self.from_en(lockedWithdrawEv.map(Value::from).unwrap_or(Value::Null), Some(scale));
             let mut used: Option<String> = crate::precise::Precise::stringAdd(&lockedTradingBalance, &lockedWithdraw).as_str().map(str::to_owned);
-            let mut lastUpdateTimeNs: Value = self.safe_integer_product_k(&balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]);
-            if (timestamp == Value::Null) || (lastUpdateTimeNs == Value::Null) {
-                timestamp = lastUpdateTimeNs.clone();
+            let mut lastUpdateTimeNs: Option<i64> = self.safe_integer_product_k(&balance, "lastUpdateTimeNs", Value::Float(0.000001), &[]).as_i64();
+            if (timestamp == Value::Null) || (lastUpdateTimeNs.is_none()) {
+                timestamp = Value::from(lastUpdateTimeNs);
             }  else {
-                timestamp = crate::runtime::Math::max(&timestamp, &lastUpdateTimeNs);
+                timestamp = crate::runtime::Math::max(&timestamp, &Value::from(lastUpdateTimeNs));
             }
             account.insert("total".into(), total.map(Value::from).unwrap_or(Value::Null));
             account.insert("used".into(), used.map(Value::from).unwrap_or(Value::Null));
@@ -4695,18 +4695,18 @@ impl Phemex {
                 request.insert("baseQtyEv".into(), self.to_ev(amountString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }  else if (market).swap {
-            let mut hedged: Value = self.safe_bool_k(orderParams.clone(), "hedged", &[Value::Bool(false)]);
+            let mut hedged: bool = self.safe_bool_k(orderParams.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             orderParams = self.omit(orderParams, Value::Str("hedged".into()), &[]);
             let mut posSide: Option<String> = self.safe_string_lower_k_opt(orderParams.clone(), "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
-            let mut flipSide: bool = (posSide.is_none()) && hedged.as_bool() == Some(true) && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
+            let mut flipSide: bool = (posSide.is_none()) && hedged && self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool() == Some(true);
             let mut oppositeSide: String = (if (side.as_str() == Some("buy")) { "sell".to_string() } else { "buy".to_string() });
             let mut sideResolved: String = side.as_str().unwrap_or_default().to_string();
             if flipSide {
                 sideResolved = oppositeSide;
             }
             if (posSide.is_none()) {
-                if hedged.as_bool() == Some(true) {
+                if hedged {
                     if flipSide {
                         orderParams = self.omit(orderParams, Value::Str("reduceOnly".into()), &[]);
                     }
@@ -5354,14 +5354,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             panic!("{}", e);
         }
-        let mut data: Value = self.safe_value_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        if (matches!(&data, Value::Arr(_))) {
-            return self.parse_orders(data.clone(), Some(&market), &[since.clone(), limit.clone()]);
+        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if (data.is_some()) {
+            return self.parse_orders(data.map_or(Value::Null, Value::Arr), Some(&market), &[since.clone(), limit.clone()]);
         }  else {
-            let mut rows: crate::value::List = self.safe_list_k(data, "rows", &[Value::from(vec![])]).into_list();
+            let mut rows: crate::value::List = self.safe_list_k(&data__map, "rows", &[Value::from(vec![])]).into_list();
             return self.parse_orders(&rows, Some(&market), &[since, limit]);
         }
         Value::Null
@@ -5464,14 +5464,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         }
         //     }
         //
-        let mut data: Value = self.safe_value_k(&response, "data", &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]);
-        if (matches!(&data, Value::Arr(_))) {
-            return self.parse_orders(data.clone(), market.as_ref(), &[since.clone(), limit.clone()]);
+        let (mut data, data__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.safe_value_k(&response, "data", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]) { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if (data.is_some()) {
+            return self.parse_orders(data.map_or(Value::Null, Value::Arr), market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
-            let mut rows: crate::value::List = self.safe_list_k(data, "rows", &[Value::from(vec![])]).into_list();
+            let mut rows: crate::value::List = self.safe_list_k(&data__map, "rows", &[Value::from(vec![])]).into_list();
             return self.parse_orders(&rows, market.as_ref(), &[since, limit]);
         }
         Value::Null

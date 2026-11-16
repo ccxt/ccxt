@@ -8046,8 +8046,8 @@ impl Bybit {
         let mut parts: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
         let mut enableUnifiedAccount: bool = self.safe_bool(&parts, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrailingOrder: bool = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trailingStop".into()), &[]) != Value::Null;
-        let mut isStopLossOrder: bool = self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null;
-        let mut isTakeProfitOrder: bool = self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null;
+        let mut isStopLossOrder: bool = (self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null);
+        let mut isTakeProfitOrder: bool = (self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null);
         let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone(), Value::Bool(enableUnifiedAccount)]).into_dict();
         let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]).as_bool() == Some(true);
         let mut defaultMethod: Option<String> = None;
