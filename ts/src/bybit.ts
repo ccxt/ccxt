@@ -2215,7 +2215,6 @@ export default class bybit extends Exchange {
             const inverseFutures = (contractType === 'InverseFutures');
             const linearFutures = (contractType === 'LinearFutures');
             const linearPerpetual = (contractType === 'LinearPerpetual');
-            const inversePerpetual = (contractType === 'InversePerpetual');
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
@@ -2240,7 +2239,7 @@ export default class bybit extends Exchange {
             const priceFilter = this.safeDict (market, 'priceFilter', {});
             const leverage = this.safeDict (market, 'leverageFilter', {});
             const status = this.safeString (market, 'status');
-            const swap = linearPerpetual || inversePerpetual;
+            const swap = linearPerpetual || (contractType === 'InversePerpetual');
             const future = inverseFutures || linearFutures;
             let type: Str = undefined;
             if (swap) {
@@ -10205,9 +10204,8 @@ export default class bybit extends Exchange {
         }
         if (method === 'POST') {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-            if (requestHeaders === undefined) {
-                requestHeaders = {};
-            }
+            const headersBase = requestHeaders;
+            requestHeaders = (headersBase === undefined) ? {} : headersBase;
             requestHeaders['Referer'] = brokerId;
         }
         const bodyResolved = requestBody;
