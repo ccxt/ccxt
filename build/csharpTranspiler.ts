@@ -6702,16 +6702,18 @@ function csharpConstantEqualities (rewritten: string | undefined, line: string, 
             if ((constant === undefined) || (constant.kind === 'name')) continue;
             const type = csharpIsEqualOperandType (sides[e].maskedText, takeType, content);
             if (type === undefined) continue;
-            text = csharpConstantEqualityEmission (type, constant.kind, sides[e].text, sides[c].text, e === 0);
+            text = csharpConstantEqualityEmission (type, constant.kind, sides[e].text, sides[c].text);
             if (text !== undefined) break;
         }
         if (text !== undefined) {
             edits.push ({ start: match.index, end: close + 1, text });
         }
     }
-    if (edits.length === 0) {
-        return rewritten;
-    }
+    return (edits.length === 0) ? rewritten : applyRegionEdits (original, edits);
+}
+
+// apply non-overlapping `{ start, end, text }` edits to `original`, last first
+function applyRegionEdits (original: string, edits: { start: number, end: number, text: string }[]): string {
     let out = original;
     for (const edit of edits.sort ((a, b) => b.start - a.start)) {
         out = out.substring (0, edit.start) + edit.text + out.substring (edit.end);
@@ -6720,8 +6722,8 @@ function csharpConstantEqualities (rewritten: string | undefined, line: string, 
 }
 
 // the native text for `isEqual(E, constant)`, or undefined when E's type does not prove it
-function csharpConstantEqualityEmission (type: string, kind: string, eText: string, cText: string, eLeft: boolean): string | undefined {
-    const eq = () => eLeft ? `(${eText} == ${cText})` : `(${cText} == ${eText})`;
+function csharpConstantEqualityEmission (type: string, kind: string, eText: string, cText: string): string | undefined {
+    const eq = () => `(${eText} == ${cText})`;
     const body = (kind === 'string-literal') ? cText.slice (1, -1) : '';
     // Double.TryParse could read the literal: isEqual's numeric branch would convert a number box
     const numericLooking = /[0-9\\]/.test (body) || /nan|inf|\u221e/i.test (body);
@@ -6789,8 +6791,7 @@ function csharpEqualityObjectDict (name: string, takeType): boolean {
 function csharpEqualityMethodType (name: string, content: string): string | undefined {
     const signature = new RegExp ('^[ ]{4}(?:(?:public|private|protected|internal|virtual|override|static|async|new)[ ]+)+([\\w<>,.?\\[\\] ]+?)[ ]+' + name + '\\(', 'gm');
     const returns = Array.from (content.matchAll (signature), (s) => s[1].trim ());
-    const map = (t: string) => ((t === 'object') || (t === 'bool') || (t === 'bool?') || (t === 'string') || (t === 'string?')) ? t
-        : (((t === 'Int64?') || (t === 'double?') || /^(?:I?Dictionary|I?List)<|^ccxt\.pro\.IOrderBook$/.test (t)) ? 'ref' : undefined);
+    const map = (t: string) => ((t === 'object') || (t === 'bool') || (t === 'bool?')) ? t : undefined;
     if (returns.length > 0) {
         const kinds = Array.from (new Set (returns.map (map)));
         return (kinds.length === 1) ? kinds[0] : undefined;
@@ -6879,14 +6880,7 @@ function declaredReceiverRewriteLine (original: string, masked: string, typeOf, 
         // IDictionary<string, Future> is not IDictionary<string, object>: the helper casts the key
         edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyText} != null && ${name}.ContainsKey((string)${keyText}))` });
     }
-    if (edits.length === 0) {
-        return undefined;
-    }
-    let result = original;
-    for (const edit of edits.sort ((a, b) => b.start - a.start)) {
-        result = result.substring (0, edit.start) + edit.text + result.substring (edit.end);
-    }
-    return result;
+    return (edits.length === 0) ? undefined : applyRegionEdits (original, edits);
 }
 
 // subtract/multiply/divide calls whose operands the emitted text declares numeric. The call
@@ -6962,7 +6956,7 @@ function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => stri
             const L = atom (typed[0].text);
             let R = atom (typed[1].text);
             if (call.name === 'divide') {
-                native = (typed[0].type.startsWith ('double') || typed[1].type.startsWith ('double')) ? '(' + L + ' / ' + R + ')' : '((' + twin + ')' + L + ' / ' + R + ')';
+                native = '((' + twin + ')' + L + ' / ' + R + ')';
             } else {
                 // int x int promotes to int where the Int64 twin multiplies Int64: widen an int literal only
                 if ((twin === 'Int64') && (typed[0].type === 'int') && (typed[1].type === 'int')) {
@@ -6972,7 +6966,7 @@ function arithmeticTwinRewrite (text: string, typeOfName: (name: string) => stri
             }
         }
         const result = native ?? rebuilt;
-        if (twin !== undefined) results.set (result, (call.name === 'divide') ? twin : (twin === 'int' ? 'int' : twin));
+        if (twin !== undefined) results.set (result, twin);
         out += result;
     }
     return out + text.slice (last);
@@ -7138,8 +7132,6 @@ function methodNameType (region: CsharpRegion, name: string, line: number): stri
 // `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
 // nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
 function marketBoolRead (region: CsharpRegion, arg: string, line: number): string | undefined {
-    // `((m.ContainsKey("k") ? m["k"] : null))`: drop source parentheses that wrap the whole read
-    while (arg.startsWith ('((') && arg.endsWith ('))') && NATIVE_MARKET_KEY_READ_RE.test (arg.slice (1, -1))) arg = arg.slice (1, -1);
     const m = NATIVE_MARKET_KEY_READ_RE.exec (arg);
     if ((m === null) || ((m[1] !== undefined) && (m[1] !== m[2])) || !MARKET_ROW_BOOL_KEYS.includes (m[3])) return undefined;
     const name = m[2];
@@ -7183,12 +7175,7 @@ function declaredIntMinMaxTruthLine (region: CsharpRegion, original: string, mas
         const text = declaredIntMinMax (region, original, masked, line, m[1] === 'mathMin' ? 'Min' : 'Max', a, b);
         if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
     }
-    if (edits.length === 0) return undefined;
-    let out = original;
-    for (const e of edits.sort ((x, y) => y.start - x.start)) {
-        out = out.substring (0, e.start) + e.text + out.substring (e.end);
-    }
-    return out;
+    return (edits.length === 0) ? undefined : applyRegionEdits (original, edits);
 }
 
 // both names `int` or both `Int64`: Math.Min/Max returns the same value in the same box as the
@@ -7198,8 +7185,7 @@ function declaredIntMinMax (region: CsharpRegion, original: string, masked: stri
     const literal = (x) => /^[0-9]{1,9}$/.test (x);
     const ta = literal (a) ? 'int' : methodNameType (region, a, line);
     const tb = literal (b) ? 'int' : methodNameType (region, b, line);
-    if ((ta === undefined) || (tb === undefined) || (literal (a) && literal (b))) return undefined;
-    if (((ta === 'int') || (ta === 'Int64')) && (ta === tb)) return `Math.${name}(${a}, ${b})`;
+    if ((ta === undefined) || (tb === undefined)) return undefined;
     const guarded = (x) => {
         const prev = (region.lines[line - 2] ?? '').trim ();
         return (region.lines[line - 1] ?? '').trim () === '{' && (prev === `if ((${x} != null))` || prev === `if (${x} != null)`);
@@ -7207,7 +7193,6 @@ function declaredIntMinMax (region: CsharpRegion, original: string, masked: stri
     const field = /^[ ]*(?:[A-Za-z_]\w*\["[^"]*"\][ ]*=[ ]*(?:mathMin|mathMax)\([^;]*\);|\{[ ]*"[^"]*",[ ]*(?:mathMin|mathMax)\([^;]*\)[ ]*\},?)[ ]*$/.test (masked);
     if (!field) return undefined;
     if ((ta === 'Int64?') && (tb === 'int') && guarded (a)) return `Math.${name}(${a}.Value, ${b})`;
-    if ((tb === 'Int64?') && (ta === 'int') && guarded (b)) return `Math.${name}(${a}, ${b}.Value)`;
     return undefined;
 }
 
@@ -7661,7 +7646,7 @@ function guardedArithmetic (text: string, typeOfName, guardedName: (name: string
                 // a this.sum / parseToInt operand the operand-type pass could not type: the divide twin it would have chosen
                 const twin = arithmeticTwinType (m[1], kinds[0], kinds[1]);
                 if ((twin !== undefined) && (m[1] === 'divide')) {
-                    native = (base[0] === 'double' || base[1] === 'double') ? '(' + L + ' / ' + R + ')' : '((' + twin + ')' + L + ' / ' + R + ')';
+                    native = '((' + twin + ')' + L + ' / ' + R + ')';
                 }
             }
         }
@@ -7880,12 +7865,7 @@ function pureKeyInOpLine (original: string, masked: string, receiverOf, objectDi
         const bound = keyName ();
         edits.push ({ start: m.index, end: close + 1, text: `(${name} != null && ${keyText} is string ${bound} && ${name}.ContainsKey(${bound}))` });
     }
-    if (edits.length === 0) return undefined;
-    let out = original;
-    for (const e of edits.sort ((x, y) => y.start - x.start)) {
-        out = out.substring (0, e.start) + e.text + out.substring (e.end);
-    }
-    return out;
+    return (edits.length === 0) ? undefined : applyRegionEdits (original, edits);
 }
 
 function pureKeyInOpSelfTest (): string[] {
@@ -8039,18 +8019,12 @@ export function csharpStringAddEqualityTruth (content: string): string {
                 if (returnsOf (name, nullableBoolCalls, [ 'bool?' ])) return 'bool?';
                 return undefined;
             }
-            if (name === 'add') {
-                const close = m.length - 1;
-                const comma = csharpHelperTopLevelComma (m, call[0].length - 1, close);
-                return ((comma !== undefined) && (typeOf (region, line, t.substring (call[0].length, comma), depth + 1) === 'string')) ? 'string' : undefined;
-            }
             return undefined;
         }
         // a string-only member call (an NRE on a null receiver happens before the helper too)
         for (const tail of m.matchAll (/\.(?:PadLeft|PadRight|Substring|ToLower|ToUpper|ToLowerInvariant|ToUpperInvariant|Trim|TrimStart|TrimEnd)\(/g)) {
             if (csharpHelperCallEnd (m, tail.index + tail[0].length - 1) !== m.length - 1) continue;
-            const rm = m.substring (0, tail.index);
-            if (/^\([A-Za-z_]\w* as String\)$/.test (rm) || (typeOf (region, line, t.substring (0, tail.index), depth + 1) === 'string')) return 'string';
+            if (/^\([A-Za-z_]\w* as String\)$/.test (m.substring (0, tail.index))) return 'string';
         }
         if (/^String\.Join\(/.test (m) && (csharpHelperCallEnd (m, 11) === m.length - 1)) return 'string';
         return undefined;
@@ -8069,17 +8043,6 @@ export function csharpStringAddEqualityTruth (content: string): string {
                 const after = csharpHelperMaskLine (text.substring (at + e.length)).trimStart ();
                 // `var x =` would infer string where it inferred object
                 let ok = (/(?<![=!<>])=$/.test (before) && !/\bvar[ ]+[A-Za-z_]\w*[ ]*=$/.test (before)) || /\breturn$/.test (before) || /\(string\)$/.test (before) || /\+$/.test (before);
-                if (!ok && before.endsWith (',')) {
-                    // the right operand of a helper add
-                    let depth = 0;
-                    let k = before.length - 2;
-                    for (; k >= 0; k--) {
-                        if (before[k] === ')') depth++;
-                        else if (before[k] === '(') { if (depth === 0) break; depth--; }
-                    }
-                    ok = (k >= 3) && /(?<![\w.])add$/.test (before.substring (0, k)) && (csharpHelperTopLevelComma (before + ' ', k, before.length) === before.length - 1);
-                }
-                if (ok && (/\breturn$/.test (before) || /(?<![=!<>])=$/.test (before)) && !/^[;)]/.test (after)) ok = /^\+/.test (after);
                 // the left operand of a native concat (that concat proved its right a string)
                 if (!ok && before.endsWith ('(') && !/[\w.]\($/.test (before) && /^\+ /.test (after)) ok = true;
                 // the sole argument of Add on a List<object> local (Add(object) takes either type)
@@ -8142,8 +8105,8 @@ export function csharpStringAddEqualityTruth (content: string): string {
         for (let k = line - 1; k > region.start; k--) {
             const l = region.lines[k].trim ();
             if (writesName (region.lines[k], name)) return false;
-            if (((l === `if ((${name} != null))`) || (l === `if (${name} != null)`)) && ((region.lines[k + 1] ?? '').trim () === '{') && openThrough (region, k + 1, line)) return true;
-            if (((l === `if ((${name} == null))`) || (l === `if (${name} == null)`)) && ((region.lines[k + 1] ?? '').trim () === '{')
+            if ((l === `if ((${name} != null))`) && ((region.lines[k + 1] ?? '').trim () === '{') && openThrough (region, k + 1, line)) return true;
+            if ((l === `if ((${name} == null))`) && ((region.lines[k + 1] ?? '').trim () === '{')
                     && /^(throw|return)\b/.test ((region.lines[k + 2] ?? '').trim ()) && ((region.lines[k + 3] ?? '').trim () === '}') && openThrough (region, k + 3, line)) return true;
         }
         return false;
@@ -8221,13 +8184,10 @@ export function csharpStringAddEqualityTruth (content: string): string {
         // NumberToString answers null only for a null number
         if ((call[1] === 'this.numberToString') && (comma === undefined) && !ownMember ('numberToString') && (ownReturns['numberToString'] === undefined)) {
             const arg = t.substring (open + 1, m.length - 1).trim ();
-            if (/^-?[0-9]+$/.test (arg)) return true;
             if (!/^[A-Za-z_]\w*$/.test (arg) || region.bound.has (arg)) return false;
             const d = csharpHelperReceiverType (region, arg, line, region.params);
-            if ((d !== undefined) && [ 'int', 'Int64', 'long', 'double' ].includes (d.type)) return true;
             return (d !== undefined) && nullGuarded (region, arg, line);
         }
-        if ([ 'this.uuid', 'this.uuid16', 'this.uuid22' ].includes (call[1]) && (ownReturns[call[1].slice (5)] === undefined)) return true;
         // BinaryToBase16 (a null buffer throws in the hex loop) and IntToBase16 (Convert.ToInt64(null) is 0) never answer null
         if ([ 'this.binaryToBase16', 'this.intToBase16' ].includes (call[1]) && (comma === undefined)
                 && !ownMember (call[1].slice (5)) && (ownReturns[call[1].slice (5)] === undefined)) return true;
@@ -8285,15 +8245,11 @@ export function csharpStringAddEqualityTruth (content: string): string {
                     }
                 } else {
                     const tb = typeOf (region, line, b);
-                    const lit = (x: string, kind: string) => (kind === 'bool') ? /^(true|false)$/.test (x) : (kind === 'string') ? /^"/.test (x) : /^-?[0-9]+$/.test (x);
-                    const literal = (x: string) => /^"(?:[^"\\]|\\.)*"$/.test (x) || /^-?[0-9]+$/.test (x) || /^(true|false)$/.test (x);
-                    if (literal (a) && literal (b)) continue;
                     if (((ta === 'string') && (tb === 'string')) || ((ta === 'int') && (tb === 'int'))) out = `(${atom (a)} == ${atom (b)})`;
                     // lifted `==` on Int64? is isEqual's numeric compare with its null rows
-                    else if ([ 'nint', 'int' ].includes (ta) && [ 'nint', 'int' ].includes (tb) && ((ta === 'nint') || (tb === 'nint'))) out = `(${atom (a)} == ${atom (b)})`;
+                    else if ([ 'nint', 'int' ].includes (ta) && [ 'nint', 'int' ].includes (tb) && (ta === 'nint')) out = `(${atom (a)} == ${atom (b)})`;
                     else if ([ 'nint', 'string', 'bool?' ].includes (ta) && (b === 'null') && !/^"/.test (a)) out = `(${atom (a)} == null)`;
-                    else if ((ta === 'bool?' || ta === 'bool') && lit (b, 'bool')) out = `(${atom (a)} == ${b})`;
-                    else if ((tb === 'bool?' || tb === 'bool') && lit (a, 'bool')) out = `(${atom (b)} == ${a})`;
+                    else if ((ta === 'bool?' || ta === 'bool') && /^(true|false)$/.test (b)) out = `(${atom (a)} == ${b})`;
                 }
             }
             if (out === undefined) continue;
