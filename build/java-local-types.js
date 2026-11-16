@@ -18868,6 +18868,170 @@ export function installJavaStringReturns (transpiler) {
             ? printed.get (member)
             : '\n'.repeat (printer.NUM_LINES_BETWEEN_CLASS_MEMBERS) + printed.get (member))).join ('\n');
     };
+    installJavaBaseProducerLocals (transpiler);
+}
+
+// ===== locals of base producers whose hand-written Java return is concrete (ral-77j5) =====
+// `Object x = this.<m> (..)` where <m> resolves to ts/src/base (no venue redeclares it) and its
+// hand-written BaseExchange.java declaration returns the box on every path:
+//   byte[]  : ethEncodeStructuredData / ethAbiEncode (TS `: Uint8Array`, Java builds a byte[]),
+//             encode (TS Uint8Array; Java returns the byte[] input or getBytes(UTF_8))
+//   Integer : randNumber / binaryLength / precisionFromString (TS `number`, Java `int`, boxed once)
+// A byte[] local may only be handed to an Object parameter: a hand-written byte consumer, or a
+// printed method whose typed core keeps that slot `Object` (TS `any`), so no call rebinds. An
+// Integer local takes the numeric slice's use scan (no unboxing arm, no unary, no write).
+const JAVA_BASE_BYTES_PRODUCERS = new Set ([ 'ethEncodeStructuredData', 'ethAbiEncode', 'encode' ]);
+const JAVA_BASE_INT_PRODUCERS = new Set ([ 'randNumber', 'binaryLength', 'precisionFromString' ]);
+const JAVA_BASE_BYTES_EXTRA_CONSUMERS = new Set ([ 'binaryLength' ]);
+
+function javaBaseProducerType (printer, initializer) {
+    const call = unwrapParens (initializer);
+    if (!isThisCall (call) || call.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const name = String (call.expression.name.text);
+    const type = JAVA_BASE_BYTES_PRODUCERS.has (name) ? 'byte[]' : JAVA_BASE_INT_PRODUCERS.has (name) ? 'Integer' : undefined;
+    if (type === undefined) {
+        return undefined;
+    }
+    const member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+    if (member === undefined || !BASE_SOURCE_FILE.test (member.getSourceFile ().fileName) || javaRedeclaredByDescendant (member)) {
+        return undefined;
+    }
+    if (member.kind === ts.SyntaxKind.PropertyDeclaration) {
+        return type; // `encode = encode` / `precisionFromString = precisionFromString` field aliases: the signature lives outside ts/src/base
+    }
+    const file = resolvedSignatureFile (printer, call);
+    return file !== undefined && BASE_SOURCE_FILE.test (file) ? type : undefined;
+}
+
+// the call argument slot binds a Java `Object` parameter whatever the argument's static type
+function javaObjectSlotArgument (printer, call, index) {
+    if (!isThisCall (call)) {
+        return false;
+    }
+    const name = String (call.expression.name.text);
+    if (JAVA_BYTES_CONSUMERS.has (name) || JAVA_BASE_BYTES_EXTRA_CONSUMERS.has (name)) {
+        // field aliases (`binaryConcat = binaryConcat`) resolve their signature into node_modules: gate on the member
+        const member = printer.getChecker ().getSymbolAtLocation (call.expression)?.valueDeclaration?.resolve ();
+        return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName) && !javaRedeclaredByDescendant (member);
+    }
+    let declaration;
+    try {
+        declaration = printer.javaMethodImplementation (printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ());
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !printer.javaIsPrintedMethod (declaration) || BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
+        || declaration.parameters.length <= index || declaration.parameters[index].dotDotDotToken !== undefined) {
+        return false;
+    }
+    const parameter = declaration.parameters[index];
+    if (parameter.type !== undefined && parameter.type.kind !== ts.SyntaxKind.AnyKeyword) {
+        return false;
+    }
+    try {
+        return printer.javaCoreParameterTypes (declaration)[index] === 'Object';
+    } catch (e) {
+        return false;
+    }
+}
+
+function javaBaseBytesLocalIsSafe (printer, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    for (const n of identifierIndex (scope).get (declaration.name.text) ?? []) {
+        const parent = n.parent;
+        if (n === declaration.name || parent === undefined || (ts.isPropertyAccessExpression (parent) && parent.name === n)) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (parent) && parent.name === n) {
+            return false; // a sibling-scope local of the same name: the scan is by name
+        }
+        if (!(ts.isCallExpression (parent) && javaObjectSlotArgument (printer, parent, parent.arguments.indexOf (n)))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+export function installJavaBaseProducerLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaBaseProducerLocalsPatched) {
+        return;
+    }
+    printer._javaBaseProducerLocalsPatched = true;
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return printed;
+        }
+        let type;
+        try {
+            type = javaBaseProducerType (printer, declaration.initializer);
+            if (type === 'byte[]' && !javaBaseBytesLocalIsSafe (printer, declaration)) {
+                type = undefined;
+            } else if (type === 'Integer' && !numericIsSafeToNarrow (printer, declaration, declaration.name.text, 'Integer',
+                /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName))) {
+                type = undefined;
+            }
+        } catch (e) {
+            type = undefined;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = this.${String (unwrapParens (declaration.initializer).expression.name.text)}(`;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        return printed.slice (0, at) + marker.replace (`${printer.VAR_TOKEN} `, `${type} `) + printed.slice (at + marker.length);
+    };
+    // a printed base-tier `: Str` method (below the transpile delimiter of ts/src/base/(Prediction)Exchange.ts)
+    // the ast keeps `Object` for every non-Boolean base target; it prints String when every return site
+    // prints String, no ts/src class redeclares it (Java return types are covariant only), it overrides
+    // nothing, and no ts/src call sits in a String-hazard position (Helpers.add left operand, omitZero)
+    const upstreamReturnType = printer.javaNativeReturnType.bind (printer);
+    const baseStringMemo = new Map ();
+    printer.javaNativeReturnType = function (node) {
+        const own = upstreamReturnType (node);
+        if (own !== undefined || node === undefined || node.kind !== ts.SyntaxKind.MethodDeclaration || node.body === undefined
+            || node.type === undefined || !/(^|[\\/])ts[\\/]src[\\/]base[\\/](Prediction)?Exchange(\.nooverloads[^\\/]*)?\.ts$/.test (node.getSourceFile ().fileName)) {
+            return own;
+        }
+        if (baseStringMemo.has (node)) {
+            return baseStringMemo.get (node);
+        }
+        baseStringMemo.set (node, undefined); // a recursive chain reads as unproven
+        let type;
+        const outerUsed = printer.javaReturnTypeUsedDeclaredLocals;
+        try {
+            printer.javaReturnTypeUsedDeclaredLocals = false;
+            type = printer.javaIsPrintedMethod (node) && !printer.isAsyncFunction (node)
+                && printer.javaNativeReturnTypeTarget (node) === 'String'
+                && printer.getMethodOverride (node) === undefined
+                && !javaRedeclaredByDescendant (node) && !javaNumericCallHazard (node, 'stringHazards')
+                && printer.javaReturnSitesPrintType (node, 'String') ? 'String' : undefined;
+            // a proof that read locals published while printing depends on which file the worker printed first:
+            // the base printer and the venue workers must agree, so only an order-free proof counts
+            if (printer.javaReturnTypeUsedDeclaredLocals) {
+                type = undefined;
+            }
+        } catch (e) {
+            type = undefined;
+        } finally {
+            printer.javaReturnTypeUsedDeclaredLocals = outerUsed;
+        }
+        baseStringMemo.set (node, type);
+        return type;
+    };
 }
 
 // setLeverage / cancelAllOrdersAfter / handleErrors / Opinion.parseWsOrderStatus (first param) and Hyperliquid.buildOutcomeSymbol

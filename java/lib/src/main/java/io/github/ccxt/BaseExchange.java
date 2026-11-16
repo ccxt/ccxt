@@ -1008,12 +1008,12 @@ public class BaseExchange {
         System.out.println(s);
     }
 
-    public Object encode (Object s) {
+    public byte[] encode (Object s) {
         // encode() turns a string into its UTF-8 byte representation (matches the JS Uint8Array
         // contract). hash()/hmac() accept either bytes or a string, but binaryToBase16() and the
         // EIP-712 encoders require real bytes, so returning the string unchanged was wrong.
         if (s instanceof byte[]) {
-            return s;
+            return (byte[]) s;
         }
         return s.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8);
     }
@@ -2964,7 +2964,7 @@ public class BaseExchange {
     // as invalid Solidity identifiers — the EIP-712 spec itself doesn't
     // require that restriction.
     @SuppressWarnings("unchecked")
-    public Object ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
+    public byte[] ethEncodeStructuredData(Object domain2, Object messageTypes2, Object messageData2) {
         try {
             Map<String, Object> domain = (Map<String, Object>) domain2;
             Map<String, Object> messageTypes = (Map<String, Object>) messageTypes2;
@@ -3416,7 +3416,7 @@ public class BaseExchange {
     }
 
     @SuppressWarnings("unchecked")
-    public Object ethAbiEncode(Object types2, Object args2)
+    public byte[] ethAbiEncode(Object types2, Object args2)
     {
         // static abi.encode: each argument becomes a 32-byte word, concatenated. Reuses the
         // EIP-712 word encoder (encodeValue) which already left-pads uint/address and right-pads
@@ -6265,7 +6265,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object orderbookChecksumMessage(String symbol)
+    public String orderbookChecksumMessage(String symbol)
     {
         if (java.util.Objects.equals(symbol, null))
         {
@@ -7437,7 +7437,7 @@ public Map<String, Object> describe()
         return reversed;
     }
 
-    public Object stringToBase16(Object str)
+    public String stringToBase16(Object str)
     {
         return ("0x" + this.binaryToBase16(this.base64ToBinary(this.stringToBase64(str))));
     }
@@ -10502,7 +10502,7 @@ public Map<String, Object> describe()
         return this.parseNumber(value, defaultNumber);
     }
 
-    public Object parsePrecision(Object precision)
+    public String parsePrecision(Object precision)
     {
         /**
          * @ignore
@@ -10538,7 +10538,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object integerPrecisionToAmount(String precision)
+    public String integerPrecisionToAmount(String precision)
     {
         /**
          * @ignore
@@ -12611,7 +12611,7 @@ public Map<String, Object> describe()
         }
     }
 
-    public Object timeframeFromMilliseconds(Object ms)
+    public String timeframeFromMilliseconds(Object ms)
     {
         Long msInt = this.parseToInt(ms);
         if ((msInt == null || msInt <= 0))
