@@ -4916,11 +4916,11 @@ export default class bitget extends Exchange {
         const maxLimitPerTimeframe = this.safeDict (ohlcOptions, 'maxLimitPerTimeframe', {});
         const timeframeLimitValue = this.safeInteger (maxLimitPerTimeframe, timeframe);
         // the per-timeframe cap only applies to a user-supplied limit
-        const timeframeLimit: int = (timeframeLimitValue === undefined) ? maxLimitForRecentEndpoint : timeframeLimitValue;
-        const requestedLimit: int = (limit === undefined) ? defaultLimit : limit;
-        const limitCapped: int = (requestedLimit > maxLimitForRecentEndpoint) ? maxLimitForRecentEndpoint : requestedLimit;
+        const timeframeLimit = this.parseToInt ((timeframeLimitValue === undefined) ? maxLimitForRecentEndpoint : timeframeLimitValue);
+        const requestedLimit = (limit === undefined) ? defaultLimit : this.parseToInt (limit);
+        const limitCapped = this.parseToInt ((requestedLimit > maxLimitForRecentEndpoint) ? maxLimitForRecentEndpoint : requestedLimit);
         // the per-timeframe cap only applies to a user-supplied limit
-        const recentLimit: int = ((limit !== undefined) && (limitCapped > timeframeLimit)) ? timeframeLimit : limitCapped;
+        const recentLimit = this.parseToInt (((limit !== undefined) && (limitCapped > timeframeLimit)) ? timeframeLimit : limitCapped);
         let limitResolved: Int = recentLimit;
         const recentDuration: int = recentLimit * duration;
         const recentEndpointDaysMap = this.safeDict (this.options['fetchOHLCV'], 'maxRecentDaysPerTimeframe', {});

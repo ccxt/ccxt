@@ -1576,8 +1576,10 @@ export default class bybit extends Exchange {
             //
             const result = this.safeDict (response, 'result', {});
             const accountResult = this.safeDict (accountInfo, 'result', {});
-            this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
-            this.options['enableUnifiedAccount'] = this.safeInteger (result, 'uta') === 1;
+            const unified = this.safeInteger (result, 'unified');
+            const uta = this.safeInteger (result, 'uta');
+            this.options['enableUnifiedMargin'] = unified === 1;
+            this.options['enableUnifiedAccount'] = uta === 1;
             this.options['unifiedMarginStatus'] = this.safeInteger (accountResult, 'unifiedMarginStatus', 6); // default to uta 2.0 pro if not found
         }
         return [ this.options['enableUnifiedMargin'], this.options['enableUnifiedAccount'] ];
@@ -2866,9 +2868,9 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
         };
         // default is 200 when requested with `since`
-        let limitResolved: Int = limit;
-        if (limitResolved === undefined) {
-            limitResolved = 200;
+        let limitResolved = 200;
+        if (limit !== undefined) {
+            limitResolved = limit;
         }
         if (since !== undefined) {
             // bybit returns the candle that contains `start`, whose timestamp is
@@ -4120,7 +4122,7 @@ export default class bybit extends Exchange {
         const triggerDirection = this.safeString (order, 'triggerDirection');
         const isAscending = (triggerDirection === '1');
         const isStopOrderType2 = (triggerPrice !== undefined) && reduceOnly;
-        if ((stopLossPrice === undefined) && (isStopOrderType2 === true)) {
+        if ((stopLossPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - stopLossPrice
             if (isAscending && (side === 'buy')) {
                 // stopLoss order against short position
@@ -4131,7 +4133,7 @@ export default class bybit extends Exchange {
                 stopLossPrice = triggerPrice;
             }
         }
-        if ((takeProfitPrice === undefined) && (isStopOrderType2 === true)) {
+        if ((takeProfitPrice === undefined) && isStopOrderType2) {
             // check if order is stop order type 2 - takeProfitPrice
             if (isAscending && (side === 'sell')) {
                 // takeprofit order against a long position
@@ -7275,16 +7277,18 @@ export default class bybit extends Exchange {
                 const leverage = this.safeString (paramsType, 'leverage');
                 let paramsOmitted = undefined;
                 if (leverage === undefined) {
-                    sellLeverage = this.safeString2 (paramsType, 'sell_leverage', 'sellLeverage');
-                    buyLeverage = this.safeString2 (paramsType, 'buy_leverage', 'buyLeverage');
-                    if (sellLeverage === undefined && buyLeverage === undefined) {
+                    const sellLeverageRaw = this.safeString2 (paramsType, 'sell_leverage', 'sellLeverage');
+                    const buyLeverageRaw = this.safeString2 (paramsType, 'buy_leverage', 'buyLeverage');
+                    if (sellLeverageRaw === undefined && buyLeverageRaw === undefined) {
                         throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
                     }
-                    if (buyLeverage === undefined) {
-                        buyLeverage = sellLeverage;
+                    sellLeverage = sellLeverageRaw;
+                    buyLeverage = buyLeverageRaw;
+                    if (buyLeverageRaw === undefined) {
+                        buyLeverage = sellLeverageRaw;
                     }
-                    if (sellLeverage === undefined) {
-                        sellLeverage = buyLeverage;
+                    if (sellLeverageRaw === undefined) {
+                        sellLeverage = buyLeverageRaw;
                     }
                     paramsOmitted = this.omit (paramsType, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
                 } else {
@@ -7766,12 +7770,13 @@ export default class bybit extends Exchange {
         };
         const sinceResolved = (since === undefined) ? this.milliseconds () - 2592000000 : since; // last 30 days
         request['startTime'] = sinceResolved;
-        let endTime = this.safeInteger2 (params, 'until', 'endTime');
+        const endTime = this.safeInteger2 (params, 'until', 'endTime');
         const paramsOmitted: Dict = this.omit (params, [ 'until' ]);
         if (endTime === undefined) {
-            endTime = sinceResolved + 2592000000; // since + 30 days
+            request['endTime'] = sinceResolved + 2592000000; // since + 30 days
+        } else {
+            request['endTime'] = endTime;
         }
-        request['endTime'] = endTime;
         const response = await this.privateGetV5SpotMarginTradeInterestRateHistory (this.extend (request, paramsOmitted));
         //
         //   {
@@ -10110,17 +10115,18 @@ export default class bybit extends Exchange {
         if (apiUrl === undefined) {
             throw new ExchangeError (this.id + ' sign() has no API URL for this endpoint');
         }
-        let url = this.implodeHostname (apiUrl) + '/' + path;
+        const baseUrl = this.implodeHostname (apiUrl) + '/' + path;
+        let url = baseUrl;
         if (apiName === 'public') {
             if (Object.keys (params).length > 0) {
                 url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (params);
             }
         } else if (apiName === 'private') {
             this.checkRequiredCredentials ();
-            const isOpenapi = url.indexOf ('openapi') >= 0;
-            const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
-            const isV3Contract = url.indexOf ('contract/v3') >= 0;
-            const isV5UnifiedAccount = url.indexOf ('v5') >= 0;
+            const isOpenapi = baseUrl.indexOf ('openapi') >= 0;
+            const isV3UnifiedMargin = baseUrl.indexOf ('unified/v3') >= 0;
+            const isV3Contract = baseUrl.indexOf ('contract/v3') >= 0;
+            const isV5UnifiedAccount = baseUrl.indexOf ('v5') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
                 if (Object.keys (params).length > 0) {
@@ -10181,7 +10187,7 @@ export default class bybit extends Exchange {
                     signature = this.hmac (this.encode (auth), this.encode (this.secret), sha256);
                 }
                 if (method === 'POST') {
-                    const isSpot = url.indexOf ('spot') >= 0;
+                    const isSpot = baseUrl.indexOf ('spot') >= 0;
                     const extendedQuery = this.extend (query, {
                         'sign': signature,
                     });
@@ -10197,15 +10203,15 @@ export default class bybit extends Exchange {
                         };
                     }
                 } else {
-                    url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (sortedQuery, true);
-                    url += '&sign=' + signature;
+                    url = this.implodeHostname (apiUrl) + '/' + path + '?' + this.rawencode (sortedQuery, true) + '&sign=' + signature;
                 }
             }
         }
         if (method === 'POST') {
             const brokerId = this.safeString (this.options, 'brokerId', 'CCXT');
-            const headersBase = requestHeaders;
-            requestHeaders = (headersBase === undefined) ? {} : headersBase;
+            if (requestHeaders === undefined) {
+                requestHeaders = {};
+            }
             requestHeaders['Referer'] = brokerId;
         }
         const bodyResolved = requestBody;
