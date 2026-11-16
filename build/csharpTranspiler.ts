@@ -427,63 +427,64 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
         && new RegExp ('^[ ]*' + name + '[ ]*=[^=]').test (maskedLine));
 }
 
+// each helper call `re` matches on the masked line: `visit (start, end, argument)`, or for `pair` calls
+// of exactly two arguments `visit (start, end, leftMask, rightMask, rightText, leftText)`
+function csharpHelperCalls (original: string, masked: string, re: RegExp, pair: boolean, visit: (start: number, end: number, name: string, keyMask?: string, keyText?: string, leftText?: string) => void) {
+    let match;
+    while ((match = re.exec (masked)) !== null) {
+        const open = match.index + match[0].length - 1;
+        const close = csharpHelperCallEnd (masked, open);
+        if (close === undefined) continue;
+        if (!pair) {
+            visit (match.index, close + 1, masked.substring (open + 1, close).trim ());
+            continue;
+        }
+        const comma = csharpHelperTopLevelComma (masked, open, close);
+        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+        visit (match.index, close + 1, masked.substring (open + 1, comma).trim (), masked.substring (comma + 1, close).trim (), original.substring (comma + 1, close).trim (), original.substring (open + 1, comma).trim ());
+    }
+}
+
 // rewrite every proven helper call on one line; offsets are taken from the mask, the emitted text
 // from the original line
 function csharpHelperRewriteLine (original: string, masked: string, takeType, takeKeyType, takeIndexType, takeNullableKeyType = (k) => false, takeInOpType = (n) => undefined, objectNull = false, takeObjectKey = (k) => false, keyName = () => undefined): string | undefined {
     const edits = [];
-    const lengthCall = /getArrayLength[ ]*\(/g;
-    let match;
-    while ((match = lengthCall.exec (masked)) !== null) {
-        const open = match.index + match[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const name = masked.substring (open + 1, close).trim ();
+    csharpHelperCalls (original, masked, /getArrayLength[ ]*\(/g, false, (start, end, name) => {
         // the `IList<object> cache` property of a ws order book (cs/ccxt/ws/OrderBook.cs)
         if (CSHARP_ORDERBOOK_CACHE_RE.test (name)) {
-            edits.push ({ start: match.index, end: close + 1, text: `(${name}?.Count ?? 0)` });
-            continue;
+            edits.push ({ start, end, text: `(${name}?.Count ?? 0)` });
+            return;
         }
-        if (!/^[A-Za-z_]\w*$/.test (name)) continue;
+        if (!/^[A-Za-z_]\w*$/.test (name)) return;
         const receiver = takeType (name);
-        if (receiver === undefined) continue;
+        if (receiver === undefined) return;
         const member = CSHARP_DECLARED_COUNT_TYPES.some ((p) => receiver.type.startsWith (p)) ? 'Count'
             : (CSHARP_DECLARED_LENGTH_TYPES.includes (receiver.type) ? 'Length' : undefined);
-        if (member === undefined) continue;
-        edits.push ({ start: match.index, end: close + 1, text: `(${name}?.${member} ?? 0)` });
-    }
-    const inCall = /(?<![A-Za-z_])inOp[ ]*\(/g;
-    while ((match = inCall.exec (masked)) !== null) {
-        const open = match.index + match[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const firstComma = csharpHelperTopLevelComma (masked, open, close);
-        if (firstComma === undefined) continue;
-        const name = masked.substring (open + 1, firstComma).trim ();
-        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name) && !CSHARP_WS_CLIENT_MAP_RE.test (name)) continue;
-        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
-        if (secondComma !== undefined) continue; // more than two arguments
-        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        if (member === undefined) return;
+        edits.push ({ start, end, text: `(${name}?.${member} ?? 0)` });
+    });
+    csharpHelperCalls (original, masked, /(?<![A-Za-z_])inOp[ ]*\(/g, true, (start, end, name, keyMask, keyText) => {
+        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name) && !CSHARP_WS_CLIENT_MAP_RE.test (name)) return;
         const receiver = takeType (name) ?? takeInOpType (name);
-        if (receiver === undefined) continue;
+        if (receiver === undefined) return;
         const isDict = CSHARP_DECLARED_DICT_TYPES.some ((p) => receiver.type.startsWith (p));
         const isList = CSHARP_DECLARED_LIST_TYPES.includes (receiver.type);
-        if (!isDict && !isList) continue;
-        const keyText = original.substring (firstComma + 1, close).trim ();
+        if (!isDict && !isList) return;
         const nullableKey = takeNullableKeyType (keyMask, true);
         if (!nullableKey && !takeKeyType (keyMask, true)) {
             // an `object` key: InOp's IList<object> branch is Contains(key), its IDictionary<string, object>
             // branch answers false for a non-string key; other dictionaries cast the key and throw
-            if (!takeObjectKey (keyMask)) continue;
+            if (!takeObjectKey (keyMask)) return;
             const nonNullReceiver = (receiver.kind === 'local' && receiver.nonNull) || (receiver.kind === 'param' && receiver.paramsBag);
             const receiverTest = nonNullReceiver ? '' : `${name} != null && `;
             if (isList) {
-                edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} != null && ${name}.Contains(${keyText}))` });
-                continue;
+                edits.push ({ start, end, text: `(${receiverTest}${keyText} != null && ${name}.Contains(${keyText}))` });
+                return;
             }
             const stringKey = keyName ();
-            if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, '')) || (stringKey === undefined)) continue;
-            edits.push ({ start: match.index, end: close + 1, text: `(${receiverTest}${keyText} is string ${stringKey} && ${name}.ContainsKey(${stringKey}))` });
-            continue;
+            if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, '')) || (stringKey === undefined)) return;
+            edits.push ({ start, end, text: `(${receiverTest}${keyText} is string ${stringKey} && ${name}.ContainsKey(${stringKey}))` });
+            return;
         }
         const call = `${name}.${isDict ? 'ContainsKey' : 'Contains'}(${keyText})`;
         const guarded = nullableKey || (receiver.type.endsWith ('?')
@@ -491,41 +492,28 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
             || (receiver.kind === 'local' && !receiver.nonNull)
             || (receiver.kind === 'field'));
         const nullTest = nullableKey ? `${name} != null && ${keyText} != null` : `${name} != null`;
-        edits.push ({ start: match.index, end: close + 1, text: guarded ? `(${nullTest} && ${call})` : call });
-    }
-    const valueCall = /(?<![A-Za-z_.])getValue[ ]*\(/g;
-    while ((match = valueCall.exec (masked)) !== null) {
-        const open = match.index + match[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const firstComma = csharpHelperTopLevelComma (masked, open, close);
-        if (firstComma === undefined) continue;
-        const name = masked.substring (open + 1, firstComma).trim ();
-        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name)) continue;
-        const secondComma = csharpHelperTopLevelComma (masked, firstComma, close);
-        if (secondComma !== undefined) continue; // more than two arguments
-        const keyMask = masked.substring (firstComma + 1, close).trim ();
+        edits.push ({ start, end, text: guarded ? `(${nullTest} && ${call})` : call });
+    });
+    csharpHelperCalls (original, masked, /(?<![A-Za-z_.])getValue[ ]*\(/g, true, (start, end, name, keyMask, keyText) => {
+        if (!/^(?:this\.)?[A-Za-z_]\w*$/.test (name)) return;
         const receiver = takeType (name);
-        if (receiver === undefined) continue;
-        const keyText = original.substring (firstComma + 1, close).trim ();
+        if (receiver === undefined) return;
         // the helper's IList<object> branch: an index at or past Count reads null, a negative one
         // throws in both forms; only an `int` local or a non-negative int literal is a C# index
         if (CSHARP_DECLARED_LIST_TYPES.includes (receiver.type) || (receiver.type === 'List<string>')) {
-            if (!(/^\d{1,9}$/.test (keyMask) || takeIndexType (keyMask))) continue;
-            edits.push ({ start: match.index, end: close + 1,
-                text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : null)` });
-            continue;
+            if (!(/^\d{1,9}$/.test (keyMask) || takeIndexType (keyMask))) return;
+            edits.push ({ start, end, text: `(${name} != null && ${keyText} < ${name}.Count ? ${name}[${keyText}] : null)` });
+            return;
         }
         // the helper's dictionary branch hands back the boxed value; a value-typed dictionary
         // (int/Int64/double) cannot join the `: null` branch, so only object-valued dictionaries
-        if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) continue;
+        if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, ''))) return;
         // a `string?` key: the helper's null-key test is kept, so a null key reads null
         const nullableValueKey = takeNullableKeyType (keyMask);
-        if (!nullableValueKey && !takeKeyType (keyMask)) continue;
+        if (!nullableValueKey && !takeKeyType (keyMask)) return;
         const valueNullTest = nullableValueKey ? `${name} != null && ${keyText} != null` : `${name} != null`;
-        edits.push ({ start: match.index, end: close + 1,
-            text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
-    }
+        edits.push ({ start, end, text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
+    });
     csharpHelperOperatorEdits (original, masked, takeType, edits, objectNull);
     // only in the final pass, after the identifier-copy retypes (they read isTrue on `object` names)
     if (objectNull) {
@@ -728,46 +716,32 @@ const CSHARP_HELPER_LINE_RE = /getArrayLength|inOp|getValue|isEqual|isGreaterTha
 
 // the operator helper calls of one line whose operands the emitted declarations prove
 function csharpHelperOperatorEdits (original: string, masked: string, takeType, edits, objectNull: boolean) {
-    const helperCall = /(?<![A-Za-z0-9_.])(isEqual|isGreaterThan|isGreaterThanOrEqual|isLessThan|isLessThanOrEqual)\(/g;
-    let match;
-    while ((match = helperCall.exec (masked)) !== null) {
-        const open = match.index + match[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const comma = csharpHelperTopLevelComma (masked, open, close);
-        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
-        if (edits.some ((e) => (e.start < close + 1) && (match.index < e.end))) continue;
-        const leftText = original.substring (open + 1, comma).trim ();
-        const rightText = original.substring (comma + 1, close).trim ();
-        const left = csharpOperatorOperand (masked.substring (open + 1, comma).trim (), leftText, takeType);
-        const right = csharpOperatorOperand (masked.substring (comma + 1, close).trim (), rightText, takeType);
-        if ((left === undefined) || (right === undefined)) continue;
-        const text = csharpNativeOperatorText (match[1], left, right, leftText, rightText, objectNull) ?? csharpNullableIntegerComparisonText (match[1], left, right, leftText, rightText);
+    csharpHelperCalls (original, masked, /(?<![A-Za-z0-9_.])(isEqual|isGreaterThan|isGreaterThanOrEqual|isLessThan|isLessThanOrEqual)\(/g, true, (start, end, leftMask, rightMask, rightText, leftText) => {
+        if (edits.some ((e) => (e.start < end) && (start < e.end))) return;
+        const left = csharpOperatorOperand (leftMask, leftText, takeType);
+        const right = csharpOperatorOperand (rightMask, rightText, takeType);
+        if ((left === undefined) || (right === undefined)) return;
+        const helper = /^\w+/.exec (masked.substring (start))[0];
+        const text = csharpNativeOperatorText (helper, left, right, leftText, rightText, objectNull) ?? csharpNullableIntegerComparisonText (helper, left, right, leftText, rightText);
         if (text !== undefined) {
-            edits.push ({ start: match.index, end: close + 1, text });
+            edits.push ({ start, end, text });
         }
-    }
+    });
 }
 
 // `isTrue(x)` on a name the emitted text declares `bool` -> `x` (the bool overload is identity) and
 // `bool?` -> `(x == true)` (the boxed null / false / true answer isTrue(object)'s false / false / true)
 function csharpHelperTruthEdits (original: string, masked: string, takeType, edits) {
-    const truthCall = /(?<![A-Za-z0-9_.])isTrue\(/g;
-    let match;
-    while ((match = truthCall.exec (masked)) !== null) {
-        const open = match.index + match[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const name = masked.substring (open + 1, close).trim ();
-        if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'null') || (name === 'true') || (name === 'false')) continue;
-        if (edits.some ((e) => (e.start < close + 1) && (match.index < e.end))) continue;
+    csharpHelperCalls (original, masked, /(?<![A-Za-z0-9_.])isTrue\(/g, false, (start, end, name) => {
+        if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'null') || (name === 'true') || (name === 'false')) return;
+        if (edits.some ((e) => (e.start < end) && (start < e.end))) return;
         const receiver = takeType (name);
-        if (receiver === undefined) continue;
+        if (receiver === undefined) return;
         const text = (receiver.type === 'bool') ? name : ((receiver.type === 'bool?') ? `(${name} == true)` : undefined);
         if (text !== undefined) {
-            edits.push ({ start: match.index, end: close + 1, text });
+            edits.push ({ start, end, text });
         }
-    }
+    });
 }
 
 // the index of the `)` closing the call whose `(` sits at `open`
@@ -804,25 +778,11 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = csharpMethodSignatures (masked);
-    if (signatures.length === 0) {
+    const regions = csharpRegions (masked);
+    if (regions.length === 0) {
         return content;
     }
-    const regions = [];
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const params = csharpHelperSignatureParams (masked, start);
-        const declarations = csharpRegionDeclarations (masked, start, end);
-        regions.push ({ start, end, params, declarations, lines: masked });
-    }
-    const regionOfLine = (line: number) => {
-        let current = regions[0];
-        for (const region of regions) {
-            if (region.start <= line) current = region;
-        }
-        return current;
-    };
+    const regionOfLine = (line: number) => regions.reduce ((current, region) => (region.start <= line) ? region : current, regions[0]);
     let changed = false;
     // pattern variables for `object` keys: unique per file, since `else if` nests them in one scope
     let stringKeys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
@@ -2514,6 +2474,17 @@ function csharpRetApiTable (venue: string, prediction: boolean): Map<string, str
     return table
 }
 
+// add each signature's declared return type in `text` to `index` (by method name)
+function csharpRetIndexSignatures (index: Map<string, Set<string>>, text: string): Map<string, Set<string>> {
+    for (const line of text.split ('\n')) {
+        const match = CSHARP_RET_SIGNATURE.exec (line)
+        if (match !== null) {
+            index.set (match[2], (index.get (match[2]) ?? new Set<string> ()).add (match[1].trim ()))
+        }
+    }
+    return index
+}
+
 function csharpRetBaseIndex (): Map<string, Set<string>> {
     if (csharpRetBaseSignatures !== undefined) {
         return csharpRetBaseSignatures
@@ -2537,17 +2508,7 @@ function csharpRetBaseIndex (): Map<string, Set<string>> {
         if (text.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') !== -1) {
             continue
         }
-        for (const line of text.split ('\n')) {
-            const match = CSHARP_RET_SIGNATURE.exec (line)
-            if (match !== null) {
-                const types = index.get (match[2])
-                if (types === undefined) {
-                    index.set (match[2], new Set ([ match[1].trim () ]))
-                } else {
-                    types.add (match[1].trim ())
-                }
-            }
-        }
+        csharpRetIndexSignatures (index, text)
     }
     csharpRetBaseSignatures = index
     return index
@@ -2558,18 +2519,7 @@ function csharpRetSameFileIndex (content: string): Map<string, Set<string>> {
     if (cached !== undefined) {
         return cached
     }
-    const index = new Map<string, Set<string>> ()
-    for (const line of content.split ('\n')) {
-        const match = CSHARP_RET_SIGNATURE.exec (line)
-        if (match !== null) {
-            const types = index.get (match[2])
-            if (types === undefined) {
-                index.set (match[2], new Set ([ match[1].trim () ]))
-            } else {
-                types.add (match[1].trim ())
-            }
-        }
-    }
+    const index = csharpRetIndexSignatures (new Map<string, Set<string>> (), content)
     if (csharpRetSameFileSignatures.size > 64) {
         csharpRetSameFileSignatures.clear ()
     }
@@ -2579,29 +2529,10 @@ function csharpRetSameFileIndex (content: string): Map<string, Set<string>> {
 
 // every declared C# return type of `name` the emitted text proves; >1 distinct spelling is unproven
 function csharpRetDeclaredReturnTypes (content: string, name: string): string[] {
-    const types = new Set<string> ()
     const sameFile = csharpRetSameFileIndex (content)
-    if (sameFile.has (name)) {
-        for (const type of sameFile.get (name) as Set<string>) {
-            types.add (type)
-        }
-        return [ ...types ]
-    }
     // a pascalized call site reads the camelCase declaration (typeCores runs before the rename)
-    const lower = name.charAt (0).toLowerCase () + name.slice (1)
-    if (sameFile.has (lower)) {
-        for (const type of sameFile.get (lower) as Set<string>) {
-            types.add (type)
-        }
-        return [ ...types ]
-    }
-    const base = csharpRetBaseIndex ()
-    if (base.has (name)) {
-        for (const type of base.get (name) as Set<string>) {
-            types.add (type)
-        }
-    }
-    return [ ...types ]
+    const found = sameFile.get (name) ?? sameFile.get (name.charAt (0).toLowerCase () + name.slice (1)) ?? csharpRetBaseIndex ().get (name)
+    return [ ...(found ?? []) ]
 }
 
 function csharpRetUnwrapTask (type: string): string {
@@ -2817,7 +2748,6 @@ function csharpTypedCoreConversionSelfTest (): string[] {
     expect ('string-call-tail', str ('this.safeString(a, "id") + "x"'), '')
     return problems
 }
-// ---- end RF-cs-2-d ----
 
 class NewTranspiler {
 
