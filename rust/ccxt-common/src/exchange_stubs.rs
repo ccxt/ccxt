@@ -3739,11 +3739,10 @@ mod random_tests {
         let ex = Exchange::new(None);
         let a = ex.random_bytes(Value::Int(32));
         let b = ex.random_bytes(Value::Int(32));
-        let a = a.as_str().expect("hex string").to_string();
         assert_eq!(a.len(), 64);
         assert!(a.bytes().all(|c| matches!(c, b'0'..=b'9' | b'a'..=b'f')), "{a}");
-        assert_ne!(Some(a.as_str()), b.as_str(), "two calls differ");
-        assert_eq!(ex.random_bytes(Value::Int(0)).as_str(), Some(""));
+        assert_ne!(a, b, "two calls differ");
+        assert_eq!(ex.random_bytes(Value::Int(0)), "");
     }
 
     #[test]
@@ -3751,11 +3750,11 @@ mod random_tests {
         let ex = Exchange::new(None);
         let mut seen = std::collections::HashSet::new();
         for _ in 0..20 {
-            let v = ex.rand_number(Value::Int(12)).as_i64().expect("int");
+            let v = ex.rand_number(Value::Int(12));
             assert!((0..1_000_000_000_000).contains(&v), "{v}");
             seen.insert(v);
         }
         assert!(seen.len() > 1, "two calls differ");
-        assert_eq!(ex.rand_number(Value::Int(0)).as_i64(), Some(0));
+        assert_eq!(ex.rand_number(Value::Int(0)), 0);
     }
 }
