@@ -21273,3 +21273,481 @@ export function installJavaR84j1BoxElementLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
+
+// ===== 84j2. element-read locals that are used at once as the container they hold =====
+// `const x = m[k]` (k not a literal, so the printer prints the guarded map read) whose very next
+// statement is `x.push (v)` or `x[key] = v` in the same block: the Object local was immediately cast
+// to List / Map at that use, so declaring the box (one checkcast on the read) moves no failure point.
+// The use shape decides the box, the TS checker vetoes a contrary type (an array for a Map, a
+// non-array for a List). Every other use must be the same native op, the value of an element write
+// or the argument of a `.push`: no call argument can rebind an overload, no unguarded read appears.
+const R84J2_LIST_CAST = '(java.util.List<Object>)';
+
+function r84j2ContainerUse (n) {
+    // { kind: 'push' | 'write' | 'value' } for one identifier use, else undefined
+    const parent = n.parent;
+    if (parent === undefined) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.name.text === 'push'
+        && parent.parent !== undefined && ts.isCallExpression (parent.parent) && parent.parent.expression === parent
+        && parent.parent.arguments.length === 1 && !ts.isSpreadElement (parent.parent.arguments[0])
+        && ts.isExpressionStatement (parent.parent.parent)) {
+        return { kind: 'push', statement: parent.parent.parent };
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
+        && ts.isBinaryExpression (parent.parent) && parent.parent.left === parent
+        && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isExpressionStatement (parent.parent.parent)) {
+        return { kind: 'write', key: parent.argumentExpression, statement: parent.parent.parent };
+    }
+    if (ts.isBinaryExpression (parent) && parent.right === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        && ts.isElementAccessExpression (parent.left)) {
+        return { kind: 'value' };
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.length === 1 && parent.arguments[0] === n
+        && ts.isPropertyAccessExpression (parent.expression) && parent.expression.name.text === 'push') {
+        return { kind: 'value' };
+    }
+    return undefined;
+}
+
+function r84j2TsIsArray (printer, node) {
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (node);
+    if (type === undefined || (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) !== 0) {
+        return undefined; // unknown: the use decides
+    }
+    const parts = (type.isUnionType () ? ts.typeParts (type) : [ type ]).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0) {
+        return undefined;
+    }
+    if (parts.every ((t) => checker.isArrayType (t) || checker.isTupleType (t))) {
+        return true;
+    }
+    return parts.some ((t) => checker.isArrayType (t) || checker.isTupleType (t)) ? 'mixed' : false;
+}
+
+function r84j2ContainerLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isElementAccessExpression (init) || ts.isStringLiteralLike (init.argumentExpression)
+        || ts.isNumericLiteral (init.argumentExpression)) {
+        return undefined;
+    }
+    const statement = declaration.parent.parent;
+    const block = statement.parent;
+    if (block === undefined || !(ts.isBlock (block) || ts.isSourceFile (block))) {
+        return undefined;
+    }
+    const next = block.statements[block.statements.indexOf (statement) + 1];
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (next === undefined || index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1
+        || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    let kind;
+    let first = false;
+    for (const n of (identifierIndex (scope).get (name) ?? [])) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n) {
+            continue; // `obj.<name>` member read
+        }
+        if (ts.isPropertyAssignment (n.parent) && n.parent.name === n) {
+            continue; // object literal key
+        }
+        const use = r84j2ContainerUse (n);
+        if (use === undefined) {
+            return undefined;
+        }
+        if (use.kind === 'value') {
+            continue;
+        }
+        if (use.kind === 'write') {
+            const key = unwrapParens (use.key);
+            if (!(ts.isStringLiteralLike (key) || (ts.isIdentifier (key) && printer.javaDeclaredStringType?.(key) === true))) {
+                return undefined; // an int key would be a List slot write
+            }
+            // the declared-Map put arm needs a non-null value (else the helper prints)
+            const write = use.statement.expression;
+            if (printer.javaPrintsNonNullValue?.(write.right) !== true
+                && printer.elementWriteTargetsMap?.(n, n, [ write.left.argumentExpression ], write.right) !== true) {
+                return undefined;
+            }
+        }
+        const box = use.kind === 'push' ? JAVA_LIST_LOCAL_TYPE : JAVA_MAP_TYPE;
+        if (kind !== undefined && kind !== box) {
+            return undefined;
+        }
+        kind = box;
+        first = first || use.statement === next;
+    }
+    if (kind === undefined || !first) {
+        return undefined; // the declared checkcast must sit right before the first cast use
+    }
+    let array;
+    try {
+        array = r84j2TsIsArray (printer, init);
+    } catch (e) {
+        return undefined;
+    }
+    if (array === 'mixed' || (array === true && kind !== JAVA_LIST_LOCAL_TYPE) || (array === false && kind !== JAVA_MAP_TYPE)
+        || dataflowTypeTokenCollides (index, kind)) {
+        return undefined;
+    }
+    return { type: kind, cast: kind === JAVA_MAP_TYPE ? JAVA_MAP_LOCAL_CAST : R84J2_LIST_CAST };
+}
+
+export function installJavaR84j2ContainerLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || typeof printer.printArrayPushCall !== 'function'
+        || printer._javaR84j2ContainerPatched) {
+        return;
+    }
+    printer._javaR84j2ContainerPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r84j2ContainerLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        const rest = printed.slice (at + marker.length);
+        const semi = rest.lastIndexOf (';');
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        const tail = semi === -1 ? '' : rest.slice (semi);
+        if (body.indexOf ('\n') !== -1 || (tail !== '' && tail.trim () !== ';')) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + `${info.cast} (${body})${tail}`;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    const upstreamPush = printer.printArrayPushCall.bind (printer);
+    printer.printArrayPushCall = function (node, identation, name = undefined, parsedArg = undefined) {
+        const receiver = node?.expression?.expression;
+        let declaration;
+        try {
+            declaration = receiver !== undefined && ts.isIdentifier (receiver)
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve () : undefined;
+        } catch (e) {
+            declaration = undefined;
+        }
+        return declaration !== undefined && typed.get (declaration) === JAVA_LIST_LOCAL_TYPE && name === receiver.text
+            ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
+    };
+}
+
+// ===== 84j2 R2. List conditionals whose Object arm a guard or a TS array annotation proves =====
+// `c ? r : this.safeList (..)` where c is `Array.isArray (r)` (or a const bound to it) and r is an
+// unwritten binding: the Java test prints `r instanceof List`, so r is a List on that arm and the
+// one checkcast on the whole conditional cannot fail there. An unwritten parameter annotated `T[]`
+// in TS takes the same checkcast (the j6 default-argument rule). Every other arm goes through the
+// r77j2 proofs; the uses pass the same isSafeToNarrow gate as section r77j2.
+function r84j2UnwrittenBinding (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isIdentifier (declaration.name) || declaration.name.text !== identifier.text) {
+        return undefined;
+    }
+    if (ts.isParameterDeclaration (declaration)) {
+        return ts.isMethodDeclaration (declaration.parent) && enclosingFunction (identifier) === declaration.parent
+            && declaration.dotDotDotToken === undefined && !parameterIsWritten (declaration) ? declaration : undefined;
+    }
+    return ts.isVariableDeclaration (declaration) && ts.isVariableDeclarationList (declaration.parent)
+        && (declaration.parent.flags & ts.NodeFlags.Const) !== 0 ? declaration : undefined;
+}
+
+// the identifier `Array.isArray (x)` tests in `test` (directly or through a const bound to it), else undefined
+function r84j2IsArrayTestOperand (printer, test) {
+    let value = unwrapParens (test);
+    if (value !== undefined && ts.isIdentifier (value)) {
+        const declaration = r84j2UnwrittenBinding (printer, value);
+        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+            return undefined;
+        }
+        value = unwrapParens (declaration.initializer);
+    }
+    if (value === undefined || !ts.isCallExpression (value) || value.arguments.length !== 1
+        || !ts.isPropertyAccessExpression (value.expression) || !ts.isIdentifier (value.expression.expression)
+        || value.expression.expression.text !== 'Array' || value.expression.name.text !== 'isArray') {
+        return undefined;
+    }
+    const operand = unwrapParens (value.arguments[0]);
+    return operand !== undefined && ts.isIdentifier (operand) && r84j2UnwrittenBinding (printer, operand) !== undefined ? operand : undefined;
+}
+
+function r84j2ListArm (printer, node, guarded, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (ts.isIdentifier (value) && value.text !== declaration.name.text && printer.printNode (value, 0) === value.text) {
+        if (guarded !== undefined && value.text === guarded.text) {
+            return { kind: 'typed', cast: true };
+        }
+        const binding = r84j2UnwrittenBinding (printer, value);
+        if (binding !== undefined && ts.isParameterDeclaration (binding) && binding.type !== undefined
+            && (binding.initializer === undefined || isNullishInitializer (binding.initializer)) && j6TsShapeIs (printer, binding.name, 'list')) {
+            const declared = r77j2Normalize (printer.javaDeclaredTypeOf (value));
+            if (declared === JAVA_LIST_LOCAL_TYPE) {
+                return { kind: 'typed', cast: false };
+            }
+            // only an Object-printed parameter takes the checkcast (a List<String> one is another box)
+            return declared === '' || declared === 'Object' ? { kind: 'typed', cast: true } : undefined;
+        }
+    }
+    return r77j2Value (printer, value, declaration, JAVA_LIST_LOCAL_TYPE);
+}
+
+function r84j2ListValue (printer, node, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined || !ts.isConditionalExpression (value)) {
+        return undefined;
+    }
+    const guarded = r84j2IsArrayTestOperand (printer, value.condition);
+    const a = r84j2ListArm (printer, value.whenTrue, guarded, declaration);
+    const b = r84j2ListArm (printer, value.whenFalse, undefined, declaration);
+    if (a === undefined || b === undefined || a.kind === 'int' || b.kind === 'int' || (a.kind === 'null' && b.kind === 'null')) {
+        return undefined;
+    }
+    return { kind: 'typed', cast: a.cast === true || b.cast === true };
+}
+
+function r84j2ListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const value = r84j2ListValue (printer, declaration.initializer, declaration);
+    if (value === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    // a lift needs a native use: an element read `x[i]` (the printer's declared-List read drops the casts)
+    const reads = (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name
+        && ts.isElementAccessExpression (n.parent) && n.parent.expression === n
+        && !(ts.isBinaryExpression (n.parent.parent) && n.parent.parent.left === n.parent
+            && ASSIGNMENT_OPERATORS.includes (n.parent.parent.operatorToken.kind)));
+    if (!reads) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
+        writeOnly: true,
+        noCastAssertions: true,
+        writeOk: (right) => {
+            const write = javaListLocalValue (printer, right, declaration);
+            return write !== undefined; // the List family's write hook is not installed for this local: no cast writes
+        },
+    });
+    return ok ? { cast: value.cast } : undefined;
+}
+
+export function installJavaR84j2GuardedListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j2GuardedListPatched) {
+        return;
+    }
+    printer._javaR84j2GuardedListPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r84j2ListLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        let rest = printed.slice (at + marker.length);
+        if (info.cast) {
+            const semi = rest.lastIndexOf (';');
+            const body = semi === -1 ? rest : rest.slice (0, semi);
+            const tail = semi === -1 ? '' : rest.slice (semi);
+            if (body.indexOf ('\n') !== -1 || (tail !== '' && tail.trim () !== ';')) {
+                return printed;
+            }
+            rest = `${R84J2_LIST_CAST} (${body})${tail}`;
+        }
+        typed.set (declaration, JAVA_LIST_LOCAL_TYPE);
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_LIST_LOCAL_TYPE} $1 = `) + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
+
+// ===== 84j2 R3. Map conditionals whose arms are base Map fields, Dict parameters or proven Map values =====
+// `c ? this.timeframes : timeframes` / `c ? this.outcomes : {}`: a base field the hand-written header
+// declares Map<String, Object> prints that box; an unwritten parameter annotated with a string-keyed
+// dict in TS (printed Object) or a base field typed so in TS but printed Object takes one checkcast
+// on the whole conditional, the exact cast its Map uses carried. Other arms go through the r77j2 Map
+// proofs. Lifted only with a native use (element read, Object.keys, `in`), uses via isSafeToNarrow.
+function r84j2MapArm (printer, node, declaration) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        if (javaBaseMapField (printer, value)) {
+            return { kind: 'typed', cast: false };
+        }
+        let fieldDeclarations;
+        try {
+            fieldDeclarations = (printer.getChecker ().getSymbolAtLocation (value.name)?.declarations ?? []).map ((d) => d.resolve ());
+        } catch (e) {
+            return undefined;
+        }
+        // a base property whose TS type is a string-keyed dict (or undefined) printed as an Object field
+        return fieldDeclarations.length > 0 && fieldDeclarations.every ((d) => d !== undefined && ts.isPropertyDeclaration (d)
+            && BASE_SOURCE_FILE.test (d.getSourceFile ().fileName)) && j6TsShapeIs (printer, value, 'map') ? { kind: 'typed', cast: true } : undefined;
+    }
+    if (ts.isIdentifier (value) && value.text !== declaration.name.text && printer.printNode (value, 0) === value.text) {
+        const binding = r84j2UnwrittenBinding (printer, value);
+        if (binding !== undefined && ts.isParameterDeclaration (binding) && binding.type !== undefined
+            && (binding.initializer === undefined || isNullishInitializer (binding.initializer)) && j6TsShapeIs (printer, binding.name, 'map')) {
+            const declared = r77j2Normalize (printer.javaDeclaredTypeOf (value));
+            if (declared === JAVA_MAP_TYPE) {
+                return { kind: 'typed', cast: false };
+            }
+            return declared === '' || declared === 'Object' ? { kind: 'typed', cast: true } : undefined;
+        }
+    }
+    return r77j2Value (printer, value, declaration, JAVA_MAP_TYPE);
+}
+
+function r84j2MapLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !ts.isConditionalExpression (init)) {
+        return undefined;
+    }
+    const a = r84j2MapArm (printer, init.whenTrue, declaration);
+    const b = r84j2MapArm (printer, init.whenFalse, declaration);
+    if (a === undefined || b === undefined || a.kind !== 'typed' && b.kind !== 'typed' || a.kind === 'int' || b.kind === 'int') {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_MAP_TYPE)) {
+        return undefined;
+    }
+    const native = (identifierIndex (scope).get (name) ?? []).some ((n) => {
+        if (n === declaration.name) {
+            return false;
+        }
+        const parent = n.parent;
+        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+            return !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent);
+        }
+        if (ts.isCallExpression (parent) && parent.arguments[0] === n && ts.isPropertyAccessExpression (parent.expression)
+            && ts.isIdentifier (parent.expression.expression) && parent.expression.expression.text === 'Object') {
+            return true; // Object.keys / Object.values
+        }
+        return ts.isBinaryExpression (parent) && parent.right === n && parent.operatorToken.kind === ts.SyntaxKind.InKeyword;
+    });
+    if (!native) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_MAP_TYPE, isProFile, {
+        writeOnly: true,
+        noCastAssertions: true,
+        writeOk: (right) => javaMapLocalValue (printer, right, declaration) !== undefined && javaMapLocalValue (printer, right, declaration).cast !== true,
+    });
+    return ok ? { cast: a.cast === true || b.cast === true } : undefined;
+}
+
+export function installJavaR84j2MapConditionalLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR84j2MapCondPatched) {
+        return;
+    }
+    printer._javaR84j2MapCondPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r84j2MapLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        let rest = printed.slice (at + marker.length);
+        if (info.cast) {
+            const semi = rest.lastIndexOf (';');
+            const body = semi === -1 ? rest : rest.slice (0, semi);
+            const tail = semi === -1 ? '' : rest.slice (semi);
+            if (body.indexOf ('\n') !== -1 || (tail !== '' && tail.trim () !== ';')) {
+                return printed;
+            }
+            rest = `${JAVA_MAP_LOCAL_CAST} (${body})${tail}`;
+        }
+        typed.set (declaration, JAVA_MAP_TYPE);
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${JAVA_MAP_TYPE} $1 = `) + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
