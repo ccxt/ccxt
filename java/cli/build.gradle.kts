@@ -17,7 +17,6 @@ plugins {
 dependencies {
     implementation(project(":lib"))
     implementation(libs.jackson.databind)
-    implementation("com.google.code.gson:gson:2.11.0")
     // Silence Netty's "No SLF4J providers were found" stderr noise. As a runnable
     // application, the cli picks its own (silent) binding; the lib stays neutral
     // so downstream consumers can wire their own logback/log4j/etc.
