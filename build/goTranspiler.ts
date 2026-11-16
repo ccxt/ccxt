@@ -5117,7 +5117,6 @@ class NewTranspiler {
     constructor(isWs: boolean = false) {
 
         this.setupTranspiler();
-        // this.transpiler.goTranspiler.VAR_TOKEN = 'var'; // tmp fix
 
         this.pythonStandardLibraries = {
             'hashlib': 'hashlib',
@@ -5295,28 +5294,11 @@ class NewTranspiler {
                 "goTupleSlotTypes": { "HandleOptionIntegerAndParams": [ "*int64" ], "HandleOptionIntegerAndParams2": [ "*int64" ] },
                 "goTupleValueDefaultArg": { "HandleOptionIntegerAndParams": 3, "HandleOptionIntegerAndParams2": 4 },
                 // ===== end RF-go-6-F =====
-            //     "parser": {
-            //         "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
-            //         "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-            //         // "VAR_TOKEN": "var",
-            //     }
             },
         };
     }
 
     transformLeadingComment(comment: any) {
-        // parse comment
-        // /**
-        //  * @method
-        //  * @name binance#fetchTime
-        //  * @description fetches the current integer timestamp in milliseconds from the exchange server
-        //  * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
-        //  * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
-        //  * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
-        //  * @param {object} [params] extra parameters specific to the exchange API endpoint
-        //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        //  */
-        // return comment;
         const commentNameRegex = /@name\s(\w+)#(\w+)/;
         const nameMatches = comment.match(commentNameRegex);
         const exchangeName = nameMatches ? nameMatches[1] : undefined;
@@ -5324,41 +5306,11 @@ class NewTranspiler {
             return comment;
         }
         const methodName = nameMatches[2];
-        // const commentDescriptionRegex = /@description\s(.+)/;
-        // const descriptionMatches = comment.match(commentDescriptionRegex);
-        // const description = descriptionMatches ? descriptionMatches[1] : undefined;
-        // const seeRegex = /@see\s(.+)/g;
-        // const seeMatches = comment.match(seeRegex);
-        // const sees: string[] = [];
-        // if (seeMatches) {
-        //     seeMatches.forEach(match => {
-        //         const [, link] = match.split(' ');
-        //         sees.push(link);
-        //     });
-        // }
-        // // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        // const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
-        // const params = [] as any;
-        // let paramMatch;
-        // while ((paramMatch = paramRegex.exec(comment)) !== null) {
-        //     const [, type, name, description] = paramMatch;
-        //     params.push({type, name, description});
-        // }
-        // // const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
-        // // const returnMatch = comment.match(returnRegex);
-        // const returnType = returnMatch ? returnMatch[1] : undefined;
-        // const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
-        let exchangeData = goComments[exchangeName];
-        if (!exchangeData) {
-            exchangeData = goComments[exchangeName] = {};
-        }
         let exchangeMethods = goComments[exchangeName];
         if (!exchangeMethods) {
-            exchangeMethods = {};
+            exchangeMethods = goComments[exchangeName] = {};
         }
-        // const transformedComment = this.transformTSCommentIntoGo(methodName, description, sees,params, returnType, returnDescription);
         exchangeMethods[methodName] = comment;
-        goComments[exchangeName] = exchangeMethods;
         return comment;
     }
 
@@ -5413,41 +5365,14 @@ class NewTranspiler {
             ];
         }
         const namespace = ws ? 'package ccxtpro' : 'package ccxt';
-        const hasImport = (ws || this.isPrediction);
         const values = [
-            // "using ccxt;",
             namespace,
             // the ws/prediction packages carry their ccxt import right after the package clause
             // and gofmt keeps exactly one blank line between the two; the base ccxt package has
             // no import here and keeps the single '' the call site's trailing newlines rely on
-            ...(hasImport ? [ '', 'import ccxt "github.com/ccxt/ccxt/go/v4"' ] : [ '' ]),
-            // 'import "helpers"'
+            ...(ws ? [ '', 'import ccxt "github.com/ccxt/ccxt/go/v4"' ] : [ '' ]),
         ]
         return values;
-    }
-
-    isObject(type: string) {
-        return (type === 'any') || (type === 'unknown');
-    }
-
-    isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'ExchangeOptions') || ((type.startsWith('{')) && (type.endsWith('}')));
-    }
-
-    isStringType(type: string) {
-        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"));
-    }
-
-    isNumberType(type: string) {
-        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType');
-    }
-
-    isIntegerType(type: string) {
-        return type !== undefined && (type.toLowerCase() === 'int');
-    }
-
-    isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool');
     }
 
     /**
@@ -5471,9 +5396,6 @@ class NewTranspiler {
         }
         
         if (name.startsWith('watchOrderBook')) {
-            // if (isReturn) {
-            //     return `NewOrderBookFromWs`
-            // }
              return this.isPrediction ? `PredictionOrderBook` : `OrderBook`;
 
         }
@@ -5490,29 +5412,20 @@ class NewTranspiler {
         let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
         let isList = false;
 
-        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
-        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
-        // Map them to a plain dictionary (matches the previous TS 4.9 output).
+        // inferred inline object literal types (`{ info: any; hedged: boolean; }`) map to a plain dictionary
         if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
-            if (wrappedType.trim().endsWith('[]')) {
-                isList = true; // e.g. `{ id: Str; ... }[]` → []map[string]any
-            }
             return addTaskIfNeeded('map[string]any');
         }
 
-        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
-        // without an explicit annotation (e.g. `Position | undefined`, `Dict | Leverage`).
-        // Normalize them here: drop undefined/null members and collapse remaining
-        // multi-member unions to the first member (matches the previous TS 4.9 output).
+        // inferred union return types (`Position | undefined`, `Dict | Leverage`): drop undefined/null
+        // members and collapse the rest to the first member
         if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
             const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
             wrappedType = members.length > 0 ? members[0] : 'any';
         }
 
         function addTaskIfNeeded(type: string) {
-            if (type == 'void') {
-                return isPromise ? `<-chan` : '<-chan';
-            } else if (isList) {
+            if (isList) {
                 return isPromise ? `<-chan []${type}` : `[]${type}`;
             }
             return isPromise ? `<-chan ${type}` : type;
@@ -5522,23 +5435,15 @@ class NewTranspiler {
             'OrderType': 'string',
             'OrderSide': 'string', // tmp
             'fetchEventsParams': 'map[string]interface{}', // params bag; surface as a map
-            // TS >= 5/6 (ast-transpiler 0.0.91) prints this alias by name instead of
-            // expanding it to `Dict | undefined` like TS 4.9 did
             'NullableDict': 'map[string]any',
             'Market': 'MarketInterface',
             'DefaultType': 'string',
             'DefaultSubType': 'string',
+            'Strings': '[]string',
         };
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
             return addTaskIfNeeded('any'); // default if type is unknown;
-        }
-
-        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
-        // to `any[]` so it flows through the array branch below instead of leaking the
-        // bare `List` / `NewList` identifiers that don't exist in the Go runtime.
-        if (wrappedType === 'List') {
-            wrappedType = 'any[]';
         }
 
         if (wrappedType === 'string[][]') {
@@ -5551,30 +5456,22 @@ class NewTranspiler {
             wrappedType = wrappedType.substring(0, wrappedType.length - 2);
         }
 
-        if (this.isObject(wrappedType)) {
+        if ((wrappedType === 'any') || (wrappedType === 'unknown')) {
             if (isReturn) {
                 return addTaskIfNeeded('map[string]any');
             }
             return addTaskIfNeeded('any');
         }
-        if (this.isDictionary(wrappedType)) {
-            return addTaskIfNeeded('map[string]any');
-        }
-        if (this.isStringType(wrappedType)) {
-            return addTaskIfNeeded('string');
-        }
-        if (this.isIntegerType(wrappedType)) {
-            return addTaskIfNeeded('int64');
-        }
-        if (this.isNumberType(wrappedType)) {
-            // return addTaskIfNeeded('float');
-            return addTaskIfNeeded('float64');
-        }
-        if (this.isBooleanType(wrappedType)) {
-            return addTaskIfNeeded('bool');
-        }
-        if (wrappedType === 'Strings') {
-            return addTaskIfNeeded('[]string');
+        const primitiveTypes: [ (t: string) => boolean, string ][] = [
+            [ (t) => [ 'Object', 'Dictionary<any>', 'Dict', 'ExchangeOptions' ].includes(t) || (t.startsWith('{') && t.endsWith('}')), 'map[string]any' ],
+            [ (t) => [ 'Str', 'string', 'StringLiteral', 'StringLiteralType' ].includes(t) || (t.startsWith('"') && t.endsWith('"')) || (t.startsWith("'") && t.endsWith("'")), 'string' ],
+            [ (t) => t.toLowerCase() === 'int', 'int64' ],
+            [ (t) => [ 'Num', 'number', 'NumericLiteral', 'NumericLiteralType' ].includes(t), 'float64' ],
+            [ (t) => [ 'boolean', 'BooleanLiteral', 'BooleanLiteralType', 'Bool' ].includes(t), 'bool' ],
+        ];
+        const primitive = primitiveTypes.find (([ test ]) => test(wrappedType));
+        if (primitive) {
+            return addTaskIfNeeded(primitive[1]);
         }
         if (goReplacements[wrappedType] !== undefined) {
             return addTaskIfNeeded(goReplacements[wrappedType]);
@@ -5601,7 +5498,7 @@ class NewTranspiler {
     }
 
     convertParamsToGo(methodName: string, params: any[]): string {
-        const needsVariadicOptions = params.some(param => param.optional || param?.initializer !== undefined);
+        const needsVariadicOptions = params.some(param => this.isOptionalGoParam(param));
         if (needsVariadicOptions && params.length === 1 && params[0].name === 'params') {
             // handle params = {}
             return 'params ...any';
@@ -5610,10 +5507,8 @@ class NewTranspiler {
         if (!needsVariadicOptions) {
             return paramsParsed;
         }
-        // return paramsParsed;
-        const regularParams = params.filter(params => !params.optional && params?.initializer === undefined);
+        const regularParams = params.filter(param => !this.isOptionalGoParam(param));
         const regularParamsParsed = regularParams.map(param => this.convertJavascriptParamToGoParam(param));
-        // const optionalParams = params.filter(params => params.optional || params?.initializer !== undefined);
         const allParams =  regularParamsParsed.concat(['options ...' + capitalize(methodName) + 'Options']);
         return allParams.join(', ');
     }
@@ -5629,46 +5524,19 @@ class NewTranspiler {
         if ((typeof decidedGoType === 'string') && (decidedGoType.length > 0) && !wrapperKeepsAnnotation) {
             return `${safeName} ${decidedGoType}`;
         }
-        const isOptional =  param.optional || param.initializer !== undefined;
-        const op = isOptional ? '?' : '';
-        let paramType: any = undefined;
-        if (param.type == undefined) {
-            paramType = 'any';
-        } else {
-            paramType = this.jsTypeToGo(name, param.type);
-        }
-        const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
-        if (isNonNullableType) {
-            if (isOptional) {
-                // if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                return `${safeName} *${paramType}`;
-                // } else {
-                //     if (paramType  === 'bool') {
-                //         return `${paramType}? ${safeName} = false`
-                //     }
-                //     if (paramType === 'double' || paramType  === 'float') {
-                //         return `${paramType}? ${safeName}2 = 0`
-                //     }
-                //     if (paramType  === 'Int64') {
-                //         return `${paramType}? ${safeName}2 = 0`
-                //     }
-                //     return `${safeName} ${paramType}`
-                // }
-            }
-        } else {
-            if (isOptional) {
-                // if (param.initializer !== undefined) {
-                //         if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                //             return `${paramType} ${safeName} = null`
-                //         }
-                //         return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
-                // }
-                return `${safeName} *${paramType}`;
-            } else {
-                return `${safeName} ${paramType}`;
-            }
-        }
-        return `${safeName} ${paramType}`;
+        const paramType = (param.type == undefined) ? 'any' : this.jsTypeToGo(name, param.type);
+        return this.isOptionalGoParam(param) ? `${safeName} *${paramType}` : `${safeName} ${paramType}`;
+    }
+
+    // a parameter the typed wrapper takes through its variadic options struct
+    isOptionalGoParam(param: any): boolean {
+        return !!(param.optional || param.initializer !== undefined);
+    }
+
+    // true when the typed wrapper declares an options struct (not for a lone `params` bag)
+    usesOptionsStruct(rawParameters: any[]): boolean {
+        const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
+        return rawParameters.some(param => this.isOptionalGoParam(param)) && !isOnlyParams;
     }
 
     shouldCreateWrapper(methodName: string, isWs = false): boolean {
@@ -5685,11 +5553,7 @@ class NewTranspiler {
             'withdraw',
             'watch',
             'unWatch'
-            // 'load',
         ];
-        // const allowedPrefixesWs = [
-        //     ''
-        // ]
         const blacklistMethods = new Set ([
             'createOrderRequest',
             'editOrderRequest',
@@ -5713,7 +5577,6 @@ class NewTranspiler {
             'setProxyAgents',
             'setSandBoxMode',
             'unWatch',
-            'unWatchChannel',
             'unWatchChannel',
             'unWatchMultiple',
             'unWatchPrivate',
@@ -5742,7 +5605,6 @@ class NewTranspiler {
             'watchSwapPublic',
             'watchTopics',
             'unWatchChannels',
-            // 'fetchCurrencies',
         ]); // improve this later
         if (methodName.toLowerCase().includes('uta')) {
             return false; // skip UTA methods
@@ -5763,10 +5625,6 @@ class NewTranspiler {
         // unwrapped type, and the optional leading space is dropped so the emitted wrapper
         // never carries `( int64, error)` (gofmt rewrites that to `(int64, error)`).
         return type.replace(/^[ \t]*<-\s*chan[ \t]*/, '');
-    }
-
-    unwrapListIfNeeded(type: string): string {
-        return type.replace('[]', '');
     }
 
     // createReturnStatement's conversion of `res` as a func(any) T value for AwaitResult
@@ -5827,18 +5685,6 @@ class NewTranspiler {
             return `NewOHLCVForSymbolsMap(res)`;
         }
 
-        if (unwrappedType.startsWith('map[string]')) {
-            const mapValueType = unwrappedType.substring('map[string]'.length);
-            // struct-valued dictionaries (e.g. Dictionary<DepositWithdrawFee>) hold
-            // map[string]any values at runtime, so convert them via the generated
-            // NewXMap constructor. scalar/any values keep the plain type assertion,
-            // and MarketInterface keeps the existing emission (LoadMarkets uses the
-            // hand-written NewMarketsMap template instead).
-            if (/^[A-Z]\w*$/.test(mapValueType) && mapValueType !== 'MarketInterface') {
-                return `New${capitalize(mapValueType)}Map(res)`;
-            }
-        }
-
         const needsToInstantiate = !unwrappedType.startsWith('List<') &&
             !unwrappedType.startsWith('Dictionary<') &&
             !unwrappedType.startsWith('map[') &&
@@ -5847,14 +5693,10 @@ class NewTranspiler {
             unwrappedType !== 'float' &&
             unwrappedType !== 'bool' &&
             unwrappedType !== 'Int64';
-        let returnStatement = "";
         if (unwrappedType.startsWith('[]')) {
-            const typeWithoutList = this.unwrapListIfNeeded(unwrappedType);
-            returnStatement = `New${capitalize(typeWithoutList)}Array(res)`;
-        } else {
-            returnStatement =  needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` :  `res.(${unwrappedType})`;
+            return `New${capitalize(unwrappedType.replace('[]', ''))}Array(res)`;
         }
-        return returnStatement;
+        return needsToInstantiate ? `New${capitalize(unwrappedType)}(res)` : `res.(${unwrappedType})`;
     }
 
     /**
@@ -5868,12 +5710,9 @@ class NewTranspiler {
 
     getDefaultParamsWrappers(name: string, rawParameters: any[]) {
         let res: string[] = [];
-
-        const hasOptionalParams = rawParameters.some(param => param.optional || param.initializer !== undefined || param.initializer === 'undefined');
-        const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
         const i1 = '\t';
         const structName = capitalize(name) + 'Options';
-        if (hasOptionalParams && !isOnlyParams) {
+        if (this.usesOptionsStruct(rawParameters)) {
             const initOptions = [
                 '',
                 'opts := ' + structName + 'Struct{}',
@@ -5885,17 +5724,6 @@ class NewTranspiler {
             res = res.concat(initOptions);
         }
         return res.join("\n");
-    }
-
-    // True when the wrapper reads this parameter off the options struct, so the
-    // call site can hand `opts.<Field>` over directly instead of via a local.
-    isOptionStructParam(rawParameters: any[], param: any) {
-        const hasOptionalParams = rawParameters.some(p => p.optional || p.initializer !== undefined || p.initializer === 'undefined');
-        const isOnlyParams = rawParameters.length === 1 && rawParameters[0].name === 'params';
-        if (!hasOptionalParams || isOnlyParams) {
-            return false;
-        }
-        return !!(param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}');
     }
 
     // qualifies base ccxt type names (e.g. Ticker -> ccxt.Ticker) for code generated
@@ -5910,18 +5738,10 @@ class NewTranspiler {
 
     createOptionsStruct(methodName: string, params: any[], isWs: boolean | 'prediction' = false) {
         const capName = capitalize(methodName);
-        const optionalParams = params.filter(param => (
-            param.optional ||
-            param.initializer !== undefined ||
-            param.initializer === 'undefined' ||
-            param.initializer === '{}'
-        ));
+        const optionalParams = params.filter(param => this.isOptionalGoParam(param));
         // prediction is tracked via the instance flag; the isWs param is a plain boolean here
         const isPrediction = this.isPrediction || (isWs === 'prediction');
-        if (
-            (optionalParams.length === 0) ||
-            (params.length === 1 && params[0].name === 'params')
-        ) {
+        if (!this.usesOptionsStruct(params)) {
             return;
         }
         // reuse an already-generated struct, EXCEPT when a prediction method's optional params
@@ -5960,9 +5780,7 @@ class NewTranspiler {
             // method like fetchOrdersByIds): record its names so the defining exchange's wrapper
             // binds to the local struct rather than a ccxt.-qualified base struct of the same name
             const localNames = [ options, optionsStruct ];
-            optionalParams
-                .filter ((param) => param.optional || param.initializer !== undefined)
-                .forEach ((param) => localNames.push (`With${capName}${capitalize (param.name)}`));
+            optionalParams.forEach ((param) => localNames.push (`With${capName}${capitalize (param.name)}`));
             predictionLocalOptionStructs.set (capName, localNames);
         }
         const qualify = (type: string | undefined) => (isPrediction ? this.qualifyBaseGoType(type) : type);
@@ -5994,7 +5812,6 @@ class NewTranspiler {
                 '',
                 `type ${options} func(opts *${optionsStruct})`,
                 ...optionalParams
-                    .filter((param) => param.optional || param.initializer !== undefined)
                     .map((param) => {
                         const name = capitalize(param.name);
                         const type = this.optionStructFieldGoType(param, qualify);
@@ -6007,13 +5824,6 @@ class NewTranspiler {
                             `${one}}`,
                         ].join('\n');
                     }),
-                // here WithX methods with optional parameters, like withPrice, withSince, withParams, etc
-                // example
-                // func WithPrice(price float64) CreateOrderOptions {
-                //     return func(opts *CreateOrderOptionsStruct) {
-                //         opts.Price = &price
-                //     }
-                // }
             ].join('\n');
         }
     }
@@ -6027,15 +5837,12 @@ class NewTranspiler {
             return ''; // skip aux methods like encodeUrl, parseOrder, etc
         }
 
-        const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
+        const methodNameCapitalized = capitalize(methodName);
         const returnType = this.jsTypeToGo(methodName, methodWrapper.returnType, true);
         let unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         const stringArgs = this.convertParamsToGo(methodName, methodWrapper.parameters);
         this.createOptionsStruct(methodName, methodWrapper.parameters, isWs);
-        // const stringArgs = args.filter(arg => arg !== undefined).join(', ');
         let params = methodWrapper.parameters.map((param: any) => {
-            let parsedParam = this.safeGoName(param.name);
-
             if (methodName === 'createOrders' && param.name === 'orders') {
                 // prediction venues batch PredictionOrderRequest (outcome) not OrderRequest (symbol)
                 return this.isPrediction ? 'ConvertPredictionOrderRequestListToArray(orders)' : 'ConvertOrderRequestListToArray(orders)'; // quick fix, check this later
@@ -6043,11 +5850,11 @@ class NewTranspiler {
 
             // optional params live on the options struct: hand the field straight to the
             // core call instead of hopping through an identically-typed local
-            if (this.isOptionStructParam(methodWrapper.parameters, param)) {
+            if (this.usesOptionsStruct(methodWrapper.parameters) && this.isOptionalGoParam(param)) {
                 return `opts.${capitalize(param.name)}`;
             }
 
-            return parsedParam;
+            return this.safeGoName(param.name);
         }).join(', ');
 
         const one = '';
@@ -6079,42 +5886,27 @@ class NewTranspiler {
             params = 'params...';
         }
 
-        const accessor = 'this.';
         const body = [
-            // `${two}ch:= make(chan ${unwrappedType})`,
-            // `${two}go func() {`,
-            // `${three}defer close(ch)`,
-            // `${three}defer ReturnPanicError(ch)`,
            `${defaultParams}`,
-            ...goNativeAwaitBody (two, unwrappedType, this.createReturnConverter (methodName, unwrappedType), `${accessor}${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
-            // `${two}}()`,
-            // `${two}return ch`,
+            ...goNativeAwaitBody (two, unwrappedType, this.createReturnConverter (methodName, unwrappedType), `this.${methodNameCapitalized}${GO_ASYNC_SUFFIX}(${params})`, emptyObject),
         ];
         const interfaceMethod = `${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error)`
         if (!WRAPPER_METHODS[exchangeName]) {
             WRAPPER_METHODS[exchangeName] = [];
-        }
-        if (!WRAPPER_METHODS[exchangeName][methodName]) {
-            WRAPPER_METHODS[exchangeName][methodName] = {};
         }
         WRAPPER_METHODS[exchangeName][methodName] = {
             wrapper: methodWrapper,
             interface: interfaceMethod,
             params: stringArgs,
         };
-        // wrapperMethods[exchangeName].push([interfaceMethod, stringArgs, methodWrapper]);
         // base typed methods sit on the base structs and reach every venue through embedding:
         // the 62 symbol-based ones on Exchange, the rest on BaseExchange (prediction venues too)
         const funcContext = isExchange ? (this.exchangeTierMethods.has (methodName) ? 'Exchange' : 'BaseExchange') : capitalize(exchangeName);
         const method = [
             `${one}func (this *${funcContext}) ${methodNameCapitalized}(${stringArgs}) (${unwrappedType}, error) {`,
             ...body,
-            // this.getDefaultParamsWrappers(methodNameCapitalized, methodWrapper.parameters),
-            // `${two}res := ${isAsync ? '<-' : ''}this.${exchangeName}.${methodNameCapitalized}(${params});`,
-            // `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
             `${one}}`
         ];
-        // return methodDoc.concat(method).concat(withMethod).filter(e => !!e).join('\n')
         const docLines = methodDoc.filter (e => !!e);
         // gofmt separates a documented declaration from the previous one with a blank line
         // (go/printer declList: min = 2 when the decl carries a doc comment), so a wrapper
@@ -6254,9 +6046,7 @@ class NewTranspiler {
         let js = fs.readFileSync (errorHierarchyPath, 'utf8');
 
         js = this.regexAll (js, [
-            // [ /export { [^\;]+\s*\}\n/s, '' ], // new esm
             [ /\s*export default[^\n]+;\n/g, '' ],
-            // [ /module\.exports = [^\;]+\;\n/s, '' ], // old commonjs
         ]).trim ();
 
         const message = 'Transpiling error hierachy →';
@@ -6346,27 +6136,13 @@ ${constStatements.join('\n')}
             return;
         }
         log.bright.cyan ('Transpiling base methods →', baseExchangeFile.yellow, BASE_METHODS_FILE.yellow);
-        const goExchangeBase = BASE_METHODS_FILE;
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
-
-        // to go
-        // const tsContent = fs.readFileSync (baseExchangeFile, 'utf8');
-        // const delimited = tsContent.split (delimiter)
-        const baseMethods = VIRTUAL_BASE_METHODS;
-        const allVirtual = Object.keys(baseMethods);
-        // A full --rest-and-ws run reaches this method three times with the same source file
-        // (REST, the recursive prediction pass, and WS), and each one used to pay a fresh
-        // transpile of the 9.7k-line Exchange.ts plus the overload-strip temp file. The
-        // result is a pure function of `baseExchangeFile` (`wrapCallMethods` is the same
-        // constant list every time and the source cannot change mid-process), so transpile
-        // it once and replay the emit + wrapper side effects from the cached result.
+        // REST, the recursive prediction pass and WS all reach this with the same source file and
+        // the transpile is pure: transpile once per process, replay the emit from the cached result
         let baseFile = this._baseMethodsTranspileCache[baseExchangeFile];
         if (!baseFile) {
-            this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
             const strippedBaseFile = writeOverloadStrippedFile (baseExchangeFile);
-            baseFile = this.transpiler.transpileGoByPath(strippedBaseFile);
+            baseFile = this.transpileVirtualBaseFile (strippedBaseFile);
             removeOverloadStrippedFile (strippedBaseFile, baseExchangeFile);
-            this.transpiler.goTranspiler.wrapCallMethods = [];
             this._baseMethodsTranspileCache[baseExchangeFile] = baseFile;
         }
         let baseClass = baseFile.content as any; // remove this later
@@ -6384,32 +6160,9 @@ ${constStatements.join('\n')}
             }
         }
 
-        const syncMethods = allVirtual.filter(elem => !baseMethods[elem]);
-        const asyncMethods = allVirtual.filter(elem => baseMethods[elem]);
-
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
-        // console.log(syncRegex)
-        // baseClass = baseClass.replace(syncRegex, 'this.DerivedExchange.$1($2)');
-        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => {
-            const capitalizedMethod = capitalize(p1);
-            return `this.DerivedExchange.${capitalizedMethod}(${p2 ?? ''})`;
-        });
-
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
-        // console.log(asyncRegex)
-        // baseClass = baseClass.replace(asyncRegex, '<-this.DerivedExchange.$1($2)');
-        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => {
-            const capitalizedMethod = capitalize(p1);
-            return `<-this.DerivedExchange.${capitalizedMethod}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`;
-        });
+        baseClass = this.dispatchVirtualBaseCalls (baseClass);
         // create wrappers with specific types
         this.createGoWrappers('Exchange', GLOBAL_WRAPPER_FILE, baseFile.methodsTypes || [], isWs);
-
-        // const exchangeMethods = wrapperMethods['Exchange'];
-        // const sortedList = exchangeMethods.sort((a, b) => a.localeCompare(b));
-        // sortedList.forEach( i => {
-        //     console.log(i)
-        // });
 
         // the `[ value, params ]` tuple helpers return a concrete `[]any` (see
         // coerceTupleHelperSignatures) so the destructuring holders can carry the real slice type
@@ -6417,10 +6170,7 @@ ${constStatements.join('\n')}
 
         // custom transformations needed for go
         baseClass = this.regexAll (baseClass, [
-            [/\=\snew\s/gm, "= "],
-            // baseClass = baseClass.replaceAll(/(?<!<-)this\.callInternal/gm, "<-this.callInternal");
-            [/callDynamically\(/gm, 'this.CallDynamically('], //fix this on the transpiler
-            [/throwDynamicException\(/gm, 'ThrowDynamicException('], //fix this on the transpiler
+            ...this.virtualBaseRegexes (),
             [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
             [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
             [/client any,/g, "client *Client,"],
@@ -6485,8 +6235,8 @@ ${constStatements.join('\n')}
             // sites live only inside the 62 (regular-only code that prediction never compiles), so we
             // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
             [new RegExp(`this\\.DerivedExchange\\.(CreateOrder|CancelOrder|EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
-            [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W28
-            [new RegExp(`this\\.DerivedExchange\\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`], // W3+W4
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            [new RegExp(`this\\.DerivedExchange\\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
             // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
             // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
             // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
@@ -6509,19 +6259,56 @@ ${constStatements.join('\n')}
         baseClass = this.coerceStringPtrMethods (baseClass, CCXT_GO_STRING_PTR_METHOD_NAMES, true);
     baseClass = this.coerceTypedMapAccessors (baseClass);
 
-        const jsDelimiter = '// ' + delimiter;
-        const parts = baseClass.split (jsDelimiter);
-        if (parts.length > 1) {
-            const baseMethods = parts[1];
-            const fileHeader = this.getGoImports(undefined).concat([
-                this.createGeneratedHeader().join('\n'),
-            ]).join("\n");
-
-            const file = goAnyLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + baseMethods + "\n", CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
+        const baseMethods = this.transpiledBaseMethodsBody (baseClass);
+        if (baseMethods !== undefined) {
+            const file = this.baseFileNilCompares (this.goBaseFileHeader () + baseMethods + "\n");
             // repeated base passes (REST / prediction recursion / WS) emit identical bytes —
             // skip the rewrite of this ~390 KB file after the first
-            this.writeGeneratedOnce (goExchangeBase, this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports));
+            this.writeGeneratedOnce (BASE_METHODS_FILE, this.declareBaseFileStdlibImports (goBaseNativePasses (file), baseFile.stdlibImports));
         }
+    }
+
+    // transpiles a base file with every virtual base method wrapped as a callInternal dispatch
+    transpileVirtualBaseFile (file: string): any {
+        this.transpiler.goTranspiler.wrapCallMethods = Object.keys(VIRTUAL_BASE_METHODS);
+        const baseFile = this.transpiler.transpileGoByPath(file);
+        this.transpiler.goTranspiler.wrapCallMethods = [];
+        return baseFile;
+    }
+
+    // routes the wrapped `<-this.callInternal("m", ...)` calls through this.DerivedExchange
+    dispatchVirtualBaseCalls (baseClass: string): string {
+        const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
+        const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
+        const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
+        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2 ?? ''})`);
+        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
+        return baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`);
+    }
+
+    virtualBaseRegexes (): any[] {
+        return [
+            [/\=\snew\s/gm, "= "],
+            [/callDynamically\(/gm, 'this.CallDynamically('],
+            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
+        ];
+    }
+
+    // the printed methods below the base files' delimiter comment, undefined when it is missing
+    transpiledBaseMethodsBody (baseClass: string): string | undefined {
+        const parts = baseClass.split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT');
+        return (parts.length > 1) ? parts[1] : undefined;
+    }
+
+    goBaseFileHeader (): string {
+        return this.getGoImports(undefined).concat([
+            this.createGeneratedHeader().join('\n'),
+        ]).join("\n");
+    }
+
+    baseFileNilCompares (file: string): string {
+        return goAnyLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (file, CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
     }
 
     transpilePredictionBaseMethods (predictionBaseFile = './ts/src/base/PredictionExchange.ts', registerOnly = false, force = true) {
@@ -6545,11 +6332,7 @@ ${constStatements.join('\n')}
         ], [ goPredictionBase ])) {
             return;
         }
-        const delimiter = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
-        const allVirtual = Object.keys(VIRTUAL_BASE_METHODS);
-        this.transpiler.goTranspiler.wrapCallMethods = allVirtual;
-        const baseFile: any = this.transpiler.transpileGoByPath(predictionBaseFile);
-        this.transpiler.goTranspiler.wrapCallMethods = [];
+        const baseFile = this.transpileVirtualBaseFile (predictionBaseFile);
         // capture the signatures so createGoWrappers can emit prediction-typed wrappers for
         // unified methods that a venue inherits rather than overrides (runs in every process
         // that touches prediction, including --prediction where the file write is skipped)
@@ -6557,17 +6340,9 @@ ${constStatements.join('\n')}
         if (registerOnly) {
             return;
         }
-        let baseClass = baseFile.content as any;
-        const syncMethods = allVirtual.filter (elem => !VIRTUAL_BASE_METHODS[elem]);
-        const asyncMethods = allVirtual.filter (elem => VIRTUAL_BASE_METHODS[elem]);
-        const syncRegex = new RegExp(`<-this\\.callInternal\\("(${syncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
-        baseClass = baseClass.replace(syncRegex, (_match: any, p1: string, p2: string) => `this.DerivedExchange.${capitalize(p1)}(${p2 ?? ''})`);
-        const asyncRegex = new RegExp(`<-this\\.callInternal\\("(${asyncMethods.join('|')})"(?:, (.+))?\\)`, 'gm');
-        baseClass = baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`);
+        let baseClass = this.dispatchVirtualBaseCalls (baseFile.content);
         baseClass = this.regexAll (baseClass, [
-            [/\=\snew\s/gm, "= "],
-            [/callDynamically\(/gm, 'this.CallDynamically('],
-            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
+            ...this.virtualBaseRegexes (),
             // super.method() in the outcome-stub overrides → the embedded BaseExchange
             [/\bbase\./gm, 'this.BaseExchange.'],
             // the base parse loops (parsePredictionTrades→parsePredictionTrade, etc.) must reach the
@@ -6586,12 +6361,10 @@ ${constStatements.join('\n')}
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ParseSearchQueries', undefined, true, '[]any');
         // applyEventFetchParams (: any[]) has no venue override: every return is the events list (ListTyped), so fetchEvents cores send []any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'ApplyEventFetchParams', undefined, true, '[]any');
-        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events, a field the struct declares map[string]any, so loadEvents cores send map[string]any // W19
+        // setEvents (: Dictionary<any>) has no venue override: its only return is this.events, a field the struct declares map[string]any, so loadEvents cores send map[string]any
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'SetEvents', (expr: string) => GO_PREDICTION_MAP_FIELDS.some ((f) => expr === 'this.' + f), false);
-        const jsDelimiter = '// ' + delimiter;
-        const parts = baseClass.split (jsDelimiter);
-        if (parts.length > 1) {
-            const methods = parts[1];
+        const methods = this.transpiledBaseMethodsBody (baseClass);
+        if (methods !== undefined) {
             // gofmt aligns the type column of every typed struct field at (longest field name + 1); this write never goes through
             // formatGoSource(), so the literal is emitted pre-aligned. Fields come from GO_PREDICTION_STRUCT_FIELDS.
             const structFields = GO_PREDICTION_STRUCT_FIELDS;
@@ -6602,9 +6375,7 @@ ${constStatements.join('\n')}
                 '}',
                 '',
             ].join('\n');
-            const fileHeader = this.getGoImports(undefined).concat([
-                this.createGeneratedHeader().join('\n'),
-            ]).join("\n");
+            const fileHeader = this.goBaseFileHeader ();
             // prediction exchanges live in package ccxtprediction and can only reach exported
             // members of the embedded base — expose the implicit-api dispatcher (called by the
             // generated _api.go files) and the describe-deep-extend helper as exported shims
@@ -6617,7 +6388,7 @@ ${constStatements.join('\n')}
             ].join('\n');
             // `shims` ends with the single trailing newline gofmt wants at EOF
             // (the caller-fed `any` parameters keep the helper here too — see goParamNativeNilCompares)
-            const file = goAnyLocalNativeNilCompares (goBoxedPointerNilCompares (goParamNativeNilCompares (coerceGoBoolMethodReturns (fileHeader + '\n' + structDef + methods + shims, CCXT_GO_BOOL_METHOD_NAMES), 'IsEqual('), 'IsEqual('), 'IsEqual(');
+            const file = this.baseFileNilCompares (fileHeader + '\n' + structDef + methods + shims);
             // this is the one generated .go write that does not go through
             // overwriteFileAndFolder()/formatGoSource(), so guard its async cores here
             // (and add the element-access assertions formatGoSource would have added)
@@ -6686,24 +6457,7 @@ ${caseStatements.join('\n')}
             throw new Error('Exchange wrapper methods are not defined, please transpile base methods first');
         }
         const exchanges = ['exchange'].concat(exchangeIds);
-
-        const caseStatements = exchanges.map(exchange => {
-            const ctor = exchange === 'exchange' ? '&Exchange{}' : `New${capitalize(exchange)}(options)`;
-            return`\tcase "${exchange}":
-\t\titf := ${ctor}
-\t\treturn itf`;
-        });
-
-        const functionDecl = `
-func CreateExchange(exchangeId string, options map[string]any) IExchange {
-\texchangeId = strings.ToLower(exchangeId)
-\tswitch exchangeId {
-${caseStatements.join('\n')}
-\tdefault:
-\t\treturn nil
-\t}
-}
-`;
+        const functionDecl = this.goCreateExchangeDecl (exchanges, (exchange) => (exchange === 'exchange' ? '&Exchange{}' : `New${capitalize(exchange)}(options)`), 'IExchange');
         const interfaceMethods = Object.keys(WRAPPER_METHODS['Exchange']).map(method => {
             const methodInfo = WRAPPER_METHODS['Exchange'][method];
             if (!INTERFACE_METHODS.includes(method)) {
@@ -6746,24 +6500,7 @@ type IExchange interface {
             '}'
         ].join('\n');
 
-        const caseStatements = exchangeIdsWs.map(exchange => {
-            const struct = capitalize(exchange);
-            const args = 'options';
-            return`\tcase "${exchange}":
-\t\titf := New${struct}(${args})
-\t\treturn itf`;
-        });
-
-        const functionDecl = `
-func CreateExchange(exchangeId string, options map[string]any) ccxt.IExchange {
-\texchangeId = strings.ToLower(exchangeId)
-\tswitch exchangeId {
-${caseStatements.join('\n')}
-\tdefault:
-\t\treturn nil
-\t}
-}
-`;
+        const functionDecl = this.goCreateExchangeDecl (exchangeIdsWs, (exchange) => `New${capitalize(exchange)}(options)`, 'ccxt.IExchange');
 
         const file = [
             'package ccxtpro',
@@ -6784,67 +6521,21 @@ ${caseStatements.join('\n')}
         fs.writeFileSync (TYPED_WS_INTERFACE_FILE, formatGoSource (TYPED_WS_INTERFACE_FILE, normalizeGoFileHeader (alignGoTrailingComments (file))));
     }
 
-    camelize(str: string) {
-        var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
-          if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
-          return index === 0 ? match.toLowerCase() : match.toUpperCase();
-        });
-        return res.replaceAll('-', '');
-      }
-
-    getGoExamplesWarning() {
-        return [
-            '',
-            '    // !!Warning!! This example was automatically transpiled',
-            '    // from the TS version, meaning that the code is overly',
-            '    // complex and illegible compared to the code you would need to write',
-            '    // normally. Use it only to get an idea of how things are done.',
-            '    // Additionally always choose the typed version of the method instead of the generic one',
-            '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
-            ''
-        ].join('\n');
-    }
-
-    transpileExamples () {
-        return;
-        // currently disabled!, the generated code is too complex and illegible
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //';
-
-        // @ts-expect-error
-        const allTsExamplesFiles = fs.readdirSync (EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
-        for (const filenameWithExtenstion of allTsExamplesFiles) {
-            // @ts-expect-error
-            const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion);
-            let tsContent = fs.readFileSync (tsFile).toString ();
-            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
-                const fileName = filenameWithExtenstion.replace ('.ts', '');
-                log.magenta ('[GO] Transpiling example from', (tsFile as any).yellow);
-                const go = this.transpiler.transpileGo(tsContent);
-
-                const transpiledFixed = this.regexAll(
-                    go.content,
-                    [
-                        [/object exchange/, 'Exchange exchange'],
-                        [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
-                        [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
-                        [/^await.+$/gm, ''],
-                    ]
-                );
-
-                const finalFile = [
-                    'using ccxt;',
-                    'using ccxt.pro;',
-                    'namespace examples;',
-                    // this.getGoExamplesWarning(),
-                    'partial class Examples',
-                    '{',
-                    transpiledFixed,
-                    '}',
-                ].join('\n');
-                // @ts-expect-error
-                overwriteFileAndFolder (`${EXAMPLES_OUTPUT_FOLDER}/${fileName}.go`, finalFile);
-            }
-        }
+    // the CreateExchange factory of the typed interface files
+    goCreateExchangeDecl (exchanges: string[], ctor: (exchange: string) => string, returnType: string): string {
+        const caseStatements = exchanges.map(exchange => `\tcase "${exchange}":
+\t\titf := ${ctor(exchange)}
+\t\treturn itf`);
+        return `
+func CreateExchange(exchangeId string, options map[string]any) ${returnType} {
+\texchangeId = strings.ToLower(exchangeId)
+\tswitch exchangeId {
+${caseStatements.join('\n')}
+\tdefault:
+\t\treturn nil
+\t}
+}
+`;
     }
 
     async transpileWS(force = false, prediction = false) {
