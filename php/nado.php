@@ -83,11 +83,29 @@ class nado extends Exchange {
                     'public' => array(
                         'get' => array(
                             'symbols' => array( 'cost' => 2 ),
-                            'query' => array( 'cost' => 1 ),
+                            'query' => array(
+                                'cost' => 2,
+                                'byType' => array(
+                                    'status' => 1,
+                                    'contracts' => 1,
+                                    'order' => 1,
+                                    'subaccount_orders' => 2,
+                                    'subaccount_info' => 2,
+                                ),
+                            ),
                             'edge/query' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
-                            'query' => array( 'cost' => 1 ),
+                            'query' => array(
+                                'cost' => 2,
+                                'byType' => array(
+                                    'status' => 1,
+                                    'contracts' => 1,
+                                    'order' => 1,
+                                    'subaccount_orders' => 2,
+                                    'subaccount_info' => 2,
+                                ),
+                            ),
                             'edge/query' => array( 'cost' => 1 ),
                         ),
                     ),
@@ -101,23 +119,33 @@ class nado extends Exchange {
                     'public' => array(
                         'get' => array(
                             'assets' => array( 'cost' => 2 ),
-                            'pairs' => array( 'cost' => 1 ),
+                            'pairs' => array( 'cost' => 2 ),
                             'orderbook' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
                 'archive' => array(
                     'post' => array(
-                        '' => array( 'cost' => 1 ),
+                        '' => array(
+                            'cost' => 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery' => array(
+                                'candlesticks' => array( 2, 100 ),
+                                'events' => array( 2, 10 ),
+                                'matches' => array( 2, 10 ),
+                                'orders' => array( 2, 20 ),
+                                'interest_and_funding' => array( 5 ),
+                            ),
+                        ),
                     ),
                 ),
                 'archiveV2' => array(
                     'public' => array(
                         'get' => array(
-                            'tickers' => array( 'cost' => 1 ),
-                            'contracts' => array( 'cost' => 1 ),
-                            'trades' => array( 'cost' => 1 ),
-                            'symbols' => array( 'cost' => 1 ),
+                            'tickers' => array( 'cost' => 2 ),
+                            'contracts' => array( 'cost' => 2 ),
+                            'trades' => array( 'cost' => 4, 'byRows' => array( 2, 50 ) ),
+                            'symbols' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -3186,6 +3214,49 @@ class nado extends Exchange {
             return mb_substr($marketId, 0, -5 - 0);
         }
         return $marketId;
+    }
+
+    public function calculate_rate_limiter_cost(array $api, string $method, string $path, mixed $params, array $config = array()) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if ((is_array($config) && array_key_exists('byType' ?? '', $config)) && (is_array($params) && array_key_exists('type' ?? '', $params))) {
+            $queryType = $params['type'];
+            $byType = $config['byType'];
+            if (is_array($byType) && array_key_exists($queryType ?? '', $byType)) {
+                return $byType[$queryType];
+            }
+        }
+        $byQuery = $this->safe_dict($config, 'byQuery');
+        if ($byQuery !== null) {
+            $queryNames = is_array($byQuery) ? array_keys($byQuery) : array();
+            for ($i = 0; $i < count($queryNames); $i++) {
+                $queryName = $queryNames[$i];
+                if (is_array($params) && array_key_exists($queryName ?? '', $params)) {
+                    $weights = $this->safe_list($byQuery, $queryName, array());
+                    $baseWeight = $this->safe_integer($weights, 0, 2);
+                    $rowsPerWeight = $this->safe_integer($weights, 1);
+                    if ($rowsPerWeight === null) {
+                        return $baseWeight;
+                    }
+                    $query = $this->safe_dict($params, $queryName, array());
+                    $rows = $this->safe_integer($query, 'limit', 100); // the archive default page
+                    $nestedLimit = $this->safe_dict($query, 'limit'); // the events query sends { 'raw': 100 }
+                    if ($nestedLimit !== null) {
+                        $rows = $this->safe_integer($nestedLimit, 'raw', 100);
+                    }
+                    return $this->sum($baseWeight, $this->parse_to_int($rows / $rowsPerWeight));
+                }
+            }
+        }
+        $byRows = $this->safe_list($config, 'byRows');
+        if ($byRows !== null) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            $rowsBaseWeight = $this->safe_integer($byRows, 0, 2);
+            $rowsDivisor = $this->safe_integer($byRows, 1, 50);
+            $rowCount = $this->safe_integer($params, 'limit', 100); // the v2 default page
+            return $this->sum($rowsBaseWeight, $this->parse_to_int($rowCount / $rowsDivisor));
+        }
+        return $this->safe_value($config, 'cost', 1);
     }
 
     public function sign(string $path, array $api = array(), string $method = 'GET', $params = array()): array {

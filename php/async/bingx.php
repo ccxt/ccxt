@@ -5428,6 +5428,19 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
+            if (!$isTwapOrder) {
+                if ($limit !== null) {
+                    $request['limit'] = min($limit, 1000);
+                }
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                $until = $this->safe_integer($paramsOmitted, 'until');
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                    $paramsOmitted = $this->omit($paramsOmitted, 'until');
+                }
+            }
             if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
