@@ -1172,10 +1172,9 @@ public partial class coinbaseexchange : Exchange
         {
             string? marketId = ((string)marketIds[i]);
             List<object> entry = this.safeList(response, marketId, new List<object>() {});
-            List<object> first = this.safeList(entry, 0, new List<object>() {});
             Dictionary<string, object> market = this.safeMarket(marketId, null, delimiter);
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
-            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(first, market));
+            result[(string)symbol] = ccxt.BaseExchange.FromTicker(this.parseTicker(this.safeList(entry, 0, new List<object>() {}), market));
         }
         return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(result, "symbol", symbolsNormalized));
     }

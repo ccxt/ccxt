@@ -421,7 +421,7 @@ public partial class hollaex : ccxt.hollaex
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         for (int i = 0; i < (rawOrders?.Count ?? 0); i++)
         {
-            object order = this.safeValue(rawOrders, i);
+            IDictionary<string, object> order = this.safeDict(rawOrders, i, new Dictionary<string, object>() {});
             ccxt.Order parsed = this.parseOrder(order);
             stored.append(ccxt.BaseExchange.FromOrder(parsed));
             string? symbol = this.safeString(order, "symbol");

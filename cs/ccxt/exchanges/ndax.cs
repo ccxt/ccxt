@@ -1110,8 +1110,7 @@ public partial class ndax : Exchange
         //         }
         //     ]
         //
-        Dictionary<string, object> tickers = ccxt.BaseExchange.FromTickerMap(this.parseTickers(response));
-        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(tickers, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.filterByArrayTickers(ccxt.BaseExchange.FromTickerMap(this.parseTickers(response)), "symbol", symbolsNormalized));
     }
 
     /**

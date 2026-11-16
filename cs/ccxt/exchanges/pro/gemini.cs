@@ -267,7 +267,7 @@ public partial class gemini : ccxt.gemini
         Dictionary<string, object> storesForSymbols = new Dictionary<string, object>() {};
         for (int i = 0; i < (trades?.Count ?? 0); i++)
         {
-            object rawTrade = this.safeValue(trades, i);
+            IDictionary<string, object> rawTrade = this.safeDict(trades, i, new Dictionary<string, object>() {});
             string marketId = this.safeString(rawTrade, "symbol", "").ToLower();
             Dictionary<string, object> market = this.safeMarket(marketId);
             string? symbol = this.safeString(market, "symbol", "");
@@ -393,8 +393,7 @@ public partial class gemini : ccxt.gemini
         // reverse order of array to store candles in ascending order
         for (Int64 i = 0; i < changesLength; i++)
         {
-            Int64 index = ((changesLength - i) - 1);
-            IList<object> parsed = this.parseOHLCV(this.safeValue(changes, index), market);
+            IList<object> parsed = this.parseOHLCV(this.safeValue(changes, ((changesLength - i) - 1)), market);
             stored.append(parsed);
         }
         string messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -1040,7 +1039,7 @@ public partial class gemini : ccxt.gemini
             int eventsLength = events.Count;
             for (int i = 0; i < events.Count; i++)
             {
-                object eventVar = this.safeValue(events, i);
+                IDictionary<string, object> eventVar = this.safeDict(events, i, new Dictionary<string, object>() {});
                 string? eventType = this.safeString(eventVar, "type");
                 string? side = this.safeString(eventVar, "side");
                 bool isOrderBook = (eventType == "change") && ((side != null)) && this.inArray(side, new List<object>() {"ask", "bid"});

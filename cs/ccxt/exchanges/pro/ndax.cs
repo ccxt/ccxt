@@ -600,7 +600,7 @@ public partial class ndax : ccxt.ndax
         //
         Dictionary<string, object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Int64? id = this.safeInteger(message, "i");
-        IDictionary<string, object> subscription = ((id == null)) ? null : this.safeDict(subscriptionsById, id);
+        IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id);
         if ((subscription != null))
         {
             object method = this.safeValue(subscription, "method");

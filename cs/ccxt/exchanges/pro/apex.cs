@@ -1011,19 +1011,18 @@ public partial class apex : ccxt.apex
         if ((authenticated == null))
         {
             // auth sign
-            Dictionary<string, object> request = new Dictionary<string, object>() {
-                { "type", "login" },
-                { "topics", new List<object>() {"ws_zk_accounts_v3"} },
-                { "httpMethod", http_method },
-                { "requestPath", request_path },
-                { "apiKey", this.apiKey },
-                { "passphrase", this.password },
-                { "timestamp", timestamp },
-                { "signature", signature },
-            };
             Dictionary<string, object> message = new Dictionary<string, object>() {
                 { "op", "login" },
-                { "args", new List<object> {json(request)} },
+                { "args", new List<object> {json(new Dictionary<string, object>() {
+    { "type", "login" },
+    { "topics", new List<object>() {"ws_zk_accounts_v3"} },
+    { "httpMethod", http_method },
+    { "requestPath", request_path },
+    { "apiKey", this.apiKey },
+    { "passphrase", this.password },
+    { "timestamp", timestamp },
+    { "signature", signature },
+})} },
             };
             this.watch(url, messageHash, message, messageHash);
         }

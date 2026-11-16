@@ -774,7 +774,7 @@ public partial class hollaex : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object ticker = this.safeValue(tickers, key);
+            IDictionary<string, object> ticker = this.safeDict(tickers, key, new Dictionary<string, object>() {});
             string? marketId = this.safeString(ticker, "symbol", key);
             Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
             string? symbol = ((string)(market.ContainsKey("symbol") ? market["symbol"] : null));
