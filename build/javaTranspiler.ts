@@ -2093,15 +2093,7 @@ class NewTranspiler {
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip invalid parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
-        // (see createJavaClass for the full rationale).
-        baseClass = baseClass.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-        // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
 
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
-        // Pattern 1: throw directly followed by return null (same block)
-        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
         baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
@@ -2318,9 +2310,6 @@ class NewTranspiler {
             [/Object client = (.+)/g, 'Client client = (Client)$1'],
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
         ]);
-        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
-        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
         baseClass = this.addDeprecatedAnnotations(baseClass);
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
@@ -2561,8 +2550,6 @@ class NewTranspiler {
 
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
-        content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
-        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()')
         content = content.replace(/(\s+public java\.util\.Map<String, Object> describe\(\))/g, `${constructor}$1`)
@@ -2580,14 +2567,7 @@ class NewTranspiler {
         );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
-        // `(X instanceof java.util.List) || (X.getClass().isArray())` form,
-        // which NPEs when X is null (JS Array.isArray(null) is false). Route
-        // all such checks through Helpers.isArrayJs which guards null first.
-        content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
-        content = content.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
         // WS fixes
         if (ws) {
             const wsRegexes = this.getJavaWsRegexes();
@@ -2595,8 +2575,6 @@ class NewTranspiler {
             // WS classes extend the REST class: pro.Binance extends io.github.ccxt.exchanges.Binance
             const restTypedFqn = `io.github.ccxt.exchanges.${this.capitalize(name)}`;
             content = content.replace(/extends\s\w+Api/g, `extends ${restTypedFqn}`);
-            content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
-            content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
         } else if (prediction) {
             // prediction merges REST + WS in one class — apply the WS regexes + post-processing
@@ -2789,15 +2767,7 @@ class NewTranspiler {
     postProcessWsJava(content: string, name: string, skipEffectivelyFinal = false, prediction = false): string {
         const cap = this.capitalize(name);
 
-        // ── Fix broken method references: ClassName."methodName" → "methodName" ──
-        // The transpiler generates method references as ClassName."methodName" which is
-        // invalid Java (string template syntax). These are used as map values for
-        // message handler dispatch tables. Replace with just the string literal.
-        content = content.replace(new RegExp(`${cap}\\.("\\w+")`, 'gm'), '$1');
 
-        // ── Pattern 12: Map casts for client.subscriptions/futures access ──
-        content = content.replace(/\(\(Object\)client\)\.subscriptions/gm, '((java.util.Map)client.subscriptions)');
-        content = content.replace(/\(\(Object\)client\)\.futures/gm, '((java.util.Map)client.futures)');
 
         // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
         // helper's put branch and a plain put agree; the generated text stays as the base prints it.
@@ -2809,9 +2779,6 @@ class NewTranspiler {
         // shape; it's been removed since #48 covers every argument shape
         // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
 
-        // ── Pattern 6: Method reference for ping ──
-        content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
-            `(java.util.function.Function<Client, Object>) ${cap}.this::ping`);
 
         // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ──
         // Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x)
@@ -2821,8 +2788,6 @@ class NewTranspiler {
             (_match: string, method: string, hash: string, offset: number) =>
                 `io.github.ccxt.ws.Future future = client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
-        content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
-            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
         // Object future = this.safeValue(client.futures, x) → cast to Future
         // client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path
         // hands back a Future or null and the checkcast cannot fail
@@ -2836,10 +2801,6 @@ class NewTranspiler {
         content = content.replace(/io\.github\.ccxt\.ws\.Future (\w+) = \(io\.github\.ccxt\.ws\.Future\)this\.safeValue\(client\.futures, ("[^"\\]*"|\w+)\);/gm,
             (whole: string, local: string, key: string, offset: number) =>
                 wsKeyIsString (key, offset) ? `io.github.ccxt.ws.Future ${local} = client.futures.get(${key});` : whole);
-        content = content.replace(/^(\s*)Helpers\.addElementToObject\(client\.subscriptions, ("[^"\\]*"|\w+), ([^\n]*)\);$/gm,
-            (whole: string, indent: string, key: string, value: string, offset: number) =>
-                wsKeyIsString (key, offset) && (value.split ('(').length === value.split (')').length)
-                    ? `${indent}client.subscriptions.put(${key}, ${value});` : whole);
 
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
@@ -2849,8 +2810,6 @@ class NewTranspiler {
         content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm,
             (_match: string, method: string, hash: string, offset: number) =>
                 `client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
-        // idempotence guard: never cast an already-cast argument
-        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
@@ -2858,41 +2817,23 @@ class NewTranspiler {
         // a `future` the file declares io.github.ccxt.ws.Future (nearest declaration in the method) needs no cast
         const wsFutureLocal = (name: string, offset: number, _text: string): string =>
             this.provablyTypedLocal (content, name, offset, WS_FUTURE_TYPE) ? name : `((${WS_FUTURE_TYPE})${name})`;
-        content = content.replace(/(?<!\w)(future)\.getFuture\(\)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
-        content = content.replace(/(?<!\w)(future)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
         // (future).join() pattern
         content = content.replace(/\(future\)\.join\(\)/gm,
             (m: string, offset: number) => `${wsFutureLocal ('future', offset + 1, content)}.getFuture().join()`);
         // client.future(...).join() → client.future(...).getFuture().join()
-        content = content.replace(/client\.(future|reusableFuture)\(([^)]+)\)\.join\(\)/gm,
-            'client.$1($2).getFuture().join()');
         // (client.future(...)).join() → client.future(...).getFuture().join()
         // Parenthesized form — use balanced parens since args may contain nested parens
         content = this.replaceParenthesizedClientFutureJoin(content);
-        // But if future is already typed as io.github.ccxt.ws.Future, don't double-cast
-        content = content.replace(/\(\(io\.github\.ccxt\.ws\.Future\)(\(io\.github\.ccxt\.ws\.Future\))/gm, '($1');
 
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
         // this.xxx.hashmap → ((ArrayCache)this.xxx).hashmap
         content = content.replace(/(this\.\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
-        // Prevent double-wrapping
-        content = content.replace(/\(\(io\.github\.ccxt\.ws\.ArrayCache\)\(\(io\.github\.ccxt\.ws\.ArrayCache\)/gm,
-            '((io.github.ccxt.ws.ArrayCache)');
 
-        // ── Pattern: future.resolve(...) on Object-typed future variable ──
-        // future.resolve(x) where future is Object → cast
-        content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
         // future.reject(x) on Object
         content = content.replace(/(?<!\w)future\.reject\(([^)]+)\)/gm,
             (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.reject(${args})`);
-        // promise.resolve(x) where promise is Object → cast
-        content = content.replace(/(?<!\w)promise\.resolve\(([^)]*)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('promise', offset, content)}.resolve(${args})`);
 
         // a resolved ws list is an ArrayCache or a plain list: the typed static answers Long for both
         content = this.replaceDynamicMethodCall(content, 'getLimit',
@@ -2940,18 +2881,11 @@ class NewTranspiler {
         content = this.replaceCallPattern(content);
 
         // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
-            return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
-        });
         // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
         content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
             return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
         });
         // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
-            (match: string, method: string, args: string) => {
-                return `this.${method}(${args})`;
-            });
         // this.spawn("methodName", args) as expression — the method-ref-as-string
         // pass above has already converted this.methodRef → "methodRef" by the time
         // we get here. Rewrite to spawnWithResult which returns a Future capturing
@@ -3004,28 +2938,11 @@ class NewTranspiler {
         }
 
         // ── Client type handling ──
-        content = content.replace(/WsClient\b/gm, 'Client');
-        content = content.replace(/\(Object client\)/gm, '(Client client)');
-        content = content.replace(/\(Object client,/gm, '(Client client,');
         content = content.replace(/,\s*Object client,/gm, ', Client client,');
-        content = content.replace(/,\s*Object client\)/gm, ', Client client)');
-        content = content.replace(/Object client =/gm, 'Client client =');
-        content = content.replace(/Object client = this\.client\(/gm, 'Client client = this.client(');
-        content = content.replace(/Client\s+client\s*=\s*Helpers\.GetValue\((\w+),\s*(\w+)\)/gm,
-            'Client client = (Client)Helpers.GetValue($1, $2)');
         content = content.replace(/Client\s+client\s*=\s*this\.(safeValue|safeDict)\(/gm,
             'Client client = (Client)this.$1(');
 
         // ── Pattern 9: int/long from Object ──
-        // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted
-        // local may box an Integer, which a printer `((long) x)` cast would reject at runtime
-        const revertedInts = new Set<string>();
-        content = content.replace(/int (\w+) = (?![\d(]|this\.parseTimeframe\()/gm, (_m: string, n: string) => { revertedInts.add(n); return 'Object ' + n + ' = '; });
-        for (const n of revertedInts) {
-            content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()');
-        }
-        content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
-            'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
             'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/client\.lastPong\s*=\s*([^;]+);/gm, (match: string, rhs: string) => {
@@ -3038,13 +2955,7 @@ class NewTranspiler {
         });
 
         // ── this.delay → spawn with sleep ──
-        // Existing forms: `this.delay(ms, this.methodName, args...)` where callback
-        // is a method reference. Handled first.
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })');
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })');
-        // Generalized form: `this.delay(ms, "methodName", ...args)` where the callback
+        // `this.delay(ms, "methodName", ...args)` where the callback
         // is already a string literal (the method-ref-as-string rewrite above converts
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
@@ -3055,8 +2966,6 @@ class NewTranspiler {
         // String declaration only when every reaching value is provably String-or-null, so the
         // pass only de-typed the WS tree; pro/prediction now match the REST tier.
 
-        // ── CompletableFuture<Void> → <Object> ──
-        content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
 
         // ── super.describeData() → call WS parent method ──
         content = content.replace(/super\.describeData\(\)/gm, (match: string) => {
@@ -3075,20 +2984,13 @@ class NewTranspiler {
             }
         }
 
-        // ── Bids/Asks class references ──
-        content = content.replace(/new Bids\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Bids(');
-        content = content.replace(/new Asks\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Asks(');
 
         // ── Exchange class name capitalization ──
         content = content.replace(/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm,
             (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`);
 
         // ── Assignment to map.get() → Helpers.addElementToObject ──
-        content = content.replace(/\(\(java\.util\.HashMap<String, Object>\)(\w+)\)\.get\("(\w+)"\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
         content = content.replace(/\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
-        content = content.replace(/\(\(java\.util\.List<Object>\)\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\)\s*=\s*([^;]+);/gm,
             'Helpers.addElementToObject($1, "$2", $3);');
 
         // ── (List<String>) cast fix for ArrayList<Object> → List<String> ──
@@ -3472,16 +3374,6 @@ class NewTranspiler {
                 [/\s*public\sObject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
                 [/testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual'], // deepEqual added
             ]).trim()
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`.
-        // ast-transpiler 0.0.86 emits this invalid form when destructuring the tuple return
-        // of a method called with its optional trailing arg (handleSubTypeAndParams(..., 'linear')).
-        // Java never needs parens around the callee. Anchored on `)(` right after the name so
-        // it never touches the valid whole-call form `(this.watch(...)).join()`.
-        content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-            // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-            content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
             if (correctedTestName === 'TestInit') {
                 content = this.regexAll(content, [
@@ -3615,7 +3507,6 @@ class NewTranspiler {
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
-        contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
         const file = [
@@ -3840,7 +3731,6 @@ class NewTranspiler {
                 contentIndentend = rebuilt;
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
-            contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             if (!isWs) {
                 // late-bind awaited unified-method calls: the exchange param is BaseExchange
                 // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
@@ -6159,10 +6049,6 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         if (declaredAs (n, /^(?:long|int)$/)) return `(${n} == ${lit})`;
         return all;
     });
-    out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)/g, (all, a, b) => {
-        for (const re of [ /^Long$/, /^Integer$/, /^String$/ ]) if (declaredAs (a, re) && declaredAs (b, re)) return `java.util.Objects.equals(${a}, ${b})`;
-        return all;
-    });
     return out;
 }
 
@@ -6584,17 +6470,7 @@ export function nativeJavaMapLocalOps (content: string): string {
                 if (declaredType (key) === 'String') return `(${recv} == null || ${key} == null ? null : ${recv}.get(${key}))`;
                 return whole;
             });
-            next = next.replace (/Helpers\.inOp\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*)\)/g, (whole, recv, key) => {
-                if (!isMap (recv)) return whole;
-                if (stringKey (key)) return `(${recv} != null && ${recv}.containsKey(${key}))`;
-                if (declaredType (key) === 'String') return `(${recv} != null && ${key} != null && ${recv}.containsKey(${key}))`;
-                return whole;
-            });
             // objectKeys snapshots under the map's monitor: only an unshared fresh local skips it
-            next = next.replace (/Helpers\.objectKeys\(([A-Za-z_]\w*)\)/g, (whole, recv) => {
-                if (!isMap (recv) || !fresh (recv)) return whole;
-                return `(${recv} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${recv}.keySet()))`;
-            });
             if (next !== line) { lines[i] = next; changed = true; }
         }
     }
