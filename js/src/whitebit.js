@@ -1080,11 +1080,10 @@ export default class whitebit extends Exchange {
         if (this.markets === undefined) {
             throw new ExchangeError(this.id + ' markets not loaded');
         }
-        const markets = this.markets;
-        const marketIds = Object.keys(markets);
+        const marketIds = Object.keys(this.markets);
         for (let i = 0; i < marketIds.length; i++) {
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(this.markets, marketId);
             const marketSymbol = this.safeString(market, 'symbol');
             if ((market === undefined) || (market === null) || (marketSymbol === undefined) || (marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -3155,7 +3154,7 @@ export default class whitebit extends Exchange {
             request['memo'] = tag;
         }
         if (this.isFiat(code)) {
-            const provider = this.safeValue(paramsWithdrawTag, 'provider');
+            const provider = this.safeString(paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new ArgumentsRequired(this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -4286,11 +4285,7 @@ export default class whitebit extends Exchange {
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders = publicHeaders;
-        if (isPrivate) {
-            requestHeaders = privateHeaders;
-        }
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (isPrivate) ? privateHeaders : publicHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if ((code === 418) || (code === 429)) {

@@ -164229,8 +164229,7 @@ class alpaca extends _abstract_alpaca_js__rspack_import_0/* ["default"] */.A {
         const defaultClientId = this.implodeParams(clientOrderIdprefix, {
             'id': random_id
         });
-        const clientOrderId = this.safeString(params, 'clientOrderId', defaultClientId);
-        return clientOrderId;
+        return this.safeString(params, 'clientOrderId', defaultClientId);
     }
     /**
      * @method
@@ -164915,11 +164914,9 @@ class alpaca extends _abstract_alpaca_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const currency = this.currency(code);
-        let addressValue = address;
         const tagSuffix = this.safeString(params, 'tag', '');
-        if (tagSuffix !== '') {
-            addressValue = address + ':' + tagSuffix;
-        }
+        const taggedAddress = address + ':' + tagSuffix;
+        const addressValue = tagSuffix !== '' ? taggedAddress : address;
         const request = {
             'asset': currency['id'],
             'address': addressValue,
@@ -198558,7 +198555,6 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
         if (makerFeeCost !== undefined) {
             const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
-                const takerCode = takerCurrencyCode;
                 result['fees'] = [
                     {
                         'cost': makerFeeCost,
@@ -198566,7 +198562,7 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
                     },
                     {
                         'cost': takerFeeCost,
-                        'currency': takerCode
+                        'currency': takerCurrencyCode
                     }
                 ];
             } else {
@@ -198576,10 +198572,9 @@ class bigone extends _abstract_bigone_js__rspack_import_0/* ["default"] */.A {
                 };
             }
         } else if (takerFeeCost !== undefined) {
-            const takerCode2 = takerCurrencyCode;
             result['fee'] = {
                 'cost': takerFeeCost,
-                'currency': takerCode2
+                'currency': takerCurrencyCode
             };
         } else {
             result['fee'] = undefined;
@@ -263707,7 +263702,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const clientOrderId = this.safeValue2(params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -263738,7 +263733,7 @@ class bitstamp extends _abstract_bitstamp_js__rspack_import_0/* ["default"] */.A
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const clientOrderId = this.safeValue2(params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -267212,13 +267207,11 @@ class bitteam extends _abstract_bitteam_js__rspack_import_0/* ["default"] */.A {
         if (code !== 200) {
             if (code === 404) {
                 if (url.indexOf('/ccxt/order/') >= 0 && method === 'GET') {
-                    const parts = url.split('/order/');
-                    const orderId = this.safeString(parts, 1, '');
+                    const orderId = this.safeString(url.split('/order/'), 1, '');
                     throw new _base_errors_js__rspack_import_2.OrderNotFound(this.id + ' order ' + orderId + ' not found');
                 }
                 if (url.indexOf('/cmc/orderbook/') >= 0) {
-                    const parts = url.split('/cmc/orderbook/');
-                    const symbolId = this.safeString(parts, 1, '');
+                    const symbolId = this.safeString(url.split('/cmc/orderbook/'), 1, '');
                     throw new _base_errors_js__rspack_import_2.BadSymbol(this.id + ' symbolId ' + symbolId + ' not found');
                 }
             }
@@ -269532,8 +269525,7 @@ class bittrade extends _abstract_bittrade_js__rspack_import_0/* ["default"] */.A
             if (method !== 'POST') {
                 request = this.extend(request, query);
             }
-            const requestSorted = this.keysort(request);
-            let auth = this.urlencode(requestSorted);
+            let auth = this.urlencode(this.keysort(request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             const payload = method + "\n" + this.hostname + "\n" + url + "\n" + auth;
@@ -273187,7 +273179,7 @@ class blockchaincom extends _abstract_blockchaincom_js__rspack_import_0/* ["defa
             'orderQty': this.amountToPrecision(symbol, amount),
             'clOrdId': clientOrderId
         };
-        const triggerPrice = this.safeValueN(paramsOmitted, [
+        const triggerPrice = this.safeStringN(paramsOmitted, [
             'triggerPrice',
             'stopPx',
             'stopPrice'
@@ -274725,7 +274717,6 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         let maxLeverage = this.safeString(market, 'maxLeverage', '100');
         maxLeverage = _base_Precise_js__rspack_import_3/* .Precise.stringMax */.Y.stringMax(maxLeverage, '1');
         const isActive = this.safeString(market, 'state') === 'live';
-        const isMargin = spot && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(maxLeverage, '1');
         const contractType = this.safeString(market, 'contractType');
         const maxLimitAmount = this.safeNumber(market, 'maxLimitSize');
         const maxSpotCost = this.safeNumber(market, 'maxMarketSize'); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -274741,7 +274732,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'type': type,
             'spot': spot,
             'option': option,
-            'margin': isMargin,
+            'margin': spot && _base_Precise_js__rspack_import_3/* .Precise.stringGt */.Y.stringGt(maxLeverage, '1'),
             'swap': swap,
             'future': future,
             'active': isActive,
@@ -276224,8 +276215,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const currencies = Object.values(dataByCurrencyId);
         return this.parseCurrencies(currencies);
     }
-    parseCurrency(currency) {
-        const chains = currency;
+    parseCurrency(chains) {
         const firstChain = this.safeDict(chains, 0, {});
         const currencyId = this.safeString(firstChain, 'currency');
         const code = this.safeCurrencyCode(currencyId);
@@ -276433,7 +276423,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         // venue ignores the filter and returns the latest records instead
         const dataLength = data.length;
         for(let i = 0; i < dataLength; i++){
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             if (this.safeString(entry, 'depositId') === id) {
                 return this.parseTransaction(entry, currency);
             }
@@ -276471,7 +276461,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         // case the venue ignores the filter and returns the latest records
         const dataLength = data.length;
         for(let i = 0; i < dataLength; i++){
-            const entry = this.safeValue(data, i);
+            const entry = this.safeDict(data, i, {});
             let matches = false;
             if (id !== undefined) {
                 matches = this.safeString(entry, 'withdrawId') === id;
@@ -277078,14 +277068,14 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const entryPriceString = this.safeString2(position, 'averagePrice', 'openAveragePrice');
         const unrealizedPnlString = this.safeString(position, 'unrealizedPnl');
         const leverageString = this.safeString(position, 'leverage');
-        let initialMarginPercentage = undefined;
+        let initialMarginPercentageString = undefined;
         let collateralString = undefined;
         let marginString = undefined;
         if (marginMode === 'cross') {
             initialMarginString = this.safeString(position, 'initialMargin');
             collateralString = unrealizedPnlString !== undefined ? _base_Precise_js__rspack_import_3/* .Precise.stringAdd */.Y.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode === 'isolated') {
-            initialMarginPercentage = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv('1', leverageString);
+            initialMarginPercentageString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv('1', leverageString);
             const isolatedMarginString = this.omitZero(this.safeString2(position, 'margin', 'initialMargin'));
             if (isolatedMarginString !== undefined) {
                 initialMarginString = isolatedMarginString;
@@ -277096,10 +277086,9 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
         const maintenanceMarginString = this.safeString(position, 'maintenanceMargin');
         const maintenanceMargin = this.parseNumber(maintenanceMarginString);
         const maintenanceMarginPercentageString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(maintenanceMarginString, notionalString);
-        if (initialMarginPercentage === undefined) {
-            initialMarginPercentage = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, notionalString, 4));
+        if (initialMarginPercentageString === undefined) {
+            initialMarginPercentageString = _base_Precise_js__rspack_import_3/* .Precise.stringDiv */.Y.stringDiv(initialMarginString, notionalString, 4);
         } else if (initialMarginString === undefined) {
-            const initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(initialMarginPercentageString, notionalString);
         }
         const rounder = '0.00005'; // round to closest 0.01%
@@ -277147,7 +277136,7 @@ class blofin extends _abstract_blofin_js__rspack_import_0/* ["default"] */.A {
             'positionMargin': this.parseNumber(marginString),
             'collateral': this.parseNumber(collateralString),
             'initialMargin': this.parseNumber(initialMarginString),
-            'initialMarginPercentage': this.parseNumber(initialMarginPercentage),
+            'initialMarginPercentage': this.parseNumber(initialMarginPercentageString),
             'leverage': this.parseNumber(leverageString),
             'marginRatio': marginRatio,
             'stopLossPrice': undefined,
@@ -286411,13 +286400,11 @@ class bullish extends _abstract_bullish_js__rspack_import_0/* ["default"] */.A {
             await this.loadMarkets();
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let paramsExtended = params;
+        const orderIdParams = {};
         if (clientOrderId === undefined) {
-            paramsExtended = this.extend({
-                'orderId': id
-            }, params);
+            orderIdParams['orderId'] = id;
         }
-        return await this.fetchMyTrades(symbol, since, limit, paramsExtended);
+        return await this.fetchMyTrades(symbol, since, limit, this.extend(orderIdParams, params));
     }
     parseTrade(trade, market = undefined) {
         //
@@ -301330,10 +301317,7 @@ class cex extends _abstract_cex_js__rspack_import_0/* ["default"] */.A {
         }
         const currency = this.currency(code);
         const fromMain = fromAccount === '';
-        let targetAccount = fromAccount;
-        if (fromMain) {
-            targetAccount = toAccount;
-        }
+        const targetAccount = fromMain ? toAccount : fromAccount;
         const guid = this.safeString(params, 'guid', this.uuid());
         const request = {
             'currency': currency['id'],
@@ -314177,8 +314161,8 @@ class coincheck extends _abstract_coincheck_js__rspack_import_0/* ["default"] */
         const priceString = this.safeString(trade, 'rate');
         const marketId = this.safeString(trade, 'pair');
         const marketResolved = this.safeMarket(marketId, market, '_');
-        const baseId = marketResolved['baseId'];
-        const quoteId = marketResolved['quoteId'];
+        const baseId = this.safeString(marketResolved, 'baseId');
+        const quoteId = this.safeString(marketResolved, 'quoteId');
         const symbol = marketResolved['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
@@ -319310,7 +319294,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
         let orderType = this.safeString(paramsOmitted, 'type', type);
         orderType = this.encodeOrderType(orderType);
         const paramsType = this.omit(paramsOmitted, 'type');
-        let paramsQuote = undefined;
+        let paramsQuote = paramsType;
         const orderSide = this.encodeOrderSide(side);
         const request = {
             'symbol': market['id'],
@@ -319366,8 +319350,7 @@ class coinsph extends _abstract_coinsph_js__rspack_import_0/* ["default"] */.A {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        const paramsBase = paramsQuote !== undefined ? paramsQuote : paramsType;
-        const paramsRequest = this.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));
@@ -327141,13 +327124,12 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
         const instType = this.safeString(params, 'instType');
         const paramsOmitted = this.omit(params, 'instType');
         const type = this.safeString(paramsOmitted, 'type');
-        let paramsExtended = paramsOmitted;
         if (type === undefined && instType !== undefined) {
-            paramsExtended = this.extend(paramsOmitted, {
+            return super.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, {
                 'type': instType
-            });
+            }), defaultValue);
         }
-        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeDict(this.options, 'exchangeType', {});
@@ -327451,14 +327433,13 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = calculateUntil ? [
-            'price',
-            'until',
-            'calculateUntil'
-        ] : [
+        const keysToOmit = [
             'price',
             'until'
         ];
+        if (calculateUntil) {
+            keysToOmit.push('calculateUntil');
+        }
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if (calculateUntil) {
             if (since !== undefined) {
@@ -328502,18 +328483,22 @@ class deepcoin extends _abstract_deepcoin_js__rspack_import_0/* ["default"] */.A
     }
     handleTypePostOnlyAndTimeInForce(type, params) {
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 'post_only', params);
-        let typePostOnly = type;
-        if (postOnly) {
-            typePostOnly = 'post_only';
-        }
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
-        let typeValue = typePostOnly;
         if (timeInForce === 'IOC') {
-            typeValue = 'ioc';
+            return [
+                'ioc',
+                paramsOmitted
+            ];
+        }
+        if (postOnly) {
+            return [
+                'post_only',
+                paramsOmitted
+            ];
         }
         return [
-            typeValue,
+            type,
             paramsOmitted
         ];
     }
@@ -330389,9 +330374,10 @@ class delta extends _abstract_delta_js__rspack_import_0/* ["default"] */.A {
         const optionParts = symbol.split('-');
         const symbolBase = symbol.split('/');
         const hasSlash = symbol.indexOf('/') > -1;
-        const partSource = hasSlash ? symbolBase : optionParts;
-        const baseIndex = hasSlash ? 0 : 1;
-        const base = this.safeString(partSource, baseIndex, '');
+        let base = this.safeString(optionParts, 1, '');
+        if (hasSlash) {
+            base = this.safeString(symbolBase, 0, '');
+        }
         const optionType = this.safeString(optionParts, hasSlash ? 3 : 0, '');
         const rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3, '');
         const expiry = rawExpiry.slice(4) + rawExpiry.slice(2, 4) + rawExpiry.slice(0, 2);
@@ -336234,25 +336220,25 @@ class deribit extends _abstract_deribit_js__rspack_import_0/* ["default"] */.A {
         let futureFee = {};
         let optionFee = {};
         for(let i = 0; i < fees.length; i++){
-            const fee = fees[i];
-            const instrumentType = this.safeString(fee, 'instrument_type');
+            const feeEntry = fees[i];
+            const instrumentType = this.safeString(feeEntry, 'instrument_type');
             if (instrumentType === 'future') {
                 futureFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee')
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee')
                 };
             } else if (instrumentType === 'perpetual') {
                 perpetualFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee')
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee')
                 };
             } else if (instrumentType === 'option') {
                 optionFee = {
-                    'info': fee,
-                    'maker': this.safeNumber(fee, 'maker_fee'),
-                    'taker': this.safeNumber(fee, 'taker_fee')
+                    'info': feeEntry,
+                    'maker': this.safeNumber(feeEntry, 'maker_fee'),
+                    'taker': this.safeNumber(feeEntry, 'taker_fee')
                 };
             }
         }
@@ -339475,9 +339461,8 @@ class derive extends _abstract_derive_js__rspack_import_0/* ["default"] */.A {
         const [maxPages, paramsMaxPages] = this.handleOptionIntegerAndParams(params, 'getMarketsPaginated', 'maxMarketPages', 25);
         const [pageSize, paramsOmitted] = this.handleOptionIntegerAndParams(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for(let i = 0; i < maxPages; i++){
-            const page = i + 1;
             const requestExtension = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize
             };
             const requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
@@ -344564,15 +344549,13 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
         //
         const date = this.safeInteger(response, 'date');
         const tickers = this.safeList(response, 'ticker', []);
-        const data = this.safeDict(response, 'data', {});
         const firstTicker = this.safeDict(tickers, 0, {});
-        let result = data;
         if (!this.safeBool(market, 'swap', false)) {
-            result = this.extend({
+            return this.parseTicker(this.extend({
                 'date': date
-            }, firstTicker);
+            }, firstTicker), market);
         }
-        return this.parseTicker(result, market);
+        return this.parseTicker(this.safeDict(response, 'data', {}), market);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -345283,16 +345266,11 @@ class digifinex extends _abstract_digifinex_js__rspack_import_0/* ["default"] */
             let quantity = undefined;
             const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             const isMarketBuy = isMarketOrder && side === 'buy';
-            let keysToOmit = undefined;
+            const keysToOmit = [
+                'postOnly'
+            ];
             if (isMarketBuy) {
-                keysToOmit = [
-                    'cost',
-                    'postOnly'
-                ];
-            } else {
-                keysToOmit = [
-                    'postOnly'
-                ];
+                keysToOmit.push('cost');
             }
             paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
             if (isMarketBuy) {
@@ -350168,7 +350146,7 @@ class dydx extends _abstract_dydx_js__rspack_import_0/* ["default"] */.A {
         const account = await this.fetchDydxAccount();
         const usd = this.parseToInt(_base_Precise_js__rspack_import_3/* ["default"].stringMul */.A.stringMul(this.numberToString(amount), '1000000'));
         let payload = undefined;
-        let signingPayload = undefined;
+        let signingPayload = {};
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {
@@ -355065,16 +355043,14 @@ class foxbit extends _abstract_foxbit_js__rspack_import_0/* ["default"] */.A {
             const networkCode = this.networkIdToCode(networkId, code);
             const networkWithdrawInfo = this.safeDict(network, 'withdraw_info');
             const networkDepositInfo = this.safeDict(network, 'deposit_info');
-            const isWithdrawEnabled = this.safeString(networkWithdrawInfo, 'status') === 'ENABLED';
-            const isDepositEnabled = this.safeString(networkDepositInfo, 'status') === 'ENABLED';
             if (networkCode !== undefined) {
                 parsedNetworks[networkCode] = {
                     'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'name': this.safeString(network, 'name'),
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
+                    'deposit': this.safeString(networkDepositInfo, 'status') === 'ENABLED',
+                    'withdraw': this.safeString(networkWithdrawInfo, 'status') === 'ENABLED',
                     'active': true,
                     'precision': undefined,
                     'fee': this.safeNumber(networkWithdrawInfo, 'fee'),
@@ -376526,8 +376502,7 @@ class hashkey extends _abstract_hashkey_js__rspack_import_0/* ["default"] */.A {
         }
     }
     handleTriggerOptionAndParams(params, methodName, defaultValue = undefined) {
-        const isTrigger = defaultValue;
-        const [isTriggerStop, paramsStop] = this.handleOptionBoolAndParams2(params, methodName, 'stop', 'trigger', isTrigger);
+        const [isTriggerStop, paramsStop] = this.handleOptionBoolAndParams2(params, methodName, 'stop', 'trigger', defaultValue);
         return [
             isTriggerStop,
             paramsStop
@@ -378609,9 +378584,7 @@ class hibachi extends _abstract_hibachi_js__rspack_import_0/* ["default"] */.A {
         const market = this.market(symbol);
         const takerFee = this.safeNumber(market, 'taker', 0);
         const makerFee = this.safeNumber(market, 'maker', 0);
-        const takerFeeValue = takerFee === undefined ? 0 : takerFee;
-        const makerFeeValue = makerFee === undefined ? 0 : makerFee;
-        const feeRate = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMax */.Y.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
+        const feeRate = this.parseNumber(_base_Precise_js__rspack_import_3/* .Precise.stringMax */.Y.stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
         const message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         const signature = this.signMessage(message, this.privateKey);
         const request = {
@@ -381266,8 +381239,7 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
     parseCurrency(currency) {
         const currencyId = this.safeString(currency, '_coin_id');
         const code = this.safeCurrencyCode(currencyId);
-        const entry = currency;
-        const rawNetworks = this.safeList(entry, 'networks', []);
+        const rawNetworks = this.safeList(currency, 'networks', []);
         const networks = {};
         for(let j = 0; j < rawNetworks.length; j++){
             const rawNetwork = rawNetworks[j];
@@ -381300,14 +381272,14 @@ class hitbtc extends _abstract_hitbtc_js__rspack_import_0/* ["default"] */.A {
             }
         }
         return this.safeCurrencyStructure({
-            'info': entry,
+            'info': currency,
             'code': code,
             'id': currencyId,
-            'precision': this.safeNumber(entry, 'precision_transfer'),
-            'name': this.safeString(entry, 'full_name'),
-            'active': !this.safeBool(entry, 'delisted', false),
-            'deposit': this.safeBool(entry, 'payin_enabled'),
-            'withdraw': this.safeBool(entry, 'payout_enabled'),
+            'precision': this.safeNumber(currency, 'precision_transfer'),
+            'name': this.safeString(currency, 'full_name'),
+            'active': !this.safeBool(currency, 'delisted', false),
+            'deposit': this.safeBool(currency, 'payin_enabled'),
+            'withdraw': this.safeBool(currency, 'payout_enabled'),
             'networks': networks,
             'fee': undefined,
             'limits': {
@@ -405042,9 +405014,9 @@ class indodax extends _abstract_indodax_js__rspack_import_0/* ["default"] */.A {
         };
         const response = await this.privatePostOrderHistory(this.extend(request, params));
         const historyResult = this.safeDict(response, 'return', {});
-        let orders = this.parseOrders(historyResult['orders'], market);
-        orders = this.filterBy(orders, 'status', 'closed');
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        const orders = this.parseOrders(historyResult['orders'], market);
+        const closedOrders = this.filterBy(orders, 'status', 'closed');
+        return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
     }
     /**
      * @method
@@ -412181,7 +412153,7 @@ class krakenfutures extends _abstract_krakenfutures_js__rspack_import_0/* ["defa
                     executions.push(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                const orderTrigger = this.safeValue(item, 'orderTrigger');
+                const orderTrigger = this.safeDict(item, 'orderTrigger');
                 if (details === undefined) {
                     details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {
@@ -429628,8 +429600,8 @@ class lbank extends _abstract_lbank_js__rspack_import_0/* ["default"] */.A {
             this.fetchSwapMarkets(params)
         ];
         const resolvedMarkets = await Promise.all(marketsPromises);
-        const spotMarkets = this.safeValue(resolvedMarkets, 0);
-        const swapMarkets = this.safeValue(resolvedMarkets, 1);
+        const spotMarkets = this.safeList(resolvedMarkets, 0, []);
+        const swapMarkets = this.safeList(resolvedMarkets, 1, []);
         return this.arrayConcat(spotMarkets, swapMarkets);
     }
     async fetchSpotMarkets(params = {}) {
@@ -437518,12 +437490,11 @@ class luno extends _abstract_luno_js__rspack_import_0/* ["default"] */.A {
         // by default without entry number or limit number, return most recent entry
         const entryValue = entry === undefined ? -1 : entry;
         const limitValue = limit === undefined ? 1 : limit;
-        const since = undefined;
         const request = {
             'min_row': entryValue,
             'max_row': this.sum(entryValue, limitValue)
         };
-        return await this.fetchLedger(code, since, limitValue, this.extend(request, params));
+        return await this.fetchLedger(code, undefined, limitValue, this.extend(request, params));
     }
     /**
      * @method
@@ -438512,8 +438483,7 @@ class mercado extends _abstract_mercado_js__rspack_import_0/* ["default"] */.A {
                 }
                 const amountString = this.numberToString(amount);
                 const priceString = this.numberToString(price);
-                const cost = this.parseToNumeric(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString));
-                request['cost'] = this.priceToPrecision(market['symbol'], cost);
+                request['cost'] = this.priceToPrecision(market['symbol'], this.parseToNumeric(_base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, params));
             } else {
                 request['quantity'] = this.amountToPrecision(market['symbol'], amount);
@@ -450722,7 +450692,7 @@ class mudrex extends _abstract_mudrex_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         let positionId = this.safeString(params, 'position_id');
-        const amount = this.safeValue(params, 'amount');
+        const amount = this.safeString(params, 'amount');
         if (positionId === undefined) {
             const positions = await this.fetchPositions([
                 symbol
@@ -488020,11 +487990,10 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         return this.parseCurrencies(response);
     }
     parseCurrency(currency) {
-        const entry = currency;
-        const id = this.safeString(entry, 'coin');
+        const id = this.safeString(currency, 'coin');
         const code = this.safeCurrencyCode(id);
         const networks = {};
-        const chains = this.safeList(entry, 'networkList', []);
+        const chains = this.safeList(currency, 'networkList', []);
         const chainsLength = chains.length;
         for(let j = 0; j < chainsLength; j++){
             const chain = this.safeDict(chains, j);
@@ -488056,18 +488025,18 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         }
         return this.safeCurrencyStructure({
             'id': id,
-            'name': this.safeString(entry, 'name'),
+            'name': this.safeString(currency, 'name'),
             'code': code,
             'type': undefined,
             'precision': undefined,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': undefined,
             'withdraw': undefined,
             'active': undefined,
             'fee': undefined,
             'limits': undefined,
-            'margin': this.safeBool(entry, 'supportBorrow')
+            'margin': this.safeBool(currency, 'supportBorrow')
         });
     }
     /**
@@ -490312,8 +490281,8 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
         const timestamp = this.safeTimestamp(transactionValue, 'timestamp');
         const currencyId = this.safeString(transactionValue, 'currency');
         const code = this.safeCurrencyCode(currencyId);
-        let status = this.safeString(transactionValue, 'status', 'pending');
-        status = this.parseTransactionStatus(status);
+        const rawStatus = this.safeString(transactionValue, 'status', 'pending');
+        const status = this.parseTransactionStatus(rawStatus);
         const txid = this.safeString(transactionValue, 'txid');
         let type = 'deposit';
         if (this.safeString(transactionValue, 'withdrawalRequestsId') !== undefined) {
@@ -518940,8 +518909,6 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
                 url += '?' + this.urlencode(query);
             }
         }
-        const existingHeaders = {};
-        const headersValue = existingHeaders;
         const authHeaders = {};
         if (apiKey !== undefined && !sandboxMode) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -518984,7 +518951,7 @@ class predictfun extends _abstract_prediction_predictfun_js__rspack_import_0/* [
             authHeaders['Content-Type'] = 'application/json';
             bodyValue = this.json(params);
         }
-        const headersExtended = this.extend(headersValue, authHeaders);
+        const headersExtended = this.extend({}, authHeaders);
         return {
             'url': url,
             'method': method,
@@ -547115,13 +547082,13 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'prices',
             'symbol': market['id'],
             'granularity': this.parseNumber(interval)
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         const url = this.safeString(this.urls['api'], 'ws', '');
         const ohlcv = await this.watch(url, messageHash, request, messageHash, request);
         let limitResolved = limit;
@@ -547190,12 +547157,12 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.safeString(this.urls['api'], 'ws', '');
         const messageHash = 'ticker:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'ticker',
             'symbol': market['id']
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, messageHash);
     }
     handleTicker(client, message) {
@@ -547298,12 +547265,12 @@ class blockchaincom extends _blockchaincom_js__rspack_import_0/* ["default"] */.
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.safeString(this.urls['api'], 'ws', '');
         const messageHash = 'trades:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'trades',
             'symbol': market['id']
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         const trades = await this.watch(url, messageHash, request, messageHash, request);
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }
@@ -548109,8 +548076,7 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const symbolsList = symbolsNormalized;
+        const symbolsList = this.marketSymbols(symbols, undefined, false);
         const firstMarket = this.market(symbolsList[0]);
         const channel = 'tickers';
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
@@ -548136,7 +548102,7 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             }
             return tickers;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsList);
     }
     handleBidAsk(client, message) {
         const data = this.safeList(message, 'data');
@@ -548369,9 +548335,10 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
      */ async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = symbol !== undefined ? [
-            symbol
-        ] : [];
+        const symbolsArray = [];
+        if (symbol !== undefined) {
+            symbolsArray.push(symbol);
+        }
         return await this.watchOrdersForSymbols(symbolsArray, since, limit, params);
     }
     /**
@@ -548631,10 +548598,9 @@ class blofin extends _blofin_js__rspack_import_0/* ["default"] */.A {
             const market = this.market(this.safeString(symbols, i));
             let channel = channelName;
             if (isOHLCV) {
-                const tfArray = symbolsArray[i];
-                const tf = tfArray[1];
+                const tf = this.safeString(this.safeList(symbolsArray, i), 1);
                 const interval = this.safeString(this.timeframes, tf, tf);
-                channel += interval;
+                channel = channel + interval;
             }
             const topic = {
                 'channel': channel,
@@ -560305,8 +560271,7 @@ class cryptocom extends _cryptocom_js__rspack_import_0/* ["default"] */.A {
             },
             'nonce': id
         };
-        const message = this.deepExtend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
     }
     async unWatchPublicMultiple(topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtend = {}) {
         const url = this.urls['api']['ws']['public'];
@@ -560326,8 +560291,7 @@ class cryptocom extends _cryptocom_js__rspack_import_0/* ["default"] */.A {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes
         };
-        const message = this.deepExtend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, this.extend(subscription, subExtend));
     }
     async watchPrivateRequest(nonce, params = {}) {
         await this.authenticate();
@@ -562814,7 +562778,7 @@ class deribit extends _deribit_js__rspack_import_0/* ["default"] */.A {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
             }
             let market = undefined;
-            let currentDescriptor = undefined;
+            let currentDescriptor = '';
             if (isOHLCV) {
                 const currentPair = this.safeList(symbolsArray, i, []);
                 market = this.market(this.safeString(currentPair, 0));
@@ -586690,21 +586654,20 @@ class lbank extends _lbank_js__rspack_import_0/* ["default"] */.A {
         const key = await this.authenticate(params);
         const url = this.urls['api']['ws'];
         let messageHash = undefined;
-        let pair = 'all';
         const symbolResolved = symbol === undefined ? undefined : this.symbol(symbol);
+        const message = {
+            'action': 'subscribe',
+            'subscribe': 'orderUpdate',
+            'subscribeKey': key,
+            'pair': 'all'
+        };
         if (symbol === undefined) {
             messageHash = 'orders:all';
         } else {
             const market = this.market(symbol);
             messageHash = 'orders:' + market['symbol'];
-            pair = market['id'];
+            message['pair'] = market['id'];
         }
-        const message = {
-            'action': 'subscribe',
-            'subscribe': 'orderUpdate',
-            'subscribeKey': key,
-            'pair': pair
-        };
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);
@@ -592145,13 +592108,12 @@ class modetrade extends _modetrade_js__rspack_import_0/* ["default"] */.A {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
-            const auth = ts;
             let secret = this.secret;
             if (this.secret.indexOf('ed25519:') >= 0) {
                 const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = (0,_base_functions_crypto_js__rspack_import_4/* .eddsa */.q4)(this.encode(auth), this.base58ToBinary(secret), _noble_curves_ed25519_js__rspack_import_5/* .ed25519 */.ev);
+            const signature = (0,_base_functions_crypto_js__rspack_import_4/* .eddsa */.q4)(this.encode(ts), this.base58ToBinary(secret), _noble_curves_ed25519_js__rspack_import_5/* .ed25519 */.ev);
             const request = {
                 'event': event,
                 'params': {
@@ -606863,10 +606825,8 @@ class poloniex extends _poloniex_js__rspack_import_0/* ["default"] */.A {
             marketIds = this.marketIds(symbols);
         }
         const symbolsSuffix = symbols === undefined ? '' : symbols.join(',');
-        let symbolsHash = undefined;
-        if (this.isEmpty(symbols)) {
-            symbolsHash = messageHash;
-        } else {
+        let symbolsHash = messageHash;
+        if (!this.isEmpty(symbols)) {
             symbolsHash = messageHash + '::' + symbolsSuffix;
         }
         if (name !== 'balances') {
@@ -617046,13 +617006,12 @@ class woofipro extends _woofipro_js__rspack_import_0/* ["default"] */.A {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             const ts = this.nonce().toString();
-            const auth = ts;
             let secret = this.secret;
             if (this.secret.indexOf('ed25519:') >= 0) {
                 const parts = this.secret.split('ed25519:');
                 secret = parts[1];
             }
-            const signature = (0,_base_functions_crypto_js__rspack_import_4/* .eddsa */.q4)(this.encode(auth), this.base58ToBinary(secret), _noble_curves_ed25519_js__rspack_import_5/* .ed25519 */.ev);
+            const signature = (0,_base_functions_crypto_js__rspack_import_4/* .eddsa */.q4)(this.encode(ts), this.base58ToBinary(secret), _noble_curves_ed25519_js__rspack_import_5/* .ed25519 */.ev);
             const request = {
                 'event': event,
                 'params': {
@@ -630995,9 +630954,8 @@ class toobit extends _abstract_toobit_js__rspack_import_0/* ["default"] */.A {
         // }
         //
         const result = {};
-        const entry = response;
-        const marketResolved = this.safeMarket(this.safeString(entry, 'symbol'), market);
-        const fee = this.parseTradingFee(entry, marketResolved);
+        const marketResolved = this.safeMarket(this.safeString(response, 'symbol'), market);
+        const fee = this.parseTradingFee(response, marketResolved);
         result[marketResolved['symbol']] = fee;
         return result;
     }
@@ -633659,7 +633617,7 @@ class upbit extends _abstract_upbit_js__rspack_import_0/* ["default"] */.A {
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
             const lastTrade = this.safeDict(trades, numTrades - 1, {});
-            lastTradeTimestamp = lastTrade['timestamp'];
+            lastTradeTimestamp = this.safeInteger(lastTrade, 'timestamp');
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
@@ -634175,12 +634133,11 @@ class upbit extends _abstract_upbit_js__rspack_import_0/* ["default"] */.A {
             const token = (0,_base_functions_rsa_js__rspack_import_5/* .jwt */.a)(request, this.encode(this.secret), _noble_hashes_sha2_js__rspack_import_4/* .sha256 */.sc);
             headers['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = apiName === 'private' ? headers : undefined;
         return {
             'url': url,
             'method': method,
             'body': requestBody,
-            'headers': requestHeaders
+            'headers': apiName === 'private' ? headers : undefined
         };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -635815,7 +635772,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
         }
         const results = [];
         for(let i = 0; i < response.length; i++){
-            const rawTicker = this.safeValue(response, i);
+            const rawTicker = this.safeDict(response, i, {});
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             const marketId = this.safeString(rawTicker, 'symbol');
             const tickerMarket = this.safeMarket(marketId, undefined, undefined, marketType);
@@ -636358,7 +636315,7 @@ class weex extends _abstract_weex_js__rspack_import_0/* ["default"] */.A {
             tradeMarketType = 'swap';
         }
         const marketResolved = this.safeMarket(market === undefined ? tradeMarketId : undefined, market, undefined, tradeMarketType);
-        let isSpot = undefined;
+        let isSpot = false;
         if (market === undefined) {
             isSpot = tradeMarketType === 'spot';
         } else {
@@ -640321,11 +640278,10 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         if (this.markets === undefined) {
             throw new _base_errors_js__rspack_import_2.ExchangeError(this.id + ' markets not loaded');
         }
-        const markets = this.markets;
-        const marketIds = Object.keys(markets);
+        const marketIds = Object.keys(this.markets);
         for(let i = 0; i < marketIds.length; i++){
             const marketId = marketIds[i];
-            const market = this.safeValue(markets, marketId);
+            const market = this.safeDict(this.markets, marketId);
             const marketSymbol = this.safeString(market, 'symbol');
             if (market === undefined || market === null || marketSymbol === undefined || marketSymbol === '') {
                 continue; // Skip invalid markets silently
@@ -642380,7 +642336,7 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
             request['memo'] = tag;
         }
         if (this.isFiat(code)) {
-            const provider = this.safeValue(paramsWithdrawTag, 'provider');
+            const provider = this.safeString(paramsWithdrawTag, 'provider');
             if (provider === undefined) {
                 throw new _base_errors_js__rspack_import_2.ArgumentsRequired(this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -643507,15 +643463,11 @@ class whitebit extends _abstract_whitebit_js__rspack_import_0/* ["default"] */.A
         if (isPrivate) {
             requestBody = privateBody;
         }
-        let requestHeaders = publicHeaders;
-        if (isPrivate) {
-            requestHeaders = privateHeaders;
-        }
         return {
             'url': url,
             'method': method,
             'body': requestBody,
-            'headers': requestHeaders
+            'headers': isPrivate ? privateHeaders : publicHeaders
         };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
@@ -652528,10 +652480,8 @@ class woofipro extends _abstract_woofipro_js__rspack_import_0/* ["default"] */.A
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
-            let apiKey = this.apiKey;
-            if (this.apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + this.apiKey;
-            }
+            const hasKeyPrefix = this.apiKey.indexOf('ed25519:') >= 0;
+            const apiKey = hasKeyPrefix ? this.apiKey : 'ed25519:' + this.apiKey;
             const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,
@@ -658202,7 +658152,7 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         return result;
     }
     parseTradingFee(fee, market = undefined) {
-        const symbol = market !== undefined ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,

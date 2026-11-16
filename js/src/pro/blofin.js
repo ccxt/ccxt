@@ -348,8 +348,7 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const symbolsNormalized = this.marketSymbols(symbols, undefined, false);
-        const symbolsList = symbolsNormalized;
+        const symbolsList = this.marketSymbols(symbols, undefined, false);
         const firstMarket = this.market(symbolsList[0]);
         const channel = 'tickers';
         const [marketType, paramsMarketType] = this.handleMarketTypeAndParams('watchBidsAsks', firstMarket, params);
@@ -375,7 +374,7 @@ export default class blofin extends blofinRest {
             }
             return tickers;
         }
-        return this.filterByArray(this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray(this.bidsasks, 'symbol', symbolsList);
     }
     handleBidAsk(client, message) {
         const data = this.safeList(message, 'data');
@@ -594,7 +593,10 @@ export default class blofin extends blofinRest {
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = (symbol !== undefined) ? [symbol] : [];
+        const symbolsArray = [];
+        if (symbol !== undefined) {
+            symbolsArray.push(symbol);
+        }
         return await this.watchOrdersForSymbols(symbolsArray, since, limit, params);
     }
     /**
@@ -845,10 +847,9 @@ export default class blofin extends blofinRest {
             const market = this.market(this.safeString(symbols, i));
             let channel = channelName;
             if (isOHLCV) {
-                const tfArray = symbolsArray[i];
-                const tf = tfArray[1];
+                const tf = this.safeString(this.safeList(symbolsArray, i), 1);
                 const interval = this.safeString(this.timeframes, tf, tf);
-                channel += interval;
+                channel = channel + interval;
             }
             const topic = {
                 'channel': channel,

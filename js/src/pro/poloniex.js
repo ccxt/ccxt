@@ -176,11 +176,8 @@ export default class poloniex extends poloniexRest {
             marketIds = this.marketIds(symbols);
         }
         const symbolsSuffix = (symbols === undefined) ? '' : symbols.join(',');
-        let symbolsHash = undefined;
-        if (this.isEmpty(symbols)) {
-            symbolsHash = messageHash;
-        }
-        else {
+        let symbolsHash = messageHash;
+        if (!this.isEmpty(symbols)) {
             symbolsHash = messageHash + '::' + symbolsSuffix;
         }
         if (name !== 'balances') {

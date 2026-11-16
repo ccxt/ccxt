@@ -654,22 +654,21 @@ class lbank extends lbank$1["default"] {
         const key = await this.authenticate(params);
         const url = this.urls['api']['ws'];
         let messageHash = undefined;
-        let pair = 'all';
         const symbolResolved = (symbol === undefined) ? undefined : this.symbol(symbol);
+        const message = {
+            'action': 'subscribe',
+            'subscribe': 'orderUpdate',
+            'subscribeKey': key,
+            'pair': 'all',
+        };
         if (symbol === undefined) {
             messageHash = 'orders:all';
         }
         else {
             const market = this.market(symbol);
             messageHash = 'orders:' + market['symbol'];
-            pair = market['id'];
+            message['pair'] = market['id'];
         }
-        const message = {
-            'action': 'subscribe',
-            'subscribe': 'orderUpdate',
-            'subscribeKey': key,
-            'pair': pair,
-        };
         const request = this.deepExtend(message, params);
         const orders = await this.watch(url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);

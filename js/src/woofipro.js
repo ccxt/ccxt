@@ -3479,10 +3479,8 @@ export default class woofipro extends Exchange {
             let auth = '';
             const ts = this.nonce().toString();
             url += pathWithParams;
-            let apiKey = this.apiKey;
-            if (this.apiKey.indexOf('ed25519:') < 0) {
-                apiKey = 'ed25519:' + this.apiKey;
-            }
+            const hasKeyPrefix = this.apiKey.indexOf('ed25519:') >= 0;
+            const apiKey = (hasKeyPrefix) ? this.apiKey : ('ed25519:' + this.apiKey);
             const authHeaders = {
                 'orderly-account-id': this.accountId,
                 'orderly-key': apiKey,

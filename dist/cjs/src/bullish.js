@@ -1087,11 +1087,11 @@ class bullish extends bullish$1["default"] {
             await this.loadMarkets();
         }
         const clientOrderId = this.safeString(params, 'clientOrderId');
-        let paramsExtended = params;
+        const orderIdParams = {};
         if (clientOrderId === undefined) {
-            paramsExtended = this.extend({ 'orderId': id }, params);
+            orderIdParams['orderId'] = id;
         }
-        return await this.fetchMyTrades(symbol, since, limit, paramsExtended);
+        return await this.fetchMyTrades(symbol, since, limit, this.extend(orderIdParams, params));
     }
     parseTrade(trade, market = undefined) {
         //

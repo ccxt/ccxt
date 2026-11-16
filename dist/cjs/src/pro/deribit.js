@@ -912,7 +912,7 @@ class deribit extends deribit$1["default"] {
                 throw new errors.ArgumentsRequired(this.id + ' watchMultipleWrapper() symbolsArray is required');
             }
             let market = undefined;
-            let currentDescriptor = undefined;
+            let currentDescriptor = '';
             if (isOHLCV) {
                 const currentPair = this.safeList(symbolsArray, i, []);
                 market = this.market(this.safeString(currentPair, 0));

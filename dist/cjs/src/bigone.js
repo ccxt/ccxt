@@ -1269,10 +1269,9 @@ class bigone extends bigone$1["default"] {
         if (makerFeeCost !== undefined) {
             const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
-                const takerCode = takerCurrencyCode;
                 result['fees'] = [
                     { 'cost': makerFeeCost, 'currency': makerCode },
-                    { 'cost': takerFeeCost, 'currency': takerCode },
+                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
                 ];
             }
             else {
@@ -1280,8 +1279,7 @@ class bigone extends bigone$1["default"] {
             }
         }
         else if (takerFeeCost !== undefined) {
-            const takerCode2 = takerCurrencyCode;
-            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCode2 };
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
         }
         else {
             result['fee'] = undefined;

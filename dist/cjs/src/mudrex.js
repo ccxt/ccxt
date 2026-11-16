@@ -1154,7 +1154,7 @@ class mudrex extends mudrex$1["default"] {
         }
         const market = this.market(symbol);
         let positionId = this.safeString(params, 'position_id');
-        const amount = this.safeValue(params, 'amount');
+        const amount = this.safeString(params, 'amount');
         if (positionId === undefined) {
             const positions = await this.fetchPositions([symbol], params);
             let candidates = this.filterBy(positions, 'symbol', market['symbol']);

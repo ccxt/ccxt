@@ -962,9 +962,9 @@ class indodax extends indodax$1["default"] {
         };
         const response = await this.privatePostOrderHistory(this.extend(request, params));
         const historyResult = this.safeDict(response, 'return', {});
-        let orders = this.parseOrders(historyResult['orders'], market);
-        orders = this.filterBy(orders, 'status', 'closed');
-        return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
+        const orders = this.parseOrders(historyResult['orders'], market);
+        const closedOrders = this.filterBy(orders, 'status', 'closed');
+        return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
     }
     /**
      * @method

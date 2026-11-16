@@ -2451,13 +2451,11 @@ export default class bitteam extends Exchange {
         if (code !== 200) {
             if (code === 404) {
                 if ((url.indexOf('/ccxt/order/') >= 0) && (method === 'GET')) {
-                    const parts = url.split('/order/');
-                    const orderId = this.safeString(parts, 1, '');
+                    const orderId = this.safeString(url.split('/order/'), 1, '');
                     throw new OrderNotFound(this.id + ' order ' + orderId + ' not found');
                 }
                 if (url.indexOf('/cmc/orderbook/') >= 0) {
-                    const parts = url.split('/cmc/orderbook/');
-                    const symbolId = this.safeString(parts, 1, '');
+                    const symbolId = this.safeString(url.split('/cmc/orderbook/'), 1, '');
                     throw new BadSymbol(this.id + ' symbolId ' + symbolId + ' not found');
                 }
             }

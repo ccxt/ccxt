@@ -2350,7 +2350,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     executions.push(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                const orderTrigger = this.safeValue(item, 'orderTrigger');
+                const orderTrigger = this.safeDict(item, 'orderTrigger');
                 if (details === undefined) {
                     details = this.safeValue2(item, 'new', 'order', orderTrigger);
                     if (details !== undefined) {

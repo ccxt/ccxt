@@ -1850,7 +1850,7 @@ class bitstamp extends bitstamp$1["default"] {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const clientOrderId = this.safeValue2(params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -1880,7 +1880,7 @@ class bitstamp extends bitstamp$1["default"] {
         if (symbol !== undefined) {
             market = this.market(symbol);
         }
-        const clientOrderId = this.safeValue2(params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2(params, 'client_order_id', 'clientOrderId');
         const request = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;

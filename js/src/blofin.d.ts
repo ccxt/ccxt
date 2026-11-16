@@ -272,7 +272,7 @@ export default class blofin extends Exchange {
      * @returns {object} an associative dictionary of currencies
      */
     fetchCurrencies(params?: Dict): Promise<Currencies>;
-    parseCurrency(currency: Dict): CurrencyInterface;
+    parseCurrency(chains: Dict): CurrencyInterface;
     /**
      * @method
      * @name blofin#fetchDepositAddress

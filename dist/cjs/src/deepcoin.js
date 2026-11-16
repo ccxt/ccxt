@@ -384,11 +384,10 @@ class deepcoin extends deepcoin$1["default"] {
         const instType = this.safeString(params, 'instType');
         const paramsOmitted = this.omit(params, 'instType');
         const type = this.safeString(paramsOmitted, 'type');
-        let paramsExtended = paramsOmitted;
         if ((type === undefined) && (instType !== undefined)) {
-            paramsExtended = this.extend(paramsOmitted, { 'type': instType });
+            return super.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, { 'type': instType }), defaultValue);
         }
-        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
     convertToInstrumentType(type) {
         const exchangeTypes = this.safeDict(this.options, 'exchangeType', {});
@@ -689,7 +688,10 @@ class deepcoin extends deepcoin$1["default"] {
             request['after'] = until;
         }
         const calculateUntil = this.safeBool(paramsPaginate, 'calculateUntil', false);
-        const keysToOmit = (calculateUntil) ? ['price', 'until', 'calculateUntil'] : ['price', 'until'];
+        const keysToOmit = ['price', 'until'];
+        if (calculateUntil) {
+            keysToOmit.push('calculateUntil');
+        }
         const paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if (calculateUntil) {
             if (since !== undefined) {
@@ -1772,17 +1774,15 @@ class deepcoin extends deepcoin$1["default"] {
     }
     handleTypePostOnlyAndTimeInForce(type, params) {
         const [postOnly, paramsPostOnly] = this.handlePostOnly(type === 'market', type === 'post_only', params);
-        let typePostOnly = type;
-        if (postOnly) {
-            typePostOnly = 'post_only';
-        }
         const timeInForce = this.handleTimeInForce(paramsPostOnly);
         const paramsOmitted = this.omit(paramsPostOnly, 'timeInForce');
-        let typeValue = typePostOnly;
         if (timeInForce === 'IOC') {
-            typeValue = 'ioc';
+            return ['ioc', paramsOmitted];
         }
-        return [typeValue, paramsOmitted];
+        if (postOnly) {
+            return ['post_only', paramsOmitted];
+        }
+        return [type, paramsOmitted];
     }
     /**
      * @method

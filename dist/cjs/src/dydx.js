@@ -1937,7 +1937,7 @@ class dydx extends dydx$1["default"] {
         const account = await this.fetchDydxAccount();
         const usd = this.parseToInt(Precise["default"].stringMul(this.numberToString(amount), '1000000'));
         let payload = undefined;
-        let signingPayload = undefined;
+        let signingPayload = {};
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {

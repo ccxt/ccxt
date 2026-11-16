@@ -1187,13 +1187,11 @@ export default class digifinex extends Exchange {
         //
         const date = this.safeInteger(response, 'date');
         const tickers = this.safeList(response, 'ticker', []);
-        const data = this.safeDict(response, 'data', {});
         const firstTicker = this.safeDict(tickers, 0, {});
-        let result = data;
         if (!this.safeBool(market, 'swap', false)) {
-            result = this.extend({ 'date': date }, firstTicker);
+            return this.parseTicker(this.extend({ 'date': date }, firstTicker), market);
         }
-        return this.parseTicker(result, market);
+        return this.parseTicker(this.safeDict(response, 'data', {}), market);
     }
     parseTicker(ticker, market = undefined) {
         //
@@ -1928,12 +1926,9 @@ export default class digifinex extends Exchange {
             let quantity = undefined;
             const [createMarketBuyOrderRequiresPrice, paramsRequiresPrice] = this.handleOptionBoolAndParams(paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             const isMarketBuy = isMarketOrder && (side === 'buy');
-            let keysToOmit = undefined;
+            const keysToOmit = ['postOnly'];
             if (isMarketBuy) {
-                keysToOmit = ['cost', 'postOnly'];
-            }
-            else {
-                keysToOmit = ['postOnly'];
+                keysToOmit.push('cost');
             }
             paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
             if (isMarketBuy) {

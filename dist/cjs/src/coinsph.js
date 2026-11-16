@@ -1417,7 +1417,7 @@ class coinsph extends coinsph$1["default"] {
         let orderType = this.safeString(paramsOmitted, 'type', type);
         orderType = this.encodeOrderType(orderType);
         const paramsType = this.omit(paramsOmitted, 'type');
-        let paramsQuote = undefined;
+        let paramsQuote = paramsType;
         const orderSide = this.encodeOrderSide(side);
         const request = {
             'symbol': market['id'],
@@ -1478,8 +1478,7 @@ class coinsph extends coinsph$1["default"] {
             request['stopPrice'] = this.priceToPrecision(symbol, triggerPrice);
         }
         request['newOrderRespType'] = newOrderRespType;
-        const paramsBase = (paramsQuote !== undefined) ? paramsQuote : paramsType;
-        const paramsRequest = this.omit(paramsBase, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
+        const paramsRequest = this.omit(paramsQuote, 'price', 'stopPrice', 'triggerPrice', 'quantity', 'quoteOrderQty');
         let response = {};
         if (testOrder) {
             response = await this.privatePostOpenapiV1OrderTest(this.extend(request, paramsRequest));

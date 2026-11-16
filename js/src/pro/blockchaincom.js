@@ -147,13 +147,13 @@ export default class blockchaincom extends blockchaincomRest {
         const symbolValue = this.safeString(market, 'symbol', '');
         const interval = this.safeString(this.timeframes, timeframe, timeframe);
         const messageHash = 'ohlcv:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'prices',
             'symbol': market['id'],
             'granularity': this.parseNumber(interval),
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         const url = this.safeString(this.urls['api'], 'ws', '');
         const ohlcv = await this.watch(url, messageHash, request, messageHash, request);
         let limitResolved = limit;
@@ -225,12 +225,12 @@ export default class blockchaincom extends blockchaincomRest {
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.safeString(this.urls['api'], 'ws', '');
         const messageHash = 'ticker:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'ticker',
             'symbol': market['id'],
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         return await this.watch(url, messageHash, request, messageHash);
     }
     handleTicker(client, message) {
@@ -336,12 +336,12 @@ export default class blockchaincom extends blockchaincomRest {
         const symbolValue = this.safeString(market, 'symbol', '');
         const url = this.safeString(this.urls['api'], 'ws', '');
         const messageHash = 'trades:' + symbolValue;
-        let request = {
+        const subscribe = {
             'action': 'subscribe',
             'channel': 'trades',
             'symbol': market['id'],
         };
-        request = this.deepExtend(request, params);
+        const request = this.deepExtend(subscribe, params);
         const trades = await this.watch(url, messageHash, request, messageHash, request);
         return this.filterBySinceLimit(trades, since, limit, 'timestamp', true);
     }

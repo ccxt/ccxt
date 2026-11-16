@@ -5145,7 +5145,7 @@ class xt extends xt$1["default"] {
         return result;
     }
     parseTradingFee(fee, market = undefined) {
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString(market, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,

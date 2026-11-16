@@ -1234,8 +1234,7 @@ export default class cryptocom extends cryptocomRest {
             },
             'nonce': id,
         };
-        const message = this.deepExtend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes);
     }
     async unWatchPublicMultiple(topic, symbols, messageHashes, subMessageHashes, topics, params = {}, subExtend = {}) {
         const url = this.urls['api']['ws']['public'];
@@ -1255,8 +1254,7 @@ export default class cryptocom extends cryptocomRest {
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
         };
-        const message = this.deepExtend(request, params);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, params), messageHashes, this.extend(subscription, subExtend));
     }
     async watchPrivateRequest(nonce, params = {}) {
         await this.authenticate();

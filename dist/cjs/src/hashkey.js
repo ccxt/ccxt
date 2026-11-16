@@ -3599,8 +3599,7 @@ class hashkey extends hashkey$1["default"] {
         }
     }
     handleTriggerOptionAndParams(params, methodName, defaultValue = undefined) {
-        const isTrigger = defaultValue;
-        const [isTriggerStop, paramsStop] = this.handleOptionBoolAndParams2(params, methodName, 'stop', 'trigger', isTrigger);
+        const [isTriggerStop, paramsStop] = this.handleOptionBoolAndParams2(params, methodName, 'stop', 'trigger', defaultValue);
         return [isTriggerStop, paramsStop];
     }
     parseOrder(order, market = undefined) {
