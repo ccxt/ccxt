@@ -1223,7 +1223,9 @@ class bingx(Exchange, ImplicitAPI):
         maxLimit = 1000 if (self.safe_bool(market, 'inverse', False)) else 1440
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchOHLCV', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit)
+            # klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            paginationLimit = maxLimit if (timeframe == '1m') else 1000
+            return self.fetch_paginated_call_deterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit)
         request = {
             'symbol': market['id'],
         }
@@ -1236,7 +1238,12 @@ class bingx(Exchange, ImplicitAPI):
         until = self.safe_integer_2(paramsPaginate, 'until', 'endTime')
         paramsUntil = self.omit(paramsPaginate, ['until']) if (until is not None) else paramsPaginate
         if until is not None:
-            request['endTime'] = until
+            endTime = until
+            if since is not None:
+                # the exchange aligns the window to endTime, so keep it within limit candles of since
+                duration = self.parse_timeframe(timeframe) * 1000
+                endTime = min(until, self.sum(since, duration * requestLimit))
+            request['endTime'] = endTime
         elif (self.safe_bool(market, 'inverse', False)) and (since is not None):
             duration = self.parse_timeframe(timeframe) * 1000
             request['endTime'] = self.sum(since, duration * requestLimit)
@@ -2078,7 +2085,7 @@ class bingx(Exchange, ImplicitAPI):
         }
         response: dict
         if self.safe_bool(market, 'spot', False):
-            response = self.spotV1PublicGetTicker24hr(self.extend(request, params))
+            response = self.spotV2PublicGetQuoteTicker(self.extend(request, params))
         else:
             if self.safe_bool(market, 'inverse', False):
                 response = self.cswapV1PublicGetMarketTicker(self.extend(request, params))
@@ -2181,7 +2188,7 @@ class bingx(Exchange, ImplicitAPI):
         subType, paramsSubType = self.handle_sub_type_and_params('fetchTickers', market, paramsMarketType)
         response: dict
         if type == 'spot':
-            response = self.spotV1PublicGetTicker24hr(paramsSubType)
+            response = self.spotV2PublicGetQuoteTicker(paramsSubType)
         else:
             if subType == 'inverse':
                 response = self.cswapV1PublicGetMarketTicker(paramsSubType)

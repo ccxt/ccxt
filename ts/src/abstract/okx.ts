@@ -241,6 +241,10 @@ abstract class Exchange extends _Exchange {
         return this.request ('public/delta-hedge-currencies', [ 'public' ], 'GET', params, { 'cost': 1 });
     }
 
+    publicGetPublicCorporateActions (params = {}): Promise<Dict> {
+        return this.request ('public/corporate-actions', [ 'public' ], 'GET', params, { 'cost': 1 });
+    }
+
     publicGetRubikStatTradingDataSupportCoin (params = {}): Promise<Dict> {
         return this.request ('rubik/stat/trading-data/support-coin', [ 'public' ], 'GET', params, { 'cost': 4 });
     }

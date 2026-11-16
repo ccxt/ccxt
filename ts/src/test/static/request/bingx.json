@@ -2228,7 +2228,7 @@
             {
                 "description": "spot ticker",
                 "method": "fetchTicker",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?symbol=BTC-USDT&timestamp=1709992985897",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?symbol=BTC-USDT&timestamp=1709992985897",
                 "input": [
                     "BTC/USDT"
                 ]
@@ -2246,7 +2246,7 @@
             {
                 "description": "spot tickers",
                 "method": "fetchTickers",
-                "url": "https://open-api.bingx.com/openApi/spot/v1/ticker/24hr?timestamp=1709992986125",
+                "url": "https://open-api.bingx.com/openApi/spot/v2/quote/ticker?timestamp=1709992986125",
                 "input": [
                     [
                         "BTC/USDT",
@@ -2347,6 +2347,52 @@
                   "BTC/USD:BTC",
                   "1m",
                   1720072800000
+                ]
+            },
+            {
+                "description": "spot ohlcv paginate pages 1h by 1000 candles, a 1000-candle range fits one page",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/spot/v1/market/kline?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timeZone=0&timestamp=1709992986762",
+                "input": [
+                  "BTC/USDT",
+                  "1h",
+                  1720072800000,
+                  null,
+                  {
+                    "paginate": true,
+                    "paginationCalls": 1,
+                    "until": 1723672800000
+                  }
+                ]
+            },
+            {
+                "description": "swap ohlcv paginate pages 1h by 1000 candles, a 1000-candle range fits one page",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1723672800000&interval=1h&limit=1000&startTime=1720072799999&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1720072800000,
+                  null,
+                  {
+                    "paginate": true,
+                    "paginationCalls": 1,
+                    "until": 1723672800000
+                  }
+                ]
+            },
+            {
+                "description": "swap ohlcv since and until wider than limit ends the window at since + limit",
+                "method": "fetchOHLCV",
+                "url": "https://open-api.bingx.com/openApi/swap/v3/quote/klines?endTime=1721872800000&interval=1h&limit=500&startTime=1720072799999&symbol=BTC-USDT&timestamp=1709992987069",
+                "input": [
+                  "BTC/USDT:USDT",
+                  "1h",
+                  1720072800000,
+                  500,
+                  {
+                    "until": 1725472800000
+                  }
                 ]
             }
         ],

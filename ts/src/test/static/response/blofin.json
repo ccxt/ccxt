@@ -3,6 +3,155 @@
     "skipKeys": [],
     "options": {},
     "methods": {
+        "fetchFundingRateHistory": [
+            {
+                "description": "paginate walks back from until over the returned fundingTime values, so a 4h contract gets all 6 settlements of the day; with a fixed 8h step the 24h window gets only 3 rows",
+                "method": "fetchFundingRateHistory",
+                "input": [
+                    "CATI/USDT:USDT",
+                    1792368000000,
+                    null,
+                    {
+                        "paginate": true,
+                        "maxEntriesPerRequest": 3,
+                        "until": 1792454399000
+                    }
+                ],
+                "httpResponseByUrl": {
+                    "instId=CATI-USDT&limit=3&after=1792454399000": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": [
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000056",
+                                "fundingTime": "1792440000000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000030",
+                                "fundingTime": "1792425600000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000068",
+                                "fundingTime": "1792411200000"
+                            }
+                        ]
+                    },
+                    "instId=CATI-USDT&limit=3&after=1792411199999": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": [
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000047",
+                                "fundingTime": "1792396800000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000034",
+                                "fundingTime": "1792382400000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000058",
+                                "fundingTime": "1792368000000"
+                            }
+                        ]
+                    },
+                    "instId=CATI-USDT&before=1792367999999&limit=3&after=1792454399000": {
+                        "code": "0",
+                        "msg": "success",
+                        "data": [
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000056",
+                                "fundingTime": "1792440000000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000030",
+                                "fundingTime": "1792425600000"
+                            },
+                            {
+                                "instId": "CATI-USDT",
+                                "fundingRate": "0.000068",
+                                "fundingTime": "1792411200000"
+                            }
+                        ]
+                    }
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000058",
+                            "fundingTime": "1792368000000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.000058,
+                        "timestamp": 1792368000000,
+                        "datetime": "2026-10-19T00:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000034",
+                            "fundingTime": "1792382400000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.000034,
+                        "timestamp": 1792382400000,
+                        "datetime": "2026-10-19T04:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000047",
+                            "fundingTime": "1792396800000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.000047,
+                        "timestamp": 1792396800000,
+                        "datetime": "2026-10-19T08:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000068",
+                            "fundingTime": "1792411200000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.000068,
+                        "timestamp": 1792411200000,
+                        "datetime": "2026-10-19T12:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000030",
+                            "fundingTime": "1792425600000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.00003,
+                        "timestamp": 1792425600000,
+                        "datetime": "2026-10-19T16:00:00.000Z"
+                    },
+                    {
+                        "info": {
+                            "instId": "CATI-USDT",
+                            "fundingRate": "0.000056",
+                            "fundingTime": "1792440000000"
+                        },
+                        "symbol": "CATI/USDT:USDT",
+                        "fundingRate": 0.000056,
+                        "timestamp": 1792440000000,
+                        "datetime": "2026-10-19T20:00:00.000Z"
+                    }
+                ]
+            }
+        ],
         "fetchFundingRate": [
             {
                 "description": "funding rate interval from fundingInterval and its unit",

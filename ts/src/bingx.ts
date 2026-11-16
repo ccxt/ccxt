@@ -1236,7 +1236,9 @@ export default class bingx extends Exchange {
         const maxLimit = (this.safeBool (market, 'inverse', false)) ? 1000 : 1440;
         const [ paginate, paramsPaginate ] = this.handleOptionBoolAndParams (params, 'fetchOHLCV', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxLimit) as OHLCV[];
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            const paginationLimit = (timeframe === '1m') ? maxLimit : 1000;
+            return await this.fetchPaginatedCallDeterministic ('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, paginationLimit) as OHLCV[];
         }
         const request: Dict = {
             'symbol': market['id'],
@@ -1252,7 +1254,13 @@ export default class bingx extends Exchange {
         const until = this.safeInteger2 (paramsPaginate, 'until', 'endTime');
         const paramsUntil = (until !== undefined) ? this.omit (paramsPaginate, [ 'until' ]) : paramsPaginate;
         if (until !== undefined) {
-            request['endTime'] = until;
+            let endTime = until;
+            if (since !== undefined) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                const duration = this.parseTimeframe (timeframe) * 1000;
+                endTime = Math.min (until, this.sum (since, duration * requestLimit));
+            }
+            request['endTime'] = endTime;
         } else if ((this.safeBool (market, 'inverse', false)) && (since !== undefined)) {
             const duration = this.parseTimeframe (timeframe) * 1000;
             request['endTime'] = this.sum (since, duration * requestLimit);
@@ -2158,7 +2166,7 @@ export default class bingx extends Exchange {
         };
         let response: Dict;
         if (this.safeBool (market, 'spot', false)) {
-            response = await this.spotV1PublicGetTicker24hr (this.extend (request, params));
+            response = await this.spotV2PublicGetQuoteTicker (this.extend (request, params));
         } else {
             if (this.safeBool (market, 'inverse', false)) {
                 response = await this.cswapV1PublicGetMarketTicker (this.extend (request, params));
@@ -2274,7 +2282,7 @@ export default class bingx extends Exchange {
         const [ subType, paramsSubType ] = this.handleSubTypeAndParams ('fetchTickers', market, paramsMarketType);
         let response: Dict;
         if (type === 'spot') {
-            response = await this.spotV1PublicGetTicker24hr (paramsSubType);
+            response = await this.spotV2PublicGetQuoteTicker (paramsSubType);
         } else {
             if (subType === 'inverse') {
                 response = await this.cswapV1PublicGetMarketTicker (paramsSubType);

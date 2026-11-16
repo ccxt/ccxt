@@ -19,6 +19,7 @@ const LANGUAGE_NAMES: Record<LanguageId, string> = {
   go: "Go (one package: `ccxt \"github.com/ccxt/ccxt/go/v4\"` — there is no per-exchange package — construct with `ccxt.NewBinance(nil)`, PascalCase methods returning (result, error), struct fields are pointers)",
   csharp: "C# (.NET top-level statements, `using ccxt;`, `new Binance()`, async PascalCase methods like await exchange.FetchTicker(...), lowercase result fields like ticker.symbol)",
   java: "Java (`io.github.ccxt.exchanges.Binance`, `new Binance()`, in a `public class Main`; camelCase methods are SYNCHRONOUS and return the value directly — never call .join() on them; only the `...Async` variants return CompletableFuture)",
+  rust: "Rust (`use ccxt::{Binance, Params};`, `Binance::new(None)`, in `#[tokio::main] async fn main() -> Result<(), ccxt::ExchangeError>`; snake_case async methods take every unified argument positionally — optional ones as `Option` (None) — and end with `Params::none()`, e.g. `exchange.fetch_order_book(\"BTC/USDT\", Some(5), Params::none()).await?`; results are typed structs whose optional fields are `Option<f64>`/`Option<String>`, so print them with {:?}; WebSockets use `ccxt_pro::Binance` and must call `exchange.set_ws_proxy(&std::env::var(\"HTTPS_PROXY\").unwrap_or_default());` before any watch_* call)",
 };
 
 // The playground has one tab per language and the user switches freely, so an
@@ -30,6 +31,7 @@ export const FENCE_TAGS: Record<LanguageId, string> = {
   go: "go",
   csharp: "csharp",
   java: "java",
+  rust: "rust",
 };
 
 // Reverse lookup for the client: models tag fences with whatever alias they
@@ -52,6 +54,8 @@ const FENCE_ALIASES: Record<string, LanguageId> = {
   csharp: "csharp",
   dotnet: "csharp",
   java: "java",
+  rust: "rust",
+  rs: "rust",
 };
 
 export function languageFromFence(tag: string): LanguageId | null {
@@ -76,11 +80,11 @@ Rules:
 - Prefer CCXT PUBLIC endpoints when they suffice (fetchTicker, fetchOrderBook, fetchOHLCV, fetchTrades, loadMarkets, fetchCurrencies, etc.).
 - Public: tickers/books/OHLCV (no keys). Private: balance/orders (apiKey+secret).
 - Returns: ticker{symbol,last,bid,ask}; orderBook{bids,asks}; ohlcv[[ts,o,h,l,c,v]]; trades[]; markets{}; balance{free,used,total}; order{id,status,side,amount,price}; myTrades[].
-- For PRIVATE endpoints (fetchBalance, createOrder, cancelOrder, fetchOrders, fetchMyTrades, withdraw, transfer, setLeverage, etc.) initialise the exchange with dummy credentials so the snippet is structurally correct and runnable in the playground. Use placeholder strings, never real secrets — e.g. TypeScript \`new ccxt.binance({ apiKey: 'YOUR_API_KEY', secret: 'YOUR_SECRET' })\`, Python \`ccxt.binance({'apiKey': 'YOUR_API_KEY', 'secret': 'YOUR_SECRET'})\`, PHP \`new \\ccxt\\binance(['apiKey' => 'YOUR_API_KEY', 'secret' => 'YOUR_SECRET'])\`, Go \`ccxt.NewBinance(map[string]interface{}{\"apiKey\": \"YOUR_API_KEY\", \"secret\": \"YOUR_SECRET\"})\`, C# \`new Binance(new Dictionary<string, object> { { \"apiKey\", \"YOUR_API_KEY\" }, { \"secret\", \"YOUR_SECRET\" } })\`, Java \`Map config = new HashMap(); config.put(\"apiKey\", \"YOUR_API_KEY\"); config.put(\"secret\", \"YOUR_SECRET\"); new Binance(config)\`. Do not invent live orders that would require funded accounts beyond showing the call shape.
+- For PRIVATE endpoints (fetchBalance, createOrder, cancelOrder, fetchOrders, fetchMyTrades, withdraw, transfer, setLeverage, etc.) initialise the exchange with dummy credentials so the snippet is structurally correct and runnable in the playground. Use placeholder strings, never real secrets — e.g. TypeScript \`new ccxt.binance({ apiKey: 'YOUR_API_KEY', secret: 'YOUR_SECRET' })\`, Python \`ccxt.binance({'apiKey': 'YOUR_API_KEY', 'secret': 'YOUR_SECRET'})\`, PHP \`new \\ccxt\\binance(['apiKey' => 'YOUR_API_KEY', 'secret' => 'YOUR_SECRET'])\`, Go \`ccxt.NewBinance(map[string]interface{}{\"apiKey\": \"YOUR_API_KEY\", \"secret\": \"YOUR_SECRET\"})\`, C# \`new Binance(new Dictionary<string, object> { { \"apiKey\", \"YOUR_API_KEY\" }, { \"secret\", \"YOUR_SECRET\" } })\`, Java \`Map config = new HashMap(); config.put(\"apiKey\", \"YOUR_API_KEY\"); config.put(\"secret\", \"YOUR_SECRET\"); new Binance(config)\`, Rust \`Binance::with_config(ccxt::Config::new().api_key(\"YOUR_API_KEY\").secret(\"YOUR_SECRET\"))\`. Do not invent live orders that would require funded accounts beyond showing the call shape.
 - Every code answer ships the SAME program in ALL ${ordered.length} playground languages, one fenced block each, in this order and with exactly these fence tags:
 ${roster}
 - Never omit, merge, repeat or reorder a language, and never put two languages in one block. Each block is a complete, runnable program on its own, matching that language's idioms above (method casing, imports, sync vs async).
-- ccxt is already installed and on the path in every language, so never emit install/bootstrap boilerplate: no \`npm install\`, no \`go get\`, no \`go.mod\`, no \`composer require\`, no \`require\`/\`include\` of an autoloader in PHP, and no \`require()\` in TypeScript.
+- ccxt is already installed and on the path in every language, so never emit install/bootstrap boilerplate: no \`npm install\`, no \`go get\`, no \`go.mod\`, no \`Cargo.toml\`/\`cargo add\`, no \`composer require\`, no \`require\`/\`include\` of an autoloader in PHP, and no \`require()\` in TypeScript.
 - Prefer well-known exchanges (binance, kraken, coinbase, okx, bybit, bitfinex). Use unified symbols like 'BTC/USDT'.
 - Prediction markets (Polymarket, Kalshi, Limitless, Myriad, Hyperliquid) live under the ccxt.prediction namespace and need ccxt >= 4.5.66. Construct with new ccxt.prediction.polymarket(). Search events with fetchEvents({ query: 'Bitcoin', limit: 5 }) — it must be scoped by at least one selector (query, queries, tags, eventId, or slug). Each event has .markets[], each market has .outcomes[] (and a .resolved flag), each outcome has an .outcome handle and a .label (e.g. 'Yes'/'No', though categorical markets use other labels); pass the .outcome handle to fetchTicker/fetchOrderBook/fetchOHLCV. An outcome's price is the market-implied probability. Resolved/closed markets have no order book, so skip markets where .resolved is true and wrap fetchTicker in a try/catch when scanning search results. In Python and PHP these exchanges are async-only: in Python use "import ccxt.prediction" with asyncio and await; there is no synchronous prediction API.
 - Keep answers concise: a sentence or two of prose before the blocks, not a paragraph per language. Nothing but code inside the fences — no prose, no output samples.

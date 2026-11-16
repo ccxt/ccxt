@@ -1229,7 +1229,9 @@ class bingx extends Exchange {
         $maxLimit = ($this->safe_bool($market, 'inverse', false)) ? 1000 : 1440;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            $paginationLimit = ($timeframe === '1m') ? $maxLimit : 1000;
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $paginationLimit);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1245,7 +1247,13 @@ class bingx extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'endTime');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         if ($until !== null) {
-            $request['endTime'] = $until;
+            $endTime = $until;
+            if ($since !== null) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $endTime = min($until, $this->sum($since, $duration * $requestLimit));
+            }
+            $request['endTime'] = $endTime;
         } elseif (($this->safe_bool($market, 'inverse', false)) && ($since !== null)) {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request['endTime'] = $this->sum($since, $duration * $requestLimit);
@@ -2143,7 +2151,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'spot', false)) {
-            $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
+            $response = $this->spotV2PublicGetQuoteTicker($this->extend($request, $params));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
                 $response = $this->cswapV1PublicGetMarketTicker($this->extend($request, $params));
@@ -2258,7 +2266,7 @@ class bingx extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTickers', $market, $paramsMarketType);
         if ($type === 'spot') {
-            $response = $this->spotV1PublicGetTicker24hr($paramsSubType);
+            $response = $this->spotV2PublicGetQuoteTicker($paramsSubType);
         } else {
             if ($subType === 'inverse') {
                 $response = $this->cswapV1PublicGetMarketTicker($paramsSubType);

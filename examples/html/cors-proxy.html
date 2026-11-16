@@ -1,7 +1,8 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>CCXT Basic example for the browser</title>
+    <title>CCXT browser example with a local CORS proxy</title>
+    <!-- start the proxy first: node examples/js/sample-local-proxy-server-with-cors.js -->
     <script type="text/javascript" src="https://unpkg.com/ccxt"></script>
     <script>
 
@@ -9,8 +10,8 @@
 
             alert ('ccxt version ' + ccxt.version);
 
-            const exchange = new ccxt.bitmex ({
-                'proxyUrl': 'http://127.0.0.1:8080/',
+            const exchange = new ccxt.binance ({
+                'proxyUrl': 'http://localhost:8080/',
             })
 
             const symbol = 'BTC/USDT'

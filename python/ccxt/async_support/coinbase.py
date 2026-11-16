@@ -1291,10 +1291,18 @@ class coinbase(Exchange, ImplicitAPI):
         datetime = self.safe_string_n(trade, ['created_at', 'trade_time', 'time'])
         side = self.safe_string_lower_2(trade, 'resource', 'side')
         takerOrMaker = self.safe_string_lower(trade, 'liquidity_indicator')
+        orderId = self.safe_string(trade, 'order_id')
+        entryId = self.safe_string(trade, 'entry_id')
+        if (orderId is None) and (entryId is None) and (self.safe_string(trade, 'resource') is None):
+            # public market trades carry the maker side, the unified side of a public trade is the taker side
+            if side == 'buy':
+                side = 'sell'
+            elif side == 'sell':
+                side = 'buy'
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string_2(trade, 'id', 'trade_id'),
-            'order': self.safe_string(trade, 'order_id'),
+            'order': orderId,
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'symbol': symbol,

@@ -764,10 +764,14 @@ public partial class whitebit : Exchange
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -802,7 +806,6 @@ public partial class whitebit : Exchange
         bool swap = (typeId == "futures") || (typeId == "tradfiFutures");
         bool margin = (isCollateral == true) && !swap;
         bool contract = false;
-        double? amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "stockPrec")));
         bool? linear = null;
         bool? inverse = null;
         if (swap)
@@ -850,8 +853,8 @@ public partial class whitebit : Exchange
             { "strike", null },
             { "optionType", null },
             { "precision", new Dictionary<string, object>() {
-                { "amount", amountPrecision },
-                { "price", this.parseNumber(this.parsePrecision(this.safeString(market, "moneyPrec"))) },
+                { "amount", this.safeNumber(market, "stepSize") },
+                { "price", this.safeNumber(market, "tickSize") },
             } },
             { "limits", new Dictionary<string, object>() {
                 { "leverage", new Dictionary<string, object>() {
@@ -4844,7 +4847,7 @@ public partial class whitebit : Exchange
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
         if ((paginate == true))
         {
-            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, maxLimit));
+            return ccxt.BaseExchange.ToFundingRateHistoryList(await this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, maxLimit));
         }
         if ((this.markets == null))
         {
@@ -4858,7 +4861,7 @@ public partial class whitebit : Exchange
         {
             request["startDate"] = Math.Round(Convert.ToDouble(((double?)since / 1000)));
         }
-        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("until_timestamp", request, paramsPaginate, 0.001);
+        IList<object> requestUntilparamsUntilVariable = (IList<object>)this.handleUntilOption("endDate", request, paramsPaginate, 0.001);
         Dictionary<string, object> requestUntil = (Dictionary<string, object>)requestUntilparamsUntilVariable[0];
         IDictionary<string, object> paramsUntil = ((IDictionary<string, object>)requestUntilparamsUntilVariable[1]);
         if ((limit != null))

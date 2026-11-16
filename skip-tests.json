@@ -1125,9 +1125,6 @@
                 "cost": "same",
                 "amount": "sometimes not present, only cost present sometimes",
                 "sideSequence": "second-precision timestamps served newest-first, intra-second order is not execution order"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1726,9 +1723,6 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "asset/currencies lists deposit coins only, inverse USD quotes and tokenized stocks are missing"
-            },
-            "fetchOHLCV": {
-                "compareTimestampToLimit": "todo"
             }
         }
     },

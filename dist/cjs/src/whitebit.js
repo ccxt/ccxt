@@ -496,10 +496,14 @@ class whitebit extends whitebit$1["default"] {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -530,7 +534,6 @@ class whitebit extends whitebit$1["default"] {
         const swap = (typeId === 'futures') || (typeId === 'tradfiFutures');
         const margin = isCollateral && !swap;
         let contract = false;
-        const amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, 'stockPrec')));
         let linear = undefined;
         let inverse = undefined;
         if (swap) {
@@ -577,8 +580,8 @@ class whitebit extends whitebit$1["default"] {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': amountPrecision,
-                'price': this.parseNumber(this.parsePrecision(this.safeString(market, 'moneyPrec'))),
+                'amount': this.safeNumber(market, 'stepSize'),
+                'price': this.safeNumber(market, 'tickSize'),
             },
             'limits': {
                 'leverage': {
@@ -4196,7 +4199,7 @@ class whitebit extends whitebit$1["default"] {
         const maxLimit = 100;
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, maxLimit);
         }
         if (this.markets === undefined) {
             await this.loadMarkets();
@@ -4208,7 +4211,7 @@ class whitebit extends whitebit$1["default"] {
         if (since !== undefined) {
             request['startDate'] = Math.round(since / 1000);
         }
-        const [requestUntil, paramsUntil] = this.handleUntilOption('until_timestamp', request, paramsPaginate, 0.001);
+        const [requestUntil, paramsUntil] = this.handleUntilOption('endDate', request, paramsPaginate, 0.001);
         if (limit !== undefined) {
             requestUntil['limit'] = limit;
         }

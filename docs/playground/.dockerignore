@@ -8,6 +8,7 @@ runtime
 .env*.local
 
 # misc
+pr-screenshots
 .git
 .gitignore
 *.log

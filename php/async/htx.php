@@ -7364,20 +7364,24 @@ class htx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch funding rate history for
          * @param {int} [$limit] the maximum number of structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] $timestamp in ms of the latest funding rate, linear swaps only
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-history-structure funding rate structures~
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol argument');
         }
-        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
-        if ($paginate) {
-            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'current_page', 'page_index', 1, 50));
-        }
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
         $market = $this->market($symbol);
+        list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
+        if ($paginate) {
+            if ($market['linear']) {
+                return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 100));
+            }
+            return Async\await($this->fetch_paginated_call_cursor('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 'current_page', 'page_index', 1, 50));
+        }
         $request = array(
             'contract_code' => $market['id'],
         );
@@ -7421,7 +7425,8 @@ class htx extends Exchange {
             //     }
             //
         } elseif ($this->safe_bool($market, 'linear', false)) {
-            $response = Async\await($this->contractPublicGetV5MarketFundingRateHistory($this->extend($request, $paramsPaginate)));
+            list($requestUntil, $paramsUntil) = $this->handle_until_option('end_time', $request, $paramsPaginate);
+            $response = Async\await($this->contractPublicGetV5MarketFundingRateHistory($this->extend($requestUntil, $paramsUntil)));
             //
             //     {
             //         "code": 200,

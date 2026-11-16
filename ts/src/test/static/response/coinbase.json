@@ -2,6 +2,185 @@
     "exchange": "coinbase",
     "options": {},
     "methods": {
+        "fetchTrades": [
+            {
+                "description": "public market trades: side is the maker side, unified side is the taker side",
+                "method": "fetchTrades",
+                "input": [
+                    "BTC/USD",
+                    null,
+                    4
+                ],
+                "httpResponse": {
+                    "trades": [
+                        {
+                            "trade_id": "1111135784",
+                            "product_id": "BTC-USD",
+                            "price": "79754.41",
+                            "size": "0.00000293",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135783",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00001836",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135782",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00000033",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        {
+                            "trade_id": "1111135781",
+                            "product_id": "BTC-USD",
+                            "price": "79754.39",
+                            "size": "0.00000004",
+                            "time": "2026-10-27T07:53:11.468847Z",
+                            "side": "BUY",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        }
+                    ],
+                    "best_bid": "79754.39",
+                    "best_ask": "79754.4"
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "trade_id": "1111135781",
+                            "product_id": "BTC-USD",
+                            "price": "79754.39",
+                            "size": "0.00000004",
+                            "time": "2026-10-27T07:53:11.468847Z",
+                            "side": "BUY",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135781",
+                        "order": null,
+                        "timestamp": 1793087591468,
+                        "datetime": "2026-10-27T07:53:11.468847Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "sell",
+                        "takerOrMaker": null,
+                        "price": 79754.39,
+                        "amount": 4e-08,
+                        "cost": 0.0031901756,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135782",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00000033",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135782",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.4,
+                        "amount": 3.3e-07,
+                        "cost": 0.026318952,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135783",
+                            "product_id": "BTC-USD",
+                            "price": "79754.4",
+                            "size": "0.00001836",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135783",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.4,
+                        "amount": 1.836e-05,
+                        "cost": 1.464290784,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    },
+                    {
+                        "info": {
+                            "trade_id": "1111135784",
+                            "product_id": "BTC-USD",
+                            "price": "79754.41",
+                            "size": "0.00000293",
+                            "time": "2026-10-27T07:53:11.538792Z",
+                            "side": "SELL",
+                            "bid": "",
+                            "ask": "",
+                            "exchange": "coinbase"
+                        },
+                        "id": "1111135784",
+                        "order": null,
+                        "timestamp": 1793087591538,
+                        "datetime": "2026-10-27T07:53:11.538792Z",
+                        "symbol": "BTC/USD",
+                        "type": null,
+                        "side": "buy",
+                        "takerOrMaker": null,
+                        "price": 79754.41,
+                        "amount": 2.93e-06,
+                        "cost": 0.2336804213,
+                        "fee": {
+                            "cost": null,
+                            "currency": null
+                        },
+                        "fees": []
+                    }
+                ]
+            }
+        ],
         "transfer": [
             {
                 "description": "transfer USDC between portfolios",

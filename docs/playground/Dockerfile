@@ -22,6 +22,30 @@ RUN PLAYGROUND_DISABLED="python,php,go,csharp" CCXT_JAVA_VERSION="$CCXT_JAVA_VER
     && test -f runtime/java/classes/Playground.class \
     && ls runtime/java/libs | grep -q '^ccxt-'
 
+# --- Rust: prebuild ccxt / ccxt-pro / ccxt-prediction in a THROWAWAY stage so
+# cargo, its ~1 GB registry/source cache and the build-script scratch never ship.
+# The final image takes only the toolchain (rustc must be the exact compiler that
+# built the rlibs) and runtime/rust (target/debug/deps + externs.json). Both are
+# copied to the SAME absolute paths, which externs.json records. ---
+FROM node:24-trixie AS rust-runtime
+# empty = latest on crates.io; pin with --build-arg CCXT_RUST_VERSION=4.5.92
+ARG CCXT_RUST_VERSION=""
+# Venues compiled in (see setup-runtimes.sh). Empty = the curated default;
+# "all" needs ~20 GB free on the builder for the single ccxt-base rustc.
+ARG CCXT_RUST_VENUES=""
+# Same weekly cache key as the main runtime layer, so "latest" re-resolves.
+ARG RUNTIMES_REV=""
+ENV RUSTUP_HOME=/usr/local/rustup CARGO_HOME=/usr/local/cargo PATH="/usr/local/cargo/bin:${PATH}"
+RUN curl -fsSL https://sh.rustup.rs | sh -s -- -y --no-modify-path --profile minimal --default-toolchain stable \
+    && rustc --version
+WORKDIR /app
+COPY scripts/setup-runtimes.sh scripts/setup-runtimes.sh
+# CARGO_BUILD_JOBS=2 caps rustc parallelism: with the curated venue set the
+# build peaks at ~6 GB (~4 min for the ccxt crates, ~10 min cold overall).
+RUN PLAYGROUND_DISABLED="python,php,go,csharp,java" CCXT_RUST_VERSION="$CCXT_RUST_VERSION" \
+      CCXT_RUST_VENUES="$CCXT_RUST_VENUES" RUNTIMES_REV="$RUNTIMES_REV" CARGO_BUILD_JOBS=2 bash scripts/setup-runtimes.sh \
+    && test -f runtime/rust/externs.json
+
 FROM node:24-trixie
 
 ENV DEBIAN_FRONTEND=noninteractive
@@ -83,6 +107,10 @@ RUN npm ci
 # stage; setup-runtimes.sh detects them and skips re-resolving. Playground.java
 # is copied too so the step stands alone if that stage is ever dropped.
 COPY --from=java-libs --chown=playground:playground /pg/runtime/java ./runtime/java
+# Rust: the toolchain only (no cargo registry) + the prebuilt deps. Runs call the
+# toolchain's rustc directly (lib/runners/rust.ts) and link with the system cc.
+COPY --from=rust-runtime /usr/local/rustup/toolchains /usr/local/rustup/toolchains
+COPY --from=rust-runtime --chown=playground:playground /app/runtime/rust ./runtime/rust
 COPY --chown=playground:playground scripts/setup-runtimes.sh scripts/setup-runtimes.sh
 COPY --chown=playground:playground lib/runners/java/Playground.java lib/runners/java/Playground.java
 
