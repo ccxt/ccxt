@@ -459,11 +459,13 @@ export default class gate extends gateRest {
         const messageType = this.getTypeByMarket (market);
         const messageHash = 'orderbook' + ':' + symbolValue;
         // max 100 atm, max 50 for options
-        let defaultLimit = 100;
+        let limitResolved = this.parseToInt (100);
         if ((this.safeBool (market, 'spot', false)) || (messageType === 'options')) {
-            defaultLimit = 50;
+            limitResolved = this.parseToInt (50);
         }
-        let limitResolved = this.parseToInt ((limit === undefined) ? defaultLimit : limit);
+        if (limit !== undefined) {
+            limitResolved = this.parseToInt (limit);
+        }
         if (this.safeBool (market, 'spot', false)) {
             // the subscription limit seeds the rest snapshot, gateeu returns an empty book above 100
             const maxSpotLimit = this.parseToInt (this.handleOption ('fetchOrderBook', 'maxSpotLimit', 1000));
