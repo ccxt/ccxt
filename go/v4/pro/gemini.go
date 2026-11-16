@@ -299,7 +299,7 @@ func (this *Gemini) HandleTradesForMultidata(client any, trades []any, timestamp
 	var tradesLimit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	var storesForSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
-		var rawTrade any = this.SafeValue(trades, i)
+		var rawTrade map[string]any = this.SafeDictMap(trades, i, map[string]any{})
 		var marketId string = strings.ToLower(*this.SafeString(rawTrade, "symbol", ""))
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeString(market, "symbol", "")
@@ -457,8 +457,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var changesLength int = len(changes)
 	// reverse order of array to store candles in ascending order
 	for i := 0; i < changesLength; i++ {
-		var index int64 = (int64(changesLength) - int64(i)) - 1
-		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, index), market))
+		var parsed any = ccxt.OHLCVToList(this.ParseOHLCV(this.SafeValue(changes, (changesLength-i)-1), market))
 		stored.(ccxt.Appender).Append(parsed)
 	}
 	var messageHash string = "ohlcv:" + *symbol + ":" + timeframeId
@@ -1150,7 +1149,7 @@ func (this *Gemini) HandleMessage(client any, message any) {
 		var collectedEventsOfTrades []any = []any{}
 		var eventsLength int = len(events)
 		for i := 0; i < len(events); i++ {
-			var event any = this.SafeValue(events, i)
+			var event map[string]any = this.SafeDictMap(events, i, map[string]any{})
 			var eventType *string = this.SafeString(event, "type")
 			var side *string = this.SafeString(event, "side")
 			var isOrderBook bool = (eventType != nil && *eventType == "change") && (side != nil) && this.InArray(side, []any{"ask", "bid"})

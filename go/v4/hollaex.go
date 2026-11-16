@@ -907,7 +907,7 @@ func (this *Hollaex) ParseTickers(tickers any, optionalArgs ...any) map[string]a
 	var keys []string = ObjectKeys(tickers)
 	for i := 0; i < len(keys); i++ {
 		var key string = keys[i]
-		var ticker any = this.SafeValue(tickers, key)
+		var ticker map[string]any = this.SafeDictMap(tickers, key, map[string]any{})
 		var marketId *string = this.SafeString(ticker, "symbol", key)
 		var market map[string]any = this.SafeMarket(marketId, nil, "-")
 		var symbol *string = SafeStringPtr(market["symbol"])

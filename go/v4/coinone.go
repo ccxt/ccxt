@@ -1776,8 +1776,7 @@ func (this *Coinone) Sign(path string, optionalArgs ...any) map[string]any {
 		}, params))
 		var payload string = this.StringToBase64(json)
 		requestBody = SafeStringPtr(payload)
-		var secret string = strings.ToUpper(this.Secret)
-		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)
+		var signature string = this.Hmac(this.Encode(payload), this.Encode(strings.ToUpper(this.Secret)), sha512)
 		requestHeaders = map[string]any{
 			"Content-Type":        "application/json",
 			"X-COINONE-PAYLOAD":   payload,

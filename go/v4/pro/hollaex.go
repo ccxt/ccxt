@@ -506,7 +506,7 @@ func (this *Hollaex) HandleOrder(client any, message map[string]any, optionalArg
 	var stored ccxt.WsArrayCache = this.Orders
 	var marketIds map[string]any = map[string]any{}
 	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var order any = this.SafeValue(rawOrders, i)
+		var order map[string]any = this.SafeDictMap(rawOrders, i, map[string]any{})
 		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(order))
 		stored.Append(parsed)
 		var symbol *string = this.SafeString(order, "symbol")

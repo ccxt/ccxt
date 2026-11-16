@@ -1265,19 +1265,18 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		// auth sign
-		var request map[string]any = map[string]any{
-			"type":        "login",
-			"topics":      []any{"ws_zk_accounts_v3"},
-			"httpMethod":  http_method,
-			"requestPath": request_path,
-			"apiKey":      this.ApiKey,
-			"passphrase":  this.Password,
-			"timestamp":   timestamp,
-			"signature":   signature,
-		}
 		var message map[string]any = map[string]any{
-			"op":   "login",
-			"args": []any{ccxt.JsonStringify(request)},
+			"op": "login",
+			"args": []any{ccxt.JsonStringify(map[string]any{
+				"type":        "login",
+				"topics":      []any{"ws_zk_accounts_v3"},
+				"httpMethod":  http_method,
+				"requestPath": request_path,
+				"apiKey":      this.ApiKey,
+				"passphrase":  this.Password,
+				"timestamp":   timestamp,
+				"signature":   signature,
+			})},
 		}
 		this.Watch(url, messageHash, message, messageHash)
 	}

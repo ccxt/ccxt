@@ -1210,6 +1210,7 @@ func (this *Ndax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 		panic(responseRecv.Err)
 	}
 	var response []any = responseRecv.Value
+
 	//
 	//     [
 	//         {
@@ -1225,9 +1226,7 @@ func (this *Ndax) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], optio
 	//         }
 	//     ]
 	//
-	var tickers map[string]any = this.ParseTickers(response)
-
-	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(tickers, "symbol", symbolsNormalized))}
+	ch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.FilterByArrayTickers(this.ParseTickers(response), "symbol", symbolsNormalized))}
 	return nil
 }
 

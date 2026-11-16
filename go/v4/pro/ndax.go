@@ -665,12 +665,7 @@ func (this *Ndax) HandleSubscriptionStatus(client any, message map[string]any) {
 	//
 	var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
 	var id *int64 = this.SafeInteger(message, "i")
-	var subscription any = func() any {
-		if id == nil {
-			return nil
-		}
-		return this.SafeDict(subscriptionsById, id)
-	}()
+	var subscription map[string]any = this.SafeDictMap(subscriptionsById, id)
 	if subscription != nil {
 		var method any = this.SafeValue(subscription, "method")
 		if method != nil {
