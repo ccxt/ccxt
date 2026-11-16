@@ -201,4 +201,24 @@ mod cargo_test_gate {
     fn language_specific_suite() {
         crate::language_specific::run().expect("language-specific tests failed");
     }
+
+    // ral-65o: the transpiled tests read `exchange.safe_string*_opt(..)`; each twin on the `ExchangeOps`
+    // surface equals the boxed reader followed by `.as_str().map(str::to_owned)` (the long form).
+    #[test]
+    fn exchange_ops_string_reader_twins_match_the_long_form() {
+        use crate::test_helpers::ExchangeOps;
+        use ccxt::Value;
+        let mut m = indexmap::IndexMap::new();
+        m.insert("s".to_string(), Value::Str("Ab".into()));
+        m.insert("n".to_string(), Value::Int(3));
+        m.insert("b".to_string(), Value::Bool(false));
+        let entry: ccxt::value::Dict = std::sync::Arc::new(m);
+        let ex = &Value::Null;
+        for k in ["s", "n", "b", "missing"] {
+            for d in [vec![], vec![Value::Str("D".into())], vec![Value::Int(1)]] {
+                assert_eq!(ex.safe_string_opt(&entry, Value::Str(k.into()), &d), ex.safe_string(&entry, Value::Str(k.into()), &d).as_str().map(str::to_owned));
+                assert_eq!(ex.safe_string_n_opt(&entry, Value::Array(vec![Value::Str(k.into()), Value::Str("s".into())]), &d), ex.safe_string_n(&entry, Value::Array(vec![Value::Str(k.into()), Value::Str("s".into())]), &d).as_str().map(str::to_owned));
+            }
+        }
+    }
 }

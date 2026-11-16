@@ -540,6 +540,19 @@ fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
 
+/// The one body of the `safe_string_{lower,upper}*_opt` twins: a found string is case-transformed, else
+/// the default is returned verbatim when it is a string (`None` where the boxed helper's
+/// `arg_default(..).as_str()` is `None`), matching TS `safeStringLower/Upper` (type.ts).
+fn cased_or_default(found: Option<String>, upper: bool, optional_args: &[Value]) -> Option<String> {
+    match found {
+        Some(s) => Some(if upper { s.to_uppercase() } else { s.to_lowercase() }),
+        None => match arg_default(optional_args) {
+            Value::Str(d) => Some(d.to_string()),
+            _ => None,
+        },
+    }
+}
+
 fn key_str(key: &Value) -> String {
     stringify_param(key)
 }
@@ -993,13 +1006,7 @@ impl Exchange {
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
     pub fn safe_string_upper_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
-        match self.safe_string_k_opt(obj, key, &[]) {
-            Some(s) => Some(s.to_uppercase()),
-            None => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
-        }
+        cased_or_default(self.safe_string_k_opt(obj, key, &[]), true, optional_args)
     }
 
     pub fn safe_string_lower_n(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Value {
@@ -1061,13 +1068,7 @@ impl Exchange {
     /// default is returned verbatim (`None` where the boxed helper yields `Null`).
     #[inline]
     pub fn safe_string_lower_k_opt(&self, obj: impl crate::value::KeyRead, key: &str, optional_args: &[Value]) -> Option<String> {
-        match self.safe_string_k_opt(obj, key, &[]) {
-            Some(s) => Some(s.to_lowercase()),
-            None => match arg_default(optional_args) {
-                Value::Str(d) => Some(d.to_string()),
-                _ => None,
-            },
-        }
+        cased_or_default(self.safe_string_k_opt(obj, key, &[]), false, optional_args)
     }
 
     pub fn safe_string_lower2(
@@ -1102,6 +1103,42 @@ impl Exchange {
             return v;
         }
         arg_default(optional_args)
+    }
+
+    /// `safe_string_lower` without the box (Value key): see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_opt(obj, key, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper` without the box (Value key): see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper_opt(&self, obj: impl crate::value::KeyRead, key: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_opt(obj, key, &[]), true, optional_args)
+    }
+
+    /// `safe_string_lower2` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string2_opt(obj, k1, k2, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper2` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper2_opt(&self, obj: impl crate::value::KeyRead, k1: Value, k2: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string2_opt(obj, k1, k2, &[]), true, optional_args)
+    }
+
+    /// `safe_string_lower_n` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_lower_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_n_opt(obj, keys, &[]), false, optional_args)
+    }
+
+    /// `safe_string_upper_n` without the box: see `cased_or_default`.
+    #[inline]
+    pub fn safe_string_upper_n_opt(&self, obj: impl crate::value::KeyRead, keys: Value, optional_args: &[Value]) -> Option<String> {
+        cased_or_default(self.safe_string_n_opt(obj, keys, &[]), true, optional_args)
     }
 
     /// `super.X(...)` from derived exchanges — routes back to the base
@@ -3487,5 +3524,81 @@ mod eth_encode_structured_data_bytes_tests {
         assert_eq!(typed.0[1], Value::Int(0x01));
         assert_eq!(Value::from(&typed), old);
         assert_eq!(Value::from(typed), old);
+    }
+}
+
+#[cfg(test)]
+mod cased_reader_opt_twin_tests {
+    // ral-65o: every `safe_string_{lower,upper}{,2,_n}_opt` twin equals its boxed reader followed by
+    // `.as_str().map(str::to_owned)` (the long form it replaces in generated Rust), over found strings,
+    // numbers, booleans, missing keys, string / non-string / mixed-case defaults.
+    use super::*;
+
+    fn row() -> Value {
+        let mut m = HashMap::new();
+        m.insert("s".to_string(), Value::Str("MiXed".into()));
+        m.insert("n".to_string(), Value::Int(42));
+        m.insert("f".to_string(), Value::Float(1.5));
+        m.insert("b".to_string(), Value::Bool(true));
+        m.insert("e".to_string(), Value::Str("".into()));
+        Value::Dict(Arc::new(m))
+    }
+
+    const KEYS: [&'static str; 6] = ["s", "n", "f", "b", "e", "missing"];
+
+    fn key(k: &'static str) -> Value {
+        Value::Str(k.into())
+    }
+
+    fn keys() -> Vec<Value> {
+        let mut out = Vec::new();
+        for k in KEYS {
+            out.push(key(k));
+        }
+        out
+    }
+
+    fn three(a: &'static str, b: &'static str) -> Value {
+        Value::Array(vec![key(a), key(b), key("s")])
+    }
+
+    fn defaults() -> Vec<Vec<Value>> {
+        vec![vec![], vec![Value::Null], vec![Value::Str("DefAult".into())], vec![Value::Int(7)]]
+    }
+
+    fn long(v: Value) -> Option<String> {
+        v.as_str().map(str::to_owned)
+    }
+
+    #[test]
+    fn one_key_twins_match_the_long_form() {
+        let ex = Exchange::default();
+        for k in KEYS {
+            for d in defaults() {
+                assert_eq!(ex.safe_string_lower_opt(row(), key(k), &d), long(ex.safe_string_lower(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_upper_opt(row(), key(k), &d), long(ex.safe_string_upper(row(), key(k), &d)));
+                assert_eq!(ex.safe_string_lower_k_opt(row(), k, &d), long(ex.safe_string_lower_k(row(), k, &d)));
+                assert_eq!(ex.safe_string_upper_k_opt(row(), k, &d), long(ex.safe_string_upper_k(row(), k, &d)));
+            }
+        }
+        assert_eq!(ex.safe_string_lower_opt(row(), Value::Str("s".into()), &[]), Some("mixed".to_string()));
+        assert_eq!(ex.safe_string_upper_opt(row(), Value::Str("missing".into()), &[Value::Str("DefAult".into())]), Some("DefAult".to_string()));
+    }
+
+    #[test]
+    fn two_key_and_n_key_twins_match_the_long_form() {
+        let ex = Exchange::default();
+        for a in KEYS {
+            for b in KEYS {
+                for d in defaults() {
+                    assert_eq!(ex.safe_string_lower2_opt(row(), key(a), key(b), &d), long(ex.safe_string_lower2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_upper2_opt(row(), key(a), key(b), &d), long(ex.safe_string_upper2(row(), key(a), key(b), &d)));
+                    assert_eq!(ex.safe_string_lower_n_opt(row(), three(a, b), &d), long(ex.safe_string_lower_n(row(), three(a, b), &d)));
+                    assert_eq!(ex.safe_string_upper_n_opt(row(), three(a, b), &d), long(ex.safe_string_upper_n(row(), three(a, b), &d)));
+                }
+            }
+        }
+        assert_eq!(ex.safe_string_upper2_opt(row(), Value::Str("missing".into()), Value::Str("n".into()), &[]), Some("42".to_string()));
+        assert_eq!(ex.safe_string_lower_n_opt(Value::Null, Value::Array(keys()), &[Value::Int(1)]), None);
     }
 }
