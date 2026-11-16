@@ -35,6 +35,7 @@ import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2479,6 +2480,7 @@ class NewTranspiler {
         installJavaScalarLocals(this.transpiler);
         installJavaParamTypesPreScan(this.transpiler);
         installJavaStringReturns(this.transpiler);
+        installJavaR77j2ConditionalLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5806,7 +5808,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -6852,6 +6854,40 @@ function javaListLocalsSelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
         if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r77j2: conditional initialisers whose arms prove one box print it; an Integer-only or unproven arm keeps Object
+function javaR77j2ConditionalLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr77j2selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Int, Dict } from './base/types.js';",
+        'export default class zzr77j2selftest extends Exchange {',
+        "    async all (ps: any[]) { const a = await Promise.all (ps); return a.length; }",
+        "    lim (limit: Int = undefined) { const b = (limit === undefined) ? 93 : limit; return b * 2; }",
+        "    exp (e: string) { const c = (e === '') ? undefined : this.convertExpireDate (e); return c; }",
+        "    nd (r: Dict, k: string) { let d = (k === undefined) ? undefined : this.safeDict (r, k); if (d === undefined) { d = this.safeDict (r, 'x'); } return d; }",
+        "    ints (x: boolean) { const f = x ? 1 : 2; return f; }",
+        "    anyArm (x: boolean, r: any) { const g = x ? r : 1; return g; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> a = /.test(out)) problems.push("'a' (await Promise.all of a list) must print List<Object>");
+        if (!/Long b = /.test(out)) problems.push("'b' (int literal : Long param) must print Long");
+        if (!/String c = \(String\) \(/.test(out)) problems.push("'c' (null : convertExpireDate) must print String with a checkcast");
+        if (!/Map<String, Object> d = \(java\.util\.Map<String, Object>\) \(/.test(out)) problems.push("'d' (null : safeDict, safeDict write) must print Map with a checkcast");
+        if (/\bLong f = |\bObject f = (?!.*\? 1 : 2)/.test(out)) problems.push("'f' (int : int) is not this family's");
+        if (!/\bObject g = /.test(out)) problems.push("'g' (any : int) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);

@@ -19907,3 +19907,329 @@ function x21BaseOnlyDispatch (call) {
     return declarations !== undefined && declarations.length > 0
         && declarations.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName));
 }
+
+// ===== r77j2. conditional initialisers whose every arm proves one Java box =====
+// `const x = c ? a : b` (and nested arms) still declared `Object` when an arm is a typed parameter
+// read, a Promise.all join, a native long/double arithmetic node or a Map/List/scalar producer that
+// the earlier families do not combine. Decided from the TS AST and checker, per arm:
+//   - null / undefined arms fit every reference box;
+//   - an unwritten parameter answers the type its signature prints (joinParameterReadType / List);
+//   - Map / List / String / Long / Double / Boolean arms reuse the families' own value proofs
+//     (javaMapLocalValue, javaListLocalValue, javaScalarLocalValue, ternaryArmType), whose `cast`
+//     marks an arm printed `Object`: the declaration then checkcasts the whole conditional;
+//   - Java numeric conditionals (JLS 15.25): an int literal / Integer arm next to an arm printed
+//     statically Long (Double) is promoted by the conditional itself, so the value is a Long (Double)
+//     box exactly as the `Object` declaration already held it. Such an arm is rejected next to a null
+//     arm or a cast arm (a reference conditional would box it as Integer).
+// The local's init and every write prove the box, every use passes isSafeToNarrow, and the type is
+// published so the printer's declared-type rules print the uses natively.
+const R77J2_TYPES = [ JAVA_MAP_TYPE, JAVA_LIST_LOCAL_TYPE, 'String', 'Long', 'Double', 'Boolean', 'Integer' ];
+const R77J2_NUMERIC = new Set ([ 'Long', 'Double', 'Integer' ]);
+const R77J2_PROMISE_ALL_FILE = /(^|[\\/])ts[\\/]src[\\/]/;
+const R77J2_TEST_FILE = /(^|[\\/])ts[\\/]src[\\/](pro[\\/])?test[\\/]/;
+
+// `await Promise.all (xs)` (xs not an array literal) in the exchange / base tiers prints the
+// printer's inline stream (printJavaPromiseAllStream) whose `.join()` is a List<Object>
+function r77j2PromiseAllList (value) {
+    if (value === undefined || !ts.isAwaitExpression (value)) {
+        return false;
+    }
+    const call = unwrapParens (value.expression);
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.length !== 1
+        || !ts.isPropertyAccessExpression (call.expression) || !ts.isIdentifier (call.expression.expression)
+        || call.expression.expression.text !== 'Promise' || call.expression.name.text !== 'all') {
+        return false;
+    }
+    const arg = unwrapParens (call.arguments[0]);
+    const file = String (call.getSourceFile ().fileName);
+    return arg !== undefined && !ts.isArrayLiteralExpression (arg) && !ts.isSpreadElement (arg)
+        && R77J2_PROMISE_ALL_FILE.test (file) && !R77J2_TEST_FILE.test (file);
+}
+
+function r77j2Normalize (type) {
+    const t = String (type ?? '').replace (/^final\s+/, '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    if (t === 'Map<String,Object>') {
+        return JAVA_MAP_TYPE;
+    }
+    if (t === 'List<Object>') {
+        return JAVA_LIST_LOCAL_TYPE;
+    }
+    return t;
+}
+
+// the type an unwritten parameter of the enclosing method prints, else undefined
+function r77j2ParameterType (printer, identifier) {
+    const joined = joinParameterReadType (printer, identifier);
+    if (joined !== undefined) {
+        return r77j2Normalize (joined === JAVA_STRUCTURE_TYPE ? JAVA_MAP_TYPE : joined);
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return undefined;
+    }
+    if (declaration === undefined || !ts.isParameterDeclaration (declaration) || !ts.isIdentifier (declaration.name)
+        || declaration.name.text !== identifier.text || declaration.initializer !== undefined
+        || !ts.isMethodDeclaration (declaration.parent) || enclosingFunction (identifier) !== declaration.parent
+        || parameterIsWritten (declaration) || typeof printer.javaNativeParameterType !== 'function') {
+        return undefined;
+    }
+    let printed;
+    try {
+        printed = printer.javaNativeParameterType (declaration);
+    } catch (e) {
+        return undefined;
+    }
+    return r77j2Normalize (printed) === JAVA_LIST_LOCAL_TYPE ? JAVA_LIST_LOCAL_TYPE : undefined;
+}
+
+// the declared box of an identifier read printed bare (a typed local or an unwritten parameter)
+function r77j2IdentifierType (printer, identifier) {
+    if (identifier.text === 'undefined') {
+        return undefined;
+    }
+    try {
+        if (printer.printNode (identifier, 0) !== identifier.text) {
+            return undefined;
+        }
+        const param = r77j2ParameterType (printer, identifier);
+        if (param !== undefined) {
+            return param;
+        }
+        const declared = r77j2Normalize (printer.javaDeclaredTypeOf (identifier));
+        return declared === '' || declared === 'Object' ? undefined : declared;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+// a read of an unwritten parameter / const local that a test or an exiting `if` proves non-null
+function r77j2GuardedRead (printer, identifier) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || !ts.isIdentifier (declaration.name) || typeof printer.javaNullGuardAdmitsRead !== 'function') {
+        return false;
+    }
+    const unwritten = ts.isParameterDeclaration (declaration) ? !parameterIsWritten (declaration)
+        : (ts.isVariableDeclaration (declaration) && ts.isVariableDeclarationList (declaration.parent)
+            && (declaration.parent.flags & ts.NodeFlags.Const) !== 0);
+    try {
+        return unwritten && printer.javaNullGuardAdmitsRead (identifier) === true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// one leaf arm: { kind: 'null' } | { kind: 'int' } (an int literal / Integer read, promotable) |
+// { kind: 'typed', cast } (prints a `type` box, or Object when cast), else undefined
+function r77j2Leaf (printer, node, declaration, type) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return undefined;
+    }
+    if (isNullishInitializer (value)) {
+        return { kind: 'null' };
+    }
+    if (javaIntLiteral (value)) {
+        return R77J2_NUMERIC.has (type) ? { kind: type === 'Integer' ? 'typed' : 'int', cast: false } : undefined;
+    }
+    if (ts.isIdentifier (value)) {
+        if (value.text === declaration.name.text) {
+            return undefined; // a self read in the initializer is not a value
+        }
+        const declared = r77j2IdentifierType (printer, value);
+        // an unboxed read is only safe where a guard proves the binding non-null
+        const nonNull = r77j2GuardedRead (printer, value);
+        if (declared === type) {
+            return { kind: 'typed', cast: false, nonNull };
+        }
+        return declared === 'Integer' && nonNull && (type === 'Long' || type === 'Double') ? { kind: 'int' } : undefined;
+    }
+    if (type === 'Long' || type === 'Double') {
+        let native;
+        try {
+            native = printer.javaNativeArithmeticType?.(value);
+        } catch (e) {
+            native = undefined;
+        }
+        if (native === type) {
+            return { kind: 'typed', cast: false, nonNull: true }; // a primitive long/double
+        }
+        if (ts.isBinaryExpression (value)) {
+            return undefined; // Helpers.add/subtract/.. print Object
+        }
+    }
+    let info;
+    try {
+        if (type === JAVA_MAP_TYPE) {
+            info = javaMapLocalValue (printer, value, declaration);
+            info = info === undefined ? undefined : { cast: info.cast === true };
+        } else if (type === JAVA_LIST_LOCAL_TYPE) {
+            info = r77j2PromiseAllList (value) ? { cast: false } : javaListLocalValue (printer, value, declaration);
+            info = info === undefined ? undefined : { cast: info.cast === true };
+        } else if (type === 'Integer') {
+            info = undefined;
+        } else {
+            info = javaScalarLocalValue (printer, value, declaration, type);
+            info = info === undefined ? undefined : { cast: info.cast !== '' };
+            if (info === undefined && type === 'String') {
+                const arm = ternaryArmType (printer, value);
+                info = arm !== undefined && arm.nullish !== true && arm.type === LITERAL_STRING_TYPE ? { cast: arm.cast === true } : undefined;
+            }
+        }
+    } catch (e) {
+        info = undefined;
+    }
+    return info === undefined ? undefined : { kind: 'typed', cast: info.cast };
+}
+
+// a whole (possibly nested) conditional: { kind, cast } as for a leaf
+function r77j2Value (printer, node, declaration, type, depth = 0) {
+    const value = unwrapParens (node);
+    if (value === undefined || depth > 6) {
+        return undefined;
+    }
+    if (!ts.isConditionalExpression (value)) {
+        return r77j2Leaf (printer, value, declaration, type);
+    }
+    const a = r77j2Value (printer, value.whenTrue, declaration, type, depth + 1);
+    const b = r77j2Value (printer, value.whenFalse, declaration, type, depth + 1);
+    if (a === undefined || b === undefined) {
+        return undefined;
+    }
+    if (a.kind === 'int' || b.kind === 'int') {
+        // a numeric conditional: the other arm must print the primitive-promotable box itself
+        const other = a.kind === 'int' ? b : a;
+        if (other.kind === 'int') {
+            return undefined; // int/Integer on both sides is an Integer conditional
+        }
+        if (other.kind !== 'typed' || other.cast || other.nonNull !== true) {
+            // a reference arm would box the int as Integer; a nullable box would be unboxed (NPE)
+            return undefined;
+        }
+        return { kind: 'typed', cast: false, nonNull: true };
+    }
+    if (a.kind === 'null' && b.kind === 'null') {
+        return { kind: 'null' };
+    }
+    return { kind: 'typed', cast: (a.cast === true) || (b.cast === true), nonNull: a.nonNull === true && b.nonNull === true };
+}
+
+function r77j2Local (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !(ts.isConditionalExpression (init) || r77j2PromiseAllList (init))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name)) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    for (const type of R77J2_TYPES) {
+        const value = r77j2Value (printer, init, declaration, type);
+        if (value === undefined || value.kind !== 'typed' || dataflowTypeTokenCollides (index, type)) {
+            continue;
+        }
+        const scalar = type !== JAVA_MAP_TYPE && type !== JAVA_LIST_LOCAL_TYPE && type !== 'String';
+        if (scalar && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && javaUnboxingUse (n))) {
+            return undefined;
+        }
+        if (R77J2_NUMERIC.has (type) && integerLocalHasBoxedEquality (declaration)) {
+            return undefined; // `==` on two boxes would print a reference compare
+        }
+        const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
+            writeOnly: true,
+            noCastAssertions: type === JAVA_MAP_TYPE || type === JAVA_LIST_LOCAL_TYPE,
+            nonNull: type === 'String' ? false : undefined,
+            strictPlus: type === 'String',
+            stringAsCast: type === 'String',
+            writeOk: (right) => {
+                const write = r77j2Value (printer, right, declaration, type);
+                // a checkcast write cannot wrap a printed conditional (`(T) c ? a : b` binds the test)
+                return write !== undefined && (write.kind === 'null'
+                    || (write.kind === 'typed' && !(write.cast && ts.isConditionalExpression (unwrapParens (right)))));
+            },
+        });
+        return ok ? { type, cast: value.cast === true } : undefined;
+    }
+    return undefined;
+}
+
+export function installJavaR77j2ConditionalLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR77j2Patched) {
+        return;
+    }
+    printer._javaR77j2Patched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = r77j2Local (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, info.type);
+        let rest = printed.slice (at + marker.length);
+        if (info.cast) {
+            const semi = rest.lastIndexOf (';');
+            const body = semi === -1 ? rest : rest.slice (0, semi);
+            const tail = semi === -1 ? '' : rest.slice (semi);
+            if (body.indexOf ('\n') !== -1 || tail.trim () !== ';' && tail !== '') {
+                typed.delete (declaration);
+                return printed;
+            }
+            rest = `(${info.type}) (${body})${tail}`;
+        }
+        return printed.slice (0, at) + marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // a later write from an Object-printed producer takes the declared checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let write;
+        let type;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            type = declaration === undefined ? undefined : typed.get (declaration);
+            write = type === undefined ? undefined : r77j2Value (printer, node.right, declaration, type);
+        } catch (e) {
+            write = undefined;
+        }
+        if (write === undefined || write.cast !== true) {
+            return printed;
+        }
+        return accumulatorCastWrite (printer, node, printed, { cast: `(${type})` });
+    };
+}
