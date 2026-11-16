@@ -76,6 +76,11 @@ function csharpMatchingClose (text: string, from: number, opens = '(', closes = 
             }
         } else if (quotes.includes (ch)) {
             quote = ch;
+        } else if ((quotes === '"') && (step > 0) && (ch === '/') && (text[i + 1] === '/')) {
+            // the former matchingParen walker (every '"'-quoted caller): a `//` comment runs to the end of the line
+            while ((i < text.length) && (text[i] !== '\n')) {
+                i++;
+            }
         } else if (opens.includes (ch)) {
             depth++;
         } else if (closes.includes (ch)) {
@@ -253,6 +258,10 @@ function csharpCounterRegion (masked: string[], start: number, end: number) {
         for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
         for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
             if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
+        }
+        for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
+        for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+            for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop () ?? '');
         }
     }
     return region;
@@ -2340,7 +2349,9 @@ function csharpRetSameFileIndex (content: string): Map<string, Set<string>> {
 
 // every declared C# return type of `name` the emitted text proves; >1 distinct spelling is unproven
 function csharpRetDeclaredReturnTypes (content: string, name: string): string[] {
-    const found = csharpRetSameFileIndex (content).get (name) ?? csharpRetBaseIndex ().get (name)
+    // a pascalized call site reads the camelCase declaration (typeCores runs before the rename)
+    const sameFile = csharpRetSameFileIndex (content)
+    const found = sameFile.get (name) ?? sameFile.get (name.charAt (0).toLowerCase () + name.slice (1)) ?? csharpRetBaseIndex ().get (name)
     return [ ...(found ?? []) ]
 }
 
@@ -3307,6 +3318,10 @@ class NewTranspiler {
                 }
             } else if (ch === ';' || (ch === '}' && depth === 0)) {
                 return null;
+            } else if (ch === '{' && depth === 0) {
+                if (!/(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*$/.test (line.slice (0, i))) {
+                    return null;
+                }
             }
             i -= 1;
         }
@@ -4601,12 +4616,15 @@ class NewTranspiler {
             return content;
         }
         const fields = new Set<string> (STRING_PRODUCER_FIELDS);
-        // every `public ... <name>(` in the content: the first emitted declaration decides the type of a
-        // `this.<name>(...)` call
+        // every `public ... <name>(` in the content: the emitted declaration decides the type of a
+        // `this.<name>(...)` call; two declarations that disagree answer `*`, which vetoes the name
         const declared = new Map<string, string> ();
         for (const m of content.matchAll (/^\s*public\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+)*([A-Za-z_][\w<>.,?\[\]]*)\s+([A-Za-z_][A-Za-z0-9_]*)\s*\(/gm)) {
-            if (!declared.has (m[2])) {
+            const previous = declared.get (m[2]);
+            if (previous === undefined) {
                 declared.set (m[2], m[1]);
+            } else if (previous !== m[1]) {
+                declared.set (m[2], '*');
             }
         }
         const stringProducer = (name: string): boolean => {
@@ -4617,7 +4635,20 @@ class NewTranspiler {
             return STRING_PRODUCER_HELPERS[name] !== undefined;
         };
         const declRe = new RegExp ('(?:^|[\\s(,])(string\\?|string|object|var|bool\\?|bool|Int64\\?|Int64|double\\?|double|int\\?|int|Dictionary<string, object>|IDictionary<string, object>|List<object>|IList<object>|ccxt\\.[\\w.<>?]+|[A-Z][\\w.]*)\\s+([A-Za-z_][A-Za-z0-9_]*)(?![\\w])\\s*(?==|,|\\))', 'g');
-        return this.stringCastPass (content, declRe, (allowed, blocked) => (line) => this.dropIdentityStringCastsOnLine (line, allowed, (name) => blocked.has (name), stringProducer, fields));
+        // the veto: another binding of the name, or a lambda / loop / catch parameter of that name
+        // anywhere in the method body would shadow it (stringCastPass asks once per region, in order)
+        const lines = content.split ('\n');
+        const sigLines = lines.flatMap ((line, i) => this.isCsharpMethodSignature (line) ? [ i ] : []);
+        let region = 0;
+        return this.stringCastPass (content, declRe, (allowed, blocked) => {
+            const k = region++;
+            const body = lines.slice (sigLines[k] + 1, (k + 1 < sigLines.length) ? sigLines[k + 1] : lines.length).join ('\n');
+            const veto = (name: string): boolean => blocked.has (name)
+                || new RegExp ('\\b' + name + '\\b\\s*=>').test (body)
+                || new RegExp ('\\([^()]*\\b' + name + '\\b[^()]*\\)\\s*=>').test (body)
+                || new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (body);
+            return (line) => this.dropIdentityStringCastsOnLine (line, allowed, veto, stringProducer, fields);
+        });
     }
 
     // one line of the pass above: scan the code part (a `//` comment and the inside of string
@@ -4880,17 +4911,25 @@ class NewTranspiler {
         let i = 0;
         while (i < content.length) {
             const ch = content[i];
-            if ((ch === '"') || (ch === "'")) {
+            const verbatim = (ch === '@') && (content[i + 1] === '"');
+            if (verbatim || (ch === '"') || (ch === "'")) {
+                const quote = verbatim ? '"' : ch;
                 blank (i);
-                i++;
+                i += verbatim ? 2 : 1;
                 while (i < content.length) {
-                    if ((content[i] === '\\') && (i + 1 < content.length)) {
+                    if (!verbatim && (content[i] === '\\') && (i + 1 < content.length)) {
                         blank (i);
                         blank (i + 1);
                         i += 2;
                         continue;
                     }
-                    if (content[i] === ch) {
+                    if (verbatim && (content[i] === '"') && (content[i + 1] === '"')) {
+                        blank (i);
+                        blank (i + 1);
+                        i += 2;
+                        continue;
+                    }
+                    if (content[i] === quote) {
                         blank (i);
                         i++;
                         break;
@@ -5006,6 +5045,17 @@ class NewTranspiler {
             if (declaration && !CSHARP_NON_TYPES.has (declaration[1])) {
                 declare (declaration[2], declaration[1]);
                 writes.set (declaration[2], [ declaration[3].trim () ].concat (writes.get (declaration[2]) ?? []));
+                continue;
+            }
+            const bare = CSHARP_BARE_DECLARATION.exec (line);
+            if (bare && !CSHARP_NON_TYPES.has (bare[1])) {
+                declare (bare[2], bare[1]);
+                unsafe.add (bare[2]);
+                continue;
+            }
+            const foreach = /\bforeach\s*\(\s*([A-Za-z_][\w.]*(?:<[^<>]*>)?)\s+([A-Za-z_]\w*)\s+in\b/.exec (line);
+            if (foreach && !CSHARP_NON_TYPES.has (foreach[1])) {
+                declare (foreach[2], foreach[1]);
                 continue;
             }
             const assignment = /^\s*([A-Za-z_]\w*)\s*=(?!=)(.*)$/.exec (line);
@@ -5255,7 +5305,20 @@ class NewTranspiler {
         };
         while (i < to) {
             const ch = content[i];
-            if (ch === '(' || ch === '[' || ch === '{') {
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                i += 1;
+                while (i < to) {
+                    if (content[i] === '\\') {
+                        i += 2;
+                        continue;
+                    }
+                    if (content[i] === quote) {
+                        break;
+                    }
+                    i += 1;
+                }
+            } else if (ch === '(' || ch === '[' || ch === '{') {
                 depth += 1;
             } else if (ch === ')' || ch === ']' || ch === '}') {
                 depth -= 1;
@@ -5381,6 +5444,18 @@ class NewTranspiler {
         let cur = '';
         for (let i = 0; i < plist.length; i++) {
             const ch = plist[i];
+            if (ch === '"' || ch === '\'') {
+                const quote = ch;
+                let j = i + 1;
+                while (j < plist.length) {
+                    if (plist[j] === '\\') { j += 2; continue; }
+                    if (plist[j] === quote) { j++; break; }
+                    j++;
+                }
+                cur += plist.substring (i, j);
+                i = j - 1;
+                continue;
+            }
             if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
                 depth++;
             } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
@@ -5500,6 +5575,22 @@ class NewTranspiler {
                 }
             }
         }
+        // lambda parameters shadow any same-named local: their type is not proven
+        const lambdaNames = new Set<string> ();
+        for (const line of lines) {
+            const codeOnly = line.trimStart ();
+            if (codeOnly.startsWith ('*') || codeOnly.startsWith ('//') || codeOnly.startsWith ('/*')) {
+                continue;
+            }
+            for (const lambda of line.matchAll (/\(([^()]*)\)\s*=>/g)) {
+                for (const parts of paramTypes (lambda[1])) {
+                    lambdaNames.add (parts[parts.length - 1]);
+                }
+            }
+            for (const lambda of line.matchAll (/(?:^|[^\w>.,])(\w+)\s*=>/g)) {
+                lambdaNames.add (lambda[1]);
+            }
+        }
         // ---- receiver -> static type, or undefined when the file cannot prove it
         const receiverType = (operand: string, lineScope: BoxScope | undefined): string | undefined => {
             const scopeHas = (name: string): Set<string> | undefined => {
@@ -5525,7 +5616,7 @@ class NewTranspiler {
             const identifier = /^([\w.]+)$/.exec (text);
             if (identifier !== null) {
                 const name = identifier[1].split ('.').pop () as string;
-                return unparsedNames.has (name) ? undefined : safeType (scopeHas (name));
+                return (lambdaNames.has (name) || unparsedNames.has (name)) ? undefined : safeType (scopeHas (name));
             }
             return undefined;
         };
@@ -7910,6 +8001,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
             if (parts !== undefined) {
                 const kinds = parts.map ((p) => typeOf (region, line, p, depth + 1));
                 if ((kinds[0] === 'string') || ((parts.length === 2) && (kinds[1] === 'string'))) return 'string';
+                if (kinds.every ((k) => k === 'int')) return 'int';
                 return kinds.every ((k) => (k === 'int') || (k === 'nint')) ? 'nint' : undefined;
             }
             const minus = /^(.*[^ ]) - ([0-9]{1,9})$/.exec (inner);
@@ -8152,6 +8244,8 @@ export function csharpStringAddEqualityTruth (content: string): string {
                     }
                 } else {
                     const tb = typeOf (region, line, b);
+                    const literal = (x: string) => /^"(?:[^"\\]|\\.)*"$/.test (x) || /^-?[0-9]+$/.test (x) || /^(true|false)$/.test (x);
+                    if (literal (a) && literal (b)) continue;
                     if (((ta === 'string') && (tb === 'string')) || ((ta === 'int') && (tb === 'int'))) out = `(${atom (a)} == ${atom (b)})`;
                     // lifted `==` on Int64? is isEqual's numeric compare with its null rows
                     else if ([ 'nint', 'int' ].includes (ta) && [ 'nint', 'int' ].includes (tb) && (ta === 'nint')) out = `(${atom (a)} == ${atom (b)})`;
@@ -9314,6 +9408,14 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
             const l = emittedOperandType (bare.slice (open + 1, comma), typeOfName, results, file);
             const r = emittedOperandType (bare.slice (comma + 1, -1), typeOfName, results, file);
             if ((l === undefined) || (r === undefined)) return undefined;
+            if (call[1] === 'add') {
+                // add twins: (Int64, Int64), (double, double), string forms; every other numeric pair binds (object, object)
+                if ([ l, r ].some ((x) => x.startsWith ('string'))) return undefined;
+                if ([ 'int', 'Int64' ].includes (l) && [ 'int', 'Int64' ].includes (r)) return 'Int64';
+                if ([ 'int', 'Int64', 'double' ].includes (l) && [ 'int', 'Int64', 'double' ].includes (r)) return 'double';
+                return 'object';
+            }
+            if ((call[1] === 'divide') && (l !== 'object') && (r !== 'object')) return undefined;
             // add / divide over these operands bind the (object, object) overload
             return ((call[1] !== 'this.sum') || ![ l, r ].every ((x) => [ 'int', 'Int64', 'int?', 'Int64?' ].includes (x))) ? 'object' : 'Int64';
         }
