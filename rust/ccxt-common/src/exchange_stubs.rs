@@ -32,8 +32,8 @@ unsafe fn coerce_to_mut_unsafe(e: &Exchange) -> &mut Exchange {
 
 // One owner thread hands out the counter, so two tasks can never take the same
 // value and no call site touches an atomic.
-static RANDOM_COUNTER: once_cell::sync::Lazy<crate::value::OwnerThread<u64>> =
-    once_cell::sync::Lazy::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
+static RANDOM_COUNTER: std::sync::LazyLock<crate::value::OwnerThread<u64>> =
+    std::sync::LazyLock::new(|| crate::value::OwnerThread::spawn("ccxt-random", 0u64));
 
 /// Non-cryptographic 64-bit PRNG (splitmix64) seeded from a global
 /// counter mixed with the high-resolution clock. Good enough for the

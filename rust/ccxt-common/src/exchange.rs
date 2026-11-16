@@ -46,8 +46,8 @@ struct HttpTimings { http_nanos: u64, json_nanos: u64, http_calls: u64 }
 // One owner thread holds the three counters; a caller hands it an add and never
 // waits, so there is no lock on the HTTP path. A read is ordered behind every
 // add this thread already posted.
-static TIMINGS: once_cell::sync::Lazy<crate::value::OwnerThread<HttpTimings>> =
-    once_cell::sync::Lazy::new(|| {
+static TIMINGS: std::sync::LazyLock<crate::value::OwnerThread<HttpTimings>> =
+    std::sync::LazyLock::new(|| {
         crate::value::OwnerThread::spawn("ccxt-http-timings", HttpTimings::default())
     });
 

@@ -224,7 +224,6 @@ dependencies = [
  "md-5",
  "num-bigint",
  "num-traits",
- "once_cell",
  "rand 0.8.6",
  "reqwest",
  "rmpv",
