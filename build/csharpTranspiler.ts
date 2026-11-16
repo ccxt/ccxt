@@ -7618,10 +7618,6 @@ function csharpIsEqualOperandType (m: string, takeType, content: string): string
         const receiver = takeType (list[1]);
         return ((receiver !== undefined) && CSHARP_DECLARED_LIST_TYPES.includes (receiver.type)) ? 'object' : undefined;
     }
-    // an explicit cast to an object-valued collection, indexed: the indexer's static type is object
-    if (/^\(\(IDictionary<string,[ ]?object>\)\w+\)\["[ ]*"\]$/.test (m) || /^\(\((?:I)?List<object>\)\w+\)\[\d+\]$/.test (m)) {
-        return 'object';
-    }
     const field = /^this\.(\w+)$/.exec (m);
     if ((field !== null) && !/^namespace Tests;/m.test (content)) {
         const declared = new RegExp ('\\b(?:public|private|protected|internal)\\b[^(;=\\n]*[ ]' + field[1] + '[ ]*(?:\\{|=|;)');
@@ -7673,13 +7669,12 @@ export function csharpDeclaredReceiverHelperCalls (content: string): string {
     if (!/\b(inOp|getArrayLength|getIndexOf)\(/.test (content)) {
         return content;
     }
-    let keys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
     return csharpLinePass (content, false, (region, line, masked, i) => {
         if (!/\b(inOp|getArrayLength|getIndexOf)\(/.test (masked)) {
             return undefined;
         }
         const typeOf = (name) => (/^[A-Za-z_]\w*$/.test (name) ? csharpHelperReceiverType (region, name, i, region.params) : undefined);
-        return declaredReceiverRewriteLine (line, masked, typeOf, (name) => csharpInOpReceiverType (region, name, i), () => `inOpKey${keys++}`);
+        return declaredReceiverRewriteLine (line, masked, typeOf, (name) => csharpInOpReceiverType (region, name, i));
     });
 }
 
@@ -7694,7 +7689,7 @@ function isStringConcatNeedle (mask: string): boolean {
     return mask.includes ('"') && /^[\s()+"\w]+$/.test (mask) && !/[A-Za-z_]\w*\s*\(/.test (mask) && /^[\s(]*("|\w)/.test (mask) && !/\+\s*[+)]|\(\s*\+/.test (mask);
 }
 
-function declaredReceiverRewriteLine (original: string, masked: string, typeOf, wsMapOf, keyName): string | undefined {
+function declaredReceiverRewriteLine (original: string, masked: string, typeOf, wsMapOf): string | undefined {
     const edits = [];
     let match;
     const calls = /(?<![A-Za-z_.])(inOp|getArrayLength|getIndexOf)\(/g;
@@ -7731,31 +7726,15 @@ function declaredReceiverRewriteLine (original: string, masked: string, typeOf, 
         }
         // inOp: the key is read once; a literal or an identifier only
         if (!literal && (key === undefined)) continue;
-        const local = typeOf (name);
-        if ((local !== undefined) && (local.type === 'ccxt.pro.ArrayCache')) {
-            // InOp's IList<object> branch: Contains(key) behind the null guards
-            const keyTest = literal ? '' : `${keyText} != null && `;
-            edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyTest}${name}.Contains(${keyText}))` });
-            continue;
-        }
         if ((key === undefined) || (key.type !== 'object')) continue; // string keys: the pass above
         if (name === 'this.clients') {
             // ConcurrentDictionary<string, WebSocketClient>: InOp's generic-dictionary branch casts the key
             edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyText} != null && ${name}.ContainsKey((string)${keyText}))` });
             continue;
         }
-        const map = /^([A-Za-z_]\w*)\.(futures|subscriptions|rejections)$/.exec (name);
-        if (map === null) continue;
-        const proven = (map[2] === 'rejections') ? wsMapOf (`${map[1]}.subscriptions`) : wsMapOf (name);
-        if (proven === undefined) continue;
-        if (map[2] === 'futures') {
-            // IDictionary<string, Future> is not IDictionary<string, object>: the helper casts the key
-            edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyText} != null && ${name}.ContainsKey((string)${keyText}))` });
-            continue;
-        }
-        // IDictionary<string, object>: a non-string key answers false
-        const bound = keyName ();
-        edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyText} is string ${bound} && ${name}.ContainsKey(${bound}))` });
+        if (!/^[A-Za-z_]\w*\.futures$/.test (name) || (wsMapOf (name) === undefined)) continue;
+        // IDictionary<string, Future> is not IDictionary<string, object>: the helper casts the key
+        edits.push ({ start: match.index, end: close + 1, text: `(${name} != null && ${keyText} != null && ${name}.ContainsKey((string)${keyText}))` });
     }
     if (edits.length === 0) {
         return undefined;
@@ -8536,12 +8515,10 @@ function guardedArithmetic (text: string, typeOfName, guardedName: (name: string
             } else if ((m[1] === 'multiply') && (kinds[0] === 'int') && (kinds[1] === 'int') && !typed[0].literal && !typed[1].literal) {
                 native = '((Int64)' + L + ' * ' + R + ')'; // the multiply(Int64, Int64) twin's body
             } else if ((arithmeticOperandType (inner[0], typeOfName, new Map ()) === undefined) || (arithmeticOperandType (inner[1], typeOfName, new Map ()) === undefined)) {
-                // a this.sum / parseToInt operand the operand-type pass could not type: the twin it would have chosen
+                // a this.sum / parseToInt operand the operand-type pass could not type: the divide twin it would have chosen
                 const twin = arithmeticTwinType (m[1], kinds[0], kinds[1]);
                 if ((twin !== undefined) && (m[1] === 'divide')) {
                     native = (base[0] === 'double' || base[1] === 'double') ? '(' + L + ' / ' + R + ')' : '((' + twin + ')' + L + ' / ' + R + ')';
-                } else if ((twin !== undefined) && (m[1] === 'multiply') && !((base[0] === 'int') && (base[1] === 'int'))) {
-                    native = '(' + L + ' * ' + R + ')';
                 }
             }
         }
@@ -8565,12 +8542,6 @@ function counterReadsNormalise (masked: string[], from: number, to: number, head
             const call = enclosingHelperCall (text, m.index);
             if ((call === undefined) || (call.arg !== name)) return false;
             if (compare.includes (call.name) || (keyed.includes (call.name) && (call.index === 1))) continue;
-            if (([ 'subtract', 'add' ].includes (call.name)) && (call.index === 0)) {
-                const at = text.lastIndexOf (call.name + '(', m.index);
-                const close = csharpClosingParen (text, at + call.name.length);
-                const right = (close === undefined) ? '' : text.slice (m.index + name.length, close).replace (/^[ ]*,/, '').trim ();
-                if (/^\d{1,9}$/.test (right)) continue;
-            }
             return false;
         }
     }
@@ -8815,10 +8786,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         'stringToBase64', 'binaryToBase64', 'decimalToPrecision', 'safeString', 'safeString2', 'safeStringN',
         'safeStringLower', 'safeStringUpper', 'safeStringLower2', 'safeStringUpper2', 'amountToPrecision',
         'priceToPrecision', 'costToPrecision', 'currencyToPrecision', 'feeToPrecision', 'uuid5' ];
-    const boolCalls = [ 'inArray', 'isEmpty' ];
     const nullableBoolCalls = [ 'safeBool', 'safeBool2', 'safeBoolN' ];
-    const preciseString = [ 'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringNeg', 'stringAbs', 'stringMin', 'stringMax' ];
-    const preciseBool = [ 'stringGt', 'stringGe', 'stringLt', 'stringLe', 'stringEq' ];
     const lines = content.split ('\n');
     // the return types every in-file declaration of a method gives it
     const ownReturns: { [name: string]: string[] } = {};
@@ -8904,13 +8872,6 @@ export function csharpStringAddEqualityTruth (content: string): string {
         }
         const field = /^this\.([A-Za-z_]\w*)$/.exec (t);
         if (field !== null) return (stringFields.includes (field[1]) && !ownMember (field[1])) ? 'string' : undefined;
-        // `(string)<atom>`: a name, member chain or one call (the cast binds tighter than any operator)
-        if (/^\(string\)/.test (m)) {
-            const rest = m.substring (8);
-            const head = /^[A-Za-z_][\w.]*/.exec (rest);
-            if ((head !== null) && ((head[0].length === rest.length) || ((rest[head[0].length] === '(') && (csharpHelperCallEnd (rest, head[0].length) === rest.length - 1)))) return 'string';
-            if (wrapped (rest)) return 'string';
-        }
         // an object-left concat this pass made native was an `object` in the text the overloads bound
         if (objectConcats.has (t)) return 'objstring';
         if (wrapped (m)) {
@@ -8919,7 +8880,6 @@ export function csharpStringAddEqualityTruth (content: string): string {
             if (parts !== undefined) {
                 const kinds = parts.map ((p) => typeOf (region, line, p, depth + 1));
                 if ((kinds[0] === 'string') || ((parts.length === 2) && (kinds[1] === 'string'))) return 'string';
-                if (kinds.every ((k) => k === 'int')) return 'int';
                 return kinds.every ((k) => (k === 'int') || (k === 'nint')) ? 'nint' : undefined;
             }
             const minus = /^(.*[^ ]) - ([0-9]{1,9})$/.exec (inner);
@@ -8933,12 +8893,9 @@ export function csharpStringAddEqualityTruth (content: string): string {
             const name = call[2];
             if (call[1] === 'this.') {
                 if (returnsOf (name, stringCalls, [ 'string', 'string?' ])) return 'string';
-                if (returnsOf (name, boolCalls, [ 'bool' ])) return 'bool';
                 if (returnsOf (name, nullableBoolCalls, [ 'bool?' ])) return 'bool?';
                 return undefined;
             }
-            if (call[1] === 'Precise.') return preciseString.includes (name) ? 'string' : (preciseBool.includes (name) ? 'bool' : undefined);
-            if (name === 'getArrayLength') return 'int';
             if (name === 'add') {
                 const close = m.length - 1;
                 const comma = csharpHelperTopLevelComma (m, call[0].length - 1, close);
@@ -8946,7 +8903,6 @@ export function csharpStringAddEqualityTruth (content: string): string {
             }
             return undefined;
         }
-        if (/^[A-Za-z_][\w.]*\.ToString\(\)$/.test (m)) return 'string';
         // a string-only member call (an NRE on a null receiver happens before the helper too)
         for (const tail of m.matchAll (/\.(?:PadLeft|PadRight|Substring|ToLower|ToUpper|ToLowerInvariant|ToUpperInvariant|Trim|TrimStart|TrimEnd)\(/g)) {
             if (csharpHelperCallEnd (m, tail.index + tail[0].length - 1) !== m.length - 1) continue;
