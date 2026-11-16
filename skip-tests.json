@@ -1769,6 +1769,10 @@
             }
         }
     },
+    "interactivebrokers": {
+        "skip": "all methods private",
+        "skipWs": "all methods private"
+    },
     "kalshi": {
         "until": "2026-12-31",
         "preferredEventQuery": "trump",
