@@ -5750,54 +5750,34 @@ class NewTranspiler {
         if (names.size === 0) {
             return region;
         }
-        const masked = this.maskCsharpLiterals (region);
-        let out = '';
-        let cursor = 0;
-        let match: RegExpExecArray | null;
-        CSHARP_IDENTITY_LIST_CAST.lastIndex = 0;
-        while ((match = CSHARP_IDENTITY_LIST_CAST.exec (region)) !== null) {
-            const at = match.index;
-            if (masked[at] !== region[at]) {
-                continue; // inside a literal or a comment
-            }
-            if ((at > 0) && /[\w.]/.test (region[at - 1])) {
-                continue; // tail of a longer name
-            }
-            if (!names.has (match[1])) {
-                continue;
-            }
-            out += region.substring (cursor, at) + match[1] + match[2];
-            cursor = at + match[0].length;
-        }
-        if (cursor === 0) {
-            return region;
-        }
-        out += region.substring (cursor);
-        return out;
+        // a match that is the tail of a longer name stays
+        return this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
     // `IList<object>` on the hand-written ws cache (cs/ccxt/ws/OrderBook.cs), so the cast
     // (and the printer's doubly-cast spelling of it) is an identity conversion on the member read.
     csharpOrderbookCacheCasts (content: string): string {
-        const masked = this.maskCsharpLiterals (content);
+        return this.csharpReplaceUnmasked (content, CSHARP_ORDERBOOK_CACHE_CAST, (match) => '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(');
+    }
+
+    // replace each match of the global `re` outside literals and comments by `replace` (undefined keeps it);
+    // `text` itself when nothing was replaced
+    csharpReplaceUnmasked (text: string, re: RegExp, replace: (match: RegExpExecArray, at: number) => string | undefined): string {
+        const masked = this.maskCsharpLiterals (text);
         let out = '';
         let cursor = 0;
         let match: RegExpExecArray | null;
-        CSHARP_ORDERBOOK_CACHE_CAST.lastIndex = 0;
-        while ((match = CSHARP_ORDERBOOK_CACHE_CAST.exec (content)) !== null) {
+        re.lastIndex = 0;
+        while ((match = re.exec (text)) !== null) {
             const at = match.index;
-            if (masked[at] !== content[at]) {
-                continue; // inside a literal or a comment
+            const next = (masked[at] === text[at]) ? replace (match, at) : undefined;
+            if (next !== undefined) {
+                out += text.substring (cursor, at) + next;
+                cursor = at + match[0].length;
             }
-            out += content.substring (cursor, at) + '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(';
-            cursor = at + match[0].length;
         }
-        if (cursor === 0) {
-            return content;
-        }
-        out += content.substring (cursor);
-        return out;
+        return (cursor === 0) ? text : out + text.substring (cursor);
     }
 
     // the static C# type of a destructuring holder (`var <name> = <initializer>`) — the return
