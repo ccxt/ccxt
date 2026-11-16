@@ -977,10 +977,9 @@ class coinbaseexchange extends Exchange {
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
             $entry = $this->safe_list($response, $marketId, array());
-            $first = $this->safe_list($entry, 0, array());
             $market = $this->safe_market($marketId, null, $delimiter);
             $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($first, $market);
+            $result[$symbol] = $this->parse_ticker($this->safe_list($entry, 0, array()), $market);
         }
         return $this->filter_by_array_tickers($result, 'symbol', $symbolsNormalized);
     }

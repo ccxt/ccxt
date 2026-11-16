@@ -980,19 +980,18 @@ class apex extends \ccxt\async\apex {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             // auth sign
-            $request = array(
-                'type' => 'login',
-                'topics' => array( 'ws_zk_accounts_v3' ),
-                'httpMethod' => $http_method,
-                'requestPath' => $request_path,
-                'apiKey' => $this->apiKey,
-                'passphrase' => $this->password,
-                'timestamp' => $timestamp,
-                'signature' => $signature,
-            );
             $message = array(
                 'op' => 'login',
-                'args' => array( json_encode($request) ),
+                'args' => array( json_encode(array(
+                    'type' => 'login',
+                    'topics' => array( 'ws_zk_accounts_v3' ),
+                    'httpMethod' => $http_method,
+                    'requestPath' => $request_path,
+                    'apiKey' => $this->apiKey,
+                    'passphrase' => $this->password,
+                    'timestamp' => $timestamp,
+                    'signature' => $signature,
+                )) ),
             );
             $this->watch($url, $messageHash, $message, $messageHash);
         }

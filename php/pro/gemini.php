@@ -266,7 +266,7 @@ class gemini extends \ccxt\async\gemini {
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         $storesForSymbols = array();
         for ($i = 0; $i < count($trades); $i++) {
-            $rawTrade = $this->safe_value($trades, $i);
+            $rawTrade = $this->safe_dict($trades, $i, array());
             $marketId = strtolower($this->safe_string($rawTrade, 'symbol', ''));
             $market = $this->safe_market($marketId);
             $symbol = $this->safe_string($market, 'symbol', '');
@@ -386,8 +386,7 @@ class gemini extends \ccxt\async\gemini {
         $changesLength = count($changes);
         // reverse order of array to store candles in ascending order
         for ($i = 0; $i < $changesLength; $i++) {
-            $index = $changesLength - $i - 1;
-            $parsed = $this->parse_ohlcv($this->safe_value($changes, $index), $market);
+            $parsed = $this->parse_ohlcv($this->safe_value($changes, $changesLength - $i - 1), $market);
             $stored->append($parsed);
         }
         $messageHash = 'ohlcv:' . $symbol . ':' . $timeframeId;
@@ -993,7 +992,7 @@ class gemini extends \ccxt\async\gemini {
             $collectedEventsOfTrades = array();
             $eventsLength = count($events);
             for ($i = 0; $i < count($events); $i++) {
-                $event = $this->safe_value($events, $i);
+                $event = $this->safe_dict($events, $i, array());
                 $eventType = $this->safe_string($event, 'type');
                 $side = $this->safe_string($event, 'side');
                 $isOrderBook = ($eventType === 'change') && ($side !== null) && $this->in_array($side, array( 'ask', 'bid' ));

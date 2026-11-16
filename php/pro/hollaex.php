@@ -407,7 +407,7 @@ class hollaex extends \ccxt\async\hollaex {
         $stored = $this->orders;
         $marketIds = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
-            $order = $this->safe_value($rawOrders, $i);
+            $order = $this->safe_dict($rawOrders, $i, array());
             $parsed = $this->parse_order($order);
             $stored->append($parsed);
             $symbol = $this->safe_string($order, 'symbol');

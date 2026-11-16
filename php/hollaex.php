@@ -693,7 +693,7 @@ class hollaex extends Exchange {
         $keys = is_array($tickers) ? array_keys($tickers) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            $ticker = $this->safe_value($tickers, $key);
+            $ticker = $this->safe_dict($tickers, $key, array());
             $marketId = $this->safe_string($ticker, 'symbol', $key);
             $market = $this->safe_market($marketId, null, '-');
             $symbol = $market['symbol'];

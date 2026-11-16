@@ -581,7 +581,7 @@ class ndax extends \ccxt\async\ndax {
         //
         $subscriptionsById = $this->index_by($client->subscriptions, 'id');
         $id = $this->safe_integer($message, 'i');
-        $subscription = ($id === null) ? null : $this->safe_dict($subscriptionsById, $id);
+        $subscription = $this->safe_dict($subscriptionsById, $id);
         if ($subscription !== null) {
             $method = $this->safe_value($subscription, 'method');
             if ($method !== null) {

@@ -884,11 +884,11 @@ class ndax extends Exchange {
 
     private function do_fetch_tickers(?array $symbols = null, $params = array()) {
         /**
-         * fetches price $tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
          *
          * @see https://apidoc.ndax.io/#cmc-summary
          *
-         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
          */
@@ -912,8 +912,7 @@ class ndax extends Exchange {
         //         }
         //     ]
         //
-        $tickers = $this->parse_tickers($response);
-        return $this->filter_by_array_tickers($tickers, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array_tickers($this->parse_tickers($response), 'symbol', $symbolsNormalized);
     }
 
     public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
