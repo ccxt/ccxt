@@ -1303,7 +1303,7 @@ impl Exchange {
         let n = length.as_i64().unwrap_or(0).max(0) as usize;
         let mut rng = rand::thread_rng();
         let bytes: Vec<u8> = (0..n).map(|_| rng.gen()).collect();
-        Value::Str(hex::encode(bytes).into())
+        Value::Str(crate::exchange::hex_encode(bytes).into())
     }
 
     /// `convertToBigInt(value)` — the Value-bag has no distinct bigint type,
@@ -1372,7 +1372,7 @@ impl Exchange {
         let mut hash = hasher.finalize().to_vec();
         hash[6] = (hash[6] & 0x0f) | 0x50;
         hash[8] = (hash[8] & 0x3f) | 0x80;
-        let h = hex::encode(&hash[0..16]);
+        let h = crate::exchange::hex_encode(&hash[0..16]);
         Value::Str(format!(
             "{}-{}-{}-{}-{}",
             &h[0..8],
@@ -1414,7 +1414,7 @@ impl Exchange {
                         }
                     })
                     .collect(),
-                Value::Str(s) => hex::decode(s.trim_start_matches("0x")).unwrap_or_default(),
+                Value::Str(s) => crate::exchange::hex_decode(s.trim_start_matches("0x")).unwrap_or_default(),
                 _ => Vec::new(),
             }
         };
@@ -2749,9 +2749,9 @@ impl Exchange {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
             _ => return Value::Str(String::new().into()),
         };
-        let pk_bytes = match hex::decode(&pk_s) {
-            Ok(b) => b,
-            Err(_) => return Value::Str(String::new().into()),
+        let pk_bytes = match crate::exchange::hex_decode(&pk_s) {
+            Some(b) => b,
+            None => return Value::Str(String::new().into()),
         };
         let sk = match SigningKey::from_slice(&pk_bytes) {
             Ok(k) => k,
@@ -2760,7 +2760,7 @@ impl Exchange {
         let point = sk.verifying_key().to_encoded_point(false); // 0x04 || X || Y
         let pubkey = &point.as_bytes()[1..]; // 64 bytes
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
-        Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
+        Value::Str(format!("0x{}", crate::exchange::hex_encode(&hash[12..32])).into())
     }
     pub fn exists_file(&self, p: Value) -> Value {
         match &p {

@@ -906,7 +906,7 @@ pub fn hash(data: Value, algo: Value, digest: Value) -> Value {
     match dg {
         "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
         "base64" => Value::Str(b64_encode(&raw).into()),
-        _        => Value::Str(hex::encode(&raw).into()),
+        _        => Value::Str(crate::exchange::hex_encode(&raw).into()),
     }
 }
 
@@ -928,7 +928,7 @@ pub fn hmac(data: Value, secret: Value, algo: Value, digest: Value) -> Value {
     match dg {
         "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
         "base64" => Value::Str(b64_encode(&raw).into()),
-        _        => Value::Str(hex::encode(&raw).into()),
+        _        => Value::Str(crate::exchange::hex_encode(&raw).into()),
     }
 }
 
@@ -1212,12 +1212,12 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     let empty = || Value::Map(indexmap::IndexMap::new());
     let msg_s = match &message { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
     let sk_s  = match &secret  { Value::Str(s) => s.trim_start_matches("0x").to_string(), _ => return empty() };
-    let sk_bytes = match hex::decode(&sk_s) { Ok(b) => b, Err(_) => return empty() };
+    let sk_bytes = match crate::exchange::hex_decode(&sk_s) { Some(b) => b, None => return empty() };
     // The 32-byte digest to sign.
     let digest: Vec<u8> = match &pre_hash {
         Value::Str(algo) => crate::exchange::hash_raw(
             &crate::exchange::value_to_bytes(&message), algo),
-        _ => match hex::decode(&msg_s) { Ok(b) => b, Err(_) => return empty() },
+        _ => match crate::exchange::hex_decode(&msg_s) { Some(b) => b, None => return empty() },
     };
     let sk = match SigningKey::from_slice(&sk_bytes) { Ok(k) => k, Err(_) => return empty() };
     let (sig, recid) = match sk.sign_prehash_recoverable(&digest) {
@@ -1226,8 +1226,8 @@ pub fn ecdsa(message: Value, secret: Value, _curve: Value, pre_hash: Value) -> V
     };
     let bytes = sig.to_bytes(); // 64 bytes: r || s, low-S normalized
     let mut m = indexmap::IndexMap::new();
-    m.insert("r".to_string(), Value::Str(hex::encode(&bytes[0..32]).into()));
-    m.insert("s".to_string(), Value::Str(hex::encode(&bytes[32..64]).into()));
+    m.insert("r".to_string(), Value::Str(crate::exchange::hex_encode(&bytes[0..32]).into()));
+    m.insert("s".to_string(), Value::Str(crate::exchange::hex_encode(&bytes[32..64]).into()));
     m.insert("v".to_string(), Value::Int(recid.to_byte() as i64));
     Value::Map(m)
 }
@@ -1260,7 +1260,7 @@ pub fn eddsa(request: Value, secret: Value, _curve: Value) -> Value {
         Value::Arr(_) => crate::exchange::value_to_bytes(&request),
         Value::Str(s) => {
             let t = s.trim_start_matches("0x");
-            hex::decode(t).unwrap_or_else(|_| s.as_bytes().to_vec())
+            crate::exchange::hex_decode(t).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => bad("request must be bytes or a string"),
     };

@@ -1097,7 +1097,7 @@ impl Exchange {
         };
         Ok(match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         })
     }
 
@@ -1114,7 +1114,7 @@ impl Exchange {
             // `binary` → a byte-array Value (consumed by another crypto step).
             "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
             "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
+            _        => Value::Str(hex_encode(&raw).into()),
         }
     }
 
@@ -1122,7 +1122,7 @@ impl Exchange {
         let raw = hash_raw(data, algo);
         match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         }
     }
 
@@ -1139,13 +1139,13 @@ impl Exchange {
     }
     pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes).into())
+        Value::Str(hex_encode(&bytes).into())
     }
     pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
+        match hex_decode(&*str_val) {
+            Some(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            None => Value::Null,
         }
     }
 
@@ -2526,10 +2526,39 @@ fn eip712_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => {
             let h = s.strip_prefix("0x").unwrap_or(s);
-            hex::decode(h).unwrap_or_else(|_| s.as_bytes().to_vec())
+            hex_decode(h).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => value_to_bytes(v),
     }
+}
+
+/// Lowercase hex of `bytes`.
+pub(crate) fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let bytes = bytes.as_ref();
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        out.push(DIGITS[(b >> 4) as usize] as char);
+        out.push(DIGITS[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
+/// Hex (either case) to bytes; `None` on odd length or a non-hex char.
+pub(crate) fn hex_decode(s: impl AsRef<[u8]>) -> Option<Vec<u8>> {
+    fn nibble(c: u8) -> Option<u8> {
+        match c {
+            b'0'..=b'9' => Some(c - b'0'),
+            b'a'..=b'f' => Some(c - b'a' + 10),
+            b'A'..=b'F' => Some(c - b'A' + 10),
+            _ => None,
+        }
+    }
+    let s = s.as_ref();
+    if s.len() % 2 != 0 {
+        return None;
+    }
+    s.chunks_exact(2).map(|p| Some((nibble(p[0])? << 4) | nibble(p[1])?)).collect()
 }
 
 pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {

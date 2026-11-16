@@ -37,7 +37,6 @@ rust_decimal = { version = "1", features = ["serde-str"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 rand = "0.8"
-hex = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
 async-trait = "0.1"
