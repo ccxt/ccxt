@@ -387,8 +387,9 @@ export default class phemex extends phemexRest {
             const currency = this.safeDict (this.currencies, code, {});
             const scale = this.safeInteger (currency, 'valueScale', 8);
             const account = this.account ();
-            let used = this.safeString (balance, 'totalUsedBalanceRv');
-            if (used === undefined) {
+            const usedRv = this.safeString (balance, 'totalUsedBalanceRv');
+            let used: Str = usedRv;
+            if (usedRv === undefined) {
                 let usedEv = this.safeString (balance, 'totalUsedBalanceEv');
                 if (usedEv === undefined) {
                     const lockedTradingBalanceEv = this.safeString (balance, 'lockedTradingBalanceEv');
@@ -397,8 +398,9 @@ export default class phemex extends phemexRest {
                 }
                 used = this.fromEn (usedEv, scale);
             }
-            let total = this.safeString (balance, 'accountBalanceRv');
-            if (total === undefined) {
+            const totalRv = this.safeString (balance, 'accountBalanceRv');
+            let total: Str = totalRv;
+            if (totalRv === undefined) {
                 const totalEv = this.safeString2 (balance, 'accountBalanceEv', 'balanceEv');
                 total = this.fromEn (totalEv, scale);
             }

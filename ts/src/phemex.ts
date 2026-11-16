@@ -1550,8 +1550,9 @@ export default class phemex extends Exchange {
         const timestamp = this.safeIntegerProduct (ticker, 'timestamp', 0.000001);
         const last = this.fromEp (this.safeString2 (ticker, 'lastEp', 'closeRp'), marketResolved);
         const quoteVolume = this.fromEr (this.safeString2 (ticker, 'turnoverEv', 'turnoverRv'), marketResolved);
-        let baseVolume = this.safeString (ticker, 'volume');
-        if (baseVolume === undefined) {
+        const volume = this.safeString (ticker, 'volume');
+        let baseVolume: Str = volume;
+        if (volume === undefined) {
             baseVolume = this.fromEv (this.safeString2 (ticker, 'volumeEv', 'volumeRq'), marketResolved);
         }
         const open = this.fromEp (this.safeString (ticker, 'openEp'), marketResolved);
@@ -2601,8 +2602,9 @@ export default class phemex extends Exchange {
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const side = this.parseOrderSide (this.safeStringLower (order, 'side'));
         const type = this.parseOrderType (this.safeString (order, 'orderType'));
-        let price = this.safeString (order, 'priceRp');
-        if (price === undefined) {
+        const priceRp = this.safeString (order, 'priceRp');
+        let price: Str = priceRp;
+        if (priceRp === undefined) {
             price = this.fromEp (this.safeString (order, 'priceEp'), marketResolved);
         }
         const amount = this.safeNumber2 (order, 'orderQty', 'orderQtyRq');
