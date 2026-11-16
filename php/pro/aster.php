@@ -1511,9 +1511,8 @@ class aster extends \ccxt\async\aster {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $type = null;
-        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params, $type);
-        if (($type === null) || ($typeMarketType === null)) {
+        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBalance', null, $params);
+        if ($typeMarketType === null) {
             throw new ArgumentsRequired($this->id . ' watchBalance() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
@@ -1879,9 +1878,8 @@ class aster extends \ccxt\async\aster {
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'orders';
-        $type = null;
-        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params, $type);
-        if (($type === null) || ($typeMarketType === null)) {
+        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+        if ($typeMarketType === null) {
             throw new ArgumentsRequired($this->id . ' watchOrders() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));
@@ -1927,9 +1925,8 @@ class aster extends \ccxt\async\aster {
             $symbolResolved = $this->safe_string($market, 'symbol');
         }
         $messageHash = 'myTrades';
-        $type = null;
-        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params, $type);
-        if (($type === null) || ($typeMarketType === null)) {
+        list($typeMarketType, $paramsMarketType) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
+        if ($typeMarketType === null) {
             throw new ArgumentsRequired($this->id . ' watchMyTrades() requires a market type');
         }
         Async\await($this->authenticate($typeMarketType, $paramsMarketType));

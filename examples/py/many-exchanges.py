@@ -26,7 +26,7 @@ async def main():
     symbols = {
         'kraken': 'BTC/USDT',
         'binance': 'BTC/USDT',
-        'bitmex': 'XBT_USDT',
+        'okx': 'BTC/USDT',
     }
     await asyncio.gather(*[loop(exchange_id, symbol) for exchange_id, symbol in symbols.items()])
 

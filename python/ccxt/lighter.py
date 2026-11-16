@@ -7,6 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.lighter import ImplicitAPI
 from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, Int, MarginModification, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InvalidOrder
@@ -564,7 +565,11 @@ class lighter(Exchange, ImplicitAPI):
             'api_key_index': self.parse_to_int(apiKeyIndex),
             'account_index': self.parse_to_int(accountIndex),
         }
-        token = self.lighter_create_auth_token(self.safe_value(cachedAuth, 'signer'), request)
+        signer = self.safe_value(cachedAuth, 'signer')
+        if signer is None:
+            self.check_required_credentials()
+            raise AuthenticationError(self.id + ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt')
+        token = self.lighter_create_auth_token(signer, request)
         self.set_auth_entry(accountIndex, apiKeyIndex, {'deadline': deadline, 'token': token})
         return token
 

@@ -72,16 +72,15 @@
                 "output": null
             }
         ],
-        "fetchTickers": [
+        "fetchTicker": [
             {
-                "description": "Fetch tickers",
-                "method": "test",
-                "url": "https://api.cryptomus.com/v1/exchange/market/tickers",
+                "description": "Fetch ticker",
+                "method": "fetchTicker",
+                "url": "https://api.cryptomus.com/v2/user-api/exchange/markets/price?symbol=BTC_USDT",
                 "input": [
-                    [
-                        "ETH/USDT"
-                    ]
-                ]
+                    "BTC/USDT"
+                ],
+                "output": null
             }
         ],
         "fetchTrades": [

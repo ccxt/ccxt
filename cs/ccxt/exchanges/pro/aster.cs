@@ -1586,11 +1586,10 @@ public partial class aster : ccxt.aster
         {
             await this.loadMarkets();
         }
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchBalance() requires a market type")) ;
         }
@@ -1984,11 +1983,10 @@ public partial class aster : ccxt.aster
             symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "orders";
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchOrders() requires a market type")) ;
         }
@@ -2037,11 +2035,10 @@ public partial class aster : ccxt.aster
             symbolResolved = this.safeString(market, "symbol");
         }
         string messageHash = "myTrades";
-        string? type = null;
-        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
+        IList<object> typeMarketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? typeMarketType = (string)typeMarketTypeparamsMarketTypeVariable[0];
         IDictionary<string, object> paramsMarketType = ((IDictionary<string, object>)typeMarketTypeparamsMarketTypeVariable[1]);
-        if (((type == null)) || ((typeMarketType == null)))
+        if ((typeMarketType == null))
         {
             throw new ArgumentsRequired ((this.id + " watchMyTrades() requires a market type")) ;
         }

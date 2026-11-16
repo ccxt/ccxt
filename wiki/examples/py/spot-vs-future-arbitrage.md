@@ -1,3 +1,4 @@
+```python
 # -*- coding: utf-8 -*-
  
 import asyncio
@@ -7,14 +8,6 @@ from importlib.util import find_spec
 run = import_module(next(filter(find_spec, ('uvloop', 'winloop', 'asyncio')))).run
 import sys
 import os
-
-# ------------------------------------------------------------------------------
-
-root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
-sys.path.append(root + '/python')
-
-# ------------------------------------------------------------------------------
-
 import ccxt.pro
 
 print('CCXT Version:', ccxt.pro.__version__)
@@ -57,7 +50,7 @@ async def main():
     spot = 'BTC/USDT'
     future = 'BTC/USDT:USDT'
     symbols = [ spot, future ]
-    exchange = ccxt.pro.bitmart()
+    exchange = ccxt.pro.bybit()
     loops = [
         symbol_loop(exchange, spot, spot, future),
         symbol_loop(exchange, future, spot, future),
@@ -68,3 +61,5 @@ async def main():
 
 run(main())
 
+
+```

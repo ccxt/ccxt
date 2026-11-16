@@ -7,7 +7,7 @@
 
 * [fetchMarkets](#fetchmarkets)
 * [fetchCurrencies](#fetchcurrencies)
-* [fetchTickers](#fetchtickers)
+* [fetchTicker](#fetchticker)
 * [fetchOrderBook](#fetchorderbook)
 * [fetchTrades](#fetchtrades)
 * [fetchBalance](#fetchbalance)
@@ -25,7 +25,7 @@ retrieves data on all markets for the exchange
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
 **Returns**: <code>Array&lt;object&gt;</code> - an array of objects representing market data
 
-**See**: https://doc.cryptomus.com/personal/market-cap/tickers  
+**See**: https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
@@ -57,24 +57,24 @@ cryptomus.fetchCurrencies (params?)
 ```
 
 
-<a name="fetchTickers" id="fetchtickers"></a>
+<a name="fetchTicker" id="fetchticker"></a>
 
-### fetchTickers{docsify-ignore}
-fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
 
 **Kind**: instance method of [<code>cryptomus</code>](#cryptomus)  
-**Returns**: <code>object</code> - a dictionary of [ticker structures](https://docs.ccxt.com/?id=ticker-structure)
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
 
-**See**: https://doc.cryptomus.com/personal/market-cap/tickers  
+**See**: https://doc.cryptomus.com/methods/exchange/get-current-market-price  
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
-| symbols | <code>Array&lt;string&gt;</code> | No | unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
 ```javascript
-cryptomus.fetchTickers (symbols?, params?)
+cryptomus.fetchTicker (symbol, params?)
 ```
 
 

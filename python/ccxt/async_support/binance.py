@@ -6567,7 +6567,14 @@ class binance(Exchange, ImplicitAPI):
         marketResolved = self.safe_market(marketId, market, None, marketType)
         symbol = marketResolved['symbol']
         filled = self.safe_string_n(order, ['executedQty', 'filledQty', 'actualQty'], '0')  # actualQty: algo orders
-        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'workingTime', 'transactTime', 'updateTime', 'createdAt'])  # order of the keys matters here
+        timestamp = self.safe_integer_2(order, 'time', 'createTime')  # order of the keys matters here
+        if timestamp is None:
+            # spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            workingTime = self.safe_integer(order, 'workingTime')
+            if (workingTime is not None) and (workingTime > 0):
+                timestamp = workingTime
+            else:
+                timestamp = self.safe_integer_n(order, ['transactTime', 'updateTime', 'createdAt'])
         lastTradeTimestamp = None
         if ('transactTime' in order) or ('updateTime' in order) or ('updatedAt' in order):
             timestampValue = self.safe_integer_n(order, ['updateTime', 'transactTime', 'updatedAt'])

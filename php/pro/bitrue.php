@@ -9,6 +9,7 @@ use Exception; // a common import
 use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\NotSupported;
+use ccxt\NetworkError;
 use React\Async;
 use React\Promise\PromiseInterface;
 use ccxt\pro\ArrayCache;
@@ -28,6 +29,8 @@ class bitrue extends \ccxt\async\bitrue {
                 'watchOrders' => true,
                 'watchOrderBook' => true,
                 'watchOHLCV' => true,
+                'unWatchTrades' => true,
+                'unWatchOHLCV' => true,
             ),
             'urls' => array(
                 'api' => array(
@@ -444,7 +447,10 @@ class bitrue extends \ccxt\async\bitrue {
         $client->resolve($orderbook, $messageHash);
     }
 
-    public function find_swap_market_by_ws_base_quote(string $wsBaseQuote) {
+    public function find_swap_market_by_ws_base_quote(?string $wsBaseQuote) {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if ($this->markets === null) {
             return null;
         }
@@ -495,6 +501,46 @@ class bitrue extends \ccxt\async\bitrue {
         return $rawQuantity * $contractSize;
     }
 
+    public function un_subscribe(string $subHash, string $channel, string $cbId, array $subscription, $params = array()) {
+        return Async\async(self::do_un_subscribe(...))($subHash, $channel, $cbId, $subscription, $params);
+    }
+
+    private function do_un_subscribe(string $subHash, string $channel, string $cbId, array $subscription, $params = array()) {
+        /**
+         * @ignore
+         * sends an unsubscribe $request and drops the $subscription and its cache
+         * @param {string} $subHash the messageHash the watch method subscribed with
+         * @param {string} $channel the $channel the watch method subscribed to
+         * @param {string} $cbId the cb_id the watch method subscribed with
+         * @param {array} $subscription the cache to clean, see cleanCache
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true
+         */
+        $url = $this->urls['api']['ws']['futurePublic'];
+        $client = $this->client($url);
+        if (is_array($client->subscriptions) && array_key_exists($subHash ?? '', $client->subscriptions)) {
+            $request = array(
+                'event' => 'unsub',
+                'params' => array(
+                    'cb_id' => $cbId,
+                    'channel' => $channel,
+                ),
+            );
+            try {
+                Async\await($client->send($this->deep_extend($request, $params)));
+            } catch (Exception $e) {
+                // the socket is not open (yet), so the queued subscribe has not gone out either -
+                // keep the subscription instead of letting that subscribe stream unwatched
+                throw new NetworkError($this->id . ' could not unsubscribe ' . $subHash . ', the websocket connection is not open');
+            }
+        }
+        // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+        // so the subscription is cleaned up as soon as the request is sent
+        $this->clean_cache($subscription);
+        $this->clean_unsubscription($client, $subHash, 'unsubscribe:' . $subHash);
+        return true;
+    }
+
     public function watch_trades(string $symbol, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_watch_trades(...))($symbol, $since, $limit, $params);
     }
@@ -542,6 +588,39 @@ class bitrue extends \ccxt\async\bitrue {
         return $this->filter_by_since_limit($trades, $since, $limitResolved, 'timestamp', true);
     }
 
+    public function un_watch_trades(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_trades(...))($symbol, $params);
+    }
+
+    private function do_un_watch_trades(string $symbol, $params = array()) {
+        /**
+         * unWatches public trades for a swap (futures) $market
+         *
+         * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-$market-data
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch trades for
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' unWatchTrades is only supported for swap markets');
+        }
+        $baseIdLower = $this->safe_string_lower($market, 'baseId');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+        $channel = 'market_' . $wsId . '_trade_ticker';
+        $subscription = array(
+            'topic' => 'trades',
+            'symbols' => array( $symbolValue ),
+        );
+        return Async\await($this->un_subscribe('trades:' . $symbolValue, $channel, $wsId, $subscription, $params));
+    }
+
     public function handle_trades(Client $client, array $message) {
         //
         //     {
@@ -571,6 +650,12 @@ class bitrue extends \ccxt\async\bitrue {
         if ($symbol === null) {
             return;
         }
+        $messageHash = 'trades:' . $symbol;
+        if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+            // a late push for a channel that was unwatched - bitrue does not acknowledge
+            // an unsubscribe, so frames it sent before processing it can still arrive
+            return;
+        }
         $tick = $this->safe_dict($message, 'tick', array());
         $data = $this->safe_list($tick, 'data', array());
         $appended = false;
@@ -586,7 +671,6 @@ class bitrue extends \ccxt\async\bitrue {
             $appended = true;
         }
         if ($appended) {
-            $messageHash = 'trades:' . $symbol;
             $client->resolve($stored, $messageHash);
         }
     }
@@ -667,6 +751,45 @@ class bitrue extends \ccxt\async\bitrue {
         return $this->filter_by_since_limit($ohlcv, $since, $limitResolved, 0, true);
     }
 
+    public function un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()): PromiseInterface {
+        return Async\async(self::do_un_watch_ohlcv(...))($symbol, $timeframe, $params);
+    }
+
+    private function do_un_watch_ohlcv(string $symbol, string $timeframe = '1m', $params = array()) {
+        /**
+         * unWatches OHLCV candles for a swap (futures) $market
+         *
+         * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-$market-data
+         *
+         * @param {string} $symbol unified $symbol of the $market to unwatch OHLCV data for
+         * @param {string} $timeframe the length of time each candle represents
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+         */
+        if ($this->markets === null) {
+            Async\await($this->load_markets());
+        }
+        $market = $this->market($symbol);
+        $symbolValue = $market['symbol'];
+        if ($market['swap'] !== true) {
+            throw new NotSupported($this->id . ' unWatchOHLCV is only supported for swap markets');
+        }
+        $futuresTimeframes = $this->safe_dict($this->options, 'futuresTimeframes', array());
+        $interval = $this->safe_string($futuresTimeframes, $timeframe);
+        if ($interval === null) {
+            throw new NotSupported($this->id . ' unWatchOHLCV does not support timeframe ' . $timeframe);
+        }
+        $baseIdLower = $this->safe_string_lower($market, 'baseId');
+        $quoteIdLower = $this->safe_string_lower($market, 'quoteId');
+        $wsId = 'e_' . $baseIdLower . $quoteIdLower;
+        $channel = 'market_' . $wsId . '_kline_' . $interval;
+        $subscription = array(
+            'topic' => 'ohlcv',
+            'symbolsAndTimeframes' => array( array( $symbolValue, $timeframe ) ),
+        );
+        return Async\await($this->un_subscribe('ohlcv:' . $symbolValue . ':' . $timeframe, $channel, $wsId, $subscription, $params));
+    }
+
     public function handle_ohlcv(Client $client, array $message) {
         //
         //     {
@@ -700,6 +823,11 @@ class bitrue extends \ccxt\async\bitrue {
         if ($timeframe === null) {
             return;
         }
+        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
+        if (!(is_array($client->subscriptions) && array_key_exists($messageHash ?? '', $client->subscriptions))) {
+            // a late push for a channel that was unwatched, see handleTrades
+            return;
+        }
         $tick = $this->safe_dict($message, 'tick');
         if ($tick === null) {
             return;
@@ -714,7 +842,6 @@ class bitrue extends \ccxt\async\bitrue {
         }
         $stored = $this->ohlcvs[$symbol][$timeframe];
         $stored->append($parsed);
-        $messageHash = 'ohlcv:' . $symbol . ':' . $timeframe;
         $client->resolve($stored, $messageHash);
     }
 
