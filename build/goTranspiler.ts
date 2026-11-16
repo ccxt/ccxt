@@ -7649,14 +7649,6 @@ func (this *${className}) Init(userConfig map[string]any) {
 // both stages in ONE process, so the ws stage must start from the same blank slate the
 // second `goTranspiler.ts --ws` process had — otherwise safeOptionsStructFile() dumps the
 // REST structs into go/v4/pro/exchange_wrapper_structs.go as well.
-function resetPerStageAccumulators () {
-    for (const k of Object.keys (goTypeOptions)) {
-        delete goTypeOptions[k];
-    }
-    baseGoTypeOptionNames.clear ();
-    predictionLocalOptionStructs.clear ();
-}
-
 // ===== Local-typing audit (`--audit-local-types`): counts typed/any declarations over go/v4, gates that every changed
 // generated line is a declaration retype (gofmt-normalized), and `--parity` proves worker and main-thread emit identical Go.
 // npx tsx build/goTranspiler.ts --audit-local-types [--base <ref>] [--target <ref>] [--json] [--parity [id...]] [--self-test]
@@ -8094,16 +8086,16 @@ async function runLocalTypeAudit () {
 type SelfTestOk = (condition: boolean, message: string) => void;
 
 // one runner for the ok-callback self-test cases: collects every failed message under the case's prefix
-// (a case with a `threw` label also reports an exception as one problem instead of aborting the run)
-function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: string): string[] {
+// (a `threw` case also reports an exception as one `<prefix> threw: ` problem instead of aborting the run)
+function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: boolean): string[] {
     const problems: string[] = [];
     try {
         test ((condition, message) => { if (!condition) { problems.push (prefix + message); } });
     } catch (e) {
-        if (threw === undefined) {
+        if (!threw) {
             throw e;
         }
-        problems.push (threw + e.message);
+        problems.push (prefix.replace (/: $/, ' threw: ') + e.message);
     }
     return problems;
 }
@@ -8132,15 +8124,15 @@ async function runMain () {
             [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ],
             [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], goSelfMapRebindSelfTest, goAnnotatedReturnSelfTest,
             b02SafeBalanceSelfTest, goMapWriteNilGuardSelfTest, [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ],
-            goStrReturnSelfTest, [ 'go any nil compare self: ', goAnyNilCompareSelfTest, 'go any nil compare self threw: ' ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
-            [ 'go base native passes self: ', goBaseNativePassesSelfTest, 'go base native passes self threw: ' ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, 'go unbox defaulted safe integer threw: ' ], goDefaultedLimitInt64SelfTest, goTupleTruthySelfTest,
-            [ 'go row string leaf self: ', goRowStringLeafSelfTest, 'go row string leaf self threw: ' ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, 'go block scoped decl check threw: ' ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
-            goFloatComparisonsWiredCheck, [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, 'go is equal safe literal threw: ' ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
-            goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, 'go proven local is equal threw: ' ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, 'go tuple slot never nil threw: ' ], goArithHelpersWiredCheck,
-            [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, 'go plain box is equal threw: ' ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, 'go tuple slot derefs check threw: ' ], goInlineIsEqualWiredCheck, goInOpHelperCheck, goCaseAffixWiredCheck,
+            goStrReturnSelfTest, [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
+            [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], goDefaultedLimitInt64SelfTest, goTupleTruthySelfTest,
+            [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
+            goFloatComparisonsWiredCheck, [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
+            goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], goArithHelpersWiredCheck,
+            [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, goInOpHelperCheck, goCaseAffixWiredCheck,
             goStdlibStringHelpersCheck, goParseNativeWiredCheck, goNullableStrParamSelfTest, goTypedIsEqualWiredCheck,
             goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest,
-            goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, 'credential fields check threw: ' ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, 'P2 threw: ' ], goAnyObjectKeysLengthSelfTest,
+            goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], goAnyObjectKeysLengthSelfTest,
             goGofmtLayoutSelfTest, w8ClientFuturesSelfTest, goIsEqualBoolMethodCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
             [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], goOrderBookSetterCheck, goJoinStringLocalsCheck, goJoinNativeCheck,
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ]
@@ -8172,7 +8164,6 @@ async function runMain () {
     }
     shouldTranspileTests = process.argv.includes ('--noTests') ? false : true;
     log.bright.green ({ force });
-    const inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
     // single-process REST+WS (default via npm run transpileGO / CI): keeps the one
     // piscina pool (and its warm per-thread Transpilers) alive across both stages
     // instead of paying a second process boot + cold pool. Omit the flag for REST-only.
@@ -8182,31 +8173,24 @@ async function runMain () {
         if (baseClassOnly) {
             transpiler.transpileBaseMethods (TS_BASE_FILE)
             transpiler.transpilePredictionBaseMethods ()
-        } else if (restAndWs) {
-            // reproduces, in order, exactly what the two CI commands do:
-            //   goTranspiler.ts --force            -> transpileEverything (...)
-            //   goTranspiler.ts --ws --force       -> transpileWS (force) [+ prediction ws]
-            await transpiler.transpileEverything (force, false, examples, prediction);
-            // goTypeOptions is a MODULE-LEVEL accumulator that safeOptionsStructFile() dumps
-            // wholesale into exchange_wrapper_structs.go. The ws stage must only emit the ws
-            // structs, which held automatically while each stage was its own process. Reusing
-            // the process would otherwise append every REST struct to go/v4/pro/ (measured:
-            // 1460 -> 7135 lines). Same class of latent bug as the `exchanges` clobber above.
-            resetPerStageAccumulators ();
-            await transpiler.transpileWS (force);
-            if (!inputExchanges.length) {
+        } else if (restAndWs || ws) {
+            // --rest-and-ws runs what `--force` then `--ws --force` do, in one process
+            if (restAndWs) {
+                await transpiler.transpileEverything (force, false, examples, prediction);
+                // module-level accumulators dumped into exchange_wrapper_structs.go: the ws stage emits only ws structs
+                for (const k of Object.keys (goTypeOptions)) {
+                    delete goTypeOptions[k];
+                }
+                baseGoTypeOptionNames.clear ();
+                predictionLocalOptionStructs.clear ();
+            }
+            const predictionWsOnly = !restAndWs && prediction;
+            if (!predictionWsOnly) {
+                await transpiler.transpileWS (force);
+            }
+            if (predictionWsOnly || !cliExchanges.length) {
                 // full ws builds also transpile the prediction ws exchanges
                 await transpiler.transpileWS (force, true);
-            }
-        } else if (ws) {
-            if (prediction) {
-                await transpiler.transpileWS (force, true);
-            } else {
-                await transpiler.transpileWS (force);
-                if (!inputExchanges.length) {
-                    // full ws builds also transpile the prediction ws exchanges
-                    await transpiler.transpileWS (force, true);
-                }
             }
         } else if (test || baseTestsOnly) {
             await transpiler.transpileTests ();
@@ -8246,25 +8230,23 @@ if (isMainEntry (import.meta.url)) {
     await runMain ();
 }
 
-function goProvenParamNilCompareText (fn: string, isEqualFn: string): string {
-    const sig = fn.match (/^\nfunc \(this \*[\w.]+\) (\w+)\(([^)\n]*)\)/);
-    const params = sig ? (GO_UNTYPED_NIL_PARAMS[sig[1]] || []) : [];
-    const helper = isEqualFn.replace (/[.(]/g, '\\$&');
-    for (const name of params) {
-        const body = fn.slice (sig[0].length);
-        const declared = new RegExp ('(?:^|,\\s*)' + name + ' any(?:,|$)').test (sig[2]);
-        // any write, address-take, redeclaration or closure parameter of the name keeps the helper
-        const rebound = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*(?::=|=[^=])|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bvar ' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
-        if (!declared || rebound) {
-            continue;
-        }
-        fn = fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + name + ', nil\\)', 'g'), ((_m: string, not: string) => '(' + name + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
-    }
-    return fn;
-}
-
 export function goProvenParamNativeNilCompares (content: string, isEqualFn: string): string {
-    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goProvenParamNilCompareText (fn, isEqualFn)) as any);
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
+        const sig = fn.match (/^\nfunc \(this \*[\w.]+\) (\w+)\(([^)\n]*)\)/);
+        const params = sig ? (GO_UNTYPED_NIL_PARAMS[sig[1]] || []) : [];
+        const helper = isEqualFn.replace (/[.(]/g, '\\$&');
+        for (const name of params) {
+            const body = fn.slice (sig[0].length);
+            const declared = new RegExp ('(?:^|,\\s*)' + name + ' any(?:,|$)').test (sig[2]);
+            // any write, address-take, redeclaration or closure parameter of the name keeps the helper
+            const rebound = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*(?::=|=[^=])|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|&' + name + '\\b|\\bvar ' + name + '\\b|\\bfunc\\b[^{\\n]*[(,]\\s*' + name + ' ').test (body);
+            if (!declared || rebound) {
+                continue;
+            }
+            fn = fn.replace (new RegExp ('(!?)(?<![.\\w])' + helper + name + ', nil\\)', 'g'), ((_m: string, not: string) => '(' + name + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
+        }
+        return fn;
+    }) as any);
 }
 
 function goProvenParamNilSelfTest (ok: SelfTestOk): void {
@@ -8537,8 +8519,7 @@ function goPromiseAllSlotReads (content: string): string {
                     }
                     // an `if {..} else {..}` whose arms both append unconditionally adds the smaller count
                     for (const blk of armBlocks) {
-                        const arms = goIfElseArmAppends (masked, blocks, blk, arg);
-                        extra += arms;
+                        extra += goIfElseArmAppends (masked, blocks, blk, arg);
                     }
                     if ((found < 0) || (arity < 0) || (jumps && (extra > 0))) {
                         arity = -1;
@@ -8855,15 +8836,11 @@ function goSafeDictMapReads (content: string): string {
 
 // ===== AwaitResult -> native channel receive in typed wrappers =====
 // Same steps as AwaitResult: one receive, "panic:" string -> error, else convert to the wrapper type.
-function goNativeAwaitConversion (converter: string): string {
-    const assertion = /^AssertAs\[(.+)\]$/.exec (converter);
-    return assertion ? `raw.(${assertion[1]})` : `${converter}(raw)`;
-}
-
 function goNativeAwaitBody (indent: string, valueType: string, converter: string, call: string, emptyValue: string): string[] {
     // an `any` result needs no conversion local: return the received value itself
     // a ParseInt converter reads an AsyncResult[*int64] carrier (the fetchTime cores), so the
     // wrapper derefs the nullable pointer itself; the carrier's own `raw` is rewritten to `r.Value` downstream
+    const assertion = /^AssertAs\[(.+)\]$/.exec (converter);
     const tail = (converter === 'Untyped') ? [ `${indent}return raw, nil` ] : (converter === 'ParseInt') ? [
         `${indent}var res ${valueType} = 0`,
         `${indent}if raw != nil {`,
@@ -8871,7 +8848,7 @@ function goNativeAwaitBody (indent: string, valueType: string, converter: string
         `${indent}}`,
         `${indent}return res, nil`,
     ] : [
-        `${indent}var res ${valueType} = ${goNativeAwaitConversion (converter)}`,
+        `${indent}var res ${valueType} = ${assertion ? `raw.(${assertion[1]})` : `${converter}(raw)`}`,
         `${indent}return res, nil`,
     ];
     return [
@@ -8910,14 +8887,6 @@ function goTypedBoolCompareText (fn: string): string {
     }) as any);
 }
 
-// base struct fields whose every write (hand-written + generated) is a non-nil *ArrayCache*,
-// &sync.Map, map literal or untyped nil, or whose Go type is a map/slice: `== nil` is exact.
-// Credential fields stay: prediction writes a *string into ApiKey.
-function goFieldNilCompares (content: string): string {
-    // Balance is a Go map[string]any (exchange.go): the field compares natively
-    return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|WsCacheObjGet\("Positions"\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
-}
-
 // BaseExchange.Id (string) and .RateLimit (float64) can never be nil, so the helper is constant.
 function goTypedFieldNilFold (content: string): string {
     return content.replace (/(!?)(?<![.\w])IsEqual\(this\.(RateLimit|Id), nil\)/g, ((_m: string, not: string) => (not === '!') ? 'true' : 'false') as any)
@@ -8926,7 +8895,9 @@ function goTypedFieldNilFold (content: string): string {
 
 export function goNativeEquality (content: string): string {
     content = goTypedFieldNilFold (content);
-    content = goFieldNilCompares (content);
+    // base fields whose every write is a non-nil *ArrayCache*, &sync.Map, map literal or untyped nil, or whose Go type is a
+    // map/slice (Balance): `== nil` is exact. Credential fields stay: prediction writes a *string into ApiKey.
+    content = content.replace (/(!?)(?<![.\w])IsEqual\(this\.(Orders|MyTrades|Positions|Liquidations|Ids|Clients|WsClientsSnapshot\(\)|WsCacheObjGet\("Positions"\)|Balance), nil\)/g, ((_m: string, not: string, field: string) => '(this.' + field + ((not === '!') ? ' != ' : ' == ') + 'nil)') as any);
     content = goTypedNativeNilCompares (content, 'IsEqual(');
     content = goProvenParamNativeNilCompares (content, 'IsEqual(');
     content = goStringLiteralNativeCompares (content, 'IsEqual(');
@@ -9005,42 +8976,38 @@ function goUntilReceiverNeverNil (masked: string[], start: number, k: number, ma
 // `var ks []string = ObjectKeys(m)` -> range collection: the helper does not sort, answers nil
 // for a nil map and a non-nil slice for an empty one; `Remove(m, k)` -> delete (helper: plain delete).
 function goNativeKeysAndRemove (content: string): string {
-    if (!/\b(?:ObjectKeys|Remove)\(/.test (content)) {
-        return content;
+    return goRewriteEachFunc (content, /\b(?:ObjectKeys|Remove)\(/.test (content), (lines, masked, start, end) => {
+        const { maskedFunc, typeAt } = goFuncTypeAt (lines, masked, start, end);
+        for (let k = start + 1; k < end; k++) {
+            lines[k] = goNativeKeysRewriteLine (lines[k], masked[k], k, maskedFunc, typeAt).join ('\n');
+        }
+    });
+}
+
+// the func's masked text, its single-declaration lookup, and the declared type of a name as seen at line k
+function goFuncTypeAt (lines: string[], masked: string[], start: number, end: number) {
+    const maskedFunc = masked.slice (start, end + 1).join ('\n');
+    const offsets: number[] = [];
+    let offset = 0;
+    for (let k = start; k <= end; k++) {
+        offsets.push (offset);
+        offset += masked[k].length + 1;
     }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    let offsets: number[] = [];
-    let maskedFunc = '';
+    const cache = new Map<string, any> ();
+    const declOf = (name: string) => {
+        if (!cache.has (name)) {
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
+        }
+        return cache.get (name);
+    };
     const typeAt = (name: string, k: number): string | undefined => {
-        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
+        const decl = declOf (name);
         if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
             return undefined;
         }
         return decl.type;
     };
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            let end = k;
-            while ((end < lines.length) && (lines[end] !== '}')) {
-                end++;
-            }
-            maskedFunc = masked.slice (k, end + 1).join ('\n');
-            offsets = [];
-            let o = 0;
-            for (let j = k; j <= end && j < lines.length; j++) {
-                offsets.push (o);
-                o += masked[j].length + 1;
-            }
-        } else if (lines[k] === '}') {
-            start = -1;
-        }
-        out.push (...((start >= 0) && (k > start) ? goNativeKeysRewriteLine (lines[k], masked[k], k, maskedFunc, typeAt) : [ lines[k] ]));
-    }
-    return out.join ('\n');
+    return { maskedFunc, declOf, typeAt };
 }
 
 function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc: string, typeAt: (name: string, k: number) => string | undefined): string[] {
@@ -9108,46 +9075,44 @@ function goNonNilStringPtr (fn: string, name: string, seen: string[] = []): bool
     return writes.length > 0 && writes.every ((w) => goNonNilStringCall (w.replace (/^.*? = /, '').replace (/\s*\/\/.*$/, '').trim (), nonNilDefault));
 }
 
-function goTypedShapeHelpersFunc (fn: string, qual: string): string {
-    const cache = new Map<string, string | undefined> ();
-    const typeOf = (n: string) => { if (!cache.has (n)) { cache.set (n, goFuncDeclaredType (fn, n)); } return cache.get (n); };
-    const q = qual.replace (/\./g, '\\.');
-    const call = (h: string) => new RegExp ('(?<![.\\w])' + q + h + '\\((?:\\((\\w+)\\)|(\\w+))\\)', 'g');
-    // nil-guarded pointer length: the guard sits in the same expression, before the read
-    fn = fn.replace (new RegExp ('\\((\\w+) (!=|==) nil\\) (&&|\\|\\|) \\(' + q + 'GetLength\\((\\w+)\\)', 'g'), ((m: string, a: string, op: string, conj: string, b: string) => {
-        const guards = (op === '!=' && conj === '&&') || (op === '==' && conj === '||');
-        return (guards && a === b && typeOf (a) === '*string') ? '(' + a + ' ' + op + ' nil) ' + conj + ' (len(*' + a + ')' : m;
-    }) as any);
-    fn = fn.replace (call ('GetLength'), ((m: string, xp: string, xb: string) => {
-        const x = xp || xb;
-        const t = typeOf (x);
-        if (t === 'string') { return 'len(' + x + ')'; }
-        return (t === '*string' && goNonNilStringPtr (fn, x)) ? 'len(*' + x + ')' : m;
-    }) as any);
-    fn = fn.replace (call ('GetArrayLength'), ((m: string, xp: string, xb: string) => ([ '[]any', '[]string', 'string' ].includes (typeOf (xp || xb)) ? 'len(' + (xp || xb) + ')' : m)) as any);
-    // derefScalar folds a nil []any/[]string to nil (false); a map is never an array
-    fn = fn.replace (new RegExp ('(!?)' + call ('IsArray').source, 'g'), ((m: string, not: string, xp: string, xb: string) => {
-        const x = xp || xb;
-        if (not && [ '[]any', '[]string' ].includes (typeOf (x))) {
-            return '(' + x + ' == nil)';
-        }
-        if (not) {
-            return (typeOf (x) === 'map[string]any') ? 'true' : m;
-        }
-        const t = typeOf (x);
-        return ([ '[]any', '[]string' ].includes (t)) ? '(' + x + ' != nil)' : (t === 'map[string]any' ? 'false' : m);
-    }) as any);
-    fn = fn.replace (call ('IsString'), ((m: string, xp: string, xb: string) => ((typeOf (xp || xb) === 'string') ? 'true' : m)) as any);
-    fn = fn.replace (call ('EvalTruthy'), ((m: string, xp: string, xb: string) => {
-        const x = xp || xb;
-        const t = typeOf (x);
-        return (t === 'bool') ? x : ((t === '*bool') ? '(' + x + ' != nil && *' + x + ')' : m);
-    }) as any);
-    return fn;
-}
-
 export function goTypedShapeHelpers (content: string, qual: string): string {
-    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedShapeHelpersFunc (fn, qual)) as any);
+    return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => {
+        const cache = new Map<string, string | undefined> ();
+        const typeOf = (n: string) => { if (!cache.has (n)) { cache.set (n, goFuncDeclaredType (fn, n)); } return cache.get (n); };
+        const q = qual.replace (/\./g, '\\.');
+        const call = (h: string) => new RegExp ('(?<![.\\w])' + q + h + '\\((?:\\((\\w+)\\)|(\\w+))\\)', 'g');
+        // nil-guarded pointer length: the guard sits in the same expression, before the read
+        fn = fn.replace (new RegExp ('\\((\\w+) (!=|==) nil\\) (&&|\\|\\|) \\(' + q + 'GetLength\\((\\w+)\\)', 'g'), ((m: string, a: string, op: string, conj: string, b: string) => {
+            const guards = (op === '!=' && conj === '&&') || (op === '==' && conj === '||');
+            return (guards && a === b && typeOf (a) === '*string') ? '(' + a + ' ' + op + ' nil) ' + conj + ' (len(*' + a + ')' : m;
+        }) as any);
+        fn = fn.replace (call ('GetLength'), ((m: string, xp: string, xb: string) => {
+            const x = xp || xb;
+            const t = typeOf (x);
+            if (t === 'string') { return 'len(' + x + ')'; }
+            return (t === '*string' && goNonNilStringPtr (fn, x)) ? 'len(*' + x + ')' : m;
+        }) as any);
+        fn = fn.replace (call ('GetArrayLength'), ((m: string, xp: string, xb: string) => ([ '[]any', '[]string', 'string' ].includes (typeOf (xp || xb)) ? 'len(' + (xp || xb) + ')' : m)) as any);
+        // derefScalar folds a nil []any/[]string to nil (false); a map is never an array
+        fn = fn.replace (new RegExp ('(!?)' + call ('IsArray').source, 'g'), ((m: string, not: string, xp: string, xb: string) => {
+            const x = xp || xb;
+            if (not && [ '[]any', '[]string' ].includes (typeOf (x))) {
+                return '(' + x + ' == nil)';
+            }
+            if (not) {
+                return (typeOf (x) === 'map[string]any') ? 'true' : m;
+            }
+            const t = typeOf (x);
+            return ([ '[]any', '[]string' ].includes (t)) ? '(' + x + ' != nil)' : (t === 'map[string]any' ? 'false' : m);
+        }) as any);
+        fn = fn.replace (call ('IsString'), ((m: string, xp: string, xb: string) => ((typeOf (xp || xb) === 'string') ? 'true' : m)) as any);
+        fn = fn.replace (call ('EvalTruthy'), ((m: string, xp: string, xb: string) => {
+            const x = xp || xb;
+            const t = typeOf (x);
+            return (t === 'bool') ? x : ((t === '*bool') ? '(' + x + ' != nil && *' + x + ')' : m);
+        }) as any);
+        return fn;
+    }) as any);
 }
 
 function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
@@ -9198,27 +9163,7 @@ function nativeDerefArgMapReads (content: string): string {
 }
 
 function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
-    const maskedFunc = masked.slice (start, end + 1).join ('\n');
-    const offsets: number[] = [];
-    let offset = 0;
-    for (let k = start; k <= end; k++) {
-        offsets.push (offset);
-        offset += masked[k].length + 1;
-    }
-    const cache = new Map<string, any> ();
-    const declOf = (name: string) => {
-        if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
-        }
-        return cache.get (name);
-    };
-    const typeAt = (name: string, k: number): string | undefined => {
-        const decl = declOf (name);
-        if ((decl === undefined) || ((decl.index !== undefined) && (decl.index >= offsets[k - start]))) {
-            return undefined;
-        }
-        return decl.type;
-    };
+    const { maskedFunc, declOf, typeAt } = goFuncTypeAt (lines, masked, start, end);
     const receiverOk = new Map<string, boolean> ();
     for (let k = start + 1; k < end; k++) {
         if (masked[k].indexOf ('GetValue(') < 0) {
@@ -9752,7 +9697,7 @@ function goNativeStringHelpers (filePath: string, content: string): string {
         if (i === 0 && !part.startsWith ('func ')) {
             return part;
         }
-        let next = goDropEndpointRaw (part);
+        const next = goDropEndpointRaw (part);
         const local = new Set<string> ();
         const trial = goNativeStringHelpersRewriteFunc (next, local);
         // a base file has no import clause to extend: only package-free rewrites land there
@@ -9760,8 +9705,7 @@ function goNativeStringHelpers (filePath: string, content: string): string {
             return next;
         }
         local.forEach ((p) => pkgs.add (p));
-        next = trial;
-        return next;
+        return trial;
     });
     let out = rewritten.join ('');
     const missing = [ ...pkgs ].filter ((p) => !has (p)).sort ();
