@@ -208,9 +208,7 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
 // hand-written above the delimiter of BaseExchange.java with typed Pair returns
@@ -227,14 +225,10 @@ const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
-const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
 const EXCHANGE_BASE_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const EXCHANGE_GENERATED_FOLDER = './java/tests/src/main/java/tests/exchange/';
-const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-const EXAMPLES_OUTPUT_FOLDER = './examples/java/examples/';
-const csharpComments: any = {};
 
 // the raw-text `final Object finalX = x;` hoists and the async-param snapshots are emitted
 // as plain text, so no local-type family can re-type them; this pass copies the source
@@ -424,122 +418,7 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     // Guarded native replaceFirst is a String (null arm included)
     if ((token === 'String' || token === 'java.lang.String') && /^\(([\w$.]+) == null \? null : \(\(String\)\1\)\.replaceFirst\(/.test (value)) return true;
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
-    // a checkcast proves the value only when it wraps the whole expression, not one argument
-    if (new RegExp (`^\\(\\s*${token}\\s*\\)`).test (value) && retypeCastSpansValue (value)) return true;
     return false;
-}
-
-// `(T) expr` where expr is one operand: an identifier/call chain, or a parenthesised expression
-function retypeCastSpansValue (value: string): boolean {
-    const rest = value.replace (/^\(\s*[^()]+\s*\)\s*/, '');
-    if (rest.startsWith ('(')) {
-        let depth = 0;
-        for (let k = 0; k < rest.length; k++) {
-            if (rest[k] === '(') depth++;
-            else if (rest[k] === ')') { depth--; if (depth === 0) return k === rest.length - 1; }
-        }
-        return false;
-    }
-    return /^[\w$.]+(\((?:[^()]|\([^()]*\))*\))?(\.[\w$]+(\((?:[^()]|\([^()]*\))*\))?)*$/.test (rest);
-}
-
-// async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
-// (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
-// Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
-const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
-const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|io\.github\.ccxt\.ws\.ArrayCache\.getLimitOf|String\.valueOf)$/;
-
-function retypeTopLevelArgCount (args: string): number {
-    let depth = 0;
-    let count = 1;
-    let quoted = false;
-    for (let k = 0; k < args.length; k++) {
-        const c = args[k];
-        if (c === '\\' && quoted) { k++; continue; }
-        if (c === '"') quoted = !quoted;
-        if (quoted) continue;
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') depth--;
-        else if (c === ',' && depth === 0) count++;
-    }
-    return count;
-}
-
-function retypeCopyWrite (rhs: string, token: string, name: string): string | undefined {
-    const tail = rhs.match (/;\s*(\/\/.*)?$/);
-    const comment = tail !== null && tail[1] !== undefined ? ' ' + tail[1] : '';
-    const value = rhs.replace (/;\s*(\/\/.*)?$/, '').trim ();
-    const write = (v: string) => `${v};${comment}`;
-    if (value === 'null' || retypeWrittenValueMatches (value, token)) return rhs;
-    // the pass runs before applyJavaImports, so the printed casts are still `java.util.`-qualified
-    // second() of a typed handle* Pair is its params Map in every Pair the base declares
-    const pairRead = value.match (/^[A-Za-z_$][\w$]*Variable\.(first|second)\(\)$/)?.[1];
-    const tupleRead = /^\(\((?:java\.util\.)?List<Object>\) [A-Za-z_$][\w$]*Variable\)\.get\(\d\)$/.test (value);
-    if (RETYPE_COPY_MAP_TOKEN.test (token)) {
-        const extend = value.match (/^this\.extend\((.*)\)$/);
-        if (extend !== null) {
-            const fixed = retypeTopLevelArgCount (extend[1]) === 2 && extend[1].indexOf ('...') === -1;
-            return fixed ? rhs : write (`(${token}) ${value}`);
-        }
-        if (/^this\.(?:deepExtend|keysort)\(/.test (value)) return rhs;
-        if (pairRead === 'second') return rhs;
-        const castable = tupleRead
-            || new RegExp (`^this\\.omit\\(${name},`).test (value)
-            || /^this\.safeDict\(/.test (value);
-        return castable ? write (`(${token}) ${value}`) : undefined;
-    }
-    if (token === 'Long') {
-        if (/^-?\d+$/.test (value)) return write (`${value}L`);
-        if (/^this\.(?:safeInteger|parseToInt|milliseconds)\(/.test (value)) return rhs;
-        return undefined;
-    }
-    if (token === 'String') {
-        if (/^\(\((?:java\.util\.)?Map<String, Object>\)[A-Za-z_$][\w$]*\)\.get\("[^"]*"\)$/.test (value)) return write (`(String) ${value}`);
-        if (tupleRead && value.endsWith ('.get(0)')) return write (`(String) ${value}`);
-        if (new RegExp (`^\\(\\(String\\)${name}\\)\\.to(?:Upper|Lower)Case\\(\\)$`).test (value)) return rhs;
-    }
-    return undefined;
-}
-
-// a use of the copy may sit on a continuation line of a multi-line call: resolve its callee
-// over the preceding code, and admit the Object-parameter Helpers the base declares
-function retypeCopyUseIsAudited (lines: string[], j: number, from: number, name: string, token: string): boolean {
-    if (retypeUseIsAudited (lines[j], name, token)) return true;
-    const code = retypeCodeOnly (lines[j]);
-    let prefix = '';
-    // a Helpers.newMap literal spans one line per property: look back over the whole literal
-    for (let k = Math.max (from, j - 400); k < j; k++) prefix += retypeCodeOnly (lines[k]);
-    const re = retypeMentionRegex (name, 'g');
-    let m: RegExpExecArray | null;
-    while ((m = re.exec (code)) !== null) {
-        const pre = prefix + code.slice (0, m.index);
-        let depth = 0;
-        let callee: string | undefined = undefined;
-        for (let k = pre.length - 1; k >= 0; k--) {
-            const c = pre[k];
-            if (c === ')') depth++;
-            else if (c === '(') {
-                if (depth === 0) {
-                    const head = pre.slice (0, k).trim ().match (/([\w$.]+)\s*$/);
-                    callee = head !== null ? head[1] : undefined;
-                    break;
-                }
-                depth--;
-            }
-        }
-        if (callee !== undefined && (RETYPE_AUDITED_CALLEES.test (callee) || RETYPE_COPY_EXTRA_CALLEES.test (callee))) continue;
-        const local = code.slice (0, m.index);
-        if ((/\+\s*$/.test (local) || /^\s*\+/.test (code.slice (m.index + name.length))) && /"/.test (lines[j])) continue;
-        const cast = local.match (/\(([\w$.<>,? ]+)\)\s*\(?\s*$/);
-        if (cast !== null) {
-            const c = cast[1].replace (/\s+/g, '').replace (/^java\.util\./, '');
-            const own = token.replace (/\s+/g, '').replace (/^java\.util\./, '');
-            if (c === own || c === 'Object' || c === 'java.lang.Object') continue;
-            if (RETYPE_COPY_MAP_TOKEN.test (token) && c === 'Map<?,?>') continue;
-        }
-        return false;
-    }
-    return true;
 }
 
 // a later declaration of the same name is a DIFFERENT variable (Java forbids
@@ -997,52 +876,6 @@ const JS_STRING_MEMBER_FIELDS = new Set([
     'id', 'version', 'name', 'secret', 'apiKey', 'password', 'uid', 'login', 'url', 'hostname',
 ]);
 
-// the first argument of the `Helpers.add(` call that starts at `addStart`, as text +
-// offset. Quote- and paren-aware; undefined when the call cannot be parsed (the callers
-// then keep the conservative behaviour).
-function jsAddFirstOperand (content: string, addStart: number): { text: string; start: number } | undefined {
-    const open = content.indexOf('(', addStart);
-    if (open === -1 || open - addStart > 'Helpers.add'.length + 2) {
-        return undefined;
-    }
-    const start = open + 1;
-    let depth = 0;
-    let inString = '';
-    let end = -1;
-    for (let i = start; i < content.length; i++) {
-        const ch = content[i];
-        if (inString !== '') {
-            if (ch === '\\') {
-                i++;
-                continue;
-            }
-            if (ch === inString) {
-                inString = '';
-            }
-            continue;
-        }
-        if (ch === '"' || ch === "'") {
-            inString = ch;
-        } else if (ch === '(') {
-            depth++;
-        } else if (ch === ')') {
-            if (depth === 0) {
-                end = i;
-                break;
-            }
-            depth--;
-        } else if (ch === ',' && depth === 0) {
-            end = i;
-            break;
-        } else if (ch === '\n') {
-            return undefined;
-        }
-    }
-    if (end === -1) {
-        return undefined;
-    }
-    return { text: content.slice(start, end), start };
-}
 
 // every Identifier node in `scope`, by source name. Not cached: the Java printer
 // renames identifiers inside object literals in place (`x` → `finalX`) while a
@@ -1080,18 +913,6 @@ function isAsyncMethodCall (printer: any, callNode: any): boolean {
         && ts.isIdentifier (returnType.typeName) && returnType.typeName.text === 'Promise';
 }
 
-// env-gated calibration trace (same convention as the module's
-// CCXT_JAVA_LOCAL_TYPES_DEBUG / JAVA_STRING_HELPERS_DEBUG): CCXT_JAVA_SAFESTRING_DEBUG=1
-// prints one line per rejected safeString-family declaration with the reason the
-// use-scan declined it (write-rhs / write-plus-safe / write-plus-unsafe /
-// compound-plus-unsafe / compound-plus-ws / compound-assign / pro-async / ...).
-const SAFESTRING_DEBUG = process.env['CCXT_JAVA_SAFESTRING_DEBUG'] === '1';
-let safeStringRejectReason: string | undefined;
-function safeStringReject (reason: string): boolean {
-    safeStringRejectReason = reason;
-    return false;
-}
-
 // would postProcessWsJava's "String type fixes" pass rewrite this declaration back to
 // `Object`? (mirror of build/java-local-types.js#dataflowWsReverts): pro/prediction source
 // file + a printed value starting with `this.<m>(` / `Helpers.<...>(`. The SS-03 `+`
@@ -1120,9 +941,6 @@ function wsPostProcessReverts (declaration: any): boolean {
 
 // reject the refinement when a later use needs the local to stay `Object`
 function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isProFile: boolean, plusRelaxationAllowed = false): boolean {
-    if (SAFESTRING_DEBUG) {
-        safeStringRejectReason = undefined;
-    }
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -1145,18 +963,18 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
             if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                return SAFESTRING_DEBUG ? safeStringReject ('inc-dec') : false;
+                return false;
             }
         }
         if (ts.isSpreadElement (parent)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('spread') : false;
+            return false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('typeof') : false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
+            return false; // `typeof x === 'number'` prints `x instanceof Long`: inconvertible for a String
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            return SAFESTRING_DEBUG ? safeStringReject ('destructure') : false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
@@ -1169,12 +987,6 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                     || isProvablyStringReassignment (printer, parent.right, sourceName)
                     || (plusRelaxationAllowed && plusWriteRightIsSafe (printer, parent.right, sourceName));
                 if (!provable) {
-                    if (SAFESTRING_DEBUG) {
-                        const right = unwrapParensAll (parent.right);
-                        const isPlus = right !== undefined && ts.isBinaryExpression (right)
-                            && right.operatorToken.kind === ts.SyntaxKind.PlusToken;
-                        safeStringReject (isPlus ? 'write-plus-unsafe' : 'write-rhs');
-                    }
                     return false;
                 }
             } else if (op === ts.SyntaxKind.PlusEqualsToken) {
@@ -1185,10 +997,10 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
                 const plusOk = (plusRelaxationAllowed && isProvablyNonNullStringExpression (printer, parent.right, sourceName))
                     || isProvablyNonNullStringOperand (printer, parent.right, sourceName);
                 if (!plusOk) {
-                    return SAFESTRING_DEBUG ? safeStringReject (plusRelaxationAllowed ? 'compound-plus-unsafe' : 'compound-plus-ws') : false;
+                    return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                return SAFESTRING_DEBUG ? safeStringReject ('compound-assign') : false;
+                return false;
             }
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
@@ -1198,7 +1010,7 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
         // `Helpers.add(String, String)` also returns String) so the call keeps
         // binding to the core.
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            return SAFESTRING_DEBUG ? safeStringReject ('pro-async') : false;
+            return false;
         }
     }
     return true;
@@ -1454,10 +1266,6 @@ function javaLocalType (printer: any, declaration: any): string | undefined {
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const plusRelaxationAllowed = !wsPostProcessReverts (declaration);
     if (!isSafeToNarrow (printer, declaration, sourceName, isProFile, plusRelaxationAllowed)) {
-        if (SAFESTRING_DEBUG) {
-            console.error (`[java-safestring] reject ${fileName}:${declaration.getStart ()} ${sourceName} (${safeStringRejectReason ?? 'unknown'})`);
-            safeStringRejectReason = undefined;
-        }
         return undefined;
     }
     return 'String';
@@ -1489,7 +1297,6 @@ export function patchJavaLocalTypes (transpiler: any): void {
             return printed;
         }
         const javaType = javaLocalType (printer, declaration);
-        if (SS02_CENSUS) ss02Record (printer, declaration, javaType, printed, identation);
         if (javaType === undefined) {
             return printed;
         }
@@ -1870,219 +1677,6 @@ export function installJavaExpressionTypeResolver (transpiler: any): void {
     printer._javaExpressionTypeResolverInstalled = true;
 }
 
-// ===== SS-02 census: safeString-family locals with later writes (env-gated) =====
-//
-// Read-only instrumentation for the SS-02 slice — one JSON line per local whose
-// initializer is a whole `this.safeString*`-family call, appended to
-// CCXT_SS02_CENSUS_OUT (default /tmp/ss02-census.jsonl) when CCXT_SS02_CENSUS=1.
-// Piscina workers inherit the env and share the file (one atomic O_APPEND write per
-// line). Nothing below changes what the printer emits.
-//
-// Each record carries
-//   * this engine's verdict (`javaLocalType`) and whether a retype would survive
-//     postProcessWsJava's `String x = this.<m>(` revert for a ws-tier file,
-//   * the blockers of a replica of isSafeToNarrow that keeps scanning after a reject
-//     (`mismatch` flags replica drift against the real verdict),
-//   * one entry per later assignment with the shape flags a reassignment acceptance
-//     reads: the isProvablyStringExpression verdict, string-element element reads,
-//     `+` left spines, reads of another local's decision, String-candidate calls.
-const SS02_CENSUS = process.env['CCXT_SS02_CENSUS'] === '1';
-const SS02_CENSUS_OUT = process.env['CCXT_SS02_CENSUS_OUT'] ?? '/tmp/ss02-census.jsonl';
-
-function ss02Brief (node: any, limit = 110): string {
-    try { return String (node?.getText?.() ?? '').replace (/\s+/g, ' ').slice (0, limit); } catch (e) { return '<no-text>'; }
-}
-
-function ss02Kind (node: any): string {
-    try { return String ((ts.SyntaxKind as any)[node?.kind] ?? node?.kind); } catch (e) { return '<kind>'; }
-}
-
-function ss02Append (record: any): void {
-    try { fs.appendFileSync (SS02_CENSUS_OUT, JSON.stringify (record) + '\n'); } catch (e) {}
-}
-
-// the `this.safeString*` initializer call of a candidate declaration, or undefined
-function ss02FamilyInitializer (declaration: any): any {
-    let initializer = declaration?.initializer;
-    while (initializer !== undefined && ts.isParenthesizedExpression (initializer)) {
-        initializer = (initializer as any).expression;
-    }
-    if (!isThisCall (initializer)) {
-        return undefined;
-    }
-    const name = String ((initializer as any).expression.name.text);
-    return name.startsWith ('safeString') ? { name, node: initializer } : undefined;
-}
-
-// replica of isSafeToNarrow that keeps collecting after the first reject (the engine
-// stops there); a record whose accepted flag disagrees with the real verdict is flagged
-function ss02ScanUses (printer: any, declaration: any, sourceName: string, isProFile: boolean): any {
-    const scope = enclosingFunction (declaration);
-    const blockers: any[] = [];
-    if (scope === undefined) {
-        return { accepted: false, blockers: [{ reason: 'no-scope' }] };
-    }
-    const uses = identifierIndex (scope).get (sourceName) ?? [];
-    for (const n of uses) {
-        if (n === declaration.name) continue;
-        const parent = n.parent;
-        if (parent === undefined) continue;
-        if (ts.isVariableDeclaration (parent) && parent.name === n) continue;
-        if (ts.isPropertyAccessExpression (parent) && parent.name === n) continue;
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
-            const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                blockers.push ({ reason: 'increment', text: ss02Brief (n) });
-            }
-        }
-        if (ts.isSpreadElement (parent)) blockers.push ({ reason: 'spread', text: ss02Brief (n) });
-        if (ts.isTypeOfExpression (parent)) blockers.push ({ reason: 'typeof', text: ss02Brief (n) });
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            blockers.push ({ reason: 'array-destructuring', text: ss02Brief (n) });
-        }
-        if (ts.isBinaryExpression (parent) && parent.left === n) {
-            const op = parent.operatorToken.kind;
-            if (op === ts.SyntaxKind.EqualsToken) {
-                const provable = isProvablyStringExpression (printer, parent.right, sourceName)
-                    || isProvablyStringReassignment (printer, parent.right, sourceName);
-                if (!provable) {
-                    blockers.push ({ reason: 'write', kind: ss02Kind (parent.right), text: ss02Brief (parent.right) });
-                }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken) {
-                if (!isProvablyNonNullStringOperand (printer, parent.right, sourceName)) {
-                    blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
-                }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                blockers.push ({ reason: 'compound-write', kind: ss02Kind (op), text: ss02Brief (parent) });
-            }
-        }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            blockers.push ({ reason: 'pro-inherited-async', text: ss02Brief (n) });
-        }
-    }
-    return { accepted: blockers.length === 0, blockers };
-}
-
-// the engine's own decision for the declaration an identifier reads, 'Object' when the
-// local stays Object, undefined when the identifier is not a single local binding
-function ss02LocalDecision (printer: any, identifier: any): any {
-    try {
-        const symbol = printer.getChecker ().getSymbolAtLocation (identifier);
-        const declaration = symbol?.valueDeclaration?.resolve ();
-        if (declaration === undefined || !ts.isVariableDeclaration (declaration) || !ts.isIdentifier (declaration.name)) {
-            return undefined;
-        }
-        return javaLocalType (printer, declaration) ?? 'Object';
-    } catch (e) {
-        return 'error';
-    }
-}
-
-function ss02WriteInfo (printer: any, parent: any, sourceName: string): any {
-    let opText = '<op>';
-    try { opText = String (parent.operatorToken?.getText?.() ?? '<op>'); } catch (e) {}
-    const info: any = {
-        op: opText,
-        kind: ss02Kind (parent.right),
-        text: ss02Brief (parent.right, 100),
-    };
-    if (parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-        info.provable = isProvablyStringExpression (printer, parent.right, sourceName);
-        info.extended = isProvablyStringReassignment (printer, parent.right, sourceName);
-        let right = parent.right;
-        while (ts.isParenthesizedExpression (right)) right = right.expression;
-        if (ts.isCallExpression (right)) {
-            if (isBaseStringAccessorCall (printer, right)) {
-                info.shape = 'base-accessor';
-            } else if (ts.isPropertyAccessExpression (right.expression)) {
-                const method = String (right.expression.name.text);
-                const isThis = right.expression.expression.kind === ts.SyntaxKind.ThisKeyword;
-                const isPrecise = ts.isIdentifier (right.expression.expression) && (right.expression.expression as any).text === 'Precise';
-                info.shape = (isThis ? 'this-call:' : (isPrecise ? 'precise:' : 'call:')) + method;
-                info.resolvesToMethod = isThis ? resolvesToMethodNamed (printer, right, method) : false;
-                info.stringDeclared = isThis ? isStringDeclaredThisCall (printer, right) : false;
-            } else {
-                info.shape = 'call';
-            }
-        } else if (ts.isBinaryExpression (right) && right.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-            info.shape = 'plus';
-            info.leftKind = ss02Kind (right.left);
-            info.leftText = ss02Brief (right.left, 50);
-            info.leftProvable = plusChainIsValuePreserving (printer, right, sourceName);
-        } else if (ts.isElementAccessExpression (right)) {
-            info.shape = 'element-access';
-            info.receiver = ss02Brief (right.expression, 40);
-            info.stringElements = elementAccessHasStringElements (right);
-        } else if (ts.isIdentifier (right)) {
-            info.shape = 'identifier';
-            info.target = String (right.text);
-            info.targetSelf = right.text === sourceName;
-            info.targetDecision = ss02LocalDecision (printer, right);
-        } else if (ts.isConditionalExpression (right)) {
-            info.shape = 'ternary';
-            info.armKinds = [ ss02Kind (right.whenTrue), ss02Kind (right.whenFalse) ];
-            info.armsProvable = isProvablyStringExpression (printer, right.whenTrue, sourceName)
-                && isProvablyStringExpression (printer, right.whenFalse, sourceName);
-        } else {
-            info.shape = 'other:' + info.kind;
-        }
-    } else if (parent.operatorToken.kind === ts.SyntaxKind.PlusEqualsToken) {
-        info.provable = false;
-        info.extended = isProvablyNonNullStringOperand (printer, parent.right, sourceName);
-    }
-    return info;
-}
-
-function ss02Writes (printer: any, declaration: any, sourceName: string): any[] {
-    const scope = enclosingFunction (declaration);
-    if (scope === undefined) return [];
-    const writes: any[] = [];
-    for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
-        if (n === declaration.name) continue;
-        const parent = n.parent;
-        if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== n) continue;
-        const op = parent.operatorToken.kind;
-        if (op < ts.SyntaxKind.FirstAssignment || op > ts.SyntaxKind.LastAssignment) continue;
-        writes.push (ss02WriteInfo (printer, parent, sourceName));
-    }
-    return writes;
-}
-
-function ss02Record (printer: any, declaration: any, javaType: string | undefined, printed: string, identation: number): void {
-    try {
-        const candidate = ss02FamilyInitializer (declaration);
-        if (candidate === undefined) return;
-        const sourceName = String (declaration.name.text);
-        const fileName = declaration.getSourceFile ().fileName;
-        const isProFile = /[\\/]pro[\\/]/.test (fileName);
-        const isPredictionFile = /[\\/]prediction[\\/]/.test (fileName);
-        const isWsFile = isProFile || isPredictionFile;
-        const iden = printer.getIden (identation);
-        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
-        const at = printed.lastIndexOf (marker);
-        const value = at === -1 ? undefined : printed.slice (at + marker.length);
-        const retyped = javaType !== undefined && value !== undefined && value.startsWith ('this.');
-        const scan = ss02ScanUses (printer, declaration, sourceName, isProFile);
-        let realVerdict = false;
-        try { realVerdict = isSafeToNarrow (printer, declaration, sourceName, isProFile); } catch (e) {}
-        ss02Append ({
-            file: fileName.replace (/^.*[\\/]ts[\\/]/, 'ts/'),
-            name: sourceName,
-            accessor: candidate.name,
-            classifies: isBaseStringAccessorCall (printer, candidate.node),
-            ws: isWsFile, pro: isProFile, prediction: isPredictionFile,
-            verdict: javaType ?? 'Object',
-            retyped,
-            accepted: realVerdict,
-            mismatch: scan.accepted !== realVerdict,
-            blockers: scan.blockers,
-            writes: ss02Writes (printer, declaration, sourceName),
-        });
-    } catch (e) {
-        ss02Append ({ error: String ((e as any)?.stack ?? e) });
-    }
-}
 
 // default min(2, AP): 2w + shared-Program chunks is within ~10% of 4w and uses fewer cores.
 // Override with CCXT_TRANSPILE_PROCESSES.
@@ -2097,7 +1691,6 @@ function javaWorkerThreads () {
 class NewTranspiler {
 
     transpiler!: Transpiler;
-    pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -2116,60 +1709,9 @@ class NewTranspiler {
     }
 
     constructor() {
-
         this.setupTranspiler()
-        // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
-
-
-        this.pythonStandardLibraries = {
-            'hashlib': 'hashlib',
-            'math': 'math',
-            'json.loads': 'json',
-            'json.dumps': 'json',
-            'sys': 'sys',
-        }
     }
 
-    getWsRegexes() {
-        // hoplefully we won't need this in the future by having everything typed properly in the typescript side
-        return [
-            [/new (\w+)Rest\(\)/, 'new ccxt.$1()'],
-            [/return await (\w+);/gm, 'return await ($1 as Exchange.Future);'],
-            // [/typeof\(client\)/gm, 'client'],
-            // [/typeof\(orderbook\)/gm, 'orderbook'], // fix this in the transpiler later
-            [/new\sgetValue\((\w+),\s(\w+)\)\((\w+)\)/gm, 'this.newException(getValue($1, $2), $3)'],
-            [/\(object\)client\).subscriptions/gm, '(WebSocketClient)client).subscriptions'],
-            [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
-            [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
-            [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
-            [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
-            [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
-            [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
-            [/(\w+)(\.cache)/gm, '($1 as ccxt.pro.OrderBook)$2'],
-            //  [/(\w+)(\.reset)/gm, '($1 as ccxt.OrderBook)$2'],
-            [/((?:this\.)?\w+)(\.hashmap)/gm, '($1 as ArrayCacheBySymbolById)$2'],
-            [/(countedBookSide)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)\.store\(((.+),(.+))\)/gm, '($1 as IOrderBookSide).store($2)'],
-            [/(\w+)(\.storeArray\(.+\))/gm, '($1 as IOrderBookSide)$2'],
-            // [/(.+)\.store\((.+),(.+)\)/gm, '($1 as OrderBookSide).store($2,$3)'],
-            [/(\w+)\.call\(this,(.+)\)/gm, 'DynamicInvoker.InvokeMethod($1, new object[] {$2})'],
-            [/(\w+)(\.limit\(\))/gm, '($1 as IOrderBook)$2'],
-            [/(future)\.resolve\((.*)\)/gm, '($1 as Future).resolve($2)'],
-            // [/this\.spawn\((this\.\w+),(.+)\)/gm, 'this.spawn($1, new object[] {$2})'],
-            // [/this\.delay\(([^,]+),([^,]+),(.+)\)/gm, 'this.delay($1, $2, new object[] {$3})'],
-            // [/(this\.\w+)\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$2", new object[] {$3})'], // check this.orders
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\((.+)\)/gm, 'callDynamically($1, "$3", new object[] {$4})'],
-            [/future(\.reject.+)/gm, '((Future)future)$1'],
-            [/(\w+)(\.reject.+)/gm, '((WebSocketClient)$1)$2'],
-            [/(client)(\.reset.+)/gm, '((WebSocketClient)$1)$2'],
-            [/\(client,/g, '(client as WebSocketClient,'],
-            [/\(object client,/gm, '(WebSocketClient client,'],
-            [/\(object client\)/gm, '(WebSocketClient client)'],
-            [/object client =/gm, 'var client ='],
-            [/object future =/gm, 'var future ='],
-        ]
-    }
 
     getJavaWsRegexes() {
         // Java-specific WS regexes — converts transpiled code for WS exchange classes
@@ -2181,13 +1723,6 @@ class NewTranspiler {
             [/\(Object client,/gm, '(Client client,'],
             [/\(Object client\)/gm, '(Client client)'],
             [/Object client =/gm, 'Client client ='],
-            [/Object future =/gm, 'Object future ='],
-
-            // client.subscriptions / client.futures — these are Object type fields
-            // transpiled code tries to cast them to Map, which works since they're ConcurrentHashMaps
-            [/\(java\.util\.Map<String, Object>\)client\.futures/gm, '(java.util.Map)client.futures'],
-            [/\(java\.util\.Map<String, Object>\)client\.subscriptions/gm, '(java.util.Map)client.subscriptions'],
-            [/\(java\.util\.Map<String, Object>\)this\.clients/gm, '(java.util.Map)this.clients'],
 
             // new XyzRest() → new Xyz() for instantiating REST parent
             [/new (\w+)Rest\(\)/g, 'new io.github.ccxt.exchanges.$1()'],
@@ -2195,24 +1730,13 @@ class NewTranspiler {
             // ArrayCache constructor — needs FQN for inner classes + int cast
             [/new ArrayCache\((\w+)\)/gm, 'new ArrayCache(((Number)$1).intValue())'],
             [/new ArrayCacheByTimestamp\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByTimestamp(((Number)$1).intValue())'],
-            [/new ArrayCacheByTimestamp\(\)/gm, 'new ArrayCache.ArrayCacheByTimestamp()'],
             [/new ArrayCacheBySymbolById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolById(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolById\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolById()'],
             [/new ArrayCacheByOutcomeById\((\w+)\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById(((Number)$1).intValue())'],
-            [/new ArrayCacheByOutcomeById\(\)/gm, 'new ArrayCache.ArrayCacheByOutcomeById()'],
-            [/new ArrayCacheBySymbolBySide\((\w+)\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide(((Number)$1).intValue())'],
             [/new ArrayCacheBySymbolBySide\(\)/gm, 'new ArrayCache.ArrayCacheBySymbolBySide()'],
         ]
     }
 
-    // c# custom method
-    customCSharpPropAssignment(node: any, identation: any) {
-        const stringValue = node.getFullText().trim();
-        if (Object.keys(errors).includes(stringValue)) {
-            return `typeof(${stringValue})`;
-        }
-        return undefined;
-    }
 
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
@@ -2229,11 +1753,6 @@ class NewTranspiler {
 
     // ============================================================================
 
-    iden(level = 1) {
-        return '    '.repeat(level)
-    }
-    // ============================================================================
-
     getTranspilerConfig() {
         return {
             "verbose": false,
@@ -2241,7 +1760,6 @@ class NewTranspiler {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    // "VAR_TOKEN": "var",
                 }
             },
             "java": {
@@ -2252,107 +1770,6 @@ class NewTranspiler {
         }
     }
 
-    createSee(link: string) {
-        return `/// See <see href="${link}"/>  <br/>`
-    }
-
-    createParam(param: any) {
-        return `/// <item>
-    /// <term>${param.name}</term>
-    /// <description>
-    /// ${param.type} : ${param.description}
-    /// </description>
-    /// </item>`
-    }
-
-    createCsharpCommentTemplate(name: string, desc: string, see: string[], params: string[], returnType: string, returnDesc: string) {
-        //
-        // Summary:
-        //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
-        //     signed integer.
-        //
-        // Parameters:
-        //   value:
-        //     The 16-bit signed integer to convert.
-        //
-        // Returns:
-        //     A 64-bit signed integer that is equivalent to value
-        const comment = `
-    /// <summary>
-    /// ${desc}
-    /// </summary>
-    /// <remarks>
-    ${see.map(l => this.createSee(l)).join("\n    ")}
-    /// <list type="table">
-    ${params.map(p => this.createParam(p)).join("\n    ")}
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
-        const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
-        return commentWithoutEmptyLines;
-    }
-
-    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params: string[], returnType: string, returnDesc: string) {
-        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
-    }
-
-    transformLeadingComment(comment: any) {
-        // parse comment
-        // /**
-        //  * @method
-        //  * @name binance#fetchTime
-        //  * @description fetches the current integer timestamp in milliseconds from the exchange server
-        //  * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
-        //  * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
-        //  * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
-        //  * @param {object} [params] extra parameters specific to the exchange API endpoint
-        //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        //  */
-        // return comment;
-        const commentNameRegex = /@name\s(\w+)#(\w+)/;
-        const nameMatches = comment.match(commentNameRegex);
-        const exchangeName = nameMatches ? nameMatches[1] : undefined;
-        if (!exchangeName) {
-            return comment;
-        }
-        const methodName = nameMatches[2];
-        const commentDescriptionRegex = /@description\s(.+)/;
-        const descriptionMatches = comment.match(commentDescriptionRegex);
-        const description = descriptionMatches ? descriptionMatches[1] : undefined;
-        const seeRegex = /@see\s(.+)/g;
-        const seeMatches = comment.match(seeRegex);
-        const sees: string[] = [];
-        if (seeMatches) {
-            seeMatches.forEach((match: any) => {
-                const [, link] = match.split(' ');
-                sees.push(link);
-            });
-        }
-        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
-        const params = [] as any;
-        let paramMatch;
-        while ((paramMatch = paramRegex.exec(comment)) !== null) {
-            const [, type, name, description] = paramMatch;
-            params.push({ type, name, description });
-        }
-        const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
-        const returnMatch = comment.match(returnRegex);
-        const returnType = returnMatch ? returnMatch[1] : undefined;
-        const returnDescription = returnMatch && returnMatch.length > 1 ? returnMatch[2] : undefined;
-        let exchangeData = csharpComments[exchangeName];
-        if (!exchangeData) {
-            exchangeData = csharpComments[exchangeName] = {}
-        }
-        let exchangeMethods = csharpComments[exchangeName];
-        if (!exchangeMethods) {
-            exchangeMethods = {}
-        }
-        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees, params, returnType, returnDescription);
-        exchangeMethods[methodName] = transformedComment;
-        csharpComments[exchangeName] = exchangeMethods
-        return comment;
-    }
 
     setupTranspiler() {
         this.transpiler = new Transpiler(this.getTranspilerConfig())
@@ -2360,7 +1777,6 @@ class NewTranspiler {
         // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
         (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         installJavaOwnerStores(this.transpiler);
-        this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
         // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
@@ -2555,374 +1971,6 @@ class NewTranspiler {
         return values;
     }
 
-    isObject(type: string) {
-        return (type === 'any') || (type === 'unknown');
-    }
-
-    isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || ((type.startsWith('{')) && (type.endsWith('}')))
-    }
-
-    isStringType(type: string) {
-        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
-    }
-
-    isNumberType(type: string) {
-        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
-    }
-
-    isIntegerType(type: string) {
-        return type !== undefined && (type.toLowerCase() === 'int');
-    }
-
-    isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
-    }
-
-    convertJavascriptTypeToJavaType(name: string, type: string, isReturn = false): string | undefined {
-
-        if (name === 'fetchTime') {
-            return `CompletableFuture<Long>`; // custom handling for now
-        }
-
-        const isPromise = type.startsWith('Promise<') && type.endsWith('>');
-        let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
-        let isList = false;
-
-        function addFutureIfNeeded(t: string) {
-            if (t === 'void') {
-                return isPromise ? `CompletableFuture<Void>` : 'void';
-            } else if (isList) {
-                return isPromise ? `CompletableFuture<List<${t}>>` : `List<${t}>`;
-            }
-            return isPromise ? `CompletableFuture<${t}>` : t;
-        }
-
-        const javaReplacements: dict = {
-            'OrderType': 'String',
-            'OrderSide': 'String', // tmp
-        };
-
-        if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addFutureIfNeeded('Object'); // default if type is unknown
-        }
-
-        if (wrappedType === 'string[][]') {
-            return addFutureIfNeeded('List<List<String>>');
-        }
-
-        // check if returns a list
-        if (wrappedType.endsWith('[]')) {
-            isList = true;
-            wrappedType = wrappedType.substring(0, wrappedType.length - 2);
-        }
-
-        if (this.isObject(wrappedType)) {
-            if (isReturn) {
-                return addFutureIfNeeded('Map<String, Object>');
-            }
-            return addFutureIfNeeded('Object');
-        }
-        if (this.isDictionary(wrappedType)) {
-            return addFutureIfNeeded('Map<String, Object>');
-        }
-        if (this.isStringType(wrappedType)) {
-            return addFutureIfNeeded('String');
-        }
-        if (this.isIntegerType(wrappedType)) {
-            return addFutureIfNeeded('long');
-        }
-        if (this.isNumberType(wrappedType)) {
-            return addFutureIfNeeded('double');
-        }
-        if (this.isBooleanType(wrappedType)) {
-            return addFutureIfNeeded('boolean');
-        }
-        if (wrappedType === 'Strings') {
-            return addFutureIfNeeded('List<String>');
-        }
-        if (javaReplacements[wrappedType] !== undefined) {
-            return addFutureIfNeeded(javaReplacements[wrappedType]);
-        }
-
-        // Convert Dictionary<...> -> Map<String, ...>
-        if (wrappedType.startsWith('Dictionary<')) {
-            let inner = wrappedType.substring(11, wrappedType.length - 1);
-            if (inner.startsWith('Dictionary<')) {
-                inner = this.convertJavascriptTypeToJavaType(name, inner) as any;
-            }
-            return addFutureIfNeeded(`Map<String, ${inner}>`);
-        }
-
-        return addFutureIfNeeded(wrappedType);
-    }
-
-    safeJavaName(name: string): string {
-        const javaReservedWordsReplacement: dict = {
-            'params': 'parameters',
-            'base': 'baseArg',
-        }
-        return javaReservedWordsReplacement[name] || name;
-    }
-
-    convertJavascriptParamToJavaParam(param: any): string | undefined {
-        const name = param.name;
-        const safeName = this.safeJavaName(name);
-        const isOptional = param.optional || param.initializer !== undefined;
-
-        let paramType: any = undefined;
-
-        if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'BaseExchange';
-        } else if (param.type == undefined) {
-            paramType = 'Object';
-        } else {
-            paramType = this.convertJavascriptTypeToJavaType(name, param.type);
-        }
-
-        const isNonNullableType =
-            this.isNumberType(param.type) ||
-            this.isBooleanType(param.type) ||
-            this.isIntegerType(param.type);
-
-        if (isOptional && isNonNullableType) {
-            if (paramType === 'boolean') paramType = 'Boolean';
-            else if (paramType === 'double') paramType = 'Double';
-            else if (paramType === 'float') paramType = 'Float';
-            else if (paramType === 'long') paramType = 'Long';
-            else if (paramType === 'int') paramType = 'Integer';
-        }
-
-        if (isOptional) {
-            if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                const init =
-                    typeof param.initializer === 'string'
-                        ? param.initializer.replaceAll("'", '"')
-                        : param.initializer;
-                return `${paramType} ${safeName} = ${init}`;
-            }
-
-            return `${paramType} ${safeName} = null`;
-        }
-
-        return `${paramType} ${safeName}`;
-    }
-
-
-    shouldCreateWrapper(methodName: string, isWs = false): boolean {
-        const allowedPrefixes = [
-            'fetch',
-            'create',
-            'edit',
-            'cancel',
-            'setP',
-            'setM',
-            'setL',
-            'transfer',
-            'withdraw',
-            'watch',
-            // 'load',
-        ];
-        // const allowedPrefixesWs = [
-        //     ''
-        // ]
-        const blacklistMethods = [
-            'fetch',
-            'setSandBoxMode',
-            'loadOrderBook',
-            'fetchCurrencies',
-            'loadMarketsHelper',
-            'setMarketsFromExchange',
-            'setLastRequest',
-            'setLastRestRequestTimestamp',
-            'setProperty',
-            'setProxyAgents',
-            'watch',
-            'watchMultipleSubscription',
-            'watchMultiple',
-            'watchPrivate',
-            'watchPublic',
-            'setPositionsCache',
-            'setPositionCache'
-        ] // improve this later
-        if (isWs) {
-            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
-                return false;
-            }
-        }
-        const isBlackListed = blacklistMethods.includes(methodName);
-        const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
-        return !isBlackListed && startsWithAllowedPrefix;
-    }
-
-    unwrapTaskIfNeeded(type: string): string {
-        return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapListIfNeeded(type: string): string {
-        return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapDictionaryIfNeeded(type: string): string {
-        return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
-    }
-
-    createReturnStatement(methodName: string, unwrappedType: string) {
-        // handle watchOrderBook exception here
-        if (methodName.startsWith('watchOrderBook')) {
-            return `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
-        }
-
-        if (methodName === 'watchOHLCVForSymbols') {
-            return `return Helper.ConvertToDictionaryOHLCVList(res);`
-        }
-
-        // custom handling for now
-        if (methodName === 'fetchTime') {
-            return `return (Int64)res;`;
-        }
-
-        // handle the typescript type Dict
-        if (unwrappedType === 'Dict') {
-            return `return (Dictionary<string, object>)res;`;
-        }
-
-        const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
-        let returnStatement = "";
-        if (unwrappedType.startsWith('List<')) {
-            if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
-            } else {
-                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
-            }
-        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
-            const type = this.unwrapDictionaryIfNeeded(unwrappedType);
-            const returnParts = [
-                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
-                `        var result = new Dictionary<string, ${type}>();`,
-                `        foreach (var key in keys)`,
-                `        {`,
-                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
-                `        }`,
-                `        return result;`,
-            ].join("\n");
-            return returnParts;
-        } else {
-            returnStatement = needsToInstantiate ? `return new ${unwrappedType}(res);` : `return ((${unwrappedType})res);`;;
-        }
-        return returnStatement;
-    }
-
-    getDefaultParamsWrappers(rawParameters: any[]) {
-        const res: string[] = [];
-
-        rawParameters.forEach(param => {
-            const isOptional = param.optional || param.initializer === 'undefined';
-            // const isOptional =  param.optional || param.initializer !== undefined;
-            if (isOptional && (this.isIntegerType(param.type) || this.isNumberType(param.type))) {
-                const decl = `${this.inden(2)}var ${param.name} = ${param.name}2 == 0 ? null : (object)${param.name}2;`;
-                res.push(decl);
-            }
-        });
-
-        return res.join("\n");
-    }
-
-    inden(level: number) {
-        return '    '.repeat(level);
-    }
-
-    createWrapper(exchangeName: string, methodWrapper: any, isWs = false) {
-        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
-        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
-        const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName, isWs)) {
-            return ''; // skip aux methods like encodeUrl, parseOrder, etc
-        }
-        const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        const returnType = this.convertJavascriptTypeToJavaType(methodName, methodWrapper.returnType, true);
-        const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToJavaParam(param));
-        const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        const params = methodWrapper.parameters.map((param: any) => this.safeJavaName(param.name)).join(', ');
-
-        const one = this.inden(1);
-        const two = this.inden(2);
-        const methodDoc = [] as any[];
-        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
-            methodDoc.push(csharpComments[exchangeName][methodName]);
-        }
-        const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${returnType} ${methodNameCapitalized}(${stringArgs})`,
-            `${one}{`,
-            this.getDefaultParamsWrappers(methodWrapper.parameters),
-            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
-            `${one}}`
-        ];
-        return methodDoc.concat(method).filter(e => !!e).join('\n')
-    }
-
-    createExchangesWrappers(): string[] {
-        const res: string[] = ['// class wrappers'];
-
-        exchangeIds.forEach(exchange => {
-            const capitalizedExchange = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-            const capitalName = capitalizedExchange.replace('.ts', '');
-
-            const className = exchange.replace('.ts', '');
-            const constructor1 = `    public ${capitalName}() { super(null); }`;
-            const constructor2 = `    public ${capitalName}(Object args) { super(args); }`;
-
-            const cls = [
-                `public class ${capitalName} extends ${className} {`,
-                constructor1,
-                constructor2,
-                `}`
-            ].join('\n');
-
-            res.push(cls);
-        });
-
-        return res;
-    }
-
-    createJavaWrappers(exchange: string, path: string, wrappers: any[], ws = false) {
-        const wrappersIndented = wrappers
-            .map(wrapper => this.createWrapper(exchange, wrapper, ws))
-            .filter(wrapper => wrapper !== '')
-            .join('\n');
-
-        const shouldCreateClassWrappers = exchange === 'Exchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e => !!e).join('\n') : '';
-
-        const pkg = ws ? 'package ccxt.pro;' : 'package io.github.ccxt;';
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-
-        const capitalizeStatement = ws
-            ? [
-                `public class ${capitizedName} extends ${exchange} {`,
-                `    public ${capitizedName}() { super(null); }`,
-                `    public ${capitizedName}(Object args) { super(args); }`,
-                `}`
-            ].join('\n')
-            : '';
-
-        const file = [
-            pkg,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public class ${exchange} {`,
-            wrappersIndented,
-            `}`,
-            classes
-        ].filter(s => s !== '').join('\n');
-
-        log.magenta('→', (path as any).yellow);
-        overwriteFileAndFolder(path, file);
-    }
-
 
     transpileErrorHierarchy(force = true) {
 
@@ -2970,10 +2018,6 @@ class NewTranspiler {
         }
 
 
-        // JAVA ----------------------------------------------------------------
-
-        // ---------------------------------------------------------------------
-
         function javaMakeErrorClassFile(name: string, parent: string) {
             const exception =
                 `public class ${name} extends ${parent}
@@ -3010,12 +2054,6 @@ class NewTranspiler {
             log.bright.cyan(message, (fileName as any).yellow)
             overwriteFileAndFolder(fileName, file)
         }
-        // const javaBodyIntellisense = '\npackage io.github.ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + javaBaseError + '\n' + javaErrors.join ('\n') + '\n'
-        // if (fs.existsSync (ERRORS_FILE)) {
-        //     log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-        //     overwriteFileAndFolder (ERRORS_FILE, javaBodyIntellisense)
-        // }
-        // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
     // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
@@ -3036,23 +2074,11 @@ class NewTranspiler {
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
             [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
 
-            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
             [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
         baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip invalid parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`
-        // (see createJavaClass for the full rationale).
-        baseClass = baseClass.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-        // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
 
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
-        // Pattern 1: throw directly followed by return null (same block)
-        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
-        // Pattern 2: if/else where the else throws, followed by return null before });
-        // Only safe when else contains throw (not return) — throw always terminates
-        baseClass = this.removeUnreachableReturnNull(baseClass);
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
         baseClass = nativeJavaNumericLocalsRetype(nativeJavaPrimitiveArithmetic(baseClass));
@@ -3269,10 +2295,6 @@ class NewTranspiler {
             [/Object client = (.+)/g, 'Client client = (Client)$1'],
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
         ]);
-        baseClass = baseClass.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        baseClass = baseClass.replace(/\(\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)\)/g, 'Helpers.isArrayJs($1)');
-        baseClass = baseClass.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
-        baseClass = this.removeUnreachableReturnNull(baseClass);
         baseClass = this.addDeprecatedAnnotations(baseClass);
         const javaDelimiter = '// ' + delimiter + '\n';
         const restOfFile = '([^\n]*\n)+'
@@ -3317,67 +2339,6 @@ class NewTranspiler {
         }
     }
 
-    camelize(str: string) {
-        var res = str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function (match, index) {
-            if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
-            return index === 0 ? match.toLowerCase() : match.toUpperCase();
-        });
-        return res.replaceAll('-', '');
-    }
-
-
-    getCsharpExamplesWarning() {
-        return [
-            '',
-            '    // !!Warning!! This example was automatically transpiled',
-            '    // from the TS version, meaning that the code is overly',
-            '    // complex and illegible compared to the code you would need to write',
-            '    // normally. Use it only to get an idea of how things are done.',
-            '    // Additionally always choose the typed version of the method instead of the generic one',
-            '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
-            ''
-        ].join('\n')
-    }
-
-    transpileExamples() {
-        return;
-        // currently disabled!, the generated code is too complex and illegible
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
-
-        const allTsExamplesFiles = fs.readdirSync(EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
-        for (const filenameWithExtenstion of allTsExamplesFiles) {
-            const tsFile = path.join(EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
-            let tsContent = fs.readFileSync(tsFile).toString()
-            if (tsContent.indexOf(transpileFlagPhrase) > -1) {
-                const fileName = filenameWithExtenstion.replace('.ts', '')
-                log.magenta('[C#] Transpiling example from', (tsFile as any).yellow)
-                const csharp = this.transpiler.transpileCSharp(tsContent);
-
-                const transpiledFixed = this.regexAll(
-                    csharp.content,
-                    [
-                        [/object exchange/, 'Exchange exchange'],
-                        [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
-                        [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
-                        [/^await.+$/gm, '']
-                    ]
-                )
-
-                const finalFile = [
-                    'using ccxt;',
-                    'using ccxt.pro;',
-                    'namespace examples;',
-                    // this.getCsharpExamplesWarning(),
-                    'partial class Examples',
-                    '{',
-                    transpiledFixed,
-                    '}'
-                ].join('\n');
-
-                overwriteFileAndFolder(EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
-            }
-        }
-    }
 
     async transpileWS(force = false) {
         const tsFolder = './ts/src/pro/';
@@ -3546,23 +2507,6 @@ class NewTranspiler {
             ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
             : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
-        if (!ws) {
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
-                // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
-                // break;
-            }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
-            }
-        }
         exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
@@ -3589,13 +2533,8 @@ class NewTranspiler {
             ''
         ].join('\n');
 
-        const regex = /class (\w+) extends (\w+)/
-        // const res = content.match(regex)
-        // const parentExchange = res[1].toLowerCase();
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
-        content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
-        content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/g, `, $1()$2`);
         content = content.replace(/(\s+public) Object describe\(\)/g, '$1 java.util.Map<String, Object> describe()')
         content = content.replace(/(\s+public java\.util\.Map<String, Object> describe\(\))/g, `${constructor}$1`)
@@ -3613,48 +2552,14 @@ class NewTranspiler {
         );
         // cast callDynamically to CompletableFuture when .join() is called on the result
         content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Null-safe Array.isArray rewrite. ast-transpiler emits the bare
-        // `(X instanceof java.util.List) || (X.getClass().isArray())` form,
-        // which NPEs when X is null (JS Array.isArray(null) is false). Route
-        // all such checks through Helpers.isArrayJs which guards null first.
-        content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
-        // Remove unreachable "return null;" after throw/return statements (ast-transpiler 0.0.80)
-        content = content.replace(/throw ([^;]+) ;\n\s*return null;/g, 'throw $1 ;');
-        content = this.removeUnreachableReturnNull(content);
-        // Remove unreachable "return null;" after simple if/else where both branches
-        // directly return (single-line return in each branch, no nested control flow)
-        // Handle if/else where else has return (not throw): remove unreachable return null
-        // Pattern: "return X;\n    } else\n    {\n    return Y;\n    }\n    return null;\n    });"
-        // Safe because plain "} else" covers all paths, and else block ends with return
-        // Pattern: any line ending with "return X;\n  }\n  return null;\n  });" where the line
-        // before "}" starts the else block with "} else\n  {"
-        // Uses the removeReturnNullAfterElseReturn method for multi-line else blocks
-        // Handle simple if/else where both branches have a direct return as last line:
-        // } else\n {\n    return X;\n }\n return null;\n });
-        // Remove unreachable "return null;" for simple if/else where else ends with return.
-        // Uses line-by-line function to avoid greedy regex issues.
-
-        // const baseWsClassRegex = /class\s(\w+)\s+:\s(\w+)/;
-        // const baseWsClassExec = baseWsClassRegex.exec(content);
-        // const baseWsClass = baseWsClassExec ? baseWsClassExec[2] : '';
-        // if (!ws) {
-        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, "public partial class $1 : $2");
-        // } else {
-        //     const wsParent =  baseWsClass.endsWith('Rest') ? 'ccxt.' + baseWsClass.replace('Rest', '') : baseWsClass;
-        //     content = content.replace(/class\s(\w+)\s:\s(\w+)/gm, `public partial class $1 : ${wsParent}`);
-        // }
-        // content = content.replace(/binaryMessage.byteLength/gm, 'getValue(binaryMessage, "byteLength")'); // idex tmp fix
         // WS fixes
         if (ws) {
             const wsRegexes = this.getJavaWsRegexes();
             content = this.regexAll (content, wsRegexes);
-            content = this.replaceImportedRestClasses (content, javaVersion.imports);
             // WS classes extend the REST class: pro.Binance extends io.github.ccxt.exchanges.Binance
             const restTypedFqn = `io.github.ccxt.exchanges.${this.capitalize(name)}`;
             content = content.replace(/extends\s\w+Api/g, `extends ${restTypedFqn}`);
-            content = content.replace(/extends\s(\w+)Rest/g, `extends io.github.ccxt.exchanges.$1`);
-            content = content.replace(/extends\s(\w+)\b(?!\.)/, `extends ${restTypedFqn}`);
             content = this.postProcessWsJava(content, name);
         } else if (prediction) {
             // prediction merges REST + WS in one class — apply the WS regexes + post-processing
@@ -3690,116 +2595,6 @@ class NewTranspiler {
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
-    /**
-     * Remove unreachable "return null;" lines that appear after if/else blocks where
-     * both branches terminate (return or throw). The ast-transpiler 0.0.80 adds these
-     * for safety but Java treats them as compilation errors.
-     */
-    removeUnreachableReturnNull(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            // Check if this line is "return null;" and the next is "});" (lambda end)
-            if (lines[i].trim() === 'return null;' && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                // Check if the preceding non-empty line is "}" closing an else/else-if block
-                // that contains a throw or return
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    // Look back further to check if the block contains throw or return
-                    let k = j - 1;
-                    while (k >= 0 && lines[k].trim() !== '{') k--;
-                    // Check the else block for throw (guaranteed unconditional termination).
-                    // We don't check for return because return might be inside a nested
-                    // if/for and not guaranteed to execute on all paths.
-                    let hasThrow = false;
-                    for (let l = k; l <= j; l++) {
-                        const trimmed = lines[l].trim();
-                        if (trimmed.startsWith('throw ')) {
-                            hasThrow = true;
-                            break;
-                        }
-                    }
-                    // Only safe with plain "} else" (not "} else if")
-                    let hasPlainElse = false;
-                    if (k > 0) {
-                        const beforeBlock = lines[k - 1].trim();
-                        hasPlainElse = beforeBlock === '} else';
-                    }
-                    if (hasThrow && hasPlainElse) {
-                        // Skip this "return null;" line — it's unreachable
-                        continue;
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
-    /**
-     * Remove "return null;" after if/else where the else block's last statement is a return.
-     * More conservative than removeUnreachableReturnNull — only handles the else-return pattern.
-     */
-    removeReturnNullAfterElseReturn(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                // Check: preceding } then scan backward for "} else" + "{" pair
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    const elseClose = j;
-                    // Scan backward to find "} else" line, tracking brace depth
-                    let depth = 1; // start with 1 for the closing }
-                    let elseStart = -1;
-                    for (let k = elseClose - 1; k >= 0; k--) {
-                        const t = lines[k].trim();
-                        if (t === '}') depth++;
-                        else if (t === '{') {
-                            depth--;
-                            if (depth === 0) {
-                                // Found the opening { of this block
-                                if (k > 0 && lines[k - 1].trim() === '} else') {
-                                    elseStart = k;
-                                }
-                                break;
-                            }
-                        }
-                    }
-                    if (elseStart >= 0) {
-                        // Check that the last non-comment statement before } is a return
-                        let lastReturn = false;
-                        for (let k = elseClose - 1; k > elseStart; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}') continue;
-                            lastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        if (lastReturn) {
-                            continue; // Skip return null — else block ends with return
-                        }
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
-    replaceImportedRestClasses(content: string, imports: any[]) {
-        for (const imp of imports) {
-            // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
-            // { name: "bequantRest", path: "../bequant.js", isDefault: true, }
-            const name = imp.name;
-            if (name.endsWith('Rest')) {
-                content = content.replaceAll(name, 'ccxt.' + name.replace('Rest', ''));
-            }
-        }
-        return content;
-    }
 
     /**
      * Insert `@Deprecated` annotation on every method whose preceding JSDoc
@@ -3912,71 +2707,6 @@ class NewTranspiler {
         return out;
     }
 
-    fixVoidReturnNull(content: string): string {
-        const lines = content.split('\n');
-        let depth = 0;
-        let armed = false;
-        let inVoid = false;
-        let entryDepth = -1;
-        let inBlockComment = false;
-        const stripForBraceCount = (raw: string): string => {
-            // Remove line comments, string literals, and block-comment segments so
-            // brace tracking stays accurate. Brace chars inside those contexts
-            // must not affect depth.
-            let s = raw;
-            // Handle /* ... */ segments across and within lines
-            if (inBlockComment) {
-                const end = s.indexOf('*/');
-                if (end < 0) return '';
-                s = s.substring(end + 2);
-                inBlockComment = false;
-            }
-            while (true) {
-                const start = s.indexOf('/*');
-                if (start < 0) break;
-                const end = s.indexOf('*/', start + 2);
-                if (end < 0) {
-                    inBlockComment = true;
-                    s = s.substring(0, start);
-                    break;
-                }
-                s = s.substring(0, start) + s.substring(end + 2);
-            }
-            // Strip string literals (simple; doesn't handle escaped quotes beyond \\)
-            s = s.replace(/"(?:[^"\\]|\\.)*"/g, '""');
-            s = s.replace(/'(?:[^'\\]|\\.)*'/g, "''");
-            // Strip line comments
-            s = s.replace(/\/\/.*$/, '');
-            return s;
-        };
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (!inVoid && !armed && /^\s*public\s+void\s+\w+\s*\(/.test(line)) {
-                armed = true;
-            }
-            if (inVoid) {
-                lines[i] = line.replace(/\breturn null;/g, 'return;');
-            }
-            const counted = stripForBraceCount(line);
-            for (const ch of counted) {
-                if (ch === '{') {
-                    if (armed && !inVoid) {
-                        inVoid = true;
-                        entryDepth = depth;
-                        armed = false;
-                    }
-                    depth++;
-                } else if (ch === '}') {
-                    depth--;
-                    if (inVoid && depth === entryDepth) {
-                        inVoid = false;
-                        entryDepth = -1;
-                    }
-                }
-            }
-        }
-        return lines.join('\n');
-    }
 
     // true when the text proves the identifier `name` at offset `pos` is Java-`String`:
     // the NEAREST PRECEDING declaration of `name` inside the same method must be
@@ -4018,61 +2748,11 @@ class NewTranspiler {
         return true;
     }
 
-    // SS-04: true when the `Helpers.add(...)` call starting at `addStart` has a FIRST operand
-    // that is statically String in Java — javac then picks the String-returning
-    // `add(String, *)` overload (Helpers.java), so an outer `(String)` checkcast is redundant.
-    // Text-level proof for the shapes the ws post-passes meet: a string literal, an audited
-    // `this.<member>` String field, a local whose same-method nearest declaration proves
-    // String, or a nested `Helpers.add(...)` chain that itself starts with one.
-    addChainStartsWithString (content: string, addStart: number): boolean {
-        const first = jsAddFirstOperand(content, addStart);
-        if (first === undefined) {
-            return false;
-        }
-        const text = first.text.trim();
-        if (text.startsWith('"') || text.startsWith("'")) {
-            return true;
-        }
-        const member = /^this\.([A-Za-z_]\w*)$/.exec(text);
-        if (member !== null) {
-            return JS_STRING_MEMBER_FIELDS.has(member[1]);
-        }
-        if (text.startsWith('Helpers.add(')) {
-            const nested = content.indexOf('Helpers.add(', first.start);
-            return nested !== -1 && this.addChainStartsWithString(content, nested);
-        }
-        if (/^[A-Za-z_]\w*$/.test(text)) {
-            return this.provablyStringLocal(content, text, first.start);
-        }
-        return false;
-    }
 
     postProcessWsJava(content: string, name: string, skipEffectivelyFinal = false, prediction = false): string {
         const cap = this.capitalize(name);
 
-        // ── Fix broken method references: ClassName."methodName" → "methodName" ──
-        // The transpiler generates method references as ClassName."methodName" which is
-        // invalid Java (string template syntax). These are used as map values for
-        // message handler dispatch tables. Replace with just the string literal.
-        content = content.replace(new RegExp(`${cap}\\.("\\w+")`, 'gm'), '$1');
 
-        // ── Pattern 12: Map casts for client.subscriptions/futures access ──
-        content = content.replace(/\(\(Object\)client\)\.subscriptions/gm, '((java.util.Map)client.subscriptions)');
-        content = content.replace(/\(\(Object\)client\)\.futures/gm, '((java.util.Map)client.futures)');
-
-        // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
-        // helper's put branch and a plain put agree; the generated text stays as the base prints it.
-
-        // Object.keys / Object.values / Array.isArray are now emitted as
-        // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
-        // by ast-transpiler (PR #48). The earlier regex post-process here
-        // routed the older `new ArrayList<>(((Map<String,Object>)x).keySet())`
-        // shape; it's been removed since #48 covers every argument shape
-        // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
-
-        // ── Pattern 6: Method reference for ping ──
-        content = content.replace(new RegExp(`${cap}\\.this::ping`, 'gm'),
-            `(java.util.function.Function<Client, Object>) ${cap}.this::ping`);
 
         // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ──
         // Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x)
@@ -4082,8 +2762,6 @@ class NewTranspiler {
             (_match: string, method: string, hash: string, offset: number) =>
                 `io.github.ccxt.ws.Future future = client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
         // Object future = Helpers.GetValue(client.futures, x) → cast to Future
-        content = content.replace(/Object\s+future\s*=\s*Helpers\.GetValue\(client\.futures,\s*(\w+)\)/gm,
-            'io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, $1)');
         // Object future = this.safeValue(client.futures, x) → cast to Future
         // client.futures is a ConcurrentHashMap<String, Future> (WsClient), so every path
         // hands back a Future or null and the checkcast cannot fail
@@ -4097,10 +2775,6 @@ class NewTranspiler {
         content = content.replace(/io\.github\.ccxt\.ws\.Future (\w+) = \(io\.github\.ccxt\.ws\.Future\)this\.safeValue\(client\.futures, ("[^"\\]*"|\w+)\);/gm,
             (whole: string, local: string, key: string, offset: number) =>
                 wsKeyIsString (key, offset) ? `io.github.ccxt.ws.Future ${local} = client.futures.get(${key});` : whole);
-        content = content.replace(/^(\s*)Helpers\.addElementToObject\(client\.subscriptions, ("[^"\\]*"|\w+), ([^\n]*)\);$/gm,
-            (whole: string, indent: string, key: string, value: string, offset: number) =>
-                wsKeyIsString (key, offset) && (value.split ('(').length === value.split (')').length)
-                    ? `${indent}client.subscriptions.put(${key}, ${value});` : whole);
 
         // ── Pattern 3: (String) cast on the hash argument of client.future() / reusableFuture() ──
         // client.future(hash) where the hash local is Object-typed. any
@@ -4110,8 +2784,6 @@ class NewTranspiler {
         content = content.replace(/client\.(future|reusableFuture)\((\w+)\)/gm,
             (_match: string, method: string, hash: string, offset: number) =>
                 `client.${method}(${this.provablyStringLocal (content, hash, offset) ? hash : `(String)${hash}`})`);
-        // idempotence guard: never cast an already-cast argument
-        content = content.replace(/client\.(future|reusableFuture)\(\(String\)\(String\)/gm, 'client.$1((String)');
 
         // ── Pattern 2: future.join() → future.getFuture().join() ──
         // Only for local `future` variables (not this.xxx)
@@ -4119,54 +2791,23 @@ class NewTranspiler {
         // a `future` the file declares io.github.ccxt.ws.Future (nearest declaration in the method) needs no cast
         const wsFutureLocal = (name: string, offset: number, _text: string): string =>
             this.provablyTypedLocal (content, name, offset, WS_FUTURE_TYPE) ? name : `((${WS_FUTURE_TYPE})${name})`;
-        content = content.replace(/(?<!\w)(future)\.getFuture\(\)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
-        content = content.replace(/(?<!\w)(future)\.join\(\)/gm,
-            (m: string, name: string, offset: number) => `${wsFutureLocal (name, offset, content)}.getFuture().join()`);
         // (future).join() pattern
         content = content.replace(/\(future\)\.join\(\)/gm,
             (m: string, offset: number) => `${wsFutureLocal ('future', offset + 1, content)}.getFuture().join()`);
         // client.future(...).join() → client.future(...).getFuture().join()
-        content = content.replace(/client\.(future|reusableFuture)\(([^)]+)\)\.join\(\)/gm,
-            'client.$1($2).getFuture().join()');
         // (client.future(...)).join() → client.future(...).getFuture().join()
         // Parenthesized form — use balanced parens since args may contain nested parens
         content = this.replaceParenthesizedClientFutureJoin(content);
-        // But if future is already typed as io.github.ccxt.ws.Future, don't double-cast
-        content = content.replace(/\(\(io\.github\.ccxt\.ws\.Future\)(\(io\.github\.ccxt\.ws\.Future\))/gm, '($1');
-
-        // ── Pattern 10: (String) cast on Helpers.add() for exception constructors and client.future() ──
-        // SS-04: only when the add-chain's FIRST operand is not already String — javac picks a
-        // String-returning `add(String, *)` overload exactly when it is, and the printer already
-        // emits the cast on every shape it cannot prove
-        content = content.replace(/(throw new \w+\()Helpers\.add\(/gm,
-            (match: string, prefix: string, offset: number) =>
-                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
-                    ? match : `${prefix}(String)Helpers.add(`);
-        content = content.replace(/(client\.(?:future|reusableFuture)\()Helpers\.add\(/gm,
-            (match: string, prefix: string, offset: number) =>
-                this.addChainStartsWithString (content, offset + match.length - 'Helpers.add('.length)
-                    ? match : `${prefix}(String)Helpers.add(`);
 
         // ── Pattern 5: ArrayCache .hashmap access ──
         // Only match local variables, not this.xxx
         content = content.replace(/(?<!this\.)(?<![\w.])([a-z]\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
         // this.xxx.hashmap → ((ArrayCache)this.xxx).hashmap
         content = content.replace(/(this\.\w+)\.hashmap\b/gm, '((io.github.ccxt.ws.ArrayCache)$1).hashmap');
-        // Prevent double-wrapping
-        content = content.replace(/\(\(io\.github\.ccxt\.ws\.ArrayCache\)\(\(io\.github\.ccxt\.ws\.ArrayCache\)/gm,
-            '((io.github.ccxt.ws.ArrayCache)');
 
-        // ── Pattern: future.resolve(...) on Object-typed future variable ──
-        // future.resolve(x) where future is Object → cast
-        content = content.replace(/(?<!\w)future\.resolve\(([^)]+)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.resolve(${args})`);
         // future.reject(x) on Object
         content = content.replace(/(?<!\w)future\.reject\(([^)]+)\)/gm,
             (m: string, args: string, offset: number) => `${wsFutureLocal ('future', offset, content)}.reject(${args})`);
-        // promise.resolve(x) where promise is Object → cast
-        content = content.replace(/(?<!\w)promise\.resolve\(([^)]*)\)/gm,
-            (m: string, args: string, offset: number) => `${wsFutureLocal ('promise', offset, content)}.resolve(${args})`);
 
         // a resolved ws list is an ArrayCache or a plain list: the typed static answers Long for both
         content = this.replaceDynamicMethodCall(content, 'getLimit',
@@ -4214,18 +2855,11 @@ class NewTranspiler {
         content = this.replaceCallPattern(content);
 
         // ── this.spawn(this.method, args) → lambda (as statement ending with ;) ──
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
-            return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
-        });
         // this.spawn("methodName", arg1, arg2, ...) → this.spawn(() -> { ... }) (as statement)
         content = content.replace(/this\.spawn\("(\w+)",\s*([^)]*(?:\([^)]*\)[^)]*)*)\);/gm, (match: string, method: string, args: string) => {
             return `this.spawn(() -> { try { this.${method}(${args}); } catch(Exception _e) { throw new RuntimeException(_e); } });`;
         });
         // this.spawn(this.method, args) used as expression (value) — NOT ending with ;
-        content = content.replace(/this\.spawn\(this\.(\w+),\s*([^)]*(?:\([^)]*\)[^)]*)*)\)(?=\))/gm,
-            (match: string, method: string, args: string) => {
-                return `this.${method}(${args})`;
-            });
         // this.spawn("methodName", args) as expression — the method-ref-as-string
         // pass above has already converted this.methodRef → "methodRef" by the time
         // we get here. Rewrite to spawnWithResult which returns a Future capturing
@@ -4278,28 +2912,11 @@ class NewTranspiler {
         }
 
         // ── Client type handling ──
-        content = content.replace(/WsClient\b/gm, 'Client');
-        content = content.replace(/\(Object client\)/gm, '(Client client)');
-        content = content.replace(/\(Object client,/gm, '(Client client,');
         content = content.replace(/,\s*Object client,/gm, ', Client client,');
-        content = content.replace(/,\s*Object client\)/gm, ', Client client)');
-        content = content.replace(/Object client =/gm, 'Client client =');
-        content = content.replace(/Object client = this\.client\(/gm, 'Client client = this.client(');
-        content = content.replace(/Client\s+client\s*=\s*Helpers\.GetValue\((\w+),\s*(\w+)\)/gm,
-            'Client client = (Client)Helpers.GetValue($1, $2)');
         content = content.replace(/Client\s+client\s*=\s*this\.(safeValue|safeDict)\(/gm,
             'Client client = (Client)this.$1(');
 
         // ── Pattern 9: int/long from Object ──
-        // parseTimeframe is declared primitive int, so its local keeps `int`; any other reverted
-        // local may box an Integer, which a printer `((long) x)` cast would reject at runtime
-        const revertedInts = new Set<string>();
-        content = content.replace(/int (\w+) = (?![\d(]|this\.parseTimeframe\()/gm, (_m: string, n: string) => { revertedInts.add(n); return 'Object ' + n + ' = '; });
-        for (const n of revertedInts) {
-            content = content.replace(new RegExp('\\(\\(long\\) ' + n + '\\)', 'g'), '((Number) ' + n + ').longValue()');
-        }
-        content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
-            'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
             'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/client\.lastPong\s*=\s*([^;]+);/gm, (match: string, rhs: string) => {
@@ -4312,28 +2929,10 @@ class NewTranspiler {
         });
 
         // ── this.delay → spawn with sleep ──
-        // Existing forms: `this.delay(ms, this.methodName, args...)` where callback
-        // is a method reference. Handled first.
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+),\s*([^)]+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2($3); } catch(Exception _e) {} })');
-        content = content.replace(/this\.delay\(([^,]+),\s*this\.(\w+)\)/gm,
-            'this.spawn(() -> { try { Thread.sleep(((Number)$1).longValue()); this.$2(); } catch(Exception _e) {} })');
-        // Generalized form: `this.delay(ms, "methodName", ...args)` where the callback
+        // `this.delay(ms, "methodName", ...args)` where the callback
         // is already a string literal (the method-ref-as-string rewrite above converts
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
-
-        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
-        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
-        // declaration in pro/prediction files back to `Object`. The local-typing layers emit a
-        // String declaration only when every reaching value is provably String-or-null, so the
-        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
-
-        // ── CompletableFuture<Void> → <Object> ──
-        content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
-
-        // ── this.lockId()/this.unlockId() → synchronized with scoping fix ──
-        content = this.fixSynchronizedScoping(content);
 
         // ── super.describeData() → call WS parent method ──
         content = content.replace(/super\.describeData\(\)/gm, (match: string) => {
@@ -4352,20 +2951,13 @@ class NewTranspiler {
             }
         }
 
-        // ── Bids/Asks class references ──
-        content = content.replace(/new Bids\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Bids(');
-        content = content.replace(/new Asks\(/gm, 'new io.github.ccxt.ws.OrderBookSide.Asks(');
 
         // ── Exchange class name capitalization ──
         content = content.replace(/new io\.github\.ccxt\.exchanges\.([a-z])(\w+)\(\)/gm,
             (m: string, first: string, rest: string) => `new io.github.ccxt.exchanges.${first.toUpperCase()}${rest}()`);
 
         // ── Assignment to map.get() → Helpers.addElementToObject ──
-        content = content.replace(/\(\(java\.util\.HashMap<String, Object>\)(\w+)\)\.get\("(\w+)"\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
         content = content.replace(/\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\s*=\s*([^;]+);/gm,
-            'Helpers.addElementToObject($1, "$2", $3);');
-        content = content.replace(/\(\(java\.util\.List<Object>\)\(\(java\.util\.List<Object>\)Helpers\.GetValue\((\w+),\s*"(\w+)"\)\)\)\s*=\s*([^;]+);/gm,
             'Helpers.addElementToObject($1, "$2", $3);');
 
         // ── (List<String>) cast fix for ArrayList<Object> → List<String> ──
@@ -4377,164 +2969,9 @@ class NewTranspiler {
             content = this.spawnReassignedArgsByValue(content);
         }
 
-        // ── Void supplyAsync return null insertion ──
-        content = this.insertReturnNullInSupplyAsync(content);
-
-        // Runs AFTER insertReturnNullInSupplyAsync to fix `return null;` leakage
-        // into void event-handler methods. Uses comment/string-aware brace tracking
-        // to avoid false state from brace chars in `//` comment blocks.
-        content = this.fixVoidReturnNull(content);
-
         return content;
     }
 
-    fixSynchronizedScoping(content: string): string {
-        content = content.replace(/this\.lockId\(\);/gm, 'synchronized (this) {');
-        content = content.replace(/this\.unlockId\(\);/gm, '}');
-
-        const lines = content.split('\n');
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === 'synchronized (this) {') {
-                const syncStart = i;
-                let syncEnd = -1;
-                let braceCount = 0;
-                for (let j = i; j < lines.length; j++) {
-                    for (const ch of lines[j]) {
-                        if (ch === '{') braceCount++;
-                        if (ch === '}') braceCount--;
-                    }
-                    if (braceCount === 0) {
-                        syncEnd = j;
-                        break;
-                    }
-                }
-                if (syncEnd === -1) continue;
-
-                const declaredVars: {name: string, lineIdx: number}[] = [];
-                for (let j = syncStart + 1; j < syncEnd; j++) {
-                    const declMatch = lines[j].match(/^(\s*)Object\s+(\w+)\s*=\s*/);
-                    if (declMatch) {
-                        declaredVars.push({name: declMatch[2], lineIdx: j});
-                    }
-                }
-
-                for (const v of declaredVars) {
-                    let usedAfter = false;
-                    for (let j = syncEnd + 1; j < Math.min(syncEnd + 5, lines.length); j++) {
-                        if (lines[j].includes(v.name)) {
-                            usedAfter = true;
-                            break;
-                        }
-                    }
-                    if (usedAfter) {
-                        const indent = lines[v.lineIdx].match(/^(\s*)/)?.[1] || '';
-                        lines[v.lineIdx] = lines[v.lineIdx].replace(`Object ${v.name} =`, `${v.name} =`);
-                        lines.splice(syncStart, 0, `${indent}Object ${v.name};`);
-                        i++;
-                    }
-                }
-            }
-        }
-        return lines.join('\n');
-    }
-
-    insertReturnNullInSupplyAsync(content: string): string {
-        const lines = content.split('\n');
-
-        let inSupplyAsync = 0;
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].includes(JAVA_ASYNC_SUPPLIER + '(')) inSupplyAsync++;
-            if (inSupplyAsync > 0 && lines[i].trim() === '});') inSupplyAsync--;
-            if (inSupplyAsync > 0 && lines[i].trim() === 'return;') {
-                lines[i] = lines[i].replace('return;', 'return null;');
-            }
-        }
-
-        // Only the `});` closing an async lambda body qualifies; nested lambdas are tracked by depth.
-        let depth = 0;
-        for (let i = 0; i < lines.length; i++) {
-            const t = lines[i].trim();
-            if (t.includes(JAVA_ASYNC_SUPPLIER + '(')) { depth = 1; continue; }
-            if (depth === 0) continue;
-            if (t.endsWith('{') && !t.startsWith('}')) { depth++; continue; }
-            if (t === '}' || t === '});' || t.startsWith('} ')) { depth--; }
-            if (depth !== 0 || t !== '});') continue;
-
-            let lastStmtIdx = i - 1;
-            while (lastStmtIdx >= 0 && lines[lastStmtIdx].trim() === '') lastStmtIdx--;
-            if (lastStmtIdx < 0) continue;
-
-            const stmt = lines[lastStmtIdx].trim();
-
-            const isReturn = (s: string) => s.startsWith('return ') || s.startsWith('return(') || s === 'return null;';
-            let hasReturn = isReturn(stmt);
-
-            if (!hasReturn) {
-                for (let k = lastStmtIdx - 1; k >= Math.max(0, lastStmtIdx - 30); k--) {
-                    const kLine = lines[k].trim();
-                    if (kLine.includes('-> {')) break;
-                    if (kLine.match(/^(?:public|private|protected)\s+/)) break;
-                    if (isReturn(kLine)) {
-                        hasReturn = true;
-                        break;
-                    }
-                    if (kLine.endsWith(';') && !kLine.includes('put(') && !kLine.includes('add(') && !kLine.startsWith('//')) {
-                        break;
-                    }
-                }
-            }
-
-            if (stmt === '}') {
-                let bd = 0;
-                let openingLine = lastStmtIdx;
-                for (let k = lastStmtIdx; k >= 0; k--) {
-                    for (let ci = lines[k].length - 1; ci >= 0; ci--) {
-                        if (lines[k][ci] === '}') bd++;
-                        if (lines[k][ci] === '{') bd--;
-                        if (bd === 0) {
-                            openingLine = k;
-                            break;
-                        }
-                    }
-                    if (bd === 0) break;
-                }
-                let openingStmt = lines[openingLine].trim();
-                if (openingStmt === '{') {
-                    let prevLine = openingLine - 1;
-                    while (prevLine >= 0 && lines[prevLine].trim() === '') prevLine--;
-                    if (prevLine >= 0) openingStmt = lines[prevLine].trim();
-                }
-                if (openingStmt.startsWith('} else') || openingStmt.startsWith('else')) {
-                    let innerLast = lastStmtIdx - 1;
-                    while (innerLast >= 0 && lines[innerLast].trim() === '') innerLast--;
-                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) {
-                        hasReturn = true;
-                    }
-                } else if (openingStmt.includes('catch')) {
-                    let innerLast = lastStmtIdx - 1;
-                    while (innerLast >= 0 && lines[innerLast].trim() === '') innerLast--;
-                    if (innerLast >= 0 && isReturn(lines[innerLast].trim())) {
-                        hasReturn = true;
-                    }
-                }
-                if (openingStmt.startsWith('for ') || openingStmt.startsWith('for(') ||
-                    openingStmt.startsWith('while ') || openingStmt.startsWith('while(')) {
-                    const indent3 = lines[i].match(/^\s*/)?.[0] || '';
-                    lines.splice(i, 0, indent3 + '    return null;');
-                    i++;
-                    hasReturn = true;
-                }
-            }
-
-            if (!hasReturn) {
-                const indent = lines[i].match(/^\s*/)?.[0] || '';
-                lines.splice(i, 0, indent + '    return null;');
-                i++;
-            }
-        }
-
-        return lines.join('\n');
-    }
 
     // retypes the raw-text `final Object` hoists and the async-param snapshots to the source
     // declaration's own emitted type token (never a cast); a later use that is not an audited
@@ -4596,34 +3033,21 @@ class NewTranspiler {
             // 2. every later mention of the hoisted name inside the member must be an audited
             //    fixed-parameter Object position
             let audited = true;
-            // the async-param copy `x = x3` joins its writes against the snapshot type
-            const isParamCopy = isCopy && sourceName === `${hoistedName}3`;
-            const rewrites: [number, string][] = [];
             for (let j = i + 1; j <= end; j++) {
                 if (isCopy) {
                     // the copy is not final, so every later write is audited too
                     const write = lines[j].match (new RegExp (`^(\\s*${hoistedName}\\s*=\\s*)(?!=)(.+)$`));
                     if (write !== null) {
-                        if (isParamCopy) {
-                            const printed = retypeCopyWrite (write[2], reference, hoistedName);
-                            if (printed === undefined) { audited = false; break; }
-                            if (printed !== write[2]) rewrites.push ([j, write[1] + printed]);
-                            continue;
-                        }
                         if (!retypeWrittenValueMatches (write[2], reference)) { audited = false; break; }
                         continue;
                     }
                 }
-                const useOk = isParamCopy
-                    ? retypeCopyUseIsAudited (lines, j, i, hoistedName, reference)
-                    : retypeUseIsAudited (lines[j], hoistedName, reference);
-                if (!useOk) { audited = false; break; }
+                if (!retypeUseIsAudited (lines[j], hoistedName, reference)) { audited = false; break; }
             }
             if (!audited) {
                 if (debug) console.log (`final-hoist decline ${hoistedName} (use not audited)`);
                 continue;
             }
-            for (const [j, text] of rewrites) lines[j] = text;
 
             lines[i] = isCopy
                 ? `${indent}${reference} ${hoistedName} = ${sourceName};`
@@ -4856,7 +3280,6 @@ class NewTranspiler {
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`],
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`], // quick fix to replace twice
             [/assert/g, 'Assert'],
-            // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim()
 
         const contentLines = content.split('\n');
@@ -4912,24 +3335,12 @@ class NewTranspiler {
             const java = this.transpiler.transpileJavaByPath(tsFile);
             let content = java.content;
             content = this.regexAll(content, [
-                [/async public/gm, 'public'],
-                [/object  = functions;/g, ''], // tmp fix
                 [/assert/g, 'Assert'],
                 [/Object exchange(?=[,)])/g, 'Exchange exchange'],
                 [/new ccxt\.Exchange/gm, 'new Exchange'],
                 [/\s*public\sObject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
                 [/testSharedMethods.AssertDeepEqual/gm, 'AssertDeepEqual'], // deepEqual added
             ]).trim()
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-        // Strip parens around a method callee, e.g. `(this.handleSubTypeAndParams)(args)`.
-        // ast-transpiler 0.0.86 emits this invalid form when destructuring the tuple return
-        // of a method called with its optional trailing arg (handleSubTypeAndParams(..., 'linear')).
-        // Java never needs parens around the callee. Anchored on `)(` right after the name so
-        // it never touches the valid whole-call form `(this.watch(...)).join()`.
-        content = content.replace(/\((this\.[A-Za-z0-9_]+)\)\(/g, '$1(');
-            // Null-safe Array.isArray (see Helpers.isArrayJs comment).
-            content = content.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
 
             if (correctedTestName === 'TestInit') {
                 content = this.regexAll(content, [
@@ -5033,7 +3444,6 @@ class NewTranspiler {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
         // by path, so the program includes the base Exchange the `any`-typed receivers bind to
         const java = this.transpiler.transpileJavaByPath(files.tsFile);
-        // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = java.content;
 
 
@@ -5051,13 +3461,10 @@ class NewTranspiler {
             // the main live runner (initExchange (exchangeId, ...)) also serves prediction venues,
             // so it must STAY BaseExchange-typed — only the base-tests literal init is a real Exchange
             [/BaseExchange exchange = (initExchange\("Exchange"[^;]*\))/g, 'Exchange exchange = ((Exchange)$1)'],
-            [/BaseExchange exchange = this\.initOfflineExchange\(("[a-z]+")\)/g, 'Exchange exchange = ((Exchange)this.initOfflineExchange($1))'],
             [/testReturnResponseHeaders\(BaseExchange exchange\)/g, 'testReturnResponseHeaders(Exchange exchange)'],
-            [/throw new Error/g, 'throw new Exception'],
             [/public class TestMainClass/g, 'public class TestMain extends BaseTest'],
             [/assert/gm, 'Assert'],
             [/TestMainClass\.this/gm, 'TestMain.this'],
-            [/throw new Exception/g, 'throw new RuntimeException'],
             // the retyped Map<String, Object> field takes the Object fixture read through an assignment cast
             [/exchange\.currencies = currencies;/g, 'exchange.currencies = (Map<String, Object>) currencies;'],
             [/throw e/gm, 'throw new RuntimeException(e)'],
@@ -5067,7 +3474,6 @@ class NewTranspiler {
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).
-        contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
         contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
 
         const file = [
@@ -5182,17 +3588,13 @@ class NewTranspiler {
             let regexes = [
                 [/assert/g, 'Assert'],
                 [/testSharedMethods\./gm, 'TestSharedMethods.'],
-                [/async public/gm, 'public'],
                 // REST test functions serve BOTH tiers (regular Exchange and prediction
                 // PredictionExchange are siblings under BaseExchange), so type the exchange
                 // param as the common base; the awaited unified-method calls are late-bound
                 // below through Helpers.callDynamically. WS tests only run against regular
                 // venues, keep them statically typed.
                 [/Object exchange(?=[,)])/g, isWs ? 'Exchange exchange' : 'BaseExchange exchange'],
-                [/throw new Exception/g, 'throw new RuntimeException'],
                 [/throw e/gm, 'throw new RuntimeException(e)'],
-                [/TestSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
-                [/void function/g, 'void'],
                 // Test files transpile TS `exchange.spawn(localFn, args)` where
                 // `localFn` is a top-level async function in the same file
                 // (transpiled as a method on the test class). Java's
@@ -5201,7 +3603,6 @@ class NewTranspiler {
                 // CompletableFuture, mirroring the lib's spawn pattern.
                 [/(\w+)\.spawn\(([^,]+),(.+)\)/gm, '$1.spawn(() -> { try { this.$2($3).join(); } catch(Exception _e) { throw new RuntimeException(_e); } })'],
                 [/exchange.jsonStringifyWithNull/g, 'exchange.json'],
-                [/(response instanceof java.util.Map)/, '(true)'], // in java this check does not really make sense
             ];
 
             if (filename.includes('fetch') || filename.includes('load') || filename.includes('create') || filename.includes('watch')) {
@@ -5297,7 +3698,6 @@ class NewTranspiler {
                 contentIndentend = rebuilt;
             }
             // Null-safe Array.isArray (see Helpers.isArrayJs).
-            contentIndentend = contentIndentend.replace(/\(([^()]+(?:\([^()]*\))*) instanceof java\.util\.List\) \|\| \(\1\.getClass\(\)\.isArray\(\)\)/g, 'Helpers.isArrayJs($1)');
             if (!isWs) {
                 // late-bind awaited unified-method calls: the exchange param is BaseExchange
                 // (common tier base) but fetchTicker/createOrder/… live on the concrete tiers,
@@ -5310,7 +3710,6 @@ class NewTranspiler {
             } else {
                 contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
             }
-            // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
@@ -5335,7 +3734,6 @@ class NewTranspiler {
                     [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
-                // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
                 java = [
                     ...fileHeaders,
                     contentIndentend,
@@ -5344,8 +3742,6 @@ class NewTranspiler {
             } else {
                 contentIndentend = this.regexAll(contentIndentend, [
                     [/public void/g, 'public static void'], // make tests static
-                    [/async public Task/g, 'async static public Task'], // make tests static
-                    [/public object /g, 'public static object '],
                 ])
                 java = [
                     ...fileHeaders,
@@ -6183,47 +4579,78 @@ function orderedCompareNative (helper: string, l, r): string | undefined {
     return undefined;
 }
 
-export function nativeJavaOrderedComparisons (content: string): string {
-    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
-    const lines = content.split ('\n');
+// names of the fields a printed Java class declares (4-space member lines ending in `=` or `;`)
+function javaClassFields (lines: string[]): Set<string> {
     const fields = new Set<string> ();
     for (const line of lines) {
         const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
         if (f !== null) fields.add (f[1]);
     }
+    return fields;
+}
+
+// line indexes of the printed class's member heads; `withParen` keeps only method/ctor heads
+function javaMemberStarts (lines: string[], withParen = false, from = 0): number[] {
+    const head = withParen ? /^    (?:public|private|protected)\b.*\(/ : /^    (?:public|private|protected)\b/;
     const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    for (let i = from; i < lines.length; i++) if (head.test (lines[i])) starts.push (i);
+    return starts;
+}
+
+// rewrites each member of a printed class; text before the first member is kept. undefined: no member
+function mapJavaMembers (content: string, withParen: boolean, rewrite: (member: string) => string): string | undefined {
+    const lines = content.split ('\n');
+    const starts = javaMemberStarts (lines, withParen);
+    if (starts.length === 0) return undefined;
+    starts.push (lines.length);
+    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (rewrite (lines.slice (starts[s], starts[s + 1]).join ('\n')));
+    return parts.join ('\n');
+}
+
+// innermost-last rewrite of the two-argument helper calls `re` finds on one printed line: the line is
+// re-scanned after every rewrite; comment lines are kept
+function rewriteHelperCalls (line: string, re: RegExp, native: (m: RegExpExecArray, args: string[], line: string) => string | undefined): string {
+    const trimmed = line.trim ();
+    if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) return line;
+    for (let again = true; again;) {
+        again = false;
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec (line)) !== null) {
+            const split = orderedCompareSplitArgs (line, m.index + m[0].length);
+            if (split === undefined || split.args.length !== 2) continue;
+            const text = native (m, split.args, line);
+            if (text === undefined) continue;
+            line = line.slice (0, m.index) + text + line.slice (split.end + 1);
+            again = true;
+            break;
+        }
     }
+    return line;
+}
+
+// the per-member compare skeleton: every method whose text matches `memberRe` gets its `re` calls rewritten
+function rewriteMemberHelperCalls (content: string, re: RegExp, memberRe: RegExp, native: (m: RegExpExecArray, args: string[], member: string, fields: Set<string>) => string | undefined): string {
+    const lines = content.split ('\n');
+    const fields = javaClassFields (lines);
+    const starts = javaMemberStarts (lines, true);
     for (let s = 0; s < starts.length; s++) {
         const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         const member = lines.slice (from, to).join ('\n');
-        if (!member.includes ('Helpers.is')) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) { // innermost-last: re-scan after each rewrite
-                again = false;
-                ORDERED_COMPARE_CALL.lastIndex = 0;
-                let m;
-                while ((m = ORDERED_COMPARE_CALL.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = orderedCompareOperand (split.args[0], member, fields);
-                    const r = orderedCompareOperand (split.args[1], member, fields);
-                    if (l === undefined || r === undefined) continue;
-                    const native = orderedCompareNative (m[1], l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
+        if (!memberRe.test (member)) continue;
+        for (let i = from; i < to; i++) lines[i] = rewriteHelperCalls (lines[i], re, (m, args) => native (m, args, member, fields));
     }
     return lines.join ('\n');
+}
+
+export function nativeJavaOrderedComparisons (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    return rewriteMemberHelperCalls (content, ORDERED_COMPARE_CALL, /Helpers\.is/, (m, args, member, fields) => {
+        const l = orderedCompareOperand (args[0], member, fields);
+        const r = orderedCompareOperand (args[1], member, fields);
+        return l === undefined || r === undefined ? undefined : orderedCompareNative (m[1], l, r);
+    });
 }
 
 // Native promiseAll / objectValues / opNeg (post-print text pass)
@@ -6768,45 +5195,13 @@ function nonNullCompareMathNative (helper: string, l, r, args: string[], member:
 
 export function nativeJavaNonNullCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
     const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)|mathMin|mathMax)\(/g;
-    for (let s = 0; s < starts.length; s++) {
-        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        const member = lines.slice (from, to).join ('\n');
-        if (!/Helpers\.(?:is|math)/.test (member)) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = nonNullCompareOperand (split.args[0], member, fields, content);
-                    const r = nonNullCompareOperand (split.args[1], member, fields, content);
-                    if (l === undefined || r === undefined) continue;
-                    const helper = m[1].replace (/^is/, '');
-                    const native = m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, split.args, member) : orderedCompareNative (helper, l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
-    }
-    return lines.join ('\n');
+    return rewriteMemberHelperCalls (content, re, /Helpers\.(?:is|math)/, (m, args, member, fields) => {
+        const l = nonNullCompareOperand (args[0], member, fields, content);
+        const r = nonNullCompareOperand (args[1], member, fields, content);
+        if (l === undefined || r === undefined) return undefined;
+        return m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, args, member) : orderedCompareNative (m[1].replace (/^is/, ''), l, r);
+    });
 }
 
 function javaNonNullCompareSelfTest (): string[] {
@@ -6882,6 +5277,26 @@ function javaBaseNativePasses (transpiler: any, body: string, sourcePath?: strin
     return content;
 }
 
+// the single declared type of a name in a printed member (params included); undefined when the name
+// is shadowed by a lambda parameter or declared with mixed types. Memoised per member.
+function memberDeclaredTypeOf (member: string, skipYield = false): (name: string) => string | undefined {
+    const typeCache = new Map<string, string | undefined> ();
+    const keywords = [ 'return', 'new', 'else', 'case', 'throw', 'instanceof', ...(skipYield ? [ 'yield' ] : []) ];
+    return (name: string): string | undefined => {
+        if (typeCache.has (name)) return typeCache.get (name);
+        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
+        const types = new Set<string> ();
+        for (const m of member.matchAll (re)) {
+            const t = m[1].replace (/^final /, '');
+            if (!keywords.includes (t)) types.add (t);
+        }
+        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
+        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
+        typeCache.set (name, out);
+        return out;
+    };
+}
+
 // Helpers.toMapArg/toStringArg/toLongOrNull/toStringListArg are identities on a value that already
 // prints the slot type: a name the member declares that type only, or a base call that returns it.
 export function nativeJavaCoreArgIdentities (content: string): string {
@@ -6894,9 +5309,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
     const MAP_CALLS = /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/;
     const STRING_CALLS = /^this\.(?:safeString|safeString2|safeStringN|safeStringUpper|safeStringUpper2|safeStringLower|safeStringLower2|symbol|marketId|safeSymbol|safeCurrencyCode)\($/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     // closing index of the paren opened at text[open]; strings skipped
     const closeOf = (text: string, open: number): number => {
         let depth = 0;
@@ -6914,24 +5327,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!H.test (member)) continue;
-        // the single declaration type of a name in this member (params included), else undefined
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            let count = 0;
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t); count++;
-            }
-            // lambda parameters `(name) ->` / `name ->` shadow the declaration
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && count >= 1 && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         for (let i = from; i < to; i++) {
             let line = lines[i];
             if (!H.test (line)) continue;
@@ -7269,14 +5665,7 @@ export function nativeJavaMapLocalsRetype (content: string): string {
     if (!content.includes ('Helpers.toMapArg(')) return content;
     const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
     const className = cls === null ? '' : cls[1];
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (mapLocalsRetypeMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
-    return parts.join ('\n');
+    return mapJavaMembers (content, false, (member) => mapLocalsRetypeMember (member, className)) ?? content;
 }
 
 // Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
@@ -7301,8 +5690,6 @@ function javaMapLocalsRetypeSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, (src) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (src)), (name, out) => `map locals: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
-
-// Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
 
 // ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
 // or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
@@ -7351,11 +5738,7 @@ export function nativeJavaNumberParamCompare (content: string): string {
     const table = key === undefined ? {} : (numberParamTable ()[key] ?? {});
     const sumOverridden = /^    (?:public|private|protected)[^\n(]* sum\(/m.test (content);
     const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
+    const fields = javaClassFields (lines);
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan)\(/g;
     for (let i = 0; i < lines.length; i++) {
         const head = lines[i].match (/^    public [^(]* (\w+)\(([^)]*)\)$/);
@@ -7384,24 +5767,10 @@ export function nativeJavaNumberParamCompare (content: string): string {
             return undefined;
         };
         for (let k = i + 1; k < end; k++) {
-            const trimmed = lines[k].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[k], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = operand (split.args[0]), r = operand (split.args[1]);
-                    if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    line = line.slice (0, m.index) + nullSafeCompareNative (m[1], l, r) + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[k] = line;
+            lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+                const l = operand (args[0]), r = operand (args[1]);
+                return l === undefined || r === undefined || !(l.mine || r.mine) ? undefined : nullSafeCompareNative (m[1], l, r);
+            });
         }
         i = end;
     }
@@ -7434,31 +5803,14 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
     const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
     const LIST_STRING = /^(?:java\.util\.)?List<String>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
         const to = starts[s + 1];
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue)\(/.test (member)) continue;
-        // the single declared type of a name in this member (params included), undefined when shadowed/mixed
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const counter = (name: string): boolean => declaredType (name) === 'var'
             && new RegExp (`\\bfor \\(var ${name} = \\d+;`).test (member);
         for (let i = from; i < to; i++) {
@@ -7662,23 +6014,13 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
         if (declaredAs (n, /^(?:long|int)$/)) return `(${n} == ${lit})`;
         return all;
     });
-    out = out.replace (/Helpers\.isEqual\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)/g, (all, a, b) => {
-        for (const re of [ /^Long$/, /^Integer$/, /^String$/ ]) if (declaredAs (a, re) && declaredAs (b, re)) return `java.util.Objects.equals(${a}, ${b})`;
-        return all;
-    });
     return out;
 }
 
 export function nativeJavaBoxLocalsCoreArgs (content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (boxLocalsCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const out = mapJavaMembers (content, false, (member) => boxLocalsCoreArgsMember (member, content));
+    return out === undefined ? content : nativeJavaCoreArgIdentities (out);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -7852,54 +6194,25 @@ function numberProvenCompareMember (member: string, content: string, fields: Set
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan|mathMin|mathMax)\(/g;
     const lines = member.split ('\n');
     for (let k = 1; k < lines.length; k++) {
-        const trimmed = lines[k].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[k], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                const l = operand (split.args[0]), r = operand (split.args[1]);
-                if (l === undefined || r === undefined) continue;
-                let native: string;
-                if (m[1].startsWith ('math')) {
-                    // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
-                    if (!l.pure || !r.pure) continue;
-                    const a = orderedCompareStripParens (split.args[0]), b = orderedCompareStripParens (split.args[1]);
-                    const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
-                    const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
-                    native = nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
-                } else {
-                    native = nullSafeCompareNative (m[1], l, r);
-                }
-                line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[k] = line;
+        lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+            const l = operand (args[0]), r = operand (args[1]);
+            if (l === undefined || r === undefined) return undefined;
+            if (!m[1].startsWith ('math')) return nullSafeCompareNative (m[1], l, r);
+            // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
+            if (!l.pure || !r.pure) return undefined;
+            const a = orderedCompareStripParens (args[0]), b = orderedCompareStripParens (args[1]);
+            const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
+            const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
+            return nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
+        });
     }
     return lines.join ('\n');
 }
 
 export function nativeJavaNumberProvenCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (numberProvenCompareMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content, fields));
-    return parts.join ('\n');
+    const fields = javaClassFields (content.split ('\n'));
+    return mapJavaMembers (content, true, (member) => numberProvenCompareMember (member, content, fields)) ?? content;
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -8009,9 +6322,7 @@ export function nativeJavaMapLocalOps (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (content)) return content;
     const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
@@ -8030,21 +6341,7 @@ export function nativeJavaMapLocalOps (content: string): string {
         const member = lines.slice (from, to).filter ((l) => !/^\s*(?:\/\/|\*|\/\*)/.test (l)).join ('\n');
         if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (member)) continue;
         const sig = lines[from];
-        const typeCache = new Map<string, string | undefined> ();
-        const declaredType = (name: string): string | undefined => {
-            if (typeCache.has (name)) return typeCache.get (name);
-            const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-            const types = new Set<string> ();
-            for (const m of member.matchAll (re)) {
-                const t = m[1].replace (/^final /, '');
-                if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof' ].includes (t)) continue;
-                types.add (t);
-            }
-            const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-            const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-            typeCache.set (name, out);
-            return out;
-        };
+        const declaredType = memberDeclaredTypeOf (member);
         const isMap = (n: string) => MAP.test (declaredType (n) ?? '');
         const isParam = (n: string) => new RegExp (`[(,]\\s*[\\w.<>, ?]+ ${n}\\s*[,)]`).test (sig.replace (/\{.*$/, ''));
         // every write is a fresh HashMap / LinkedHashMap built by a base producer (never a ConcurrentHashMap)
@@ -8138,17 +6435,7 @@ export function nativeJavaMapLocalOps (content: string): string {
                 if (declaredType (key) === 'String') return `(${recv} == null || ${key} == null ? null : ${recv}.get(${key}))`;
                 return whole;
             });
-            next = next.replace (/Helpers\.inOp\(([A-Za-z_]\w*), ("(?:[^"\\]|\\.)*"|[A-Za-z_]\w*)\)/g, (whole, recv, key) => {
-                if (!isMap (recv)) return whole;
-                if (stringKey (key)) return `(${recv} != null && ${recv}.containsKey(${key}))`;
-                if (declaredType (key) === 'String') return `(${recv} != null && ${key} != null && ${recv}.containsKey(${key}))`;
-                return whole;
-            });
             // objectKeys snapshots under the map's monitor: only an unshared fresh local skips it
-            next = next.replace (/Helpers\.objectKeys\(([A-Za-z_]\w*)\)/g, (whole, recv) => {
-                if (!isMap (recv) || !fresh (recv)) return whole;
-                return `(${recv} == null ? new java.util.ArrayList<Object>() : new java.util.ArrayList<Object>(${recv}.keySet()))`;
-            });
             if (next !== line) { lines[i] = next; changed = true; }
         }
     }
@@ -8392,17 +6679,10 @@ function remainingCoreArgsMember (member: string, content: string): string {
 }
 
 export function nativeJavaRemainingCoreArgs (content: string): string {
-    let out = commentMaskedRerun (content);
-
+    const out = commentMaskedRerun (content);
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
-    const lines = out.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return out;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (remainingCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), out));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const parts = mapJavaMembers (out, false, (member) => remainingCoreArgsMember (member, out));
+    return parts === undefined ? out : nativeJavaCoreArgIdentities (parts);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -8466,24 +6746,10 @@ export function nativeJavaInlineCompare (content: string): string {
     const re = /\bHelpers\.(isGreaterThanOrEqual|isLessThanOrEqual|isGreaterThan|isLessThan|mathMin|mathMax)\(/g;
     const lines = content.split ('\n');
     for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[i], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const before = line.slice (0, m.index);
-                if (before.includes ('//') || (before.split ('"').length - 1) % 2 === 1) continue;
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                line = before + inlineCompareLambda (m[1], split.args[0], split.args[1]) + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[i] = line;
+        lines[i] = rewriteHelperCalls (lines[i], re, (m, args, line) => {
+            const before = line.slice (0, m.index);
+            return before.includes ('//') || (before.split ('"').length - 1) % 2 === 1 ? undefined : inlineCompareLambda (m[1], args[0], args[1]);
+        });
     }
     return lines.join ('\n');
 }
@@ -8578,21 +6844,7 @@ function containerOpsHoistStatement (t: string, at: number, close: number, args:
 }
 
 function containerOpsMember (member: string, fresh: () => string): string {
-    const typeCache = new Map<string, string | undefined> ();
-    const declaredType = (name: string): string | undefined => {
-        if (typeCache.has (name)) return typeCache.get (name);
-        const re = new RegExp (`(?:^|[\\s(,])((?:final )?[\\w.]+(?:<[\\w.?]+(?:<[\\w.?, ]*>)?(?:, [\\w.?]+(?:<[\\w.?, ]*>)?)*>)?) ${name}(?=\\s*(?:=(?!=)|[,);:]))`, 'g');
-        const types = new Set<string> ();
-        for (const m of member.matchAll (re)) {
-            const t = m[1].replace (/^final /, '');
-            if ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'yield' ].includes (t)) continue;
-            types.add (t);
-        }
-        const shadowed = new RegExp (`(?:\\(|, )${name}\\) ->|(?<![\\w.])${name} ->`).test (member);
-        const out = !shadowed && types.size === 1 ? [ ...types ][0] : undefined;
-        typeCache.set (name, out);
-        return out;
-    };
+    const declaredType = memberDeclaredTypeOf (member, true);
     const ident = (e: string) => /^[A-Za-z_]\w*$/.test (e) && !/^(?:this|null|true|false)$/.test (e);
     const strLit = (e: string) => /^"(?:[^"\\]|\\.)*"$/.test (e);
     const numLit = (e: string) => /^\d+L?$/.test (e);
@@ -8672,9 +6924,7 @@ export function nativeJavaContainerOps (content: string): string {
     let counter = 0;
     const fresh = () => `${prefix}v${++counter}`;
     const lines = content.split ('\n');
-    const starts: number[] = [ 0 ];
-    for (let i = 1; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ 0, ...javaMemberStarts (lines, false, 1), lines.length ];
     const parts: string[] = [];
     for (let s = 0; s + 1 < starts.length; s++) parts.push (containerOpsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
     return parts.join ('\n');
