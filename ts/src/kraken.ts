@@ -1386,7 +1386,7 @@ export default class kraken extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const idsValue: any = ids.join (',');
+        const idsValue: string = ids.join (',');
         const request = this.extend ({
             'id': idsValue,
         }, params);
