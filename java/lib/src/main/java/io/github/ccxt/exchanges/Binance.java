@@ -13535,8 +13535,8 @@ public class Binance extends BinanceApi
                 Map<String, Object> linearFees = new HashMap<String, Object>() {{}};
                 Long feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, "linear"), "trading"), "tiers");
-                Object maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
-                Object taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
+                Double maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1, (Object) null);
+                Double taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1, (Object) null);
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
@@ -13574,8 +13574,8 @@ public class Binance extends BinanceApi
                 Map<String, Object> inverseFees = new HashMap<String, Object>() {{}};
                 Long feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, "inverse"), "trading"), "tiers");
-                Object maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
-                Object taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
+                Double maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1, (Object) null);
+                Double taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1, (Object) null);
                 for (var i = 0; i < ((List<?>)symbols).size(); i++)
                 {
                     Object symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));

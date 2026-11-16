@@ -2200,7 +2200,7 @@ public class Kucoin extends KucoinApi
 
         return BaseExchange.supplyAsync(() -> {
 
-            Object fetchTickersFees = null;
+            Object fetchTickersFees = true;
             Map<String, Object> paramsRequest = null;
             Pair<Boolean, Map<String, Object>> fetchTickersFeesparamsRequestVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchMarkets", "fetchTickersFees", true);
             fetchTickersFees = fetchTickersFeesparamsRequestVariable.first();

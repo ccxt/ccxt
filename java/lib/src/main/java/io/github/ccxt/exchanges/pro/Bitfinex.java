@@ -866,13 +866,13 @@ public class Bitfinex extends io.github.ccxt.exchanges.Bitfinex
                 List<Object> deltas = (List<Object>) this.safeList(message, 1, new ArrayList<Object>(Arrays.asList()));
                 for (var i = 0; i < ((List<?>)deltas).size(); i++)
                 {
-                    Object delta = (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i));
-                    Double delta2 = this.safeNumber(delta, 2, (Object) null);
+                    Object rawDelta = (deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i));
+                    Double delta2 = this.safeNumber(rawDelta, 2, (Object) null);
                     Object size = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? ((Object) (delta2 == null ? null : -delta2)) : delta2;
                     String side = (((!java.util.Objects.equals(delta2, null) && (delta2 == null || !(delta2 >= 0))))) ? "asks" : "bids";
                     io.github.ccxt.ws.OrderBookSide bookside = (io.github.ccxt.ws.OrderBookSide) (orderbook == null || side == null || !orderbook.containsKey(side) ? null : orderbook.get(side));
-                    String idString = this.safeString(delta, 0);
-                    Double price = this.safeFloat(delta, 1);
+                    String idString = this.safeString(rawDelta, 0);
+                    Double price = this.safeFloat(rawDelta, 1);
                     bookside.storeArray(new ArrayList<Object>(Arrays.asList(price, size, idString)));
                 }
             } else

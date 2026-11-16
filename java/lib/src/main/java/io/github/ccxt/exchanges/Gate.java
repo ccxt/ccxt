@@ -4056,7 +4056,7 @@ public class Gate extends GateApi
                 String optionMarketId = this.safeString(market, "id");
                 for (var i = 0; i < ((List<?>)response).size(); i++)
                 {
-                    Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
+                    Map<String, Object> entry = (Map<String, Object>) this.safeDict(response, i, (Object) null);
                     String entryName = this.safeString(entry, "name");
                     if (java.util.Objects.equals(entryName, optionMarketId))
                     {

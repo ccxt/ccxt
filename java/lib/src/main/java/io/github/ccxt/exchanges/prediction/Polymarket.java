@@ -3584,7 +3584,7 @@ public class Polymarket extends PolymarketApi
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 String requestPath = ("/" + this.implodeParams(path, parameters));
-                Object auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + requestPath);
+                String auth = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + requestPath);
                 if (!java.util.Objects.equals(bodyValue, null))
                 {
                     auth = (auth + bodyValue);
@@ -4110,8 +4110,8 @@ public class Polymarket extends PolymarketApi
             Object orderbook = (this.watch(url, messageHash, subscribeMsg, subscribeHash, null)).join();
             Object bids = ((Object)Helpers.GetValue(orderbook, "bids"));
             Object asks = ((Object)Helpers.GetValue(orderbook, "asks"));
-            Object bestBid = null;
-            Object bestBidVolume = null;
+            Double bestBid = null;
+            Double bestBidVolume = null;
             Integer bidsLength = 0;
             if (!java.util.Objects.equals(bids, null))
             {
@@ -4119,11 +4119,11 @@ public class Polymarket extends PolymarketApi
             }
             if ((!java.util.Objects.equals(bids, null)) && ((bidsLength != null && bidsLength > 0)))
             {
-                bestBid = Helpers.GetValue(Helpers.GetValue(bids, 0), 0);
-                bestBidVolume = Helpers.GetValue(Helpers.GetValue(bids, 0), 1);
+                bestBid = this.safeNumber(Helpers.GetValue(bids, 0), 0, (Object) null);
+                bestBidVolume = this.safeNumber(Helpers.GetValue(bids, 0), 1, (Object) null);
             }
-            Object bestAsk = null;
-            Object bestAskVolume = null;
+            Double bestAsk = null;
+            Double bestAskVolume = null;
             Integer asksLength = 0;
             if (!java.util.Objects.equals(asks, null))
             {
@@ -4131,10 +4131,10 @@ public class Polymarket extends PolymarketApi
             }
             if ((!java.util.Objects.equals(asks, null)) && ((asksLength != null && asksLength > 0)))
             {
-                bestAsk = Helpers.GetValue(Helpers.GetValue(asks, 0), 0);
-                bestAskVolume = Helpers.GetValue(Helpers.GetValue(asks, 0), 1);
+                bestAsk = this.safeNumber(Helpers.GetValue(asks, 0), 0, (Object) null);
+                bestAskVolume = this.safeNumber(Helpers.GetValue(asks, 0), 1, (Object) null);
             }
-            Object mid = null;
+            Double mid = null;
             if ((!java.util.Objects.equals(bestBid, null)) && (!java.util.Objects.equals(bestAsk, null)))
             {
                 String sum = Precise.stringAdd(this.numberToString(bestBid), this.numberToString(bestAsk));

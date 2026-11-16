@@ -571,8 +571,16 @@ public class Bithumb extends BithumbApi
         {
             return marketId;
         }
-        String quoteId = this.safeString2(market, "quoteId", "quote", "");
-        String baseId = this.safeString2(market, "baseId", "base", "");
+        String quoteId = this.safeString(market, "quoteId");
+        if (java.util.Objects.equals(quoteId, null))
+        {
+            quoteId = this.safeString(market, "quote", "");
+        }
+        String baseId = this.safeString(market, "baseId");
+        if (java.util.Objects.equals(baseId, null))
+        {
+            baseId = this.safeString(market, "base", "");
+        }
         return ((quoteId + "-") + baseId);
     }
 
@@ -695,7 +703,6 @@ public class Bithumb extends BithumbApi
                 for (var i = 0; i < ((List<?>)quotes).size(); i++)
                 {
                     String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
-                    String quoteId = quote;
                     Map<String, Object> response = (Map<String, Object>) this.safeDict(results, i, (Object) null);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
@@ -729,7 +736,7 @@ public class Bithumb extends BithumbApi
                         mapLiteral1.put("quote", quote);
                         mapLiteral1.put("settle", null);
                         mapLiteral1.put("baseId", currencyId);
-                        mapLiteral1.put("quoteId", quoteId);
+                        mapLiteral1.put("quoteId", quote);
                         mapLiteral1.put("settleId", null);
                         mapLiteral1.put("type", "spot");
                         mapLiteral1.put("spot", true);
@@ -2294,9 +2301,8 @@ public class Bithumb extends BithumbApi
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires a symbol argument")) ;
                 }
-                Map<String, Object> marketDefined = market;
-                String base = this.safeString(marketDefined, "base");
-                String quote = this.safeString(marketDefined, "quote");
+                String base = this.safeString(market, "base");
+                String quote = this.safeString(market, "quote");
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     throw new ArgumentsRequired((this.id + " fetchOrder() requires a market with defined base and quote")) ;
@@ -2908,9 +2914,8 @@ public class Bithumb extends BithumbApi
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a symbol argument")) ;
                 }
-                Map<String, Object> marketDefined = market;
-                String base = this.safeString(marketDefined, "base");
-                String quote = this.safeString(marketDefined, "quote");
+                String base = this.safeString(market, "base");
+                String quote = this.safeString(market, "quote");
                 if ((java.util.Objects.equals(base, null)) || (java.util.Objects.equals(quote, null)))
                 {
                     throw new ArgumentsRequired((this.id + " cancelOrder() requires a market with defined base and quote")) ;
@@ -3886,14 +3891,12 @@ public class Bithumb extends BithumbApi
                 }};
             }
         }
-        Map<String, Object> headersResult = requestHeaders;
-        Object bodyResult = requestBody;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap2.put("body", bodyResult);
-            h2kMap2.put("headers", headersResult);
+            h2kMap2.put("body", requestBody);
+            h2kMap2.put("headers", requestHeaders);
             return h2kMap2;
         }
     }

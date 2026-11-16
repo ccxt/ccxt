@@ -2278,7 +2278,7 @@ public class Mexc extends MexcApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, ((Long) (switch ((Object) (maxLimit)) { case null -> (Long) null; case Long hx4J40v7 -> hx4J40v7; case Number hx4J40v7 -> Long.valueOf(hx4J40v7.longValue()); case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v7.getClass().getName()); })))).join();
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, ((Long) (switch ((Object) (maxLimit)) { case null -> (Long) null; case Long hx4J40v6 -> hx4J40v6; case Number hx4J40v6 -> Long.valueOf(hx4J40v6.longValue()); case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v6.getClass().getName()); })))).join();
             }
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "timeframes", new HashMap<String, Object>() {{}});
             Map<String, Object> timeframes = (Map<String, Object>) this.safeDict(options, market.get("type"), new HashMap<String, Object>() {{}});
@@ -2329,7 +2329,7 @@ public class Mexc extends MexcApi
                 {
                     request.put("endTime", (until + 1L)); // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
                 }
-                Object response = (this.spotPublicGetKlines(this.extend(request, paramsUntil))).join();
+                List<Object> response = (this.spotPublicGetKlines(this.extend(request, paramsUntil))).join();
                 //
                 //     [
                 //       [
@@ -2368,16 +2368,16 @@ public class Mexc extends MexcApi
                 }
                 String priceType = this.safeString(paramsUntil, "price", "default");
                 Map<String, Object> paramsOmitted = this.omit(paramsUntil, "price");
-                Object response = null;
+                Map<String, Object> swapResponse = null;
                 if (java.util.Objects.equals(priceType, "default"))
                 {
-                    response = (this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted))).join();
+                    swapResponse = (this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted))).join();
                 } else if (java.util.Objects.equals(priceType, "index"))
                 {
-                    response = (this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted))).join();
+                    swapResponse = (this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted))).join();
                 } else if (java.util.Objects.equals(priceType, "mark"))
                 {
-                    response = (this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted))).join();
+                    swapResponse = (this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted))).join();
                 } else
                 {
                     throw new NotSupported((this.id + " fetchOHLCV() not support this price type, [default, index, mark]")) ;
@@ -2397,7 +2397,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     }
                 //
-                Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+                Map<String, Object> data = (Map<String, Object>) this.safeDict(swapResponse, "data", (Object) null);
                 candles = (List<Object>) this.convertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol", false);
             }
             return this.parseOHLCVs(candles, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limit, false);
@@ -2992,7 +2992,7 @@ public class Mexc extends MexcApi
             //         "transactTime": 1661992652132
             //     }
             //
-            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v6 -> (Map<String, Object>) hx4J40v6; case Object hx4J40v6 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v6.getClass().getName()); })));
+            Map<String, Object> order = (Map<String, Object>) this.parseOrder(response, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v5 -> (Map<String, Object>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v5.getClass().getName()); })));
             order.put("side", side);
             order.put("type", type);
             if (java.util.Objects.equals(this.safeString(order, "price"), null))
@@ -3191,7 +3191,7 @@ public class Mexc extends MexcApi
             HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
             mapLiteral4.put("id", id);
             mapLiteral4.put("timestamp", this.safeInteger(data, "ts"));
-            return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v4 -> (Map<String, Object>) hx4J40v4; case Object hx4J40v4 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v4.getClass().getName()); })));
+            return this.safeOrder(mapLiteral4, ((Map<String, Object>) (switch ((Object) (market)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
         });
 
     }
@@ -3432,17 +3432,17 @@ public class Mexc extends MexcApi
                 {
                     request.put("limit", limit);
                 }
-                Object response = null;
+                List<Object> spotResponse = null;
                 if (!java.util.Objects.equals(marginMode, null))
                 {
                     if (!java.util.Objects.equals(marginMode, "isolated"))
                     {
                         throw new BadRequest((((this.id + " fetchOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                     }
-                    response = (this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner))).join();
+                    spotResponse = (this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner))).join();
                 } else
                 {
-                    response = (this.spotPrivateGetAllOrders(this.extend(request, queryInner))).join();
+                    spotResponse = (this.spotPrivateGetAllOrders(this.extend(request, queryInner))).join();
                 }
                 //
                 // spot
@@ -3492,7 +3492,7 @@ public class Mexc extends MexcApi
                 //         }
                 //     ]
                 //
-                return this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
+                return this.parseOrders(spotResponse, market, since, limit, new HashMap<String, Object>() {{}});
             } else
             {
                 if (!java.util.Objects.equals(since, null))
@@ -3537,7 +3537,7 @@ public class Mexc extends MexcApi
                 Object ordersOfTrigger = new ArrayList<Object>(Arrays.asList());
                 if (java.util.Objects.equals(method, "contractPrivateGetOrderListHistoryOrders"))
                 {
-                    Object response = (this.contractPrivateGetOrderListHistoryOrders(this.extend(request, query))).join();
+                    Map<String, Object> response = (this.contractPrivateGetOrderListHistoryOrders(this.extend(request, query))).join();
                     //
                     //     {
                     //         "success": true,
@@ -3576,7 +3576,7 @@ public class Mexc extends MexcApi
                 } else
                 {
                     // the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
-                    Object response = (this.contractPrivateGetPlanorderListOrders(this.extend(request, query))).join();
+                    Map<String, Object> response = (this.contractPrivateGetPlanorderListOrders(this.extend(request, query))).join();
                     //
                     //     {
                     //         "success": true,
@@ -4100,7 +4100,7 @@ public class Mexc extends MexcApi
                     return new ArrayList<Object>(Arrays.asList());
                 }
                 request.put("symbol", this.safeString(market, "id"));
-                Object response = (this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType))).join();
+                List<Object> response = (this.spotPrivateDeleteOpenOrders(this.extend(request, paramsMarketType))).join();
                 //
                 // spot
                 //
@@ -4126,13 +4126,13 @@ public class Mexc extends MexcApi
                 // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
                 String method = this.safeString(this.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
                 method = this.safeString(paramsMarketType, "method", method);
-                Map<String, Object> response = new HashMap<String, Object>() {{}};
+                Map<String, Object> swapResponse = new HashMap<String, Object>() {{}};
                 if (java.util.Objects.equals(method, "contractPrivatePostOrderCancelAll"))
                 {
-                    response = (this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType))).join();
+                    swapResponse = (this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType))).join();
                 } else if (java.util.Objects.equals(method, "contractPrivatePostPlanorderCancelAll"))
                 {
-                    response = (this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType))).join();
+                    swapResponse = (this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType))).join();
                 }
                 //
                 //     {
@@ -4140,7 +4140,7 @@ public class Mexc extends MexcApi
                 //         "code": "0"
                 //     }
                 //
-                List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
+                List<Object> data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 return this.parseOrders(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
             }
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
@@ -7295,7 +7295,7 @@ public class Mexc extends MexcApi
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
         Map<String, Object> requestHeaders = null;
-        Object requestBody = null;
+        String requestBody = null;
         String section = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
         String pathValue = (String) this.implodeParams(path, parameters);
@@ -7379,21 +7379,21 @@ public class Mexc extends MexcApi
             {
                 this.checkRequiredCredentials(true);
                 String timestamp = String.valueOf(this.nonce());
-                Object auth = "";
+                String payload = "";
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"))
                 {
-                    auth = this.json(paramsOmitted);
-                    requestBody = auth;
+                    payload = this.json(paramsOmitted);
+                    requestBody = payload;
                 } else
                 {
                     Map<String,Object> paramsSorted = this.keysort(paramsOmitted);
                     if (paramsSorted.size() > 0)
                     {
-                        auth = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(auth, this.urlencode(paramsSorted));
-                        url = (url + ("?" + auth));
+                        payload = this.urlencode(paramsSorted);
+                        url = (url + ("?" + payload));
                     }
                 }
-                auth = ((this.apiKey + timestamp) + auth);
+                String auth = ((this.apiKey + timestamp) + payload);
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 requestHeaders = new HashMap<String, Object>() {{
                     put( "ApiKey", Mexc.this.apiKey );

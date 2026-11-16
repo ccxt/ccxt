@@ -3654,7 +3654,7 @@ public class Bitrue extends BitrueApi
 
     public Object sign(Object path, Object api, Object method, Object parameters)
     {
-        Object requestBody = null;
+        String requestBody = null;
         Map<String, Object> requestHeaders = null;
         String type = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String version = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
@@ -3677,21 +3677,21 @@ public class Bitrue extends BitrueApi
             Long recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
             if (java.util.Objects.equals(type, "spot") || java.util.Objects.equals(type, "open"))
             {
-                String query = this.urlencode(this.extend(new HashMap<String, Object>() {{
+                String unsignedQuery = this.urlencode(this.extend(new HashMap<String, Object>() {{
                     put( "timestamp", Bitrue.this.nonce() );
                     put( "recvWindow", recvWindow );
                 }}, paramsOmitted));
-                String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
-                query = (query + (("&" + "signature=") + signature));
+                String signature = (String) this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256());
+                String signedQuery = (((unsignedQuery + "&") + "signature=") + signature);
                 if ((java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET")) || (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "DELETE")))
                 {
-                    url = (url + ("?" + query));
+                    url = (url + ("?" + signedQuery));
                     requestHeaders = new HashMap<String, Object>() {{
                         put( "X-MBX-APIKEY", Bitrue.this.apiKey );
                     }};
                 } else
                 {
-                    requestBody = query;
+                    requestBody = signedQuery;
                     requestHeaders = new HashMap<String, Object>() {{
                         put( "X-MBX-APIKEY", Bitrue.this.apiKey );
                         put( "Content-Type", "application/x-www-form-urlencoded" );
@@ -3749,7 +3749,7 @@ public class Bitrue extends BitrueApi
                 url = (url + ("?" + this.urlencode(paramsOmitted)));
             }
         }
-        Object bodyResult = requestBody;
+        String bodyResult = requestBody;
         Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();

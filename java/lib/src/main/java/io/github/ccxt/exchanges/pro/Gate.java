@@ -1547,12 +1547,12 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object marketId = ("!" + "all");
+            String marketId = ("!" + "all");
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                marketId = market.get("id");
+                marketId = this.safeString(market, "id");
             }
             Pair<String, Map<String, Object>> typeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             String type = typeparamsMarketTypeVariable.first();
@@ -1575,7 +1575,7 @@ public class Gate extends io.github.ccxt.exchanges.Gate
             }
             Boolean isInverse = (java.util.Objects.equals(subType, "inverse"));
             String url = this.getUrlByMarketType(type, isInverse);
-            List<Object> payload = new ArrayList<Object>(Arrays.asList(marketId));
+            List<String> payload = new ArrayList<String>(Arrays.asList(marketId));
             // uid required for non spot markets
             Boolean requiresUid = (!java.util.Objects.equals(type, "spot"));
             List<Object> trades = (List<Object>) (this.subscribePrivate((String) (url), messageHash, payload, channel, (Map<String, Object>) (paramsSubType), requiresUid)).join();

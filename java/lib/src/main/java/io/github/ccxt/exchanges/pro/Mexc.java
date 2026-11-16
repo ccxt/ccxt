@@ -695,8 +695,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object ohlcv = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                String channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
-                ohlcv = (this.watchSpotPublic((String) (channel), messageHash, parameters)).join();
+                String spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+                ohlcv = (this.watchSpotPublic(spotChannel, messageHash, parameters)).join();
             } else
             {
                 String channel = "sub.kline";
@@ -905,8 +905,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 Pair<String, Map<String, Object>> frequencyparamsFrequencyVariable = this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchOrderBook", "frequency", "100ms");
                 String frequency = frequencyparamsFrequencyVariable.first();
                 Map<String, Object> paramsFrequency = frequencyparamsFrequencyVariable.second();
-                String channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
-                orderbook = (this.watchSpotPublic(channel, messageHash, paramsFrequency)).join();
+                String spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
+                orderbook = (this.watchSpotPublic(spotChannel, messageHash, paramsFrequency)).join();
             } else
             {
                 String channel = "sub.depth";
@@ -1154,8 +1154,8 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             Object trades = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
-                String channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
-                trades = (this.watchSpotPublic(channel, messageHash, parameters)).join();
+                String spotChannel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
+                trades = (this.watchSpotPublic(spotChannel, messageHash, parameters)).join();
             } else
             {
                 String channel = "sub.deal";

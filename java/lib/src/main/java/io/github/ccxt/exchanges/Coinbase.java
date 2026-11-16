@@ -1609,11 +1609,14 @@ public class Coinbase extends CoinbaseApi
         }
         if ((!java.util.Objects.equals(priceString, null)) && (!java.util.Objects.equals(amountString, null)))
         {
-            cost = Precise.stringMul(priceString, amountString);
+            String baseCost = Precise.stringMul(priceString, amountString);
             String contractSize = this.safeString(marketResolved, "contractSize");
             if (!java.util.Objects.equals(contractSize, null))
             {
-                cost = Precise.stringMul(cost, contractSize);
+                cost = Precise.stringMul(baseCost, contractSize);
+            } else
+            {
+                cost = baseCost;
             }
         } else
         {
@@ -2890,16 +2893,16 @@ public class Coinbase extends CoinbaseApi
         String futuresBuyingPower = this.safeString(futuresBuyingPowerData, "value");
         if ((!java.util.Objects.equals(totalUsdBalance, null)) || (!java.util.Objects.equals(futuresBuyingPower, null)))
         {
-            String total = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
-            String free = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : total;
-            String used = Precise.stringSub(total, free);
+            String usdTotal = (((!java.util.Objects.equals(totalUsdBalance, null)))) ? totalUsdBalance : futuresBuyingPower;
+            String usdFree = (((!java.util.Objects.equals(futuresBuyingPower, null)))) ? futuresBuyingPower : usdTotal;
+            String usdUsed = Precise.stringSub(usdTotal, usdFree);
             Map<String, Object> balanceResult = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
             balanceResult.put("USD", new HashMap<String, Object>() {{
-    put( "free", free );
-    put( "used", used );
-    put( "total", total );
+    put( "free", usdFree );
+    put( "used", usdUsed );
+    put( "total", usdTotal );
 }});
             return this.safeBalance(balanceResult);
         }
@@ -2949,23 +2952,23 @@ public class Coinbase extends CoinbaseApi
                 {
                     String currencyId = this.safeString(available, "currency");
                     String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-                    String used = this.safeString(hold, "value");
-                    String free = this.safeString(available, "value");
-                    String total = Precise.stringAdd(used, free);
+                    String v3Used = this.safeString(hold, "value");
+                    String v3Free = this.safeString(available, "value");
+                    String v3Total = Precise.stringAdd(v3Used, v3Free);
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(result, code, (Object) null);
                     if (java.util.Objects.equals(account, null))
                     {
                         account = this.extend(this.account(), new HashMap<String, Object>() {{
-                            put( "free", free );
-                            put( "used", used );
-                            put( "total", total );
+                            put( "free", v3Free );
+                            put( "used", v3Used );
+                            put( "total", v3Total );
                         }});
                     } else
                     {
                         HashMap<String, Object> mapLiteral12 = new HashMap<String, Object>();
-                        mapLiteral12.put("free", Precise.stringAdd(this.safeString(account, "free"), free));
-                        mapLiteral12.put("used", Precise.stringAdd(this.safeString(account, "used"), used));
-                        mapLiteral12.put("total", Precise.stringAdd(this.safeString(account, "total"), total));
+                        mapLiteral12.put("free", Precise.stringAdd(this.safeString(account, "free"), v3Free));
+                        mapLiteral12.put("used", Precise.stringAdd(this.safeString(account, "used"), v3Used));
+                        mapLiteral12.put("total", Precise.stringAdd(this.safeString(account, "total"), v3Total));
                         account = this.extend(account, mapLiteral12);
                     }
                     if (!java.util.Objects.equals(code, null))

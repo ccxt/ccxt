@@ -1741,10 +1741,6 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
         Boolean spot = java.util.Objects.equals(topic, "ticketInfo");
         Boolean executionFast = java.util.Objects.equals(topic, "execution.fast");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        if (!(data instanceof List))
-        {
-            data = (List<Object>) this.safeList(data, "result", new ArrayList<Object>(Arrays.asList()));
-        }
         if (java.util.Objects.equals(this.myTrades, null))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2406,18 +2402,11 @@ public class Bybit extends io.github.ccxt.exchanges.Bybit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        Object rawOrders = this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Map<String, Object> first = (Map<String, Object>) this.safeDict(rawOrders, 0, new HashMap<String, Object>() {{}});
-        String category = this.safeString(first, "category");
-        Boolean isSpot = java.util.Objects.equals(category, "spot");
-        if (!Boolean.TRUE.equals(isSpot))
-        {
-            rawOrders = this.safeValue(rawOrders, "result", rawOrders);
-        }
+        List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= ((List<?>)rawOrders).size() ? null : ((List<?>)rawOrders).get(i)), (Map<String, Object>) null);
+            Map<String, Object> parsed = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

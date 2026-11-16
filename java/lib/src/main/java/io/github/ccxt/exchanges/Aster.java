@@ -2831,7 +2831,6 @@ public class Aster extends AsterApi
         //            "orderListId": "-1"
         //        }
         //
-        Object info = order;
         String positionSide = this.safeString(order, "positionSide");
         String defaultType = "spot";
         if (!java.util.Objects.equals(positionSide, null))
@@ -2847,7 +2846,7 @@ public class Aster extends AsterApi
         String stopPriceString = this.safeString(order, "stopPrice");
         Double triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new HashMap<String, Object>() {{
-            put( "info", info );
+            put( "info", order );
             put( "id", Aster.this.safeString(order, "orderId") );
             put( "clientOrderId", Aster.this.safeString(order, "clientOrderId") );
             put( "symbol", Aster.this.safeSymbol(marketId, marketResolved, (String) null, (String) null) );

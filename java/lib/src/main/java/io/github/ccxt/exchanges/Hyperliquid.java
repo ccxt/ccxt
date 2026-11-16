@@ -4814,13 +4814,7 @@ public class Hyperliquid extends HyperliquidApi
             Pair<String, Map<String, Object>> vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress", (String) null);
             vaultAddress = vaultAddressparams2Variable.first();
             params2 = vaultAddressparams2Variable.second();
-            if (!java.util.Objects.equals(vaultAddress, null))
-            {
-                if ((vaultAddress.startsWith(((String)"0x"))))
-                {
-                    vaultAddress = vaultAddress.replaceFirst("0x", "");
-                }
-            }
+            vaultAddress = this.formatVaultAddress(vaultAddress);
             Map<String, Object> signature = this.signL1Action(updateAction, nonce, vaultAddress, (Long) null);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "action", updateAction );
@@ -6204,13 +6198,12 @@ public class Hyperliquid extends HyperliquidApi
         }
         String url = ((this.implodeHostname(apiUrl) + "/") + path);
         Boolean isPost = (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "POST"));
-        Map<String, Object> postHeaders = new HashMap<String, Object>() {{
-            put( "Content-Type", "application/json" );
-        }};
         Map<String, Object> requestHeaders = null;
         if (Boolean.TRUE.equals(isPost))
         {
-            requestHeaders = postHeaders;
+            requestHeaders = new HashMap<String, Object>() {{
+                put( "Content-Type", "application/json" );
+            }};
         }
         String requestBody = null;
         if (Boolean.TRUE.equals(isPost))

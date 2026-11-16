@@ -3961,10 +3961,10 @@ public class Htx extends HtxApi
             //         "ts": 1781066959396
             //     }
             //
-            Object trades = this.safeValue(response, "data");
-            if (!(trades instanceof List))
+            List<Object> trades = (List<Object>) this.safeList(response, "data", (Object) null);
+            if (java.util.Objects.equals(trades, null))
             {
-                trades = this.safeList(trades, "trades", (Object) null);
+                trades = (List<Object>) this.safeList(this.safeDict(response, "data", (Object) null), "trades", new ArrayList<Object>(Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
@@ -5134,8 +5134,11 @@ public class Htx extends HtxApi
             //         "ts": 1780967407144
             //     }
             //
-            Object rawOrder = this.safeValue(response, "data");
-            Object order = (((rawOrder instanceof List))) ? this.safeDict(rawOrder, 0, (Object) null) : rawOrder;
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
+            if (java.util.Objects.equals(order, null))
+            {
+                order = (Map<String, Object>) this.safeDict(this.safeList(response, "data", new ArrayList<Object>(Arrays.asList())), 0, new HashMap<String, Object>() {{}});
+            }
             return this.parseOrder(order, market);
         }).thenApply(Order::new);
 
@@ -5368,8 +5371,11 @@ public class Htx extends HtxApi
                     }
                 }
             }
-            Object rawOrders = this.safeValue(response, "data");
-            Object orders = (((rawOrders instanceof List))) ? rawOrders : this.safeList(rawOrders, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", (Object) null);
+            if (java.util.Objects.equals(orders, null))
+            {
+                orders = (List<Object>) this.safeList(this.safeDict(response, "data", (Object) null), "orders", new ArrayList<Object>(Arrays.asList()));
+            }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         });
 
@@ -6016,8 +6022,11 @@ public class Htx extends HtxApi
             //         "ts": 1780739390596
             //     }
             //
-            Object rawOrders = this.safeValue(response, "data");
-            Object orders = (((rawOrders instanceof List))) ? rawOrders : this.safeList(rawOrders, "orders", new ArrayList<Object>(Arrays.asList()));
+            List<Object> orders = (List<Object>) this.safeList(response, "data", (Object) null);
+            if (java.util.Objects.equals(orders, null))
+            {
+                orders = (List<Object>) this.safeList(this.safeDict(response, "data", (Object) null), "orders", new ArrayList<Object>(Arrays.asList()));
+            }
             return this.parseOrders(orders, market, since, limit, new HashMap<String, Object>() {{}});
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -7255,8 +7264,8 @@ public class Htx extends HtxApi
                 result = this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             } else
             {
-                Object data = this.safeValue(response, "data");
-                if ((data instanceof List))
+                List<Object> data = (List<Object>) this.safeList(response, "data", (Object) null);
+                if (!java.util.Objects.equals(data, null))
                 {
                     result = data;
                 } else

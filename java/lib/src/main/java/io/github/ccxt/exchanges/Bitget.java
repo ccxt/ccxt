@@ -4092,17 +4092,17 @@ public class Bitget extends BitgetApi
             contract = true;
             inverse = (java.util.Objects.equals(base, settle));
             linear = !Boolean.TRUE.equals(inverse);
-            Object priceDecimals = this.safeInteger(market, "pricePlace");
-            Object amountDecimals = this.safeInteger(market, "volumePlace");
-            String priceStep = this.safeString(market, "priceEndStep");
-            String amountStep = this.safeString(market, "sizeMultiplier");
-            var precise = new Precise(priceStep);
-            precise.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(precise.decimals, priceDecimals);
+            Long pricePlaces = this.safeInteger(market, "pricePlace");
+            Long volumePlaces = this.safeInteger(market, "volumePlace");
+            String priceEndStep = this.safeString(market, "priceEndStep");
+            String sizeMultiplier = this.safeString(market, "sizeMultiplier");
+            var precise = new Precise(priceEndStep);
+            precise.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(precise.decimals, pricePlaces);
             precise.reduce();
             String priceString = String.valueOf(precise);
             pricePrecision = this.parseNumber(priceString);
-            var preciseAmount = new Precise(amountStep);
-            preciseAmount.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(preciseAmount.decimals, amountDecimals);
+            var preciseAmount = new Precise(sizeMultiplier);
+            preciseAmount.decimals = ((java.util.function.BinaryOperator<Object>) (j38a, j38b) -> { if (j38a == null || j38b == null) return null; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; double j38u = j38d.applyAsDouble(j38a); double j38v = j38d.applyAsDouble(j38b); return (j38u > j38v) ? j38a : j38b; }).apply(preciseAmount.decimals, volumePlaces);
             preciseAmount.reduce();
             String amountString = String.valueOf(preciseAmount);
             amountPrecision = this.parseNumber(amountString);
@@ -4536,14 +4536,9 @@ public class Bitget extends BitgetApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         List<Object> chains = (List<Object>) this.safeList(entry, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        Object withdraw = null;
-        Object deposit = null;
+        Boolean withdraw = false;
+        Boolean deposit = false;
         Integer chainsLength = ((List<?>)chains).size();
-        if (java.util.Objects.equals(chainsLength, 0))
-        {
-            withdraw = false;
-            deposit = false;
-        }
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
@@ -4558,8 +4553,8 @@ public class Bitget extends BitgetApi
             String rechargeableString = this.safeString(chain, "rechargeable");
             Boolean withdrawable = (java.util.Objects.equals(withdrawableString, "true"));
             Boolean rechargeable = (java.util.Objects.equals(rechargeableString, "true"));
-            withdraw = (((java.util.Objects.equals(withdraw, null)))) ? withdrawable : (Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable));
-            deposit = (((java.util.Objects.equals(deposit, null)))) ? rechargeable : (Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable));
+            withdraw = Boolean.TRUE.equals(withdraw) || Boolean.TRUE.equals(withdrawable);
+            deposit = Boolean.TRUE.equals(deposit) || Boolean.TRUE.equals(rechargeable);
             String withdrawMinScale = this.safeString(chain, "withdrawMinScale");
             String precision = (String) this.parsePrecision(withdrawMinScale);
             networks.put((String)network, (switch (0) { default -> { HashMap<String, Object> j39v3 = new HashMap<String, Object>();
@@ -4824,7 +4819,7 @@ public class Bitget extends BitgetApi
         Object minNotional = 0;
         for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v5 -> j39v5.size(); case String j39v6 -> j39v6.length(); case Object j39v7 -> j39v7.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v7) : 0; }); i++)
         {
-            Object item = this.safeValue(info, i);
+            Map<String, Object> item = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
             Double minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue", (Object) null);
             if (!java.util.Objects.equals(minimumNotional, null))
             {

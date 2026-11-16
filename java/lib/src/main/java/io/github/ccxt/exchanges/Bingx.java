@@ -4754,7 +4754,6 @@ public class Bingx extends BingxApi
         //         "workingType": ""
         //     }
         //
-        Object info = order;
         Map<String, Object> newOrder = (Map<String, Object>) this.safeDict2(order, "newOrderResponse", "orderOpenResponse", (Object) null);
         Object orderData = (((!java.util.Objects.equals(newOrder, null)))) ? newOrder : order;
         String positionSide = this.safeString2(orderData, "positionSide", "ps");
@@ -4843,7 +4842,7 @@ public class Bingx extends BingxApi
             }
         }
         HashMap<String, Object> mapLiteral9 = new HashMap<String, Object>();
-        mapLiteral9.put("info", info);
+        mapLiteral9.put("info", order);
         mapLiteral9.put("id", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("orderId", "i", "mainOrderId"))));
         mapLiteral9.put("clientOrderId", this.safeStringN(orderData, new ArrayList<Object>(Arrays.asList("clientOrderID", "clientOrderId", "origClientOrderId", "c"))));
         mapLiteral9.put("symbol", this.safeSymbol(marketId, marketResolved, "-", marketType));
@@ -7839,14 +7838,12 @@ public class Bingx extends BingxApi
                 url = (url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
-        String bodyResult = requestBody;
-        Map<String, Object> headersResult = requestHeaders;
         {
             HashMap<String, Object> h2kMap7 = new HashMap<String, Object>();
             h2kMap7.put("url", url);
             h2kMap7.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
-            h2kMap7.put("body", bodyResult);
-            h2kMap7.put("headers", headersResult);
+            h2kMap7.put("body", requestBody);
+            h2kMap7.put("headers", requestHeaders);
             return h2kMap7;
         }
     }

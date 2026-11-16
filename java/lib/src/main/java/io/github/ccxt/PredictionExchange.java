@@ -172,12 +172,12 @@ public Map<String, Object> describe()
             List<Object> filtered = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)result).size(); i++)
             {
-                Object eventVar = this.safeValue(result, i);
+                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(result, i, (Object) null);
                 Boolean idMatch = (!java.util.Objects.equals(eventId, null)) && (java.util.Objects.equals(this.safeString(eventVar, "id"), eventId));
                 Boolean slugMatch = (!java.util.Objects.equals(slug, null)) && (java.util.Objects.equals(this.safeString(eventVar, "slug"), slug));
                 if (Boolean.TRUE.equals(idMatch) || Boolean.TRUE.equals(slugMatch))
                 {
-                    ((List<Object>)filtered).add(eventVar);
+                    ((List<Object>)filtered).add(this.safeValue(result, i));
                 }
             }
             result = filtered;
@@ -248,12 +248,12 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = this.safeValue(events, i);
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             Boolean isActive = (Boolean) this.safeBool(eventVar, "active", (Object) null);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if ((java.util.Objects.equals(isActive, null)) || (java.util.Objects.equals(isActive, wantActive)))
             {
-                ((List<Object>)result).add(eventVar);
+                ((List<Object>)result).add(this.safeValue(events, i));
             }
         }
         return result;
@@ -277,7 +277,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = this.safeValue(events, i);
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             String title = this.safeStringLower(eventVar, "title", "");
             String description = this.safeStringLower(eventVar, "description", "");
             Boolean matched = false;
@@ -305,7 +305,7 @@ public Map<String, Object> describe()
             }
             if (Boolean.TRUE.equals(matched))
             {
-                ((List<Object>)result).add(eventVar);
+                ((List<Object>)result).add(this.safeValue(events, i));
             }
         }
         return result;
@@ -368,7 +368,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; i < ((List<?>)events).size(); i++)
         {
-            Object eventVar = this.safeValue(events, i);
+            Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> eventTags = (List<Object>) this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
             Boolean matched = false;
             for (var ti = 0; ti < ((List<?>)eventTags).size(); ti++)
@@ -401,7 +401,7 @@ public Map<String, Object> describe()
             }
             if (Boolean.TRUE.equals(matched))
             {
-                ((List<Object>)result).add(eventVar);
+                ((List<Object>)result).add(this.safeValue(events, i));
             }
         }
         return result;

@@ -5465,7 +5465,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = ((List<Object>)types).get(1);
+            Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
@@ -5530,7 +5530,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = this.market(symbol);
             Object parts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = ((List<Object>)parts).get(1);
+            Boolean enableUnifiedAccount = (Boolean) this.safeBool(parts, 1, false);
             Boolean isTrailingOrder = !java.util.Objects.equals(this.safeString2(parameters, "trailingAmount", "trailingStop"), null);
             Boolean isStopLossOrder = !java.util.Objects.equals(this.safeString(parameters, "stopLossPrice"), null);
             Boolean isTakeProfitOrder = !java.util.Objects.equals(this.safeString(parameters, "takeProfitPrice"), null);
@@ -5959,7 +5959,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object isUta = ((List<Object>)accounts).get(1);
+            Boolean isUta = (Boolean) this.safeBool(accounts, 1, false);
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<String> orderSymbols = new ArrayList<String>(Arrays.asList());
             for (var i = 0; i < ((List<?>)orders).size(); i++)
@@ -6390,7 +6390,7 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> market = this.market(symbol);
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = ((List<Object>)types).get(1);
+            Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrders() supports UTA accounts only")) ;
@@ -6531,7 +6531,7 @@ public class Bybit extends BybitApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Object types = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object enableUnifiedAccount = ((List<Object>)types).get(1);
+            Boolean enableUnifiedAccount = (Boolean) this.safeBool(types, 1, false);
             if (!java.util.Objects.equals(enableUnifiedAccount, true))
             {
                 throw new NotSupported((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
@@ -8312,7 +8312,7 @@ public class Bybit extends BybitApi
             String tagWithdrawTag = (String) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(0);
             Map<String, Object> paramsWithdrawTag = (Map<String, Object>) ((List<Object>) tagWithdrawTagparamsWithdrawTagVariable).get(1);
             Object accounts = (this.isUnifiedEnabled(new HashMap<String, Object>() {{}})).join();
-            Object isUta = ((List<Object>)accounts).get(1);
+            Boolean isUta = (Boolean) this.safeBool(accounts, 1, false);
             Pair<String, Map<String, Object>> accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams((Map<String, Object>) (paramsWithdrawTag), "withdraw", "accountType", (String) null);
             String accountTypeOption = accountTypeOptionparamsAccountTypeVariable.first();
             Map<String, Object> paramsAccountType = accountTypeOptionparamsAccountTypeVariable.second();

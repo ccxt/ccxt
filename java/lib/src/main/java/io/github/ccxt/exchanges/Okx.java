@@ -3118,17 +3118,16 @@ public class Okx extends OkxApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
-        Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        Map<String, Object> firstChain = (Map<String, Object>) this.safeDict(chains, 0, new HashMap<String, Object>() {{}});
+        Map<String, Object> firstChain = (Map<String, Object>) this.safeDict(currency, 0, new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         String type = "crypto";
-        Integer chainsLength = ((List<?>)chains).size();
+        Integer chainsLength = ((List<?>)currency).size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
-            Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
+            Map<String, Object> chain = (Map<String, Object>) this.safeDict(currency, j, (Object) null);
             // allow empty string for rare fiat-currencies, e.g. TRY
             String networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
             if (java.util.Objects.equals(networkId, ""))
@@ -3161,7 +3160,7 @@ public class Okx extends OkxApi
             }
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
-        mapLiteral3.put("info", chains);
+        mapLiteral3.put("info", currency);
         mapLiteral3.put("code", code);
         mapLiteral3.put("id", currencyId);
         mapLiteral3.put("name", this.safeString(firstChain, "name"));

@@ -4355,15 +4355,15 @@ public class Btse extends BtseApi
             String status = this.safeString(row, "status");
             if (!java.util.Objects.equals(status, null))
             {
-                String message = this.safeString(row, "message");
-                Object embedded = this.parseJson(message);
+                String rowMessage = this.safeString(row, "message");
+                Object embedded = this.parseJson(rowMessage);
                 if (!java.util.Objects.equals(embedded, null))
                 {
-                    message = this.safeString(embedded, "default_msg", message);
+                    rowMessage = this.safeString(embedded, "default_msg", rowMessage);
                 }
                 String feedback = ((this.id + " ") + body);
                 this.throwExactlyMatchedException((Map<String, Object>) (this.exceptions.get("exact")), status, feedback);
-                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), message, feedback);
+                this.throwBroadlyMatchedException((Map<String, Object>) (this.exceptions.get("broad")), rowMessage, feedback);
             }
         }
         return null;

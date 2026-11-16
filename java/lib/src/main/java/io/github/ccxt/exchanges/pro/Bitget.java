@@ -1919,10 +1919,10 @@ public class Bitget extends io.github.ccxt.exchanges.Bitget
         Long timestamp = this.safeIntegerN(position, new ArrayList<Object>(Arrays.asList("updatedTime", "uTime", "cTime", "createdTime")));
         String percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         String percentage = Precise.stringMul(percentageDecimal, "100");
-        Object contractSize = null;
+        Double contractSize = null;
         if (!java.util.Objects.equals(market, null))
         {
-            contractSize = market.get("contractSize");
+            contractSize = this.safeNumber(market, "contractSize", (Object) null);
         }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("info", position);

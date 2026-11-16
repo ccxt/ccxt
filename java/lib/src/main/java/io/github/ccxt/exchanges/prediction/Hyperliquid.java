@@ -382,7 +382,7 @@ public class Hyperliquid extends HyperliquidApi
                     Long index = this.parseToInt(indexStr);
                     if ((thresholdsLength != null && thresholdsLength > 0))
                     {
-                        String bucketLabel = null;
+                        String bucketLabel = "";
                         if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + (thresholds == null || 0 >= ((List<?>)thresholds).size() ? null : ((List<?>)thresholds).get(0)));
