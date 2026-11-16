@@ -2105,16 +2105,15 @@ export default class okx extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        const firstChain = this.safeDict (chains, 0, {});
+        const firstChain = this.safeDict (currency, 0, {});
         const currencyId = this.safeString (firstChain, 'ccy');
         const code = this.safeCurrencyCode (currencyId);
         const networks: Dict = {};
         let type = 'crypto';
-        const chainsLength = (chains as List).length;
+        const chainsLength = (currency as List).length;
         for (let j = 0; j < chainsLength; j++) {
-            const chain = this.safeDict (chains, j);
+            const chain = this.safeDict (currency, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             const networkId = this.safeString (chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId === '') {
@@ -2145,7 +2144,7 @@ export default class okx extends Exchange {
             }
         }
         return this.safeCurrencyStructure ({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': this.safeString (firstChain, 'name'),
