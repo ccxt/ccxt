@@ -51,16 +51,10 @@ function overwriteFileAndFolder (path: string, content: string) {
     if (!(fs.existsSync(path))) {
         checkCreateFolder (path);
     }
-    // overwriteFile() already opens+truncates+writes the file; the extra
-    // fs.writeFileSync below wrote every generated file a second time
-    // (~50 MB of redundant I/O per full build)
     overwriteFile (path, path.endsWith ('.cs') ? csharpTupleReturns (content, path) : content);
 }
 
-// this is necessary because for some reason
-// pathname keeps the first '/' for windows paths
-// making them invalid
-// example: /C:Users/user/Desktop/
+// on windows the URL pathname keeps a leading '/' before the drive letter
 if (platform === 'win32') {
     if (__dirname[0] === '/') {
         __dirname = __dirname.substring(1)
@@ -128,17 +122,9 @@ function csharpArgumentCount (args: string): number {
     return count
 }
 
-// ===== native getArrayLength / inOp / getValue on a receiver the EMITTED text declares =====
-//
-// The printer's helper-to-native arms (csharpDeclaredLengthExpression / csharpNativeInExpression)
-// read the print-time declared-local table, so a receiver whose C# type is produced later — a
-// parameter narrowed by typeCoreArgs / retypeSignatureArgs, a local retyped by the classifier's
-// post-print wrapper, a copy a later pass renamed — keeps the runtime helper. This pass reads the
-// emitted signature and declarations and rewrites the call into the member the helper's own
-// runtime branch performs: `Count` / `Length` for getArrayLength, `ContainsKey` / `Contains` for
-// inOp, and the key-tested indexer read for getValue. Nothing is retyped here and no cast is
-// added: a receiver the emitted text does not name, and a key that is not a literal or a
-// non-nullable `string`, keep the helper.
+// native getArrayLength / inOp / getValue on a receiver the EMITTED signature and declarations type
+// (a type produced after printing): the member the helper's own runtime branch performs; a receiver
+// or key the emitted text does not prove keeps the helper
 
 // declared C# types whose `Count` counts the elements getArrayLength's IList / ICollection
 // branches count (the helper answers 0 for null, which `x?.Count ?? 0` reproduces)
@@ -331,9 +317,6 @@ function csharpHelperDeclarationOfLine (line: string): { type: string, name: str
     return { type, name, value: (match[4] ?? '').trim () };
 }
 
-// the C# type the emitted text declares for `name` at `line`: a local declared before the read,
-// else a parameter of the enclosing signature. A name the region declares with two different
-// types is left to the helper (the read may sit behind either binding)
 // hand-written ws cache fields declared `IDictionary<string, object>` (cs/ccxt/base/Exchange.Options.cs);
 // (orderbooks reads go through getOrderBook); a field may still be null, so reads keep a null test
 const CSHARP_WS_CACHE_DICT_FIELDS = [ 'balance', 'tickers', 'fundingRates', 'bidsasks', 'trades', 'ohlcvs' ];
@@ -373,6 +356,8 @@ function csharpInOpReceiverType (region: CsharpRegion, name: string, line: numbe
     return { type: CSHARP_WS_CLIENT_MAPS[member[2]], kind: 'field', value: '' };
 }
 
+// the C# type the emitted text declares for `name` at `line`: a local declared before the read,
+// else a parameter of the enclosing signature
 function csharpHelperReceiverType (region: CsharpRegion, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
     if (name.startsWith ('this.')) {
         return CSHARP_WS_CACHE_DICT_FIELDS.includes (name.slice (5)) ? { type: 'IDictionary<string, object>', kind: 'field', value: '' } : undefined;
@@ -473,15 +458,11 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         if (!isDict && !isList) return;
         const nullableKey = takeNullableKeyType (keyMask, true);
         if (!nullableKey && !takeKeyType (keyMask, true)) {
-            // an `object` key: InOp's IList<object> branch is Contains(key), its IDictionary<string, object>
-            // branch answers false for a non-string key; other dictionaries cast the key and throw
+            // an `object` key: InOp's IDictionary<string, object> branch answers false for a non-string key;
+            // other dictionaries cast the key and throw
             if (!takeObjectKey (keyMask)) return;
             const nonNullReceiver = (receiver.kind === 'local' && receiver.nonNull) || (receiver.kind === 'param' && receiver.paramsBag);
             const receiverTest = nonNullReceiver ? '' : `${name} != null && `;
-            if (isList) {
-                edits.push ({ start, end, text: `(${receiverTest}${keyText} != null && ${name}.Contains(${keyText}))` });
-                return;
-            }
             const stringKey = keyName ();
             if (!CSHARP_DECLARED_OBJECT_DICT_TYPES.includes (receiver.type.replace (/\s+/g, '')) || (stringKey === undefined)) return;
             edits.push ({ start, end, text: `(${receiverTest}${keyText} is string ${stringKey} && ${name}.ContainsKey(${stringKey}))` });
@@ -516,10 +497,6 @@ function csharpHelperRewriteLine (original: string, masked: string, takeType, ta
         edits.push ({ start, end, text: `(${valueNullTest} && ${name}.ContainsKey(${keyText}) ? ${name}[${keyText}] : null)` });
     });
     csharpHelperOperatorEdits (original, masked, takeType, edits, objectNull);
-    // only in the final pass, after the identifier-copy retypes (they read isTrue on `object` names)
-    if (objectNull) {
-        csharpHelperTruthEdits (original, masked, takeType, edits);
-    }
     if (edits.length === 0) {
         return undefined;
     }
@@ -730,21 +707,6 @@ function csharpHelperOperatorEdits (original: string, masked: string, takeType, 
     });
 }
 
-// `isTrue(x)` on a name the emitted text declares `bool` -> `x` (the bool overload is identity) and
-// `bool?` -> `(x == true)` (the boxed null / false / true answer isTrue(object)'s false / false / true)
-function csharpHelperTruthEdits (original: string, masked: string, takeType, edits) {
-    csharpHelperCalls (original, masked, /(?<![A-Za-z0-9_.])isTrue\(/g, false, (start, end, name) => {
-        if (!/^[A-Za-z_]\w*$/.test (name) || (name === 'null') || (name === 'true') || (name === 'false')) return;
-        if (edits.some ((e) => (e.start < end) && (start < e.end))) return;
-        const receiver = takeType (name);
-        if (receiver === undefined) return;
-        const text = (receiver.type === 'bool') ? name : ((receiver.type === 'bool?') ? `(${name} == true)` : undefined);
-        if (text !== undefined) {
-            edits.push ({ start, end, text });
-        }
-    });
-}
-
 // the index of the `)` closing the call whose `(` sits at `open`
 function csharpHelperCallEnd (line: string, open: number): number | undefined {
     let depth = 0;
@@ -773,7 +735,7 @@ function csharpHelperTopLevelComma (line: string, open: number, close: number): 
 // `getArrayLength(x)` -> `(x?.Count ?? 0)` / `(x?.Length ?? 0)`, `inOp(x, k)` ->
 // `x.ContainsKey(k)` / `x.Contains(k)` (with a null test where the emitted declaration allows a
 // null receiver) for every receiver the emitted signature / declarations type as a collection
-function nativeDeclaredHelperCallsBase (content: string, objectNull = true): string {
+function nativeDeclaredHelperCallsBase (content: string, objectNull: boolean): string {
     if (!CSHARP_HELPER_LINE_RE.test (content)) {
         return csharpNativeArithmetic (csharpDeclaredReceiverHelperCalls (content));
     }
@@ -795,12 +757,7 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
         if ((i <= region.start) || (i >= region.end)) {
             return line;
         }
-        const rewrite = (name, isKey = false) => {
-            if (isKey) {
-                if (!/^[A-Za-z_]\w*$/.test (name)) return false;
-                const key = csharpHelperReceiverType (region, name, i, region.params);
-                return (key !== undefined) && (key.type === 'string');
-            }
+        const takeType = (name) => {
             const receiver = csharpHelperReceiverType (region, name, i, region.params) ?? csharpVarObjectElementLocal (region, name, i);
             if (receiver === undefined) {
                 return undefined;
@@ -814,7 +771,6 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
             }
             return receiver;
         };
-        const takeType = (name) => rewrite (name, false);
         // an `int` index: every binding of the name in the method is an `int` local or
         // `for (int name = ...)` header, so the read compiles as a List indexer argument
         const takeIndexType = (keyMask) => {
@@ -832,20 +788,14 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
             const loops = masked.some ((maskedLine, k) => (k > region.start) && (k <= i) && header.test (maskedLine));
             return loops || bound.some ((d) => d.line < i);
         };
-        const takeKeyType = (keyMask, scoped = false) => {
-            if (keyMask.startsWith ('"')) return true; // a string literal is never null
-            return (rewrite (keyMask, true) === true) || (scoped && (csharpInOpScopedLocal (region, keyMask, i)?.type === 'string'));
-        };
+        // the declared type of a key name (`scoped`: or of its one declaration still open at the read)
+        const keyType = (keyMask: string, scoped: boolean) => /^[A-Za-z_]\w*$/.test (keyMask)
+            ? (csharpHelperReceiverType (region, keyMask, i, region.params) ?? (scoped ? csharpInOpScopedLocal (region, keyMask, i) : undefined))?.type : undefined;
+        // a string literal is never null
+        const takeKeyType = (keyMask, scoped = false) => keyMask.startsWith ('"') || (keyType (keyMask, scoped) === 'string');
         // a `string?` local/param key: a ws cache field read tests it for null first, as the helper does
-        const takeNullableKeyType = (keyMask, scoped = false) => {
-            if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
-            const key = csharpHelperReceiverType (region, keyMask, i, region.params) ?? (scoped ? csharpInOpScopedLocal (region, keyMask, i) : undefined);
-            return (key !== undefined) && (key.type === 'string?');
-        };
-        const takeObjectKey = (keyMask) => {
-            if (!/^[A-Za-z_]\w*$/.test (keyMask)) return false;
-            return (csharpHelperReceiverType (region, keyMask, i, region.params) ?? csharpInOpScopedLocal (region, keyMask, i))?.type === 'object';
-        };
+        const takeNullableKeyType = (keyMask, scoped = false) => keyType (keyMask, scoped) === 'string?';
+        const takeObjectKey = (keyMask) => keyType (keyMask, true) === 'object';
         const rewritten = csharpConstantEqualities (csharpHelperRewriteLine (line, masked[i], takeType, takeKeyType, takeIndexType, takeNullableKeyType, (name) => csharpInOpReceiverType (region, name, i) ?? csharpInOpScopedLocal (region, name, i), objectNull, takeObjectKey, () => `inOpKey${stringKeys++}`), line, takeType, objectNull, content);
         if (rewritten === undefined) {
             return line;
@@ -923,17 +873,13 @@ export function nativeWsCacheCalls (content: string): string {
     return changed ? lines.join ('\n') : content
 }
 
-// watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
-// types.ts struct, so it has no generated To*/From* pair — the hand-written
-// ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
-// FromOHLCVList) carry it, keyed on this exact type string.
+// watchOHLCVForSymbols' nested `{ symbol: { timeframe: OHLCV[] } }` map: no generated To*/From* pair,
+// the hand-written ToOHLCVDict / FromOHLCVDict (Exchange.TranspileHelpers.cs) key on this type string
 const OHLCV_DICT_TYPE = 'Dictionary<string, Dictionary<string, List<OHLCV>>>';
 
-// core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
-// moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
-// only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
-// of the same typed shape are listed — anything feeding an untyped helper or reflective pagination
-// (fetchPaginatedCall*, callDynamically) stays object, since there is no reverse From helper.
+// core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>` (the
+// `new T(item)` conversion moves from the PascalCase wrapper onto the core return path); a core
+// feeding an untyped helper or reflective pagination stays object (no reverse From helper)
 const TYPED_CORES: Record<string, string> = {
     'cancelAllContractOrders': 'List<Order>',
     'cancelAllOrders': 'List<Order>',
@@ -1041,15 +987,8 @@ const TYPED_CORES: Record<string, string> = {
     'fetchAmmOrders': 'List<PredictionOrder>',
     'fetchApiKey': 'Dictionary<string, object>',
     'fetchApiKeys': 'Dictionary<string, object>',
-    // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
-    // payload into a Dictionary<string, T>; their From* helpers write every entry back under
-    // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
-    // indexed / safeDict()ed) is funnelled through the reverse helper by typeCores. Every
-    // consumer must sit inside a method body typeCores visits: Task<object> AND void Task
-    // (loadBalanceSnapshot / loadPositionsSnapshot are void).
-    // setLeverage is NOT typed: on master its wrapper is cast-only
-    // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
-    // every venue-specific key from the public C# return - an API regression, not a win.
+    // container families (Balances, Tickers, ...): consuming sites go through the reverse From* helper
+    // (typeCores); setLeverage stays untyped (typing it would drop venue keys from the public return)
     'fetchBalance': 'Balances',
     'fetchBalanceWs': 'Balances',
     'fetchBidsAsks': 'Tickers',
@@ -1139,10 +1078,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositAddressDefault': 'DepositAddress',
     'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDepositAddresses': 'List<DepositAddress>',
-    // fetchDepositAddressesByNetwork is deliberately NOT typed: parseDepositAddresses()
-    // is called with indexed=true by every venue that has this method, and then returns
-    // a dict keyed by currency - not the DepositAddress[] the TS return annotation
-    // claims. ToDepositAddressList then throws on a Dictionary.
+    // fetchDepositAddressesByNetwork stays untyped: indexed parseDepositAddresses() returns a dict
     'fetchDepositWithdrawFee': 'DepositWithdrawFee',
     'fetchDeposits': 'List<Transaction>',
     'fetchDepositsOrWithdrawalsHelper': 'List<Transaction>',
@@ -1298,10 +1234,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransactionFees': 'Dictionary<string, object>',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
-    // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
-    // object local and runs filterBy() / arrayConcat() / parseTransfers() over it
-    // (ts/src/dydx.ts:1854,2071,2219), so the struct list escapes into untyped code
-    // and filterBy throws InvalidCastException on List<Transaction>.
+    // fetchTransactionsHelper stays untyped: dydx runs filterBy() over its result (VENUE_TYPED_CORES)
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
@@ -1334,21 +1267,9 @@ const TYPED_CORES: Record<string, string> = {
     'transferIn': 'TransferEntry',
     'transferOut': 'TransferEntry',
     'transferUta': 'TransferEntry',
-    // --- watch* -------------------------------------------------------------------
-    // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
-    // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
-    // which is exactly the snapshot the deleted PascalCase wrapper produced with
-    // `.Select(item => new T(item))` / `new T(res)`. Typing the core therefore keeps the
-    // public C# semantics byte for byte while removing the second declaration.
-    // The names below have zero consuming call sites outside the wrapper layer
-    // (build/tmp_watch_analysis.py in the PR description); the ones that do have them
-    // stay untyped and keep their wrapper:
-    //   watchTickers        16 sites (binance, okx, kraken, gate, ... ) + Tickers is not invertible
-    //   watchOHLCVForSymbols 11 sites; its wrapper conversion is Helper.ConvertToDictionaryOHLCVList
-    //   watchMarkPrices      3 sites (okx, binance, aster) + Tickers is not invertible
-    //   watchFundingRates    1 site  (okx) + FundingRates is not invertible
-    // and the venue-internal plumbing (watchPublic/watchPrivate/watchTopics/...) whose
-    // wrapper is cast-only, so typing it would drop venue keys.
+    // watch* cores: To* materialises the snapshot the wrapper produced; names with consuming call
+    // sites (watchTickers, watchOHLCVForSymbols, watchMarkPrices, watchFundingRates) or a cast-only
+    // wrapper stay untyped
     'watchBalance': 'Balances',
     'watchBidsAsks': 'Tickers',
     'watchFundingRate': 'FundingRate',
@@ -1397,16 +1318,8 @@ const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionT
     },
 };
 
-// the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
-// structures, so the same method name is typed differently there — no invariance conflict
-// struct families that have a reverse `FromX` / `FromXList` helper in
-// cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
-// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`.
-// The dictionary-like containers (Tickers, Balances, OrderBook, ...) are included since the
-// generator learned to invert their splat constructors: the loop copies every non-"info"
-// key verbatim, so writing each entry back under its own key restores the source dict.
-// OHLCV's ctor is positional so the generator cannot invert it; FromOHLCVList is hand-written
-// in Exchange.TranspileHelpers.cs, which is why the family is still listed here.
+// struct families with a reverse `FromX` / `FromXList` helper (cs/ccxt/base/Exchange.TypedCores.cs,
+// `python3 build/generateTypedCoreHelpers.py --capabilities`; FromOHLCVList is hand-written)
 const REVERSIBLE_FAMILIES: string[] = [
     'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
     'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
@@ -1482,11 +1395,8 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchTradingFee': 'PredictionTradingFee',
 };
 
-// Per-venue typed cores: one method name can legitimately carry different shapes on
-// different classes (dydx fetchTransactionsHelper is a raw row list feeding filterBy, alpaca's
-// is a parsed Transaction[]). The table is consulted BEFORE the name-keyed tables, keyed by
-// the ts/src file id the core is declared in; derived venues (bequant : hitbtc) resolve
-// through their parent. An empty string opts a venue out of a name-keyed entry.
+// per-venue typed cores (keyed by ts/src file id, derived venues resolve through their parent),
+// consulted before the name-keyed tables; an empty string opts a venue out
 const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
     'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
     'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
@@ -1503,23 +1413,9 @@ const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
     },
 };
 
-// Sync cores retyped from `object` to a concrete C# type. Unlike TYPED_CORES (async
-// Task<object> -> Task<T>, where a To*/From* helper pair moves a boxed struct across the
-// boundary), these are plain sync methods whose runtime value ALREADY is the named type:
-// this.markets / this.currencies / this.markets_by_id / this.currencies_by_id hold plain
-// Dictionary<string, object> rows (setMarkets builds each row with deepExtend and toArray
-// de-types the typed fetchMarkets list before the merge), so naming the type moves no box.
-// The row BUILDERS (parseMarket / parseCurrency / createExpiredOptionMarket) return the
-// same family of rows: a census of all 119 declarations found every return path ending in
-// safeMarketStructure / safeCurrencyStructure, this.extend / deepExtend, a fresh
-// Dictionary literal, or a peer builder that resolves to one of those (poloniex's
-// parseMarket forwards to parseSpot/SwapMarket, both ending in safeMarketStructure), so
-// the ToDict funnel below is identity for them too.
-// Every declaration (the BaseExchange original and every venue override — C# overrides are
-// invariant) is rewritten, and each return expression is funnelled through ToDict (`as`
-// cast: identity for these rows, null for null) unless it already hands the dictionary back
-// unchanged. Registered in build/csharp-local-types.js so `object x = this.market(symbol)`
-// locals can be typed downstream.
+// sync cores whose runtime value already is the named type (market / currency rows and their
+// builders): every declaration is retyped and each return funnelled through ToDict (`as`, identity)
+// unless already that dictionary; registered in build/csharp-local-types.js for downstream locals
 const SYNC_TYPED_CORES: Record<string, string> = {
     'safeMarketStructure': 'Dictionary<string, object>',
     'safeCurrencyStructure': 'Dictionary<string, object>',
@@ -1558,10 +1454,8 @@ const CORE_DICT_ARGS: Record<string, number[]> = {
     'safeCurrencyStructure': [ 0 ],
 };
 
-// Same family, but at least one caller holds the value in an `IDictionary<string, object>` local
-// (`CSHARP_LOCAL_ANNOTATION_TYPES`' spelling for a row). Naming the parameter Dictionary there would
-// assert a runtime type the caller's static type does not prove, so the interface is the narrowest
-// safe name; Dictionary callers convert implicitly. Same no-wrap gate as CORE_DICT_ARGS.
+// as CORE_DICT_ARGS, but a caller holds the row in an `IDictionary<string, object>` local, so the
+// parameter is named by the interface
 const CORE_IDICT_ARGS: Record<string, number[]> = {
     'internalFetchTransfers': [ 1 ],
     'parseCancelOrders': [ 0 ],
@@ -1577,25 +1471,10 @@ const CORE_IDICT_ARGS: Record<string, number[]> = {
     'parseWsUtaTrade': [ 0 ],
 };
 
-// Collection-returning helpers whose every return site yields a list (or null) at runtime but
-// whose generated declaration still said `object`. Every site was checked mechanically (a
-// return-site census over cs/ccxt/*.cs and cs/ccxt/exchanges/*.cs): `new List<object>()`, a
-// `List<object>` local, `null`, a call to another name in this list, or one of the three shapes
-// typeCollectionReturns() normalizes:
-//   return <own object param>;         -> return this.toArray(<param>);
-//   return this.arraySlice(...);       -> return this.toArray(this.arraySlice(...));
-//   return ((object)this.<name>(...)); -> return this.<name>(...);
-// Deliberately absent: filterByArray / filterOutByArray / filterByArray* / filterBySymbols*
-// (they hand back a DICTIONARY when `indexed` is true - argument-dependent, so not a list
-// type), parseTickers / parsePositions / parseFundingRates / parseOpenInterests (funelled
-// through filterByArray), parseFundingHistory (returns a Dictionary), parseWsTrade /
-// parseWsTrades (46 ws-file overrides - a full ws regeneration is out of scope here) and
-// arraySlice (byte[] callers receive byte[] / List<byte> back, so it keeps its object
-// signature; its list returns are funnelled through toArray at the call sites above).
-// parseOHLCV: 81 declarations (the BaseExchange virtual + 80 overrides), 80 of them a single
-// `return [ … ];` row literal (a return-site census over cs/ccxt/exchanges/{,prediction/}*.cs);
-// the base is the `<own object param>` shape and normalises to toArray (identity for the row
-// the callers pass, null for null).
+// collection helpers whose every return site yields a list or null (a return-site census); the
+// declaration is retyped and typeCollectionReturns() normalizes `return <own param>;` /
+// `return this.arraySlice(...);` through toArray. Absent: argument-dependent filterByArray* /
+// filterBySymbols*, ws overrides, arraySlice (byte[] callers)
 const COLLECTION_RETURN_METHODS: string[] = [
     'filterByKey', 'filterBySymbol', 'filterByLimit', 'filterBySinceLimit',
     'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
@@ -1605,10 +1484,7 @@ const COLLECTION_RETURN_METHODS: string[] = [
     'marketSymbols', 'marketsForSymbols', 'parseMarkets',
 ];
 
-// Same idea for the one collection helper that hands back a keyed dictionary: parseCurrencies
-// accumulates `Dictionary<string, object> result` (keyed by currency code) and returns it —
-// both the base implementation and the bitstamp override. No return-site normalizations are
-// needed (every return is that dict local); only the declaration changes.
+// parseCurrencies returns its keyed `Dictionary<string, object> result` local: only the declaration changes
 const COLLECTION_RETURN_DICT_METHODS: string[] = [
     'parseCurrencies',
 ];
@@ -1825,12 +1701,8 @@ const CORE_ARG_SHADOW_LIMIT_SOURCE = 'limit';
 const CORE_ARG_SHADOW_LIMIT_GETLIMIT_RE = /^callDynamically\s*\(\s*[A-Za-z_]\w*\s*,\s*"getLimit"\s*,/;
 const CORE_ARG_SHADOW_LIMIT_LITERAL_RE = /^-?\d+$/;
 
-// `castCoreArgCallSites` wraps an argument whenever its printed form does not already look like a
-// string literal or a `(string)` cast -- it has no type knowledge. A bare identifier the enclosing
-// generated declaration already types with the target (`string symbol` after `typeCoreArgs`
-// narrowed it, or a local declared `string`) makes that wrap a no-op: the callee receives the same
-// reference. Only the identifiers owned by THIS unit are listed, so a sibling family (`code`,
-// `type`/`side`/`id`, `timeframeVar`) keeps its casts and extends the list on its own branch.
+// identifiers the enclosing declaration already types `string`, whose `castCoreArgCallSites` wrap
+// is a no-op (sibling families keep their casts)
 const CORE_ARG_CALL_SITE_TYPED_IDENTIFIERS = [ 'path', 'symbol' ];
 
 // Callees whose every definition in cs/** declares `object` at the argument's position, so an `object`
@@ -2064,36 +1936,10 @@ const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAlia
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
 
-// The safeDict/safeList family is generated from ts/src/base/Exchange.ts, but its return
-// annotations (`Dictionary<any>` / `any[]`, each unioned with `undefined`) do not reach the
-// C# printer: getTypeFromRawType() has no member for a dictionary alias and a union falls
-// back to DEFAULT_RETURN_TYPE, so every one of the six prints `public virtual object`
-// (probed against the pinned ast-transpiler: bare `Dict`, `Dictionary<any>`, `Array<any>`,
-// `any[]` and every `| undefined` variant all emit `object`). The bodies, however, return
-// the real type on every path, so the emitted method text is retyped here: signature to the
-// concrete C# type, every `return <x>;` through an explicit cast. build/csharp-local-types.js
-// then names the locals fed by these calls.
-//
-// The dictionary three return the INTERFACE, not the concrete class: the found value only
-// passed `isDictionary`, which accepts any IDictionary<string, object> — this port hands
-// ConcurrentDictionary<string, object> through these paths for real (options itself is one,
-// createSafeDictionary() builds one, and paradex stores one in options['paradexAccount']),
-// and `(Dictionary<string, object>)` on such a value throws InvalidCastException. The cast
-// to the interface is identity-preserving for every value the guard passes and never throws
-// where the previous `object` return did not.
-//
-// Lists keep the concrete List<object>: every value the List<> guard passes that is NOT a
-// List<object> also fails the consumer-side IList<object> casts this port already emits, so
-// narrowing to List<object> changes nothing a caller could previously have used.
-//
-// The FOUND value is cast (the guard proves it); the DEFAULT is handed back with `as`, so a
-// default that is not the declared collection drops to null instead of throwing — the same
-// convention the hand-written SafeString/SafeStringN use (`return defaultValue as string`).
-// This is reachable in the real tree: myriad's fetchOHLCV passes a dictionary as the list
-// default (`safeDict`-shaped data read through `safeList (chart, 'data', chart)`), which the
-// fixture suite catches the moment a hard cast is used there.
-//
-// The rewrite is exact-match and throws if the generated shape ever changes.
+// safeDict/safeList family: the printer emits `object` returns, the bodies return the real type, so
+// signature and returns are retyped (found value cast, default handed back with `as`). Dictionaries
+// name the interface (ConcurrentDictionary values pass through); the rewrite is exact-match and throws
+// if the generated shape changes
 const SAFE_COLLECTION_HELPER_TYPES: Record<string, string> = {
     'safeDict': 'IDictionary<string, object>',
     'safeDict2': 'IDictionary<string, object>',
@@ -2124,7 +1970,7 @@ const CSHARP_IDENTITY_LIST_CAST = /\(\(IList<object>\)\s*([A-Za-z_]\w*)\s*\)(\.A
 // `IList<object>` (cs/ccxt/ws/OrderBook.cs:22/:33), so the cast is a no-op on that member read
 const CSHARP_ORDERBOOK_CACHE_CAST = /\(\(IList<object>\)(?:\(IList<object>\))?\(+([A-Za-z_]\w*) as ccxt\.pro\.OrderBook\)\.cache\)+\.Add\(/g;
 
-// locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
+// locate a whole transpiled C# method
 // by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
 // can be spliced back at its original position
 function findCSharpMethodSpan (body: string, name: string): { start: number, end: number, method: string } | undefined {
@@ -2133,12 +1979,7 @@ function findCSharpMethodSpan (body: string, name: string): { start: number, end
     if (!m) {
         return undefined;
     }
-    let start = m.index; // the '\n' just before the signature line
-    const before = body.substring (0, start);
-    const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
-    if (docMatch) {
-        start = docMatch.index as number;
-    }
+    const start = m.index; // the '\n' just before the signature line
     let depth = 0;
     let end = body.indexOf ('{', m.index + m[0].length - 1);
     for (; end < body.length; end++) {
@@ -2245,7 +2086,7 @@ function csharpDeclaredUniqueMethods (): string[] {
 function csharpScanDeclarations (lines: string[]): Map<string, CsharpRuntimeDecl[]> {
     const out = new Map<string, CsharpRuntimeDecl[]> ()
     for (let i = 0; i < lines.length; i++) {
-        const sig = (lines[i] === null) ? null : CSHARP_RUNTIME_DECL_RE.exec (lines[i])
+        const sig = CSHARP_RUNTIME_DECL_RE.exec (lines[i])
         if (sig === null) {
             continue
         }
@@ -2271,10 +2112,10 @@ function csharpScanDeclarations (lines: string[]): Map<string, CsharpRuntimeDecl
         }
         // a brace-scoped body on the following lines (one-statement helpers, `limit()`)
         const body: string[] = []
-        if (/\{\s*$/.test (lines[i]) || ((i + 1 < lines.length) && (lines[i + 1] !== null) && (lines[i + 1].trim () === '{'))) {
+        if (/\{\s*$/.test (lines[i]) || ((i + 1 < lines.length) && (lines[i + 1].trim () === '{'))) {
             let depth = 0
             for (let j = /\{\s*$/.test (lines[i]) ? i : i + 1; (j < lines.length) && (j < i + 80); j++) {
-                const text = (lines[j] ?? '').replace (/\/\/.*$/, '').trim ()
+                const text = lines[j].replace (/\/\/.*$/, '').trim ()
                 if (text !== '') {
                     body.push (text)
                 }
@@ -2530,9 +2371,7 @@ function csharpRetSameFileIndex (content: string): Map<string, Set<string>> {
 
 // every declared C# return type of `name` the emitted text proves; >1 distinct spelling is unproven
 function csharpRetDeclaredReturnTypes (content: string, name: string): string[] {
-    const sameFile = csharpRetSameFileIndex (content)
-    // a pascalized call site reads the camelCase declaration (typeCores runs before the rename)
-    const found = sameFile.get (name) ?? sameFile.get (name.charAt (0).toLowerCase () + name.slice (1)) ?? csharpRetBaseIndex ().get (name)
+    const found = csharpRetSameFileIndex (content).get (name) ?? csharpRetBaseIndex ().get (name)
     return [ ...(found ?? []) ]
 }
 
@@ -2566,14 +2405,7 @@ function csharpRetSplitParams (plist: string): string[] {
 // except sibling blocks, whose duplicate makes the name unprovable)
 function csharpRetMethodBindings (methodLines: string[]): Map<string, string[]> {
     const bindings = new Map<string, string[]> ()
-    const add = (name: string, type: string) => {
-        const known = bindings.get (name)
-        if (known === undefined) {
-            bindings.set (name, [ type ])
-        } else {
-            known.push (type)
-        }
-    }
+    const add = (name: string, type: string) => bindings.set (name, (bindings.get (name) ?? []).concat (type))
     for (let i = 0; i < methodLines.length; i++) {
         const line = methodLines[i]
         const trimmed = line.trimStart ()
@@ -2605,10 +2437,7 @@ function csharpRetMethodBindings (methodLines: string[]): Map<string, string[]> 
     return bindings
 }
 
-/**
- * True when wrapping `expr` in the dictionary helper that materialises `targetType` would only
- * rename the type the expression already has, so the return can print bare.
- */
+// whether wrapping `expr` in the helper materialising `targetType` only renames its type
 function csharpReturnIsAlreadyTyped (expr: string, targetType: string, content: string, methodLines: string[], prediction = false): boolean {
     if (CSHARP_RET_TARGETS.indexOf (targetType) === -1) {
         return false
