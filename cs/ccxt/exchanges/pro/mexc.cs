@@ -640,8 +640,8 @@ public partial class mexc : ccxt.mexc
         object ohlcv = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            string channel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
-            ohlcv = await this.watchSpotPublic(channel, messageHash, parameters);
+            string spotChannel = ((("spot@public.kline.v3.api.pb@" + this.safeString(market, "id", "")) + "@") + timeframeId);
+            ohlcv = await this.watchSpotPublic(spotChannel, messageHash, parameters);
         } else
         {
             string channel = "sub.kline";
@@ -846,8 +846,8 @@ public partial class mexc : ccxt.mexc
             (string?, object) frequencyparamsFrequencyVariable = this.handleOptionStringAndParams(parameters, "watchOrderBook", "frequency", "100ms");
             string? frequency = frequencyparamsFrequencyVariable.Item1;
             IDictionary<string, object> paramsFrequency = ((IDictionary<string, object>)frequencyparamsFrequencyVariable.Item2);
-            string channel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
-            orderbook = await this.watchSpotPublic(channel, messageHash, paramsFrequency);
+            string spotChannel = ((("spot@public.aggre.depth.v3.api.pb@" + frequency) + "@") + this.safeString(market, "id", ""));
+            orderbook = await this.watchSpotPublic(spotChannel, messageHash, paramsFrequency);
         } else
         {
             string channel = "sub.depth";
@@ -1091,8 +1091,8 @@ public partial class mexc : ccxt.mexc
         object trades = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
-            string channel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
-            trades = await this.watchSpotPublic(channel, messageHash, parameters);
+            string spotChannel = ("spot@public.aggre.deals.v3.api.pb@100ms@" + this.safeString(market, "id", ""));
+            trades = await this.watchSpotPublic(spotChannel, messageHash, parameters);
         } else
         {
             string channel = "sub.deal";

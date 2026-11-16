@@ -3925,8 +3925,8 @@ public partial class polymarket : PredictionExchange
         object orderbook = await this.watch(url, messageHash, subscribeMsg, subscribeHash);
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
-        object bestBid = null;
-        object bestBidVolume = null;
+        double? bestBid = null;
+        double? bestBidVolume = null;
         int bidsLength = 0;
         if ((bids != null))
         {
@@ -3934,11 +3934,11 @@ public partial class polymarket : PredictionExchange
         }
         if (((bids != null)) && (bidsLength > 0))
         {
-            bestBid = getValue(getValue(bids, 0), 0);
-            bestBidVolume = getValue(getValue(bids, 0), 1);
+            bestBid = this.safeNumber(getValue(bids, 0), 0);
+            bestBidVolume = this.safeNumber(getValue(bids, 0), 1);
         }
-        object bestAsk = null;
-        object bestAskVolume = null;
+        double? bestAsk = null;
+        double? bestAskVolume = null;
         int asksLength = 0;
         if ((asks != null))
         {
@@ -3946,10 +3946,10 @@ public partial class polymarket : PredictionExchange
         }
         if (((asks != null)) && (asksLength > 0))
         {
-            bestAsk = getValue(getValue(asks, 0), 0);
-            bestAskVolume = getValue(getValue(asks, 0), 1);
+            bestAsk = this.safeNumber(getValue(asks, 0), 0);
+            bestAskVolume = this.safeNumber(getValue(asks, 0), 1);
         }
-        object mid = null;
+        double? mid = null;
         if (((bestBid != null)) && ((bestAsk != null)))
         {
             string? sum = Precise.stringAdd(this.numberToString(bestBid), this.numberToString(bestAsk));

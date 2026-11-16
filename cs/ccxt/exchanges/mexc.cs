@@ -2286,16 +2286,16 @@ public partial class mexc : Exchange
             }
             string? priceType = this.safeString(paramsUntil, "price", "default");
             object paramsOmitted = this.omit(paramsUntil, "price");
-            Dictionary<string, object> response = null;
+            Dictionary<string, object> swapResponse = null;
             if (priceType == "default")
             {
-                response = await this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineSymbol(this.extend(request, paramsOmitted));
             } else if (priceType == "index")
             {
-                response = await this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineIndexPriceSymbol(this.extend(request, paramsOmitted));
             } else if (priceType == "mark")
             {
-                response = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted));
+                swapResponse = await this.contractPublicGetKlineFairPriceSymbol(this.extend(request, paramsOmitted));
             } else
             {
                 throw new NotSupported ((this.id + " fetchOHLCV() not support this price type, [default, index, mark]")) ;
@@ -2315,7 +2315,7 @@ public partial class mexc : Exchange
             //         }
             //     }
             //
-            IDictionary<string, object> data = this.safeDict(response, "data");
+            IDictionary<string, object> data = this.safeDict(swapResponse, "data");
             candles = this.convertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol");
         }
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,timeframeVar, since, limit));
@@ -3306,17 +3306,17 @@ public partial class mexc : Exchange
             {
                 request["limit"] = limit;
             }
-            List<object> response = null;
+            List<object> spotResponse = null;
             if ((marginMode != null))
             {
                 if (!(marginMode == "isolated"))
                 {
                     throw new BadRequest ((((this.id + " fetchOrders() does not support marginMode ") + marginMode) + " for spot-margin trading")) ;
                 }
-                response = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
+                spotResponse = await this.spotPrivateGetMarginAllOrders(this.extend(request, queryInner));
             } else
             {
-                response = await this.spotPrivateGetAllOrders(this.extend(request, queryInner));
+                spotResponse = await this.spotPrivateGetAllOrders(this.extend(request, queryInner));
             }
             //
             // spot
@@ -3366,7 +3366,7 @@ public partial class mexc : Exchange
             //         }
             //     ]
             //
-            return this.parseOrders(response, market, since, limit);
+            return this.parseOrders(spotResponse, market, since, limit);
         } else
         {
             if ((since != null))
@@ -3966,13 +3966,13 @@ public partial class mexc : Exchange
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             string? method = this.safeString(this.options, "cancelAllOrders", "contractPrivatePostOrderCancelAll");
             method = this.safeString(paramsMarketType, "method", method);
-            Dictionary<string, object> response = new Dictionary<string, object>() {};
+            Dictionary<string, object> swapResponse = new Dictionary<string, object>() {};
             if (method == "contractPrivatePostOrderCancelAll")
             {
-                response = await this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType));
+                swapResponse = await this.contractPrivatePostOrderCancelAll(this.extend(request, paramsMarketType));
             } else if (method == "contractPrivatePostPlanorderCancelAll")
             {
-                response = await this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType));
+                swapResponse = await this.contractPrivatePostPlanorderCancelAll(this.extend(request, paramsMarketType));
             }
             //
             //     {
@@ -3980,7 +3980,7 @@ public partial class mexc : Exchange
             //         "code": "0"
             //     }
             //
-            List<object> data = this.safeList(response, "data", new List<object>() {});
+            List<object> data = this.safeList(swapResponse, "data", new List<object>() {});
             return this.parseOrders(data, market);
         }
     }
@@ -7059,21 +7059,21 @@ public partial class mexc : Exchange
             {
                 this.checkRequiredCredentials();
                 string timestamp = this.nonce().ToString();
-                string auth = "";
+                string payload = "";
                 if ((method == "POST"))
                 {
-                    auth = this.json(paramsOmitted);
-                    requestBody = auth;
+                    payload = this.json(paramsOmitted);
+                    requestBody = payload;
                 } else
                 {
                     Dictionary<string, object> paramsSorted = this.keysort(paramsOmitted);
                     if ((new List<object>(paramsSorted.Keys)).Count > 0)
                     {
-                        auth = auth + this.urlencode(paramsSorted);
-                        url = ((object)(url == null ? null : url + ("?" + auth)));
+                        payload = this.urlencode(paramsSorted);
+                        url = ((object)(url == null ? null : url + ("?" + payload)));
                     }
                 }
-                auth = ((this.apiKey + timestamp) + auth);
+                string auth = ((this.apiKey + timestamp) + payload);
                 string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
                 requestHeaders = new Dictionary<string, object>() {
                     { "ApiKey", this.apiKey },

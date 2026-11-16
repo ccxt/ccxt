@@ -3911,13 +3911,13 @@ public partial class gate : Exchange
         {
             throw new NotSupported ((this.id + " fetchTicker() not support this market type")) ;
         }
-        object ticker = null;
+        IDictionary<string, object> ticker = null;
         if ((this.safeBool(market, "option", false) == true))
         {
             string? optionMarketId = this.safeString(market, "id");
             for (int i = 0; i < (response?.Count ?? 0); i++)
             {
-                object entry = response[i];
+                IDictionary<string, object> entry = this.safeDict(response, i);
                 string? entryName = this.safeString(entry, "name");
                 if ((entryName == optionMarketId))
                 {

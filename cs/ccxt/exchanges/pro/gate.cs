@@ -1434,12 +1434,12 @@ public partial class gate : ccxt.gate
         {
             await this.loadMarkets();
         }
-        object marketId = ("!" + "all");
+        string? marketId = ("!" + "all");
         IDictionary<string, object> market = null;
         if ((symbol != null))
         {
             market = this.market(symbol);
-            marketId = (market.ContainsKey("id") ? market["id"] : null);
+            marketId = this.safeString(market, "id");
         }
         IList<object> typeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         string? type = (string)typeparamsMarketTypeVariable[0];

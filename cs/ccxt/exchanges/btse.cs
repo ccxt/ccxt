@@ -4130,15 +4130,15 @@ public partial class btse : Exchange
             string? status = this.safeString(row, "status");
             if ((status != null))
             {
-                string? message = this.safeString(row, "message");
-                object embedded = this.parseJson(message);
+                string? rowMessage = this.safeString(row, "message");
+                object embedded = this.parseJson(rowMessage);
                 if ((embedded != null))
                 {
-                    message = this.safeString(embedded, "default_msg", message);
+                    rowMessage = this.safeString(embedded, "default_msg", rowMessage);
                 }
                 string feedback = ((this.id + " ") + (body));
                 this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), status, feedback);
-                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
+                this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), rowMessage, feedback);
             }
         }
         return null;

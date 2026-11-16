@@ -3529,21 +3529,21 @@ public partial class bitrue : Exchange
             Int64? recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
             if (type == "spot" || type == "open")
             {
-                string query = this.urlencode(this.extend(new Dictionary<string, object>() {
+                string unsignedQuery = this.urlencode(this.extend(new Dictionary<string, object>() {
                     { "timestamp", this.nonce() },
                     { "recvWindow", recvWindow },
                 }, paramsOmitted));
-                string signature = this.hmac(this.encode(query), this.encode(this.secret), sha256);
-                query = query + (("&" + "signature=") + signature);
+                string signature = this.hmac(this.encode(unsignedQuery), this.encode(this.secret), sha256);
+                string signedQuery = (((unsignedQuery + "&") + "signature=") + signature);
                 if (((method == "GET")) || ((method == "DELETE")))
                 {
-                    url = url + ("?" + query);
+                    url = url + ("?" + signedQuery);
                     requestHeaders = new Dictionary<string, object>() {
                         { "X-MBX-APIKEY", this.apiKey },
                     };
                 } else
                 {
-                    requestBody = query;
+                    requestBody = signedQuery;
                     requestHeaders = new Dictionary<string, object>() {
                         { "X-MBX-APIKEY", this.apiKey },
                         { "Content-Type", "application/x-www-form-urlencoded" },

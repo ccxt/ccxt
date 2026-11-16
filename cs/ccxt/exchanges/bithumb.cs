@@ -541,9 +541,17 @@ public partial class bithumb : Exchange
         {
             return marketId;
         }
-        string quoteId = this.safeString2(market, "quoteId", "quote", "");
-        string? baseId = this.safeString2(market, "baseId", "base", "");
-        return ((quoteId + "-") + baseId);
+        object quoteId = this.safeString(market, "quoteId");
+        if ((quoteId == null))
+        {
+            quoteId = this.safeString(market, "quote", "");
+        }
+        string? baseId = this.safeString(market, "baseId");
+        if ((baseId == null))
+        {
+            baseId = this.safeString(market, "base", "");
+        }
+        return ((string?)((object)(((object)(quoteId == null ? null : quoteId + "-" + baseId)))));
     }
 
     /**
@@ -663,7 +671,6 @@ public partial class bithumb : Exchange
             for (int i = 0; i < quotes.Count; i++)
             {
                 string? quote = ((string)quotes[i]);
-                string? quoteId = quote;
                 IDictionary<string, object> response = this.safeDict(results, i);
                 IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
                 IDictionary<string, object> extension = this.safeDict(quoteCurrencies, quote, new Dictionary<string, object>() {});
@@ -697,7 +704,7 @@ public partial class bithumb : Exchange
                         { "quote", quote },
                         { "settle", null },
                         { "baseId", currencyId },
-                        { "quoteId", quoteId },
+                        { "quoteId", quote },
                         { "settleId", null },
                         { "type", "spot" },
                         { "spot", true },
@@ -2213,9 +2220,8 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " fetchOrder() requires a symbol argument")) ;
             }
-            IDictionary<string, object> marketDefined = market;
-            string? bs = this.safeString(marketDefined, "base");
-            string? quote = this.safeString(marketDefined, "quote");
+            string? bs = this.safeString(market, "base");
+            string? quote = this.safeString(market, "quote");
             if (((bs == null)) || ((quote == null)))
             {
                 throw new ArgumentsRequired ((this.id + " fetchOrder() requires a market with defined base and quote")) ;
@@ -2803,9 +2809,8 @@ public partial class bithumb : Exchange
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a symbol argument")) ;
             }
-            IDictionary<string, object> marketDefined = market;
-            string? bs = this.safeString(marketDefined, "base");
-            string? quote = this.safeString(marketDefined, "quote");
+            string? bs = this.safeString(market, "base");
+            string? quote = this.safeString(market, "quote");
             if (((bs == null)) || ((quote == null)))
             {
                 throw new ArgumentsRequired ((this.id + " cancelOrder() requires a market with defined base and quote")) ;
@@ -3732,13 +3737,11 @@ public partial class bithumb : Exchange
                 };
             }
         }
-        Dictionary<string, object> headersResult = requestHeaders;
-        string? bodyResult = requestBody;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyResult },
-            { "headers", headersResult },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

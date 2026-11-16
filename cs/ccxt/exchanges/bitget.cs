@@ -4022,17 +4022,17 @@ public partial class bitget : Exchange
             contract = true;
             inverse = (isEqual(bs, settle));
             linear = inverse != true;
-            Int64? priceDecimals = this.safeInteger(market, "pricePlace");
-            Int64? amountDecimals = this.safeInteger(market, "volumePlace");
-            string? priceStep = this.safeString(market, "priceEndStep");
-            string? amountStep = this.safeString(market, "sizeMultiplier");
-            var precise = new Precise(priceStep);
-            precise.decimals = mathMax(precise.decimals, priceDecimals);
+            Int64? pricePlaces = this.safeInteger(market, "pricePlace");
+            Int64? volumePlaces = this.safeInteger(market, "volumePlace");
+            string? priceEndStep = this.safeString(market, "priceEndStep");
+            string? sizeMultiplier = this.safeString(market, "sizeMultiplier");
+            var precise = new Precise(priceEndStep);
+            precise.decimals = mathMax(precise.decimals, pricePlaces);
             precise.reduce();
             string priceString = ((object)precise).ToString();
             pricePrecision = this.parseNumber(priceString);
-            var preciseAmount = new Precise(amountStep);
-            preciseAmount.decimals = mathMax(preciseAmount.decimals, amountDecimals);
+            var preciseAmount = new Precise(sizeMultiplier);
+            preciseAmount.decimals = mathMax(preciseAmount.decimals, volumePlaces);
             preciseAmount.reduce();
             string amountString = ((object)preciseAmount).ToString();
             amountPrecision = this.parseNumber(amountString);
@@ -4457,14 +4457,9 @@ public partial class bitget : Exchange
         string? code = this.safeCurrencyCode(id);
         List<object> chains = this.safeList(entry, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        bool? withdraw = null;
-        bool? deposit = null;
+        bool withdraw = false;
+        bool deposit = false;
         int chainsLength = chains.Count;
-        if ((chainsLength == 0))
-        {
-            withdraw = false;
-            deposit = false;
-        }
         for (int j = 0; j < chainsLength; j++)
         {
             IDictionary<string, object> chain = this.safeDict(chains, j);
@@ -4479,8 +4474,8 @@ public partial class bitget : Exchange
             string? rechargeableString = this.safeString(chain, "rechargeable");
             bool withdrawable = (withdrawableString == "true");
             bool rechargeable = (rechargeableString == "true");
-            withdraw = ((withdraw == null)) ? withdrawable : ((withdraw == true) || withdrawable);
-            deposit = ((deposit == null)) ? rechargeable : ((deposit == true) || rechargeable);
+            withdraw = withdraw || withdrawable;
+            deposit = deposit || rechargeable;
             string? withdrawMinScale = this.safeString(chain, "withdrawMinScale");
             string? precision = this.parsePrecision(withdrawMinScale);
             networks[(string)network] = new Dictionary<string, object>() {
@@ -4741,7 +4736,7 @@ public partial class bitget : Exchange
         object minNotional = 0;
         for (int i = 0; i < getArrayLength(info); i++)
         {
-            object item = this.safeValue(info, i);
+            IDictionary<string, object> item = this.safeDict(info, i, new Dictionary<string, object>() {});
             double? minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
             if ((minimumNotional != null))
             {

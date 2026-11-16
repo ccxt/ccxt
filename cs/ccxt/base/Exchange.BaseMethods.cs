@@ -2423,9 +2423,9 @@ public partial class BaseExchange
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            object firstTrade = this.safeValue(rawTrades, 0);
+            IDictionary<string, object> firstTrade = this.safeDict(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            bool tradesAreParsed = (((firstTrade != null)) && (inOp(firstTrade, "info")) && (inOp(firstTrade, "id")));
+            bool tradesAreParsed = (((firstTrade != null)) && (firstTrade.ContainsKey("info")) && (firstTrade.ContainsKey("id")));
             if (!tradesAreParsed)
             {
                 trades = ccxt.BaseExchange.FromTradeList(this.parseTrades(rawTrades, market));
@@ -4960,7 +4960,7 @@ public partial class BaseExchange
             } else
             {
                 // still processing the same timeframe -> update opening trade
-                object prevCandle = this.safeValue(ohlcvs, candle);
+                List<object> prevCandle = this.safeList(ohlcvs, candle);
                 object prevHigh = this.safeValue(prevCandle, i_high);
                 object prevLow = this.safeValue(prevCandle, i_low);
                 ((List<object>)(ohlcvs != null && candle < ohlcvs.Count ? ohlcvs[candle] : null))[Convert.ToInt32(i_high)] = mathMax(((prevHigh == null)) ? price : prevHigh, price);

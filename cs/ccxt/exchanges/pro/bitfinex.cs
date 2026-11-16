@@ -801,13 +801,13 @@ public partial class bitfinex : ccxt.bitfinex
                 List<object> deltas = this.safeList(message, 1, new List<object>() {});
                 for (int i = 0; i < deltas.Count; i++)
                 {
-                    object delta = deltas[i];
-                    double? delta2 = this.safeNumber(delta, 2);
+                    object rawDelta = deltas[i];
+                    double? delta2 = this.safeNumber(rawDelta, 2);
                     object size = ((delta2 != null) && (!(delta2 >= 0))) ? (delta2 = -delta2) : delta2;
                     string side = ((delta2 != null) && (!(delta2 >= 0))) ? "asks" : "bids";
                     object bookside = (orderbook != null && side != null && orderbook.ContainsKey(side) ? orderbook[side] : null);
-                    string? idString = this.safeString(delta, 0);
-                    double? price = this.safeFloat(delta, 1);
+                    string? idString = this.safeString(rawDelta, 0);
+                    double? price = this.safeFloat(rawDelta, 1);
                     (bookside as IOrderBookSide).storeArray(new List<object>() {price, size, idString});
                 }
             } else

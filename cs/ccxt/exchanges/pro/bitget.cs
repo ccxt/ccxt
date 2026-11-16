@@ -1836,10 +1836,10 @@ public partial class bitget : ccxt.bitget
         Int64? timestamp = this.safeIntegerN(position, new List<object>() {"updatedTime", "uTime", "cTime", "createdTime"});
         string? percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         string? percentage = Precise.stringMul(percentageDecimal, "100");
-        object contractSize = null;
+        double? contractSize = null;
         if ((market != null))
         {
-            contractSize = (market != null && market.ContainsKey("contractSize") ? market["contractSize"] : null);
+            contractSize = this.safeNumber(market, "contractSize");
         }
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },

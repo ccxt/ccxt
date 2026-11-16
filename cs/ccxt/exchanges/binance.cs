@@ -13291,8 +13291,8 @@ public partial class binance : Exchange
             Dictionary<string, object> linearFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, "linear"), "trading"), "tiers");
-            object maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
-            object taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
+            double? maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
+            double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
                 object symbol = symbols[i];
@@ -13330,8 +13330,8 @@ public partial class binance : Exchange
             Dictionary<string, object> inverseFees = new Dictionary<string, object>() {};
             Int64? feeTier = this.safeInteger(response, "feeTier");
             object feeTiers = this.safeValue(this.safeValue(this.safeValue(this.fees, "inverse"), "trading"), "tiers");
-            object maker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
-            object taker = this.safeValue(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
+            double? maker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "maker"), feeTier), 1);
+            double? taker = this.safeNumber(this.safeValue(this.safeValue(feeTiers, "taker"), feeTier), 1);
             for (int i = 0; i < symbols.Count; i++)
             {
                 object symbol = symbols[i];

@@ -1515,11 +1515,14 @@ public partial class coinbase : Exchange
         }
         if (((priceString != null)) && ((amountString != null)))
         {
-            cost = Precise.stringMul(priceString, amountString);
+            string? baseCost = Precise.stringMul(priceString, amountString);
             string? contractSize = this.safeString(marketResolved, "contractSize");
             if ((contractSize != null))
             {
-                cost = Precise.stringMul(cost, contractSize);
+                cost = Precise.stringMul(baseCost, contractSize);
+            } else
+            {
+                cost = baseCost;
             }
         } else
         {
@@ -2753,16 +2756,16 @@ public partial class coinbase : Exchange
         string? futuresBuyingPower = this.safeString(futuresBuyingPowerData, "value");
         if (((totalUsdBalance != null)) || ((futuresBuyingPower != null)))
         {
-            string? total = ((totalUsdBalance != null)) ? totalUsdBalance : futuresBuyingPower;
-            string? free = ((futuresBuyingPower != null)) ? futuresBuyingPower : total;
-            string? used = Precise.stringSub(total, free);
+            string? usdTotal = ((totalUsdBalance != null)) ? totalUsdBalance : futuresBuyingPower;
+            string? usdFree = ((futuresBuyingPower != null)) ? futuresBuyingPower : usdTotal;
+            string? usdUsed = Precise.stringSub(usdTotal, usdFree);
             Dictionary<string, object> balanceResult = new Dictionary<string, object>() {
                 { "info", response },
             };
             balanceResult["USD"] = new Dictionary<string, object>() {
-                { "free", free },
-                { "used", used },
-                { "total", total },
+                { "free", usdFree },
+                { "used", usdUsed },
+                { "total", usdTotal },
             };
             return this.safeBalance(balanceResult);
         }
@@ -2812,23 +2815,23 @@ public partial class coinbase : Exchange
                 {
                     string? currencyId = this.safeString(available, "currency");
                     string? code = this.safeCurrencyCode(currencyId);
-                    string? used = this.safeString(hold, "value");
-                    string? free = this.safeString(available, "value");
-                    string? total = Precise.stringAdd(used, free);
+                    string? v3Used = this.safeString(hold, "value");
+                    string? v3Free = this.safeString(available, "value");
+                    string? v3Total = Precise.stringAdd(v3Used, v3Free);
                     IDictionary<string, object> account = this.safeDict(result, code);
                     if ((account == null))
                     {
                         account = this.extend(this.account(), new Dictionary<string, object>() {
-                            { "free", free },
-                            { "used", used },
-                            { "total", total },
+                            { "free", v3Free },
+                            { "used", v3Used },
+                            { "total", v3Total },
                         });
                     } else
                     {
                         account = this.extend(account, new Dictionary<string, object>() {
-                            { "free", Precise.stringAdd(this.safeString(account, "free"), free) },
-                            { "used", Precise.stringAdd(this.safeString(account, "used"), used) },
-                            { "total", Precise.stringAdd(this.safeString(account, "total"), total) },
+                            { "free", Precise.stringAdd(this.safeString(account, "free"), v3Free) },
+                            { "used", Precise.stringAdd(this.safeString(account, "used"), v3Used) },
+                            { "total", Precise.stringAdd(this.safeString(account, "total"), v3Total) },
                         });
                     }
                     if ((code != null))

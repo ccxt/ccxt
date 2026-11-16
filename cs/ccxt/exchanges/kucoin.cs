@@ -2128,7 +2128,7 @@ public partial class kucoin : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        bool? fetchTickersFees = null;
+        bool? fetchTickersFees = true;
         object paramsRequest = null;
         (bool?, object) fetchTickersFeesparamsRequestVariable = this.handleOptionBoolAndParams(parameters, "fetchMarkets", "fetchTickersFees", true);
         fetchTickersFees = fetchTickersFeesparamsRequestVariable.Item1;

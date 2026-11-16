@@ -3848,10 +3848,10 @@ public partial class htx : Exchange
         //         "ts": 1781066959396
         //     }
         //
-        object trades = this.safeValue(response, "data");
-        if (!((trades is IList<object>) || (trades.GetType().IsGenericType && trades.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+        List<object> trades = this.safeList(response, "data");
+        if ((trades == null))
         {
-            trades = this.safeList(trades, "trades");
+            trades = this.safeList(this.safeDict(response, "data"), "trades", new List<object>() {});
         }
         return this.parseTrades(trades, market, since, limit);
     }
@@ -4997,8 +4997,11 @@ public partial class htx : Exchange
         //         "ts": 1780967407144
         //     }
         //
-        object rawOrder = this.safeValue(response, "data");
-        object order = ((rawOrder is IList<object>) || (rawOrder.GetType().IsGenericType && rawOrder.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? this.safeDict(rawOrder, 0) : rawOrder;
+        IDictionary<string, object> order = this.safeDict(response, "data");
+        if ((order == null))
+        {
+            order = this.safeDict(this.safeList(response, "data", new List<object>() {}), 0, new Dictionary<string, object>() {});
+        }
         return this.parseOrder(order, market);
     }
 
@@ -5215,8 +5218,11 @@ public partial class htx : Exchange
                 }
             }
         }
-        object rawOrders = this.safeValue(response, "data");
-        object orders = ((rawOrders is IList<object>) || (rawOrders.GetType().IsGenericType && rawOrders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? rawOrders : this.safeList(rawOrders, "orders", new List<object>() {});
+        List<object> orders = this.safeList(response, "data");
+        if ((orders == null))
+        {
+            orders = this.safeList(this.safeDict(response, "data"), "orders", new List<object>() {});
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -5843,8 +5849,11 @@ public partial class htx : Exchange
         //         "ts": 1780739390596
         //     }
         //
-        object rawOrders = this.safeValue(response, "data");
-        object orders = ((rawOrders is IList<object>) || (rawOrders.GetType().IsGenericType && rawOrders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))) ? rawOrders : this.safeList(rawOrders, "orders", new List<object>() {});
+        List<object> orders = this.safeList(response, "data");
+        if ((orders == null))
+        {
+            orders = this.safeList(this.safeDict(response, "data"), "orders", new List<object>() {});
+        }
         return this.parseOrders(orders, market, since, limit);
     }
 
@@ -7031,14 +7040,14 @@ public partial class htx : Exchange
         //     }
         //
         //
-        object result = null;
+        List<object> result = null;
         if ((this.safeBool(market, "spot", false) == true))
         {
             result = this.safeList(response, "data", new List<object>() {});
         } else
         {
-            object data = this.safeValue(response, "data");
-            if (((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
+            List<object> data = this.safeList(response, "data");
+            if ((data != null))
             {
                 result = data;
             } else

@@ -2707,7 +2707,6 @@ public partial class aster : Exchange
         //            "orderListId": "-1"
         //        }
         //
-        object info = order;
         string? positionSide = this.safeString(order, "positionSide");
         string defaultType = "spot";
         if ((positionSide != null))
@@ -2723,7 +2722,7 @@ public partial class aster : Exchange
         string? stopPriceString = this.safeString(order, "stopPrice");
         double? triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
         return this.safeOrder(new Dictionary<string, object>() {
-            { "info", info },
+            { "info", order },
             { "id", this.safeString(order, "orderId") },
             { "clientOrderId", this.safeString(order, "clientOrderId") },
             { "symbol", this.safeSymbol(marketId, marketResolved) },

@@ -5321,8 +5321,8 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!(enableUnifiedAccount is true))
+        bool? enableUnifiedAccount = this.safeBool(types, 1, false);
+        if ((enableUnifiedAccount != true))
         {
             throw new NotSupported ((this.id + " createMarketSellOrderWithCost() supports UTA accounts only")) ;
         }
@@ -5382,7 +5382,7 @@ public partial class bybit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> parts = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = (parts != null && 1 < parts.Count ? parts[1] : null);
+        bool? enableUnifiedAccount = this.safeBool(parts, 1, false);
         bool isTrailingOrder = (this.safeString2(parameters, "trailingAmount", "trailingStop") != null);
         bool isStopLossOrder = (this.safeString(parameters, "stopLossPrice") != null);
         bool isTakeProfitOrder = (this.safeString(parameters, "takeProfitPrice") != null);
@@ -5421,7 +5421,7 @@ public partial class bybit : Exchange
         return this.parseOrder(order, market);
     }
 
-    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null, object isUTA = null)
+    public virtual Dictionary<string, object> createOrderRequest(string? symbol, string? type, string? side, object amount, object price = null, object parameters = null, bool? isUTA = null)
     {
         parameters ??= new Dictionary<string, object>();
         isUTA ??= true;
@@ -5610,7 +5610,7 @@ public partial class bybit : Exchange
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
         bool isMarketBuyAndCostInferable = (lowerCaseType == "market") && ((side == "buy")) && (((price != null)) || ((cost != null)));
         bool isMarketOrder = lowerCaseType == "market";
-        if ((this.safeBool(market, "spot", false) == true) && isMarketOrder && isTrue(isUTA) && !isMarketBuyAndCostInferable)
+        if ((this.safeBool(market, "spot", false) == true) && isMarketOrder && isUTA == true && !isMarketBuyAndCostInferable)
         {
             // UTA account can specify the cost of the order on both sides
             if (((cost != null)) || ((price != null)))
@@ -5809,7 +5809,7 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> accounts = await this.isUnifiedEnabled();
-        object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
+        bool? isUta = this.safeBool(accounts, 1, false);
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
         for (int i = 0; i < (orders?.Count ?? 0); i++)
@@ -6224,8 +6224,8 @@ public partial class bybit : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!(enableUnifiedAccount is true))
+        bool? enableUnifiedAccount = this.safeBool(types, 1, false);
+        if ((enableUnifiedAccount != true))
         {
             throw new NotSupported ((this.id + " cancelOrders() supports UTA accounts only")) ;
         }
@@ -6359,8 +6359,8 @@ public partial class bybit : Exchange
             await this.loadMarkets();
         }
         List<object> types = await this.isUnifiedEnabled();
-        object enableUnifiedAccount = (types != null && 1 < types.Count ? types[1] : null);
-        if (!(enableUnifiedAccount is true))
+        bool? enableUnifiedAccount = this.safeBool(types, 1, false);
+        if ((enableUnifiedAccount != true))
         {
             throw new NotSupported ((this.id + " cancelOrdersForSymbols() supports UTA accounts only")) ;
         }
@@ -8063,11 +8063,11 @@ public partial class bybit : Exchange
         string? tagWithdrawTag = (string)tagWithdrawTagparamsWithdrawTagVariable[0];
         IDictionary<string, object> paramsWithdrawTag = ((IDictionary<string, object>)tagWithdrawTagparamsWithdrawTagVariable[1]);
         List<object> accounts = await this.isUnifiedEnabled();
-        object isUta = (accounts != null && 1 < accounts.Count ? accounts[1] : null);
+        bool? isUta = this.safeBool(accounts, 1, false);
         (string?, object) accountTypeOptionparamsAccountTypeVariable = this.handleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType");
         string? accountTypeOption = accountTypeOptionparamsAccountTypeVariable.Item1;
         IDictionary<string, object> paramsAccountType = ((IDictionary<string, object>)accountTypeOptionparamsAccountTypeVariable.Item2);
-        string defaultAccountType = ((isUta is true)) ? "UTA" : "SPOT";
+        string defaultAccountType = ((isUta == true)) ? "UTA" : "SPOT";
         string? accountType = ((accountTypeOption == null)) ? defaultAccountType : accountTypeOption;
         if ((this.markets == null))
         {

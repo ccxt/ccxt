@@ -140,12 +140,12 @@ public partial class PredictionExchange : BaseExchange
             List<object> filtered = new List<object>() {};
             for (int i = 0; i < getArrayLength(result); i++)
             {
-                object eventVar = this.safeValue(result, i);
+                IDictionary<string, object> eventVar = this.safeDict(result, i);
                 bool idMatch = ((eventId != null)) && ((this.safeString(eventVar, "id") == eventId));
                 bool slugMatch = ((slug != null)) && ((this.safeString(eventVar, "slug") == slug));
                 if (idMatch || slugMatch)
                 {
-                    filtered.Add(eventVar);
+                    filtered.Add(this.safeValue(result, i));
                 }
             }
             result = filtered;
@@ -216,12 +216,12 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (events?.Count ?? 0); i++)
         {
-            object eventVar = this.safeValue(events, i);
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             bool? isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (((isActive == null)) || ((isActive == wantActive)))
             {
-                result.Add(eventVar);
+                result.Add(this.safeValue(events, i));
             }
         }
         return result;
@@ -245,7 +245,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (events?.Count ?? 0); i++)
         {
-            object eventVar = this.safeValue(events, i);
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             string? title = this.safeStringLower(eventVar, "title", "");
             string? description = this.safeStringLower(eventVar, "description", "");
             bool matched = false;
@@ -273,7 +273,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (matched)
             {
-                result.Add(eventVar);
+                result.Add(this.safeValue(events, i));
             }
         }
         return result;
@@ -336,7 +336,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         for (int i = 0; i < (events?.Count ?? 0); i++)
         {
-            object eventVar = this.safeValue(events, i);
+            IDictionary<string, object> eventVar = this.safeDict(events, i);
             List<object> eventTags = this.safeList(eventVar, "tags", new List<object>() {});
             bool matched = false;
             for (int ti = 0; ti < eventTags.Count; ti++)
@@ -369,7 +369,7 @@ public partial class PredictionExchange : BaseExchange
             }
             if (matched)
             {
-                result.Add(eventVar);
+                result.Add(this.safeValue(events, i));
             }
         }
         return result;

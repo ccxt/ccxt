@@ -4213,7 +4213,7 @@ public partial class paradex : Exchange
         parameters ??= new Dictionary<string, object>();
         string? apiName = ((string)(api != null && 0 < api.Count ? api[0] : null));
         object version = this.version;
-        object pathValue = path;
+        string pathValue = path;
         if ((path.IndexOf("v2/", StringComparison.Ordinal) == 0))
         {
             pathValue = path.Replace("v2/", (string)"");
@@ -4243,13 +4243,13 @@ public partial class paradex : Exchange
             };
             string? privateBody = null;
             // TODO: optimize
-            if ((pathValue is "auth"))
+            if (pathValue == "auth")
             {
                 privateHeaders["PARADEX-STARKNET-ACCOUNT"] = this.safeString(query, "account");
                 privateHeaders["PARADEX-STARKNET-SIGNATURE"] = this.safeString(query, "signature");
                 privateHeaders["PARADEX-TIMESTAMP"] = this.safeString(query, "timestamp");
                 privateHeaders["PARADEX-SIGNATURE-EXPIRATION"] = this.safeString(query, "expiration");
-            } else if ((pathValue is "onboarding"))
+            } else if (pathValue == "onboarding")
             {
                 privateHeaders["PARADEX-ETHEREUM-ACCOUNT"] = this.walletAddress;
                 privateHeaders["PARADEX-STARKNET-ACCOUNT"] = this.safeString(query, "account");
@@ -4267,7 +4267,7 @@ public partial class paradex : Exchange
                     throw new AuthenticationError ((this.id + " sign() requires an authToken, call authenticateRest() first")) ;
                 }
                 privateHeaders["Authorization"] = ("Bearer " + token);
-                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && ((pathValue is "orders/batch"))))
+                if (((method == "POST")) || ((method == "PUT")) || (((method == "DELETE")) && (pathValue == "orders/batch")))
                 {
                     privateHeaders["Content-Type"] = "application/json";
                     privateBody = this.json(query);

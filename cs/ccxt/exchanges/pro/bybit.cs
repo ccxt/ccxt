@@ -1628,10 +1628,6 @@ public partial class bybit : ccxt.bybit
         bool spot = topic == "ticketInfo";
         bool executionFast = topic == "execution.fast";
         List<object> data = this.safeList(message, "data", new List<object>() {});
-        if (!((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))
-        {
-            data = this.safeList(data, "result", new List<object>() {});
-        }
         if ((this.myTrades == null))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -2267,18 +2263,11 @@ public partial class bybit : ccxt.bybit
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         ccxt.pro.ArrayCache orders = this.orders;
-        object rawOrders = this.safeList(message, "data", new List<object>() {});
-        IDictionary<string, object> first = this.safeDict(rawOrders, 0, new Dictionary<string, object>() {});
-        string? category = this.safeString(first, "category");
-        bool isSpot = category == "spot";
-        if (!isSpot)
-        {
-            rawOrders = this.safeValue(rawOrders, "result", rawOrders);
-        }
+        List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (int i = 0; i < getArrayLength(rawOrders); i++)
+        for (int i = 0; i < rawOrders.Count; i++)
         {
-            ccxt.Order parsed = this.parseOrder(getValue(rawOrders, i));
+            ccxt.Order parsed = this.parseOrder(rawOrders[i]);
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

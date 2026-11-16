@@ -4591,13 +4591,7 @@ public partial class hyperliquid : Exchange
         (string?, object) vaultAddressparams2Variable = this.handleOptionStringAndParams2(params2, "setMarginMode", "vaultAddress", "subAccountAddress");
         vaultAddress = vaultAddressparams2Variable.Item1;
         params2 = vaultAddressparams2Variable.Item2;
-        if ((vaultAddress != null))
-        {
-            if (vaultAddress.StartsWith("0x"))
-            {
-                vaultAddress = vaultAddress.Replace("0x", (string)"");
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         Dictionary<string, object> signature = this.signL1Action(updateAction, nonce, vaultAddress);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "action", updateAction },
@@ -5922,13 +5916,12 @@ public partial class hyperliquid : Exchange
         }
         string url = ((this.implodeHostname(apiUrl) + "/") + path);
         bool isPost = ((method == "POST"));
-        Dictionary<string, object> postHeaders = new Dictionary<string, object>() {
-            { "Content-Type", "application/json" },
-        };
         Dictionary<string, object> requestHeaders = null;
         if (isPost)
         {
-            requestHeaders = postHeaders;
+            requestHeaders = new Dictionary<string, object>() {
+                { "Content-Type", "application/json" },
+            };
         }
         string? requestBody = null;
         if (isPost)

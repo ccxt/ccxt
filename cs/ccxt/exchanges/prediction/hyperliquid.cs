@@ -353,7 +353,7 @@ public partial class hyperliquid : PredictionExchange
                     Int64? index = this.parseToInt(indexStr);
                     if (thresholdsLength > 0)
                     {
-                        string? bucketLabel = null;
+                        string bucketLabel = "";
                         if ((index == null || index <= 0))
                         {
                             bucketLabel = ("BELOW_" + ((thresholds != null && 0 < thresholds.Count ? thresholds[0] : null)));

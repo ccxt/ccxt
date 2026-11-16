@@ -4596,7 +4596,6 @@ public partial class bingx : Exchange
         //         "workingType": ""
         //     }
         //
-        object info = order;
         IDictionary<string, object> newOrder = this.safeDict2(order, "newOrderResponse", "orderOpenResponse");
         object orderData = ((newOrder != null)) ? newOrder : order;
         string? positionSide = this.safeString2(orderData, "positionSide", "ps");
@@ -4685,7 +4684,7 @@ public partial class bingx : Exchange
             }
         }
         return this.safeOrder(new Dictionary<string, object>() {
-            { "info", info },
+            { "info", order },
             { "id", this.safeStringN(orderData, new List<object>() {"orderId", "i", "mainOrderId"}) },
             { "clientOrderId", this.safeStringN(orderData, new List<object>() {"clientOrderID", "clientOrderId", "origClientOrderId", "c"}) },
             { "symbol", this.safeSymbol(marketId, marketResolved, "-", marketType) },
@@ -7529,13 +7528,11 @@ public partial class bingx : Exchange
                 url = ((object)(url == null ? null : url + (((("?" + query) + "&") + "signature=") + signature)));
             }
         }
-        string? bodyResult = requestBody;
-        Dictionary<string, object> headersResult = requestHeaders;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
-            { "body", bodyResult },
-            { "headers", headersResult },
+            { "body", requestBody },
+            { "headers", requestHeaders },
         };
     }
 

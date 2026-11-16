@@ -3039,17 +3039,16 @@ public partial class okx : Exchange
 
     public override Dictionary<string, object> parseCurrency(object currency)
     {
-        object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        IDictionary<string, object> firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
+        IDictionary<string, object> firstChain = this.safeDict(currency, 0, new Dictionary<string, object>() {});
         string? currencyId = this.safeString(firstChain, "ccy");
         string? code = this.safeCurrencyCode(currencyId);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         string type = "crypto";
-        int chainsLength = getArrayLength(chains);
+        int chainsLength = getArrayLength(currency);
         for (int j = 0; j < chainsLength; j++)
         {
-            IDictionary<string, object> chain = this.safeDict(chains, j);
+            IDictionary<string, object> chain = this.safeDict(currency, j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             string? networkId = this.safeString(chain, "chain", ""); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId == "")
@@ -3082,7 +3081,7 @@ public partial class okx : Exchange
             }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
-            { "info", chains },
+            { "info", currency },
             { "code", code },
             { "id", currencyId },
             { "name", this.safeString(firstChain, "name") },
