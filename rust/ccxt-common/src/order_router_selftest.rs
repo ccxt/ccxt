@@ -24,6 +24,9 @@ use std::borrow::Cow;
 use crate::order_router::{OrderRouter, MAX_EXECUTED_PLAN_IDS, NO_CAP, TOLERANCE};
 use crate::value::{HashMap, Value};
 
+/// Every router in this suite trades through the stub venue below.
+type Router = OrderRouter<StubVenue>;
+
 fn fixture() -> Result<Value, String> {
     // From this crate's manifest dir: rust/ccxt-base -> repo root.
     let path = concat!(
@@ -37,10 +40,10 @@ fn fixture() -> Result<Value, String> {
     Ok(Value::from_json(&parsed))
 }
 
-fn router() -> Result<OrderRouter, String> {
+fn router() -> Result<Router, String> {
     let mut config = HashMap::new();
     config.insert("apiKey".to_string(), Value::Str("test-key".to_string().into()));
-    OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())
+    Router::new(&Value::Map(config)).map_err(|e| e.to_string())
 }
 
 fn section(fixture: &Value, name: &str) -> Result<Value, String> {
@@ -177,7 +180,7 @@ fn assert_matches(actual: &Value, expected: &Value, whereat: &str) -> Result<(),
 // the shared fixture — the cross-language contract
 // ---------------------------------------------------------------------------
 
-fn fixture_build_execution_plan(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_build_execution_plan(r: &Router, f: &Value) -> Result<(), String> {
     for test_case in cases(f, "planCases")? {
         let route = named(f, "routes", &text(&test_case, "route"))?;
         let options = at(&test_case, "options").cloned().unwrap_or(Value::Null);
@@ -188,7 +191,7 @@ fn fixture_build_execution_plan(r: &OrderRouter, f: &Value) -> Result<(), String
     Ok(())
 }
 
-fn fixture_plan_is_deterministic(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_plan_is_deterministic(r: &Router, f: &Value) -> Result<(), String> {
     for test_case in cases(f, "planCases")? {
         let route = named(f, "routes", &text(&test_case, "route"))?;
         let options = at(&test_case, "options").cloned().unwrap_or(Value::Null);
@@ -205,7 +208,7 @@ fn fixture_plan_is_deterministic(r: &OrderRouter, f: &Value) -> Result<(), Strin
     Ok(())
 }
 
-fn fixture_check_execution_plan_safety(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_check_execution_plan_safety(r: &Router, f: &Value) -> Result<(), String> {
     for test_case in cases(f, "safetyCases")? {
         let route = named(f, "routes", &text(&test_case, "route"))?;
         let markets = named(f, "marketSets", &text(&test_case, "markets"))?;
@@ -223,7 +226,7 @@ fn fixture_check_execution_plan_safety(r: &OrderRouter, f: &Value) -> Result<(),
     Ok(())
 }
 
-fn fixture_reconcile_execution_step(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_reconcile_execution_step(r: &Router, f: &Value) -> Result<(), String> {
     for test_case in cases(f, "reconcileCases")? {
         // A case names either a route to plan from, or a plan written out in
         // full — the latter is how a plan with field types no builder produces
@@ -246,7 +249,7 @@ fn fixture_reconcile_execution_step(r: &OrderRouter, f: &Value) -> Result<(), St
     Ok(())
 }
 
-fn fixture_reconcile_sequence(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_reconcile_sequence(r: &Router, f: &Value) -> Result<(), String> {
     // reconcile_execution_step is pure and cannot remember across calls, so a
     // hop's cumulative shortfall lives on the steps themselves — written by
     // apply_resize. That interaction is only visible across a SEQUENCE of calls,
@@ -307,7 +310,7 @@ fn fixture_reconcile_sequence(r: &OrderRouter, f: &Value) -> Result<(), String> 
     Ok(())
 }
 
-fn fixture_build_unwind_plan(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_build_unwind_plan(r: &Router, f: &Value) -> Result<(), String> {
     for test_case in cases(f, "unwindCases")? {
         let report = named(f, "reports", &text(&test_case, "report"))?;
         let unwind = r.build_unwind_plan(&report);
@@ -317,7 +320,7 @@ fn fixture_build_unwind_plan(r: &OrderRouter, f: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn fixture_number_at(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_number_at(r: &Router, f: &Value) -> Result<(), String> {
     // Every port hand-implements JavaScript's parseFloat prefix grammar rather
     // than calling its own parser, because every language's own parser disagrees
     // with the others somewhere. These cases are the contract: a cap read as
@@ -356,7 +359,7 @@ fn config_with(entries: &[(&str, Value)]) -> Value {
 /// Serves exactly one HTTP request on a loopback port and hands back the raw request
 /// head, so a test can read the headers `request` really sent. Local to the process:
 /// nothing leaves the machine.
-fn capture_one_request(r: &OrderRouter) -> Result<String, String> {
+fn capture_one_request(r: &Router) -> Result<String, String> {
     use std::io::{Read, Write};
     let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
     let address = listener.local_addr().map_err(|e| e.to_string())?;
@@ -387,7 +390,7 @@ fn capture_one_request(r: &OrderRouter) -> Result<String, String> {
 
 /// Like `capture_one_request`, but for the stream handshake: the loopback server reads the
 /// upgrade request and refuses it, so `watch_route` errors after the headers were sent.
-fn capture_stream_handshake(r: &OrderRouter) -> Result<String, String> {
+fn capture_stream_handshake(r: &Router) -> Result<String, String> {
     use std::io::{Read, Write};
     let listener = std::net::TcpListener::bind("127.0.0.1:0").map_err(|e| e.to_string())?;
     let address = listener.local_addr().map_err(|e| e.to_string())?;
@@ -405,7 +408,7 @@ fn capture_stream_handshake(r: &OrderRouter) -> Result<String, String> {
         }
         String::from_utf8_lossy(&head).to_string()
     });
-    let streamer = OrderRouter::new(&config_with(&[
+    let streamer = Router::new(&config_with(&[
         ("baseUrl", Value::Str(format!("http://{address}").into())),
         ("userAgent", Value::Str(r.user_agent().to_string().into())),
     ]))
@@ -432,7 +435,7 @@ fn header_line(head: &str, name: &str) -> String {
 fn user_agent_is_sent_only_when_configured() -> Result<(), String> {
     // the default leaves reqwest's own behaviour alone (it sends no User-Agent at all),
     // never a blank or custom one
-    let plain = OrderRouter::new(&config_with(&[])).map_err(|e| e.to_string())?;
+    let plain = Router::new(&config_with(&[])).map_err(|e| e.to_string())?;
     if !plain.user_agent().is_empty() {
         return Err("no User-Agent override by default".to_string());
     }
@@ -440,7 +443,7 @@ fn user_agent_is_sent_only_when_configured() -> Result<(), String> {
     if header_line(&head, "User-Agent") != "" {
         return Err(format!("the default request sends no custom User-Agent, got {head:?}"));
     }
-    let configured = OrderRouter::new(&config_with(&[("userAgent", Value::Str("ccxt-mcp/1.0.0 (ccxt 4.0.0)".into()))]))
+    let configured = Router::new(&config_with(&[("userAgent", Value::Str("ccxt-mcp/1.0.0 (ccxt 4.0.0)".into()))]))
         .map_err(|e| e.to_string())?;
     if configured.user_agent() != "ccxt-mcp/1.0.0 (ccxt 4.0.0)" {
         return Err("the configured userAgent is stored".to_string());
@@ -456,23 +459,23 @@ fn user_agent_is_sent_only_when_configured() -> Result<(), String> {
     Ok(())
 }
 
-fn capped_client(cap: f64) -> Result<OrderRouter, String> {
+fn capped_client(cap: f64) -> Result<Router, String> {
     let config = config_with(&[
         ("apiKey", Value::Str("k".into())),
         ("maxNotionalUsd", Value::Float(cap)),
     ]);
-    OrderRouter::new(&config).map_err(|e| e.to_string())
+    Router::new(&config).map_err(|e| e.to_string())
 }
 
 fn constructor_guards() -> Result<(), String> {
     // The service dropped API keys in favour of per-IP rate limiting, so an empty
     // key is the normal case and must construct. A key supplied anyway is CARRIED,
     // not ignored: a deployment fronting the router with its own auth still works.
-    let keyless = OrderRouter::new(&config_with(&[])).map_err(|e| e.to_string())?;
+    let keyless = Router::new(&config_with(&[])).map_err(|e| e.to_string())?;
     if !keyless.api_key().is_empty() {
         return Err("a keyless client holds an empty apiKey".to_string());
     }
-    let keyed = OrderRouter::new(&config_with(&[("apiKey", Value::Str("still-works".into()))]))
+    let keyed = Router::new(&config_with(&[("apiKey", Value::Str("still-works".into()))]))
         .map_err(|e| e.to_string())?;
     if keyed.api_key() != "still-works" {
         return Err("a supplied apiKey is carried, not dropped".to_string());
@@ -493,7 +496,7 @@ fn constructor_guards() -> Result<(), String> {
         return Err("cents are a legitimate trade size".to_string());
     }
     // The default is NO cap.
-    let standard = OrderRouter::new(&config_with(&[("apiKey", Value::Str("k".into()))]))
+    let standard = Router::new(&config_with(&[("apiKey", Value::Str("k".into()))]))
         .map_err(|e| e.to_string())?;
     if !numbers_match(standard.max_notional_usd(), NO_CAP) || !numbers_match(NO_CAP, 0.0) {
         return Err(format!(
@@ -511,7 +514,7 @@ fn constructor_guards() -> Result<(), String> {
         ("apiKey", Value::Str("k".into())),
         ("maxNotionalUsd", Value::Float(-1.0)),
     ]);
-    match OrderRouter::new(&negative) {
+    match Router::new(&negative) {
         Ok(_) => return Err("a negative cap is refused, not ignored".to_string()),
         Err(e) if e.is("BadRequest") => {}
         Err(e) => return Err(format!("a negative cap is a BadRequest, got {e}")),
@@ -522,7 +525,7 @@ fn constructor_guards() -> Result<(), String> {
         ("apiKey", Value::Str("k".into())),
         ("baseUrl", Value::Str("https://example.test/router///".into())),
     ]);
-    let client = OrderRouter::new(&slashed).map_err(|e| e.to_string())?;
+    let client = Router::new(&slashed).map_err(|e| e.to_string())?;
     if client.base_url() != "https://example.test/router" {
         return Err(format!("trailing slashes are stripped, got {}", client.base_url()));
     }
@@ -599,7 +602,7 @@ fn two_hop_route() -> Value {
     Value::Map(route)
 }
 
-fn a_report_is_summarised_in_the_assets_it_names(r: &OrderRouter) -> Result<(), String> {
+fn a_report_is_summarised_in_the_assets_it_names(r: &Router) -> Result<(), String> {
     // filledIn is denominated in the route's FROM asset and filledOut in its TO
     // asset, which holds only if each is summed over ONE hop. This port summed
     // inAmount and outAmount across every step, adding USDT to BTC to ETH and
@@ -608,8 +611,8 @@ fn a_report_is_summarised_in_the_assets_it_names(r: &OrderRouter) -> Result<(), 
     let route = two_hop_route();
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let venue = StubVenue::new("stub");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let mut options = execute_options(true, "sequential");
     // Both markets, so neither hop is refused for want of one.
     let mut btc_usdt = HashMap::new();
@@ -625,11 +628,11 @@ fn a_report_is_summarised_in_the_assets_it_names(r: &OrderRouter) -> Result<(), 
     by_symbol.insert("BTC/ETH".to_string(), Value::Map(btc_eth));
     let mut markets = HashMap::new();
     markets.insert("stub".to_string(), Value::Map(by_symbol));
-    OrderRouter::set_key(&mut options, "markets", Value::Map(markets));
+    Router::set_key(&mut options, "markets", Value::Map(markets));
     let mut usd_rates = HashMap::new();
     usd_rates.insert("USDT".to_string(), Value::Float(1.0));
     usd_rates.insert("ETH".to_string(), Value::Float(10.0));
-    OrderRouter::set_key(&mut options, "usdRates", Value::Map(usd_rates));
+    Router::set_key(&mut options, "usdRates", Value::Map(usd_rates));
 
     let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -693,7 +696,7 @@ fn bounded_stub_markets() -> Value {
     Value::Map(markets)
 }
 
-fn a_hand_built_plan_with_only_the_required_fields_is_executable(r: &OrderRouter) -> Result<(), String> {
+fn a_hand_built_plan_with_only_the_required_fields_is_executable(r: &Router) -> Result<(), String> {
     // The manual documents limitPrice and notionalQuote as OPTIONAL, and its own
     // worked example omits both. Read as 0 they broke the "execute your own
     // plans" path three ways at once: a blocking cost_below_minimum (0 < any
@@ -728,7 +731,7 @@ fn a_hand_built_plan_with_only_the_required_fields_is_executable(r: &OrderRouter
     Ok(())
 }
 
-fn derived_limit_price_and_notional_follow_amount_and_expected_price(r: &OrderRouter) -> Result<(), String> {
+fn derived_limit_price_and_notional_follow_amount_and_expected_price(r: &Router) -> Result<(), String> {
     let step = config_with(&[("amount", Value::Float(2.0)), ("expectedPrice", Value::Float(100.0))]);
     if !numbers_match(r.step_limit_price(&step), 100.0) {
         return Err("no limitPrice falls back to expectedPrice".to_string());
@@ -752,7 +755,7 @@ fn derived_limit_price_and_notional_follow_amount_and_expected_price(r: &OrderRo
     Ok(())
 }
 
-fn limit_price_side(r: &OrderRouter) -> Result<(), String> {
+fn limit_price_side(r: &Router) -> Result<(), String> {
     // The limit sits on the side that costs you, and only there.
     let options = config_with(&[("slippageBps", Value::Float(100.0))]);
     let buy = r
@@ -774,7 +777,7 @@ fn limit_price_side(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn unwind_buy_is_fundable(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn unwind_buy_is_fundable(r: &Router, f: &Value) -> Result<(), String> {
     // The residual IS the budget. Sizing the buy at the expected price and then
     // pricing it slippage above that orders more quote than the venue is
     // holding: 44.5 USDT at 0.089 is 500 DOGE, but 500 DOGE at the 0.0892225
@@ -821,7 +824,7 @@ fn unwind_buy_is_fundable(r: &OrderRouter, f: &Value) -> Result<(), String> {
     Ok(())
 }
 
-fn empty_plan_is_not_safe(r: &OrderRouter) -> Result<(), String> {
+fn empty_plan_is_not_safe(r: &Router) -> Result<(), String> {
     // "Nothing to check" and "checked, all good" are different answers and used
     // to look identical.
     let mut plan = HashMap::new();
@@ -881,13 +884,13 @@ fn codes(violations: &[Value]) -> Vec<String> {
     violations.iter().map(|v| text(v, "code")).collect()
 }
 
-fn planned(r: &OrderRouter, amount: f64, price: f64, slippage_bps: f64) -> Result<Value, String> {
+fn planned(r: &Router, amount: f64, price: f64, slippage_bps: f64) -> Result<Value, String> {
     let options = config_with(&[("slippageBps", Value::Float(slippage_bps))]);
     r.build_execution_plan(&one_leg_route("buy", "BTC", "USDT", amount, price), &options)
         .map_err(|e| e.to_string())
 }
 
-fn a_cap_that_is_set_binds_exactly(r: &OrderRouter) -> Result<(), String> {
+fn a_cap_that_is_set_binds_exactly(r: &Router) -> Result<(), String> {
     // A cap the caller ASKED FOR is honoured at whatever size they chose, and
     // the slippage is inside the measurement rather than outside it.
     let markets = permissive_stub_markets();
@@ -925,7 +928,7 @@ fn a_cap_that_is_set_binds_exactly(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn with_no_cap_no_notional_check_runs(r: &OrderRouter) -> Result<(), String> {
+fn with_no_cap_no_notional_check_runs(r: &Router) -> Result<(), String> {
     // The default. This class does not decide how much of your money you may
     // trade — the guardrail is opt-in, so a plan of any size passes untouched,
     // and a caller who never asked for a cap is not made to supply usdRates for
@@ -943,7 +946,7 @@ fn with_no_cap_no_notional_check_runs(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn usdt_is_not_a_dollar(r: &OrderRouter) -> Result<(), String> {
+fn usdt_is_not_a_dollar(r: &Router) -> Result<(), String> {
     // A stablecoin peg is an empirical fact, not a definition. With a cap in
     // force and no rate supplied, a USDT-quoted step cannot be valued and must
     // BLOCK — 0.1 USDT of notional is trivially under the cap, and it is still
@@ -1015,15 +1018,15 @@ fn a_per_call_cap_overrides_the_client_one() -> Result<(), String> {
     Ok(())
 }
 
-fn refuses_incoherent_routes(r: &OrderRouter) -> Result<(), String> {
+fn refuses_incoherent_routes(r: &Router) -> Result<(), String> {
     // build_execution_plan used to copy from, to, pair and side straight out of
     // the server's JSON, so a compromised — or simply buggy — router response
     // could steer real orders into any real market and every check would pass
     // it. The client now checks the answer against its OWN record of the
     // question.
     let mut route = one_leg_route("buy", "BTC", "USDT", 0.1, 100.0);
-    OrderRouter::set_key(&mut route, "clientRequestedFrom", Value::Str("USDT".into()));
-    OrderRouter::set_key(&mut route, "clientRequestedTo", Value::Str("ETH".into()));
+    Router::set_key(&mut route, "clientRequestedFrom", Value::Str("USDT".into()));
+    Router::set_key(&mut route, "clientRequestedTo", Value::Str("ETH".into()));
     match r.build_execution_plan(&route, &Value::Null) {
         Ok(_) => return Err("a route that produces the wrong asset is refused".to_string()),
         Err(e) => {
@@ -1033,8 +1036,8 @@ fn refuses_incoherent_routes(r: &OrderRouter) -> Result<(), String> {
         }
     }
     let mut route = one_leg_route("buy", "BTC", "USDT", 0.1, 100.0);
-    OrderRouter::set_key(&mut route, "clientRequestedFrom", Value::Str("EUR".into()));
-    OrderRouter::set_key(&mut route, "clientRequestedTo", Value::Str("BTC".into()));
+    Router::set_key(&mut route, "clientRequestedFrom", Value::Str("EUR".into()));
+    Router::set_key(&mut route, "clientRequestedTo", Value::Str("BTC".into()));
     match r.build_execution_plan(&route, &Value::Null) {
         Ok(_) => return Err("a route that spends an unoffered asset is refused".to_string()),
         Err(e) => {
@@ -1045,8 +1048,8 @@ fn refuses_incoherent_routes(r: &OrderRouter) -> Result<(), String> {
     }
     // A well-formed route still plans.
     let mut route = one_leg_route("buy", "BTC", "USDT", 0.1, 100.0);
-    OrderRouter::set_key(&mut route, "clientRequestedFrom", Value::Str("USDT".into()));
-    OrderRouter::set_key(&mut route, "clientRequestedTo", Value::Str("BTC".into()));
+    Router::set_key(&mut route, "clientRequestedFrom", Value::Str("USDT".into()));
+    Router::set_key(&mut route, "clientRequestedTo", Value::Str("BTC".into()));
     let plan = r.build_execution_plan(&route, &Value::Null).map_err(|e| e.to_string())?;
     if r.list_at(&plan, "steps").len() != 1 {
         return Err("a coherent route still plans".to_string());
@@ -1054,7 +1057,7 @@ fn refuses_incoherent_routes(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn format_number_never_uses_exponents(r: &OrderRouter) -> Result<(), String> {
+fn format_number_never_uses_exponents(r: &Router) -> Result<(), String> {
     for probe in [0.0000001f64, 1234.5, 0.1, 1e17] {
         let rendered = r.format_number(probe).map_err(|e| e.to_string())?;
         if rendered.contains('e') || rendered.contains('E') {
@@ -1072,7 +1075,7 @@ fn format_number_never_uses_exponents(r: &OrderRouter) -> Result<(), String> {
 }
 
 
-fn route_url_is_deterministic(r: &OrderRouter) -> Result<(), String> {
+fn route_url_is_deterministic(r: &Router) -> Result<(), String> {
     // The URL has to be byte-identical in six languages: the query keys go out
     // in a fixed order, numbers go through format_number rather than the
     // language's own float printer, and the escaping is encodeURIComponent's
@@ -1081,7 +1084,7 @@ fn route_url_is_deterministic(r: &OrderRouter) -> Result<(), String> {
     let mut config = HashMap::new();
     config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
     config.insert("baseUrl".to_string(), Value::Str("https://example.test/api/".to_string().into()));
-    let client = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
+    let client = Router::new(&Value::Map(config)).map_err(|e| e.to_string())?;
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(0.001));
     params.insert("strategy".to_string(), Value::Str("split_capped".to_string().into()));
@@ -1118,7 +1121,7 @@ fn route_url_is_deterministic(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String> {
+fn encode_uri_component_matches_javascript(r: &Router) -> Result<(), String> {
     // encodeURIComponent leaves !'()* alone and escapes a space as %20;
     // form-urlencoded escapes the former and renders a space as +. A balances
     // string or bridge list containing any of them would otherwise produce a
@@ -1148,11 +1151,11 @@ fn encode_uri_component_matches_javascript(r: &OrderRouter) -> Result<(), String
     Ok(())
 }
 
-fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
+fn stream_url_and_close_codes(r: &Router) -> Result<(), String> {
     let mut config = HashMap::new();
     config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
     config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string().into()));
-    let streamer = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
+    let streamer = Router::new(&Value::Map(config)).map_err(|e| e.to_string())?;
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(0.001));
     params.insert("strategy".to_string(), Value::Str("split_capped".to_string().into()));
@@ -1177,7 +1180,7 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     let mut plain_config = HashMap::new();
     plain_config.insert("apiKey".to_string(), Value::Str("k".to_string().into()));
     plain_config.insert("baseUrl".to_string(), Value::Str("http://localhost:8080".to_string().into()));
-    let insecure = OrderRouter::new(&Value::Map(plain_config)).map_err(|e| e.to_string())?;
+    let insecure = Router::new(&Value::Map(plain_config)).map_err(|e| e.to_string())?;
     let mut one = HashMap::new();
     one.insert("amountIn".to_string(), Value::Float(1.0));
     let plain = insecure
@@ -1248,7 +1251,7 @@ fn stream_url_and_close_codes(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
+fn balances_echo_is_verified(r: &Router) -> Result<(), String> {
     // /route declares its query without a JSON schema, so a server that predates the balances
     // feature answers byte-identically to one that never received any. It is the EMPTY wallet
     // that used to slip through, because the old check skipped itself whenever the balances
@@ -1287,7 +1290,7 @@ fn balances_echo_is_verified(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn fee_is_not_subtracted_twice(r: &OrderRouter) -> Result<(), String> {
+fn fee_is_not_subtracted_twice(r: &Router) -> Result<(), String> {
     // THE REGRESSION THIS EXISTS FOR. execute reports realisedOut NET of a fee charged in
     // the asset the step produced, because that is what the wallet receives. The router had
     // already done the same: hop 0 sells 500 DOGE at 0.089 for 44.5 gross, reports amountOut
@@ -1356,7 +1359,7 @@ fn fee_is_not_subtracted_twice(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn route_body_carries_the_holdings_and_the_url_never_does(r: &OrderRouter) -> Result<(), String> {
+fn route_body_carries_the_holdings_and_the_url_never_does(r: &Router) -> Result<(), String> {
     // The service scrubs balances from its own logs, but the URL leaves the
     // process: a reverse proxy, an ALB and a CDN all log the full request line,
     // as do browser history and client-side tracing. This is the assertion that
@@ -1404,7 +1407,7 @@ fn stub_fee(cost: f64, currency: &str) -> Value {
     Value::Map(fee)
 }
 
-fn fixture_format_number(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_format_number(r: &Router, f: &Value) -> Result<(), String> {
     // format_number builds the balances query string. A balance spelled
     // differently per language is a DIFFERENT QUESTION asked of the router, so
     // the tie cases here are load-bearing: Rust's `{:.12}` rounds half to EVEN
@@ -1460,7 +1463,7 @@ fn fee_netting_route(side: &str, base_code: &str, quote: &str, amount: f64, pric
     Value::Map(route)
 }
 
-fn fixture_fee_netting(r: &OrderRouter, f: &Value) -> Result<(), String> {
+fn fixture_fee_netting(r: &Router, f: &Value) -> Result<(), String> {
     // Fee netting is the one place_step behaviour that CHANGES the size of the
     // next order, and until this section existed it was asserted in TypeScript
     // and nowhere else — a port that silently stopped netting would have shipped
@@ -1488,8 +1491,8 @@ fn fixture_fee_netting(r: &OrderRouter, f: &Value) -> Result<(), String> {
                 r.string_at(&entry, "currency", ""),
             ));
         }
-        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues.insert("stub".to_string(), Box::new(venue));
+        let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues.insert("stub".to_string(), venue);
         let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
             .map_err(|e| e.to_string())?;
         let steps = r.list_at(&report, "steps");
@@ -1531,11 +1534,11 @@ fn two_hop_execute_options() -> Value {
     by_symbol.insert("BTC/ETH".to_string(), market("BTC/ETH", "BTC", "ETH"));
     let mut markets = HashMap::new();
     markets.insert("stub".to_string(), Value::Map(by_symbol));
-    OrderRouter::set_key(&mut options, "markets", Value::Map(markets));
+    Router::set_key(&mut options, "markets", Value::Map(markets));
     let mut usd_rates = HashMap::new();
     usd_rates.insert("USDT".to_string(), Value::Float(1.0));
     usd_rates.insert("ETH".to_string(), Value::Float(10.0));
-    OrderRouter::set_key(&mut options, "usdRates", Value::Map(usd_rates));
+    Router::set_key(&mut options, "usdRates", Value::Map(usd_rates));
     options
 }
 
@@ -1916,7 +1919,6 @@ impl StubVenue {
     }
 }
 
-#[async_trait::async_trait]
 impl RouterVenue for StubVenue {
     fn id(&self) -> String {
         self.id.clone()
@@ -2035,7 +2037,7 @@ impl RouterVenue for StubVenue {
     }
 }
 
-fn one_leg_plan(r: &OrderRouter) -> Result<Value, String> {
+fn one_leg_plan(r: &Router) -> Result<Value, String> {
     let route = one_leg_route("buy", "BTC", "USDT", 0.2, 100.0);
     r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())
 }
@@ -2070,7 +2072,7 @@ fn execute_options(live: bool, strategy: &str) -> Value {
     Value::Map(options)
 }
 
-fn balances_shapes(r: &OrderRouter) -> Result<(), String> {
+fn balances_shapes(r: &Router) -> Result<(), String> {
     //  A wallet map is the obvious thing to write, and it used to be rendered with Rust's own
     //  debug formatter and shipped for the server to reject.
     let mut inner = HashMap::new();
@@ -2101,13 +2103,13 @@ fn balances_shapes(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn plan_shaping_refused(r: &OrderRouter) -> Result<(), String> {
+fn plan_shaping_refused(r: &Router) -> Result<(), String> {
     //  slippageBps shapes a plan; passing it WITH a plan cannot do anything, and silently
     //  ignoring it means trading at a different limit than the caller asked for.
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let mut options = match execute_options(true, "sequential").as_map() {
         Some(map) => map.clone(),
         None => HashMap::new(),
@@ -2120,7 +2122,7 @@ fn plan_shaping_refused(r: &OrderRouter) -> Result<(), String> {
     }
 }
 
-fn live_option_is_refused(r: &OrderRouter) -> Result<(), String> {
+fn live_option_is_refused(r: &Router) -> Result<(), String> {
     // `live` used to gate execution and is gone. A call still carrying it was
     // written against the old contract, and the dangerous reading is the silent
     // one: `live: false` meant "place nothing" and now means nothing at all, so
@@ -2128,8 +2130,8 @@ fn live_option_is_refused(r: &OrderRouter) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     for flag in [false, true] {
         let mut options = execute_options(true, "sequential").as_map().cloned().unwrap_or_default();
         options.shift_remove("dryRun");
@@ -2149,15 +2151,15 @@ fn live_option_is_refused(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn stream_url_applies_the_venue_filter(_r: &OrderRouter) -> Result<(), String> {
+fn stream_url_applies_the_venue_filter(_r: &Router) -> Result<(), String> {
     // A router built with venues can only execute on those. A stream that quoted
     // the rest would hand back routes its own executor must refuse.
     let mut config = HashMap::new();
     config.insert("baseUrl".to_string(), Value::Str("https://example.test/api".to_string().into()));
-    let mut held = OrderRouter::new(&Value::Map(config)).map_err(|e| e.to_string())?;
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(StubVenue::new("stub")));
-    venues.insert("other".to_string(), Box::new(StubVenue::new("other")));
+    let mut held = Router::new(&Value::Map(config)).map_err(|e| e.to_string())?;
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), StubVenue::new("stub"));
+    venues.insert("other".to_string(), StubVenue::new("other"));
     held.set_venues(venues);
     let mut params = HashMap::new();
     params.insert("amountIn".to_string(), Value::Float(1.0));
@@ -2186,7 +2188,7 @@ fn stream_url_applies_the_venue_filter(_r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn join_balances_separator(r: &OrderRouter) -> Result<(), String> {
+fn join_balances_separator(r: &Router) -> Result<(), String> {
     // asserted EXACTLY, not by substring: `USDT:100` is also a substring of the
     // malformed `.USDT:100` a port produced by hard-coding the separator, so a
     // contains-check passes on the broken spelling and ships it to a server that
@@ -2213,15 +2215,15 @@ fn join_balances_separator(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn dry_run_places_nothing(r: &OrderRouter) -> Result<(), String> {
+fn dry_run_places_nothing(r: &Router) -> Result<(), String> {
     // Asserted by counting createOrder calls rather than by reading the report,
     // because the report is exactly what a buggy implementation would still fill
     // in correctly. Placing is the DEFAULT now; this is the opt-out.
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
 
     // strategy: sequential, but dryRun is TRUE — how and whether are independent.
     let report = block_on(r.execute(&plan, &venues, &execute_options(false, "sequential")))
@@ -2241,9 +2243,9 @@ fn dry_run_places_nothing(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn an_unknown_strategy_is_refused_even_in_dry_run(r: &OrderRouter) -> Result<(), String> {
+fn an_unknown_strategy_is_refused_even_in_dry_run(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
-    let venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
+    let venues: BTreeMap<String, StubVenue> = BTreeMap::new();
     let outcome = block_on(r.execute(&plan, &venues, &execute_options(false, "sideways")));
     match outcome {
         Err(e) if e.message.contains("unknown execution strategy") => Ok(()),
@@ -2252,12 +2254,12 @@ fn an_unknown_strategy_is_refused_even_in_dry_run(r: &OrderRouter) -> Result<(),
     }
 }
 
-fn sequential_places_and_fills(r: &OrderRouter) -> Result<(), String> {
+fn sequential_places_and_fills(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     if counter.load(Ordering::SeqCst) != 1 {
@@ -2274,15 +2276,15 @@ fn sequential_places_and_fills(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn a_failure_before_dispatch_records_no_open_order(r: &OrderRouter) -> Result<(), String> {
+fn a_failure_before_dispatch_records_no_open_order(r: &Router) -> Result<(), String> {
     // The distinction placementAttempted exists for. A venue that is not in the
     // map cannot have received anything, so reporting an unconfirmed placement
     // for it would be a false alarm — and a false alarm on this particular
     // signal sends someone hunting for an order that does not exist.
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("other");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("other".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("other".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -2301,15 +2303,15 @@ fn a_failure_before_dispatch_records_no_open_order(r: &OrderRouter) -> Result<()
     Ok(())
 }
 
-fn a_timeout_is_outcome_unknown_not_a_plain_failure(r: &OrderRouter) -> Result<(), String> {
+fn a_timeout_is_outcome_unknown_not_a_plain_failure(r: &Router) -> Result<(), String> {
     // A request that timed out may still have been received and acted on. The
     // report must say so: concluding that nothing was placed is the one
     // conclusion that can strand a real position on a real venue.
     let plan = one_leg_plan(r)?;
     let mut venue = StubVenue::new("stub");
     venue.fail_with = Some("RequestTimeout");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -2326,15 +2328,15 @@ fn a_timeout_is_outcome_unknown_not_a_plain_failure(r: &OrderRouter) -> Result<(
     Ok(())
 }
 
-fn a_definite_rejection_stays_a_plain_failure(r: &OrderRouter) -> Result<(), String> {
+fn a_definite_rejection_stays_a_plain_failure(r: &Router) -> Result<(), String> {
     // The counterpart. An ExchangeError is the venue ANSWERING — a definite
     // "no" — and treating it as unknown would send someone hunting for an order
     // that was never accepted.
     let plan = one_leg_plan(r)?;
     let mut venue = StubVenue::new("stub");
     venue.fail_with = Some("ExchangeError");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -2347,7 +2349,7 @@ fn a_definite_rejection_stays_a_plain_failure(r: &OrderRouter) -> Result<(), Str
     Ok(())
 }
 
-fn limit_protected_refuses_a_zero_poll_interval(r: &OrderRouter) -> Result<(), String> {
+fn limit_protected_refuses_a_zero_poll_interval(r: &Router) -> Result<(), String> {
     // The poll loop advances its clock by pollIntervalMs, so 0 never reaches
     // the timeout: it spins on fetch_order forever with a real order resting on
     // a real venue, and the timeout that exists to cancel that order never
@@ -2358,11 +2360,11 @@ fn limit_protected_refuses_a_zero_poll_interval(r: &OrderRouter) -> Result<(), S
         let mut venue = StubVenue::new("stub");
         venue.created_open = true;
         let placed = StdArc::clone(&venue.orders_placed);
-        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues.insert("stub".to_string(), Box::new(venue));
+        let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues.insert("stub".to_string(), venue);
         let mut options = execute_options(true, "limit_protected");
-        OrderRouter::set_key(&mut options, "orderTimeoutMs", Value::Float(4.0));
-        OrderRouter::set_key(&mut options, "pollIntervalMs", Value::Float(interval));
+        Router::set_key(&mut options, "orderTimeoutMs", Value::Float(4.0));
+        Router::set_key(&mut options, "pollIntervalMs", Value::Float(interval));
         if block_on(r.execute(&plan, &venues, &options)).is_ok() {
             return Err(format!("pollIntervalMs {interval} must be refused"));
         }
@@ -2373,7 +2375,7 @@ fn limit_protected_refuses_a_zero_poll_interval(r: &OrderRouter) -> Result<(), S
     Ok(())
 }
 
-fn a_rate_limit_rejection_is_a_plain_failure(r: &OrderRouter) -> Result<(), String> {
+fn a_rate_limit_rejection_is_a_plain_failure(r: &Router) -> Result<(), String> {
     // The classifier used to walk the error hierarchy, where DDoSProtection,
     // RateLimitExceeded and InvalidNonce all sit UNDER NetworkError — so every
     // throttled request was reported as a possibly-live order, halting a route
@@ -2384,8 +2386,8 @@ fn a_rate_limit_rejection_is_a_plain_failure(r: &OrderRouter) -> Result<(), Stri
         let plan = one_leg_plan(r)?;
         let mut venue = StubVenue::new("stub");
         venue.fail_with = Some(kind);
-        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues.insert("stub".to_string(), Box::new(venue));
+        let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues.insert("stub".to_string(), venue);
         let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
             .map_err(|e| e.to_string())?;
         let results = r.list_at(&report, "steps");
@@ -2402,8 +2404,8 @@ fn a_rate_limit_rejection_is_a_plain_failure(r: &OrderRouter) -> Result<(), Stri
         let plan = one_leg_plan(r)?;
         let mut venue = StubVenue::new("stub");
         venue.fail_with = Some(kind);
-        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues.insert("stub".to_string(), Box::new(venue));
+        let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues.insert("stub".to_string(), venue);
         let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
             .map_err(|e| e.to_string())?;
         let results = r.list_at(&report, "steps");
@@ -2415,15 +2417,15 @@ fn a_rate_limit_rejection_is_a_plain_failure(r: &OrderRouter) -> Result<(), Stri
     Ok(())
 }
 
-fn a_fill_that_stays_unknown_halts_instead_of_guessing(r: &OrderRouter) -> Result<(), String> {
+fn a_fill_that_stays_unknown_halts_instead_of_guessing(r: &Router) -> Result<(), String> {
     // "The venue said zero" and "the venue said nothing" are different facts.
     // A venue that omits `filled` used to yield 0, which reconciliation read as
     // nothing_filled and halted on — while a real position sat on a real venue.
     let plan = one_leg_plan(r)?;
     let mut venue = StubVenue::new("stub");
     venue.omit_filled = true;
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -2437,7 +2439,7 @@ fn a_fill_that_stays_unknown_halts_instead_of_guessing(r: &OrderRouter) -> Resul
     Ok(())
 }
 
-fn execute_refuses_to_go_live_above_the_cap(r: &OrderRouter) -> Result<(), String> {
+fn execute_refuses_to_go_live_above_the_cap(r: &Router) -> Result<(), String> {
     // 100 USD against a 25 USD guardrail the caller asked for, re-checked at
     // execute rather than only at plan time. The refusal happens BEFORE any
     // order goes out, which is the property worth asserting — a cap checked
@@ -2446,10 +2448,10 @@ fn execute_refuses_to_go_live_above_the_cap(r: &OrderRouter) -> Result<(), Strin
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let mut options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut options, "maxNotionalUsd", Value::Float(25.0));
+    Router::set_key(&mut options, "maxNotionalUsd", Value::Float(25.0));
     let outcome = block_on(r.execute(&plan, &venues, &options));
     match outcome {
         Err(e) if e.message.contains("blocking safety violations") => {
@@ -2463,7 +2465,7 @@ fn execute_refuses_to_go_live_above_the_cap(r: &OrderRouter) -> Result<(), Strin
     }
 }
 
-fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), String> {
+fn execute_places_the_same_trade_with_no_cap(r: &Router) -> Result<(), String> {
     // The counterpart, and the point of the guardrail being opt-in: the very
     // same 100 USD trade goes through when nobody asked for a cap. It is also
     // the case the old hard ceiling made unreachable.
@@ -2471,8 +2473,8 @@ fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), Stri
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let venue = StubVenue::new("stub");
     let counter = StdArc::clone(&venue.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     if counter.load(Ordering::SeqCst) != 1 {
@@ -2488,13 +2490,13 @@ fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), Stri
     // nobody wanted.
     let bare_venue = StubVenue::new("stub");
     let bare_counter = StdArc::clone(&bare_venue.orders_placed);
-    let mut bare_venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    bare_venues.insert("stub".to_string(), Box::new(bare_venue));
+    let mut bare_venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    bare_venues.insert("stub".to_string(), bare_venue);
     let mut bare_options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut bare_options, "usdRates", Value::Map(HashMap::new()));
+    Router::set_key(&mut bare_options, "usdRates", Value::Map(HashMap::new()));
     // the same plan again on purpose: this check is about the cap, not about
     // idempotency, so the re-execution guard is explicitly waived
-    OrderRouter::set_key(&mut bare_options, "allowReexecution", Value::Bool(true));
+    Router::set_key(&mut bare_options, "allowReexecution", Value::Bool(true));
     let bare_report = block_on(r.execute(&plan, &bare_venues, &bare_options))
         .map_err(|e| e.to_string())?;
     if bare_counter.load(Ordering::SeqCst) != 1 {
@@ -2507,7 +2509,7 @@ fn execute_places_the_same_trade_with_no_cap(r: &OrderRouter) -> Result<(), Stri
     Ok(())
 }
 
-fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
+fn a_resting_order_is_cancelled(r: &Router) -> Result<(), String> {
     // A venue that silently drops timeInForce turns an immediate-or-cancel order
     // into a plain resting limit order. Recording it and continuing means the
     // next hop is sized on a fill that is still growing behind it, and the
@@ -2516,8 +2518,8 @@ fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
     for strategy in ["sequential", "parallel_within_hop", "best_effort"] {
         let mut options = execute_options(true, strategy);
         if strategy == "best_effort" {
-            OrderRouter::set_key(&mut options, "acknowledgeDispersion", Value::Bool(true));
-            OrderRouter::set_key(&mut options, "maxOrders", Value::Float(4.0));
+            Router::set_key(&mut options, "acknowledgeDispersion", Value::Bool(true));
+            Router::set_key(&mut options, "maxOrders", Value::Float(4.0));
         }
         // 1. the cancel works: the order is gone, the re-read is what gets reported
         let plan = one_leg_plan(r)?;
@@ -2525,8 +2527,8 @@ fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
         venue.created_open = true;
         venue.reread_order = Some(("canceled".to_string(), 0.1, 100.0, 10.0));
         let cancels = StdArc::clone(&venue.cancels);
-        let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues.insert("stub".to_string(), Box::new(venue));
+        let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues.insert("stub".to_string(), venue);
         let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
         if cancels.load(Ordering::SeqCst) != 1 {
             return Err(format!("{strategy}: the resting order is cancelled, not merely noted"));
@@ -2548,8 +2550,8 @@ fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
         let mut stubborn = StubVenue::new("stub");
         stubborn.created_open = true;
         stubborn.cancel_fails = true;
-        let mut venues2: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues2.insert("stub".to_string(), Box::new(stubborn));
+        let mut venues2: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues2.insert("stub".to_string(), stubborn);
         let failed = block_on(r.execute(&plan2, &venues2, &options)).map_err(|e| e.to_string())?;
         let failed_steps = r.list_at(&failed, "steps");
         if text(&failed_steps[0], "status") != "outcome_unknown" {
@@ -2564,8 +2566,8 @@ fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
         let mut ghost = StubVenue::new("stub");
         ghost.created_open = true;
         ghost.reread_order = Some(("open".to_string(), 0.0, 0.0, 0.0));
-        let mut venues3: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        venues3.insert("stub".to_string(), Box::new(ghost));
+        let mut venues3: BTreeMap<String, StubVenue> = BTreeMap::new();
+        venues3.insert("stub".to_string(), ghost);
         let ghosted = block_on(r.execute(&plan3, &venues3, &options)).map_err(|e| e.to_string())?;
         let ghost_steps = r.list_at(&ghosted, "steps");
         if text(&ghost_steps[0], "status") != "outcome_unknown" {
@@ -2579,7 +2581,7 @@ fn a_resting_order_is_cancelled(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn a_known_order_id_survives_a_throw_after_create(r: &OrderRouter) -> Result<(), String> {
+fn a_known_order_id_survives_a_throw_after_create(r: &Router) -> Result<(), String> {
     // createOrder RETURNED — the venue accepted something and named it — and the
     // first poll then died. This branch was missing from the Rust port entirely:
     // the step was reported as a plain failure and the id appeared nowhere in
@@ -2590,11 +2592,11 @@ fn a_known_order_id_survives_a_throw_after_create(r: &OrderRouter) -> Result<(),
     let plan = one_leg_plan(r)?;
     let mut venue = StubVenue::new("stub");
     venue.created_open = true;
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let mut options = execute_options(true, "limit_protected");
-    OrderRouter::set_key(&mut options, "orderTimeoutMs", Value::Float(4.0));
-    OrderRouter::set_key(&mut options, "pollIntervalMs", Value::Float(1.0));
+    Router::set_key(&mut options, "orderTimeoutMs", Value::Float(4.0));
+    Router::set_key(&mut options, "pollIntervalMs", Value::Float(1.0));
     let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
     let status = r.string_at(&results[0], "status", "");
@@ -2619,7 +2621,7 @@ fn a_known_order_id_survives_a_throw_after_create(r: &OrderRouter) -> Result<(),
     Ok(())
 }
 
-fn atomic_ish_demands_the_whole_route_prefunded(r: &OrderRouter) -> Result<(), String> {
+fn atomic_ish_demands_the_whole_route_prefunded(r: &Router) -> Result<(), String> {
     // atomic_ish skips the downstream resize every other strategy performs — it
     // is allowed to, BECAUSE the route is pre-funded end to end, so no hop is
     // sized off the previous hop's proceeds. This port accepted the strategy,
@@ -2628,8 +2630,8 @@ fn atomic_ish_demands_the_whole_route_prefunded(r: &OrderRouter) -> Result<(), S
     let plan = one_leg_plan(r)?;
     let funded = StubVenue::new("stub");
     let funded_counter = StdArc::clone(&funded.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(funded));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), funded);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "atomic_ish")))
         .map_err(|e| e.to_string())?;
     if funded_counter.load(Ordering::SeqCst) != 1 {
@@ -2643,8 +2645,8 @@ fn atomic_ish_demands_the_whole_route_prefunded(r: &OrderRouter) -> Result<(), S
     let mut broke = StubVenue::new("stub");
     broke.free_balances = Some(vec![("USDT".to_string(), 1.0), ("BTC".to_string(), 0.0)]);
     let broke_counter = StdArc::clone(&broke.orders_placed);
-    let mut poor_venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    poor_venues.insert("stub".to_string(), Box::new(broke));
+    let mut poor_venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    poor_venues.insert("stub".to_string(), broke);
     // the same plan again on purpose: this check is about pre-funding, not about
     // idempotency, so the re-execution guard is explicitly waived
     let poor_options =
@@ -2661,7 +2663,7 @@ fn atomic_ish_demands_the_whole_route_prefunded(r: &OrderRouter) -> Result<(), S
     Ok(())
 }
 
-fn a_reported_spend_survives_an_unknown_fill(r: &OrderRouter) -> Result<(), String> {
+fn a_reported_spend_survives_an_unknown_fill(r: &Router) -> Result<(), String> {
     // The `if !filled_known` early return must come AFTER the assets and amounts
     // are filled in, not before. inAmount is what build_unwind_plan SUBTRACTS: a
     // buy whose venue reported a `cost` but no `filled` spent that quote for
@@ -2673,8 +2675,8 @@ fn a_reported_spend_survives_an_unknown_fill(r: &OrderRouter) -> Result<(), Stri
     let mut venue = StubVenue::new("stub");
     venue.omit_filled = true;
     venue.reread_cost = Some((10.5, 105.0));
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     let report = block_on(r.execute(&plan, &venues, &execute_options(true, "sequential")))
         .map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
@@ -2706,7 +2708,7 @@ fn a_reported_spend_survives_an_unknown_fill(r: &OrderRouter) -> Result<(), Stri
     Ok(())
 }
 
-fn a_market_order_and_a_cap_are_refused_together(r: &OrderRouter) -> Result<(), String> {
+fn a_market_order_and_a_cap_are_refused_together(r: &Router) -> Result<(), String> {
     // assert_under_cap values the order at the plan's LIMIT price; the market
     // call then sends no price at all and the venue fills wherever the book is,
     // which is the one thing the cap exists to bound. Passing the check and then
@@ -2717,11 +2719,11 @@ fn a_market_order_and_a_cap_are_refused_together(r: &OrderRouter) -> Result<(), 
     let mut capped = StubVenue::new("stub");
     capped.supports_ioc = false;
     let capped_counter = StdArc::clone(&capped.orders_placed);
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(capped));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), capped);
     let mut options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut options, "allowMarketOrders", Value::Bool(true));
-    OrderRouter::set_key(&mut options, "maxNotionalUsd", Value::Float(1000.0));
+    Router::set_key(&mut options, "allowMarketOrders", Value::Bool(true));
+    Router::set_key(&mut options, "maxNotionalUsd", Value::Float(1000.0));
     let report = block_on(r.execute(&plan, &venues, &options)).map_err(|e| e.to_string())?;
     let results = r.list_at(&report, "steps");
     if r.string_at(&results[0], "status", "") != "failed"
@@ -2737,13 +2739,13 @@ fn a_market_order_and_a_cap_are_refused_together(r: &OrderRouter) -> Result<(), 
     let mut uncapped = StubVenue::new("stub");
     uncapped.supports_ioc = false;
     let uncapped_counter = StdArc::clone(&uncapped.orders_placed);
-    let mut open_venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    open_venues.insert("stub".to_string(), Box::new(uncapped));
+    let mut open_venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    open_venues.insert("stub".to_string(), uncapped);
     // the same plan again on purpose: this check is about the market-order rule, not
     // about idempotency, so the re-execution guard is explicitly waived
     let mut open_options =
         options_with(&execute_options(true, "sequential"), "allowReexecution", Value::Bool(true));
-    OrderRouter::set_key(&mut open_options, "allowMarketOrders", Value::Bool(true));
+    Router::set_key(&mut open_options, "allowMarketOrders", Value::Bool(true));
     let open_report = block_on(r.execute(&plan, &open_venues, &open_options)).map_err(|e| e.to_string())?;
     if uncapped_counter.load(Ordering::SeqCst) != 1 {
         return Err(format!("with no cap the market order goes out, got {open_report:?}"));
@@ -2751,13 +2753,13 @@ fn a_market_order_and_a_cap_are_refused_together(r: &OrderRouter) -> Result<(), 
     Ok(())
 }
 
-fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(), String> {
+fn plan_age_is_reported_and_refused_only_when_asked(r: &Router) -> Result<(), String> {
     // A plan is a snapshot of a book. `calculatedAt` was carried on every plan
     // and read by nothing, so execute() would happily trade an hour-old plan at
     // hour-old prices — and the notional cap, computed from those same prices,
     // was just as stale.
     let mut route = one_leg_route("buy", "BTC", "USDT", 0.2, 100.0);
-    OrderRouter::set_key(&mut route, "calculatedAt", Value::Float(1_000_000.0));
+    Router::set_key(&mut route, "calculatedAt", Value::Float(1_000_000.0));
     let plan = r.build_execution_plan(&route, &Value::Map(HashMap::new())).map_err(|e| e.to_string())?;
     let mut pinned = router()?;
     pinned.set_now_ms(1_060_000.0); // the plan is exactly 60s old
@@ -2767,8 +2769,8 @@ fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(
         options_with(&execute_options(live, strategy), "allowReexecution", Value::Bool(true))
     };
     let venues = |v: StubVenue| {
-        let mut m: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-        m.insert("stub".to_string(), Box::new(v));
+        let mut m: BTreeMap<String, StubVenue> = BTreeMap::new();
+        m.insert("stub".to_string(), v);
         m
     };
 
@@ -2788,7 +2790,7 @@ fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(
     let strict = StubVenue::new("stub");
     let strict_counter = StdArc::clone(&strict.orders_placed);
     let mut strict_options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut strict_options, "maxPlanAgeMs", Value::Float(30_000.0));
+    Router::set_key(&mut strict_options, "maxPlanAgeMs", Value::Float(30_000.0));
     match block_on(pinned.execute(&plan, &venues(strict), &strict_options)) {
         Err(e) if e.message.contains("older than maxPlanAgeMs") => {}
         other => return Err(format!("a stale plan must be refused under a limit, got {other:?}")),
@@ -2797,7 +2799,7 @@ fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(
         return Err("refused before anything reached the venue".to_string());
     }
     let mut wide_options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut wide_options, "maxPlanAgeMs", Value::Float(120_000.0));
+    Router::set_key(&mut wide_options, "maxPlanAgeMs", Value::Float(120_000.0));
     let passed = block_on(pinned.execute(&plan, &venues(StubVenue::new("stub")), &wide_options))
         .map_err(|e| e.to_string())?;
     let passed_results = pinned.list_at(&passed, "steps");
@@ -2814,18 +2816,18 @@ fn plan_age_is_reported_and_refused_only_when_asked(r: &OrderRouter) -> Result<(
         return Err("unknown is -1, never 0: 0 would read as fresh".to_string());
     }
     let mut undated_options = execute_options(true, "sequential");
-    OrderRouter::set_key(&mut undated_options, "maxPlanAgeMs", Value::Float(30_000.0));
+    Router::set_key(&mut undated_options, "maxPlanAgeMs", Value::Float(30_000.0));
     match block_on(pinned.execute(&undated, &venues(StubVenue::new("stub")), &undated_options)) {
         Err(e) if e.message.contains("carries no calculatedAt") => Ok(()),
         other => Err(format!("an undatable plan must be refused under a limit, got {other:?}")),
     }
 }
 
-fn best_effort_demands_its_acknowledgements(r: &OrderRouter) -> Result<(), String> {
+fn best_effort_demands_its_acknowledgements(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let venue = StubVenue::new("stub");
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     // No acknowledgeDispersion.
     match block_on(r.execute(&plan, &venues, &execute_options(true, "best_effort"))) {
         Err(e) if e.message.contains("acknowledgeDispersion") => {}
@@ -2833,7 +2835,7 @@ fn best_effort_demands_its_acknowledgements(r: &OrderRouter) -> Result<(), Strin
     }
     // With the acknowledgement but no maxOrders.
     let mut options = execute_options(true, "best_effort");
-    OrderRouter::set_key(&mut options, "acknowledgeDispersion", Value::Bool(true));
+    Router::set_key(&mut options, "acknowledgeDispersion", Value::Bool(true));
     match block_on(r.execute(&plan, &venues, &options)) {
         Err(e) if e.message.contains("maxOrders") => Ok(()),
         other => Err(format!("expected a maxOrders refusal, got {other:?}")),
@@ -2853,13 +2855,13 @@ fn options_with(base: &Value, key: &str, value: Value) -> Value {
     Value::Map(map)
 }
 
-fn stub_venues(venue: StubVenue) -> BTreeMap<String, Box<dyn RouterVenue>> {
-    let mut venues: BTreeMap<String, Box<dyn RouterVenue>> = BTreeMap::new();
-    venues.insert("stub".to_string(), Box::new(venue));
+fn stub_venues(venue: StubVenue) -> BTreeMap<String, StubVenue> {
+    let mut venues: BTreeMap<String, StubVenue> = BTreeMap::new();
+    venues.insert("stub".to_string(), venue);
     venues
 }
 
-fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
+fn live_requires_an_identity(r: &Router) -> Result<(), String> {
     // a plan with no identity of its own — the shape a hand-assembled plan has
     let route = options_with(
         &one_leg_route("buy", "BTC", "USDT", 0.2, 100.0),
@@ -2934,7 +2936,7 @@ fn live_requires_an_identity(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn client_order_id_is_never_injected(r: &OrderRouter) -> Result<(), String> {
+fn client_order_id_is_never_injected(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let plan_id = r.string_at(&plan, "requestId", "");
     // By default nothing is injected: each exchange's create_order sends whatever
@@ -2984,7 +2986,7 @@ fn client_order_id_is_never_injected(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn reexecution_is_refused(r: &OrderRouter) -> Result<(), String> {
+fn reexecution_is_refused(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let options = execute_options(true, "sequential");
     let venues = stub_venues(StubVenue::new("stub"));
@@ -3017,7 +3019,7 @@ fn reexecution_is_refused(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn a_dry_run_does_not_consume_a_plan(r: &OrderRouter) -> Result<(), String> {
+fn a_dry_run_does_not_consume_a_plan(r: &Router) -> Result<(), String> {
     let plan = one_leg_plan(r)?;
     let rehearsal = stub_venues(StubVenue::new("stub"));
     block_on(r.execute(&plan, &rehearsal, &execute_options(false, "sequential")))
@@ -3054,7 +3056,7 @@ fn a_dry_run_does_not_consume_a_plan(r: &OrderRouter) -> Result<(), String> {
     Ok(())
 }
 
-fn the_ledger_is_bounded(r: &OrderRouter) -> Result<(), String> {
+fn the_ledger_is_bounded(r: &Router) -> Result<(), String> {
     let capacity = MAX_EXECUTED_PLAN_IDS;
     for i in 0..capacity {
         r.record_executed_plan(&format!("plan-{i}"));
