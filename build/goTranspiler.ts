@@ -3961,7 +3961,7 @@ function goProvenParseMapMethods (): string[] {
         'ParseSpotOrUtaTicker', 'ParseContractOrderBook', 'ParseFundingRate', 'ParseLeverage', 'ParseTradingFee', 'ParseDepositAddress', 'ParseMarginMode', 'ParseGreeks', 'ParseOption', 'ParseBorrowRate', 'ParseIsolatedBorrowRate', 'ParseConversion', 'ParseMarginModification', 'ParseTradeTx', 'ParseLeverageFromMarket', 'ParseLeverageFromSetting', 'ParseMarginModeFromSetting',
         'ParseMarginLoan',
         'ParseADLRank',
-        'ParseEvent', 'ParseMarketToEvent', // W18
+        'ParseEvent', 'ParseMarketToEvent',
         'SafePosition', 'ParsePosition', 'ParseOptionPosition',
         'Sign' ]; // base + every override return a request map literal
 }
@@ -5046,12 +5046,12 @@ class NewTranspiler {
         installCcxtGoGb05ParamTypes (this.transpiler.goTranspiler);
         installCcxtGoGb11HandleErrorsCode (this.transpiler.goTranspiler);
         installCcxtGoSignTyping (this.transpiler.goTranspiler);
-        installRfGo5OwnedTables (this.transpiler.goTranspiler);  // RF-go-5
-        installFmGo5G01 (this.transpiler.goTranspiler);  // FM-GO5
-        installFmGo5G04 (this.transpiler.goTranspiler);  // FM-GO5
+        installRfGo5OwnedTables (this.transpiler.goTranspiler);
+        installFmGo5G01 (this.transpiler.goTranspiler);
+        installFmGo5G04 (this.transpiler.goTranspiler);
         installCcxtGoTupleSlotReads (this.transpiler.goTranspiler);
-        installFmGo5GP08 (this.transpiler.goTranspiler);  // FM-GO5
-        installFmGo5OG02 (this.transpiler.goTranspiler);  // FM-GO5
+        installFmGo5GP08 (this.transpiler.goTranspiler);
+        installFmGo5OG02 (this.transpiler.goTranspiler);
         installCcxtGoMarketBoolReads (this.transpiler.goTranspiler);
     }
 
@@ -5094,13 +5094,7 @@ class NewTranspiler {
         return values;
     }
 
-    /**
-     * @description Converts a JavaScript type to a Go type
-     * @param name 
-     * @param type 
-     * @param isReturn 
-     * @returns 
-     */
+    // Converts a JavaScript type to a Go type
     jsTypeToGo(name: string, type: string, isReturn = false): string | undefined {
 
         // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
@@ -5339,10 +5333,7 @@ class NewTranspiler {
     }
 
     unwrapTaskIfNeeded(type: string): string {
-        // the printer emits `<-chan X` (F04: no space after `<-`); the legacy `<- chan X`
-        // spelling stays matched so a stale type string cannot leak a channel into the
-        // unwrapped type, and the optional leading space is dropped so the emitted wrapper
-        // never carries `( int64, error)` (gofmt rewrites that to `(int64, error)`).
+        // strips `<-chan ` (and a stray `<- chan ` / leading blank, which gofmt would reject)
         return type.replace(/^[ \t]*<-\s*chan[ \t]*/, '');
     }
 
@@ -5635,13 +5626,9 @@ class NewTranspiler {
         return docLines.length ? '\n' + text : text;
     }
 
-    // Ensures WRAPPER_METHODS['Exchange'] is populated. The base-methods stage registers it as
-    // a side effect, but that stage can be skipped by the mtime gate — in which case any
-    // consumer (derived wrappers, typed interface) must transpile the base file on demand.
-    // Re-runs at most once per process, and that re-run REWRITES exchange_wrappers.go from the
-    // current Exchange.ts. The typed interface is regenerated with it: its own gate may already
-    // have skipped it earlier in this process, which would leave IExchange declaring the previous
-    // base typed signatures and every exchange failing to implement it (#29588).
+    // Ensures WRAPPER_METHODS['Exchange'] is populated even when the mtime gate skipped the base
+    // stage: re-transpiles the base (at most once per process, rewriting exchange_wrappers.go)
+    // and regenerates the typed interface with it so IExchange matches the new signatures.
     requireBaseMethodsMetadata () {
         if (WRAPPER_METHODS['Exchange']) {
             return;
@@ -5832,12 +5819,8 @@ ${constStatements.join('\n')}
 
     }
 
-    // The base-methods pass does double duty: it writes exchange_generated.go /
-    // exchange_wrappers.go AND it registers the module-level WRAPPER_METHODS metadata that
-    // createGoWrappers() and createTypedInterfaceFile() need (both throw without it). So the
-    // mtime gate can only skip it when nothing else in this process needs that metadata —
-    // any stage that does calls requireBaseMethodsMetadata() below, which transpiles it on
-    // demand, ignoring the gate.
+    // Writes exchange_generated.go / exchange_wrappers.go and registers the WRAPPER_METHODS
+    // metadata; stages that need the metadata after a gated skip call requireBaseMethodsMetadata().
     transpileBaseMethods(baseExchangeFile: string, isWs = false, force = true) {
         // `exchanges.json` is a real input for the typed interface / dynamic instance stages
         // that reuse this stage's metadata, so adding/removing an exchange must invalidate it
@@ -5900,8 +5883,6 @@ ${constStatements.join('\n')}
             // --- WebSocket related fixes specific to **Go** ----------------------
             // 3) Promise-style resolver calls don't exist in Go – comment them.
             ["client.resolve", "// client.resolve"],
-            // 5) Fix error constructors - remove "New" prefix
-            [/NewInvalidNonce/g, 'InvalidNonce'],
             // WS fixes
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
@@ -5910,65 +5891,28 @@ ${constStatements.join('\n')}
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
             // setMarkets indexes each parsed row pointer-free (markets_by_id keeps the row itself)
             [/\bvalues = append\(values, market\)/g, 'values = append(values, MarketTyped(market))'],
-            // ParseToInt's TS body is `parseInt(parseFloat(numberToString(number)))` and the
-            // hand-written ParseInt always returns int64 (math.MinInt64 when the conversion
-            // fails), so the method never hands back nil. Name the concrete type here (the
-            // only place this signature is emitted) so generated locals can be declared
-            // `int64` instead of `any` — see the ParseToInt entry in build/go-local-types.js.
+            // ParseToInt delegates to the hand-written int64 ParseInt and never returns nil
             [/func\s+\(this \*BaseExchange\)\s+ParseToInt\(number any\)\s+any\s*\{/g, 'func (this *BaseExchange) ParseToInt(number any) int64 {'],
             // Fix setMarketsFromExchange parameter type (base methods now hang off *BaseExchange)
             [/func\s+\(this \*BaseExchange\)\s+SetMarketsFromExchange\(sourceExchange any\)/g, 'func (this *BaseExchange) SetMarketsFromExchange(sourceExchange *BaseExchange)'],
-            // Coerce the `[value, params]` tuple helpers (handleOptionAndParams/2, handleParamString/2, handleMarketTypeAndParams)
-            // to `[]any`: every return path delegates to a `[]any{...}` literal (proof in coerceTupleHelperSignatures above).
             // Drop the generated Exchange struct + NewExchange: both are hand-written in exchange.go.
             [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
             [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
-            // fine split: the 62 symbol-based trading methods (createOrder/fetchTicker/fetchOrders/
-            // cancelOrder/watch*/… + convenience wrappers) live in `export default class Exchange
-            // extends BaseExchange` in the TS source and transpile with a *Exchange receiver, which we
-            // keep (matching TS/C#/Java). They hang off *Exchange (embedded by regular venues) and NOT
-            // *BaseExchange, so prediction venues — which embed BaseExchange via PredictionExchange —
-            // never inherit them. The concrete `Exchange` struct is hand-written in exchange.go.
-            // loadOrderBook is the exception: it is hand-written on *Exchange in exchange.go (it uses
-            // WS cache primitives the transpiler cannot emit), so drop the transpiled *Exchange copy to
-            // avoid a redeclaration (and its untranspilable body). loadOrderBook is the first method of
-            // the Exchange class, always followed by another `func (this *Exchange)`.
-            // Async cores are emitted as a trampoline + unexported body PAIR
-            // (`LoadOrderBook` then `loadOrderBookBody`), so the cut has to run to the next
-            // EXPORTED method — stopping at the lowercase body would leave that body behind,
-            // orphaned and still untranspilable.
+            // loadOrderBook is hand-written on *Exchange in exchange.go: drop the transpiled
+            // trampoline + body pair, up to the next EXPORTED *Exchange method
             [new RegExp(`func\\s+\\(this \\*Exchange\\)\\s+LoadOrderBook${GO_ASYNC_SUFFIX}\\([\\s\\S]*?(?=\\nfunc\\s+\\(this \\*Exchange\\)\\s+[A-Z])`, 'g'), ''],
-            // The rest of the Safe* family enters Go as imported free functions (class
-            // properties above the marker) and gets hand-written pointer-returning wrappers in
-            // exchange_safe.go. safeBool/safeBool2/safeBoolN are the exception: real TS methods
-            // below the marker, so the printer emits `any` copies here. Drop them so the
-            // hand-written *bool twins (same pointer/`derefScalar` layer) take over — otherwise
-            // Go reports a duplicate method. A rename in Exchange.ts makes this regex miss; the
-            // copy then comes back as `any` and the declarations the classifier types `*bool`
-            // fail the build loudly instead of drifting silently.
+            // safeBool/safeBool2/safeBoolN have hand-written *bool twins in exchange_safe.go:
+            // drop the printer's `any` copies (a rename in Exchange.ts fails the build loudly)
             [new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+SafeBool(?:N|2)?\\([^)]*\\)\\s+any\\s*\\{[\\s\\S]*?(?=\\nfunc )', 'g'), ''],
-            // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
-            // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
-            // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
-            // (see go/v4/exchange_interface.go) to let prediction cores satisfy it. These dispatch
-            // sites live only inside the 62 (regular-only code that prediction never compiles), so we
-            // type-assert to the per-method interface (I<Method>), which the regular venue satisfies.
-            [new RegExp(`this\\.DerivedExchange\\.(CreateOrder|CancelOrder|EditOrder|FetchOrder|FetchTickers|CancelOrderWs|CreateOrderWs|FetchOrdersWs|FetchTickersWs|FetchPositionsHistory)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
-            [new RegExp(`this\\.DerivedExchange\\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
-            [new RegExp(`this\\.DerivedExchange\\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
-            // SafeNumber / SafeNumber2 / SafeNumberN / SafeNumberOmitZero are hand-written in
-            // go/v4/exchange_safe.go with the honest *float64 return the printer cannot emit (the
-            // TS `Num` annotation prints as `any`), so drop the transpiled copies to avoid a
-            // redeclaration — same shape as the loadOrderBook drop above. The classifier in
-            // build/go-local-types.js types locals from the hand-written signature.
-            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+SafeNumber(?:2|N|OmitZero)?\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
-            // handleMarketType/SubType/OptionString(2)/MarginMode/OptionBool(2)/OptionInteger(2)AndParams are hand-written in
-            // exchange_market_type.go with a (*string, map[string]any) result pair
-            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams|HandleOption(?:Bool|Integer)AndParams2?|HandleOptionStringAndParams2|HandleUntilOption)\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
-            // marketSymbols is hand-written in exchange_market_type.go with its []string result
-            [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+MarketSymbols\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
-            // implodeHostname is hand-written in go/v4/exchange_misc.go with its `string` return
-            [new RegExp('func\\s+\\(this \\*BaseExchange\\)\\s+ImplodeHostname\\([^{]*\\{[\\s\\S]*?\\n\\}\\n', 'g'), ''],
+            // regular-only dispatch sites reach callees trimmed from IDerivedExchange (so prediction
+            // cores satisfy it) through the per-method interface I<Method>
+            [new RegExp(`this\\.DerivedExchange\\.(${[ 'CreateOrder', 'CancelOrder', 'EditOrder', 'FetchOrder', 'FetchTickers', 'CancelOrderWs', 'CreateOrderWs', 'FetchOrdersWs', 'FetchTickersWs',
+                'FetchPositionsHistory', 'FetchTrades', 'FetchOrders', 'FetchClosedOrders', 'FetchOHLCV', 'FetchTradingFee', 'FetchMyTrades', 'CreateOrders', 'CancelOrders',
+                'WatchMyTrades', 'WatchOHLCV', 'WatchOrders', 'WatchPositions', 'WatchTrades', 'FetchOrderBook', 'FetchStatus' ].join ('|')})${GO_ASYNC_SUFFIX}\\(`, 'g'), `this.DerivedExchange.(I$1).$1${GO_ASYNC_SUFFIX}(`],
+            // hand-written in go/v4 (exchange_safe.go *float64 SafeNumber*, exchange_market_type.go
+            // Handle*AndParams pairs and MarketSymbols, exchange_misc.go ImplodeHostname): drop the copies
+            [new RegExp(`func\\s+\\(this \\*BaseExchange\\)\\s+(?:${[ 'SafeNumber(?:2|N|OmitZero)?', 'Handle(?:MarketType|SubType|OptionString|MarginMode)AndParams', 'HandleOption(?:Bool|Integer)AndParams2?',
+                'HandleOptionStringAndParams2', 'HandleUntilOption', 'MarketSymbols', 'ImplodeHostname' ].join ('|')})\\([^{]*\\{[\\s\\S]*?\\n\\}\\n`, 'g'), ''],
         ]);
 
         // SafeCurrencyCode / SafeSymbol carry the `*string` shape the hand-written Safe*
@@ -6515,12 +6459,8 @@ ${caseStatements.join('\n')}
             });
         }
 
-        // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
-        // drop the exchanges whose generated .go is newer than its ts source.
-        // This has to happen BEFORE the pool is fed, because `allFilesPath`
-        // doubles as the sticky ts.Program root list — leaving a clean exchange in it
-        // would transpile and rewrite it anyway. `--force` (and any single-exchange run)
-        // keeps everything.
+        // incremental gate: drop exchanges whose .go is newer than the ts source, before the pool
+        // is fed (`allFilesPath` is also the ts.Program root list); `--force` keeps everything.
         const totalExchangeFiles = exchangeFiles.length;
         exchangeFiles = filterDirtyExchangeFiles ('go', exchangeFiles, force, (file: string) => {
             const extensionlessName = basename (file, pattern);
@@ -6689,24 +6629,11 @@ ${caseStatements.join('\n')}
             .join("\n");
     }
 
-    /**
-     * SafeCurrencyCode / SafeSymbol are string-ish on every TS return path: the `code` /
-     * `symbol` field of the dict their callee (safeCurrency / safeMarket) always hands back,
-     * or `undefined` when that dict carries none. Their Go body is transpiled into `any`, so
-     * a local initialised from them can only be typed once the emitted signature carries the
-     * same `*string` shape the hand-written Safe* accessors use (build/go-local-types.js
-     * lists these two callees): an absent value then stays a nil pointer instead of an
-     * untyped nil, which is the shape the printer's pointer-aware comparisons expect.
-     * Wrap the single transpiled return in SafeStringPtr (go/v4/exchange_safe.go) and rename
-     * the result type. Fail closed: a body that no longer matches this shape keeps the
-     * transpiled `any` signature, so a printer change degrades instead of emitting an
-     * uncompilable `*string` with an `any` return.
-     *
-     * @param content The generated exchange_generated.go content (raw, pre-gofmt)
-     * @returns The content with the two coerced signatures
-     */
+    // Retypes the base SafeCurrencyCode / SafeSymbol to `*string` by wrapping their single return
+    // in SafeStringPtr, so locals typed from them stay nil pointers. Fail closed: any other body
+    // shape keeps the transpiled `any` signature.
     coerceTypedStringAccessors (content: string): string {
-        // method name → the expressions its transpiled body may return (pre/post TS-P1 local)
+        // method name → the expressions its transpiled body may return
         const stringish: [string, string[]][] = [
             [ 'SafeCurrencyCode', [ 'GetValue(currency, "code")', 'currencyResolved["code"]' ] ],
             [ 'SafeSymbol', [ 'GetValue(market, "symbol")', 'marketResolved["symbol"]' ] ],
@@ -6714,8 +6641,6 @@ ${caseStatements.join('\n')}
         for (let i = 0; i < stringish.length; i++) {
             const method = stringish[i][0];
             const returnExprs = stringish[i][1];
-            // the printer emits single spaces around the signature now (F04); the regex stays
-            // whitespace-loose so it also matches pre-existing padding (`any  {`)
             const fnRegex = new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+' + method + '\\(([^)]*)\\)\\s+any\\s*\\{([\\s\\S]*?)\\n\\}', 'g');
             content = content.replace (fnRegex, ((match: string, params: string, body: string) => {
                 const returns = body.match (/^[ \t]*return .*$/gm) || [];
@@ -6731,20 +6656,8 @@ ${caseStatements.join('\n')}
         return content;
     }
 
-    /**
-     * An exchange may override one of the two coerced string-ish accessors — kraken's
-     * safeCurrencyCode handles the X/Z prefixes. Its transpiled copy shadows the base method for
-     * `this.SafeCurrencyCode(...)` calls on that exchange, so it has to carry the same `*string`
-     * shape or the locals the classifier types against the call would not compile (the compiler
-     * resolves the receiver, the classifier cannot). Every return goes through SafeStringPtr,
-     * which is the identity on the string-ish value these methods return and maps anything else
-     * (including nil) to the nil pointer = TS `undefined`. Fail closed: an override whose return
-     * statements are not the emitted one-line `return <expr>` form is left `any` — the classifier
-     * entries then fail the build loudly instead of drifting silently.
-     *
-     * @param content One generated exchange file (go/v4/<id>.go or a pro/prediction twin)
-     * @returns The content with any override of the two accessors coerced
-     */
+    // Venue overrides of the two accessors (kraken's safeCurrencyCode) get the same `*string`
+    // shape: every one-line return goes through SafeStringPtr; other shapes stay `any`.
     coerceTypedStringAccessorOverrides (content: string): string {
         const names = [ 'SafeCurrencyCode', 'SafeSymbol' ];
         for (let i = 0; i < names.length; i++) {
@@ -6789,12 +6702,7 @@ ${caseStatements.join('\n')}
         return content;
     }
 
-    // ---------------------------------------------------------------------------------------------
-    /**
-     * Index of the `}` that closes the brace-matched block opened at `open`, or -1 when the
-     * text is unbalanced. Used by the map-accessor coercion to cut a method body out of the
-     * printed file without a parser.
-     */
+    // Index of the `}` closing the block opened at `open`, or -1 when unbalanced
     goBraceClose (content: string, open: number): number {
         let depth = 0;
         for (let i = open; i < content.length; i++) {
@@ -6816,8 +6724,7 @@ ${caseStatements.join('\n')}
      * The returns of nested function literals are deliberately left alone: the closure's
      * expression has the closure's own type (Ndax's ParseOrderBook closure returns the two
      * key names, so `MapTyped(asksKey)` would not compile) and the printer always writes the
-     * literal's `{` on the `func(` line (verified: 0 `= func(...) <type>` openings in go/v4
-     * @0b32e4ad). Returns undefined - the caller keeps the transpiled `any` - when the body
+     * literal's `{` on the `func(` line. Returns undefined - the caller keeps the transpiled `any` - when the body
      * cannot be scanned confidently (unbalanced braces, a `func(` head whose brace is on
      * another line, a bare `return`).
      */
@@ -6962,12 +6869,8 @@ ${caseStatements.join('\n')}
         return out;
     }
 
-    /**
-     * Map-returning accessors whose transpiled `any` signature hides a proven
-     * `map[string]any` body (see the C3 SPECs). One row per method; a sibling unit that
-     * lands the same change appends its own row to this table instead of adding a second
-     * table. Fail closed: an unexpected body shape leaves the transpiled `any` signature.
-     */
+    // Map-returning accessors whose transpiled `any` signature hides a proven `map[string]any`
+    // body, one row per method. Fail closed: an unexpected body shape stays `any`.
     coerceTypedMapAccessors (content: string): string {
         // receiver, method, accepted single-return shape, wrap-every-function-level-return
         const rows: [string, string, (expr: string) => boolean, boolean][] = [
@@ -6989,15 +6892,8 @@ ${caseStatements.join('\n')}
         return content;
     }
 
-    /**
-     * An exchange may override one of the coerced map accessors; its transpiled copy shadows
-     * the embedded base method, so it has to carry the same `map[string]any` shape or the
-     * locals the classifier types against the call would not compile (the compiler resolves
-     * the receiver, the classifier cannot). Every function-level return is wrapped in
-     * MapTyped; the returns of nested function literals are untouched. Fail closed: an
-     * unscannable body leaves the transpiled `any` signature, and a receiver that does not
-     * declare the method is a no-op (the unit must then not add its classifier row).
-     */
+    // Venue overrides of the map accessors shadow the base method, so they get the same
+    // `map[string]any` shape (every function-level return through MapTyped; fail closed).
     coerceTypedMapAccessorOverrides (content: string): string {
         const rows: [string, string][] = [
             [ 'Ndax', 'ParseOrderBook' ],
@@ -7020,7 +6916,6 @@ ${caseStatements.join('\n')}
     // returns a Go `[]any` on every path, so the declared `any` return becomes `[]any`. All receivers are retyped because an
     // override shadows the base method for its own call sites; a `[]any` still boxes into every `any` sink.
     coerceTupleHelperSignatures (content: string): string {
-        // F04: the `[]any` retag spells the single space before `{` too
         return content.replace (/func\s+\(this \*(\w+)\)\s+(HandleOptionAndParams|HandleOptionAndParams2|HandleWithdrawTagAndParams|HandlePostOnly|HandleTriggerPricesAndParams|HandleTriggerDirectionAndParams)\(([^)]*)\)\s+any(\s+\{)/g, 'func (this *$1) $2($3) []any {')
             // hand-written base (exchange_market_type.go) returns the pair as two results; the
             // Okx/Deepcoin overrides only `return super...` so they carry the same results
@@ -7087,15 +6982,6 @@ ${caseStatements.join('\n')}
         return depth;
     }
 
-    // the two-literal concatenation a `"\0"` string literal is rewritten into,
-    // laid out the way gofmt would print it at the level it is spliced in
-    goNulSeparatorText (content: string, index: number): string {
-        const depth = this.goGofmtArithmeticDepth (content, index);
-        // `"//" + "0"` is a level-4 chain over two primaries: gofmt keeps the
-        // blanks at depth 1 and drops them below (cutoff() with has4 only)
-        return depth > 1 ? '"//"+"0"' : '"//" + "0"';
-    }
-
     createGoExchange(className: string, goVersion: any, ws: boolean | 'prediction' = false, typedSection = '') {
         const isPrediction = (ws === 'prediction');
         const isWs = (ws === true);
@@ -7144,7 +7030,8 @@ ${caseStatements.join('\n')}
         // untyped bool), so route it through IsEqual, which derefs. Same rewrite the test
         // passes apply to their call comparisons; bool family only.
         const isEqualWrap = wsQual + 'IsEqual(';
-        content = content.replace (new RegExp ('(this\\.SafeBool(?:2|N)?\\((?:[^()]|\\([^()]*\\))*\\)) (==|!=) (true|false)\\b', 'g'), ((_m: string, call: string, op: string, literal: string) => (op === '==') ? isEqualWrap + call + ', ' + literal + ')' : '!' + isEqualWrap + call + ', ' + literal + ')') as any);
+        const isEqualCall = (op: string, left: string, right: string) => ((op === '==') ? '' : '!') + isEqualWrap + left + ', ' + right + ')';
+        content = content.replace (new RegExp ('(this\\.SafeBool(?:2|N)?\\((?:[^()]|\\([^()]*\\))*\\)) (==|!=) (true|false)\\b', 'g'), ((_m: string, call: string, op: string, literal: string) => isEqualCall (op, call, literal)) as any);
         // ... and the same for reassignments of a local already declared `any`. A typed
         // `var x *string` local must keep its pointer, and the same name can be `any` in one
         // function and typed in another, so resolve the declaration per function body.
@@ -7152,13 +7039,9 @@ ${caseStatements.join('\n')}
             const signature = fn.slice (0, fn.indexOf ('{'));
             const anyLocals = new Set ((fn.match (/var (\w+) any\b/g) || []).map ((d: string) => d.split (' ')[1]));
             // `any` parameters (and the `x := GetArg(...)` optionals) are untyped sinks too
-            const paramMatches = signature.match (/(\w+) any\b/g) || [];
-            for (let pi = 0; pi < paramMatches.length; pi++) {
-                anyLocals.add (paramMatches[pi].split (' ')[0]);
-            }
-            const argMatches = fn.match (/(\w+) := GetArg\(/g) || [];
-            for (let ai = 0; ai < argMatches.length; ai++) {
-                anyLocals.add (argMatches[ai].split (' ')[0]);
+            const paramMatches = (signature.match (/(\w+) any\b/g) || []).concat (fn.match (/(\w+) := GetArg\(/g) || []);
+            for (const param of paramMatches) {
+                anyLocals.add (param.split (' ')[0]);
             }
             const typedLocals = new Set ((fn.match (/var (\w+) \*\w+\b/g) || []).map ((d: string) => d.split (' ')[1]));
             if (!anyLocals.size) {
@@ -7184,8 +7067,7 @@ ${caseStatements.join('\n')}
                 if (!anyLocals.has (name) || typedLocals.has (name)) {
                     return m;
                 }
-                const call = isEqualWrap + name + ', ' + literal + ')';
-                return (op === '==') ? call : '!' + call;
+                return isEqualCall (op, name, literal);
             }) as any);
             // Same hazard when the right side is a helper call returning `any` (Subtract,
             // GetArrayLength, OpNeg, ...): `i == Subtract(n, 1)` compares an int against an
@@ -7194,8 +7076,7 @@ ${caseStatements.join('\n')}
                 if (name === 'nil' || typedLocals.has (name)) {
                     return m;
                 }
-                const wrapped = isEqualWrap + name + ', ' + call + ')';
-                return (op === '==') ? wrapped : '!' + wrapped;
+                return isEqualCall (op, name, call);
             }) as any);
             // ... and when both sides are `any` names: two interfaces holding different numeric
             // kinds (int vs int64) compare unequal even when the numbers match.
@@ -7206,8 +7087,7 @@ ${caseStatements.join('\n')}
                 if (!anyLocals.has (left) || !anyLocals.has (right) || typedLocals.has (left) || typedLocals.has (right)) {
                     return m;
                 }
-                const wrapped = isEqualWrap + left + ', ' + right + ')';
-                return (op === '==') ? wrapped : '!' + wrapped;
+                return isEqualCall (op, left, right);
             }) as any);
             return fn;
         }) as any);
@@ -7217,12 +7097,8 @@ ${caseStatements.join('\n')}
         // deref-aware helper (goParamNativeNilCompares). GetArg-bound optionals and the proven
         // locals keep the native comparison.
         content = goParamNativeNilCompares (content, isEqualWrap);
-        // ... and the same for the `any` LOCALS a pointer reaches: the printer's local proof
-        // only knows a `*T`-returning helper call, not a typed local or a native `*T` parameter.
-        // A prediction exchange lives in package ccxtprediction, which reaches the helper as
-        // `ccxt.IsEqual` too (its generated file uses no bare form).
-        // A local boxed from a method this file types with a pointer result is invisible to the
-        // printer's native `x == nil`; typed locals compare natively (goTypedNativeNilCompares).
+        // ... and the same for the `any` LOCALS a pointer reaches (prediction files also use
+        // `ccxt.IsEqual`); typed locals compare natively (goTypedNativeNilCompares).
         const qual = (isWs || isPrediction) ? 'ccxt.' : '';
         const comparePasses = [ goBoxedPointerNilCompares, goTypedNativeNilCompares, goProvenParamNativeNilCompares, goAnyLocalNativeNilCompares, goStringLiteralNativeCompares ];
         for (const pass of comparePasses) {
@@ -7251,7 +7127,8 @@ ${caseStatements.join('\n')}
             // so its blanks follow gofmt's depth rule (goGofmtArithmeticDepth). Nothing
             // below this point changes the level of the splice site, and running last means
             // the level is read off the final text.
-            content = content.replace (/"\0"/gm, ((_match: string, offset: number) => this.goNulSeparatorText (content, offset)) as any); // check this later in bl3p
+            // `"//" + "0"` keeps its blanks only at depth 1 (gofmt cutoff() with has4 only)
+            content = content.replace (/"\0"/gm, ((_match: string, offset: number) => (this.goGofmtArithmeticDepth (content, offset) > 1) ? '"//"+"0"' : '"//" + "0"') as any);
             if (this.isPrediction) {
                 // prediction cores embed PredictionExchange (which embeds BaseExchange) instead
                 // of Exchange directly, so they inherit the prediction methods + state
@@ -7269,9 +7146,7 @@ ${caseStatements.join('\n')}
                 // non-awaited callDynamically calls (inherited prediction helpers) would be undefined
                 // in package ccxtprediction: route them through the exported channel dispatcher, whose
                 // CallInternalMethod forwards plain and channel returns alike
-                content = this.regexAll (content, [
-                    [/callDynamically\(/gm, '<-this.CallDynamically('],
-                ]);
+                content = content.replace (/callDynamically\(/gm, '<-this.CallDynamically(');
             }
         } else {
             const restPackagePrefix = this.isPrediction ? `${PREDICTION_PACKAGE}.` : 'ccxt.';
