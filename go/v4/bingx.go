@@ -6347,7 +6347,20 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 		response = r2.Value
 	} else {
 		var isTwapOrder *bool = this.SafeBool(paramsStandard, "twap", false)
-		var paramsOmitted map[string]any = this.OmitDict(paramsStandard, "twap")
+		var paramsOmitted any = this.Omit(paramsStandard, "twap")
+		if !(isTwapOrder != nil && *isTwapOrder) {
+			if limit != nil {
+				request["limit"] = mathMin(limit, 1000)
+			}
+			if since != nil {
+				request["startTime"] = since
+			}
+			var until *int64 = this.SafeInteger(paramsOmitted, "until")
+			if until != nil {
+				request["endTime"] = until
+				paramsOmitted = this.Omit(paramsOmitted, "until")
+			}
+		}
 		if isTwapOrder != nil && *isTwapOrder {
 			request["pageIndex"] = 1
 			request["pageSize"] = func() any {
@@ -6363,7 +6376,7 @@ func (this *Bingx) fetchCanceledAndClosedOrdersBody(ch chan AsyncResult[[]Order]
 				return since
 			}()
 			var until *int64 = this.SafeInteger(paramsOmitted, "until", this.Milliseconds())
-			var paramsUntil map[string]any = this.OmitDict(paramsOmitted, "until")
+			var paramsUntil any = this.Omit(paramsOmitted, "until")
 			request["endTime"] = until
 
 			r3 := <-this.SwapV1PrivateGetTwapHistoryOrders(this.Extend(request, paramsUntil))
@@ -6550,11 +6563,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553019 []any = r1.Value
-		if retRes553019 == nil {
+		var retRes554319 []any = r1.Value
+		if retRes554319 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554319)}
 		}
 		return nil
 	}
