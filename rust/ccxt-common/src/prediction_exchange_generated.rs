@@ -842,19 +842,19 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_205: bool = true;
             while { if !__for_first_205 { j += 1; } __for_first_205 = false; j < (outcomesList.len() as i64) } {
             let mut oc: Value = outcomesList.get(j as usize).cloned().unwrap_or(Value::Null);
-            let mut ocSymbol: Value = self.safe_string2(oc.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
+            let mut ocSymbol: Option<String> = self.safe_string2_opt(oc.clone(), Value::Str("outcome".into()), Value::Str("symbol".into()), &[]);
             let mut ocId: Value = self.safe_string2(oc.clone(), Value::Str("outcomeId".into()), Value::Str("id".into()), &[]);
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
             add_element_to_object(&mut oc, &Value::Str("outcomeId".into()), ocId.clone());
             { let __be_tmp = self.safe_string2(oc.clone(), Value::Str("market".into()), Value::Str("marketSymbol".into()), &[]); add_element_to_object(&mut oc, &Value::Str("market".into()), __be_tmp); }
-            if (ocSymbol != Value::Null) {
+            if (ocSymbol.is_some()) {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
                 // on a real collision of same handle but different outcomeId, disambiguate the
                 // second one deterministically instead of silently overwriting the first —
                 // trading the wrong market would otherwise be indistinguishable
-                let mut existing: Option<crate::value::Dict> = self.safe_dict(self.pred().outcomes.clone(), ocSymbol.clone(), &[]).into_opt_dict();
+                let mut existing: Option<crate::value::Dict> = self.safe_dict(self.pred().outcomes.clone(), Value::from(ocSymbol.as_deref()), &[]).into_opt_dict();
                 if (existing.is_some()) {
                     let mut existingId: Option<String> = self.safe_string_k_opt(&existing, "outcomeId", &[]);
                     if (existingId.is_some()) && (ocId != Value::Null) && ((existingId.as_deref() != ocId.as_str())) {
@@ -866,13 +866,13 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Str(__sv.chars().skip(__i as usize).take((__j - __i) as usize).collect::<String>().into()) } else { Value::Str(String::new().into()) } } }, (Value::Arr(__a), __b,
                                 __e) => match (__a.len() as i64) { __l => match (if __b < 0 { (__l + __b).max(0) } else { __b.min(__l) }, match __e { None => __l, Some(__k) => if __k < 0 { (__l + __k).max(0) } else { __k.min(__l) } }) { (__i, __j) => if __i <= __j { Value::Array(__a[__i as usize..__j as usize].to_vec()) } else { Value::Array(vec![]) } } }, _ => Value::Null });
                         }
-                        ocSymbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", ocSymbol, "_").into()), (if let Some(__s) = suffix.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })).into());
+                        ocSymbol = Some(format!("{}{}", Value::Str(format!("{}{}", ocSymbol.as_deref().unwrap_or("null"), "_").into()), (if let Some(__s) = suffix.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null })));
                     }
                 }
-                add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.clone());
-                if let Value::Dict(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ocSymbol), oc.clone()); }
+                add_element_to_object(&mut oc, &Value::Str("outcome".into()), Value::from(ocSymbol.as_deref()));
+                if let Value::Dict(__d) = &mut self.pred_mut().outcomes { std::sync::Arc::make_mut(__d).insert(ocSymbol.as_deref().unwrap_or("null").to_string(), oc.clone()); }
             }  else {
-                add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol);
+                add_element_to_object(&mut oc, &Value::Str("outcome".into()), ocSymbol.map(Value::from).unwrap_or(Value::Null));
             }
             if (ocId != Value::Null) {
                 if let Value::Dict(__d) = &mut self.pred_mut().outcomes_by_id { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&ocId), oc); }

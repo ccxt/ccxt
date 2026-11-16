@@ -12874,20 +12874,20 @@ impl Binance {
                 if (upperCaseSide.as_deref() == Some("BUY")) {
                     let mut precision: Option<f64> = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]).as_f64();
                     let mut quoteOrderQtyNew: Option<String> = self.safe_string2_opt(Value::from(&paramsPapi), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[]);
-                    let mut notional: Value = Value::Null;
+                    let mut notional: Option<String> = None;
                     if (quoteOrderQtyNew.is_some()) {
-                        notional = quoteOrderQtyNew.map(Value::from).unwrap_or(Value::Null);
+                        notional = quoteOrderQtyNew.take();
                     }  else if (price != Value::Null) {
                         let mut amountString: Value = Value::from(self.number_to_string(amount.clone()));
                         let mut priceString: Value = Value::from(self.number_to_string(price.clone()));
-                        notional = crate::precise::Precise::stringMul(&amountString, &priceString);
+                        notional = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
                     }  else {
-                        notional = Value::from(self.number_to_string(amount.clone()));
+                        notional = self.number_to_string(amount.clone());
                     }
                     if (precision.is_none()) {
-                        request.insert("notional".into(), notional.clone());
+                        request.insert("notional".into(), Value::from(notional.as_deref()));
                     }  else {
-                        request.insert("notional".into(), self.decimal_to_precision(notional, Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
+                        request.insert("notional".into(), self.decimal_to_precision(notional.map(Value::from).unwrap_or(Value::Null), Value::Int(crate::runtime::TRUNCATE), Value::from(precision), &[self.precisionMode.clone()]));
                     }
                 }  else {
                     // Redeem stock to underlying using sapiPostEquityTokenizedRedeem or call redeemTokenizedAsset (tokenizedAsset, tokenizedAssetAmount, params)

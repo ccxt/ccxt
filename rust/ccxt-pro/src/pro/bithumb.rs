@@ -744,7 +744,7 @@ impl Bithumb {
         let mut gen2TimestampStr: Option<String> = self.safe_string2_opt(message, Value::Str("timestamp".into()), Value::Str("datetime".into()), &[]);
         let mut timestamp: Option<i64> = Some(self.milliseconds());
         if (gen2TimestampStr.is_some()) {
-            timestamp = self.parse_to_int(gen2TimestampStr.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(13); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null));
+            timestamp = self.parse_to_int((if let Some(__s) = gen2TimestampStr.as_deref() { Some(__s.chars().skip(0).take(13).collect::<String>()) } else { None }).map(Value::from).unwrap_or(Value::Null));
         }
         let mut bidsSnapshot: Vec<Value> = Vec::new();
         let mut asksSnapshot: Vec<Value> = Vec::new();

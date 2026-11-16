@@ -2832,8 +2832,8 @@ if _try_result.is_err() {
         // watchFundingRates waits on the bare channel without symbols and on funding_data.<symbol> with them,
         // watchFundingRate on fundingRate:<symbol>, the per-market and all-markets channels carry the same frame
         client.resolve(Value::from(&fundingRate), "funding_data");
-        client.resolve(Value::from(&fundingRate), &(Value::Str(format!("{}{}", "funding_data.", symbol.clone().map(Value::from).unwrap_or(Value::Null)).into())));
-        client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", "fundingRate:", symbol.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(Value::from(&fundingRate), &(Value::Str(format!("{}{}", "funding_data.", symbol.as_deref().unwrap_or("null")).into())));
+        client.resolve(Value::Dict(fundingRate), &(Value::Str(format!("{}{}", "fundingRate:", symbol.as_deref().unwrap_or("null")).into())));
 }
 
     pub fn parse_funding_rate_ws(&self, contract: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {

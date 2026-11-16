@@ -4393,7 +4393,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 })]);
                 let mut marketHandle: Option<String> = self.safe_string_k_opt(m.clone(), "market", &[]);
                 if (marketHandle.is_some()) {
-                    if (matches!(&marketHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenMarketHandles.contains_key(__k.as_ref()))) {
+                    if (matches!(marketHandle.as_deref(), Some(__k) if seenMarketHandles.contains_key(__k))) {
                         continue;
                     }
                     seenMarketHandles.insert(marketHandle.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -4419,7 +4419,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut m: crate::value::Dict = self.parse_myriad_market(&raw, None).into_dict();
             let mut marketHandle: Option<String> = self.safe_string_k_opt(&m, "market", &[]);
-            if (marketHandle.is_some()) && (matches!(&marketHandle.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if seenMarketHandles.contains_key(__k.as_ref()))) {
+            if (marketHandle.is_some()) && (matches!(marketHandle.as_deref(), Some(__k) if seenMarketHandles.contains_key(__k))) {
                 if let Value::Dict(__d) = &mut self.markets { std::sync::Arc::make_mut(__d).insert(marketHandle.as_deref().unwrap_or("null").to_string(), Value::from(&m)); }
                 continue;
             }

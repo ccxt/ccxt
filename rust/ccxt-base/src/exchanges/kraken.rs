@@ -780,12 +780,12 @@ impl crate::exchange::DerivedExchange for Kraken {
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "_coin_id", &[]);
-        let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
+        let mut code: Option<String> = self.safe_currency_code(Value::from(id.as_deref()), None);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (id.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
         }
-        if !id.as_deref().unwrap_or("").contains(".") {
+        if !id.as_deref().unwrap_or_default().contains(".") {
             let mut altName: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "altname", &[]);
             // handle cases like below:
             //
@@ -796,14 +796,14 @@ impl crate::exchange::DerivedExchange for Kraken {
             if (id.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseCurrency() missing id")));
             }
-            if ((altName.as_deref() != id.as_deref())) && ((id.as_deref().unwrap_or("").starts_with("X")) || (id.as_deref().unwrap_or("").starts_with("Z"))) {
+            if (id != altName) && ((id.as_deref().unwrap_or_default().starts_with("X")) || (id.as_deref().unwrap_or_default().starts_with("Z"))) {
                 code = self.safe_currency_code(altName.map(Value::from).unwrap_or(Value::Null), None);
                 // also, add map in commonCurrencies:
                 if (id.is_some()) && (code.is_some()) {
                     if let Value::Dict(__d) = &mut self.commonCurrencies.clone() { std::sync::Arc::make_mut(__d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(code.as_deref())); }
                 }
             }  else {
-                code = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
+                code = self.safe_currency_code(Value::from(id.as_deref()), None);
             }
         }
         if (code.is_none()) {
