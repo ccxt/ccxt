@@ -9,6 +9,7 @@ import log from 'ololog';
 import ansi from 'ansicolor';
 import { isMainEntry } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 
 // ---- final-text passes over the emitted Rust (run in the order the pipelines below set) ----
 
@@ -13508,8 +13509,8 @@ impl std::ops::DerefMut for ${coreName} {
         const re = new RegExp(`\\bthis\\.${field}\\s*=(?!=)`);
         for (const dir of ['./ts/src', './ts/src/pro', './ts/src/prediction']) {
             let files: string[] = [];
-            try { files = fs.readdirSync(dir).filter(f => f.endsWith('.ts')); } catch { continue; }
-            for (const f of files) if (re.test(fs.readFileSync(`${dir}/${f}`, 'utf8'))) return true;
+            try { files = fs.readdirSync(dir).filter(isTsIndexSource); } catch { continue; }
+            for (const f of files) if (re.test(readTsIndexSource(`${dir}/${f}`) ?? '')) return true;
         }
         return false;
     }
@@ -13864,7 +13865,10 @@ impl std::ops::DerefMut for ${coreName} {
             try { entries = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
             for (const e of entries) {
                 if (e.isDirectory()) walk(`${dir}/${e.name}`);
-                else if (e.name.endsWith('.ts')) files.push(fs.readFileSync(`${dir}/${e.name}`, 'utf8'));
+                else if (isTsIndexSource(e.name)) {
+                    const text = readTsIndexSource(`${dir}/${e.name}`);
+                    if (text !== undefined) files.push(text);
+                }
             }
         };
         walk('./ts/src');

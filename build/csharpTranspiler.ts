@@ -10,6 +10,7 @@ import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
 import { csharpTupleReturns } from './csharp-local-types.js'
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js'
 import { PARAMETERS_ARG_TYPED_METHODS, PARSE_MARKET_IDICT_PARAMS, SIGNATURE_ARG_TYPES } from './csharp-local-types.js'
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js'
 import { platform } from 'process'
@@ -2265,13 +2266,22 @@ function csharpDeclaredUniqueMethods (): string[] {
                 if (entry.name !== 'node_modules') walk (full)
                 continue
             }
-            for (const m of entry.name.endsWith ('.ts') ? fs.readFileSync (full, 'utf8').matchAll (declaration) : []) {
+            const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined
+            for (const m of text !== undefined ? text.matchAll (declaration) : []) {
                 counts.set (m[2], (counts.get (m[2]) ?? 0) + 1)
                 if (m[3] && !/\b(async|override)\b/.test (m[1]) && !/^Promise\b/.test (m[3]) && !/[\\/](base|test)[\\/]/.test (full)) annotated.add (m[2])
             }
         }
     }
-    try { walk (resolve (__dirname, '..', 'ts', 'src')) } catch (e) { annotated.clear () }
+    const root = resolve (__dirname, '..', 'ts', 'src')
+    try {
+        walk (root)
+    } catch (e) {
+        annotated.clear () // no corpus: nothing proves
+        if (fs.existsSync (root)) {
+            throw e
+        }
+    }
     return [ ...annotated ].filter ((name) => counts.get (name) === 1).sort ()
 }
 
