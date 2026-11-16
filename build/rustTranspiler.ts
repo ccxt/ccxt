@@ -9702,14 +9702,6 @@ ${arms.join('\n')}
             '$1Value::from(error.clone())',
         );
 
-        // `error = crate::exchange_errors::<X>(...);` — `error` is a
-        // `Value`-typed local but the RHS produces `ExchangeError`.
-        // Wrap in `Value::from(...)` so the assignment type-checks.
-        content = content.replace(
-            /(\b\w+\s*=\s*)(crate::exchange_errors::\w+\([^;]+?\))\s*;/g,
-            '$1Value::from($2);',
-        );
-
         // JS `method.call(this, ...)` passes the `this` value as the
         // first arg. In our Value-shaped stub the receiver is
         // irrelevant — drop `self` from the slice so the remaining
