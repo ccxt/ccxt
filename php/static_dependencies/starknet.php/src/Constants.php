@@ -12,7 +12,6 @@
 namespace StarkNet;
 
 use StarkNet\Utils;
-use phpseclib3\Math\BigInteger;
 
 class Constants
 {
