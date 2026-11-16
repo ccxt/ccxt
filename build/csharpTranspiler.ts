@@ -3519,14 +3519,6 @@ class NewTranspiler {
         return null;
     }
 
-    // A callee outside the table keeps its argument untyped. No position exception is needed for
-    // a narrowed parameter: castCoreArgCallSites wraps every argument there with `((string)…)`/
-    // To*Arg, and coreArgShadowUseKind answers at that cast before asking about the callee.
-    coreArgShadowCalleeAllows (callee: string): boolean {
-        const name = callee.split ('.').pop () as string;
-        return CORE_ARG_SHADOW_CALLEES.indexOf (name) !== -1 || CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1;
-    }
-
     // classification of one occurrence: 'write', 'read', or '' when not provable
     coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean): string {
         const pre = line.slice (0, at);
@@ -3590,8 +3582,11 @@ class NewTranspiler {
         }
 
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            // a callee outside the table keeps its argument untyped (a narrowed parameter's
+            // call-site cast was already answered above)
             const callee = this.coreArgShadowCallee (line, at);
-            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0])) {
+            const name = callee === null ? '' : callee[0].split ('.').pop () as string;
+            if (callee !== null && (CORE_ARG_SHADOW_CALLEES.indexOf (name) !== -1 || CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1)) {
                 return 'read';
             }
             return '';
@@ -4595,15 +4590,6 @@ class NewTranspiler {
         }
     }
 
-    // true when the `((string)…)` wrap around this argument would only re-name the type the
-    // argument already has (CORE_ARG_CAST_EXEMPT_NAMES); the call then compiles unchanged.
-    coreArgCastExempt (content: string, at: number, arg: string): boolean {
-        if (CORE_ARG_CAST_EXEMPT_NAMES.indexOf (arg) === -1) {
-            return false;
-        }
-        return this.coreArgCastDeclaredType (content, at, arg) === 'string';
-    }
-
     // Drops the `((string)name)` wrap castCoreArgCallSites left on a `code`/`codeVar` argument already
     // typed `string` (same nearest-declaration proof): static type, overload and box are unchanged.
     // Runs after retypeCoreArgCopies.
@@ -4619,7 +4605,7 @@ class NewTranspiler {
                 const before = content[at - 1];
                 const after = content[at + needle.length];
                 const free = (before === undefined || !/[\w.]/.test (before)) && (after === undefined || !/\w/.test (after));
-                if (free && this.coreArgCastExempt (content, at, name)) {
+                if (free && this.coreArgCastDeclaredType (content, at, name) === 'string') {
                     content = content.slice (0, at) + name + content.slice (at + needle.length);
                     from = at + name.length;
                     continue;
