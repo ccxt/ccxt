@@ -1863,7 +1863,7 @@ export default class bitstamp extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -1893,7 +1893,7 @@ export default class bitstamp extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
         const request: Dict = {};
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;

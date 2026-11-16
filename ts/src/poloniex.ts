@@ -1277,11 +1277,10 @@ export default class poloniex extends Exchange {
     }
 
     override parseCurrency (currency: Dict): CurrencyInterface {
-        const entry = currency;
-        const id = this.safeString (entry, 'coin');
+        const id = this.safeString (currency, 'coin');
         const code = this.safeCurrencyCode (id);
         const networks: Dict = {};
-        const chains: Dict[] = this.safeList (entry, 'networkList', []);
+        const chains: Dict[] = this.safeList (currency, 'networkList', []);
         const chainsLength = chains.length;
         for (let j = 0; j < chainsLength; j++) {
             const chain = this.safeDict (chains, j);
@@ -1313,18 +1312,18 @@ export default class poloniex extends Exchange {
         }
         return this.safeCurrencyStructure ({
             'id': id,
-            'name': this.safeString (entry, 'name'),
+            'name': this.safeString (currency, 'name'),
             'code': code,
             'type': undefined,
             'precision': undefined,
-            'info': entry,
+            'info': currency,
             'networks': networks,
             'deposit': undefined,
             'withdraw': undefined,
             'active': undefined,
             'fee': undefined,
             'limits': undefined,
-            'margin': this.safeBool (entry, 'supportBorrow'),
+            'margin': this.safeBool (currency, 'supportBorrow'),
         });
     }
 
@@ -3561,8 +3560,8 @@ export default class poloniex extends Exchange {
         const timestamp = this.safeTimestamp (transactionValue, 'timestamp');
         const currencyId = this.safeString (transactionValue, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        let status = this.safeString (transactionValue, 'status', 'pending');
-        status = this.parseTransactionStatus (status) as string;
+        const rawStatus = this.safeString (transactionValue, 'status', 'pending');
+        const status = this.parseTransactionStatus (rawStatus);
         const txid = this.safeString (transactionValue, 'txid');
         let type: Str = 'deposit';
         if (this.safeString (transactionValue, 'withdrawalRequestsId') !== undefined) {
