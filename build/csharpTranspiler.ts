@@ -3267,11 +3267,8 @@ class NewTranspiler {
             return content;
         }
         const lines = content.split ('\n');
-        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
-        // consume typed cores into `object` locals and need the From* funnel like anyone else
-        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
-        // another typed core into an `object` local (okx FetchDepositAddress reads
-        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        // void `Task` and concrete `Task<...>` bodies are visited too: they can consume typed cores
+        // into `object` locals and need the From* funnel like anyone else
         const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ?]+>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
@@ -3334,25 +3331,14 @@ class NewTranspiler {
                     j = lastLine;
                     continue;
                 }
-                // RF-cs-2-d: the wrapper is unnecessary where the return operand's declared type is
+                // the wrapper is unnecessary where the return operand's declared type is
                 // already the helper's own (see csharpNativeCoreConversion)
                 const nativeConversion = isTyped
                     ? csharpNativeCoreConversion (wrapper, expr, content, lines.slice (i, bodyEnd + 1))
                     : (csharpHelperIsIdentity (wrapper, calledType) ? expr.trim () : '');
-                if (nativeConversion !== '') {
-                    const nativePad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
-                    const nativeTrailing = lines[lastLine].substring (semi + 1);
-                    lines[j] = `${nativePad}return ${nativeConversion};${nativeTrailing}`;
-                    for (let k = j + 1; k <= lastLine; k++) {
-                        lines[k] = null as any;
-                    }
-                    tailOk[j] = true;
-                    j = lastLine;
-                    continue;
-                }
                 const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
                 const trailing = lines[lastLine].substring (semi + 1);
-                lines[j] = `${pad}return ${wrapper}(${expr});${trailing}`;
+                lines[j] = `${pad}return ${(nativeConversion !== '') ? nativeConversion : `${wrapper}(${expr})`};${trailing}`;
                 for (let k = j + 1; k <= lastLine; k++) {
                     lines[k] = null as any;
                 }
