@@ -68,9 +68,14 @@ public partial class BaseExchange
             case "sha384":
                 signature = SignHMACSHA384(request, secretBytes);
                 break;
+            case "sha1":
+                signature = SignHMACSHA1(request, secretBytes);
+                break;
             case "md5":
                 signature = SignHMACMD5(request, secretBytes);
                 break;
+            default:
+                throw new ArgumentException("Unsupported HMAC algorithm: " + algorithm);
         }
 
         return digest == "hex" ? binaryToHex(signature) : Exchange.BinaryToBase64(signature);
@@ -279,6 +284,18 @@ public partial class BaseExchange
     public static byte[] SignHMACSHA512(byte[] data, byte[] secret)
     {
         using var encryptor = new HMACSHA512(secret);
+        var resultBytes = encryptor.ComputeHash(data);
+        return resultBytes;
+    }
+
+    public static byte[] SignHMACSHA1(string data, byte[] secret)
+    {
+        return SignHMACSHA1(Encoding.UTF8.GetBytes(data), secret);
+    }
+
+    public static byte[] SignHMACSHA1(byte[] data, byte[] secret)
+    {
+        using var encryptor = new HMACSHA1(secret);
         var resultBytes = encryptor.ComputeHash(data);
         return resultBytes;
     }
