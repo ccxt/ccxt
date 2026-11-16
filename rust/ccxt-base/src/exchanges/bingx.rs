@@ -6692,6 +6692,19 @@ impl BingxCore {
         }  else {
             let mut isTwapOrder: bool = self.safe_bool_k_opt(paramsStandard.clone(), "twap", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: Value = self.omit(paramsStandard, Value::Str("twap".into()), &[]);
+            if !(isTwapOrder) {
+                if (limit != Value::Null) {
+                    request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(1000)));
+                }
+                if (since != Value::Null) {
+                    request.insert("startTime".into(), since.clone());
+                }
+                let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+                if (until.is_some()) {
+                    request.insert("endTime".into(), Value::from(until));
+                    paramsOmitted = self.omit(paramsOmitted.clone(), Value::Str("until".into()), &[]);
+                }
+            }
             if isTwapOrder {
                 request.insert("pageIndex".into(), Value::Int(1));
                 request.insert("pageSize".into(), (if (limit == Value::Null) { Value::Int(100) } else { limit.clone() }));

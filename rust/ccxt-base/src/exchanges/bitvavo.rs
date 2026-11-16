@@ -579,17 +579,39 @@ impl BitvavoCore {
         m.insert("tierBased".to_string(), Value::Bool(true));
         m.insert("percentage".to_string(), Value::Bool(true));
         m.insert("taker".to_string(), self.parse_number(Value::Str("0.0025".into()), &[]));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0015".into()), &[]));
         m.insert("tiers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.0025".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".into()), &[]), self.parse_number(Value::Str("0.0020".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("250000".into()), &[]), self.parse_number(Value::Str("0.0016".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]),
-            self.parse_number(Value::Str("0.0010".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])])]));
+            Value::from(vec![self.parse_number(Value::Str("250000".into()), &[]), self.parse_number(Value::Str("0.0018".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0016".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]),
+            self.parse_number(Value::Str("0.0014".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0010".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".into()), &[]), self.parse_number(Value::Str("0.0002".into()), &[])])]));
         m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.0015".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000".into()), &[]), self.parse_number(Value::Str("0.0010".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("250000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]),
-            self.parse_number(Value::Str("0.0005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0003".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0.0003".into()), &[])])]));
+            Value::from(vec![self.parse_number(Value::Str("250000".into()), &[]), self.parse_number(Value::Str("0.0009".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]),
+            self.parse_number(Value::Str("0.0005".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0003".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]), self.parse_number(Value::Str("0.0001".into()), &[])]),
+            Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("100000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])])]));
+    m
+}));
+    m
+}));
+        m.insert("byCategory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("B".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0005".into()), &[]));
+    m
+}));
+        m.insert("C".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
+    m
+}));
+        m.insert("D".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0001".into()), &[]));
     m
 }));
     m
@@ -850,6 +872,14 @@ impl BitvavoCore {
 
     pub fn parse_markets(&self, mut markets: Value) -> Value {
         let mut result: Vec<Value> = Vec::new();
+        let mut defaultFees: Value = self.safe_dict_k(self.fees.clone(), "trading", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
+        let mut feesByCategory: Value = self.safe_dict_k(self.fees.clone(), "byCategory", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_452: bool = true;
@@ -864,6 +894,8 @@ impl BitvavoCore {
                 continue;
             }
             let mut status: Option<String> = self.safe_string_k(market.clone(), "status", &[]).as_str().map(str::to_owned);
+            let mut feeCategory: Option<String> = self.safe_string_k_opt(market.clone(), "feeCategory", &[]);
+            let mut fees: Value = self.safe_dict(feesByCategory.clone(), feeCategory.map(Value::from).unwrap_or(Value::Null), &[defaultFees.clone()]);
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -889,8 +921,8 @@ impl BitvavoCore {
         m.insert("expiryDatetime".to_string(), Value::Null);
         m.insert("strike".to_string(), Value::Null);
         m.insert("optionType".to_string(), Value::Null);
-        m.insert("taker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]));
-        m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
+        m.insert("taker".to_string(), self.safe_number_k(fees.clone(), "taker", &[]));
+        m.insert("maker".to_string(), self.safe_number_k(fees, "maker", &[]));
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "quantityDecimals", &[])]), &[]));
