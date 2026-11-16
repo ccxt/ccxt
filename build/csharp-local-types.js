@@ -10694,7 +10694,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -10878,6 +10878,59 @@ function calleeDeclaredResultLocal (csharp, declaration, context) {
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: result.cast } : undefined;
+}
+
+// ===== ral-77c8: `x + '<non-numeric literal>' [+ …]` over an unproven left operand =====
+//
+// `const messageHash = type + ':fetchBalanceSnapshot'` prints `add(type, ":fetchBalanceSnapshot")`
+// with `type` an untyped `object`, so add(object, object) runs and the chain's C# type is object.
+// Its innermost call hands back a string or null for EVERY left box: a string left concatenates,
+// an Int64 left throws on the `(Int64)b` unboxing of the string literal, a double left throws in
+// Convert.ToDouble (the literal is not a number in any culture: see literalIsNeverNumeric), and any
+// other box (null, bool, a collection) takes the final `return null`. Each outer `+` then has a
+// string-or-null left, which again yields a string or null (or throws inside the same call). So the
+// declaration names that box behind the exact `((string)(…))` cast back; the call is unchanged and
+// csharpLocalIsSafeToRetype re-checks every later read and write against `string?`.
+function literalIsNeverNumeric (text) {
+    if (typeof text !== 'string' || text.length === 0) {
+        return false;
+    }
+    // digits, separators, signs, exponent marks and blanks could parse (double.Parse with
+    // NumberStyles.Float | AllowThousands); so could the culture's NaN / Infinity spellings
+    if (/^[\s\d.,+\-eE]*$/.test (text) || /nan|infinity|∞/i.test (text)) {
+        return false;
+    }
+    return true;
+}
+
+function literalRightAddChainLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
+        return undefined;
+    }
+    let innermost = stripParens (declaration.initializer);
+    if (innermost?.kind !== ts.SyntaxKind.BinaryExpression || innermost.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    for (let left = stripParens (innermost.left); left?.kind === ts.SyntaxKind.BinaryExpression && left.operatorToken.kind === ts.SyntaxKind.PlusToken; left = stripParens (left.left)) {
+        innermost = left;
+    }
+    const firstRight = stripParens (innermost.right);
+    if (firstRight?.kind !== ts.SyntaxKind.StringLiteral || !literalIsNeverNumeric (firstRight.text)) {
+        return undefined;
+    }
+    // a left the module already proves a string prints a typed concat (no object add at all):
+    // the string rules own that declaration, and a cast there would be noise
+    const firstLeft = stripParens (innermost.left);
+    const leftType = csharpTypeOfValue (csharp, firstLeft, context);
+    if (leftType === 'string' || leftType === 'string?' || isProvablyStringOperand (csharp, firstLeft) || addChainLeafBoxType (csharp, firstLeft, context) !== undefined
+            || (typeof csharp.csharpNonNullStringOperandType === 'function' && csharp.csharpNonNullStringOperandType (firstLeft, undefined, true) === 'string')
+            || (typeof csharp.csharpConcatOperandPrintsString === 'function' && csharp.csharpConcatOperandPrintsString (firstLeft))) {
+        return undefined;
+    }
+    const type = 'string?';
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: 'string', castWhole: true } : undefined;
 }
 
 // ===== the `as any` receiver copies of the safeList* producers =====

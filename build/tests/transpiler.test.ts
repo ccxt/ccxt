@@ -197,3 +197,15 @@ describe ('cs-77c6-callee-declared-result-locals', () => {
         assert.doesNotMatch (poly, /object signed = await this\.signPerpsOp\(/);
     });
 });
+
+describe ('ral-77c8-literal-right-add-chain', () => {
+    test('pro kucoin / xt: `x + "<non-numeric literal>" [+ y]` over an object left prints string? behind the cast', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/kucoin.ts').content as string;
+        assert.match (kucoin, /string\? messageHash = \(\(string\)\(add\(type, ":fetchBalanceSnapshot"\)\)\);/);
+        assert.doesNotMatch (kucoin, /object messageHash = add\(type, ":fetchBalanceSnapshot"\);/);
+        const xt = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/xt.ts').content as string;
+        assert.match (xt, /string\? param = \(\(string\)\(add\(add\(name, "@"\), listenKey\)\)\);/);
+    });
+});
