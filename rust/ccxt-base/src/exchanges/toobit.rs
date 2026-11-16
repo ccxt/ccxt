@@ -2138,13 +2138,13 @@ impl Toobit {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (type_var.as_deref() == Some("spot")) {
             let __ws_arg_5 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await;
+            response = self.common_get_quote_v1_ticker24hr(&[__ws_arg_5]).await.into_list();
         }  else {
             let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await;
+            response = self.common_get_quote_v1_contract_ticker24hr(&[__ws_arg_6]).await.into_list();
         }
         //
         //    [
@@ -2167,7 +2167,7 @@ impl Toobit {
                         let mut i: i64 = 0;
             let mut __for_first_1132: bool = true;
             while { if !__for_first_1132 { i += 1; } __for_first_1132 = false; i < (response.len() as i64) } {
-            let mut ticker: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut ticker: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "s", &[]).as_str().map(str::to_owned);
             if (marketId.is_some()) && (self.markets_by_id.clone() != Value::Null) && (matches!((&self.markets_by_id, marketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 rows.push(ticker);
@@ -2476,7 +2476,7 @@ impl Toobit {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate)]).await;
+            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), Some("8h"), &[Value::from(&paramsPaginate)]).await;
         }
         if (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchFundingRateHistory() requires a symbol argument")));

@@ -1787,25 +1787,25 @@ impl Polymarket {
         }
         if (action.as_deref() == Some("unsub")) {
             let mut topic: Option<String> = self.safe_string_k(&pending, "topic", &[]).as_str().map(str::to_owned);
-            let mut symbol: Option<String> = self.safe_string_k_opt(&pending, "symbol", &[]);
+            let mut symbol: Option<String> = self.safe_string_k(&pending, "symbol", &[]).as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 if (topic.as_deref() == Some("orderbook")) {
-                    if (self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
-                        CacheStore::forget(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                    if (self.orderbooks.has(&symbol)) {
+                        CacheStore::forget(&mut self.orderbooks, &symbol);
                     }
                 }  else if (topic.as_deref() == Some("trades")) {
-                    if (self.trades.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
-                        CacheStore::forget(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                    if (self.trades.has(&symbol)) {
+                        CacheStore::forget(&mut self.trades, &symbol);
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
-                    if (matches!((&self.tickers, &symbol.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol.clone().map(Value::from).unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if (matches!((&self.tickers, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }  else if (topic.as_deref() == Some("ohlcv")) {
                     let mut timeframe: Option<String> = self.safe_string_k(&pending, "timeframe", &[]).as_str().map(str::to_owned);
-                    if (timeframe.is_some()) && (CacheShelves::has(&self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null))) {
-                        if (self.ohlcvs.shelf(&symbol.clone().map(Value::from).unwrap_or(Value::Null)).has(&timeframe)) {
-                            CacheShelves::forget2(&mut self.ohlcvs, &symbol.clone().map(Value::from).unwrap_or(Value::Null), &timeframe);
+                    if (timeframe.is_some()) && (CacheShelves::has(&self.ohlcvs, &symbol)) {
+                        if (self.ohlcvs.shelf(&symbol).has(&timeframe)) {
+                            CacheShelves::forget2(&mut self.ohlcvs, &symbol, &timeframe);
                         }
                     }
                 }

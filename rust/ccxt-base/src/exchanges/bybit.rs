@@ -5178,7 +5178,7 @@ impl Bybit {
             parsedSymbols = Value::from(vec![]);
             let mut defaultType: Option<String> = self.handle_market_type_and_params(Value::Str("fetchTickers".into()), None, &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
-            let mut currentType: Value = Value::Null;
+            let mut currentType: Option<String> = None;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_505: bool = true;
@@ -5192,9 +5192,9 @@ impl Bybit {
                 }  else {
                     market = Some(match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 }
-                if (currentType == Value::Null) {
-                    currentType = self.safe_string_k(&market, "type", &[]);
-                }  else if (self.safe_string_k(&market, "type", &[]).as_str() != currentType.as_str()) {
+                if (currentType.is_none()) {
+                    currentType = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
+                }  else if ((currentType.as_deref() != self.safe_string_k(&market, "type", &[]).as_str())) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchTickers can only accept a list of symbols of the same type")));
                 }
                 if matches!(self.safe_bool_k(&market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
@@ -5383,7 +5383,7 @@ impl Bybit {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(1000)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = Value::Map({

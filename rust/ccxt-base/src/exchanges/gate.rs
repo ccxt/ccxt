@@ -5394,22 +5394,22 @@ if _try_result.is_err() {
         let requestqueryVariable: Vec<Value> = self.prepare_request(Some(&market), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestqueryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = requestqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot || ((market).margin == Some(true)) {
             let __ws_arg_13 = self.extend(&request, &[&query]);
-            response = self.public_spot_get_tickers(&[__ws_arg_13]).await;
+            response = self.public_spot_get_tickers(&[__ws_arg_13]).await.into_list();
         }  else if (market).swap {
             let __ws_arg_14 = self.extend(&request, &[&query]);
-            response = self.public_futures_get_settle_tickers(&[__ws_arg_14]).await;
+            response = self.public_futures_get_settle_tickers(&[__ws_arg_14]).await.into_list();
         }  else if (market).future {
             let __ws_arg_15 = self.extend(&request, &[&query]);
-            response = self.public_delivery_get_settle_tickers(&[__ws_arg_15]).await;
+            response = self.public_delivery_get_settle_tickers(&[__ws_arg_15]).await.into_list();
         }  else if (market).option {
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             let mut optionParts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
             std::sync::Arc::make_mut(&mut request).insert("underlying".into(), self.safe_string(&optionParts, Value::Int(0), &[]));
             let __ws_arg_16 = self.extend(request, &[&query]);
-            response = self.public_options_get_tickers(&[__ws_arg_16]).await;
+            response = self.public_options_get_tickers(&[__ws_arg_16]).await.into_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTicker() not support this market type")));
         }
@@ -5420,7 +5420,7 @@ if _try_result.is_err() {
                                 let mut i: i64 = 0;
                 let mut __for_first_697: bool = true;
                 while { if !__for_first_697 { i += 1; } __for_first_697 = false; i < (response.len() as i64) } {
-                let mut entry: Value = get_value(&response, &Value::Int(i));
+                let mut entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut entryName: Option<String> = self.safe_string_k(entry.clone(), "name", &[]).as_str().map(str::to_owned);
                 if (entryName == optionMarketId) {
                     ticker = entry;
@@ -5429,7 +5429,7 @@ if _try_result.is_err() {
             }
             }
         }  else {
-            ticker = self.safe_dict(response, Value::Int(0), &[]);
+            ticker = self.safe_dict(&response, Value::Int(0), &[]);
         }
         if (ticker == Value::Null) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchTicker() returned empty response")));
@@ -6015,7 +6015,7 @@ if _try_result.is_err() {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(1000)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(1000)]).await;
         }
         if (market).option {
             return self.fetch_option_ohlcv(symbol.as_str().unwrap_or_default(), &[timeframe.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
@@ -6140,7 +6140,7 @@ if _try_result.is_err() {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchFundingRateHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Str("8h".into()), Value::from(&paramsPaginate)]).await;
+            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), Some("8h"), &[Value::from(&paramsPaginate)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {
@@ -10320,7 +10320,7 @@ if _try_result.is_err() {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOpenInterestHistory".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(100)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOpenInterestHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(100)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if !(market).swap {

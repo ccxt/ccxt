@@ -3807,9 +3807,9 @@ if _try_result.is_err() {
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
             // the subscription of every request sent keeps its id, so the request this error answers is found
             // by it. A failed subscribe or auth is forgotten, so that the next watch sends it again
-            let mut requestId: Value = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
+            let mut requestId: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             let mut handled: bool = false;
-            if (requestId != Value::Null) {
+            if (requestId.is_some()) {
                 let mut subscribeHashes: Vec<Value> = __ch.subscription_keys();
                 {
                                         let mut i: i64 = 0;
@@ -3817,7 +3817,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     while { if !__for_first_619 { i += 1; } __for_first_619 = false; i < (subscribeHashes.len() as i64) } {
                     let mut subscribeHash: Option<String> = subscribeHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                     let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), subscribeHash.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
-                    if (self.safe_string_k(&subscription, "id", &[]).as_str() == requestId.as_str()) {
+                    if ((requestId.as_deref() == self.safe_string_k(&subscription, "id", &[]).as_str())) {
                         handled = true;
                         __ch.remove_subscription(subscribeHash.as_deref());
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on

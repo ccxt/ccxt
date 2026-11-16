@@ -2906,8 +2906,8 @@ impl Nado {
                                 let mut i: i64 = 0;
                 let mut __for_first_516: bool = true;
                 while { if !__for_first_516 { i += 1; } __for_first_516 = false; i < (symbols.len() as i64) } {
-                let mut tickerSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &tickerSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut tickerSymbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("bidask:")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
@@ -2921,8 +2921,8 @@ impl Nado {
                                 let mut i: i64 = 0;
                 let mut __for_first_517: bool = true;
                 while { if !__for_first_517 { i += 1; } __for_first_517 = false; i < (symbols.len() as i64) } {
-                let mut bidaskSymbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &bidaskSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut bidaskSymbol: Option<String> = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, bidaskSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
             }
             }
         }  else if (Value::Int(messageHash.as_str().and_then(|__s| __s.find("orders")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {

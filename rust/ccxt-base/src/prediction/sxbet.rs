@@ -2603,7 +2603,7 @@ impl Sxbet {
             outcomeObj = self.outcome(outcome.clone());
             request.insert("marketHash".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "marketHash", &[Value::Str("".into())]));
         }
-        let mut wantedOutcomeId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
+        let mut wantedOutcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
         if (since != Value::Null) {
             request.insert("startDate".into(), self.iso8601(since));
         }
@@ -2626,7 +2626,7 @@ impl Sxbet {
             let mut __for_first_1515: bool = true;
             while { if !__for_first_1515 { i += 1; } __for_first_1515 = false; i < rawTradesLength } {
             let mut settlement: crate::value::Dict = self.parse_settlement(rawTrades.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
-            if (wantedOutcomeId.is_none()) || (self.safe_string_k(&settlement, "outcomeId", &[]).as_str() == wantedOutcomeId.as_deref()) {
+            if (wantedOutcomeId.is_none()) || ((wantedOutcomeId.as_deref() == self.safe_string_k(&settlement, "outcomeId", &[]).as_str())) {
                 result.push(Value::Dict(settlement));
             }
         }
@@ -3531,7 +3531,7 @@ impl Sxbet {
  */
     pub fn apply_sxbet_ws_snapshot(&self, snapshot: impl Into<crate::Value>) -> Value {
         let mut snapshot: Value = snapshot.into();
-        let mut marketHash: Option<String> = self.safe_string_k_opt(snapshot.clone(), "marketHash", &[]);
+        let mut marketHash: Option<String> = self.safe_string_k(snapshot.clone(), "marketHash", &[]).as_str().map(str::to_owned);
         let mut version: Value = self.safe_string_k(snapshot.clone(), "version", &[Value::Str("".into())]);
         let mut refreshed: Vec<Value> = Vec::new();
         if (marketHash.is_none()) {
@@ -3558,12 +3558,12 @@ impl Sxbet {
             let mut __for_first_1524: bool = true;
             while { if !__for_first_1524 { i += 1; } __for_first_1524 = false; i < watchedSymsLength } {
             let mut sym: Option<String> = watchedSyms.get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            if (self.safe_string(&watchedBooks, Value::from(sym.as_deref()), &[]).as_str() != marketHash.as_deref()) {
+            if ((marketHash.as_deref() != self.safe_string(&watchedBooks, Value::from(sym.as_deref()), &[]).as_str())) {
                 continue;
             }
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(Value::from(sym.as_deref()));
             let mut outcomeId: Option<String> = self.safe_string_k(&outcomeObj, "outcomeId", &[]).as_str().map(str::to_owned);
-            let mut isOutcomeOne: bool = (outcomeId.as_deref() == marketHash.as_deref());
+            let mut isOutcomeOne: bool = outcomeId == marketHash;
             let mut sides: crate::value::Dict = self.parse_sxbet_v3_book_sides(snapshot.clone(), isOutcomeOne).into_dict();
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&sym);
             if (orderbook.is_none()) {
@@ -3710,7 +3710,7 @@ impl Sxbet {
             let mut __for_first_1528: bool = true;
             while { if !__for_first_1528 { i += 1; } __for_first_1528 = false; i < rowsLength } {
             let mut entry: crate::value::Dict = self.safe_dict(rows.clone(), Value::Int(i), &[]).into_dict();
-            let mut marketHash: Option<String> = self.safe_string_k_opt(&entry, "marketHash", &[]);
+            let mut marketHash: Option<String> = self.safe_string_k(&entry, "marketHash", &[]).as_str().map(str::to_owned);
             if (marketHash.is_none()) {
                 continue;
             }
@@ -3745,7 +3745,7 @@ impl Sxbet {
                 let mut __for_first_1527: bool = true;
                 while { if !__for_first_1527 { j += 1; } __for_first_1527 = false; j < watchedSymsLength } {
                 let mut sym: Option<String> = watchedSyms.get(j as usize).and_then(Value::as_str).map(str::to_owned);
-                if (self.safe_string(&watchedTickers, sym.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str() != marketHash.as_deref()) {
+                if ((marketHash.as_deref() != self.safe_string(&watchedTickers, sym.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str())) {
                     continue;
                 }
                 let mut outcomeObj: Option<crate::types::Market> = self.outcome(sym.clone().map(Value::from).unwrap_or(Value::Null));

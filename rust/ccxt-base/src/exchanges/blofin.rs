@@ -1918,7 +1918,7 @@ impl Blofin {
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&query), Value::Int(100)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&query), Value::Int(100)]).await;
         }
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100); // default 100, max 100
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3662,8 +3662,8 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut clientId: Value = self.safe_string_k(params.clone(), "clientId", &[]);
-        if (id == Value::Null) && (clientId == Value::Null) {
+        let mut clientId: Option<String> = self.safe_string_k(params.clone(), "clientId", &[]).as_str().map(str::to_owned);
+        if (id == Value::Null) && (clientId.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchWithdrawal() requires an id argument or a params[\"clientId\"]")));
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -3694,15 +3694,15 @@ impl Blofin {
             if (id != Value::Null) {
                 matches = (self.safe_string_k(entry.clone(), "withdrawId", &[]).as_str() == id.as_str());
             }  else {
-                matches = (self.safe_string_k(entry.clone(), "clientId", &[]).as_str() == clientId.as_str());
+                matches = (clientId.as_deref() == self.safe_string_k(entry.clone(), "clientId", &[]).as_str());
             }
             if matches {
                 return self.parse_transaction(entry, currency.as_ref());
             }
         }
         }
-        let mut reference: Value = (if (id != Value::Null) { id.clone() } else { clientId });
-        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchWithdrawal() could not find withdrawal ").into()), reference)));
+        let mut reference: Option<String> = (if (id != Value::Null) { id.as_str().map(str::to_owned) } else { clientId });
+        panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchWithdrawal() could not find withdrawal ").into()), reference.as_deref().unwrap_or("null"))));
 
     Value::Null
 }

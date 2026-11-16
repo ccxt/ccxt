@@ -1400,7 +1400,7 @@ impl Poloniex {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(500)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(500)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -3050,16 +3050,16 @@ impl Poloniex {
                 m
             })]).into_dict();
             // the request body is a bare list, so there is no room for common params - extend each order with them instead
-            let mut extendedParams: Value = self.extend(orderParams, &[params.clone()]);
+            let mut extendedParams: crate::value::Dict = self.extend(orderParams, &[params.clone()]).into_dict();
             let mut request: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("symbol".to_string(), marketInner.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
                     m.insert("side".to_string(), self.safe_string_upper_k(&rawOrder, "side", &[]));
                 m
             });
-            { let __destr_tmp: Vec<Value> = self.order_request(symbol.as_str(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), Value::from(amount), request.clone(), &[Value::from(price), extendedParams.clone()]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
-                extendedParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut merged: crate::value::Dict = self.extend(request, &[extendedParams]).into_dict();
+            { let __destr_tmp: Vec<Value> = self.order_request(symbol.as_str(), type_var.as_deref().unwrap_or_default(), side.as_deref().unwrap_or_default(), Value::from(amount), request.clone(), &[Value::from(price), Value::from(&extendedParams)]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null);
+                extendedParams = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            let mut merged: crate::value::Dict = self.extend(request, &[&extendedParams]).into_dict();
             if isContract {
                 // unlike the single-order endpoint, the batch endpoint refuses to apply server-side defaults: "Param error mgnMode and posSide must be present and not empty"
                 if !(merged.contains_key("mgnMode")) {

@@ -5529,7 +5529,7 @@ if _try_result.is_err() {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol.clone(), since.clone(), limit, timeframe.clone(), Value::from(&paramsPaginate), Value::Int(299)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(299)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -6241,7 +6241,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut accountId: Option<String> = self.safe_string2(params.clone(), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, &["account_id", "accountId"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["account_id", "accountId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -6255,13 +6255,13 @@ if _try_result.is_err() {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " deposit() requires an account_id (or accountId) parameter OR a currency code argument")));
             }
-            let mut foundAccountId: Option<String> = self.find_account_id(code.as_str(), &[paramsOmitted.clone()]).await.as_str().map(str::to_owned);
+            let mut foundAccountId: Option<String> = self.find_account_id(code.as_str(), &[Value::from(&paramsOmitted)]).await.as_str().map(str::to_owned);
             if (foundAccountId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " deposit() could not find account id for ").into()), code)));
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_56 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_56 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v2_private_post_accounts_account_id_deposits(&[__ws_arg_56]).await.into_dict();
         //
         //     {
@@ -6331,7 +6331,7 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut accountId: Option<String> = self.safe_string2(params.clone(), Value::Str("account_id".into()), Value::Str("accountId".into()), &[]).as_str().map(str::to_owned);
-        let mut paramsOmitted: Value = self.omit(params, &["account_id", "accountId"], &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, &["account_id", "accountId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("account_id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -6342,13 +6342,13 @@ if _try_result.is_err() {
             if (code == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchDeposit() requires an account_id (or accountId) parameter OR a currency code argument")));
             }
-            let mut foundAccountId: Option<String> = self.find_account_id(code.as_str(), &[paramsOmitted.clone()]).await.as_str().map(str::to_owned);
+            let mut foundAccountId: Option<String> = self.find_account_id(code.as_str(), &[Value::from(&paramsOmitted)]).await.as_str().map(str::to_owned);
             if (foundAccountId.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchDeposit() could not find account id for ").into()), code)));
             }
             request.insert("account_id".into(), foundAccountId.map(Value::from).unwrap_or(Value::Null));
         }
-        let __ws_arg_57 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_57 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.v2_private_get_accounts_account_id_deposits_deposit_id(&[__ws_arg_57]).await.into_dict();
         //
         //     {

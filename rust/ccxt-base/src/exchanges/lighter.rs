@@ -2086,15 +2086,15 @@ if _try_result.is_err() {
             if (type_var.as_deref() == Some("perp")) {
                 type_var = Some("swap".to_string());
             }
-            let mut marketSymbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
-            let mut baseId: Value = marketSymbol.clone().map(Value::from).unwrap_or(Value::Null);
-            if (marketSymbol.is_some()) && (Value::Int(marketSymbol.as_deref().and_then(|__s| __s.find("/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Value::Int(-1).as_f64()) {
+            let mut marketSymbol: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            let mut baseId: Option<String> = marketSymbol.clone();
+            if (marketSymbol.is_some()) && (marketSymbol.as_deref().unwrap_or_default().contains("/")) {
                 let mut symbolParts: Vec<Value> = Value::Array(if let Some(__s) = marketSymbol.as_deref() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-                baseId = symbolParts.get(0).cloned().unwrap_or(Value::Null);
+                baseId = symbolParts.get(0).and_then(Value::as_str).map(str::to_owned);
             }
             let mut quoteId: String = "USDC".to_string();
             let mut settleId: Option<String> = (if (type_var.as_deref() == Some("swap")) { Some("USDC".to_string()) } else { None });
-            let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
+            let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.clone()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
@@ -2116,7 +2116,7 @@ if _try_result.is_err() {
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("baseId".to_string(), baseId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));

@@ -940,7 +940,7 @@ impl Krakenfutures {
             let mut __for_first_866: bool = true;
             while { if !__for_first_866 { i += 1; } __for_first_866 = false; i < (instruments.len() as i64) } {
             let mut market: crate::value::Dict = instruments.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut id: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
+            let mut id: Option<String> = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
             let mut marketType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
             let mut type_var: Option<String> = None;
             let mut index: bool = marketType.as_deref().unwrap_or_default().contains(" index");
@@ -958,7 +958,7 @@ impl Krakenfutures {
             }
             let mut swap: bool = type_var.as_deref() == Some("swap");
             let mut future: bool = type_var.as_deref() == Some("future");
-            let mut symbol: Value = id.clone().map(Value::from).unwrap_or(Value::Null);
+            let mut symbol: Option<String> = id.clone();
             let mut split: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut splitMarket: String = self.safe_string(&split, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut baseId: String = ({ let (__l, __b, __e) = (splitMarket.chars().count() as i64, 0, ((((splitMarket.chars().count() as i64)) - 3))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); splitMarket.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() });
@@ -969,7 +969,7 @@ impl Krakenfutures {
                 continue;
             }
             // swap == perpetual
-            let mut settle: Value = Value::Null;
+            let mut settle: Option<String> = None;
             let mut settleId: Option<String> = None;
             let mut cvtp: Option<String> = self.safe_string_k(&market, "contractValueTradePrecision", &[]).as_str().map(str::to_owned);
             let mut amountPrecision: Option<f64> = self.parse_number(self.integer_precision_to_amount(cvtp.map(Value::from).unwrap_or(Value::Null)), &[]).as_f64();
@@ -979,27 +979,27 @@ impl Krakenfutures {
             if swapOrFutures {
                 let mut exchangeType: Option<String> = self.safe_string_k(&market, "type", &[]).as_str().map(str::to_owned);
                 if (exchangeType.as_deref() == Some("futures_inverse")) {
-                    settle = base.clone().map(Value::from).unwrap_or(Value::Null);
+                    settle = base.clone();
                     settleId = Some(baseId.clone());
                     inverse = Some(true);
                 }  else {
-                    settle = quote.clone().map(Value::from).unwrap_or(Value::Null);
+                    settle = quote.clone();
                     settleId = Some(quoteId.clone());
                     inverse = Some(false);
                 }
                 linear = Some(!(inverse == Some(true)));
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into());
+                symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")));
                 if future {
-                    symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])).into());
+                    symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), self.yymmdd(Value::from(expiry), &[])));
                 }
             }
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("symbol".to_string(), symbol);
+                    m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("settle".to_string(), settle);
+                    m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
                     m.insert("baseId".to_string(), Value::from(baseId));
                     m.insert("quoteId".to_string(), Value::from(quoteId));
                     m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
@@ -1558,7 +1558,7 @@ impl Krakenfutures {
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if paginate {
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::from(&paramsPaginate), Value::Int(2000)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsPaginate), Value::Int(2000)]).await;
         }
         let mut priceType: String = self.safe_string_k(&paramsPaginate, "price", &[Value::Str("trade".into())]).as_str().unwrap_or("trade").to_string();
         if (priceType == "index") {

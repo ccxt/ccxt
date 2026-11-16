@@ -2353,14 +2353,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // The envelope T is the order update time; o.T is the trade time.
             let mut updateTimestamp: Option<i64> = (match __pro_message.get("T") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
             if (updateTimestamp.is_some()) && (updateTimestamp > Some(0)) {
-                let mut orderId: Option<String> = self.safe_string_k_opt(&parsedOrder, "id", &[]);
+                let mut orderId: Option<String> = self.safe_string_k(&parsedOrder, "id", &[]).as_str().map(str::to_owned);
                 if (orderId.is_some()) {
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_97: bool = true;
                         while { if !__for_first_97 { i += 1; } __for_first_97 = false; (i as f64) < Value::Int(CacheSlot::size(&stored)).as_f64().unwrap_or(f64::NAN) } {
                         let mut previousOrder: Value = get_value(&Value::from(&stored), &Value::Int(i));
-                        if (self.safe_string_k(previousOrder.clone(), "id", &[]).as_str() == orderId.as_deref()) && (self.safe_string_k(previousOrder.clone(), "symbol", &[]).as_str() == self.safe_string_k(&parsedOrder, "symbol", &[]).as_str()) {
+                        if ((orderId.as_deref() == self.safe_string_k(previousOrder.clone(), "id", &[]).as_str())) && (self.safe_string_k(previousOrder.clone(), "symbol", &[]).as_str() == self.safe_string_k(&parsedOrder, "symbol", &[]).as_str()) {
                             let mut previousTimestamp: Option<i64> = self.safe_integer_k(previousOrder, "lastUpdateTimestamp", &[]).as_i64();
                             if (previousTimestamp.is_some()) && ((updateTimestamp.is_some() && previousTimestamp.is_some() && updateTimestamp < previousTimestamp)) {
                                 return;

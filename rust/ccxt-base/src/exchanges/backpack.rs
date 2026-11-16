@@ -1886,13 +1886,13 @@ impl Backpack {
  */
     pub fn parse_conversion(&self, order: impl Into<crate::Value>, fromCurrency: Option<&crate::types::Currency>, toCurrency: Option<&crate::types::Currency>) -> Value {
         let mut order: Value = order.into();
-        let mut fromCode: Option<String> = self.safe_string_k_opt(&fromCurrency, "code", &[]);
+        let mut fromCode: Option<String> = self.safe_string_k(&fromCurrency, "code", &[]).as_str().map(str::to_owned);
         let mut toCode: Option<String> = self.safe_string_k(&toCurrency, "code", &[]).as_str().map(str::to_owned);
         if (fromCode.is_none()) || (toCode.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " parseConversion() requires source and destination currencies")));
         }
         let mut market: Value = self.rfq_conversion_market(fromCode.as_deref().unwrap_or_default(), toCode.as_deref().unwrap_or_default());
-        let mut fromIsBase: bool = fromCode.as_deref() == self.safe_string_k(market, "base", &[]).as_str();
+        let mut fromIsBase: bool = (fromCode.as_deref() == self.safe_string_k(market, "base", &[]).as_str());
         let mut filled: Option<f64> = self.safe_number_k(order.clone(), "filled", &[]).as_f64();
         let mut cost: Option<f64> = self.safe_number_k(order.clone(), "cost", &[]).as_f64();
         let mut fee: crate::value::Dict = self.safe_dict_k(order.clone(), "fee", &[]).into_dict();

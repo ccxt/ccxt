@@ -2402,12 +2402,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.clean_cache(Value::Map(tickersStructure));
             return;
         }
-        let mut symbol: Value = self.safe_symbol(marketId, None, &[]);
-        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[symbol.clone()]);
+        let mut symbol: Option<String> = self.safe_symbol(marketId, None, &[]).as_str().map(str::to_owned);
+        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from(symbol.as_deref())]);
         let mut messageHash: String = format!("{}{}", "unsubscribe:", subMessageHash.as_deref().unwrap_or("null"));
         self.clean_unsubscription(client, subMessageHash.map(Value::from).unwrap_or(Value::Null), Value::from(messageHash), &[]);
-        if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+        if (matches!((&self.tickers, symbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+            if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, symbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
         }
 }
 

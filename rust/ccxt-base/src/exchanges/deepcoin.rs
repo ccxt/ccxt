@@ -1336,7 +1336,7 @@ impl Deepcoin {
                     m.insert("calculateUntil".to_string(), Value::Bool(true));
                 m
             })]).into_dict();
-            return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), Value::Dict(paramsExtended), Value::from(maxLimit)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::Dict(paramsExtended), Value::from(maxLimit)]).await;
         }
         let mut bar: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({

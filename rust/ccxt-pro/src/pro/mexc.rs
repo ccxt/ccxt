@@ -2675,8 +2675,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut subMessageHash: String = messageHash.replace("unsubscribe:", "");
             self.clean_unsubscription(client.clone(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
             if messageHash.contains("ticker") {
-                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:ticker:", ""));
-                if symbol.as_str().unwrap_or("").contains("unsubscribe") {
+                let mut symbol: String = messageHash.replace("unsubscribe:ticker:", "");
+                if symbol.contains("unsubscribe") {
                     // unWatchTickers
                     let mut symbols: Vec<Value> = Value::Array(self.tickers.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
                     {
@@ -2686,13 +2686,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbols.get(j as usize).cloned().unwrap_or(Value::Null)) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
                     }
                     }
-                }  else if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                }  else if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else if messageHash.contains("bidask") {
-                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:bidask:", ""));
-                if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut symbol: String = messageHash.replace("unsubscribe:bidask:", "");
+                if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else if messageHash.contains("candles") {
                 let mut splitHashes: crate::value::List = Value::Array(messageHash.split(":").map(Value::from).collect()).into_list();
@@ -2715,9 +2715,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     CacheStore::forget(&mut self.trades, &symbol);
                 }
             }  else if messageHash.contains("fundingRate") {
-                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:fundingRate:", ""));
-                if (matches!((&self.fundingRates, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.fundingRates, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut symbol: String = messageHash.replace("unsubscribe:fundingRate:", "");
+                if (matches!((&self.fundingRates, Some(symbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.fundingRates, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }
         }

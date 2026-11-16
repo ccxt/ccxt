@@ -931,16 +931,16 @@ impl Mudrex {
 
     pub fn parse_market(&self, asset: impl Into<crate::Value>) -> Value {
         let mut asset: Value = asset.into();
-        let mut ms: Option<String> = self.safe_string_k_opt(asset.clone(), "symbol", &[]);
-        let mut base: Value = ms.clone().map(Value::from).unwrap_or(Value::Null);
-        if (ms.is_some()) && (ms.as_deref().unwrap_or("").ends_with("USDT")) {
-            base = ms.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 4).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut ms: Option<String> = self.safe_string_k(asset.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = ms.clone();
+        if (ms.is_some()) && (ms.as_deref().unwrap_or_default().ends_with("USDT")) {
+            base = (if let Some(__s) = ms.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, -4); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
         }
         let mut quote: String = "USDT".to_string();
         let mut settle: String = "USDT".to_string();
         let mut symbol: Option<String> = None;
-        if (base != Value::Null) {
-            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()), ":").into()), settle));
+        if (base.is_some()) {
+            symbol = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote).into()), ":").into()), settle));
         }
         let mut priceStep: String = self.safe_string_k(asset.clone(), "price_step", &[Value::Str("0.01".into())]).as_str().unwrap_or("0.01").to_string();
         let mut qtyStep: String = self.safe_string_k(asset.clone(), "quantity_step", &[Value::Str("0.001".into())]).as_str().unwrap_or("0.001").to_string();
@@ -949,10 +949,10 @@ impl Mudrex {
         m.insert("id".to_string(), ms.map(Value::from).unwrap_or(Value::Null));
         m.insert("lowercaseId".to_string(), Value::Null);
         m.insert("symbol".to_string(), symbol.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("base".to_string(), base.clone());
+        m.insert("base".to_string(), base.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), Value::from(quote));
         m.insert("settle".to_string(), Value::from(settle));
-        m.insert("baseId".to_string(), base);
+        m.insert("baseId".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), Value::Str("USDT".into()));
         m.insert("settleId".to_string(), Value::Str("USDT".into()));
         m.insert("type".to_string(), Value::Str("swap".into()));

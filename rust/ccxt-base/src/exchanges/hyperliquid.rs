@@ -5375,7 +5375,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut fills: Vec<Value> = Vec::new();
         if (matches!(&response, Value::Arr(_))) {
-            let mut user: Option<String> = self.safe_string_lower_k_opt(&request, "user", &[]);
+            let mut user: Option<String> = self.safe_string_lower_k(&request, "user", &[]).as_str().map(str::to_owned);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_824: bool = true;
@@ -5389,7 +5389,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m
                 })]).into_dict();
                 // liquidator fills carry the liquidated counterparty here
-                if (self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str() == user.as_deref()) {
+                if ((user.as_deref() == self.safe_string_lower_k(&liquidation, "liquidatedUser", &[]).as_str())) {
                     fills.push(Value::Dict(fill));
                 }
             }

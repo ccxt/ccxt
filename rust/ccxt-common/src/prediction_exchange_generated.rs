@@ -163,17 +163,17 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
         // serve them later without another request
         self.set_events(events.clone());
         let mut result: Value = events;
-        let mut eventId: Value = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        let mut slug: Value = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
-        if (eventId != Value::Null) || (slug != Value::Null) {
+        let mut eventId: Option<String> = (match params.get("eventId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        let mut slug: Option<String> = (match params.get("slug") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
+        if (eventId.is_some()) || (slug.is_some()) {
             let mut filtered: crate::value::List = std::sync::Arc::new(Vec::new());
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_187: bool = true;
                 while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (result.len() as i64) } {
                 let mut event: Value = self.safe_value(result.clone(), Value::Int(i), &[]);
-                let mut idMatch: bool = (eventId != Value::Null) && (self.safe_string_k(event.clone(), "id", &[]).as_str() == eventId.as_str());
-                let mut slugMatch: bool = (slug != Value::Null) && (self.safe_string_k(event.clone(), "slug", &[]).as_str() == slug.as_str());
+                let mut idMatch: bool = (eventId.is_some()) && ((eventId.as_deref() == self.safe_string_k(event.clone(), "id", &[]).as_str()));
+                let mut slugMatch: bool = (slug.is_some()) && ((slug.as_deref() == self.safe_string_k(event.clone(), "slug", &[]).as_str()));
                 if idMatch || slugMatch {
                     std::sync::Arc::make_mut(&mut filtered).push(event);
                 }

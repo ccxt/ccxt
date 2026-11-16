@@ -1356,11 +1356,11 @@ impl Toobit {
         if (marketType.as_str() == Some("spot")) {
             type_var = "spot".to_string();
         }
-        let __ws_arg_6 = self.safe_dict(self.balance.clone(), Value::from(type_var.clone()), &[Value::Map({
+        let __ws_arg_6 = self.safe_dict(self.balance.clone(), Value::from(type_var.as_str()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_6]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.clone(), __be_tmp); } }
+        { let __be_tmp = self.extend(crate::types::IntoRaw::into_raw(response), &[__ws_arg_6]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(type_var.to_string(), __be_tmp); } }
         // don't remove the future from the .futures cache
         if (__ch.has_future(&messageHash)) {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(&messageHash);

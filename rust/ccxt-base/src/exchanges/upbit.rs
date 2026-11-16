@@ -2143,7 +2143,7 @@ impl Upbit {
         if postOnly && (selfTradePrevention.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " editOrder() does not support post_only and selfTradePrevention simultaneously.")));
         }
-        let mut paramsOmitted: Value = self.omit(params, Value::Str("clientOrderId".into()), &[]);
+        let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("clientOrderId".into()), &[]).into_dict();
         if (id != Value::Null) {
             request.insert("prev_order_uuid".into(), id.clone());
         }  else if (prevClientOrderId.is_some()) {
@@ -2161,7 +2161,7 @@ impl Upbit {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 request.insert("new_ord_type".into(), Value::Str("price".into()));
-                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), paramsOmitted.clone()]).as_str().map(str::to_owned);
+                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), Value::from(&paramsOmitted)]).as_str().map(str::to_owned);
                 request.insert("new_price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
@@ -2173,7 +2173,7 @@ impl Upbit {
         }  else {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " editOrder() supports only limit or market types in the type argument.")));
         }
-        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(paramsOmitted.clone(), &["newOrdType", "new_ord_type"], &[]) } else { paramsOmitted }).into_dict();
+        let mut paramsOrdType: crate::value::Dict = (if (customType.as_deref() == Some("best")) { self.omit(&paramsOmitted, &["newOrdType", "new_ord_type"], &[]).into_dict() } else { paramsOmitted });
         if (customType.as_deref() == Some("best")) {
             request.insert("new_ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {

@@ -904,8 +904,8 @@ impl Limitless {
         // limitless reports lifetime volume (human-readable in `volumeFormatted`), not a 24h figure
         let mut volume24h: Option<f64> = self.safe_number_k(raw.clone(), "volumeFormatted", &[]).as_f64();
         // resolution: winningOutcomeIndex is null until the market resolves, then the winning outcome index
-        let mut winningOutcomeIndex: Value = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]);
-        let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex != Value::Null));
+        let mut winningOutcomeIndex: Option<i64> = self.safe_integer_k(raw.clone(), "winningOutcomeIndex", &[]).as_i64();
+        let mut marketResolved: Value = (Value::Bool(winningOutcomeIndex.is_some()));
         let mut resolvedOutcome: Option<String> = None;
         let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(groupId.as_deref()), slug.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // amount precision comes from the collateral token decimals (USDC, 6); limitless does not
@@ -945,7 +945,7 @@ impl Limitless {
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if matches!(&marketResolved, Value::Bool(true)) {
-                winnerRaw = Some(legIndex.as_f64() == winningOutcomeIndex.as_f64());
+                winnerRaw = Some((winningOutcomeIndex == legIndex.as_i64()));
                 settleFractionRaw = (if (winnerRaw == Some(true)) { Some(1) } else { Some(0) });
                 if (winnerRaw == Some(true)) {
                     resolvedOutcome = outcomeHandle.clone();

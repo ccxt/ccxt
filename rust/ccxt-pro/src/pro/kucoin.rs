@@ -4184,9 +4184,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_464: bool = true;
             while { if !__for_first_464 { i += 1; } __for_first_464 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
-                remove(&mut newPosition, &key);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
+                remove(&mut newPosition, &Value::from(key.as_deref()));
             }
         }
         }
@@ -4240,9 +4240,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_465: bool = true;
             while { if !__for_first_465 { i += 1; } __for_first_465 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
-                remove(&mut newPosition, &key);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__m), Some(__k)) = (newPosition.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }) == Value::Null) {
+                remove(&mut newPosition, &Value::from(key.as_deref()));
             }
         }
         }

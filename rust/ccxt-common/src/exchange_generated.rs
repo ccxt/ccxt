@@ -9365,16 +9365,17 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 } }
 
-    fn fetch_paginated_call_deterministic(&mut self, mut method: Value, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
-        let mut symbol = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut timeframe = get_arg(optional_args, 3, Value::Null);
-        let mut params = get_arg(optional_args, 4, Value::Map({
+    fn fetch_paginated_call_deterministic(&mut self, method: &str, symbol: Option<&str>, since: Option<i64>, limit: Option<i64>, timeframe: Option<&str>, optional_args: &[Value]) -> impl ::std::future::Future<Output = Value> + Send { async move {
+        let mut method: Value = method.into();
+        let mut symbol: Value = symbol.into();
+        let mut since: Value = since.into();
+        let mut limit: Value = limit.into();
+        let mut timeframe: Value = timeframe.into();
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut maxEntriesPerRequest = get_arg(optional_args, 5, Value::Null);
+        let mut maxEntriesPerRequest = get_arg(optional_args, 1, Value::Null);
         let mut maxCalls: i64 = 10;
         let maxCallsPaginationCallsparamsPaginationCallsVariable: Vec<Value> = self.handle_option_integer_and_params(params, method.clone(), Value::Str("paginationCalls".into()), &[Value::from(maxCalls)]).as_array().cloned().unwrap_or_default();
         let mut maxCallsPaginationCalls: Option<i64> = maxCallsPaginationCallsparamsPaginationCallsVariable.get(0).and_then(Value::as_i64);
@@ -9392,27 +9393,26 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut time: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
         let mut maxEntriesPerRequestValue: Value = self.require_value(Value::from(maxEntriesPerRequestOption), &[Value::Str("fetchPaginatedCallDeterministic() maxEntriesPerRequest is required".into())]);
         let mut step: Option<i64> = (if let Some(__r) = (self.parse_to_int(maxEntriesPerRequestValue.clone())) { Some(time * __r) } else { None });
-        let mut until: Value = self.safe_integer2(&paramsOmitted, Value::Str("until".into()), Value::Str("till".into()), &[]); // do not omit it here
-        let mut currentSince: Value = Value::from((if let Some(__l) = ((if let Some(__r) = ((if let (Some(__l), Some(__r)) = (maxCallsLimit, step) { Some(__l * __r) } else { None })) { Some(current - __r) } else { None })) { Some(__l - 1) } else { None }));
+        let mut until: Option<i64> = self.safe_integer2(&paramsOmitted, Value::Str("until".into()), Value::Str("till".into()), &[]).as_i64(); // do not omit it here
+        let mut currentSince: Option<i64> = (if let Some(__l) = ((if let Some(__r) = ((if let (Some(__l), Some(__r)) = (maxCallsLimit, step) { Some(__l * __r) } else { None })) { Some(current - __r) } else { None })) { Some(__l - 1) } else { None });
         if (since != Value::Null) {
-            if (until != Value::Null) {
+            if (until.is_some()) {
                 // the recent-window floor below would jump past a fully-historical [ since, until ]
                 // range and return an empty result - requiredCalls is validated against maxCalls
                 // further down, so anchoring at since directly is safe here,
                 // see https://github.com/ccxt/ccxt/issues/26252
-                currentSince = since.clone();
+                currentSince = since.as_i64();
             }  else {
-                currentSince = crate::runtime::Math::max(&currentSince, &since);
+                currentSince = (if let (Some(__m0), Some(__m1)) = (currentSince, since.as_i64()) { Some(i64::max(__m0, __m1)) } else { None });
             }
         }  else {
-            currentSince = crate::runtime::Math::max(&currentSince, &Value::Int(1241440531000)); // avoid timestamps older than 2009
+            currentSince = (if let Some(__m0) = currentSince { Some(i64::max(__m0, 1241440531000)) } else { None }); // avoid timestamps older than 2009
         }
-        if (until != Value::Null) {
+        if (until.is_some()) {
             if (since == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPaginatedCallDeterministic() requires a since argument when until is set")));
             }
-            let mut requiredCalls: Value = ((match ((((match (&(until), &(since)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }))).as_f64(),
-                (Value::from(step)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
+            let mut requiredCalls: Value = ((match (((Value::from((if let (Some(__l), Some(__r)) = (until, since.as_i64()) { Some(__l - __r) } else { None })))).as_f64(), (Value::from(step)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.ceil())).unwrap_or(Value::Null);
             if matches!(maxCallsLimit, Some(__p) if requiredCalls.as_f64().unwrap_or(f64::NAN) > (__p as f64)) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(),
                     " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is ").into()), Value::from(format!("{}", Value::from(maxCallsLimit)))).into()), " required calls is ").into()), Value::Str(format!("{}", requiredCalls).into()))));
@@ -9422,16 +9422,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_162: bool = true;
             while { if !__for_first_162 { i += 1; } __for_first_162 = false; matches!(maxCallsLimit, Some(__b) if (i as f64) < (__b as f64)) } {
-            if (until != Value::Null) && (currentSince.as_f64().unwrap_or(f64::NAN) >= until.as_f64().unwrap_or(f64::NAN)) {
+            if (until.is_some()) && ((currentSince.is_some() && until.is_some() && currentSince >= until)) {
                 break;
             }
-            if currentSince.as_f64().unwrap_or(f64::NAN) >= (current as f64) {
+            if currentSince >= Some(current) {
                 break;
             }
-            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), currentSince.clone(), maxEntriesPerRequestValue.clone(), timeframe.clone(), Value::from(&paramsOmitted)]).await);
+            tasks.push(self.safe_deterministic_call(method.clone(), &[symbol.clone(), Value::from(currentSince), maxEntriesPerRequestValue.clone(), timeframe.clone(), Value::from(&paramsOmitted)]).await);
             // this.sum keeps it numeric in PHP, where the regex transpiler turns `a + b` into string concatenation
-            currentSince = (match (&(self.sum(&[currentSince.clone(), Value::from(step)])), &(Value::Int(1))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
-                Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
+            currentSince = (if let Some(__l) = ((if let (Some(__m0), Some(__m1)) = (currentSince, step) { Some((__m0 + __m1)) } else { None })) { Some(__l - 1) } else { None });
         }
         }
         let mut results: Vec<Value> = promise_all(&Value::from(tasks)).await.as_array().cloned().unwrap_or_default();
@@ -10305,9 +10304,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_178: bool = true;
                     while { if !__for_first_178 { i += 1; } __for_first_178 = false; i < (clientSubscriptions.len() as i64) } {
-                    let mut sub: Value = clientSubscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-                    if (sub.as_str().zip(subHash.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
-                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &sub);
+                    let mut sub: Option<String> = clientSubscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    if ((if let (Some(__h), Some(__n)) = (sub.as_deref(), (subHash).as_str()) { __h.starts_with(__n) } else { false })) {
+                        remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &Value::from(sub.as_deref()));
                     }
                 }
                 }
@@ -10361,7 +10360,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                 let mut i: i64 = 0;
                 let mut __for_first_181: bool = true;
                 while { if !__for_first_181 { i += 1; } __for_first_181 = false; i < (symbols.len() as i64) } {
-                let mut symbol: Value = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]);
+                let mut symbol: String = self.safe_string(&symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 if (topic.as_deref() == Some("trades")) {
                     if (self.trades.has(&symbol)) {
                         self.trades.forget(&symbol);
@@ -10371,12 +10370,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         self.orderbooks.forget(&symbol);
                     }
                 }  else if (topic.as_deref() == Some("ticker")) {
-                    if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers.clone(), Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }  else if (topic.as_deref() == Some("bidsasks")) {
-                    if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks.clone(), &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks.clone(), Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
             }
@@ -10406,9 +10405,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_183: bool = true;
                     while { if !__for_first_183 { i += 1; } __for_first_183 = false; i < (tickerSymbols.len() as i64) } {
-                    let mut tickerSymbol: Value = tickerSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
-                    if (matches!((&self.tickers, &tickerSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers.clone(), &tickerSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    let mut tickerSymbol: Option<String> = tickerSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    if (matches!((&self.tickers, tickerSymbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers.clone(), tickerSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
                 }
@@ -10418,9 +10417,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                                         let mut i: i64 = 0;
                     let mut __for_first_184: bool = true;
                     while { if !__for_first_184 { i += 1; } __for_first_184 = false; i < (bidsaskSymbols.len() as i64) } {
-                    let mut bidsaskSymbol: Value = bidsaskSymbols.get(i as usize).cloned().unwrap_or(Value::Null);
-                    if (matches!((&self.bidsasks, &bidsaskSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks.clone(), &bidsaskSymbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    let mut bidsaskSymbol: Option<String> = bidsaskSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                    if (matches!((&self.bidsasks, bidsaskSymbol.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks.clone(), bidsaskSymbol.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                     }
                 }
                 }
@@ -13473,7 +13472,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "fetch_orders_by_status_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_by_status_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
             "fetch_orders_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_ws(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
             "fetch_paginated_call_cursor" => self.fetch_paginated_call_cursor(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-            "fetch_paginated_call_deterministic" => self.fetch_paginated_call_deterministic(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
+            "fetch_paginated_call_deterministic" => self.fetch_paginated_call_deterministic(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64),
+                args.get(4).and_then(crate::Value::as_text).as_deref(), &args[5.min(args.len())..]).await,
             "fetch_paginated_call_dynamic" => self.fetch_paginated_call_dynamic(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_paginated_call_incremental" => self.fetch_paginated_call_incremental(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
             "fetch_partial_balance" => crate::types::IntoRaw::into_raw(self.fetch_partial_balance(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),

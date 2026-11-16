@@ -522,7 +522,7 @@ impl Backpack {
             }  else if (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() RFQ venue tickers are only mapped for stock data")));
             }
-            let mut symbol: Value = Value::from((market).symbol.clone());
+            let mut symbol: String = (market).symbol.clone();
             let mut messageHash: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", kind, ":").into()), symbol).into()), "@").into()), topic).into());
             let mut subscriptionKey: String = format!("{}{}", "marketData:", topic);
             let mut subscriptions: Value = self.safe_dict((client).subscriptions.clone(), Value::from(subscriptionKey.clone()), &[Value::Map({
@@ -533,14 +533,14 @@ impl Backpack {
                 subscriptions = self.omit(subscriptions, messageHash.clone(), &[]);
                 self.clean_unsubscription(client.as_value(), messageHash.clone(), Value::Str(format!("{}{}", "unsubscribe:", messageHash).into()), &[]);
                 if bidAsk.as_bool() == Some(true) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }  else {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else {
                 add_element_to_object(&mut subscriptions, &messageHash, Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("symbol".to_string(), symbol.clone());
+        m.insert("symbol".to_string(), Value::from(symbol.as_str()));
         m.insert("bidAsk".to_string(), bidAsk.clone());
     m
 }));
@@ -554,7 +554,7 @@ impl Backpack {
                     if let Value::Arr(__a) = &mut topics { std::sync::Arc::make_mut(__a).push(Value::from(topic)); };
                 }
             }
-            symbolsResolved.push(symbol);
+            symbolsResolved.push(Value::from(symbol));
         }
         }
         let mut symbolsResolvedLength: i64 = symbolsResolved.len() as i64;
@@ -680,14 +680,14 @@ impl Backpack {
             let mut subMessageHash: String = messageHash.replace("unsubscribe:", "");
             self.clean_unsubscription(client.as_value(), Value::from(subMessageHash), Value::from(messageHash.as_str()), &[]);
             if messageHash.contains("ticker") {
-                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:ticker:", ""));
-                if (matches!((&self.tickers, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.tickers, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut symbol: String = messageHash.replace("unsubscribe:ticker:", "");
+                if (matches!(&self.tickers, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.tickers, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else if messageHash.contains("bidask") {
-                let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:bidask:", ""));
-                if (matches!((&self.bidsasks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let (Value::Dict(__d), Value::Str(__k)) = (&mut self.bidsasks, &symbol) { std::sync::Arc::make_mut(__d).shift_remove(__k.as_ref()); }
+                let mut symbol: String = messageHash.replace("unsubscribe:bidask:", "");
+                if (matches!(&self.bidsasks, Value::Dict(__d) if __d.contains_key(symbol.as_str()))) {
+                    if let (Value::Dict(__d), Some(__k)) = (&mut self.bidsasks, Some(symbol.as_str())) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
                 }
             }  else if messageHash.contains("candles") {
                 let mut splitHashes: crate::value::List = Value::Array(messageHash.split(":").map(Value::from).collect()).into_list();
@@ -717,16 +717,16 @@ impl Backpack {
                                                         let mut j: i64 = 0;
                             let mut __for_first_38: bool = true;
                             while { if !__for_first_38 { j += 1; } __for_first_38 = false; j < (keys.len() as i64) } {
-                            let mut symbol: Value = keys.get(j as usize).cloned().unwrap_or(Value::Null);
-                            remove(&mut cache, &symbol);
+                            let mut symbol: Option<String> = keys.get(j as usize).and_then(Value::as_str).map(str::to_owned);
+                            remove(&mut cache, &Value::from(symbol.as_deref()));
                         }
                         }
                     }
                 }  else {
-                    let mut symbol: Value = Value::from(messageHash.replace("unsubscribe:orders:", ""));
+                    let mut symbol: String = messageHash.replace("unsubscribe:orders:", "");
                     let mut cache: Value = Value::from(&self.orders);
-                    if (self.orders.is_some()) && (matches!((&cache, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        remove(&mut cache, &symbol);
+                    if (self.orders.is_some()) && (matches!((&cache, Some(symbol.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                        remove(&mut cache, &Value::from(symbol.as_str()));
                     }
                 }
             }  else if messageHash.contains("positions") {

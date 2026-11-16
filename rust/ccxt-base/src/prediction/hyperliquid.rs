@@ -2379,9 +2379,9 @@ impl Hyperliquid {
         if (outcome != Value::Null) {
             self.load_outcome(outcome.clone(), &[]).await;
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcome);
-            let mut expected: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
-            if (self.safe_string_k(&parsed, "outcome", &[]).as_str() != expected.as_deref()) {
-                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() order ").into()), id).into()), " is not in outcome ").into()), expected.map(Value::from).unwrap_or(Value::Null))));
+            let mut expected: Option<String> = self.safe_string_k(&outcomeObj, "outcome", &[]).as_str().map(str::to_owned);
+            if ((expected.as_deref() != self.safe_string_k(&parsed, "outcome", &[]).as_str())) {
+                panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() order ").into()), id).into()), " is not in outcome ").into()), expected.as_deref().unwrap_or("null"))));
             }
         }
         return Value::Dict(parsed);

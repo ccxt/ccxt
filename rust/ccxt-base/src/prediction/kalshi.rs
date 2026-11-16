@@ -1129,7 +1129,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //    "yes_sub_title":"During Trump's term"
         // }
         let mut ticker: Option<String> = self.safe_string_k(raw.clone(), "ticker", &[]).as_str().map(str::to_owned);
-        let mut eventTicker: Option<String> = self.safe_string_k_opt(raw.clone(), "event_ticker", &[]);
+        let mut eventTicker: Option<String> = self.safe_string_k(raw.clone(), "event_ticker", &[]).as_str().map(str::to_owned);
         let mut subtitle: Option<String> = self.safe_string_k(raw.clone(), "subtitle", &[self.safe_string(raw.clone(), Value::Str("title".into()), &[])]).as_str().map(str::to_owned);
         // markets use status 'active' while events use 'open'
         let mut status: Option<String> = self.safe_string_k(raw.clone(), "status", &[]).as_str().map(str::to_owned);
@@ -1142,7 +1142,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut liquidity: Option<f64> = self.safe_number2(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]).as_f64();
         let mut openInt: Option<f64> = self.safe_number2(raw.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]).as_f64();
         // Derive series ticker: drop last hyphen-segment from event_ticker
-        let mut seriesTicker: Value = eventTicker.clone().map(Value::from).unwrap_or(Value::Null);
+        let mut seriesTicker: Value = Value::from(eventTicker.as_deref());
         if (eventTicker.is_some()) && (eventTicker.as_deref() != Some("")) {
             let mut eventParts: Value = Value::Array(if let Some(__s) = eventTicker.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut eventPartsLength: i64 = eventParts.len() as i64;
@@ -1156,7 +1156,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (subtitle.is_some()) {
             subtitleOrTicker = subtitle.clone();
         }
-        let mut marketSymbol: Option<String> = self.slug_to_market_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut marketSymbol: Option<String> = self.slug_to_market_symbol(Value::from(eventTicker.as_deref()), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         // kalshi exposes the per-market price tick via price_ranges[].step (a dollar value,
         // e.g. "0.0010" for deci-cent markets, "0.0100" for cent markets); older responses
         // used tick_size (in cents). amount is a whole number of contracts
@@ -1186,7 +1186,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_1266: bool = true;
             while { if !__for_first_1266 { oi += 1; } __for_first_1266 = false; oi < (outcomeLabels.len() as i64) } {
             let mut label: Option<&str> = outcomeLabels.get(oi as usize).and_then(Value::as_str);
-            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(eventTicker.clone().map(Value::from).unwrap_or(Value::Null), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::from(label.as_deref())).as_str().map(str::to_owned);
+            let mut outcomeHandle: Option<String> = self.slug_to_outcome_symbol(Value::from(eventTicker.as_deref()), subtitleOrTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::from(label.as_deref())).as_str().map(str::to_owned);
             let mut winnerRaw: Option<bool> = None;
             let mut settleFractionRaw: Option<i64> = None;
             if resolved && (result.is_some()) && (result.as_deref() != Some("")) {
@@ -1214,7 +1214,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("eventTicker".to_string(), Value::from(eventTicker.as_deref()));
         m.insert("seriesTicker".to_string(), seriesTicker.clone());
         m.insert("subtitle".to_string(), Value::from(subtitle.as_deref()));
         m.insert("outcomeLabel".to_string(), Value::from(label.as_deref()));
@@ -1297,7 +1297,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("info".to_string(), self.extend(raw, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticker".to_string(), ticker.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("eventTicker".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("eventTicker".to_string(), eventTicker.map(Value::from).unwrap_or(Value::Null));
         m.insert("seriesTicker".to_string(), seriesTicker);
         m.insert("subtitle".to_string(), subtitle.map(Value::from).unwrap_or(Value::Null));
         m.insert("volume".to_string(), Value::from(volume));
@@ -2251,14 +2251,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let mut wantedOutcomeObj: Option<crate::types::Market> = (if (outcome != Value::Null) { self.outcome(outcome) } else { None });
-        let mut wantedOutcome: Option<String> = self.safe_string_k_opt(&wantedOutcomeObj, "outcome", &[]);
+        let mut wantedOutcome: Option<String> = self.safe_string_k(&wantedOutcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1278: bool = true;
             while { if !__for_first_1278 { i += 1; } __for_first_1278 = false; i < (trades.len() as i64) } {
             let mut trade: Value = trades.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (wantedOutcome.is_none()) || (self.safe_string_k(trade.clone(), "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
+            if (wantedOutcome.is_none()) || ((wantedOutcome.as_deref() == self.safe_string_k(trade.clone(), "outcome", &[]).as_str())) {
                 result.push(trade);
             }
         }
@@ -2536,14 +2536,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         }
         let mut wantedOutcomeObj: Option<crate::types::Market> = (if (outcome != Value::Null) { self.outcome(outcome) } else { None });
-        let mut wantedOutcome: Option<String> = self.safe_string_k_opt(&wantedOutcomeObj, "outcome", &[]);
+        let mut wantedOutcome: Option<String> = self.safe_string_k(&wantedOutcomeObj, "outcome", &[]).as_str().map(str::to_owned);
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1282: bool = true;
             while { if !__for_first_1282 { i += 1; } __for_first_1282 = false; i < (parsed.len() as i64) } {
             let mut settlement: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            if (wantedOutcome.is_none()) || (self.safe_string_k(&settlement, "outcome", &[]).as_str() == wantedOutcome.as_deref()) {
+            if (wantedOutcome.is_none()) || ((wantedOutcome.as_deref() == self.safe_string_k(&settlement, "outcome", &[]).as_str())) {
                 result.push(Value::Dict(settlement));
             }
         }
@@ -3306,7 +3306,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             status = Some("settled".to_string());
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        let mut rest: Value = self.omit(&paramsOmitted, &["status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"], &[]);
+        let mut rest: crate::value::Dict = self.omit(&paramsOmitted, &["status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"], &[]).into_dict();
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
@@ -3314,10 +3314,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[rest.clone()]).await.into_list();
+            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
         }  else if (eventId.is_some()) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
-            let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(eventId.as_deref().unwrap_or_default(), &[rest.clone()]).await.into_dict();
+            let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();
             rawEvents = std::sync::Arc::new(vec![Value::Dict(fullEvent)]);
         }  else {
             // tags / category / series_ticker resolve to a set of series; fetch their events, capped
@@ -3326,7 +3326,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (seriesTickersLength == 0) {
                 self.require_event_query(&[Value::from(&paramsOmitted)]);
             }
-            rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[rest]).await.into_list();
+            rawEvents = self.fetch_series_events(Value::Arr(seriesTickers), status.as_deref(), Value::from(fetchCap), &[Value::Dict(rest)]).await.into_list();
         }
         let mut rawEventsLength: i64 = rawEvents.len() as i64;
         let mut result: Vec<Value> = Vec::new();
