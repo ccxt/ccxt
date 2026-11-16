@@ -262,11 +262,11 @@ public partial class coinbase : ccxt.coinbase
     public virtual Dictionary<string, object> createWSAuth(object name, object productIds)
     {
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {};
-        object timestamp = this.numberToString(this.seconds());
+        string? timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         bool isCloudAPiKey = (this.apiKey.IndexOf("organizations/", StringComparison.Ordinal) >= 0) || (this.secret.StartsWith("-----BEGIN"));
         bool isV2CloudAPiKey = this.isEddsaApiKey();
-        string? auth = ((string)((object)(timestamp == null ? null : timestamp + (string)(object)(name) + String.Join(",", ((IList<object>)productIds).ToArray()))));
+        string? auth = ((string)(timestamp == null ? null : timestamp + (string)(object)(name) + String.Join(",", ((IList<object>)productIds).ToArray())));
         if (!isCloudAPiKey && !isV2CloudAPiKey)
         {
             subscribe["api_key"] = this.apiKey;

@@ -1159,7 +1159,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " unWatchMarkPrices() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, object parameters = null)
+    public async virtual Task<List<ccxt.DepositAddress>> FetchDepositAddresses(IList<object> codes = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchDepositAddresses() is not supported yet")) ;
@@ -1301,7 +1301,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchIsolatedBorrowRates() is not supported yet")) ;
     }
 
-    public virtual object parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
+    public virtual List<object> parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
     {
         throw new NotSupported ((this.id + " parseMarketLeverageTiers() is not supported yet")) ;
     }
@@ -2148,7 +2148,7 @@ public partial class BaseExchange
         return this.extend(cleanStructure);
     }
 
-    public virtual object setMarkets(object markets, object currencies = null)
+    public virtual IDictionary<string, object> setMarkets(object markets, object currencies = null)
     {
         List<object> values = new List<object>() {};
         // build the id index locally and publish it in one swap, so ws handlers never see a half-built table
@@ -2161,8 +2161,8 @@ public partial class BaseExchange
             IDictionary<string, object> value = this.safeDict(marketValues, i, new Dictionary<string, object>() {});
             if ((marketsById != null && (value != null && value.ContainsKey("id") ? value["id"] : null) is string inOpKey11 && marketsById.ContainsKey(inOpKey11)))
             {
-                object marketsByIdArray = getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null));
-                ((IList<object>)marketsByIdArray).Add(value);
+                IList<object> marketsByIdArray = ((IList<object>)getValue(marketsById, (value != null && value.ContainsKey("id") ? value["id"] : null)));
+                marketsByIdArray.Add(value);
                 marketsById[(string)(value != null && value.ContainsKey("id") ? value["id"] : null)] = marketsByIdArray;
             } else
             {
@@ -2721,7 +2721,7 @@ public partial class BaseExchange
         }));
     }
 
-    public virtual List<ccxt.Order> parseOrders(object orders, IDictionary<string, object> market = null, object since = null, object limit = null, object parameters = null)
+    public virtual List<ccxt.Order> parseOrders(object orders, IDictionary<string, object> market = null, object since = null, object limit = null, IDictionary<string, object> parameters = null)
     {
         //
         // the value of orders is either a dict or a list
@@ -3310,7 +3310,7 @@ public partial class BaseExchange
         throw new NotSupported (((this.id + " fetchOHLCV() is not supported yet") + message)) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchSpotOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -3318,7 +3318,7 @@ public partial class BaseExchange
         throw new NotSupported ((this.id + " fetchSpotOHLCV() is not supported yet")) ;
     }
 
-    public async virtual Task<List<ccxt.OHLCV>> FetchContractOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.OHLCV>> FetchContractOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1m";
@@ -3389,18 +3389,18 @@ public partial class BaseExchange
         for (int i = 0; i < (ohlcvs?.Count ?? 0); i++)
         {
             object ts = ms == true ? getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0) : this.parseToInt(divide(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 0), 1000));
-            object resultTimestamp = (result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null);
-            ((IList<object>)resultTimestamp).Add(ts);
-            object resultOpen = (result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null);
-            ((IList<object>)resultOpen).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 1));
-            object resultHigh = (result != null && high != null && result.ContainsKey((string)high) ? result[(string)high] : null);
-            ((IList<object>)resultHigh).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 2));
-            object resultLow = (result != null && low != null && result.ContainsKey((string)low) ? result[(string)low] : null);
-            ((IList<object>)resultLow).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 3));
-            object resultClose = (result != null && close != null && result.ContainsKey((string)close) ? result[(string)close] : null);
-            ((IList<object>)resultClose).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 4));
-            object resultVolume = (result != null && volume != null && result.ContainsKey((string)volume) ? result[(string)volume] : null);
-            ((IList<object>)resultVolume).Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 5));
+            IList<object> resultTimestamp = ((IList<object>)(result != null && timestamp != null && result.ContainsKey((string)timestamp) ? result[(string)timestamp] : null));
+            resultTimestamp.Add(ts);
+            IList<object> resultOpen = ((IList<object>)(result != null && open != null && result.ContainsKey((string)open) ? result[(string)open] : null));
+            resultOpen.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 1));
+            IList<object> resultHigh = ((IList<object>)(result != null && high != null && result.ContainsKey((string)high) ? result[(string)high] : null));
+            resultHigh.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 2));
+            IList<object> resultLow = ((IList<object>)(result != null && low != null && result.ContainsKey((string)low) ? result[(string)low] : null));
+            resultLow.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 3));
+            IList<object> resultClose = ((IList<object>)(result != null && close != null && result.ContainsKey((string)close) ? result[(string)close] : null));
+            resultClose.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 4));
+            IList<object> resultVolume = ((IList<object>)(result != null && volume != null && result.ContainsKey((string)volume) ? result[(string)volume] : null));
+            resultVolume.Add(getValue((ohlcvs != null && i < ohlcvs.Count ? ohlcvs[i] : null), 5));
         }
         return result;
     }
@@ -4869,7 +4869,7 @@ public partial class BaseExchange
         return await this.fetch2(path, api, method, parameters, config);
     }
 
-    public async virtual Task<object> loadAccounts(bool? reload = null, IDictionary<string, object> parameters = null)
+    public async virtual Task<List<object>> loadAccounts(bool? reload = null, IDictionary<string, object> parameters = null)
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -5703,7 +5703,7 @@ public partial class BaseExchange
         }
     }
 
-    public virtual object setTakeProfitAndStopLossParams(string? symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, object parameters = null)
+    public virtual object setTakeProfitAndStopLossParams(string? symbol, object type, object side, object amount, object price = null, object takeProfit = null, object stopLoss = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (((takeProfit == null)) && ((stopLoss == null)))
@@ -5739,7 +5739,7 @@ public partial class BaseExchange
             {
                 takeProfitRequest["amount"] = this.parseToNumeric(takeProfitAmount);
             }
-            ((IDictionary<string,object>)parameters)["takeProfit"] = takeProfitRequest;
+            parameters["takeProfit"] = takeProfitRequest;
         }
         if ((stopLoss != null))
         {
@@ -5762,9 +5762,9 @@ public partial class BaseExchange
             {
                 stopLossRequest["amount"] = this.parseToNumeric(stopLossAmount);
             }
-            ((IDictionary<string,object>)parameters)["stopLoss"] = stopLossRequest;
+            parameters["stopLoss"] = stopLossRequest;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"takeProfitType", "takeProfitPriceType", "takeProfitLimitPrice", "takeProfitAmount", "stopLossType", "stopLossPriceType", "stopLossLimitPrice", "stopLossAmount"});
         return paramsOmitted;
     }
 
@@ -6492,7 +6492,7 @@ public partial class BaseExchange
         return ((object)result);
     }
 
-    public virtual object parseFundingRateHistories(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
+    public virtual IList<object> parseFundingRateHistories(object response, IDictionary<string, object> market = null, Int64? since = null, Int64? limit = null)
     {
         List<object> rates = new List<object>() {};
         for (int i = 0; i < getArrayLength(response); i++)

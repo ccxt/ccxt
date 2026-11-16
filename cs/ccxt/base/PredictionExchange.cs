@@ -79,7 +79,7 @@ public partial class PredictionExchange : BaseExchange
         return ((bool)((object)(this.safeBool(this.has, "prediction", false)))!);
     }
 
-    public virtual List<object> parseSearchQueries(object parameters = null)
+    public virtual List<object> parseSearchQueries(IDictionary<string, object> parameters = null)
     {
         // accepts either `query` (a single search string) or `queries` (a list of strings)
         parameters ??= new Dictionary<string, object>();
@@ -91,7 +91,7 @@ public partial class PredictionExchange : BaseExchange
         return this.safeList(parameters, "queries", new List<object>() {});
     }
 
-    public virtual object requireEventQuery(object parameters = null)
+    public virtual object requireEventQuery(IDictionary<string, object> parameters = null)
     {
         // fetchEvents must be scoped by at least one selector — an unfiltered call would page the
         // entire exchange. require one of query / queries / tags / eventId / slug, or one of the
@@ -115,7 +115,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; i < extraScopeParamsLength; i++)
         {
             object scopeKey = (extraScopeParams != null && i < extraScopeParams.Count ? extraScopeParams[i] : null);
-            if (inOp(parameters, scopeKey))
+            if ((scopeKey is string inOpKey0 && parameters.ContainsKey(inOpKey0)))
             {
                 return null;
             }
@@ -697,7 +697,7 @@ public partial class PredictionExchange : BaseExchange
         return ((this.slugToMarketSymbol(eventSlug, marketSlug) + ":") + label);
     }
 
-    public override object setMarkets(object markets, object currencies = null)
+    public override IDictionary<string, object> setMarkets(object markets, object currencies = null)
     {
         // prediction market rows carry only the unified `market` handle — `symbol` is
         // deprecated there. the base indexer keys this.markets/this.symbols by 'symbol',
@@ -711,15 +711,15 @@ public partial class PredictionExchange : BaseExchange
             copy["symbol"] = this.safeString2(row, "market", "symbol");
             aliased.Add(copy);
         }
-        object stored = base.setMarkets(aliased, currencies);
+        IDictionary<string, object> stored = base.setMarkets(aliased, currencies);
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        List<object> marketKeys = new List<object>(((IDictionary<string,object>)stored).Keys);
+        List<object> marketKeys = new List<object>(stored.Keys);
         for (int i = 0; i < marketKeys.Count; i++)
         {
             string? key = ((string)marketKeys[i]);
-            ((IDictionary<string,object>)stored)[(string)key] = this.omit(this.safeDict(stored, key, new Dictionary<string, object>() {}), "symbol");
+            stored[(string)key] = this.omit(this.safeDict(stored, key, new Dictionary<string, object>() {}), "symbol");
         }
         this.populateOutcomes();
         return stored;
@@ -744,14 +744,14 @@ public partial class PredictionExchange : BaseExchange
         List<object> outcomesList = this.safeList(market, "outcomes", new List<object>() {});
         for (int j = 0; j < outcomesList.Count; j++)
         {
-            object oc = outcomesList[j];
+            IDictionary<string, object> oc = ((IDictionary<string, object>)outcomesList[j]);
             object ocSymbol = this.safeString2(oc, "outcome", "symbol");
             string? ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a
             // missing-key access that throws in Python/PHP, unlike TS undefined
-            ((IDictionary<string,object>)oc)["outcomeId"] = ocId;
-            ((IDictionary<string,object>)oc)["market"] = this.safeString2(oc, "market", "marketSymbol");
+            oc["outcomeId"] = ocId;
+            oc["market"] = this.safeString2(oc, "market", "marketSymbol");
             if ((ocSymbol != null))
             {
                 // shortenSlug is lossy, so two different markets can produce the same handle.
@@ -773,11 +773,11 @@ public partial class PredictionExchange : BaseExchange
                         ocSymbol = ((object)(ocSymbol == null ? null : ocSymbol + "_" + suffix.ToUpper()));
                     }
                 }
-                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+                oc["outcome"] = ocSymbol;
                 ((IDictionary<string,object>)this.outcomes)[(string)ocSymbol] = oc;
             } else
             {
-                ((IDictionary<string,object>)oc)["outcome"] = ocSymbol;
+                oc["outcome"] = ocSymbol;
             }
             if ((ocId != null))
             {
@@ -1150,7 +1150,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, object parameters = null)
+    public async virtual Task<ccxt.PredictionOrder> CancelOrder(string id, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrder() is not supported yet")) ;
@@ -1211,7 +1211,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> FetchOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchOrders() is not supported yet")) ;
@@ -1227,7 +1227,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> FetchOpenOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchOpenOrders() is not supported yet")) ;
@@ -1243,7 +1243,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> FetchClosedOrders(string outcome = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " fetchClosedOrders() is not supported yet")) ;
@@ -1361,7 +1361,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public async virtual Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, object parameters = null)
+    public async virtual Task<List<ccxt.PredictionOrder>> CancelOrders(IList<object> ids, string outcome = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " cancelOrders() is not supported yet")) ;
@@ -1463,7 +1463,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public async virtual Task<List<ccxt.Position>> WatchPositions(IList<object> outcomes = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Position>> WatchPositions(IList<object> outcomes = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         throw new NotSupported ((this.id + " watchPositions() is not supported yet")) ;
@@ -1827,7 +1827,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed trade
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public virtual IList<object> parsePredictionTrades(IList<object> trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public virtual IList<object> parsePredictionTrades(IList<object> trades, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // prediction-market analogue of the base parseTrades: the base aggregator post-filters
         // by the market's `symbol` key, but prediction structures carry an `outcome` handle
@@ -1859,7 +1859,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed order
      * @returns {object[]} a list of prediction [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public virtual IList<object> parsePredictionOrders(IList<object> orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public virtual IList<object> parsePredictionOrders(IList<object> orders, object outcomeObj = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         parameters ??= new Dictionary<string, object>();
@@ -1885,7 +1885,7 @@ public partial class PredictionExchange : BaseExchange
      * @param {object} [params] extra fields to merge into every parsed position
      * @returns {object[]} a list of prediction [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public virtual List<object> parsePredictionPositions(IList<object> positions, object parameters = null)
+    public virtual List<object> parsePredictionPositions(IList<object> positions, IDictionary<string, object> parameters = null)
     {
         // prediction-market analogue of the base parsePositions, which resolves its `symbols`
         // argument through marketSymbols() and would throw BadSymbol on outcome handles.

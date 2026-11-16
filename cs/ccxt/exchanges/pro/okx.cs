@@ -1742,7 +1742,7 @@ public partial class okx : ccxt.okx
         //     }
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
-        object channel = this.safeString(arg, "channel");
+        string? channel = this.safeString(arg, "channel");
         string? action = this.safeString(message, "action");
         List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
@@ -1757,7 +1757,7 @@ public partial class okx : ccxt.okx
             { "books50-l2-tbt", 50 },
         };
         Int64? limit = this.safeInteger(depths, channel);
-        string? messageHash = ((string)((object)(channel == null ? null : channel + ":" + symbol)));
+        string? messageHash = ((string)(channel == null ? null : channel + ":" + symbol));
         if (action == "snapshot")
         {
             for (int i = 0; i < data.Count; i++)
@@ -1802,7 +1802,7 @@ public partial class okx : ccxt.okx
                     client.resolve(updatedBook, messageHash);
                 }
             }
-        } else if (((channel is "books5")) || ((channel is "bbo-tbt")))
+        } else if ((channel == "books5") || (channel == "bbo-tbt"))
         {
             // watchBidsAsks reuses bbo-tbt with bidask:: hashes; only reset the
             // shared order-book cache when watchOrderBook subscribed to this
@@ -1824,19 +1824,19 @@ public partial class okx : ccxt.okx
                 }
             }
         }
-        if ((channel is "bbo-tbt"))
+        if (channel == "bbo-tbt")
         {
             this.handleBidAsk(client, message);
         }
         return message;
     }
 
-    public async virtual Task<object> authenticate(object parameters = null)
+    public async virtual Task<object> authenticate(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         string? access = this.safeString(parameters, "access", "private");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"access"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"access"});
         string? url = this.getUrl("users", access);
         string messageHash = "authenticated";
         var client = this.client(url);
@@ -2132,7 +2132,7 @@ public partial class okx : ccxt.okx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2258,8 +2258,8 @@ public partial class okx : ccxt.okx
             if ((contracts == 0) && (this.safeString(rawPosition, "posSide") == "net"))
             {
                 position["side"] = "long";
-                object shortPosition = this.clone(position);
-                ((IDictionary<string,object>)shortPosition)["side"] = "short";
+                Dictionary<string, object> shortPosition = ((Dictionary<string, object>)this.clone(position));
+                shortPosition["side"] = "short";
                 cache.append(shortPosition);
                 newPositions.Add(shortPosition);
             }
@@ -2423,13 +2423,13 @@ public partial class okx : ccxt.okx
                 this.orders = new ArrayCacheBySymbolById(limit);
                 this.triggerOrders = new ArrayCacheBySymbolById(limit);
             }
-            object stored = (channel == "orders-algo") ? this.triggerOrders : this.orders;
+            ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)((channel == "orders-algo") ? this.triggerOrders : this.orders));
             List<object> marketIds = new List<object>() {};
             IList<object> parsed = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
             for (int i = 0; i < (parsed?.Count ?? 0); i++)
             {
                 IDictionary<string, object> order = ((IDictionary<string, object>)parsed[i]);
-                ccxt.pro.BaseCache.appendTo(stored, order);
+                stored.append(order);
                 string? symbol = this.safeString(order, "symbol", "");
                 Dictionary<string, object> market = this.market(symbol);
                 marketIds.Add((market.ContainsKey("id") ? market["id"] : null));

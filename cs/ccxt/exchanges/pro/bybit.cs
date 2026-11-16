@@ -1045,7 +1045,7 @@ public partial class bybit : ccxt.bybit
         IList<object> symbolsNormalized = this.marketSymbols(symbols, null, false);
         string channel = "orderbook.";
         Int64? limitParam = this.safeInteger(parameters, "limit");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((limitParam != null)) ? this.omit(parameters, "limit") : parameters));
+        IDictionary<string, object> paramsOmitted = ((limitParam != null)) ? this.omit(parameters, "limit") : parameters;
         int defaultLimit = 500;
         if ((limitParam == null))
         {
@@ -1705,7 +1705,7 @@ public partial class bybit : ccxt.bybit
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

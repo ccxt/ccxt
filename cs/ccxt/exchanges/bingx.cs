@@ -1671,7 +1671,7 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         request["interval"] = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object requestLimit = ((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit);
+        Int64 requestLimit = ((limit == null)) ? 500 : Math.Min(limit.Value, maxLimit);
         if ((since != null))
         {
             request["startTime"] = Math.Max((since.Value - 1), 0);
@@ -1689,13 +1689,13 @@ public partial class bingx : Exchange
             {
                 // the exchange aligns the window to endTime, so keep it within limit candles of since
                 Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-                endTime = mathMin(until, this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, requestLimit)));
+                endTime = mathMin(until, this.sum(since, (duration * requestLimit)));
             }
             request["endTime"] = endTime;
         } else if ((this.safeBool(market, "inverse", false) == true) && ((since != null)))
         {
             Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
-            request["endTime"] = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, requestLimit));
+            request["endTime"] = this.sum(since, (duration * requestLimit));
         }
         Dictionary<string, object> response = null;
         if ((this.safeBool(market, "spot", false) == true))
@@ -4744,7 +4744,7 @@ public partial class bingx : Exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -4752,7 +4752,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         bool? isTwapOrder = this.safeBool(parameters, "twap", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "twap"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "twap");
         Dictionary<string, object> response = null;
         IDictionary<string, object> market = null;
         if ((isTwapOrder == true))
@@ -4975,7 +4975,7 @@ public partial class bingx : Exchange
      * @param {string[]} [params.clientOrderIds] client order ids
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -4995,7 +4995,7 @@ public partial class bingx : Exchange
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
         List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "clientOrderIds"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "clientOrderIds");
         IList<object> idsToParse = ids;
         bool areClientOrderIds = ((clientOrderIds != null));
         if (areClientOrderIds)
@@ -5108,7 +5108,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.twap] if fetching twap order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5116,7 +5116,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         bool? isTwapOrder = this.safeBool(parameters, "twap", false);
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "twap"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "twap");
         Dictionary<string, object> response = null;
         IDictionary<string, object> market = null;
         if ((isTwapOrder == true))
@@ -5188,7 +5188,7 @@ public partial class bingx : Exchange
      * @param {int} [params.orderId] Only return subsequent orders, and return the latest order by default
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5300,7 +5300,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.twap] if fetching twap open orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5499,7 +5499,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.standard] whether to fetch standard contract orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -5555,7 +5555,7 @@ public partial class bingx : Exchange
      * @param {boolean} [params.twap] if fetching twap orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7134,7 +7134,7 @@ public partial class bingx : Exchange
      * @param {string} [params.workingType] *contract only* StopPrice trigger price types, MARK_PRICE (default), CONTRACT_PRICE, or INDEX_PRICE
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -7147,7 +7147,7 @@ public partial class bingx : Exchange
             throw new NotSupported ((this.id + " editOrder() is not supported for inverse swap markets")) ;
         }
         string? cancelClientOrderId = this.safeString2(parameters, "cancelClientOrderId", "cancelClientOrderID");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, new List<object>() {"cancelClientOrderId", "cancelClientOrderID"}));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"cancelClientOrderId", "cancelClientOrderID"});
         Dictionary<string, object> request = this.createOrderRequest(symbol, type, side, amount, price, paramsOmitted);
         if ((cancelClientOrderId != null))
         {
@@ -7424,7 +7424,7 @@ public partial class bingx : Exchange
         return ccxt.BaseExchange.ToLeverageTierList(this.parseMarketLeverageTiers(data, market));
     }
 
-    public override object parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
+    public override List<object> parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
     {
         //
         //     [
@@ -7469,7 +7469,7 @@ public partial class bingx : Exchange
         object version = (section != null && 1 < section.Count ? section[1] : null);
         object access = (section != null && 2 < section.Count ? section[2] : null);
         bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
-        object url = this.implodeHostname((this.urlsApi != null && type != null && this.urlsApi.ContainsKey(type) ? this.urlsApi[type] : null));
+        string? url = this.implodeHostname((this.urlsApi != null && type != null && this.urlsApi.ContainsKey(type) ? this.urlsApi[type] : null));
         if ((isSandbox == true) && (url == null))
         {
             throw new NotSupported ((((this.id + " does not have a testnet/sandbox URL for ") + type) + " endpoints")) ;
@@ -7494,13 +7494,13 @@ public partial class bingx : Exchange
         {
             if (type == "spot" && (version is "v3"))
             {
-                url = ((object)(url == null ? null : url + "/api"));
+                url = (url == null ? null : url + "/api");
             } else
             {
-                url = ((object)(url == null ? null : url + ("/" + type)));
+                url = (url == null ? null : url + ("/" + type));
             }
         }
-        url = ((object)(url == null ? null : url + (string)(object)(((("/" + (version)) + "/") + pathValue))));
+        url = (url == null ? null : url + (string)(object)(((("/" + (version)) + "/") + pathValue)));
         Dictionary<string, object> requestHeaders = null;
         string? requestBody = null;
         Dictionary<string, object> paramsSorted = this.keysort(this.extend(this.omit(parameters, this.extractParams(pathValue)), new Dictionary<string, object>() {
@@ -7510,7 +7510,7 @@ public partial class bingx : Exchange
         {
             if ((new List<object>(paramsSorted.Keys)).Count > 0)
             {
-                url = ((object)(url == null ? null : url + (string)(object)(("?" + this.urlencode(paramsSorted)))));
+                url = (url == null ? null : url + (string)(object)(("?" + this.urlencode(paramsSorted))));
             }
         } else if ((access is "private"))
         {
@@ -7542,7 +7542,7 @@ public partial class bingx : Exchange
             } else
             {
                 string query = this.urlencode(parsedParams, true);
-                url = ((object)(url == null ? null : url + (((("?" + query) + "&") + "signature=") + signature)));
+                url = (url == null ? null : url + (((("?" + query) + "&") + "signature=") + signature));
             }
         }
         return new Dictionary<string, object>() {

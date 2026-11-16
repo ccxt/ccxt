@@ -1043,7 +1043,7 @@ public partial class kraken : ccxt.kraken
     {
         reload ??= false;
         parameters ??= new Dictionary<string, object>();
-        object markets = await base.loadMarkets(reload, parameters);
+        IDictionary<string, object> markets = await base.loadMarkets(reload, parameters);
         IDictionary<string, object> marketsByWsName = this.safeDict(this.options, "marketsByWsName");
         if (((marketsByWsName == null)) || reload == true)
         {
@@ -1062,7 +1062,7 @@ public partial class kraken : ccxt.kraken
             }
             this.options["marketsByWsName"] = marketsByWsName;
         }
-        return ((IDictionary<string, object>)((object)(markets)));
+        return markets;
     }
 
     public override object ping(WebSocketClient client)

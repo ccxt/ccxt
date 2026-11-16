@@ -216,7 +216,7 @@ public partial class paradex : ccxt.paradex
         List<object> result = new List<object>() {};
         for (int i = 0; i < getArrayLength(channels); i++)
         {
-            if (!((client.subscriptions != null && getValue(channels, i) is string inOpKey1 && client.subscriptions.ContainsKey(inOpKey1))))
+            if (!((client.subscriptions != null && getValue(channels, i) is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))))
             {
                 result.Add(i);
             }
@@ -877,17 +877,17 @@ public partial class paradex : ccxt.paradex
         for (int i = 0; i < symbolsLength; i++)
         {
             Dictionary<string, object> market = this.market((symbolsNormalized != null && i < symbolsNormalized.Count ? symbolsNormalized[i] : null));
-            object deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
+            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
             // one feed per market on a connection: both send BookEvent frames, which do not name their channel,
             // and the 15-level snapshots would cut a full-depth book down. The deltas feed is a superset, it stays
             // the market stays on the deltas feed from the first call that asks for it, a call made while the
             // snapshot feed is being unsubscribed included
-            string? deltasHash = ((string)(((object)(deltasChannel == null ? null : deltasChannel + ":requested"))));
-            bool isDeltas = deltas || (((deltasHash != null) && (client.subscriptions != null && deltasHash != null && client.subscriptions.ContainsKey(deltasHash))));
+            string deltasHash = (deltasChannel + ":requested");
+            bool isDeltas = deltas || ((client.subscriptions != null && deltasHash != null && client.subscriptions.ContainsKey(deltasHash)));
             if (isDeltas)
             {
-                ((IDictionary<string,object>)client.subscriptions)[(string)deltasHash] = true;
+                ((IDictionary<string,object>)client.subscriptions)[deltasHash] = true;
             }
             if (isDeltas && (((snapshotChannel != null) && (client.subscriptions != null && snapshotChannel != null && client.subscriptions.ContainsKey(snapshotChannel)))))
             {
@@ -897,7 +897,7 @@ public partial class paradex : ccxt.paradex
                 ((IDictionary<string,object>)client.subscriptions).Remove(snapshotChannel);
                 await this.sendRequest(url, unsubscribe);
             }
-            object channel = isDeltas ? deltasChannel : snapshotChannel;
+            string? channel = isDeltas ? deltasChannel : snapshotChannel;
             channels.Add(channel);
             messageHashes.Add(("orderbook:" + ((market.ContainsKey("symbol") ? market["symbol"] : null))));
         }
@@ -950,12 +950,12 @@ public partial class paradex : ccxt.paradex
         {
             Dictionary<string, object> market = this.market(symbolsNormalized[i]);
             // the feed the market is on, a market is on one of them at a time
-            object deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
+            string deltasChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), true);
             string? snapshotChannel = this.getOrderBookChannel((market.ContainsKey("id") ? market["id"] : null), false);
-            object channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
+            string? channel = ((deltasOption is true)) ? deltasChannel : snapshotChannel;
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
-            string? requestedHash = ((string)(((object)(deltasChannel == null ? null : deltasChannel + ":requested"))));
-            if (((client.subscriptions != null && deltasChannel is string inOpKey0 && client.subscriptions.ContainsKey(inOpKey0))) || (((requestedHash != null) && (client.subscriptions != null && requestedHash != null && client.subscriptions.ContainsKey(requestedHash)))))
+            string requestedHash = (deltasChannel + ":requested");
+            if (((client.subscriptions != null && deltasChannel != null && client.subscriptions.ContainsKey(deltasChannel))) || ((client.subscriptions != null && requestedHash != null && client.subscriptions.ContainsKey(requestedHash))))
             {
                 channel = deltasChannel;
             } else if (((snapshotChannel != null) && (client.subscriptions != null && snapshotChannel != null && client.subscriptions.ContainsKey(snapshotChannel))))
@@ -1778,7 +1778,7 @@ public partial class paradex : ccxt.paradex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2843,7 +2843,7 @@ public partial class paradex : ccxt.paradex
             { "2", "CLOSED" },
         };
         string? side = this.sbeReadEnum(frameHex, 24, sides);
-        object account = this.sbeReadAddress(frameHex, 89);
+        string account = this.sbeReadAddress(frameHex, 89);
         // the frame carries the size unsigned, the JSON channel signs it negative for a short
         string? size = this.sbeReadDecimal(frameHex, 25);
         if ((side == "SHORT") && (size != "0"))
@@ -2857,7 +2857,7 @@ public partial class paradex : ccxt.paradex
             { "cached_funding_index", this.sbeReadDecimal(frameHex, 145) },
             { "cost", this.sbeReadDecimal(frameHex, 129) },
             { "cost_usd", this.sbeReadDecimal(frameHex, 137) },
-            { "id", ((object)(account == null ? null : account + "-" + this.safeString(strings, 0, ""))) },
+            { "id", ((account + "-") + this.safeString(strings, 0, "")) },
             { "last_fill_id", this.safeString(strings, 1) },
             { "last_updated_at", this.sbeReadTimestamp(frameHex, 81) },
             { "leverage", this.sbeReadDecimal(frameHex, 73) },

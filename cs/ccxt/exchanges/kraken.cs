@@ -1520,8 +1520,8 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = (key != null && ledger.ContainsKey(key) ? ledger[key] : null);
-            ((IDictionary<string,object>)value)["id"] = key;
+            IDictionary<string, object> value = ((IDictionary<string, object>)(key != null && ledger.ContainsKey(key) ? ledger[key] : null));
+            value["id"] = key;
             items.Add(value);
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items, currency, since, limit));
@@ -1555,8 +1555,8 @@ public partial class kraken : Exchange
         for (int i = 0; i < keys.Count; i++)
         {
             string? key = ((string)keys[i]);
-            object value = (key != null && result.ContainsKey(key) ? result[key] : null);
-            ((IDictionary<string,object>)value)["id"] = key;
+            IDictionary<string, object> value = ((IDictionary<string, object>)(key != null && result.ContainsKey(key) ? result[key] : null));
+            value["id"] = key;
             items.Add(value);
         }
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(items));
@@ -1784,9 +1784,9 @@ public partial class kraken : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(new List<object>() {});
         }
-        object lastTrade = (trades != null && (length - 1) < trades.Count ? trades[(length - 1)] : null);
+        IList<object> lastTrade = ((IList<object>)(trades != null && (length - 1) < trades.Count ? trades[(length - 1)] : null));
         string? lastTradeId = this.safeString(result, "last");
-        ((IList<object>)lastTrade).Add(lastTradeId);
+        lastTrade.Add(lastTradeId);
         ((List<object>)trades)[Convert.ToInt32((length - 1))] = lastTrade;
         return this.parseTrades(trades, market, since, limit);
     }
@@ -2262,14 +2262,14 @@ public partial class kraken : Exchange
                 cost = this.safeString(parts, 1);
             }
             marketId = this.safeString(parts, 2);
-            object part4 = this.safeString(parts, 4);
+            string? part4 = this.safeString(parts, 4);
             string? part5 = this.safeString(parts, 5);
-            if ((part4 is "limit") || (part4 is "market"))
+            if (part4 == "limit" || part4 == "market")
             {
                 descriptionType = part4; // eg, limit, market
             } else
             {
-                descriptionType = ((object)(part4 == null ? null : part4 + " " + part5)); // eg. stop loss, take profit, trailing stop
+                descriptionType = (part4 == null ? null : part4 + " " + part5); // eg. stop loss, take profit, trailing stop
             }
             if ((descriptionType is "stop loss") || (descriptionType is "take profit"))
             {
@@ -2625,7 +2625,7 @@ public partial class kraken : Exchange
      * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2641,7 +2641,7 @@ public partial class kraken : Exchange
             { "txid", id },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
-        object paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId", "cl_ord_id"}) : parameters;
+        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId", "cl_ord_id"}) : parameters;
         if ((clientOrderId != null))
         {
             request["cl_ord_id"] = clientOrderId;
@@ -2651,7 +2651,7 @@ public partial class kraken : Exchange
         bool? postOnly = null;
         IList<object> postOnlyparamsOmittedVariable = (IList<object>)this.handlePostOnly(isMarket, false, paramsOmitted);
         postOnly = (bool?)postOnlyparamsOmittedVariable[0];
-        paramsOmitted = postOnlyparamsOmittedVariable[1];
+        paramsOmitted = (IDictionary<string, object>)postOnlyparamsOmittedVariable[1];
         if ((postOnly == true))
         {
             request["post_only"] = "true"; // not using boolean in this case, because the urlencodedNested transforms it into 'True' string
@@ -2700,7 +2700,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2986,7 +2986,7 @@ public partial class kraken : Exchange
      * @param {int} [params.userref] the orders user reference id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2995,12 +2995,12 @@ public partial class kraken : Exchange
         }
         Dictionary<string, object> response = null;
         object requestId = this.safeValue(parameters, "userref", id); // string or integer
-        IDictionary<string, object> paramsUserref = ((IDictionary<string, object>)this.omit(parameters, "userref"));
+        Dictionary<string, object> paramsUserref = this.omit(parameters, "userref");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "txid", requestId },
         };
         string? clientOrderId = this.safeString2(paramsUserref, "clientOrderId", "cl_ord_id");
-        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(paramsUserref, new List<object>() {"clientOrderId", "cl_ord_id"}) : paramsUserref;
+        Dictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(paramsUserref, new List<object>() {"clientOrderId", "cl_ord_id"}) : paramsUserref;
         if ((clientOrderId != null))
         {
             request["cl_ord_id"] = clientOrderId;
@@ -3033,7 +3033,7 @@ public partial class kraken : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3136,7 +3136,7 @@ public partial class kraken : Exchange
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3149,7 +3149,7 @@ public partial class kraken : Exchange
             request["start"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((userref != null)) ? this.omit(parameters, "userref") : parameters));
+        IDictionary<string, object> paramsOmitted = ((userref != null)) ? this.omit(parameters, "userref") : parameters;
         if ((userref != null))
         {
             request["userref"] = userref;
@@ -3232,7 +3232,7 @@ public partial class kraken : Exchange
      * @param {int} [params.userref] the orders user reference id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -3245,7 +3245,7 @@ public partial class kraken : Exchange
             request["start"] = this.parseToInt(((double?)since / 1000));
         }
         Int64? userref = this.safeInteger(parameters, "userref");
-        object paramsOmitted = ((userref != null)) ? this.omit(parameters, "userref") : parameters;
+        IDictionary<string, object> paramsOmitted = ((userref != null)) ? this.omit(parameters, "userref") : parameters;
         if ((userref != null))
         {
             request["userref"] = userref;
@@ -3258,7 +3258,7 @@ public partial class kraken : Exchange
         }
         IList<object> requestparamsOmittedVariable = (IList<object>)this.handleUntilOption("end", request, paramsOmitted);
         request = (Dictionary<string, object>)requestparamsOmittedVariable[0];
-        paramsOmitted = requestparamsOmittedVariable[1];
+        paramsOmitted = (IDictionary<string, object>)requestparamsOmittedVariable[1];
         Dictionary<string, object> response = await this.privatePostClosedOrders(this.extend(request, paramsOmitted));
         //
         //     {
@@ -3654,8 +3654,8 @@ public partial class kraken : Exchange
         int dataLength = data.Count;
         if ((cursor != null) && dataLength > 0)
         {
-            object last = (data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null);
-            ((IDictionary<string,object>)last)["next_cursor"] = cursor;
+            IDictionary<string, object> last = ((IDictionary<string, object>)(data != null && (dataLength - 1) < data.Count ? data[(dataLength - 1)] : null));
+            last["next_cursor"] = cursor;
             ((List<object>)data)[Convert.ToInt32((dataLength - 1))] = last;
         }
         return data;

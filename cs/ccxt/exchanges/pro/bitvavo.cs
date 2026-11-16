@@ -554,8 +554,8 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
-            ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
+            IList<object> intervalIds = ((IList<object>)(interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
+            intervalIds.Add((market.ContainsKey("id") ? market["id"] : null));
             messageHashes.Add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
         }
         List<object> channels = new List<object>() {};
@@ -635,8 +635,8 @@ public partial class bitvavo : ccxt.bitvavo
             {
                 marketIdsByInterval[(string)interval] = new List<object>() {};
             }
-            object intervalIds = (interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null);
-            ((IList<object>)intervalIds).Add((market.ContainsKey("id") ? market["id"] : null));
+            IList<object> intervalIds = ((IList<object>)(interval != null && marketIdsByInterval.ContainsKey(interval) ? marketIdsByInterval[interval] : null));
+            intervalIds.Add((market.ContainsKey("id") ? market["id"] : null));
             // both the single-symbol and the multi-symbol watch hashes must be released
             subMessageHashes.Add(((((name + "@") + this.safeString(market, "id", "")) + "_") + interval));
             subMessageHashes.Add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));

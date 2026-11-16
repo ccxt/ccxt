@@ -2006,7 +2006,7 @@ public partial class binance : ccxt.binance
             string? timeframeString = this.safeString(symAndTf, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             Dictionary<string, object> market = this.market(symbolString);
-            object marketId = this.safeString(market, "lowercaseId");
+            string? marketId = this.safeString(market, "lowercaseId");
             if ((marketId == null))
             {
                 throw new ArgumentsRequired ((this.id + " watchOHLCVForSymbols() marketId is required")) ;
@@ -2014,7 +2014,7 @@ public partial class binance : ccxt.binance
             if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace("_perp", (string)"");
+                marketId = marketId.Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2023,7 +2023,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
+            rawHashes.Add((marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix));
             messageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             subscribeHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2105,7 +2105,7 @@ public partial class binance : ccxt.binance
             string? timeframeString = this.safeString(symAndTf, 1, "");
             string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             Dictionary<string, object> market = this.market(symbolString);
-            object marketId = this.safeString(market, "lowercaseId");
+            string? marketId = this.safeString(market, "lowercaseId");
             if ((marketId == null))
             {
                 throw new ArgumentsRequired ((this.id + " unWatchOHLCVForSymbols() marketId is required")) ;
@@ -2113,7 +2113,7 @@ public partial class binance : ccxt.binance
             if ((klineType == "indexPriceKline"))
             {
                 // weird behavior for index price kline we can't use the perp suffix
-                marketId = ((string)marketId).Replace("_perp", (string)"");
+                marketId = marketId.Replace("_perp", (string)"");
             }
             bool shouldUseUTC8 = (isUtc8 && isSpot);
             string suffix = "@+08:00";
@@ -2122,7 +2122,7 @@ public partial class binance : ccxt.binance
             {
                 utcSuffix = suffix;
             }
-            rawHashes.Add(((object)(marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix)));
+            rawHashes.Add((marketId == null ? null : marketId + "@" + (string)(object)(klineType) + "_" + interval + utcSuffix));
             subMessageHashes.Add(((("ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
             messageHashes.Add(((("unsubscribe::ohlcv::" + this.safeString(market, "symbol", "")) + "::") + timeframeString));
         }
@@ -2705,8 +2705,8 @@ public partial class binance : ccxt.binance
             List<object> stockMessageHashes = new List<object>() {};
             for (int i = 0; i < (stockSymbols?.Count ?? 0); i++)
             {
-                object stockTicker = this.getStockTickerFromSymbol(stockSymbols[i]);
-                stockStreams.Add(((object)(stockTicker == null ? null : stockTicker + "@quote")));
+                string? stockTicker = this.getStockTickerFromSymbol(stockSymbols[i]);
+                stockStreams.Add((stockTicker == null ? null : stockTicker + "@quote"));
                 stockMessageHashes.Add(("stock:quote:" + (stockSymbols[i])));
             }
             object stockResult = await this.watchStockMarketStream(stockStreams, stockMessageHashes, paramsStock);
@@ -4340,7 +4340,7 @@ public partial class binance : ccxt.binance
         return accountType;
     }
 
-    public virtual List<object> resolveAuthType(string methodName, IDictionary<string, object>? market = null, object parameters = null)
+    public virtual List<object> resolveAuthType(string methodName, IDictionary<string, object>? market = null, IDictionary<string, object> parameters = null)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep
@@ -5833,7 +5833,7 @@ public partial class binance : ccxt.binance
      * @param {boolean} [params.portfolioMargin] set to true if you would like to watch positions in a portfolio margin account
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))

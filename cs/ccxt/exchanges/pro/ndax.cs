@@ -189,13 +189,13 @@ public partial class ndax : ccxt.ndax
         {
             ccxt.Trade trade = this.parseTrade(payload[i]);
             string? symbol = trade.symbol;
-            object tradesArray = ((symbol == null)) ? null : this.safeValue(this.trades, symbol);
+            ccxt.pro.ArrayCache tradesArray = ((ccxt.pro.ArrayCache)(((symbol == null)) ? null : this.safeValue(this.trades, symbol)));
             if ((tradesArray == null))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(limit);
             }
-            ccxt.pro.BaseCache.appendTo(tradesArray, ccxt.BaseExchange.FromTrade(trade));
+            tradesArray.append(ccxt.BaseExchange.FromTrade(trade));
             if ((symbol != null))
             {
                 this.trades[(string)symbol] = tradesArray;

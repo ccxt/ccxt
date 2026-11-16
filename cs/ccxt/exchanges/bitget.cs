@@ -3947,7 +3947,7 @@ public partial class bitget : Exchange
         string? quoteId = this.safeString(market, "quoteCoin");
         string? baseId = this.safeString(market, "baseCoin");
         string? quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
+        string? bs = this.safeCurrencyCode(baseId);
         List<object> supportMarginCoins = this.safeList(market, "supportMarginCoins", new List<object>() {});
         string? settleId = null;
         if (this.inArray(baseId, supportMarginCoins))
@@ -4001,7 +4001,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle);
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4010,17 +4010,17 @@ public partial class bitget : Exchange
                 List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
-                object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
+                string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                object monthDay = (month == null ? null : month + day);
-                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
+                string? monthDay = (month == null ? null : month + day);
+                string expiryString = (year + monthDay);
                 type = "future";
                 future = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString);
             }
             contract = true;
-            inverse = (isEqual(bs, settle));
+            inverse = ((bs == settle));
             linear = inverse != true;
             Int64? pricePlaces = this.safeInteger(market, "pricePlace");
             Int64? volumePlaces = this.safeInteger(market, "volumePlace");
@@ -4254,8 +4254,8 @@ public partial class bitget : Exchange
         string? quoteId = this.safeString(market, "quoteCoin");
         string? baseId = this.safeString(market, "baseCoin");
         string? quote = this.safeCurrencyCode(quoteId);
-        object bs = this.safeCurrencyCode(baseId);
-        object settleId = null;
+        string? bs = this.safeCurrencyCode(baseId);
+        string? settleId = null;
         if (category == "USDT-FUTURES")
         {
             settleId = "USDT";
@@ -4306,7 +4306,7 @@ public partial class bitget : Exchange
             {
                 type = "swap";
                 swap = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle);
             } else if (symbolType == "delivery")
             {
                 expiry = this.safeInteger(market, "deliveryTime");
@@ -4315,17 +4315,17 @@ public partial class bitget : Exchange
                 List<object> expiryParts = expiryIso.Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
                 string? yearPart = this.safeString(expiryParts, 0, "");
                 string? dayPart = this.safeString(expiryParts, 2, "");
-                object year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
+                string? year = ((yearPart == null) ? null : yearPart.Substring(Math.Min(2, yearPart.Length), Math.Min(4, yearPart.Length) - Math.Min(2, yearPart.Length)));
                 object month = (expiryParts != null && 1 < expiryParts.Count ? expiryParts[1] : null);
                 string? day = ((dayPart == null) ? null : dayPart.Substring(0, Math.Min(2, dayPart.Length)));
-                object monthDay = (month == null ? null : month + day);
-                string? expiryString = ((string)((object)(year == null ? null : year + (string)(object)(monthDay))));
+                string? monthDay = (month == null ? null : month + day);
+                string expiryString = (year + monthDay);
                 type = "future";
                 future = true;
-                symbol = ((object)(bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString));
+                symbol = (bs == null ? null : bs + "/" + quote + ":" + settle + "-" + expiryString);
             }
             contract = true;
-            inverse = (isEqual(bs, settle));
+            inverse = ((bs == settle));
             linear = inverse != true;
             marginModes = new Dictionary<string, object>() {
                 { "cross", true },
@@ -4684,7 +4684,7 @@ public partial class bitget : Exchange
         return ccxt.BaseExchange.ToLeverageTierList(this.parseMarketLeverageTiers(result, market));
     }
 
-    public override object parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
+    public override List<object> parseMarketLeverageTiers(object info, IDictionary<string, object> market = null)
     {
         //
         // swap and future
@@ -8338,7 +8338,7 @@ public partial class bitget : Exchange
         return this.extend(request, paramsMarketType);
     }
 
-    public async virtual Task<List<ccxt.Order>> CreateUtaOrders(IList<object> orders, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CreateUtaOrders(IList<object> orders, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8572,7 +8572,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
+    public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -8613,16 +8613,16 @@ public partial class bitget : Exchange
         {
             throw new ExchangeError ((this.id + " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
         }
-        object paramsOmitted = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"});
+        IDictionary<string, object> paramsOmitted = this.omit(parameters, new List<object>() {"stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent"});
         Dictionary<string, object> response = null;
         string? productType = null;
         bool? uta = null;
         IList<object> productTypeparamsOmittedVariable = (IList<object>)this.handleProductTypeAndParams(market, paramsOmitted);
         productType = (string)productTypeparamsOmittedVariable[0];
-        paramsOmitted = productTypeparamsOmittedVariable[1];
+        paramsOmitted = (IDictionary<string, object>)productTypeparamsOmittedVariable[1];
         var utaparamsOmittedVariable = await this.handleUTAAndParams(paramsOmitted, "editOrder", false);
         uta = (bool?)((IList<object>)utaparamsOmittedVariable)[0];
-        paramsOmitted = ((IList<object>)utaparamsOmittedVariable)[1];
+        paramsOmitted = (IDictionary<string, object>)((IList<object>)utaparamsOmittedVariable)[1];
         if ((uta == true))
         {
             if ((amount != null))
@@ -8842,7 +8842,7 @@ public partial class bitget : Exchange
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9034,7 +9034,7 @@ public partial class bitget : Exchange
         return this.parseOrder(order, market);
     }
 
-    public async virtual Task<List<ccxt.Order>> CancelUtaOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> CancelUtaOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9094,7 +9094,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an array of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> CancelOrders(IList<object> ids, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9327,7 +9327,7 @@ public partial class bitget : Exchange
      * @param {string} [params.clientOrderId] the clientOrderId of the order, id does not need to be provided if clientOrderId is provided
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+    public async override Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((symbol == null))
@@ -9348,7 +9348,7 @@ public partial class bitget : Exchange
         {
             request["orderId"] = id;
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)(((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId"}) : parameters));
+        IDictionary<string, object> paramsOmitted = ((clientOrderId != null)) ? this.omit(parameters, new List<object>() {"clientOrderId"}) : parameters;
         object response = null;
         var utaparamsUTAVariable = await this.handleUTAAndParams(paramsOmitted, "fetchOrder", false);
         var uta = ((IList<object>) utaparamsUTAVariable)[0];
@@ -9528,7 +9528,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchOpenOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -9989,7 +9989,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -10059,7 +10059,7 @@ public partial class bitget : Exchange
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         bool? uta = null;
@@ -10397,7 +10397,7 @@ public partial class bitget : Exchange
         return this.parseOrders(orders, market, sinceResolved, limit);
     }
 
-    public async virtual Task<List<ccxt.Order>> FetchUtaCanceledAndClosedOrders(string? symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async virtual Task<List<ccxt.Order>> FetchUtaCanceledAndClosedOrders(string? symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -14765,7 +14765,7 @@ public partial class bitget : Exchange
         if (signed)
         {
             this.checkRequiredCredentials();
-            object timestamp = this.numberToString(this.nonce());
+            string? timestamp = this.numberToString(this.nonce());
             object auth = (timestamp == null ? null : timestamp + (string)(object)(method) + payload);
             if ((method == "POST"))
             {

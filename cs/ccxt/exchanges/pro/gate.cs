@@ -257,8 +257,8 @@ public partial class gate : ccxt.gate
             market = this.market(symbol);
         }
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
-        object messageType = this.getTypeByMarket(market);
-        string? channel = ((string)((object)(messageType == null ? null : messageType + ".order_cancel_cp")));
+        string? messageType = this.getTypeByMarket(market);
+        string? channel = ((string)(messageType == null ? null : messageType + ".order_cancel_cp"));
         (string?, object) channelOptionparamsChannelVariable = this.handleOptionStringAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
         string? channelOption = channelOptionparamsChannelVariable.Item1;
         IDictionary<string, object> paramsChannel = ((IDictionary<string, object>)channelOptionparamsChannelVariable.Item2);
@@ -310,8 +310,8 @@ public partial class gate : ccxt.gate
         var requestrequestParamsVariable = ((type == "spot") || (type == "margin")) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        object messageType = this.getTypeByMarket(market);
-        string? channel = ((string)((object)(messageType == null ? null : messageType + ".order_cancel")));
+        string? messageType = this.getTypeByMarket(market);
+        string? channel = ((string)(messageType == null ? null : messageType + ".order_cancel"));
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         ((IDictionary<string,object>)request)["order_id"] = id.ToString();
@@ -384,8 +384,8 @@ public partial class gate : ccxt.gate
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        object messageType = this.getTypeByMarket(market);
-        string? channel = ((string)((object)(messageType == null ? null : messageType + ".order_status")));
+        string? messageType = this.getTypeByMarket(market);
+        string? channel = ((string)(messageType == null ? null : messageType + ".order_status"));
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrder = await this.requestPrivate(url, this.extend(request, requestParams), channel);
@@ -462,8 +462,8 @@ public partial class gate : ccxt.gate
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
         object newRequest = this.omit(request, new List<object>() {"settle"});
-        object messageType = this.getTypeByMarket(market);
-        string? channel = ((string)((object)(messageType == null ? null : messageType + ".order_list")));
+        string? messageType = this.getTypeByMarket(market);
+        string? channel = ((string)(messageType == null ? null : messageType + ".order_list"));
         string? url = this.getUrlByMarket(market);
         await this.authenticate(url, messageType);
         object rawOrders = await this.requestPrivate(url, this.extend(newRequest, requestParams), channel);
@@ -1377,8 +1377,8 @@ public partial class gate : ccxt.gate
             string? subscription = this.safeString(ohlcv, "n", "");
             List<object> parts = subscription.Split(new [] {"_"}, StringSplitOptions.None).ToList<object>();
             string? timeframeId = this.safeString(parts, 0);
-            object timeframe = this.findTimeframe(timeframeId);
-            string? prefix = ((string)((object)(timeframe == null ? null : timeframe + "_")));
+            string? timeframe = this.findTimeframe(timeframeId);
+            string? prefix = ((string)(timeframe == null ? null : timeframe + "_"));
             string marketId = subscription.Replace(prefix, (string)"");
             string? symbol = this.safeSymbol(marketId, null, "_", marketType);
             IList<object> parsed = this.parseOHLCV(ohlcv);
@@ -1682,7 +1682,7 @@ public partial class gate : ccxt.gate
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2030,7 +2030,7 @@ public partial class gate : ccxt.gate
             this.orders = new ArrayCacheBySymbolById(limit);
             this.triggerOrders = new ArrayCacheBySymbolById(limit);
         }
-        object stored = isTrigger ? this.triggerOrders : this.orders;
+        ccxt.pro.ArrayCache stored = ((ccxt.pro.ArrayCache)(isTrigger ? this.triggerOrders : this.orders));
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         IList<object> parsedOrders = ccxt.BaseExchange.FromOrderList(this.parseOrders(orders));
         for (int i = 0; i < (parsedOrders?.Count ?? 0); i++)
@@ -2051,7 +2051,7 @@ public partial class gate : ccxt.gate
                     ((IDictionary<string,object>)parsed)["status"] = Precise.stringEquals(left, "0") ? "closed" : "canceled";
                 }
             }
-            ccxt.pro.BaseCache.appendTo(stored, parsed);
+            stored.append(parsed);
             object symbol = getValue(parsed, "symbol");
             Dictionary<string, object> market = this.market(symbol);
             if (!((market.ContainsKey("id") ? market["id"] : null) == null))

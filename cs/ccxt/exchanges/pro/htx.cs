@@ -1108,7 +1108,7 @@ public partial class htx : ccxt.htx
         return new List<object>() {channel, messageHash};
     }
 
-    public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object>? market = null, object parameters = null)
+    public virtual List<object> getV5LinearChannelAndMessageHash(string? topic, IDictionary<string, object>? market = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object contractCode = null;
@@ -1125,7 +1125,7 @@ public partial class htx : ccxt.htx
         {
             messageHash = ((topic + ".") + ((string)contractCode).ToLower());
         }
-        IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "contract_code"));
+        Dictionary<string, object> paramsOmitted = this.omit(parameters, "contract_code");
         Dictionary<string, object> requestParams = this.extend(new Dictionary<string, object>() {
             { "contract_code", contractCode },
         }, paramsOmitted);
@@ -1781,7 +1781,7 @@ public partial class htx : ccxt.htx
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
      */
-    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Position>> WatchPositions(IList<object> symbols = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -2324,8 +2324,8 @@ public partial class htx : ccxt.htx
             }
             IDictionary<string, object> first = this.safeDict(data, 0, new Dictionary<string, object>() {});
             List<object> splitTopic = topic.Split(new [] {"."}, StringSplitOptions.None).ToList<object>();
-            object messageHash = this.safeString(splitTopic, 0);
-            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, ((object)(messageHash == null ? null : messageHash + ".*")));
+            string? messageHash = this.safeString(splitTopic, 0);
+            IDictionary<string, object> subscription = this.safeDict2(client.subscriptions, messageHash, (messageHash == null ? null : messageHash + ".*"));
             if ((subscription == null))
             {
                 // if subscription not found means that we subscribed to a specific currency/symbol
@@ -2338,7 +2338,7 @@ public partial class htx : ccxt.htx
                 {
                     return;
                 }
-                messageHash = ((object)(messageHash == null ? null : messageHash + ("." + currencyId.ToLower())));
+                messageHash = (messageHash == null ? null : messageHash + ("." + currencyId.ToLower()));
                 subscription = this.safeDict(client.subscriptions, messageHash);
             }
             string? subType = this.safeString(subscription, "subType");

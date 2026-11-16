@@ -324,10 +324,10 @@ public partial class mexc : ccxt.mexc
         Dictionary<string, object> market = this.safeMarket(marketId);
         bool channelStartsWithSpot = channel.StartsWith("spot");
         bool marketIdIsUndefined = (marketId == null);
-        object isSpot = marketIdIsUndefined ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null);
+        bool? isSpot = ((bool?)(marketIdIsUndefined ? channelStartsWithSpot : (market.ContainsKey("spot") ? market["spot"] : null)));
         string spotPrefix = "spot:";
         string messageHashPrefix = "";
-        if ((isSpot is true))
+        if ((isSpot == true))
         {
             messageHashPrefix = spotPrefix;
         }
@@ -337,7 +337,7 @@ public partial class mexc : ccxt.mexc
         {
             object entry = data[i];
             Dictionary<string, object> ticker = null;
-            if ((isSpot is true))
+            if ((isSpot == true))
             {
                 ticker = ccxt.BaseExchange.FromTicker(this.parseWsTicker(entry, market));
             } else
