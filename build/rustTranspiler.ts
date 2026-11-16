@@ -10318,13 +10318,9 @@ ${arms.join('\n')}
             // is Go-style inheritance. A base exchange falls back to the
             // trait default.
             if (!inherent.has(name) || !inh || inh.isAsync) {
-                if (parentCore) {
-                    const traitParams = rustDispatch.slotParams(args);
-                    const fwd = args.join(', ');
-                    out.push(`    fn ${name}(&self, ${traitParams}) -> crate::Value {`);
-                    out.push(`        crate::exchange::DerivedExchange::${name}(&self.parent${fwd ? ', ' + fwd : ''})`);
-                    out.push(`    }`);
-                }
+                // The trait defaults reach the parent through this one accessor.
+                const accessor = `    fn derived_parent(&self) -> Option<&dyn crate::exchange::DerivedExchange> { Some(&self.parent) }`;
+                if (parentCore && !out.includes(accessor)) out.push(accessor);
                 continue;
             }
             const traitParams = rustDispatch.slotParams(args);

@@ -219,50 +219,52 @@ impl<T> TypedById<T> {
 /// rewrites it to `self.derived().parse_ticker(...)`; that goes through
 /// this trait's vtable to the derived exchange's override.
 ///
-/// Default impls return `Value::Null` so an unbound Exchange still
-/// compiles and runs (it just gives back empty results).
+/// Default impls delegate to `derived_parent()` and return `Value::Null`
+/// without one, so an unbound Exchange still compiles and runs.
 pub trait DerivedExchange {
+    /// The parent core of a subclass; each default below delegates to it, or returns Null without one.
+    fn derived_parent(&self) -> Option<&dyn DerivedExchange> { None }
     // ── parsers (the dominant override surface) ──────────────────────────
-    fn parse_ticker(&self, _ticker: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_order(&self, _order: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_market(&self, _market: Value) -> Value { Value::Null }
-    fn parse_ohlcv(&self, _ohlcv: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_order_book(&self, _ob: Value, _symbol: Value, _ts: Value, _bk: Value, _ak: Value, _pk: Value, _ak2: Value, _ck: Value) -> Value { Value::Null }
-    fn parse_balance(&self, _response: Value) -> Value { Value::Null }
-    fn parse_position(&self, _position: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_funding_rate(&self, _rate: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_deposit(&self, _tx: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_deposit_address(&self, _addr: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_last_price(&self, _entry: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_withdrawal(&self, _tx: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_ledger_entry(&self, _entry: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_transfer(&self, _transfer: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_currency(&self, _currency: Value) -> Value { Value::Null }
-    fn parse_bid_ask(&self, _bidask: Value, _price_key: Value, _amount_key: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_open_interest(&self, _interest: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_liquidation(&self, _liquidation: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_funding_rate_history(&self, _entry: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_margin_modification(&self, _data: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_account(&self, _account: Value) -> Value { Value::Null }
-    fn parse_my_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_transaction(&self, _transaction: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_borrow_interest(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_adl_rank(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_income(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_greeks(&self, _greeks: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_margin_mode(&self, _margin_mode: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_conversion(&self, _conversion: Value, _from_currency: Option<&crate::types::Currency>, _to_currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_borrow_rate(&self, _info: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn parse_leverage(&self, _leverage: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_market_leverage_tiers(&self, _info: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_deposit_withdraw_fee(&self, _fee: Value, _currency: Option<&crate::types::Currency>) -> Value { Value::Null }
-    fn create_expired_option_market(&self, _symbol: Value) -> Value { Value::Null }
-    fn market(&self, _symbol: Value) -> Value { Value::Null }
+    fn parse_ticker(&self, ticker: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ticker(ticker, market)) }
+    fn parse_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_trade(trade, market)) }
+    fn parse_order(&self, order: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_order(order, market)) }
+    fn parse_market(&self, market: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_market(market)) }
+    fn parse_ohlcv(&self, ohlcv: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ohlcv(ohlcv, market)) }
+    fn parse_order_book(&self, ob: Value, symbol: Value, ts: Value, bk: Value, ak: Value, pk: Value, ak2: Value, ck: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_order_book(ob, symbol, ts, bk, ak, pk, ak2, ck)) }
+    fn parse_balance(&self, response: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_balance(response)) }
+    fn parse_position(&self, position: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_position(position, market)) }
+    fn parse_funding_rate(&self, rate: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_funding_rate(rate, market)) }
+    fn parse_deposit(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_deposit(tx, currency)) }
+    fn parse_deposit_address(&self, addr: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_deposit_address(addr, currency)) }
+    fn parse_last_price(&self, entry: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_last_price(entry, market)) }
+    fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_withdrawal(tx, currency)) }
+    fn parse_ledger_entry(&self, entry: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ledger_entry(entry, currency)) }
+    fn parse_transfer(&self, transfer: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_transfer(transfer, currency)) }
+    fn parse_currency(&self, currency: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_currency(currency)) }
+    fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_bid_ask(bidask, price_key, amount_key, market)) }
+    fn parse_open_interest(&self, interest: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_open_interest(interest, market)) }
+    fn parse_liquidation(&self, liquidation: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_liquidation(liquidation, market)) }
+    fn parse_funding_rate_history(&self, entry: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_funding_rate_history(entry, market)) }
+    fn parse_margin_modification(&self, data: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_margin_modification(data, market)) }
+    fn parse_account(&self, account: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_account(account)) }
+    fn parse_my_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_my_trade(trade, market)) }
+    fn parse_transaction(&self, transaction: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_transaction(transaction, currency)) }
+    fn parse_borrow_interest(&self, info: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_borrow_interest(info, market)) }
+    fn parse_adl_rank(&self, info: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_adl_rank(info, market)) }
+    fn parse_income(&self, info: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_income(info, market)) }
+    fn parse_greeks(&self, greeks: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_greeks(greeks, market)) }
+    fn parse_margin_mode(&self, margin_mode: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_margin_mode(margin_mode, market)) }
+    fn parse_conversion(&self, conversion: Value, from_currency: Option<&crate::types::Currency>, to_currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_conversion(conversion, from_currency, to_currency)) }
+    fn parse_borrow_rate(&self, info: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_borrow_rate(info, currency)) }
+    fn parse_leverage(&self, leverage: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_leverage(leverage, market)) }
+    fn parse_market_leverage_tiers(&self, info: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_market_leverage_tiers(info, market)) }
+    fn parse_deposit_withdraw_fee(&self, fee: Value, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_deposit_withdraw_fee(fee, currency)) }
+    fn create_expired_option_market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.create_expired_option_market(symbol)) }
+    fn market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.market(symbol)) }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
-    fn parse_prediction_trade(&self, _trade: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_prediction_order(&self, _order: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
-    fn parse_prediction_position(&self, _position: Value, _market: Option<&crate::types::Market>) -> Value { Value::Null }
+    fn parse_prediction_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_prediction_trade(trade, market)) }
+    fn parse_prediction_order(&self, order: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_prediction_order(order, market)) }
+    fn parse_prediction_position(&self, position: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_prediction_position(position, market)) }
     // ── signers / error handlers ─────────────────────────────────────────
     /// `nonce()` — the request timestamp. The base default is `seconds()`, but
     /// 47 venues override it (binance: `milliseconds() - timeDifference`), and
@@ -271,9 +273,9 @@ pub trait DerivedExchange {
     /// `ExchangeBase::nonce` at deref step 0 and never looks at the REST
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
-    fn nonce(&self) -> Value { Value::Null }
-    fn sign(&self, _path: &str, _api: Value, _method: Value, _params: Value, _headers: Value, _body: Value) -> Value { Value::Null }
-    fn handle_errors(&self, _code: Value, _reason: Value, _url: Value, _method: Value, _headers: Value, _body: Value, _response: Value, _request_headers: Value, _request_body: Value) -> Value { Value::Null }
+    fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| p.nonce()) }
+    fn sign(&self, path: &str, api: Value, method: Value, params: Value, headers: Value, body: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.sign(path, api, method, params, headers, body)) }
+    fn handle_errors(&self, code: Value, reason: Value, url: Value, method: Value, headers: Value, body: Value, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.handle_errors(code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
 // `Internals` no longer holds raw pointers, so `Send`/`Sync` are auto-derived
