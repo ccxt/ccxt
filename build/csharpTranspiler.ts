@@ -8678,7 +8678,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12776,5 +12776,32 @@ export function copyLocalSnippetChecks84c5 (): string[] {
     // R2 (slot-1 writes into a typed bag copy) proves through the base Exchange.ts / ts/src corpus tables
     // (nullSeedElement1Call / tupleDictSlotCall), which an in-memory snippet cannot reach: farm-gated only.
     check ('written params bag keeps object', 'async fetchBalance (params = {}) { params = this.omit (params, "y"); let q = params; return this.safeString (q, "a"); }', 'object q = parameters;');
+    return problems;
+}
+
+// ral-84c7: locals initialised by a helper whose result is a non-null string print `string` and
+// their `+` reads print the native concatenation (no null-guarded object concat)
+export function nonNullStringCallSnippetChecks84c7 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const print = (body: string) => (transpiler as any).transpileCSharp ('class Test {\n binaryToBase16 (b) { return \'\'; }\n hash (a, b, c) { return a; }\n' + body + '\n}').content as string;
+    const cases: [string, string, string][] = [
+        [ 'binaryToBase16 -> string', 'f (m) { const h = this.binaryToBase16 (m); const d = h + \'00\'; return this.hash (d, 1, 1); }', 'string d = (h + \"00\");' ],
+        [ 'same-file literal-concat helper', 'chan (id: string, deltas: boolean = false): string { if (deltas) { return \'book.\' + id + \'.d\'; } return \'book.\' + id; }\n g (id) { const c = this.chan (id, true); const k = c + \':requested\'; return this.hash (k, 1, 1); }', 'string c = this.chan(id, true);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = print (body);
+        if (!out.includes (expected)) problems.push (`84c7 non-null string call locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // ral-84c7 R2: pass-through helpers keep the argument's collection type
+    const passThrough = (transpiler as any).transpileCSharp ('class Test {\n clone (o) { return o; }\n requireValue (v, m) { return v; }\n hash (a, b, c) { return a; }\n'
+        + ' f (p) { const position = { \'a\': 1 }; const s = this.clone (position); s[\'side\'] = \'short\'; const r = this.requireValue (position, \'m\'); r[\'x\'] = 1; return this.hash (s, r, 1); }\n}').content as string;
+    if (!passThrough.includes ('Dictionary<string, object> s = ((Dictionary<string, object>)this.clone(position));')) problems.push (`84c7 pass-through clone: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
+    if (!passThrough.includes ('Dictionary<string, object> r = ((Dictionary<string, object>)this.requireValue(position, "m"));')) problems.push (`84c7 pass-through requireValue: ${passThrough.replace (/\n/g, ' | ').slice (-400)}`);
+    // a helper with a non-literal return path keeps object
+    const kept = print ('chan (id) { if (id) { return \'a\'; } return id; }\n g (id) { const c = this.chan (id); const k = c + \':r\'; return this.hash (k, 1, 1); }');
+    if (!kept.includes ('object c = this.chan(id);')) problems.push (`84c7 non-null string call locals: unproven helper retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

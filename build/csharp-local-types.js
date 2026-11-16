@@ -10886,7 +10886,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context) ?? literalRightAddChainLocal (csharp, declaration, context) ?? castProvenArmConditionalLocal (csharp, declaration, context) ?? nullGuardStringConcatLocal (csharp, declaration, context) ?? nonNullStringCallLocal84c7 (csharp, declaration, context) ?? passThroughHelperLocal84c7 (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -19981,4 +19981,233 @@ function csharp84c6ReturnIsTyped (csharp, expression, mapped) {
         return CSHARP_84C6_MEMBER_TYPES[node.name?.text] === mapped;
     }
     return node?.kind === ts.SyntaxKind.CallExpression && (callReturnType (csharp, node) === mapped || callCollectionReturnType (csharp, node) === mapped);
+}
+
+// ===== 84c7: non-null string results of base / venue helpers (guard-concat locals) =====
+// `const t = this.numberToString (this.nonce ())` printed `object t = …` and every `t + 'x'` read
+// then printed the null-guarded `(t == null ? null : t + "x")` form. Each initializer below is a
+// call whose C# result is a NON-NULL `string` on every path, so the local is declared `string`
+// with no cast (the printed callee signature is `string` / `string?`; nullability is not part of
+// the C# type) and its `+` reads print the native concatenation:
+//   (a) this.numberToString (<int / Int64 / double expression>): Exchange.Number.cs
+//       NumberToString returns null only for a null box, and a C# value type never is one;
+//   (b) this.iso8601 (this.milliseconds () | this.seconds () | this.nonce ()): an Int64 clock
+//       value (Exchange.Time.cs / the `virtual Int64 nonce` slot every override keeps) is a
+//       finite integer far inside Iso8601's [0, 8.64e15] range, the only null exits;
+//   (c) this.binaryToBase16 / intToBase16 (…): Exchange.Encode.cs, never null;
+//   (d) a sync method declared exactly once in all of ts/src (same file, or the base class the
+//       checker binds) whose every return path
+//       prints a statically non-null `string` (stringReturnExpressionProves: a literal, a
+//       `'lit' + …` chain, padStart) — paradex getOrderBookChannel / sbeReadAddress.
+// A local passed as a call argument is left `object`: a typed argument feeds the call-site
+// parameter proofs, and signatures are another lane's decision. csharpLocalIsSafeToRetype still
+// checks every read and write against `string`.
+const CSHARP_84C7_CLOCK_CALLS = [ 'milliseconds', 'seconds', 'nonce' ];
+
+function nonNullStringCall84c7 (csharp, call, context) {
+    const callee = call.expression;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    const name = callee.name?.text;
+    const args = call.arguments ?? [];
+    if (name === 'numberToString') {
+        if (args.length !== 1) {
+            return false;
+        }
+        const kind = csharpTypeOfValue (csharp, args[0], context);
+        return kind === 'int' || kind === 'Int64' || kind === 'double';
+    }
+    if (name === 'iso8601') {
+        return args.length === 1 && clockValue84c7 (csharp, args[0], 0);
+    }
+    if (name === 'binaryToBase16' || name === 'intToBase16') {
+        // Exchange.Encode.cs: binaryToHex of the bytes / Convert.ToInt64 (n).ToString ("x") — never null
+        return args.length === 1;
+    }
+    if (name === undefined || call.getSourceFile?.() === undefined || tsSourceMethodDeclarationCount (name) > 1) {
+        return false; // at most one declaration in all of ts/src: no override can answer differently
+    }
+    const found = [ boundCollectionDeclaration (csharp, call, name) ];
+    if (found[0]?.kind !== ts.SyntaxKind.MethodDeclaration || found[0].name?.text !== name || found[0].body === undefined
+            || (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (found[0]))) {
+        return false;
+    }
+    let returns = 0;
+    let proved = true;
+    const walk = (node) => {
+        if (!proved || (node !== found[0] && ts.isFunctionLike (node))) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ReturnStatement) {
+            returns++;
+            if (node.expression === undefined || !stringReturnExpressionProves (csharp, unwrapPassthroughExpression (node.expression))) {
+                proved = false;
+            }
+            return;
+        }
+        node?.forEachChild (walk);
+    };
+    found[0].forEachChild (walk);
+    return proved && returns > 0;
+}
+
+function localIsCallArgument84c7 (csharp, scope, declaration) {
+    const name = declaration.name.text;
+    let hit = false;
+    const visit = (node) => {
+        if (hit) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.Identifier && node.text === name && node !== declaration.name) {
+            let value = node;
+            while (value.parent?.kind === ts.SyntaxKind.ParenthesizedExpression || value.parent?.kind === ts.SyntaxKind.AsExpression) {
+                value = value.parent;
+            }
+            const parent = value.parent;
+            if ((parent?.kind === ts.SyntaxKind.CallExpression || parent?.kind === ts.SyntaxKind.NewExpression) && (parent.arguments ?? []).includes (value)) {
+                hit = true;
+                return;
+            }
+        }
+        node.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return hit;
+}
+
+function nonNullStringCallLocal84c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    if (call?.kind !== ts.SyntaxKind.CallExpression) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    if (!nonNullStringCall84c7 (csharp, call, ctx) || localIsCallArgument84c7 (csharp, scope, declaration)) {
+        return undefined;
+    }
+    if (!writesKeepNonNullString84c7 (csharp, scope, declaration, ctx)) {
+        return undefined;
+    }
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string', ctx) ? { type: 'string' } : undefined;
+}
+
+// every write of the local keeps a non-null string: another nonNullStringCall84c7 value, a
+// `x = x + …` whose left spine starts at the local itself / `x += …` (add(string, *) and the
+// native concat never answer null), or `x = x.padStart (…)` / `.padEnd (…)` (prints
+// `(x as String).PadLeft (…)`, a non-null string). Any other write keeps `object`.
+function writesKeepNonNullString84c7 (csharp, scope, declaration, context) {
+    const name = declaration.name.text;
+    const isSelf = (node) => {
+        let value = stripParens (node);
+        while (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+            value = stripParens (value.left);
+        }
+        return value !== node && value?.kind === ts.SyntaxKind.Identifier && value.text === name;
+    };
+    let ok = true;
+    const visit = (node) => {
+        if (!ok) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.BinaryExpression && stripParens (node.left)?.kind === ts.SyntaxKind.Identifier && stripParens (node.left).text === name) {
+            const op = node.operatorToken.kind;
+            if (op === ts.SyntaxKind.PlusEqualsToken) {
+                // kept
+            } else if (op === ts.SyntaxKind.EqualsToken) {
+                const value = stripParens (node.right);
+                const callee = value?.expression;
+                const pad = value?.kind === ts.SyntaxKind.CallExpression && callee?.kind === ts.SyntaxKind.PropertyAccessExpression
+                    && (callee.name?.text === 'padStart' || callee.name?.text === 'padEnd')
+                    && stripParens (callee.expression)?.kind === ts.SyntaxKind.Identifier && stripParens (callee.expression).text === name;
+                if (!(pad || isSelf (value) || (value?.kind === ts.SyntaxKind.CallExpression && nonNullStringCall84c7 (csharp, value, context)))) {
+                    ok = false;
+                }
+            } else if (op >= ts.SyntaxKind.FirstAssignment && op <= ts.SyntaxKind.LastAssignment) {
+                ok = false;
+            }
+        }
+        if ((node.kind === ts.SyntaxKind.PrefixUnaryExpression || node.kind === ts.SyntaxKind.PostfixUnaryExpression)
+                && (node.operator === ts.SyntaxKind.PlusPlusToken || node.operator === ts.SyntaxKind.MinusMinusToken)
+                && stripParens (node.operand)?.kind === ts.SyntaxKind.Identifier && stripParens (node.operand).text === name) {
+            ok = false;
+        }
+        node.forEachChild (visit);
+    };
+    scope.forEachChild (visit);
+    return ok;
+}
+
+// `this.milliseconds ()` / `this.seconds ()` / `this.nonce ()` (Int64 clock reads), or a read of a
+// `const` single-declarator local initialised by one of them (no other write is possible)
+function clockValue84c7 (csharp, node, depth) {
+    const value = stripParens (node);
+    if (value === undefined || depth > 2) {
+        return false;
+    }
+    if (value.kind === ts.SyntaxKind.CallExpression) {
+        const inner = value.expression;
+        return (value.arguments?.length ?? 0) === 0 && inner?.kind === ts.SyntaxKind.PropertyAccessExpression
+            && inner.expression?.kind === ts.SyntaxKind.ThisKeyword && CSHARP_84C7_CLOCK_CALLS.includes (inner.name?.text);
+    }
+    if (value.kind === ts.SyntaxKind.Identifier) {
+        const binding = resolveReference (csharp, value);
+        return binding?.kind === ts.SyntaxKind.VariableDeclaration && binding.name?.kind === ts.SyntaxKind.Identifier
+            && (binding.parent?.flags & ts.NodeFlags.Const) !== 0 && binding.parent?.declarations?.length === 1
+            && binding.initializer !== undefined && clockValue84c7 (csharp, binding.initializer, depth + 1);
+    }
+    return false;
+}
+
+// ===== 84c7: pass-through base helpers =====
+// `this.requireValue (v, msg)` (Exchange.BaseMethods.cs) throws on a null v and otherwise returns v
+// itself, and `this.clone (v)` (Exchange.cs) returns a new Dictionary<string, object> for a
+// Dictionary<string, object> box, a new List<object> for a List<object> box and any other box as
+// is. When v's printed C# type is exactly Dictionary<string, object> / List<object>, the result
+// holds a box of that type (interface-typed arguments are left out: their declaration cast would
+// add one of the census-counted ((IDictionary…) / ((IList…) spellings), so the declaration names it behind the
+// exact cast back; csharpLocalIsSafeToRetype re-checks every use and write.
+const CSHARP_84C7_PASS_THROUGH_TYPES = {
+    'requireValue': [ 'Dictionary<string, object>', 'List<object>' ],
+    'clone': [ 'Dictionary<string, object>', 'List<object>' ],
+};
+
+function passThroughHelperLocal84c7 (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const call = stripParens (declaration.initializer);
+    const callee = call?.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    const name = callee.name?.text;
+    const allowed = Object.prototype.hasOwnProperty.call (CSHARP_84C7_PASS_THROUGH_TYPES, name) ? CSHARP_84C7_PASS_THROUGH_TYPES[name] : undefined;
+    const args = call.arguments ?? [];
+    // requireValue carries one overload signature beside its body in Exchange.ts (two
+    // MethodDeclarations, one implementation); clone has no TS declaration at all (hand-written)
+    if (allowed === undefined || args.length !== ((name === 'clone') ? 1 : 2) || tsSourceMethodDeclarationCount (name) > ((name === 'requireValue') ? 2 : 0)) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    let type;
+    try {
+        type = csharpTypeOfValue (csharp, args[0], ctx);
+    } catch (e) {
+        return undefined;
+    }
+    if (!allowed.includes (type) || typeFromValueOrWrites (csharp, scope, declaration, declaration.name.text, type, ctx) !== type) {
+        return undefined;
+    }
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type } : undefined;
 }
