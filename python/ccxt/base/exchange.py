@@ -469,7 +469,7 @@ class BaseExchange(object):
         :param str encoding: File encoding (default: 'utf-8')
         :returns bool: True if successful, False otherwise
         """
-        self._ensure_whitelisted_file(path, True)
+        self._ensure_whitelisted_file(path)
         try:
             with open(path, 'w', encoding=encoding) as file:
                 file.write(data)
@@ -497,16 +497,11 @@ class BaseExchange(object):
         tmp = os.path.realpath(tempfile.gettempdir())
         return tmp if tmp.endswith(os.sep) else tmp + os.sep
 
-    def _ensure_whitelisted_file(self, file_path: str, is_write: bool = False):
-        # .ccxtfile (cache files) can be read and written, but only inside the temp dir
-        # .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
+    def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        if sanitized.endswith('.ccxtfile'):
-            if sanitized.startswith(self.get_temp_dir()):
-                return
-        elif sanitized.endswith('.pem') and not is_write:
+        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
             return
-        raise ValueError(f'invalid file path: {file_path}, allowed are .ccxtfile (inside the temp dir) and read-only .pem')
+        raise ValueError(f'invalid file path: {file_path}')
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
