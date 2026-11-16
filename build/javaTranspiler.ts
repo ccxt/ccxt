@@ -208,7 +208,6 @@ if (platform === 'win32') {
     }
 }
 
-const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
@@ -226,7 +225,6 @@ const EXCHANGE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/Exchange.
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
-const GENERATED_TESTS_FOLDER = './java/tests/src/main/java/tests/exchange/';
 const BASE_TESTS_FOLDER = 'java/tests/src/main/java/tests/base/';
 const BASE_TESTS_FILE = './java/tests/src/main/java/tests/exchange/TestMain.java';
 const EXCHANGE_BASE_FOLDER = './java/tests/src/main/java/tests/exchange/';
@@ -422,14 +420,6 @@ function retypeWrittenValueMatches (rhs: string, token: string): boolean {
     if (value.indexOf ('+') !== -1 && /"/.test (value)) return true;
     return false;
 }
-
-
-// async-param copy `x = x3` writes the typed snapshot token admits: returns the printed write
-// (a checkcast or `L` suffix where javac needs one) or undefined when the value may be another box.
-// Map sources: omit of a Map, extend/deepExtend/keysort, safeDict and handle*-tuple element reads.
-const RETYPE_COPY_MAP_TOKEN = /^(?:java\.util\.)?Map<String, Object>$/;
-const RETYPE_COPY_EXTRA_CALLEES = /^(?:Helpers\.(?:mathMin|mathMax|subtract|isLessThanOrEqual|isGreaterThanOrEqual|callDynamically|addElementToObject)|io\.github\.ccxt\.ws\.ArrayCache\.getLimitOf|String\.valueOf)$/;
-
 
 // a later declaration of the same name is a DIFFERENT variable (Java forbids
 // redeclaring a name in one scope), so its LHS is not a use of the hoisted name.
@@ -1770,7 +1760,6 @@ class NewTranspiler {
                 "parser": {
                     "ELEMENT_ACCESS_WRAPPER_OPEN": "getValue(",
                     "ELEMENT_ACCESS_WRAPPER_CLOSE": ")",
-                    // "VAR_TOKEN": "var",
                 }
             },
             "java": {
@@ -2028,10 +2017,6 @@ class NewTranspiler {
             return Array.from(generator(map, parent, generate, classes))
         }
 
-
-        // JAVA ----------------------------------------------------------------
-
-        // ---------------------------------------------------------------------
 
         function javaMakeErrorClassFile(name: string, parent: string) {
             const exception =
@@ -2769,17 +2754,6 @@ class NewTranspiler {
 
 
 
-        // WsClient.subscriptions/rejections/futures are owner-thread maps behind OwnerMap views, so the
-        // helper's put branch and a plain put agree; the generated text stays as the base prints it.
-
-        // Object.keys / Object.values / Array.isArray are now emitted as
-        // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly
-        // by ast-transpiler (PR #48). The earlier regex post-process here
-        // routed the older `new ArrayList<>(((Map<String,Object>)x).keySet())`
-        // shape; it's been removed since #48 covers every argument shape
-        // (this.x, Helpers.GetValue(...), nested casts) that the regex missed.
-
-
         // ── Pattern 1+2: client.future() / client.reusableFuture() return Future ──
         // Object future = client.future(x) → io.github.ccxt.ws.Future future = client.future((String)x)
         // SS-04: the (String) hash cast is redundant when the local is already declared String
@@ -2959,13 +2933,6 @@ class NewTranspiler {
         // is already a string literal (the method-ref-as-string rewrite above converts
         // `this.method` → `"method"`). Dispatch dynamically via Helpers.callDynamically.
         content = this.rewriteDelayWithStringCallback(content);
-
-        // ── String type fixes: revert pass REMOVED (SS-07 / SS-15) ──
-        // The pass rewrote every `String x = this.<m>(...)` / `String x = Helpers.<...>(...)`
-        // declaration in pro/prediction files back to `Object`. The local-typing layers emit a
-        // String declaration only when every reaching value is provably String-or-null, so the
-        // pass only de-typed the WS tree; pro/prediction now match the REST tier.
-
 
         // ── super.describeData() → call WS parent method ──
         content = content.replace(/super\.describeData\(\)/gm, (match: string) => {
@@ -5723,8 +5690,6 @@ function javaMapLocalsRetypeSelfTest (): string[] {
     ];
     return runSnippetCases(cases, cls, (src) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (src)), (name, out) => `map locals: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
-
-// Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
 
 // ordered compares whose operand is an unwritten TS-`number` parameter printed `Object` (audited table, tier/class/method)
 // or a `this.sum(..)` (Generic.sum: a non-null Long/Double); the other side an int literal, a `var i = <int>` counter or
