@@ -27,8 +27,15 @@ func mockBodyForUrl(responsesByUrl any, url any) any {
 		fragments = append(fragments, fragment)
 	}
 	sort.Strings(fragments)
+	// an exact parameter-set match first: a narrower key can also appear as a
+	// contiguous substring of a reordered url and would otherwise win
 	for _, fragment := range fragments {
-		if strings.Contains(urlStr, fragment) || sameQueryInAnyOrder(urlStr, fragment) {
+		if sameQueryInAnyOrder(urlStr, fragment) {
+			return byUrl[fragment]
+		}
+	}
+	for _, fragment := range fragments {
+		if strings.Contains(urlStr, fragment) {
 			return byUrl[fragment]
 		}
 	}

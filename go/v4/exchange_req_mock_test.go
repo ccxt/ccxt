@@ -16,6 +16,9 @@ func TestMockBodyForUrlMatchesQueryInAnyOrder(t *testing.T) {
 		"https://x.test/history?end=200&symbol=A&limit=3":          "newest",
 		"https://x.test/history?limit=3&end=100&symbol=A":          "older",
 		"https://x.test/history?end=200&start=50&symbol=A&limit=3": "bounded",
+		// the narrower "symbol=A&limit=3&end=200" key is a contiguous substring
+		// of this reordered url, but the exact parameter set must still win
+		"https://x.test/history?symbol=A&limit=3&end=200&start=50": "bounded",
 	}
 	for url, want := range cases {
 		if got := mockBodyForUrl(byUrl, url); got != want {
