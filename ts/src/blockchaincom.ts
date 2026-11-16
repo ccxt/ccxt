@@ -658,7 +658,7 @@ export default class blockchaincom extends Exchange {
             'orderQty': this.amountToPrecision (symbol, amount),
             'clOrdId': clientOrderId,
         };
-        const triggerPrice = this.safeValueN (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
+        const triggerPrice = this.safeStringN (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         const paramsOmitted2: Dict = this.omit (paramsOmitted, [ 'triggerPrice', 'stopPx', 'stopPrice' ]);
         if (uppercaseOrderType === 'STOP' || uppercaseOrderType === 'STOPLIMIT') {
             if (triggerPrice === undefined) {
@@ -1288,7 +1288,7 @@ export default class blockchaincom extends Exchange {
         const privateHeaders: Dict = {
             'X-API-Token': this.secret,
         };
-        let requestHeaders = undefined;
+        let requestHeaders: NullableDict = undefined;
         if (isPrivate) {
             requestHeaders = privateHeaders;
         }
