@@ -21,7 +21,7 @@ engine = []
 
 [dependencies]
 reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }
-tokio = { version = "1", features = ["full"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net", "io-util"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 hmac = "0.12"
 sha2 = "0.10"
@@ -49,4 +49,4 @@ flate2 = "1"
 once_cell = "1"
 
 [dev-dependencies]
-tokio = { version = "1", features = ["full", "test-util"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net", "io-util", "test-util"] }
