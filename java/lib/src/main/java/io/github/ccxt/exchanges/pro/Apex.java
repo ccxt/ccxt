@@ -1091,19 +1091,18 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             if (java.util.Objects.equals(authenticated, null))
             {
                 // auth sign
-                Map<String, Object> request = new HashMap<String, Object>();
-                request.put("type", "login");
-                request.put("topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")));
-                request.put("httpMethod", http_method);
-                request.put("requestPath", request_path);
-                request.put("apiKey", this.apiKey);
-                request.put("passphrase", this.password);
-                request.put("timestamp", timestamp);
-                request.put("signature", signature);
-                Map<String, Object> message = new HashMap<String, Object>() {{
-                    put( "op", "login" );
-                    put( "args", new ArrayList<Object>(Arrays.asList(Helpers.json(request))) );
-                }};
+                Map<String, Object> message = new HashMap<String, Object>();
+                message.put("op", "login");
+                HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
+                mapLiteral1.put("type", "login");
+                mapLiteral1.put("topics", new ArrayList<Object>(Arrays.asList("ws_zk_accounts_v3")));
+                mapLiteral1.put("httpMethod", http_method);
+                mapLiteral1.put("requestPath", request_path);
+                mapLiteral1.put("apiKey", this.apiKey);
+                mapLiteral1.put("passphrase", this.password);
+                mapLiteral1.put("timestamp", timestamp);
+                mapLiteral1.put("signature", signature);
+                message.put("args", new ArrayList<Object>(Arrays.asList(Helpers.json(mapLiteral1))));
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return future.getFuture().join();

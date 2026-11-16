@@ -1625,8 +1625,7 @@ public class Coinone extends CoinoneApi
             String json = this.json(this.extend(mapLiteral5, parameters));
             String payload = this.stringToBase64(json);
             requestBody = payload;
-            String secret = this.secret.toUpperCase();
-            String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret.toUpperCase()), sha512());
             requestHeaders = new HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-COINONE-PAYLOAD", payload );

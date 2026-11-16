@@ -1227,10 +1227,9 @@ public class Coinbaseexchange extends CoinbaseexchangeApi
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 List<Object> entry = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
-                List<Object> first = (List<Object>) this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, delimiter, (String) null);
                 String symbol = (String) market.get("symbol");
-                result.put(symbol, this.parseTicker(first, market));
+                result.put(symbol, this.parseTicker(this.safeList(entry, 0, new ArrayList<Object>(Arrays.asList())), market));
             }
             return this.filterByArrayTickers(result, "symbol", symbolsNormalized);
         }).thenApply(Tickers::new);

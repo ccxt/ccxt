@@ -298,11 +298,11 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         Map<String, Object> storesForSymbols = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)trades).size(); i++)
         {
-            Object rawTrade = this.safeValue(trades, i);
+            Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(trades, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(rawTrade, "symbol", "").toLowerCase();
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             String symbol = this.safeString(market, "symbol", "");
-            Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (rawTrade), market);
+            Map<String, Object> trade = this.parseWsTrade(rawTrade, market);
             trade.put("timestamp", timestamp);
             trade.put("datetime", this.iso8601(timestamp));
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -426,8 +426,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
         // reverse order of array to store candles in ascending order
         for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
-            Long index = ((((long) changesLength) - ((long) i)) - 1L);
-            List<Object> parsed = (List<Object>) this.parseOHLCV(this.safeValue(changes, index), market);
+            List<Object> parsed = (List<Object>) this.parseOHLCV(this.safeValue(changes, ((((long) changesLength) - ((long) i)) - 1L)), market);
             stored.append(parsed);
         }
         String messageHash = ((("ohlcv:" + symbol) + ":") + timeframeId);
@@ -1107,7 +1106,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             Integer eventsLength = ((List<?>)events).size();
             for (var i = 0; i < ((List<?>)events).size(); i++)
             {
-                Object eventVar = this.safeValue(events, i);
+                Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, new HashMap<String, Object>() {{}});
                 String eventType = this.safeString(eventVar, "type");
                 String side = this.safeString(eventVar, "side");
                 Boolean isOrderBook = (java.util.Objects.equals(eventType, "change")) && (!java.util.Objects.equals(side, null)) && this.inArray(side, new ArrayList<Object>(Arrays.asList("ask", "bid")));

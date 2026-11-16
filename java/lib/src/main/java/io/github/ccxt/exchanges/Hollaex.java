@@ -830,7 +830,7 @@ public class Hollaex extends HollaexApi
         for (var i = 0; i < ((List<?>)keys).size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            Object ticker = this.safeValue(tickers, key);
+            Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, key, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(ticker, "symbol", key);
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             String symbol = (String) market.get("symbol");

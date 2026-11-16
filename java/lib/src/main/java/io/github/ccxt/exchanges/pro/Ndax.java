@@ -632,7 +632,7 @@ public class Ndax extends io.github.ccxt.exchanges.Ndax
         //
         Map<String,Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Long id = this.safeInteger(message, "i");
-        Map<String, Object> subscription = (Map<String, Object>) ((((java.util.Objects.equals(id, null)))) ? null : this.safeDict(subscriptionsById, id, (Object) null));
+        Map<String, Object> subscription = (Map<String, Object>) this.safeDict(subscriptionsById, id, (Object) null);
         if (!java.util.Objects.equals(subscription, null))
         {
             Object method = this.safeValue(subscription, "method");

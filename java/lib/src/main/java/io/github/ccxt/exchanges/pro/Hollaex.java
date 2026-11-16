@@ -460,7 +460,7 @@ public class Hollaex extends io.github.ccxt.exchanges.Hollaex
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
         {
-            Object order = this.safeValue(rawOrders, i);
+            Map<String, Object> order = (Map<String, Object>) this.safeDict(rawOrders, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(order, (Map<String, Object>) null);
             stored.append(parsed);
             String symbol = this.safeString(order, "symbol");
