@@ -3490,7 +3490,12 @@ function goGofmtSliceColons (content: string): string {
         }
         i += 1;
     }
-    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
+    return goApplyTextFixes (content, fixes);
+}
+
+// `fixes` spliced into `content` back to front, so every edit keeps its offsets
+function goApplyTextFixes (content: string, fixes: { 'start': number, 'end': number, 'text': string }[]): string {
+    fixes.sort ((a, b) => b.start - a.start);
     for (let f = 0; f < fixes.length; f++) {
         content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
     }
@@ -3555,6 +3560,23 @@ function goBoundIsBinary (text: string): boolean {
     return false;
 }
 
+// the printer level inside the bracket opened at `content[i]`, entered from `level`
+function goOpenFrameLevel (content: string, i: number, level: number): number {
+    if (content[i] === '{') {
+        return 1;
+    }
+    if (content[i] === '[') {
+        return level + 1;
+    }
+    if (goIsSignatureParenText (content, i)) {
+        return 0;                                       // declarations: no operators in there
+    }
+    if (goIsCallParenText (content, i)) {
+        return (goCountFrameArgsText (content, i) > 1) ? level + 1 : level;
+    }
+    return (level > 1) ? level - 1 : level;
+}
+
 // the same level rule for the operators the printer printed, with the control-clause
 // parens dropped on the way through
 function goGofmtTightenSplicedArithmetic (content: string): string {
@@ -3593,19 +3615,7 @@ function goGofmtTightenSplicedArithmetic (content: string): string {
         }
         if (char === '(' || char === '[' || char === '{') {
             stack.push ({ 'kind': char, 'level': level });
-            if (char === '{') {
-                level = 1;
-            } else if (char === '[') {
-                level += 1;
-            } else if (goIsSignatureParenText (content, i)) {
-                level = 0;                                      // declarations: no operators in there
-            } else if (goIsCallParenText (content, i)) {
-                if (goCountFrameArgsText (content, i) > 1) {
-                    level += 1;
-                }
-            } else if (level > 1) {
-                level -= 1;
-            }
+            level = goOpenFrameLevel (content, i, level);
             out.push (char);
             lastChar = char;
             i += 1;
@@ -3708,14 +3718,9 @@ function goSqueezeLevel45Text (text: string): string {
     return out.join ('');
 }
 
-// go/printer threads the level it prints an expression at through the operator tree: the
-// operands of a comparison or a logical operator print (at least) one level deeper, and in a
-// chain that mixes level 4 and level 5 every level-5 operator sits one level deeper than the
-// level-4 operator it hangs under (diffPrec()) - its grouped operand lands at level 2 with
-// it (reduceDepth()). The frame walk above only counts brackets, so the level-1 chains are
-// the one place left where the printer's own level bookkeeping shows: the composite literal
-// element `(90 * 86400) * 1000 - 1` is gofmt's `(90*86400)*1000 - 1`, while the same chain
-// without its level-4 operator keeps every blank (`(90 * 86400) * 1000`).
+// in a level-1 chain mixing level 4 and 5, go/printer prints every level-5 operator (and its
+// grouped operand) one level deeper (diffPrec/reduceDepth): `(90 * 86400) * 1000 - 1` is
+// gofmt's `(90*86400)*1000 - 1`, while `(90 * 86400) * 1000` keeps every blank
 function goGofmtLevelOneChains (content: string): string {
     const fixes: { 'start': number, 'end': number, 'text': string }[] = [];
     const stack: { 'level': number }[] = [];
@@ -3742,19 +3747,7 @@ function goGofmtLevelOneChains (content: string): string {
         }
         if (char === '(' || char === '[' || char === '{') {
             stack.push ({ 'level': level });
-            if (char === '{') {
-                level = 1;
-            } else if (char === '[') {
-                level += 1;
-            } else if (goIsSignatureParenText (content, i)) {
-                level = 0;
-            } else if (goIsCallParenText (content, i)) {
-                if (goCountFrameArgsText (content, i) > 1) {
-                    level += 1;
-                }
-            } else if (level > 1) {
-                level -= 1;
-            }
+            level = goOpenFrameLevel (content, i, level);
             i += 1;
             continue;
         }
@@ -3768,11 +3761,7 @@ function goGofmtLevelOneChains (content: string): string {
         }
         i += 1;
     }
-    fixes.sort ((a, b) => b.start - a.start);     // back to front: every edit keeps its offsets
-    for (let f = 0; f < fixes.length; f++) {
-        content = content.slice (0, fixes[f].start) + fixes[f].text + content.slice (fixes[f].end);
-    }
-    return content;
+    return goApplyTextFixes (content, fixes);
 }
 
 // every Go operator token with go/token's precedence (0 for the ones that only delimit an
@@ -3946,13 +3935,9 @@ function goOperatorPrecedenceText (operator: string): number {
     return 0;
 }
 
-// gofmt's printer starts the file at the package clause, writes exactly one blank line
-// between it (and every import declaration) and what follows, never keeps more than one
-// blank line anywhere (maxNewlines = 2), trims whitespace-only lines and ends the file with a
-// single newline. Every emitter below assembles its own text — some leave two blank lines
-// after the package clause, some none, one leaves three after the generated-header comment —
-// so normalise those file-level properties once, here. Non-blank lines are left byte-for-byte
-// alone. Pure text normalisation: no gofmt spawn.
+// gofmt's file-level blank lines: exactly one after the package clause and every import
+// declaration, at most one anywhere else, whitespace-only lines trimmed, one final newline.
+// Non-blank lines are left byte-for-byte alone.
 function normalizeGoFileHeader (content: string): string {
     const lines = content.split ('\n');
     const packageLine = lines.findIndex ((line: string) => /^package \S/.test (line));
@@ -4177,10 +4162,8 @@ function gofmtSelfTest (ok: SelfTestOk): void {
     }
 }
 
-// Typed pointer locals print both `x !== undefined` and `x !== null` as `x != nil`, and the printer
-// also adds its own nil-guard before dereferencing (`x != nil && *x == ""`). Next to an explicit
-// TS undefined-check that yields `(x != nil) && (x != nil ...`, which is harmless but rejected by
-// `go vet` ("redundant and/or"), failing `go test`. Collapse the duplicated operand.
+// A TS undefined-check next to the printer's own nil-guard yields `(x != nil) && (x != nil ...`,
+// which `go vet` rejects ("redundant and/or"): collapse the duplicated operand.
 export function collapseRedundantNilChecks (content: string): string {
     const id = '([A-Za-z_][A-Za-z0-9_]*)';
     return content
@@ -4226,12 +4209,9 @@ function goProvenParseMapMethods (): string[] {
 }
 
 
-// Return families the printer retypes from `any` (config `provenReturnFamilies`, ast retypeGoProvenFamily).
-// A def is proven when each function-level return is a `type` literal, a call of `calls` (its own family
-// included), a struct->map converter, or a local declared once from such an expression and never
-// reassigned (typed too); a def with no return must end in panic. None of these can return nil. Go
-// interfaces pin one signature, so an unproven def throws instead of staying `any`.
-// describe() is a dictionary on every tier; mergeBalanceAccount hands its first argument back (a balance map).
+// Return families the printer retypes from `any` (config `provenReturnFamilies`, ast retypeGoProvenFamily):
+// every return is a `type` literal, a call of `calls`, a struct->map converter or a single-assignment
+// local of one of those; an unproven def throws instead of staying `any`.
 function goProvenReturnFamilies (): any[] {
     const lists = goProvenListMethods ();
     const maps = goProvenParseMapMethods ().concat (goProvenMapCollectionMethods ());
@@ -4265,8 +4245,8 @@ function goProvenListMethods (): string[] {
         'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories',
         'ParsePredictionTrades',
         'ParsePredictionPositions',
-        'ParseDepositAddresses', // W15
-        'ParseDepositMethodIds', 'ParsePortfolioDetails', // W23
+        'ParseDepositAddresses',
+        'ParseDepositMethodIds', 'ParsePortfolioDetails',
         'ParseOrderBookBidAsk', 'ReduceFeesByCurrency', 'EventsList' ];
 }
 
@@ -4287,7 +4267,7 @@ function goProvenMapCollectionMethods (): string[] {
         'ParseDepositAddressSpecial',
         'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
         'ParsePublicDepositWithdrawFees',
-        'SetApiCredentials' ]; // W20: opinion/polymarket return their creds map literal
+        'SetApiCredentials' ]; // opinion/polymarket return their creds map literal
 }
 
 
@@ -4558,8 +4538,6 @@ function overwriteFileAndFolder (path: string, content: string) {
     // market-row reads run after dropNoOpMapTyped so `MapTyped(this.Market(..))` writes read as rows
     content = goGofmtSplicedText (goGofmtNestedParens (goIsEqualSafeLiteral (goTypedIsEqualNative (goNativeStringHelpers (path, nativeMarketRowReads (dropNoOpMapTyped (goSafeDictMapReads (goTypedMaplistOmitOfTupleMaps (goOmitDictOfTypedMaps (content))))))))));
     content = goTypedGvMapReads (content);
-    // overwriteFile() already opens+truncates+writes the file; the extra
-    // fs.writeFileSync below wrote every generated file a second time
     content = goTypedNativeDerefs (path, content);
     content = goTypedStrNativeStringHelpers (path, content);
     content = path.endsWith ('.go') ? goNativeStringAdds (content) : content;  // row reads exist only from here
@@ -4581,12 +4559,6 @@ function overwriteFileAndFolder (path: string, content: string) {
         content = alignGoTrailingComments (goGofmtBinarySpacing (content));
     }
     // gofmt's block/blank/table layout, once, on the text every pass above has finished
-    if (process.env.CCXT_GOFMT_DEBUG) {
-        const before = (content.match (/^\t*(?:if|for|switch)\b.*\{.*\}\s*$/gm) ?? []).length;
-        const laid = goGofmtLayout (content, goCompositeKeyAligner ());
-        const after = (laid.match (/^\t*(?:if|for|switch)\b.*\{.*\}\s*$/gm) ?? []).length;
-        console.error ('[layout] ' + path + ' oneline-before=' + before + ' after=' + after + ' same=' + (laid === content));
-    }
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
     overwriteFile (path, content);
 }
@@ -4597,7 +4569,7 @@ function overwriteFileAndFolder (path: string, content: string) {
 function coerceGoBoolMethodReturns (content: string, names: string[]): string {
     for (const name of names) {
         const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + name + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
-        // F04: the replacement spells the single space before `{` itself, so a padded
+        // the replacement spells the single space before `{` itself, so a padded
         // signature (`) any  {`) can never survive the coercion as `) bool  {`
         content = content.replace (coerceRegex, '$1 bool {');
     }
@@ -4608,10 +4580,8 @@ function capitalize(s: string) {
     return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-// The indentation of the line that the match starting at `offset` sits on. Several emitters
-// rewrite one source expression into *several* Go statements; gofmt prints one statement per
-// line at the enclosing block's indentation, so those rewrites emit the split form themselves
-// and need this prefix to keep every emitted line at the same (future) tab depth.
+// The indentation of the line that the match starting at `offset` sits on: emitters that split
+// one expression into several Go statements indent every emitted line with it.
 function statementIndent (whole: string, offset: number): string {
     const lineStart = whole.lastIndexOf ('\n', offset - 1) + 1;
     const prefix = whole.substring (lineStart, offset);
@@ -4619,10 +4589,7 @@ function statementIndent (whole: string, offset: number): string {
     return match ? match[0] : '';
 }
 
-// this is necessary because for some reason
-// pathname keeps the first '/' for windows paths
-// making them invalid
-// example: /C:Users/user/Desktop/
+// on windows the pathname keeps a leading '/' (/C:Users/user/Desktop/), which is invalid
 if (platform === 'win32') {
     if (__dirname[0] === '/') {
         __dirname = __dirname.substring(1);
@@ -4636,7 +4603,6 @@ const GLOBAL_WRAPPER_FILE = './go/v4/exchange_wrappers.go';
 const GO_ASYNC_SUFFIX = 'Async';
 const TYPED_INTERFACE_FILE = './go/v4/exchange_typed_interface.go';
 const TYPED_WS_INTERFACE_FILE = './go/v4/pro/exchange_typed_interface.go';
-// const EXCHANGE_WS_WRAPPER_FOLDER = './go/v4/exchanges/pro/wrappers/'
 const ERRORS_FILE = './go/v4/exchange_errors.go';
 const BASE_METHODS_FILE = './go/v4/exchange_generated.go';
 const EXCHANGES_FOLDER = './go/v4';
@@ -4648,22 +4614,17 @@ const PREDICTION_WS_PACKAGE = 'ccxtpredictionpro';
 const PREDICTION_IMPORT = 'import ccxtprediction "github.com/ccxt/ccxt/go/v4/prediction"';
 const BASE_TESTS_FOLDER = './go/tests/base';
 const BASE_TESTS_FILE =  './go/tests/base/tests.go';
-// const EXCHANGE_BASE_FOLDER = './go/tests/Generated/Exchange/Base';
 const GENERATED_TESTS_FOLDER = './go/tests';
 
-// const EXAMPLES_INPUT_FOLDER = './examples/ts';
-// const EXAMPLES_OUTPUT_FOLDER = './examples/go/examples';
 const goComments: { [key: string]: { [key: string]: string}} = {};
 
 const goTypeOptions: dict = {};
 // names of the options structs that live in the base ccxt package; used by the
 // prediction pass to decide between aliasing (type X = ccxt.X) and emitting a local struct
 const baseGoTypeOptionNames = new Set<string>();
-// option struct/func names the prediction package declares LOCALLY because its method
-// renamed a base param (e.g. fetchTickers `outcomes` vs base `symbols`). Keyed by method
-// capName → [Options, OptionsStruct, WithXxx...]. These must NOT be ccxt.-qualified in the
-// wrapper file of an exchange that DEFINES the method (so it binds to the local struct), but
-// MUST stay ccxt.-qualified where the method is a base delegation (missing-method wrapper).
+// option struct/func names the prediction package declares locally (a renamed base param), keyed by
+// method capName → [Options, OptionsStruct, WithXxx...]: unqualified where the exchange defines the
+// method, ccxt.-qualified where it is a base delegation (missing-method wrapper).
 const predictionLocalOptionStructs = new Map<string, string[]>();
 
 const WRAPPER_METHODS: {} = {};
