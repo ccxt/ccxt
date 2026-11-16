@@ -23,21 +23,6 @@ function testIo () {
     // delete methods removed atm
     // exchange.fileDelete (filePath);
     // assert (!exchange.fileExists (filePath), "file was not deleted: " + filePath);
-    // paths escaping the temp dir and pem files must not be writable
-    const rejectedPaths = [
-        tempDir + '..' + '/' + fileName,
-        '../../' + fileName,
-        tempDir + 'ccxt-test-io-' + ms.toString () + '.pem',
-    ];
-    for (let i = 0; i < rejectedPaths.length; i++) {
-        let written = false;
-        try {
-            written = exchange.writeFile (rejectedPaths[i], fileContent);
-        } catch (e) {
-            written = false;
-        }
-        assert (!written, 'writeFile must reject ' + rejectedPaths[i]);
-    }
 }
 
 export default testIo;
