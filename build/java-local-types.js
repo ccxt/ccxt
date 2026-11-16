@@ -14778,7 +14778,8 @@ function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
             && javaNonNullStringValue (printer, declaration, retyped, value.whenFalse, depth + 1);
     case ts.SyntaxKind.Identifier: {
         const target = javaNonNullStringDeclarationOf (printer, value);
-        return target !== undefined && (target === declaration || retyped.has (target));
+        return target !== undefined && (target === declaration || retyped.has (target)
+            || javaNonNullStringConstCopy (printer, declaration, retyped, target, depth));
     }
     case ts.SyntaxKind.BinaryExpression:
         if (value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
@@ -14787,8 +14788,72 @@ function javaNonNullStringValue (printer, declaration, retyped, node, depth) {
         return javaNonNullStringValue (printer, declaration, retyped, value.left, depth + 1)
             || printedJavaIsString (printer, value.left) || printedConcatIsNative (printer, value.left, value.right)
             || javaNonNullStringSelfAnchoredConcat (printer, declaration, value);
+    case ts.SyntaxKind.CallExpression:
+        return javaNonNullStringCall (printer, value);
     }
     return false;
+}
+
+// ral-84j3: base calls whose hand-written Java is declared String and never answers null:
+// Encode.urlencode / urlencodeWithArrayRepeat / rawencode / urlencodeNested cast the argument
+// and read its keySet (a null argument throws, it is never returned), each path ends in
+// String.join. Resolved in ts/src/base only, so a venue override never classifies.
+const JAVA_NON_NULL_STRING_BASE_CALLS = new Set ([ 'urlencode', 'urlencodeWithArrayRepeat', 'rawencode', 'urlencodeNested' ]);
+
+// a non-null String call: one of the base encoders above, or a zero-argument `.toString ()`
+// whose receiver the printer proves a Java numeric primitive (printToStringCall prints
+// `String.valueOf (<primitive>)`, which is never null; javaStringBoxText decides the same way)
+function javaNonNullStringCall (printer, node) {
+    if (!ts.isPropertyAccessExpression (node.expression)) {
+        return false;
+    }
+    const name = String (node.expression.name.text);
+    if (name === 'toString') {
+        if (node.arguments.length !== 0 || typeof printer.javaProvableNumericKind !== 'function') {
+            return false;
+        }
+        try {
+            return printer.javaProvableNumericKind (node.expression.expression) !== undefined;
+        } catch (e) {
+            return false;
+        }
+    }
+    if (node.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || !JAVA_NON_NULL_STRING_BASE_CALLS.has (name)) {
+        return false;
+    }
+    // the encoders are field aliases (`urlencode = urlencode`) whose signature resolves into
+    // base/functions; the member itself must be the base class field (no venue override)
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName)
+        && new RegExp (`^this\\.${name}\\(`).test (printer.printNode (node, 0));
+}
+
+// a read of a `const` local whose initializer is itself a non-null String value: the copy
+// carries that value (a const is never written again); the source's own print is String or
+// a native concat, so the copy needs no checkcast
+function javaNonNullStringConstCopy (printer, declaration, retyped, target, depth) {
+    if (target.initializer === undefined || !ts.isIdentifier (target.name) || !ts.isVariableDeclarationList (target.parent)
+        || (target.parent.flags & ts.NodeFlags.Const) === 0) {
+        return false;
+    }
+    if (depth > 4 || !javaNonNullStringValue (printer, target, retyped, target.initializer, depth + 1)) {
+        return false;
+    }
+    // the source must PRINT String: declared so already, or retyped by this section when its
+    // own declaration prints (a later declaration; same proof, run now)
+    if (/^(final\s+)?String$/.test (String (printer.javaDeclaredTypeOfDeclaration?.(target) ?? ''))) {
+        return true;
+    }
+    try {
+        return javaNonNullStringLocal (printer, target, retyped);
+    } catch (e) {
+        return false;
+    }
 }
 
 // ral-77j3: `x = <string> + x` where x is the declaration being classified. Once x prints
@@ -14814,6 +14879,12 @@ function javaNonNullStringSelfAnchoredConcat (printer, declaration, value) {
 // Double would move the printed result from a number to a concatenation
 function javaConcatRightCannotBeDouble (printer, node) {
     if (!isPossiblyNumericDeep (printer, node)) {
+        return true;
+    }
+    // ral-84j3: `x.toString ()` prints String.valueOf / Helpers.toString (declared String): never a Double box
+    const bare = unwrapParens (node);
+    if (bare !== undefined && ts.isCallExpression (bare) && bare.arguments.length === 0
+        && ts.isPropertyAccessExpression (bare.expression) && bare.expression.name.text === 'toString') {
         return true;
     }
     try {

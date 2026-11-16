@@ -5880,6 +5880,27 @@ function mapLocalsSelfTest (): string[] {
     } finally {
         fs.rmSync(selfAnchored, { force: true });
     }
+    // ral-84j3: base encoder writes, const String copies and `<number>.toString ()` keep a non-null String local String
+    const r84j3 = path.join(process.cwd(), 'ts', 'src', `zz84j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r84j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz84j3selftest extends Exchange {',
+            "    enc (q: Dict, p: string) { let body = ''; if (p === 'a') { body = this.urlencode (q); } const base = p + '/'; let auth = ''; auth = base; auth = body + '|' + base; return auth + body; }",
+            "    num (m: string) { let nonce = ''; nonce = this.milliseconds ().toString (); let a = ''; a = nonce + m; return a; }",
+            "    neg (q: any) { let other = ''; other = JSON.stringify (q); return other; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r84j3).content as string;
+        if (!/String body = "";/.test(out) || !/String auth = "";/.test(out)) problems.push("ral-84j3: 'body' (urlencode write) and 'auth' (const String copy) must print String");
+        if (!/String nonce = "";/.test(out)) problems.push("ral-84j3: 'nonce' (`this.milliseconds ().toString ()` write) must print String");
+        if (!/Object other = "";/.test(out)) problems.push("ral-84j3: 'other' (Helpers.json may answer null) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j3 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(r84j3, { force: true });
+    }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';", "import type { Dict } from './base/types.js';",
