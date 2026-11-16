@@ -57,32 +57,32 @@ pub use predictfun::Predictfun;
 #[cfg(feature = "prediction-sxbet")]
 pub use sxbet::Sxbet;
 
-/// Construct an exchange by id as a `Box<dyn TypedExchange>`; `None` for an unknown id.
-pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn crate::exchange::TypedExchange>> {
+/// Build the venue named `id` and run `visitor` on it; `None` for an id not compiled in.
+pub async fn with_exchange<V: crate::prediction_exchange::PredictionVisitor>(id: &str, config: Option<crate::Value>, visitor: V) -> Option<V::Output> {
     match id {
         #[cfg(feature = "prediction-binance")]
-        "binance" => Some(Box::new(binance::Binance::new(config))),
+        "binance" => Some(visitor.visit(binance::Binance::new(config)).await),
         #[cfg(feature = "prediction-hyperliquid")]
-        "hyperliquid" => Some(Box::new(hyperliquid::Hyperliquid::new(config))),
+        "hyperliquid" => Some(visitor.visit(hyperliquid::Hyperliquid::new(config)).await),
         #[cfg(feature = "prediction-kalshi")]
-        "kalshi" => Some(Box::new(kalshi::Kalshi::new(config))),
+        "kalshi" => Some(visitor.visit(kalshi::Kalshi::new(config)).await),
         #[cfg(feature = "prediction-limitless")]
-        "limitless" => Some(Box::new(limitless::Limitless::new(config))),
+        "limitless" => Some(visitor.visit(limitless::Limitless::new(config)).await),
         #[cfg(feature = "prediction-myriad")]
-        "myriad" => Some(Box::new(myriad::Myriad::new(config))),
+        "myriad" => Some(visitor.visit(myriad::Myriad::new(config)).await),
         #[cfg(feature = "prediction-opinion")]
-        "opinion" => Some(Box::new(opinion::Opinion::new(config))),
+        "opinion" => Some(visitor.visit(opinion::Opinion::new(config)).await),
         #[cfg(feature = "prediction-polymarket")]
-        "polymarket" => Some(Box::new(polymarket::Polymarket::new(config))),
+        "polymarket" => Some(visitor.visit(polymarket::Polymarket::new(config)).await),
         #[cfg(feature = "prediction-predictfun")]
-        "predictfun" => Some(Box::new(predictfun::Predictfun::new(config))),
+        "predictfun" => Some(visitor.visit(predictfun::Predictfun::new(config)).await),
         #[cfg(feature = "prediction-sxbet")]
-        "sxbet" => Some(Box::new(sxbet::Sxbet::new(config))),
+        "sxbet" => Some(visitor.visit(sxbet::Sxbet::new(config)).await),
         _ => None,
     }
 }
 
-/// [`from_id`] with the typed [`crate::Config`] builder.
-pub fn from_id_with_config(id: &str, config: crate::Config) -> Option<Box<dyn crate::exchange::TypedExchange>> {
-    from_id(id, config.into_option())
+/// [`with_exchange`] with the typed [`crate::Config`] builder.
+pub async fn with_exchange_config<V: crate::prediction_exchange::PredictionVisitor>(id: &str, config: crate::Config, visitor: V) -> Option<V::Output> {
+    with_exchange(id, config.into_option(), visitor).await
 }
