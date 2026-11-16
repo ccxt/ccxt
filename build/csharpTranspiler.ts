@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12655,5 +12655,23 @@ export function nullSeedParamsSlotChecks (): string[] {
         'IDictionary<string, object> paramsMarginMode = null;',
         'paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];',
     ]);
+    return problems;
+}
+
+// 77c5 snippet checks (part of `csharpTranspiler.ts --self-test`): copies of a typed local / core
+// parameter and the omit writes of such copies name the source's type; an untyped source keeps object
+export function copyLocalSnippetChecks77c5 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Dict = { [key: string]: any }; type Int = number; type Str = string | undefined;\nclass Test {\n omit (o, k): Dict { return o; }\n safeString (o, k, d = undefined): Str { return d; }\n';
+    const check = (name: string, body: string, expected: string) => {
+        const out: string = (transpiler as any).transpileCSharp (pre + body + '\n}').content;
+        if (!out.includes (expected)) { problems.push (`77c5 copy locals: ${name}: ${out.replace (/\n/g, ' | ').slice (0, 300)}`); }
+    };
+    check ('dict copy with an omit write', 'f (o) { const d = {}; let q = d; if (o) { q = this.omit (d, "x"); } return this.safeString (q, "a"); }', 'Dictionary<string, object> q = d;');
+    check ('core Int64? parameter copy', 'async fetchOHLCV (symbol: string, timeframe = "1m", since: Int = undefined, limit: Int = undefined, params = {}) { const start = since; return start; }', 'Int64? start = since;');
+    check ('omit of an object receiver keeps object', 'f (o) { let q = o; if (o) { q = this.omit (o, "x"); } return this.safeString (q, "a"); }', 'object q = o;');
     return problems;
 }
