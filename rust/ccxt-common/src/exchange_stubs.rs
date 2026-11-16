@@ -3400,3 +3400,114 @@ mod spawn_queue_tests {
         assert!(next_spawn_due().is_none(), "queue drained");
     }
 }
+
+#[cfg(test)]
+mod packb_tests {
+    use crate::exchange::Exchange;
+    use crate::Value;
+    use sha2::{Digest, Sha256};
+
+    fn packb_bytes(v: Value) -> Vec<u8> {
+        match Exchange::new(None).packb(v, &[]) {
+            Value::Arr(a) => a.iter().map(|b| match b { Value::Int(i) => *i as u8, _ => panic!("non-int byte") }).collect(),
+            other => panic!("packb returned {:?}", other),
+        }
+    }
+    fn hex(b: &[u8]) -> String { b.iter().map(|x| format!("{:02x}", x)).collect() }
+    fn pack_json(j: &str) -> String { hex(&packb_bytes(Value::from_json(&serde_json::from_str(j).unwrap()))) }
+
+    // (json input, expected hex): the shared TS vectors, all byte-identical in Rust.
+    const VECTORS: &[(&str, &str)] = &[
+        ("null", "c0"),
+        ("true", "c3"),
+        ("false", "c2"),
+        ("0", "00"),
+        ("1", "01"),
+        ("127", "7f"),
+        ("128", "cc80"),
+        ("255", "ccff"),
+        ("256", "cd0100"),
+        ("65535", "cdffff"),
+        ("65536", "ce00010000"),
+        ("4294967295", "ceffffffff"),
+        ("4294967296", "cf0000000100000000"),
+        ("1700000000000", "cf0000018bcfe56800"),
+        ("9007199254740991", "cf001fffffffffffff"),
+        ("-1", "ff"),
+        ("-32", "e0"),
+        ("-33", "d0df"),
+        ("-128", "d080"),
+        ("-129", "d1ff7f"),
+        ("-32768", "d18000"),
+        ("-32769", "d2ffff7fff"),
+        ("-2147483648", "d280000000"),
+        ("-2147483649", "d3ffffffff7fffffff"),
+        ("-1700000000000", "d3fffffe74301a9800"),
+        ("1.5", "cb3ff8000000000000"),
+        ("0.1", "cb3fb999999999999a"),
+        ("-2.25", "cbc002000000000000"),
+        ("\"\"", "a0"),
+        ("\"a\"", "a161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "bf61616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9206161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "d9ff616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"", "da010061616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161616161"),
+        ("\"h\u00e9llo \u20ac\ud834\udd1e\"", "ae68c3a96c6c6f20e282acf09d849e"),
+        ("[]", "90"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14]", "9f000102030405060708090a0b0c0d0e"),
+        ("[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]", "dc0010000102030405060708090a0b0c0d0e0f"),
+        ("{}", "80"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14}", "8fa26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340e"),
+        ("{\"k0\":0,\"k1\":1,\"k2\":2,\"k3\":3,\"k4\":4,\"k5\":5,\"k6\":6,\"k7\":7,\"k8\":8,\"k9\":9,\"k10\":10,\"k11\":11,\"k12\":12,\"k13\":13,\"k14\":14,\"k15\":15}", "de0010a26b3000a26b3101a26b3202a26b3303a26b3404a26b3505a26b3606a26b3707a26b3808a26b3909a36b31300aa36b31310ba36b31320ca36b31330da36b31340ea36b31350f"),
+        ("{\"a\":[1,{\"b\":null,\"c\":[true,\"x\"]}],\"d\":{}}", "82a161920182a162c0a16392c3a178a16480"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":4,\"b\":true,\"p\":\"1100.5\",\"s\":\"0.2\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Gtc\"}},\"c\":\"0x1234567890abcdef1234567890abcdef\"}],\"grouping\":\"na\",\"builder\":{\"b\":\"0x6530512a6c89c7cfcebc3ba7fcd9ada5f30827a6\",\"f\":10}}", "84a474797065a56f72646572a66f72646572739187a16104a162c3a170a6313130302e35a173a3302e32a172c2a17481a56c696d697481a3746966a3477463a163d92230783132333435363738393061626364656631323334353637383930616263646566a867726f7570696e67a26e61a76275696c64657282a162d92a307836353330353132613663383963376366636562633362613766636439616461356633303832376136a1660a"),
+        ("{\"type\":\"order\",\"orders\":[{\"a\":10005,\"b\":false,\"p\":\"0\",\"s\":\"1\",\"r\":true,\"t\":{\"trigger\":{\"isMarket\":true,\"triggerPx\":\"1900\",\"tpsl\":\"sl\"}}}],\"grouping\":\"normalTpsl\"}", "83a474797065a56f72646572a66f72646572739186a161cd2715a162c2a170a130a173a131a172c3a17481a77472696767657283a869734d61726b6574c3a9747269676765725078a431393030a47470736ca2736ca867726f7570696e67aa6e6f726d616c5470736c"),
+        ("{\"type\":\"cancel\",\"cancels\":[{\"a\":0,\"o\":123456789012}]}", "82a474797065a663616e63656ca763616e63656c739182a16100a16fcf0000001cbe991a14"),
+        ("{\"type\":\"cancelByCloid\",\"cancels\":[{\"asset\":3,\"cloid\":\"0x1234567890abcdef1234567890abcdef\"}]}", "82a474797065ad63616e63656c4279436c6f6964a763616e63656c739182a5617373657403a5636c6f6964d92230783132333435363738393061626364656631323334353637383930616263646566"),
+        ("{\"type\":\"batchModify\",\"modifies\":[{\"oid\":70000,\"order\":{\"a\":1,\"b\":true,\"p\":\"2000\",\"s\":\"0.01\",\"r\":false,\"t\":{\"limit\":{\"tif\":\"Alo\"}}}}]}", "82a474797065ab62617463684d6f64696679a86d6f6469666965739182a36f6964ce00011170a56f7264657286a16101a162c3a170a432303030a173a4302e3031a172c2a17481a56c696d697481a3746966a3416c6f"),
+        ("{\"type\":\"updateLeverage\",\"asset\":1,\"isCross\":true,\"leverage\":20}", "84a474797065ae7570646174654c65766572616765a5617373657401a7697343726f7373c3a86c6576657261676514"),
+        ("{\"type\":\"updateIsolatedMargin\",\"asset\":1,\"isBuy\":true,\"ntli\":-5000000}", "84a474797065b475706461746549736f6c617465644d617267696ea5617373657401a56973427579c3a46e746c69d2ffb3b4c0"),
+        ("{\"type\":\"vaultTransfer\",\"vaultAddress\":\"0xdfc24b077bc1425ad1dea75bcb6f8158e10df303\",\"isDeposit\":true,\"usd\":5000000}", "84a474797065ad7661756c745472616e73666572ac7661756c7441646472657373d92a307864666332346230373762633134323561643164656137356263623666383135386531306466333033a969734465706f736974c3a3757364ce004c4b40"),
+        ("{\"type\":\"scheduleCancel\",\"time\":1700000000000}", "82a474797065ae7363686564756c6543616e63656ca474696d65cf0000018bcfe56800"),
+        ("{\"type\":\"twapOrder\",\"twap\":{\"a\":0,\"b\":true,\"s\":\"1\",\"r\":false,\"m\":30,\"t\":false}}", "82a474797065a9747761704f72646572a47477617086a16100a162c3a173a131a172c2a16d1ea174c2"),
+        ("[\"op\",1,\"0xabc\",[1700000000000,\"x\"],null,false]", "96a26f7001a5307861626392cf0000018bcfe56800a178c0c2"),
+    ];
+
+    #[test]
+    fn packb_matches_vectors() {
+        for (j, h) in VECTORS {
+            assert_eq!(pack_json(j), *h, "input {}", j);
+        }
+    }
+
+    #[test]
+    fn packb_long_str_and_array() {
+        for (kind, n, len, head, sha) in [
+        ("str", 65535, 65538, "daffff616161", "ae606c3d6aaca8b43b24feb4aae3e5ab4088edb6d99d254d366f00e08f287c3d"),
+        ("str", 65536, 65541, "db0001000061", "5f97d047d40a13f57389f8c7817f5afd69fe1e7739a305850eb23c5adb54674a"),
+        ("array", 65535, 196224, "dcffff000102", "8c336eb0f76e5433623ce52adf0fa4704a7410cacd206d5442c835b7bd294f04"),
+        ("array", 65536, 196229, "dd0001000000", "659da62605120aecab3feb7ceb9f912947719200e22ea46c7705c99cb10cacfa"),
+        ] {
+            let v = if kind == "str" { Value::Str("a".repeat(n).into()) } else { Value::Array((0..n as i64).map(Value::Int).collect()) };
+            let b = packb_bytes(v);
+            assert_eq!((b.len(), &hex(&b)[..12]), (len, head), "{} {}", kind, n);
+            assert_eq!(hex(&Sha256::digest(&b)), sha, "{} {}", kind, n);
+        }
+    }
+
+    #[test]
+    fn packb_edges_beyond_vectors() {
+        let one = |v: Value| hex(&packb_bytes(v));
+        assert_eq!(one(Value::Int(i64::MAX)), "cf7fffffffffffffff");
+        assert_eq!(one(Value::Int(i64::MIN)), "d38000000000000000");
+        assert_eq!(one(Value::Int(2147483647)), "ce7fffffff");
+        assert_eq!(one(Value::Int(-31)), "e1");
+        assert_eq!(one(Value::Float(-0.0)), "cb8000000000000000");
+        assert_eq!(one(Value::Float(3.0)), "cb4008000000000000");
+        assert_eq!(one(Value::Str("\u{e9}".repeat(16).into())), format!("d920{}", "c3a9".repeat(16)));
+        assert_eq!(&one(Value::Str("\u{20ac}".repeat(85).into()))[..4], "d9ff");
+        assert_eq!(&one(Value::Str("\u{e9}".repeat(128).into()))[..6], "da0100");
+        let m16: Value = Value::from_json(&serde_json::from_str(&format!("{{{}}}", (0..65536).map(|i| format!("\"{}\":0", i)).collect::<Vec<_>>().join(","))).unwrap());
+        assert_eq!(&one(m16)[..10], "df00010000");
+    }
+}
