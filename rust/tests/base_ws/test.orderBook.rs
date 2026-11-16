@@ -258,7 +258,7 @@ pub fn testWsOrderBook() {
     orderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     limited.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limited.clone(), limitedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(limited.clone(), limitedOrderBookTarget.clone()))));
     orderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     orderBook.store_to_bids(Value::Int(1000), Value::Int(0));
@@ -269,21 +269,21 @@ pub fn testWsOrderBook() {
     assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), storeBid.clone()))));
     orderBook.store_to_bids(Value::Int(3), Value::Int(0));
     orderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(orderBook, orderBookTarget.clone()))));
+    assert!(ccxt::runtime::is_true(&(equals(orderBook.clone(), orderBookTarget.clone()))));
     limited.store_to_asks(Value::Float(15.5), Value::Int(0));
     limited.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limited, limitedDeletedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(limited.clone(), limitedDeletedOrderBookTarget.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
     let mut indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
     let mut limitedIndexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Int(5));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
     limitedIndexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limitedIndexedOrderBook, limitedIndexedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(limitedIndexedOrderBook.clone(), limitedIndexedOrderBookTarget.clone()))));
     indexedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1000), Value::Int(0), Value::Str("12345".into())]));
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), indexedOrderBookTarget.clone()))));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(0), Value::Str("1234".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(2), Value::Str("1231".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(10), Value::Int(1), Value::Str("1232".into())]));
@@ -292,11 +292,11 @@ pub fn testWsOrderBook() {
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(3), Value::Str("1231".into())]));
     indexedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(9), Value::Int(1), Value::Str("1232".into())]));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1234))));
+    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1234.clone()))));
     indexedOrderBook = IndexedOrderBook::new(indexedOrderBookInput.clone(), Value::Null);
     indexedOrderBook.store_array_to_asks(Value::from(vec![Value::Float(13.5), Value::Int(13), Value::Str("1244".into())]));
     indexedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook, overwrite1244))));
+    assert!(ccxt::runtime::is_true(&(equals(indexedOrderBook.clone(), overwrite1244.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
     // a zero size delta for an id that is not in the book stores nothing, so the
     // constructor must not advance the length on its account. it used to, which
@@ -322,15 +322,15 @@ pub fn testWsOrderBook() {
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     limitedCountedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(limitedCountedOrderBook, limitedCountedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(limitedCountedOrderBook.clone(), limitedCountedOrderBookTarget.clone()))));
     countedOrderBook.limit();
     assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(5), Value::Int(0), Value::Int(6)]));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), countedOrderBookTarget.clone()))));
     countedOrderBook.store_array_to_bids(Value::from(vec![Value::Int(1), Value::Int(1), Value::Int(6)]));
     countedOrderBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook, storedCountedOrderbookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(countedOrderBook.clone(), storedCountedOrderbookTarget.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
     // let incrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput);
     // const limitedIncrementalOrderBook = new IncrementalOrderBook (incrementalOrderBookInput, 5);
@@ -387,7 +387,7 @@ pub fn testWsOrderBook() {
     resetBook.limit();
     resetBook.reset(orderBookInput.clone());
     resetBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(resetBook, orderBookTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(resetBook.clone(), orderBookTarget.clone()))));
     // --------------------------------------------------------------------------------------------------------------------
     // regression for the php phantom index desync under limit, the corruption
     // sequence was a reset with a snapshot, a depth trim via limit, then
@@ -399,7 +399,7 @@ pub fn testWsOrderBook() {
         let mut m = indexmap::IndexMap::new();
         m
     }), Value::Int(3));
-    desyncBook.reset(orderBookInput);
+    desyncBook.reset(orderBookInput.clone());
     desyncBook.limit();
     // a delta beyond the trimmed tail must reinsert cleanly
     desyncBook.store_array_to_bids(Value::from(vec![Value::Float(6.4), Value::Int(14)]));
@@ -418,20 +418,22 @@ pub fn testWsOrderBook() {
             m.insert("symbol".to_string(), Value::Null);
         m
     });
-    assert!(ccxt::runtime::is_true(&(equals(desyncBook.clone(), desyncTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(desyncBook.clone(), desyncTarget.clone()))));
     // every row must be a well formed price and amount pair, the php
     // corruption produced rows holding only an amount
     let mut desyncSides: Value = Value::from(vec![get_value(&desyncBook, &Value::Str("bids".into())), get_value(&desyncBook, &Value::Str("asks".into()))]);
     {
-                let mut i: i64 = 0;
+                let mut i: Value = Value::Int(0);
         let mut __for_first_1547: bool = true;
-        while { if !__for_first_1547 { i += 1; } __for_first_1547 = false; i < (desyncSides.len() as i64) } {
-        let mut side: Value = desyncSides.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+        while { if !__for_first_1547 { i = (match (&(i), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+            } __for_first_1547 = false; i.as_f64().unwrap_or(f64::NAN) < Value::Int(desyncSides.len() as i64).as_f64().unwrap_or(f64::NAN) } {
+        let mut side: Value = desyncSides.as_array().and_then(|__arr| match &i { Value::Int(__n) => __arr.get(*__n as usize), Value::Str(__s) => __s.parse::<usize>().ok().and_then(|__n| __arr.get(__n)), _ => None }).cloned().unwrap_or(Value::Null);
         {
-                        let mut k: i64 = 0;
+                        let mut k: Value = Value::Int(0);
             let mut __for_first_1546: bool = true;
-            while { if !__for_first_1546 { k += 1; } __for_first_1546 = false; (k as f64) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
-            let mut row: Value = get_value(&side, &Value::Int(k));
+            while { if !__for_first_1546 { k = (match (&(k), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x + y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 + *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x + *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x + y), _ => Value::Null });
+                } __for_first_1546 = false; k.as_f64().unwrap_or(f64::NAN) < get_array_length(&side).as_f64().unwrap_or(f64::NAN) } {
+            let mut row: Value = get_value(&side, &k);
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_array_length(&row).as_f64().unwrap_or(f64::NAN) >= Value::Int(2).as_f64().unwrap_or(f64::NAN)))));
             assert!(ccxt::runtime::is_true(&(Value::Bool(get_value(&row, &Value::Int(0)) != Value::Null))));
         }
@@ -475,5 +477,5 @@ pub fn testWsOrderBook() {
     trimIndexedBook.store_array_to_asks(Value::from(vec![Value::Int(14), Value::Int(0), Value::Str("d".into())]));
     trimIndexedBook.store_array_to_bids(Value::from(vec![Value::Int(6), Value::Int(0), Value::Str("v".into())]));
     trimIndexedBook.limit();
-    assert!(ccxt::runtime::is_true(&(equals(trimIndexedBook, trimIndexedTarget))));
+    assert!(ccxt::runtime::is_true(&(equals(trimIndexedBook.clone(), trimIndexedTarget.clone()))));
 }

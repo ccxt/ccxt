@@ -3701,12 +3701,13 @@ public partial class okx : Exchange
         (bool?, object) paginateparamsPaginateVariable = this.handleOptionBoolAndParams(parameters, "fetchOHLCV", "paginate", false);
         bool? paginate = paginateparamsPaginateVariable.Item1;
         IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable.Item2);
-        if ((paginate == true))
-        {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 200));
-        }
         string? priceType = this.safeString(paramsPaginate, "price");
         bool isMarkOrIndex = this.inArray(priceType, new List<object>() {"mark", "index"});
+        if ((paginate == true))
+        {
+            int maxEntriesPerRequest = isMarkOrIndex ? 100 : 200;
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, maxEntriesPerRequest));
+        }
         Dictionary<string, object> paramsPrice = this.omit(paramsPaginate, "price");
         IDictionary<string, object> options = this.safeDict(this.options, "fetchOHLCV", new Dictionary<string, object>() {});
         string? timezone = this.safeString(options, "timezone", "UTC");
@@ -3752,7 +3753,11 @@ public partial class okx : Exchange
         Int64? until = this.safeInteger(paramsPrice, "until");
         if ((until != null))
         {
-            request["after"] = until;
+            Int64? afterSince = this.safeInteger(request, "after");
+            if (((afterSince == null)) || ((until < afterSince)))
+            {
+                request["after"] = until;
+            }
         }
         object paramsUntil = ((until != null)) ? this.omit(paramsPrice, "until") : paramsPrice;
         defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles

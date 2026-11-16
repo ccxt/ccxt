@@ -5603,6 +5603,23 @@ public partial class bingx : Exchange
         {
             bool? isTwapOrder = this.safeBool(paramsStandard, "twap", false);
             Dictionary<string, object> paramsOmitted = this.omit(paramsStandard, "twap");
+            if (isTwapOrder != true)
+            {
+                if ((limit != null))
+                {
+                    request["limit"] = Math.Min(limit.Value, 1000);
+                }
+                if ((since != null))
+                {
+                    request["startTime"] = since;
+                }
+                Int64? until = this.safeInteger(paramsOmitted, "until");
+                if (!(until == null))
+                {
+                    request["endTime"] = until;
+                    paramsOmitted = this.omit(paramsOmitted, "until");
+                }
+            }
             if ((isTwapOrder == true))
             {
                 request["pageIndex"] = 1;

@@ -4676,10 +4676,21 @@ public partial class xt : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
         string? symbol = this.safeSymbol(marketId, marketResolved, null, marketType);
         Int64? timestamp = this.safeInteger2(order, "time", "createdTime");
-        double? quantity = this.safeNumber(order, "origQty");
-        object amount = (marketType == "spot") ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
-        double? filledQuantity = this.safeNumber(order, "executedQty");
-        object filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString((marketResolved != null && marketResolved.ContainsKey("contractSize") ? marketResolved["contractSize"] : null)));
+        string? contractSize = this.safeString(marketResolved, "contractSize");
+        string? quantity = this.safeString(order, "origQty");
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        string? filledQuantity = this.safeString2(order, "tradeBase", "executedQty");
+        string? amount = (marketType == "spot") ? quantity : Precise.stringMul(quantity, contractSize);
+        string? filled = (marketType == "spot") ? filledQuantity : Precise.stringMul(filledQuantity, contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        string? remaining = null;
+        if ((quantity != null))
+        {
+            remaining = this.safeString(order, "leavingQty");
+        }
         Int64? lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         string? timeInForce = this.safeString(order, "timeInForce");
         bool? postOnly = null;
@@ -4720,7 +4731,7 @@ public partial class xt : Exchange
             { "lastTradeTimestamp", lastUpdatedTimestamp },
             { "lastUpdateTimestamp", lastUpdatedTimestamp },
             { "symbol", symbol },
-            { "type", this.safeStringLower2(order, "type", "orderType") },
+            { "type", this.parseOrderType(this.safeStringLowerN(order, new List<object>() {"type", "orderType", "entrustType"})) },
             { "timeInForce", timeInForce },
             { "postOnly", postOnly },
             { "side", side },
@@ -4730,8 +4741,8 @@ public partial class xt : Exchange
             { "takeProfitPrice", this.safeNumber(order, "triggerProfitPrice") },
             { "amount", amount },
             { "filled", filled },
-            { "remaining", this.safeNumber(order, "leavingQty") },
-            { "cost", null },
+            { "remaining", remaining },
+            { "cost", this.safeString(order, "tradeQuote") },
             { "average", this.safeNumber(order, "avgPrice") },
             { "status", this.parseOrderStatus(this.safeString(order, "state")) },
             { "fee", new Dictionary<string, object>() {
@@ -4740,6 +4751,18 @@ public partial class xt : Exchange
             } },
             { "trades", null },
         }, marketResolved);
+    }
+
+    public virtual string? parseOrderType(object type)
+    {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
+            { "stop", "limit" },
+            { "stop_market", "market" },
+            { "take_profit", "limit" },
+            { "take_profit_market", "market" },
+            { "trailing_stop_market", "market" },
+        };
+        return this.safeString(types, type, type);
     }
 
     public virtual string? parseOrderStatus(string? status)

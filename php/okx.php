@@ -2705,11 +2705,12 @@ class okx extends Exchange {
         }
         $market = $this->market($symbol);
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
-        if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, 200);
-        }
         $priceType = $this->safe_string($paramsPaginate, 'price');
         $isMarkOrIndex = $this->in_array($priceType, array( 'mark', 'index' ));
+        if ($paginate) {
+            $maxEntriesPerRequest = ($isMarkOrIndex) ? 100 : 200;
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxEntriesPerRequest);
+        }
         $paramsPrice = $this->omit($paramsPaginate, 'price');
         $options = $this->safe_dict($this->options, 'fetchOHLCV', array());
         $timezone = $this->safe_string($options, 'timezone', 'UTC');
@@ -2749,7 +2750,10 @@ class okx extends Exchange {
         }
         $until = $this->safe_integer($paramsPrice, 'until');
         if ($until !== null) {
-            $request['after'] = $until;
+            $afterSince = $this->safe_integer($request, 'after');
+            if (($afterSince === null) || ($until < $afterSince)) {
+                $request['after'] = $until;
+            }
         }
         $paramsUntil = ($until !== null) ? $this->omit($paramsPrice, 'until') : $paramsPrice;
         $defaultType = $this->safe_string($options, 'type', $defaultType); // Candles or HistoryCandles

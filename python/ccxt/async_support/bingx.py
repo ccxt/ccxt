@@ -5014,6 +5014,15 @@ class bingx(Exchange, ImplicitAPI):
         else:
             isTwapOrder = self.safe_bool(paramsStandard, 'twap', False)
             paramsOmitted = self.omit(paramsStandard, 'twap')
+            if not isTwapOrder:
+                if limit is not None:
+                    request['limit'] = min(limit, 1000)
+                if since is not None:
+                    request['startTime'] = since
+                until = self.safe_integer(paramsOmitted, 'until')
+                if until is not None:
+                    request['endTime'] = until
+                    paramsOmitted = self.omit(paramsOmitted, 'until')
             if isTwapOrder:
                 request['pageIndex'] = 1
                 request['pageSize'] = 100 if (limit is None) else limit

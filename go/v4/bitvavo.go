@@ -312,10 +312,24 @@ func (this *Bitvavo) Describe() map[string]any {
 				"tierBased":  true,
 				"percentage": true,
 				"taker":      this.ParseNumber("0.0025"),
-				"maker":      this.ParseNumber("0.002"),
+				"maker":      this.ParseNumber("0.0015"),
 				"tiers": map[string]any{
-					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0004")}},
-					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0006")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0003")}},
+					"taker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0025")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0020")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0018")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0016")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0014")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0012")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0.0004")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0.0002")}},
+					"maker": []any{[]any{this.ParseNumber("0"), this.ParseNumber("0.0015")}, []any{this.ParseNumber("100000"), this.ParseNumber("0.0010")}, []any{this.ParseNumber("250000"), this.ParseNumber("0.0009")}, []any{this.ParseNumber("500000"), this.ParseNumber("0.0008")}, []any{this.ParseNumber("1000000"), this.ParseNumber("0.0005")}, []any{this.ParseNumber("2500000"), this.ParseNumber("0.0003")}, []any{this.ParseNumber("5000000"), this.ParseNumber("0.0001")}, []any{this.ParseNumber("10000000"), this.ParseNumber("0")}, []any{this.ParseNumber("25000000"), this.ParseNumber("0")}, []any{this.ParseNumber("100000000"), this.ParseNumber("0")}},
+				},
+			},
+			"byCategory": map[string]any{
+				"B": map[string]any{
+					"maker": this.ParseNumber("0.0005"),
+					"taker": this.ParseNumber("0.0005"),
+				},
+				"C": map[string]any{
+					"maker": this.ParseNumber("0.001"),
+					"taker": this.ParseNumber("0.001"),
+				},
+				"D": map[string]any{
+					"maker": this.ParseNumber("0"),
+					"taker": this.ParseNumber("0.0001"),
 				},
 			},
 		},
@@ -571,6 +585,8 @@ func (this *Bitvavo) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 }
 func (this *Bitvavo) ParseMarkets(markets any) []any {
 	var result []any = []any{}
+	var defaultFees map[string]any = this.SafeDictMap(this.Fees, "trading", map[string]any{})
+	var feesByCategory map[string]any = SafeMapTyped(this.Fees, "byCategory")
 	for i := 0; i < GetArrayLength(markets); i++ {
 		var market map[string]any = SafeMapTyped(markets, i)
 		var id *string = this.SafeString(market, "market")
@@ -582,6 +598,8 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 			continue
 		}
 		var status *string = this.SafeString(market, "status")
+		var feeCategory *string = this.SafeString(market, "feeCategory")
+		var fees any = this.SafeDict(feesByCategory, feeCategory, defaultFees)
 		result = append(result, this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         *base + "/" + *quote,
@@ -606,8 +624,8 @@ func (this *Bitvavo) ParseMarkets(markets any) []any {
 			"expiryDatetime": nil,
 			"strike":         nil,
 			"optionType":     nil,
-			"taker":          this.SafeNumber(this.Fees["trading"], "taker"),
-			"maker":          this.SafeNumber(this.Fees["trading"], "maker"),
+			"taker":          this.SafeNumber(fees, "taker"),
+			"maker":          this.SafeNumber(fees, "maker"),
 			"precision": map[string]any{
 				"amount": this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityDecimals"))),
 				"price":  this.SafeNumber(market, "tickSize"),
@@ -1009,11 +1027,11 @@ func (this *Bitvavo) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes82919 []any = r1.Value
-		if retRes82919 == nil {
+		var retRes84119 []any = r1.Value
+		if retRes84119 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes82919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes84119)}
 		}
 		return nil
 	}
@@ -1448,11 +1466,11 @@ func (this *Bitvavo) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes116119 []any = r1.Value
-		if retRes116119 == nil {
+		var retRes117319 []any = r1.Value
+		if retRes117319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes116119)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes117319)}
 		}
 		return nil
 	}
@@ -2547,11 +2565,11 @@ func (this *Bitvavo) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes193119 []any = r1.Value
-		if retRes193119 == nil {
+		var retRes194319 []any = r1.Value
+		if retRes194319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes193119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes194319)}
 		}
 		return nil
 	}
@@ -2881,11 +2899,11 @@ func (this *Bitvavo) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes220219 []any = r1.Value
-		if retRes220219 == nil {
+		var retRes221419 []any = r1.Value
+		if retRes221419 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes220219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes221419)}
 		}
 		return nil
 	}
