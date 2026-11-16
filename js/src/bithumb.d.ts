@@ -86,6 +86,8 @@ export default class bithumb extends Exchange {
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     fetchOHLCV(symbol: string, timeframe?: string, since?: Int, limit?: Int, params?: Dict): Promise<OHLCV[]>;

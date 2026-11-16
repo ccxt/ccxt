@@ -6793,7 +6793,7 @@ class bingx(Exchange, ImplicitAPI):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'makerCommissionRate'),
             'taker': self.safe_number(fee, 'takerCommissionRate'),
-            'percentage': False,
+            'percentage': True,
             'tierBased': False,
         }
 
