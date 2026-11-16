@@ -365,6 +365,8 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     'parseLiquidations', 'parseFundingRateHistories', 'parseLongShortRatioHistory', 'parseOpenInterestsHistory',
     'arraySlice',
 ]);
+// awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
+const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>' };
 
 // base methods whose every return is the own `symbols` parameter (checkcast) or a String
 // accumulator list (section 26) print `java.util.List<String>`; locals take it in section 31
@@ -1648,6 +1650,11 @@ function awaitedCoreCallType (node) {
     const methodName = call.expression.name?.text;
     if (methodName === undefined) {
         return undefined;
+    }
+    // ral-84j7: typed cores javaTypedCore.ts BASE_ASYNC_HELPERS retypes in the same pass (the
+    // on-disk chain still says Object during a full regen, so read the entry, not the file)
+    if (Object.hasOwn (J84J7_TYPED_CORES, methodName)) {
+        return J84J7_TYPED_CORES[methodName];
     }
     const types = javaCoreReturnTypes (node)?.get (methodName);
     if (types === undefined || types.size !== 1) {

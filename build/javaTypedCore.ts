@@ -107,7 +107,12 @@ export function typedReturnTable(tier: JavaTier): Map<string, MethodInfo> {
 // isUTAEnabled (): Promise<boolean> (base stub + kucoin), not a unified wrapper
 const BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'isUTAEnabled', javaReturnType: 'Boolean', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
+    // ral-84j7: Promise<DepositAddresses> on the base stub and all 10 venue bodies; every body
+    // returns this.indexBy (x, k) (hand-written Map<String, Object>) or a Map-declared local
+    { name: 'fetchDepositAddressesByNetwork', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
 ];
+// ral-84j7: base stubs of these typed cores take a type witness on failedFuture (no cast lambda)
+const WITNESS_FAILED_FUTURE = new Set([ 'fetchDepositAddressesByNetwork' ]);
 // loadOutcome (): Promise<PredictionOutcomeMarket> sends the outcome dict on every path
 const PREDICTION_BASE_ASYNC_HELPERS: MethodInfo[] = [
     { name: 'loadOutcome', javaReturnType: 'Map<String, Object>', isArray: false, elementType: null, requiredParams: [], optionalParams: [], isWatch: false },
@@ -157,7 +162,7 @@ const TYPED_BASE_READERS: Record<string, string> = {
 };
 // BaseExchange.java `java.util.Map<String, Object> extend(Object aa, Object bb)`: only the two-argument
 // overload is typed (`Object extend(Object... objs)` is not)
-const TYPED_BASE_TWO_ARG_READERS: Record<string, string> = { extend: 'Map<String, Object>' };
+const TYPED_BASE_TWO_ARG_READERS: Record<string, string> = { extend: 'Map<String, Object>', indexBy: 'Map<String, Object>' }; // indexBy: BaseExchange.java `java.util.Map<String, Object> indexBy(Object, Object)` (ral-84j7)
 // BaseExchange.java credential fields declared `public String <name>;`
 const TYPED_BASE_STRING_FIELDS = new Set([ 'apiKey', 'secret', 'password', 'uid', 'accountId', 'twofa', 'privateKey', 'walletAddress', 'login' ]);
 
@@ -484,6 +489,11 @@ export function typeCoreReturns(source: string, table: Map<string, MethodInfo>):
                 // a reference-cast core (String / Boolean / Map) whose returns are all single-line
                 // statements of the supply body: cast each unproven return in place, no lambda
                 if (isAsyncLambdaClose(trimmed) && castSupplyReturnsInPlace(lines, i + 1, j, supplyIndent, m, ctx)) {
+                    converted = true;
+                    break;
+                }
+                if (WITNESS_FAILED_FUTURE.has(name) && trimmed.startsWith(`return ${FUTURE}.failedFuture(`)) {
+                    lines[j] = `${supplyIndent}return ${FUTURE}.<${qualifyJavaType(m.javaReturnType)}>failedFuture(${trimmed.slice(`return ${FUTURE}.failedFuture(`.length)}`;
                     converted = true;
                     break;
                 }

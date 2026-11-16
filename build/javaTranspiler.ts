@@ -8515,7 +8515,7 @@ export function nativeJavaPaginationCursorPuts (content: string): string {
         while (to < lines.length && !/^    (?:public|private|protected)\b/.test (lines[to])) to++;
         const member = lines.slice (from, to).join ('\n');
         const data = /\b(?:List<Object>|java\.util\.List<Object>|Object) (data)\b/.exec (member)?.[1];
-        const lenMatch = /Integer (\w+) = \(\(List<\?>\)data\)\.size\(\);/.exec (member);
+        const lenMatch = /Integer (\w+) = (?:\(\(List<\?>\)data\)|data)\.size\(\);/.exec (member); // ral-84j7: bare data.size() on a declared List
         if (data === undefined || lenMatch === null) continue;
         const len = lenMatch[1];
         if ((member.match (/\bInteger \w+ = /g) ?? []).length !== 1 || !new RegExp (`${len} != null && ${len} > 0`).test (member)) continue;
@@ -8558,6 +8558,7 @@ export function javaPaginationCursorSelfTest (): string[] {
     const cases: [string, string, string, string | undefined][] = [
         [ 'elem put and set', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
         [ 'Object data last', 'String cursor, Object data', guard.replace ('Integer dataLength', 'Integer dataLength') + '            Helpers.addElementToObject(data, (((long) dataLength) - 1L), data);\n        }', '((List<Object>) data).set((int) (((long) dataLength) - 1L), data);' ],
+        [ 'bare size on declared List (ral-84j7)', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n' + guard.replace ('((List<?>)data).size()', 'data.size()') + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', '((Map<String, Object>)first).put("k", cursor);\n            data.set(0, first);' ],
         [ 'unguarded cursor keeps helper', 'Map<String, Object> r', '        String cursor = this.safeString(r, "c");\n        List<Object> data = (List<Object>) this.safeList(r, "d", new ArrayList<Object>(Arrays.asList()));\n        Integer dataLength = ((List<?>)data).size();\n        if (dataLength != null && dataLength > 0)\n        {\n' + first + '            Helpers.addElementToObject(first, "k", cursor);\n            Helpers.addElementToObject(data, 0, first);\n        }', 'data.set(0, first)' ],
     ];
     for (const [ name, sig, body, expect ] of cases) {
