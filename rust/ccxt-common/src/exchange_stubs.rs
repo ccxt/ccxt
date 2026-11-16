@@ -2878,26 +2878,38 @@ impl Exchange {
     /// to make the call compile; live signing won't be correct.
     /// `packb(value)` — MessagePack-encode a Value into a byte array.
     pub fn packb(&self, action: Value, _optional_args: &[Value]) -> Value {
-        fn to_rmpv(v: &Value) -> rmpv::Value {
+        // Narrowest-form MessagePack: non-negative ints as uint, negative as int, floats as f64.
+        fn head(buf: &mut Vec<u8>, fix: u8, fix_max: u64, tags: [u8; 4], n: u64) {
+            match n {
+                n if n <= fix_max => buf.push(fix | n as u8),
+                n if n <= 0xff && tags[0] != 0 => buf.extend([tags[0], n as u8]),
+                n if n <= 0xffff => { buf.push(tags[1]); buf.extend((n as u16).to_be_bytes()) }
+                n if n <= 0xffff_ffff => { buf.push(tags[2]); buf.extend((n as u32).to_be_bytes()) }
+                n => { buf.push(tags[3]); buf.extend(n.to_be_bytes()) }
+            }
+        }
+        fn enc(buf: &mut Vec<u8>, v: &Value) {
             match v {
-                Value::Null => rmpv::Value::Nil,
-                Value::Bool(b) => rmpv::Value::Boolean(*b),
-                Value::Int(i) => rmpv::Value::Integer((*i).into()),
-                Value::Float(f) => rmpv::Value::F64(*f),
-                Value::Str(s) => rmpv::Value::String(s.clone().into()),
-                Value::Arr(a) => rmpv::Value::Array(a.iter().map(to_rmpv).collect()),
-                Value::Dict(m) => rmpv::Value::Map(
-                    m.iter()
-                        .map(|(k, v)| (rmpv::Value::String(k.clone().into()), to_rmpv(v)))
-                        .collect(),
-                ),
+                Value::Null => buf.push(0xc0),
+                Value::Bool(b) => buf.push(0xc2 | *b as u8),
+                Value::Int(i) if *i >= 0 => head(buf, 0x00, 0x7f, [0xcc, 0xcd, 0xce, 0xcf], *i as u64),
+                Value::Int(i) if *i >= -32 => buf.push(*i as u8),
+                Value::Int(i) if *i >= -128 => buf.extend([0xd0, *i as u8]),
+                Value::Int(i) if *i >= -32768 => { buf.push(0xd1); buf.extend((*i as i16).to_be_bytes()) }
+                Value::Int(i) if *i >= i32::MIN as i64 => { buf.push(0xd2); buf.extend((*i as i32).to_be_bytes()) }
+                Value::Int(i) => { buf.push(0xd3); buf.extend(i.to_be_bytes()) }
+                Value::Float(f) => { buf.push(0xcb); buf.extend(f.to_be_bytes()) }
+                Value::Str(s) => { head(buf, 0xa0, 31, [0xd9, 0xda, 0xdb, 0xdb], s.len() as u64); buf.extend(s.as_bytes()) }
+                Value::Arr(a) => { head(buf, 0x90, 15, [0, 0xdc, 0xdd, 0xdd], a.len() as u64); a.iter().for_each(|x| enc(buf, x)) }
+                Value::Dict(m) => {
+                    head(buf, 0x80, 15, [0, 0xde, 0xdf, 0xdf], m.len() as u64);
+                    m.iter().for_each(|(k, x)| { enc(buf, &Value::Str(k.clone().into())); enc(buf, x) })
+                }
             }
         }
         let mut buf: Vec<u8> = Vec::new();
-        match rmpv::encode::write_value(&mut buf, &to_rmpv(&action)) {
-            Ok(_) => Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect()),
-            Err(_) => Value::Null,
-        }
+        enc(&mut buf, &action);
+        Value::Array(buf.iter().map(|b| Value::Int(*b as i64)).collect())
     }
 
     /// `ethEncodeStructuredData(domain, types, message)` — EIP-712
