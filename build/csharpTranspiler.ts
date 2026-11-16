@@ -8648,9 +8648,37 @@ class NewTranspiler {
     }
 }
 
+// ral-84c3 snippet checks: a row element local is typed only when a literal-key write makes a use native
+function rowWriteElementSnippetChecks84c3 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const check = (name: string, body: string, expected: string[], forbidden: string[]) => {
+        const src = 'type Dict = { [key: string]: any };\nclass Test {\n safeString (o, k, d = undefined): string { return d; }\n' + body + '\n}';
+        const out: string = (transpiler as any).transpileCSharp (src).content;
+        for (const e of expected) { if (!out.includes (e)) { problems.push (`84c3 row write: ${name}: missing ${e}`); } }
+        for (const f of forbidden) { if (out.includes (f)) { problems.push (`84c3 row write: ${name}: has ${f}`); } }
+    };
+    check ('literal-key write is native', 'f (data: Dict[], c) { const first = data[0]; first["next"] = c; return data; }',
+        [ 'IDictionary<string, object> first = ((IDictionary<string, object>)', 'first["next"] = c;' ], [ 'object first', '((IDictionary<string,object>)first)' ]);
+    check ('safe-read-only local keeps object', 'g (data: Dict[]) { const entry = data[0]; return this.safeString (entry, "a"); }', [ 'object entry = ' ], [ 'IDictionary<string, object> entry' ]);
+    check ('identifier-key write keeps object', 'h (data: Dict[], k: string) { const row = data[0]; row[k] = 1; return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('in-tested local keeps object', 'k (data: Dict[]) { const row = data[0]; if ("a" in row) { row["a"] = 2; } return data; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('market name keeps object', 'm (data: Dict[]) { const market = data[0]; market["a"] = 1; return data; }', [ 'object market = ' ], [ 'IDictionary<string, object> market' ]);
+    check ('use-proven dict element of an any list', 'r (data: any[], c) { const last = data[data.length - 1]; last["next"] = c; data[data.length - 1] = last; return data; }',
+        [ 'IDictionary<string, object> last = ((IDictionary<string, object>)', 'last["next"] = c;' ], [ 'object last', '((IDictionary<string,object>)last)' ]);
+    check ('use-proven list element of an any list', 's (rows: any[], v) { const row = rows[0]; row.push (v); return rows; }',
+        [ 'IList<object> row = ((IList<object>)', 'row.Add(v);' ], [ 'object row', '((IList<object>)row)' ]);
+    check ('conditional write does not prove the box', 't (rows: any[], v, f) { const row = rows[0]; if (f) { row["a"] = v; } return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('statement before the write does not prove the box', 'u (rows: any[], v) { const row = rows[0]; this.safeString (v, "a"); row["a"] = v; return rows; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    check ('keyed read into a local keeps object', 'n (data: Dict[]) { const row = data[0]; row["a"] = 1; const s = row["b"]; return s; }', [ 'object row = ' ], [ 'IDictionary<string, object> row' ]);
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);

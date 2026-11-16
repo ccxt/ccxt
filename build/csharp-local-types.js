@@ -8897,10 +8897,198 @@ function dictRowUsesAreConsistent (csharp, scope, declaration) {
     return true;
 }
 
+// ral-84c3: a row element local outside DICT_ROW_LOCAL_NAMES is admitted only when typing it makes a
+// use native: it is written by a string key (`row['k'] = v`, printed `((IDictionary<string,object>)row)[k] = v`
+// on an `object` local, a bare `row[k] = v` on the typed one), so the one declaration cast replaces at
+// least one use-site cast. Locals read only through this.safe* (object parameters) gain nothing and stay
+// `object` (77c3 was held for typing those). The market-row names keep `object` (their read arms print no
+// null test), and a local read by `in` keeps `object` (a declared dict prints a bare ContainsKey, where
+// inOp answered false on a null element).
+const DICT_ROW_VETO_NAMES = new Set ([ 'market', 'currency' ]);
+
+function dictRowNativeWriteLocal (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier || DICT_ROW_VETO_NAMES.has (name)) {
+        return false;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    let writes = 0;
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name || isNotAUse (use) || useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        let current = use;
+        while (current.parent && (current.parent.kind === ts.SyntaxKind.ParenthesizedExpression || current.parent.kind === ts.SyntaxKind.AsExpression)) {
+            current = current.parent;
+        }
+        const owner = current.parent;
+        if (owner?.kind === ts.SyntaxKind.BinaryExpression && owner.right === current && owner.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return false;
+        }
+        const access = use.parent;
+        if (access?.kind === ts.SyntaxKind.ElementAccessExpression && access.expression === use
+                && access.parent?.kind === ts.SyntaxKind.VariableDeclaration && access.parent.initializer === access) {
+            // `const s = row['k']` would follow the typed row into a cast-backed `string?` local
+            // (typedDictStringReadType): one cast more, no native use; keep the row `object`
+            return false;
+        }
+        if (access?.kind === ts.SyntaxKind.ElementAccessExpression && access.expression === use
+                && access.parent?.kind === ts.SyntaxKind.BinaryExpression && access.parent.left === access
+                && access.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+        ) {
+            // the typed local prints `row[k] = v`: a non-literal key prints a `(string)` cast there
+            // (even a string local), so only literal-key writers admit the local
+            if (!ts.isStringLiteralLike (access.argumentExpression)) {
+                return false;
+            }
+            writes++;
+        }
+    }
+    return writes > 0;
+}
+
+// a local admitted only by dictRowNativeWriteLocal types its own declaration and uses, never a callee's
+// parameter: the call-site parameter proof sees it as `object`, so no method signature moves
+function widenedDictRowArgument (csharp, argument) {
+    if (argument === undefined || !ts.isIdentifier (argument) || DICT_ROW_LOCAL_NAMES.has (argument.text)) {
+        return false;
+    }
+    const declaration = csharpIdentifierDeclaration (csharp, argument);
+    return declaration?.kind === ts.SyntaxKind.VariableDeclaration && (dictRowElementReadType (csharp, declaration) !== undefined || useProvenElementBox (csharp, declaration) !== undefined);
+}
+const dictRowUpstreamArgumentType = csharpArgumentType;
+// eslint-disable-next-line no-func-assign
+csharpArgumentType = (csharp, argument, expected) => (widenedDictRowArgument (csharp, argument) ? 'object' : dictRowUpstreamArgumentType (csharp, argument, expected));
+
+// ral-84c3 rule 3: `const last = data[n]` over a list with no element proof (`any[]`, a safeList
+// result), proven from the USES. Mode dict: a literal-key write `last['k'] = v` / `delete last['k']`;
+// mode list: `last.push (v)`. That write is a statement of the declaration's own block, so a box of
+// another kind threw at that write before and throws at the declaration cast now with nothing run in
+// between but pure safe* reads; a null element passes the cast and throws at the same write
+// (NullReferenceException both ways). Every other use is a pure safe* read (argument 0), a write-back
+// `recv[k] = last`, a `.push (last)` into another list, or a null test. Market-row names, in-tested
+// locals and the test tiers keep `object`.
+const ROW_USE_PURE_READERS = new Set ([ 'safeString', 'safeString2', 'safeStringN', 'safeStringLower', 'safeStringUpper', 'safeInteger', 'safeInteger2', 'safeNumber', 'safeNumber2', 'safeBool', 'safeDict', 'safeList', 'safeValue', 'safeFloat', 'safeTimestamp' ]);
+
+function useProvenElementBox (csharp, declaration) {
+    const name = declaration?.name?.text;
+    if (name === undefined || declaration.name.kind !== ts.SyntaxKind.Identifier || DICT_ROW_VETO_NAMES.has (name)) {
+        return undefined;
+    }
+    let init = declaration.initializer;
+    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        init = init.expression;
+    }
+    if (init?.kind !== ts.SyntaxKind.ElementAccessExpression || init.expression?.kind !== ts.SyntaxKind.Identifier || ts.isStringLiteralLike (init.argumentExpression)) {
+        return undefined;
+    }
+    const fileName = (declaration.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+    if (/(^|\/)test\//.test (fileName) || fileName.includes ('examples/')) {
+        return undefined; // the test / example tiers keep `object` (as dictRowElementReadType)
+    }
+    const statement = declaration.parent?.parent;
+    const block = statement?.parent;
+    if (statement?.kind !== ts.SyntaxKind.VariableStatement || declaration.parent.declarations.length !== 1
+            || (block?.kind !== ts.SyntaxKind.Block && block?.kind !== ts.SyntaxKind.SourceFile)) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    let dictWrites = 0;
+    let listWrites = 0;
+    let firstWriteIndex = -1;
+    const statementIndex = block.statements.indexOf (statement);
+    const topStatementOf = (n) => {
+        let current = n;
+        while (current && current.parent !== block) {
+            current = current.parent;
+        }
+        return current;
+    };
+    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
+        if (use === declaration.name) {
+            continue;
+        }
+        if (use.parent?.kind === ts.SyntaxKind.PropertyAccessExpression && use.parent.name === use) {
+            continue;
+        }
+        if (useRefersToDeclaration (csharp, scope, declaration, use) === false) {
+            continue;
+        }
+        if (enclosingFunction (use) !== enclosingFunction (declaration)) {
+            return undefined;
+        }
+        const parent = use.parent;
+        const top = topStatementOf (use);
+        const direct = top !== undefined && top.kind === ts.SyntaxKind.ExpressionStatement && block.statements.indexOf (top) > statementIndex;
+        // dict write `x['k'] = v` / `delete x['k']`
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use && ts.isStringLiteralLike (parent.argumentExpression)) {
+            const grand = parent.parent;
+            const assigned = grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent && grand.operatorToken.kind === ts.SyntaxKind.EqualsToken;
+            const deleted = grand?.kind === ts.SyntaxKind.DeleteExpression;
+            if (!assigned && !deleted) {
+                return undefined; // a keyed read would seed another family (see rule 1b)
+            }
+            dictWrites++;
+            if (direct && grand.parent === top && (firstWriteIndex < 0 || block.statements.indexOf (top) < firstWriteIndex)) {
+                firstWriteIndex = block.statements.indexOf (top);
+            }
+            continue;
+        }
+        // list write `x.push (v)`
+        if (parent?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression === use && parent.name?.text === 'push'
+                && parent.parent?.kind === ts.SyntaxKind.CallExpression && parent.parent.expression === parent && parent.parent.arguments.length === 1) {
+            listWrites++;
+            if (direct && parent.parent.parent === top && (firstWriteIndex < 0 || block.statements.indexOf (top) < firstWriteIndex)) {
+                firstWriteIndex = block.statements.indexOf (top);
+            }
+            continue;
+        }
+        // pure safe* read
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
+                && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && ROW_USE_PURE_READERS.has (parent.expression.name?.text)) {
+            continue;
+        }
+        // write-back `recv[k] = x`
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                && parent.left?.kind === ts.SyntaxKind.ElementAccessExpression) {
+            continue;
+        }
+        // `other.push (x)`
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments.length === 1 && parent.arguments[0] === use
+                && parent.expression?.kind === ts.SyntaxKind.PropertyAccessExpression && parent.expression.name?.text === 'push') {
+            continue;
+        }
+        // null test
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && [ ts.SyntaxKind.EqualsEqualsEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken ].includes (parent.operatorToken.kind)) {
+            const other = (parent.left === use) ? parent.right : parent.left;
+            if (other?.kind === ts.SyntaxKind.Identifier && other.text === 'undefined' || other?.kind === ts.SyntaxKind.NullKeyword) {
+                continue;
+            }
+        }
+        return undefined;
+    }
+    if ((dictWrites > 0) === (listWrites > 0) || firstWriteIndex < 0) {
+        return undefined;
+    }
+    // nothing but variable declarations of pure reads between the declaration and the first write
+    for (let k = statementIndex + 1; k < firstWriteIndex; k++) {
+        if (block.statements[k].kind !== ts.SyntaxKind.VariableStatement) {
+            return undefined;
+        }
+    }
+    return (dictWrites > 0) ? 'IDictionary<string, object>' : 'IList<object>';
+}
+
 // `IDictionary<string, object>` when the checker proves the element of `recv[key]` is a ccxt row
 // shape, or undefined (the read keeps the printer's `object`)
 function dictRowElementReadType (csharp, declaration) {
-    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text)) {
+    if (!DICT_ROW_LOCAL_NAMES.has (declaration?.name?.text) && !dictRowNativeWriteLocal (csharp, declaration)) {
         return undefined;
     }
     // the generated tests hold the exchange in a parameter and call the BaseTest getValue
@@ -11142,6 +11330,10 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // (OPTIONS_LITERAL_STRING_KEYS above) stores a string box
             csharpType = 'string?';
             cast = 'string';
+        } else if (dictRowElementReadType (csharp, declaration) === undefined && useProvenElementBox (csharp, declaration) !== undefined) {
+            // ral-84c3 rule 3: the element box proven by an unconditional write in the declaration's block
+            csharpType = useProvenElementBox (csharp, declaration);
+            cast = csharpType;
         } else if (dictRowElementReadType (csharp, declaration) !== undefined) {
             // `const rawOrder = orders[i]`: the checker proves the receiver's element type is a ccxt row shape,
             // so the box is the decoded row dictionary, named behind the same interface cast the
