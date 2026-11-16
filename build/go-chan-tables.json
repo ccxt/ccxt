@@ -445,7 +445,7 @@
         "GetAssetHistoryRows": "[]any",
         "GetLeverageTiersPaginated": "[]LeverageTier",
         "GetListenKey": "*string",
-        "GetMarketsPaginated": "[]any",
+        "GetMarketsPaginated": "[]MarketInterface",
         "GetSystemConfig": "map[string]any",
         "GetWithdrawNonce": "*float64",
         "GetZKContractSignatureObj": "string",
