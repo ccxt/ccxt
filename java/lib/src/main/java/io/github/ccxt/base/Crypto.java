@@ -166,7 +166,7 @@ public final class Crypto {
         }
     }
 
-    private static byte[] keccakDigest(byte[] data) {
+    public static byte[] keccakDigest(byte[] data) {
         Keccak.Digest256 k = new Keccak.Digest256();
         k.update(data, 0, data.length);
         return k.digest();

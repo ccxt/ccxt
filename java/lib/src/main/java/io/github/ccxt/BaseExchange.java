@@ -3195,9 +3195,7 @@ public class BaseExchange {
     }
 
     private static byte[] keccak256(byte[] input) {
-        org.bouncycastle.jcajce.provider.digest.Keccak.Digest256 k = new org.bouncycastle.jcajce.provider.digest.Keccak.Digest256();
-        k.update(input, 0, input.length);
-        return k.digest();
+        return Crypto.keccakDigest(input);
     }
 
     public Object packb(Object data) {
