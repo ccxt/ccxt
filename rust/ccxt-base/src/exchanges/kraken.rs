@@ -2921,10 +2921,10 @@ impl Kraken {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut idsValue: Value = Value::Str(ids.join(",").into());
+        let mut idsValue: String = ids.join(",");
         let mut request: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("id".to_string(), idsValue);
+                m.insert("id".to_string(), Value::from(idsValue));
             m
         }), &[params]).into_dict();
         let mut response: crate::value::Dict = self.private_post_query_ledgers(&[Value::Dict(request)]).await.into_dict();

@@ -304,7 +304,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         if (isBuyerMaker.is_some()) || (m.is_some()) {
             takeOrMaker = (if isMakerSide { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
-        let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(trade.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         if (side.is_none()) {
             if (isBuyerMaker.is_some()) || (m.is_some()) {
                 side = (if isMakerSide { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -644,9 +644,8 @@ impl crate::exchange::DerivedExchange for Bingx {
         //         "workingType": ""
         //     }
         //
-        let mut info: Value = order.clone();
         let mut newOrder: Value = self.safe_dict2(order.clone(), Value::Str("newOrderResponse".into()), Value::Str("orderOpenResponse".into()), &[]);
-        let mut orderData: Value = (if (newOrder != Value::Null) { newOrder } else { order });
+        let mut orderData: Value = (if (newOrder != Value::Null) { newOrder } else { order.clone() });
         let mut positionSide: Option<String> = self.safe_string2_opt(orderData.clone(), Value::Str("positionSide".into()), Value::Str("ps".into()), &[]);
         let mut marketType: String = "swap".to_string();
         if (positionSide.is_none()) {
@@ -654,7 +653,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         }
         let mut marketId: Option<String> = self.safe_string2_opt(orderData.clone(), Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let mut marketResolved: crate::types::Market = self.safe_market((if (market.is_none()) { marketId.clone().map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, &[Value::Null, Value::from(marketType.clone())]);
-        let mut side: Option<String> = self.safe_string_lower2(orderData.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(orderData.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(orderData.clone(), Value::from(vec![Value::Str("time".into()), Value::Str("transactTime".into()), Value::Str("E".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut transactTime: Value = self.safe_string_k(orderData.clone(), "transactTime", &[Value::Str("".into())]);
         if (Value::Int(transactTime.len() as i64).as_f64() == Some(10.0)) {
@@ -662,7 +661,7 @@ impl crate::exchange::DerivedExchange for Bingx {
             timestamp = self.safe_timestamp_k(orderData.clone(), "transactTime", &[]).as_i64();
         }
         let mut lastTradeTimestamp: Option<i64> = self.safe_integer2(orderData.clone(), Value::Str("updateTime".into()), Value::Str("T".into()), &[]).as_i64();
-        let mut statusId: Option<String> = self.safe_string_upper_n(orderData.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("X".into()), Value::Str("orderStatus".into())]), &[]).as_str().map(str::to_owned);
+        let mut statusId: Option<String> = self.safe_string_upper_n_opt(orderData.clone(), Value::from(vec![Value::Str("status".into()), Value::Str("X".into()), Value::Str("orderStatus".into())]), &[]);
         let mut feeCurrencyCode: Option<String> = self.safe_string2_opt(orderData.clone(), Value::Str("feeAsset".into()), Value::Str("N".into()), &[]);
         let mut feeCost: Option<String> = self.safe_string_n_opt(orderData.clone(), Value::from(vec![Value::Str("fee".into()), Value::Str("commission".into()), Value::Str("n".into())]), &[]);
         if (feeCurrencyCode.is_none()) {
@@ -718,7 +717,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         }
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info);
+        m.insert("info".to_string(), order);
         m.insert("id".to_string(), self.safe_string_n(orderData.clone(), Value::from(vec![Value::Str("orderId".into()), Value::Str("i".into()), Value::Str("mainOrderId".into())]), &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_n(orderData.clone(), Value::from(vec![Value::Str("clientOrderID".into()), Value::Str("clientOrderId".into()), Value::Str("origClientOrderId".into()), Value::Str("c".into())]), &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[Value::Str("-".into()), Value::from(marketType)]));
@@ -1925,14 +1924,12 @@ impl crate::exchange::DerivedExchange for Bingx {
                 url = Some(format!("{}{}", url.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "?", query).into()), "&").into()), "signature=").into()), signature)));
             }
         }
-        let mut bodyResult: Option<String> = requestBody;
-        let mut headersResult: Value = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), url.map(Value::from).unwrap_or(Value::Null));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), headersResult);
+        m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
+        m.insert("headers".to_string(), requestHeaders);
     m
 });
 

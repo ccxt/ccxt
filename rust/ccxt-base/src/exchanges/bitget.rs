@@ -657,7 +657,7 @@ impl crate::exchange::DerivedExchange for Bitget {
             }
         }
         let mut postOnly: Option<bool> = None;
-        let mut timeInForce: Option<String> = self.safe_string_upper2(order.clone(), Value::Str("force".into()), Value::Str("timeInForce".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper2_opt(order.clone(), Value::Str("force".into()), Value::Str("timeInForce".into()), &[]);
         if (timeInForce.as_deref() == Some("POST_ONLY")) {
             postOnly = Some(true);
             timeInForce = Some("PO".to_string());
@@ -782,10 +782,10 @@ impl crate::exchange::DerivedExchange for Bitget {
             spot = true;
             let mut priceDecimals: Option<String> = self.safe_string_k_opt(market.clone(), "pricePrecision", &[]);
             let mut amountDecimals: Option<String> = self.safe_string_k_opt(market.clone(), "quantityPrecision", &[]);
-            let mut priceStep: Value = self.parse_precision(&[priceDecimals.map(Value::from).unwrap_or(Value::Null)]);
-            let mut amountStep: Value = self.parse_precision(&[amountDecimals.map(Value::from).unwrap_or(Value::Null)]);
-            pricePrecision = self.parse_number(priceStep, &[]);
-            amountPrecision = self.parse_number(amountStep, &[]);
+            let mut priceStep: Option<String> = self.parse_precision(&[priceDecimals.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            let mut amountStep: Option<String> = self.parse_precision(&[amountDecimals.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+            pricePrecision = self.parse_number(priceStep.map(Value::from).unwrap_or(Value::Null), &[]);
+            amountPrecision = self.parse_number(amountStep.map(Value::from).unwrap_or(Value::Null), &[]);
             let mut crossMarginPairs: crate::value::List = self.safe_list_k(self.options.clone(), "crossMarginPairsData", &[Value::from(vec![])]).into_list();
             let mut isolatedMarginPairs: crate::value::List = self.safe_list_k(self.options.clone(), "isolatedMarginPairsData", &[Value::from(vec![])]).into_list();
             let mut hasCrossMargin: bool = self.in_array(&marketId, Value::Arr(crossMarginPairs));
@@ -821,17 +821,17 @@ impl crate::exchange::DerivedExchange for Bitget {
             contract = true;
             inverse = Some(base == settle);
             linear = Some(!(inverse == Some(true)));
-            let mut priceDecimals: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
-            let mut amountDecimals: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
-            let mut priceStep: Option<String> = self.safe_string_k_opt(market.clone(), "priceEndStep", &[]);
-            let mut amountStep: Option<String> = self.safe_string_k_opt(market.clone(), "sizeMultiplier", &[]);
-            let mut precise = Precise::new(priceStep.map(Value::from).unwrap_or(Value::Null));
-            { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".into())), &priceDecimals); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
+            let mut pricePlaces: Value = self.safe_integer_k(market.clone(), "pricePlace", &[]);
+            let mut volumePlaces: Value = self.safe_integer_k(market.clone(), "volumePlace", &[]);
+            let mut priceEndStep: Option<String> = self.safe_string_k_opt(market.clone(), "priceEndStep", &[]);
+            let mut sizeMultiplier: Option<String> = self.safe_string_k_opt(market.clone(), "sizeMultiplier", &[]);
+            let mut precise = Precise::new(priceEndStep.map(Value::from).unwrap_or(Value::Null));
+            { let __sv_tmp = crate::runtime::Math::max(&get_value(&precise, &Value::Str("decimals".into())), &pricePlaces); crate::set_value(&mut precise, &Value::Str("decimals".into()), __sv_tmp); }
             precise.reduce();
             let mut priceString: Value = to_string_val(&precise);
             pricePrecision = self.parse_number(priceString, &[]);
-            let mut preciseAmount = Precise::new(amountStep.map(Value::from).unwrap_or(Value::Null));
-            { let __sv_tmp = crate::runtime::Math::max(&get_value(&preciseAmount, &Value::Str("decimals".into())), &amountDecimals); crate::set_value(&mut preciseAmount, &Value::Str("decimals".into()), __sv_tmp); }
+            let mut preciseAmount = Precise::new(sizeMultiplier.map(Value::from).unwrap_or(Value::Null));
+            { let __sv_tmp = crate::runtime::Math::max(&get_value(&preciseAmount, &Value::Str("decimals".into())), &volumePlaces); crate::set_value(&mut preciseAmount, &Value::Str("decimals".into()), __sv_tmp); }
             preciseAmount.reduce();
             let mut amountString: Value = to_string_val(&preciseAmount);
             amountPrecision = self.parse_number(amountString, &[]);
@@ -1476,13 +1476,9 @@ impl crate::exchange::DerivedExchange for Bitget {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut withdraw: Value = Value::Null;
-        let mut deposit: Value = Value::Null;
+        let mut withdraw: bool = false;
+        let mut deposit: bool = false;
         let mut chainsLength: i64 = chains.len() as i64;
-        if (chainsLength == 0) {
-            withdraw = Value::Bool(false);
-            deposit = Value::Bool(false);
-        }
         {
                         let mut j: i64 = 0;
             let mut __for_first_372: bool = true;
@@ -1496,10 +1492,10 @@ impl crate::exchange::DerivedExchange for Bitget {
             network = network.as_deref().map(str::to_uppercase);
             let mut withdrawableString: Option<String> = self.safe_string_k_opt(&chain, "withdrawable", &[]);
             let mut rechargeableString: Option<String> = self.safe_string_k_opt(&chain, "rechargeable", &[]);
-            let mut withdrawable: Value = (Value::Bool(withdrawableString.as_deref() == Some("true")));
-            let mut rechargeable: Value = (Value::Bool(rechargeableString.as_deref() == Some("true")));
-            withdraw = (if (withdraw == Value::Null) { withdrawable.clone() } else { Value::Bool((withdraw.as_bool() == Some(true) || matches!(&withdrawable, Value::Bool(true)))) });
-            deposit = (if (deposit == Value::Null) { rechargeable.clone() } else { Value::Bool((deposit.as_bool() == Some(true) || matches!(&rechargeable, Value::Bool(true)))) });
+            let mut withdrawable: bool = withdrawableString.as_deref() == Some("true");
+            let mut rechargeable: bool = rechargeableString.as_deref() == Some("true");
+            withdraw = (withdraw || withdrawable);
+            deposit = (deposit || rechargeable);
             let mut withdrawMinScale: Option<String> = self.safe_string_k_opt(&chain, "withdrawMinScale", &[]);
             let mut precision: Option<String> = self.parse_precision(&[withdrawMinScale.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
             networks.insert(network.as_deref().unwrap_or("null").to_string(), Value::Map({
@@ -1524,15 +1520,15 @@ impl crate::exchange::DerivedExchange for Bitget {
     m
 }));
         m.insert("active".to_string(), Value::Null);
-        m.insert("withdraw".to_string(), withdrawable);
-        m.insert("deposit".to_string(), rechargeable);
+        m.insert("withdraw".to_string(), Value::Bool(withdrawable));
+        m.insert("deposit".to_string(), Value::Bool(rechargeable));
         m.insert("fee".to_string(), self.safe_number_k(&chain, "withdrawFee", &[]));
         m.insert("precision".to_string(), self.parse_number(precision.map(Value::from).unwrap_or(Value::Null), &[]));
     m
 }));
         }
         }
-        let mut active: Value = Value::Bool((withdraw.as_bool() == Some(true)) && (deposit.as_bool() == Some(true)));
+        let mut active: bool = ((withdraw == true) && (deposit == true));
         let mut isFiat: bool = self.in_array(&code, fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1542,9 +1538,9 @@ impl crate::exchange::DerivedExchange for Bitget {
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("type".to_string(), (if isFiat { Value::Str("fiat".into()) } else { Value::Str("crypto".into()) }));
         m.insert("name".to_string(), Value::Null);
-        m.insert("active".to_string(), active);
-        m.insert("deposit".to_string(), deposit);
-        m.insert("withdraw".to_string(), withdraw);
+        m.insert("active".to_string(), Value::Bool(active));
+        m.insert("deposit".to_string(), Value::Bool(deposit));
+        m.insert("withdraw".to_string(), Value::Bool(withdraw));
         m.insert("fee".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({
@@ -2061,26 +2057,29 @@ impl crate::exchange::DerivedExchange for Bitget {
                         let mut i: i64 = 0;
             let mut __for_first_373: bool = true;
             while { if !__for_first_373 { i += 1; } __for_first_373 = false; (i as f64) < get_array_length(&info).as_f64().unwrap_or(f64::NAN) } {
-            let mut item: Value = self.safe_value(info.clone(), Value::Int(i), &[]);
-            let mut minimumNotional: Option<f64> = self.safe_number2(item.clone(), Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]).as_f64();
+            let mut item: crate::value::Dict = self.safe_dict(info.clone(), Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
+            let mut minimumNotional: Option<f64> = self.safe_number2(&item, Value::Str("startUnit".into()), Value::Str("minTierValue".into()), &[]).as_f64();
             if (minimumNotional.is_some()) {
                 minNotional = Value::from(minimumNotional);
             }
-            let mut maxNotional: Option<f64> = self.safe_number_n(item.clone(), Value::from(vec![Value::Str("endUnit".into()), Value::Str("maxBorrowableAmount".into()), Value::Str("baseMaxBorrowableAmount".into()), Value::Str("maxTierValue".into())]), &[]).as_f64();
-            let mut marginCurrency: Option<String> = self.safe_string2_opt(item.clone(), Value::Str("coin".into()), Value::Str("baseCoin".into()), &[]);
+            let mut maxNotional: Option<f64> = self.safe_number_n(&item, Value::from(vec![Value::Str("endUnit".into()), Value::Str("maxBorrowableAmount".into()), Value::Str("baseMaxBorrowableAmount".into()), Value::Str("maxTierValue".into())]), &[]).as_f64();
+            let mut marginCurrency: Option<String> = self.safe_string2_opt(&item, Value::Str("coin".into()), Value::Str("baseCoin".into()), &[]);
             let mut base: Option<String> = self.safe_string_k_opt(&market, "base", &[]);
             let mut currencyId: Option<String> = (if (marginCurrency.is_some()) { marginCurrency } else { base });
-            let mut marketId: Option<String> = self.safe_string_k_opt(item.clone(), "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&item, "symbol", &[]);
             tiers.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("tier".to_string(), self.safe_integer2(item.clone(), Value::Str("level".into()), Value::Str("tier".into()), &[]));
+                    m.insert("tier".to_string(), self.safe_integer2(&item, Value::Str("level".into()), Value::Str("tier".into()), &[]));
                     m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
                     m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null));
                     m.insert("minNotional".to_string(), minNotional.clone());
                     m.insert("maxNotional".to_string(), Value::from(maxNotional));
-                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_n(item.clone(), Value::from(vec![Value::Str("keepMarginRate".into()), Value::Str("maintainMarginRate".into()), Value::Str("mmr".into())]), &[]));
-                    m.insert("maxLeverage".to_string(), self.safe_number_k(item.clone(), "leverage", &[]));
-                    m.insert("info".to_string(), item);
+                    m.insert("maintenanceMarginRate".to_string(), self.safe_number_n(&item, Value::from(vec![Value::Str("keepMarginRate".into()), Value::Str("maintainMarginRate".into()), Value::Str("mmr".into())]), &[]));
+                    m.insert("maxLeverage".to_string(), self.safe_number_k(&item, "leverage", &[]));
+                    m.insert("info".to_string(), Value::from(&item));
                 m
             }));
             minNotional = Value::from(maxNotional);

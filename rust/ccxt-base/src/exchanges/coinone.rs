@@ -249,7 +249,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         if (timestamp.is_none()) {
             timestamp = self.safe_integer2(order.clone(), Value::Str("ordered_at".into()), Value::Str("updated_at".into()), &[]).as_i64(); // v2.1 sends milliseconds
         }
-        let mut side: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("type".into()), Value::Str("side".into()), &[]);
         if (side.as_deref() == Some("limit")) || (side.as_deref() == Some("market")) || (side.as_deref() == Some("stop_limit")) {
             side = self.safe_string_lower_k_opt(order.clone(), "side", &[]); // in v2.1 rows the type field carries the order type, the side lives in side
         }

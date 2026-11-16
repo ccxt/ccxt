@@ -193,7 +193,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
         // if not spot, any of the below should be true
         assert!(ccxt::runtime::is_true(&(((contract.as_bool() == Some(true)) && ((future.as_bool() == Some(true)) || (swap.as_bool() == Some(true)) || (option.as_bool() == Some(true)) || is_true(&(isIndex)))))));
     }
-    let mut contractSize: Option<String> = exchange.safe_string(&market, Value::Str("contractSize".into()), &[]).as_str().map(str::to_owned);
+    let mut contractSize: Option<String> = exchange.safe_string_opt(&market, Value::Str("contractSize".into()), &[]);
     // contract fields
     if (contract.as_bool() == Some(true)) && !isInactiveMarket {
         if isQuanto {
@@ -293,7 +293,7 @@ pub fn testMarket(mut exchange: Value, mut skippedProperties: Value, mut method:
             // max >= 0
             crate::tests_support::shared::assert_greater(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), Value::Str("0".into()).clone()]);
             // max >= min
-            let mut minString: Option<String> = exchange.safe_string(&limitEntry, Value::Str("min".into()), &[]).as_str().map(str::to_owned);
+            let mut minString: Option<String> = exchange.safe_string_opt(&limitEntry, Value::Str("min".into()), &[]);
             if (minString.is_some()) {
                 crate::tests_support::shared::assert_greater_or_equal(exchange.clone(), &[skippedProperties.clone(), method.clone(), limitEntry.clone(), Value::Str("max".into()).clone(), minString.map(Value::from).unwrap_or(Value::Null).clone()]);
             }

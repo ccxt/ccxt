@@ -1151,7 +1151,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut type_var: Option<String> = (match __pro_message.get("t").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (orderbook.book_field("timestamp") == Value::Null) {
             if (type_var.as_deref() == Some("f")) {
@@ -1159,12 +1159,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 self.handle_order_book_snapshot(client.clone(), message.clone());
             }  else {
                 // cache the updates until the snapshot is received
-                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+                orderbook.cache_push(message);
             }
         }  else {
-            self.handle_order_book_message(client.clone(), message, orderbook.clone());
+            self.handle_order_book_message(client.clone(), message, Value::from(&orderbook));
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", "::").into()), symbol.as_deref().unwrap_or("null"));
-            client.resolve(orderbook, messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 
@@ -1216,12 +1216,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut timestamp: i64 = (match message.get("mt") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Int(0) } }, _ => Value::Int(0) }).as_i64().unwrap_or(0);
         let mut snapshot: crate::value::Dict = self.parse_order_book(Value::Map(orderedEntries), Value::from(symbol.as_deref()), &[Value::from(timestamp)]).into_dict();
         orderbook.reset(Value::Dict(snapshot));
-        let mut cachedMessages: Value = orderbook.book_field("cache");
+        let mut cachedMessages: crate::value::List = orderbook.cache_items();
         {
                         let mut j: i64 = 0;
             let mut __for_first_285: bool = true;
             while { if !__for_first_285 { j += 1; } __for_first_285 = false; j < (cachedMessages.len() as i64) } {
-            let mut cachedMessage: Value = cachedMessages.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+            let mut cachedMessage: Value = cachedMessages.get(j as usize).cloned().unwrap_or(Value::Null);
             self.handle_order_book_message(client.clone(), cachedMessage, Value::from(&orderbook));
         }
         }

@@ -651,12 +651,12 @@ impl Bittrade {
         std::sync::Arc::make_mut(&mut snapshot).insert("datetime".into(), self.iso8601(timestamp));
         orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
-        let mut messages: Value = orderbook.book_field("cache");
+        let mut messages: crate::value::List = orderbook.cache_items();
         {
                         let mut i: i64 = 0;
             let mut __for_first_142: bool = true;
-            while { if !__for_first_142 { i += 1; } __for_first_142 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-            self.handle_order_book_message(client.clone(), get_value(&messages, &Value::Int(i)), Value::from(&orderbook));
+            while { if !__for_first_142 { i += 1; } __for_first_142 = false; i < (messages.len() as i64) } {
+            self.handle_order_book_message(client.clone(), messages.get(i as usize).cloned().unwrap_or(Value::Null), Value::from(&orderbook));
         }
         }
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
@@ -804,15 +804,15 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = ch.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut orderbook: Value = Value::from(self.orderbooks.lookup(&symbol));
-        if (orderbook == Value::Null) {
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        if (orderbook.is_none()) {
             return;
         }
-        if (self.safe_integer_k(orderbook.clone(), "nonce", &[]) == Value::Null) {
-            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+        if (self.safe_integer_k(Value::from(&orderbook), "nonce", &[]) == Value::Null) {
+            orderbook.cache_push(message);
         }  else {
-            self.handle_order_book_message(client.clone(), message, orderbook.clone());
-            client.resolve(orderbook, messageHash.as_deref());
+            self.handle_order_book_message(client.clone(), message, Value::from(&orderbook));
+            client.resolve(Value::from(&orderbook), messageHash.as_deref());
         }
 }
 

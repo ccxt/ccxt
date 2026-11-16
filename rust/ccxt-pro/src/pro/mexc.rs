@@ -903,8 +903,8 @@ impl Mexc {
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", symbolValue).into()), ":").into()), timeframe);
         let mut ohlcv: Value = Value::Null;
         if (market).spot {
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), timeframeId.as_deref().unwrap_or("null")).into());
-            ohlcv = self.watch_spot_public(channel, Value::from(messageHash.clone()), &[params.clone()]).await;
+            let mut spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("spot@public.kline.v3.api.pb@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()), "@").into()), timeframeId.as_deref().unwrap_or("null"));
+            ohlcv = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[params.clone()]).await;
         }  else {
             let mut channel: String = "sub.kline".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1122,8 +1122,8 @@ impl Mexc {
             let frequencyparamsFrequencyVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("watchOrderBook".into()), Value::Str("frequency".into()), &[Value::Str("100ms".into())]).as_array().cloned().unwrap_or_default();
             let mut frequency: Option<String> = frequencyparamsFrequencyVariable.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut paramsFrequency: crate::value::Dict = frequencyparamsFrequencyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or(""))).into());
-            orderbook = self.watch_spot_public(channel, Value::from(messageHash.clone()), &[Value::Dict(paramsFrequency)]).await;
+            let mut spotChannel: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "spot@public.aggre.depth.v3.api.pb@", frequency.as_deref().unwrap_or("null")).into()), "@").into()), Value::from((market).id.as_deref().unwrap_or("")));
+            orderbook = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[Value::Dict(paramsFrequency)]).await;
         }  else {
             let mut channel: String = "sub.depth".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({
@@ -1271,11 +1271,11 @@ impl Mexc {
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut storedOrderBook: Value = Value::from(self.orderbooks.at(&symbol));
-        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
+        let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         let mut shouldReturn: bool = false;
         if (nonce.is_none()) {
-            let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(get_value(&storedOrderBook, &Value::Str("cache".into())).len() as i64));
+            let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(storedOrderBook.book_field("cache").len() as i64));
             let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(25)]));
             if (cacheLength == snapshotDelay) {
                 self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), symbol.map(Value::from).unwrap_or(Value::Null), Value::from(limit), Value::Map({
@@ -1283,11 +1283,11 @@ impl Mexc {
                     m
                 })]);
             }
-            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), data.clone());
+            storedOrderBook.cache_push(data);
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_book_delta(storedOrderBook.clone(), data);
+            self.handle_book_delta(Value::from(&storedOrderBook), data);
             let mut timestamp: Option<i64> = self.safe_integer_n(message, Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]).as_i64();
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -1301,7 +1301,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if shouldReturn {
             return;
         }
-        client.resolve(storedOrderBook.clone(), messageHash.as_str());
+        client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
     pub fn handle_bookside_delta(&self, mut bookside: crate::pro::order_book::Side, mut bidasks: Value) {
@@ -1371,8 +1371,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
         let mut trades: Value = Value::Null;
         if (market).spot {
-            let mut channel: Value = Value::Str(format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or(""))).into());
-            trades = self.watch_spot_public(channel, Value::from(messageHash.clone()), &[params.clone()]).await;
+            let mut spotChannel: String = format!("{}{}", Value::Str("spot@public.aggre.deals.v3.api.pb@100ms@".into()), Value::from((market).id.as_deref().unwrap_or("")));
+            trades = self.watch_spot_public(Value::from(spotChannel), Value::from(messageHash.clone()), &[params.clone()]).await;
         }  else {
             let mut channel: String = "sub.deal".to_string();
             let mut requestParams: indexmap::IndexMap<String, Value> = ({

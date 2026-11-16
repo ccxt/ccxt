@@ -1747,10 +1747,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     m
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-            let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+            let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
             if (nonce.is_none()) {
-                let mut cacheLength: Value = Value::Int(get_value(&orderbook, &Value::Str("cache".into())).len() as i64);
+                let mut cacheLength: Value = Value::Int(orderbook.book_field("cache").len() as i64);
                 let mut snapshotDelay: Value = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(25)]);
                 if is_equal(&cacheLength, &snapshotDelay) {
                     self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), Value::from(symbol.as_deref()), Value::Null, Value::Map({
@@ -1758,7 +1758,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m
                     })]);
                 }
-                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), data.clone());
+                orderbook.cache_push(data);
                 return;
             }
             if (obAsks.is_some()) {
@@ -1792,7 +1792,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("symbol", symbol.map(Value::from).unwrap_or(Value::Null));
-            client.resolve(orderbook, messageHash.as_str());
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 

@@ -20,8 +20,8 @@ pub fn testOHLCV(mut exchange: Value, mut skippedProperties: Value, mut method: 
     if !(in_op(&skippedProperties, &Value::Str("roundTimestamp".into()))) {
         crate::tests_support::shared::assert_round_minute_timestamp(exchange.clone(), &[skippedProperties.clone(), method.clone(), entry.clone(), Value::Int(0).clone()]);
     }
-    let mut high: Option<String> = exchange.safe_string(&entry, Value::Int(2), &[]).as_str().map(str::to_owned);
-    let mut low: Option<String> = exchange.safe_string(&entry, Value::Int(3), &[]).as_str().map(str::to_owned);
+    let mut high: Option<String> = exchange.safe_string_opt(&entry, Value::Int(2), &[]);
+    let mut low: Option<String> = exchange.safe_string_opt(&entry, Value::Int(3), &[]);
     if (in_op(&skippedProperties, &Value::Str("compareOHLCV".into()))) {
         return;
     }

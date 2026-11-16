@@ -1592,9 +1592,9 @@ impl Coinbaseinternational {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolResolved: Value = Value::from(self.symbol(symbol));
-        let mut ohlcvs: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolResolved.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsResolved)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return get_value(&crate::value::KeyRead::read(&&ohlcvs, &symbolResolved), &timeframe);
+        let mut symbolResolved: String = self.symbol(symbol);
+        let mut ohlcvs: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![Value::from(symbolResolved.clone()), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsResolved)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::key_read(&&ohlcvs, symbolResolved.as_str()), &timeframe);
         Value::Null
         }).await?))
     }

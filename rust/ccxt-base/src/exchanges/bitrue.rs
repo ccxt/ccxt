@@ -950,7 +950,7 @@ impl crate::exchange::DerivedExchange for Bitrue {
 }));
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
-        let mut requestBody: Value = Value::Null;
+        let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         let mut type_var: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut version: Option<&str> = api.get(1).and_then(Value::as_str);
@@ -970,23 +970,23 @@ impl crate::exchange::DerivedExchange for Bitrue {
             let mut recvWindow: i64 = self.safe_integer_k(self.options.clone(), "recvWindow", &[Value::Int(5000)]).as_i64().unwrap_or(5000);
             if (type_var.as_deref() == Some("spot")) || (type_var.as_deref() == Some("open")) {
                 let __ws_arg_42 = self.extend(Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-                        m.insert("recvWindow".to_string(), Value::from(recvWindow));
-                    m
-                }), &[&paramsOmitted]);
-                let mut query: Value = Value::from(self.urlencode(__ws_arg_42, &[]));
-                let mut signature: String = self.hmac(self.encode(query.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
-                query = Value::Str(format!("{}{}", query, Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", "signature=").into()), signature).into())).into());
+    let mut m = indexmap::IndexMap::new();
+        m.insert("timestamp".to_string(), <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
+        m.insert("recvWindow".to_string(), Value::from(recvWindow));
+    m
+}), &[&paramsOmitted]);
+                let mut unsignedQuery: String = self.urlencode(__ws_arg_42, &[]);
+                let mut signature: String = self.hmac(self.encode(Value::from(unsignedQuery.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                let mut signedQuery: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", unsignedQuery, "&").into()), "signature=").into()), signature);
                 if (method.as_str() == Some("GET")) || (method.as_str() == Some("DELETE")) {
-                    url.push_str(&format!("{}{}", "?", query));
+                    url.push_str(&format!("{}{}", "?", signedQuery));
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
                         m
                     }));
                 }  else {
-                    requestBody = query;
+                    requestBody = Some(signedQuery);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-MBX-APIKEY".to_string(), self.apiKey.clone());
@@ -1002,12 +1002,12 @@ impl crate::exchange::DerivedExchange for Bitrue {
                 }  else if (type_var.as_deref() == Some("dapi")) {
                     signPrefix = "/dapi".to_string();
                 }
-                let mut signMessage: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), path).into()))).into());
+                let mut signMessage: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", signPrefix, "/").into()), version.as_deref().unwrap_or("null")).into()), "/").into()), path).into())));
                 if (method.as_str() == Some("GET")) {
                     if ((Value::Array(paramsOmitted.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
-                        signMessage = Value::Str(format!("{}{}", signMessage, Value::Str(format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])).into())).into());
+                        signMessage.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
                     }
-                    let mut signature: String = self.hmac(self.encode(signMessage.clone()), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    let mut signature: String = self.hmac(self.encode(Value::from(signMessage.clone())), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("X-CH-APIKEY".to_string(), self.apiKey.clone());
@@ -1022,9 +1022,9 @@ impl crate::exchange::DerivedExchange for Bitrue {
                             m.insert("recvWindow".to_string(), Value::from(recvWindow));
                         m
                     }), &[&paramsOmitted]).into_dict();
-                    requestBody = json_stringify(&query);
-                    signMessage = Value::Str(format!("{}{}", signMessage, requestBody).into());
-                    let mut signature: String = self.hmac(self.encode(signMessage), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
+                    requestBody = json_stringify(&query).as_str().map(str::to_owned);
+                    signMessage.push_str(requestBody.as_deref().unwrap_or("null"));
+                    let mut signature: String = self.hmac(self.encode(Value::from(signMessage)), self.encode(self.secret.clone()), Value::Str("sha256".into()), &[]);
                     requestHeaders = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
@@ -1040,13 +1040,13 @@ impl crate::exchange::DerivedExchange for Bitrue {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&paramsOmitted, &[])));
             }
         }
-        let mut bodyResult: Value = requestBody;
+        let mut bodyResult: Option<String> = requestBody;
         let mut headersResult: Option<crate::value::Dict> = requestHeaders;
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyResult);
+        m.insert("body".to_string(), bodyResult.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), headersResult.map_or(Value::Null, Value::Dict));
     m
 });

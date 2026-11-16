@@ -3039,7 +3039,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }  else if (marketType.as_deref() == Some("spot")) {
             request.insert("spot_margin".into(), Value::Str("SPOT".into()));
         }
-        let mut timeInForce: Option<String> = self.safe_string_upper2(Value::from(&paramsValue), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper2_opt(Value::from(&paramsValue), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         if (timeInForce.is_some()) {
             if (timeInForce.as_deref() == Some("GTC")) {
                 request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
@@ -3316,7 +3316,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut broker: String = self.safe_string_k(self.options.clone(), "broker", &[Value::Str("CCXT".into())]).as_str().unwrap_or("CCXT").to_string();
         request.insert("broker_id".into(), Value::from(broker));
-        let mut timeInForce: Option<String> = self.safe_string_upper2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper2_opt(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         if (timeInForce.is_some()) {
             if (timeInForce.as_deref() == Some("GTC")) {
                 request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
@@ -3684,13 +3684,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_592: bool = true;
             while { if !__for_first_592 { i += 1; } __for_first_592 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(orders.clone(), Value::Int(i), &[]).into_dict();
-            let id: String = self.safe_string_k_opt(&order, "id", &[]).unwrap_or_default();
+            let mut id: Option<String> = self.safe_string_k_opt(&order, "id", &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut orderItem: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("instrument_name".to_string(), Value::from((market).id.as_deref()));
-                    m.insert("order_id".to_string(), Value::Str(format!("{}", id).into()));
+                    m.insert("order_id".to_string(), Value::Str(format!("{}", id.as_deref().unwrap_or("null")).into()));
                 m
             });
             orderRequests.push(Value::Map(orderItem));

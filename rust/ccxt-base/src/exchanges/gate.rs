@@ -582,13 +582,13 @@ impl crate::exchange::DerivedExchange for Gate {
 })]).into_dict();
         let mut contract: Option<String> = self.safe_string_k_opt(&put, "contract", &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(&put, "type", &[]);
-        let mut timeInForce: Option<String> = self.safe_string_upper2(&put, Value::Str("time_in_force".into()), Value::Str("tif".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_upper2_opt(&put, Value::Str("time_in_force".into()), Value::Str("tif".into()), &[]);
         let mut amount: Option<String> = self.safe_string2_opt(&put, Value::Str("amount".into()), Value::Str("size".into()), &[]);
         let mut side: Option<String> = self.safe_string_k_opt(&put, "side", &[]);
         let mut price: Option<String> = self.safe_string_k_opt(&put, "price", &[]);
         contract = self.safe_string_k_opt(order.clone(), "contract", &[contract.map(Value::from).unwrap_or(Value::Null)]);
         type_var = self.safe_string_k_opt(order.clone(), "type", &[type_var.map(Value::from).unwrap_or(Value::Null)]);
-        timeInForce = self.safe_string_upper2(order.clone(), Value::Str("time_in_force".into()), Value::Str("tif".into()), &[timeInForce.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        timeInForce = self.safe_string_upper2_opt(order.clone(), Value::Str("time_in_force".into()), Value::Str("tif".into()), &[timeInForce.map(Value::from).unwrap_or(Value::Null)]);
         if (timeInForce.as_deref() == Some("POC")) {
             timeInForce = Some("PO".to_string());
         }
@@ -6043,7 +6043,7 @@ if _try_result.is_err() {
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
         let mut defaultMarginMode: String = self.safe_string_lower2(self.options.clone(), Value::Str("defaultMarginMode".into()), Value::Str("marginMode".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string(); // 'margin' is isolated margin on gate's api
-        let mut marginMode: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("marginMode".into()), Value::Str("account".into()), &[Value::from(defaultMarginMode)]).as_str().map(str::to_owned);
+        let mut marginMode: Option<String> = self.safe_string_lower2_opt(params.clone(), Value::Str("marginMode".into()), Value::Str("account".into()), &[Value::from(defaultMarginMode)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["marginMode", "account"], &[]).into_dict();
         if (marginMode.as_deref() == Some("cross")) {
             marginMode = Some("cross_margin".to_string());
@@ -6893,34 +6893,34 @@ if _try_result.is_err() {
         let requestqueryVariable: Vec<Value> = self.prepare_request(Some(&market), &[Value::Null, params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestqueryVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: crate::value::Dict = requestqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
+        let mut response: Option<crate::value::List> = None;
         if (market).spot || ((market).margin == Some(true)) {
             let __ws_arg_13 = self.extend(&request, &[&query]);
-            response = self.public_spot_get_tickers(&[__ws_arg_13]).await.into_list();
+            response = self.public_spot_get_tickers(&[__ws_arg_13]).await.into_opt_list();
         }  else if (market).swap {
             let __ws_arg_14 = self.extend(&request, &[&query]);
-            response = self.public_futures_get_settle_tickers(&[__ws_arg_14]).await.into_list();
+            response = self.public_futures_get_settle_tickers(&[__ws_arg_14]).await.into_opt_list();
         }  else if (market).future {
             let __ws_arg_15 = self.extend(&request, &[&query]);
-            response = self.public_delivery_get_settle_tickers(&[__ws_arg_15]).await.into_list();
+            response = self.public_delivery_get_settle_tickers(&[__ws_arg_15]).await.into_opt_list();
         }  else if (market).option {
             let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
             let mut optionParts: crate::value::List = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
             std::sync::Arc::make_mut(&mut request).insert("underlying".into(), self.safe_string(&optionParts, Value::Int(0), &[]));
             let __ws_arg_16 = self.extend(request, &[&query]);
-            response = self.public_options_get_tickers(&[__ws_arg_16]).await.into_list();
+            response = self.public_options_get_tickers(&[__ws_arg_16]).await.into_opt_list();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchTicker() not support this market type")));
         }
-        let mut ticker: Value = Value::Null;
+        let mut ticker: Option<crate::value::Dict> = None;
         if (market).option {
             let mut optionMarketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_697: bool = true;
-                while { if !__for_first_697 { i += 1; } __for_first_697 = false; i < (response.len() as i64) } {
-                let mut entry: Value = response.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut entryName: Option<String> = self.safe_string_k_opt(entry.clone(), "name", &[]);
+                while { if !__for_first_697 { i += 1; } __for_first_697 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                let mut entry: Option<crate::value::Dict> = self.safe_dict(&response, Value::Int(i), &[]).into_opt_dict();
+                let mut entryName: Option<String> = self.safe_string_k_opt(&entry, "name", &[]);
                 if (entryName == optionMarketId) {
                     ticker = entry;
                     break;
@@ -6928,12 +6928,12 @@ if _try_result.is_err() {
             }
             }
         }  else {
-            ticker = self.safe_dict(&response, Value::Int(0), &[]);
+            ticker = self.safe_dict(&response, Value::Int(0), &[]).into_opt_dict();
         }
-        if (ticker == Value::Null) {
+        if (ticker.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " fetchTicker() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, ticker, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &ticker, Some(&market));
         Value::Null
         }).await?))
     }
@@ -8260,7 +8260,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")));
         }
         let mut reduceOnly: Option<bool> = self.safe_bool_k(params.clone(), "reduceOnly", &[]).as_bool();
-        let mut exchangeSpecificTimeInForce: Option<String> = self.safe_string_lower_n(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("time_in_force".into())]), &[]).as_str().map(str::to_owned);
+        let mut exchangeSpecificTimeInForce: Option<String> = self.safe_string_lower_n_opt(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("time_in_force".into())]), &[]);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(exchangeSpecificTimeInForce.as_deref() == Some("poc")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -8703,12 +8703,12 @@ if _try_result.is_err() {
         let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]).into_dict();
         let mut clientOrderIdRaw: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut orderId: Value = id;
+        let mut orderId: Option<String> = id.as_str().map(str::to_owned);
         if (clientOrderIdRaw.is_some()) {
             if !(clientOrderIdRaw.as_deref().unwrap_or_default().starts_with("t")) {
-                orderId = Value::Str(format!("{}{}", "t-", clientOrderIdRaw.as_deref().unwrap_or("null")).into());
+                orderId = Some(format!("{}{}", "t-", clientOrderIdRaw.as_deref().unwrap_or("null")));
             }  else {
-                orderId = clientOrderIdRaw.clone().map(Value::from).unwrap_or(Value::Null);
+                orderId = clientOrderIdRaw.clone();
             }
         }
         let mut paramsOrder: crate::value::Dict = (if (clientOrderIdRaw.is_some()) { self.omit(&paramsOmitted, &["text", "clientOrderId"], &[]).into_dict() } else { paramsOmitted });
@@ -8719,7 +8719,7 @@ if _try_result.is_err() {
         let requestrequestParamsVariable: Vec<Value> = (if contract { self.prepare_request(market.as_ref(), &[type_var.map(Value::from).unwrap_or(Value::Null), Value::from(&query)]) } else { self.spot_order_prepare_request(market.as_ref(), &[Value::Bool(trigger), Value::from(&query)]) }).as_array().cloned().unwrap_or_default();
         let mut request: Value = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        add_element_to_object(&mut request, &Value::Str("order_id".into()), Value::Str(format!("{}", orderId).into()));
+        add_element_to_object(&mut request, &Value::Str("order_id".into()), orderId.map(Value::from).unwrap_or(Value::Null));
         return Value::from(vec![request, Value::Dict(requestParams)]);
 
     Value::Null

@@ -3239,9 +3239,9 @@ pub trait ExchangeBase:
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            let mut firstTrade: Value = self.safe_value(rawTrades.clone(), Value::Int(0), &[]);
+            let mut firstTrade: Option<crate::value::Dict> = self.safe_dict(rawTrades.clone(), Value::Int(0), &[]).into_opt_dict();
             // parse trades if they haven't already been parsed
-            let mut tradesAreParsed: bool = (firstTrade != Value::Null) && (in_op(&firstTrade, &Value::Str("info".into()))) && (in_op(&firstTrade, &Value::Str("id".into())));
+            let mut tradesAreParsed: bool = (firstTrade.is_some()) && (matches!(firstTrade.as_deref(), Some(__d) if __d.contains_key("info"))) && (matches!(firstTrade.as_deref(), Some(__d) if __d.contains_key("id")));
             if !tradesAreParsed {
                 trades = self.parse_trades(rawTrades.clone(), market, &[]);
             }  else {
@@ -4811,15 +4811,14 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " - ").into()), networkCode).into()), " network did not return any result for ").into()), currencyCode)));
             }  else {
                 // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-                let mut networkIdOrCode: Value = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { networkCode.clone() } else { self.network_code_to_id(networkCode.clone(), &[currencyCode.clone()]) });
-                if (networkIdOrCode == Value::Null) {
+                let mut networkIdOrCode: Option<String> = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { networkCode.as_str().map(str::to_owned) } else { self.network_code_to_id(networkCode.clone(), &[currencyCode.clone()]).as_str().map(str::to_owned) });
+                if (networkIdOrCode.is_none()) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " - ").into()), networkCode).into()), " network was not found for ").into()), currencyCode)));
                 }
-                if (matches!((&indexedNetworkEntries, &networkIdOrCode), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    chosenNetworkId = networkIdOrCode.clone();
+                if (matches!((&indexedNetworkEntries, networkIdOrCode.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    chosenNetworkId = networkIdOrCode.clone().map(Value::from).unwrap_or(Value::Null);
                 }  else {
-                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " - ").into()), networkIdOrCode).into()), " network was not found for ").into()), currencyCode).into()),
-                        ", use one of ").into()), Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
+                    panic!("{}", crate::exchange_errors::not_supported(format!("{}{}{}{}{}{}{}", self.id.clone(), " - ", networkIdOrCode.map(Value::from).unwrap_or(Value::Null), " network was not found for ", currencyCode, ", use one of ", Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
                 }
             }
         }  else {
@@ -4827,16 +4826,16 @@ pub trait ExchangeBase:
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " - no networks were returned for ").into()), currencyCode)));
             }  else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                let mut defaultNetworkCode: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
+                let mut defaultNetworkCode: Option<String> = self.safe_string_opt(self.safe_dict_k(self.options.clone(), "defaultNetworks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), currencyCode.clone(), &[self.safe_string_k(self.options.clone(), "defaultNetwork", &[])]);
-                let mut defaultNetworkId: Value = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { defaultNetworkCode.clone() } else { self.network_code_to_id(defaultNetworkCode, &[currencyCode]) });
-                if (defaultNetworkId == Value::Null) {
+                let mut defaultNetworkId: Option<String> = (if isIndexedByUnifiedNetworkCode.as_bool() == Some(true) { defaultNetworkCode.clone() } else { self.network_code_to_id(Value::from(defaultNetworkCode.as_deref()), &[currencyCode]).as_str().map(str::to_owned) });
+                if (defaultNetworkId.is_none()) {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " selectNetworkKeyFromNetworks() missing defaultNetworkId")));
                 }
-                if (matches!((&indexedNetworkEntries, &defaultNetworkId), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    return defaultNetworkId;
+                if (matches!((&indexedNetworkEntries, defaultNetworkId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+                    return defaultNetworkId.map(Value::from).unwrap_or(Value::Null);
                 }
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " - can not determine the default network, please pass param[\"network\"] one from : ").into()), Value::Str(availableNetworkIds.iter().map(Value::to_string).collect::<Vec<String>>().join(", ").into()))));
             }
@@ -6022,14 +6021,14 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if let Value::Arr(__a) = &mut ohlcvs { std::sync::Arc::make_mut(__a).push(Value::from(vec![openingTime, price.clone(), price.clone(), price.clone(), price.clone(), trade.get("amount").cloned().unwrap_or(Value::Null), Value::Int(1)])); }
             }  else {
                 // still processing the same timeframe -> update opening trade
-                let mut prevCandle: Value = self.safe_value(ohlcvs.clone(), candle.clone(), &[]);
-                let mut prevHigh: Value = self.safe_value(prevCandle.clone(), i_high.clone(), &[]);
-                let mut prevLow: Value = self.safe_value(prevCandle.clone(), i_low.clone(), &[]);
+                let mut prevCandle: crate::value::List = self.safe_list(ohlcvs.clone(), candle.clone(), &[]).into_list();
+                let mut prevHigh: Value = self.safe_value(&prevCandle, i_high.clone(), &[]);
+                let mut prevLow: Value = self.safe_value(&prevCandle, i_low.clone(), &[]);
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_high, crate::runtime::Math::max(&(if (prevHigh == Value::Null) { price.clone() } else { prevHigh }), &price));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_low, crate::runtime::Math::min(&(if (prevLow == Value::Null) { price.clone() } else { prevLow }), &price));
                 add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_close, price);
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, self.sum(&[self.safe_value(prevCandle.clone(), i_volume.clone(), &[]), trade.get("amount").cloned().unwrap_or(Value::Null)]));
-                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, self.sum(&[self.safe_value(prevCandle, i_count.clone(), &[]), Value::Int(1)]));
+                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_volume, self.sum(&[self.safe_value(&prevCandle, i_volume.clone(), &[]), trade.get("amount").cloned().unwrap_or(Value::Null)]));
+                add_element_to_object(get_value_mut(&mut ohlcvs, &candle), &i_count, self.sum(&[self.safe_value(&prevCandle, i_count.clone(), &[]), Value::Int(1)]));
             }
         }
         }
@@ -7731,19 +7730,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (matches!((&markets, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
             return get_value(&markets, &symbol);
         }  else if (marketsById != Value::Null) && (matches!((&marketsById, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-            let mut marketsList: Value = get_value(&marketsById, &symbol);
+            let __marketsById = self.markets_by_id_typed();
+            let mut marketsList: &[crate::types::Market] = __marketsById.records_by_id(symbol.as_str().unwrap_or_default()).unwrap_or_default();
             let mut defaultType: String = self.safe_string2(self.options.clone(), Value::Str("defaultType".into()), Value::Str("defaultSubType".into()), &[Value::Str("spot".into())]).as_str().unwrap_or("spot").to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_139: bool = true;
-                while { if !__for_first_139 { i += 1; } __for_first_139 = false; (i as f64) < Value::Int(marketsList.len() as i64).as_f64().unwrap_or(f64::NAN) } {
-                let mut market: Value = get_value(&marketsList, &Value::Int(i));
-                if matches!(self.safe_bool(market.clone(), Value::from(defaultType.clone()), &[Value::Bool(false)]), Value::Bool(true)) {
-                    return market;
+                while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (marketsList.len() as i64) } {
+                let mut market: &crate::types::Market = &marketsList[i as usize];
+                if matches!(self.safe_bool(&*market, Value::from(defaultType.clone()), &[Value::Bool(false)]), Value::Bool(true)) {
+                    return Value::from(market);
                 }
             }
             }
-            return get_value(&marketsList, &Value::Int(0));
+            return marketsList.first().map(Value::from).unwrap_or(Value::Null);
         }  else if (symbol.as_str().unwrap_or("").ends_with("-C")) || (symbol.as_str().unwrap_or("").ends_with("-P")) || (symbol.as_str().unwrap_or("").starts_with("C-")) || (symbol.as_str().unwrap_or("").starts_with("P-")) {
             return <Self as crate::exchange_generated::ExchangeBase>::create_expired_option_market(self, symbol.clone());
         }

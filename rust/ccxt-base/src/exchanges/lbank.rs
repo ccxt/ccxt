@@ -3576,7 +3576,7 @@ impl Lbank {
         let mut currencyCode: Value = currencyCode.into();
         let mut params: Value = params.into();
         let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
-        let mut defaultNetwork: Option<String> = self.safe_string_upper(&defaultNetworks, currencyCode, &[]).as_str().map(str::to_owned);
+        let mut defaultNetwork: Option<String> = self.safe_string_upper_opt(&defaultNetworks, currencyCode, &[]);
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3783,7 +3783,7 @@ impl Lbank {
         if (tagWithdrawTag.is_some()) {
             request.insert("memo".into(), tagWithdrawTag.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut network: Option<String> = self.safe_string_upper2(&paramsOmitted, Value::Str("network".into()), Value::Str("networkName".into()), &[]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.safe_string_upper2_opt(&paramsOmitted, Value::Str("network".into()), Value::Str("networkName".into()), &[]);
         if (network.is_some()) {
             network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]);
         }

@@ -285,7 +285,7 @@ impl crate::exchange::DerivedExchange for Latoken {
         if (orderSide.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = orderSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut partsLength: i64 = parts.len() as i64;
-            side = self.safe_string_lower(&parts, Value::Int((partsLength - 1)), &[]).as_str().map(str::to_owned);
+            side = self.safe_string_lower_opt(&parts, Value::Int((partsLength - 1)), &[]);
         }
         let mut type_var: Option<String> = self.parse_order_type((self.safe_string_k(order.clone(), "type", &[])).as_str());
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);

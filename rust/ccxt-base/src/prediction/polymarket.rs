@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         if !isArrayBody {
             query = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
         }
-        let mut bodyValue: Value = Value::Null;
+        let mut bodyValue: Option<String> = None;
         if (method.as_str() == Some("GET")) {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
@@ -312,12 +312,12 @@ impl crate::exchange::DerivedExchange for Polymarket {
                 url.push_str(&format!("{}{}", "?", querystring.as_deref().unwrap_or("null")));
             }
         }  else if isArrayBody {
-            bodyValue = json_stringify(&params);
+            bodyValue = json_stringify(&params).as_str().map(str::to_owned);
         }  else {
             let mut queryKeys: crate::value::List = object_keys(&query).into_list();
             let mut queryKeysLength: i64 = queryKeys.len() as i64;
             if queryKeysLength > 0 {
-                bodyValue = json_stringify(&query);
+                bodyValue = json_stringify(&query).as_str().map(str::to_owned);
             }
         }
         let mut headerDefaults: indexmap::IndexMap<String, Value> = ({
@@ -375,8 +375,8 @@ impl crate::exchange::DerivedExchange for Polymarket {
                 // @polymarket/clob-client — query params are sent separately, not signed
                 let mut requestPath: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params));
                 let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", timestamp, method).into()), requestPath);
-                if (bodyValue != Value::Null) {
-                    auth = format!("{}{}", auth, bodyValue);
+                if (bodyValue.is_some()) {
+                    auth = format!("{}{}", auth, bodyValue.as_deref().unwrap_or("null"));
                 }
                 // the L2 api secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll: the php transpiler only converts the outermost .replaceAll
@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
-        m.insert("body".to_string(), bodyValue);
+        m.insert("body".to_string(), bodyValue.map(Value::from).unwrap_or(Value::Null));
         m.insert("headers".to_string(), Value::Dict(headersValue));
     m
 });
@@ -3554,7 +3554,7 @@ impl Polymarket {
         // upper 12 bytes) and the builder wallet (lower 20 bytes); when options.builderFee is
         // false the fee bytes stay zeroed, so orders are attributed for statistics only and
         // the user is not charged; a full 32-byte builder code is passed through unchanged
-        let mut builderRaw: Option<String> = self.safe_string_lower2(params, Value::Str("builder".into()), Value::Str("builderCode".into()), &[self.safe_string_lower_k(self.options.clone(), "builder", &[])]).as_str().map(str::to_owned);
+        let mut builderRaw: Option<String> = self.safe_string_lower2_opt(params, Value::Str("builder".into()), Value::Str("builderCode".into()), &[self.safe_string_lower_k(self.options.clone(), "builder", &[])]);
         let mut builderBytes32: String = bytes32Zero.clone();
         if (builderRaw.is_some()) {
             let mut builderHex: Option<String> = self.remove0x_prefix(builderRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
@@ -4999,34 +4999,34 @@ if _try_result.is_err() {
         let mut orderbook: Option<crate::pro::order_book::Book> = self.watch(url.as_deref(), messageHash.as_str(), Value::Map(subscribeMsg), subscribeHash.as_str(), Value::Null).await.into();
         let mut bids: Value = orderbook.book_field("bids");
         let mut asks: Value = orderbook.book_field("asks");
-        let mut bestBid: Value = Value::Null;
-        let mut bestBidVolume: Value = Value::Null;
+        let mut bestBid: Option<f64> = None;
+        let mut bestBidVolume: Option<f64> = None;
         let mut bidsLength: i64 = 0;
         if (bids != Value::Null) {
             bidsLength = get_array_length(&bids).as_i64().unwrap_or_default();
         }
         if (bids != Value::Null) && (bidsLength > 0) {
-            bestBid = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(0));
-            bestBidVolume = get_value(&get_value(&bids, &Value::Int(0)), &Value::Int(1));
+            bestBid = self.safe_number(get_value(&bids, &Value::Int(0)), Value::Int(0), &[]).as_f64();
+            bestBidVolume = self.safe_number(get_value(&bids, &Value::Int(0)), Value::Int(1), &[]).as_f64();
         }
-        let mut bestAsk: Value = Value::Null;
-        let mut bestAskVolume: Value = Value::Null;
+        let mut bestAsk: Option<f64> = None;
+        let mut bestAskVolume: Option<f64> = None;
         let mut asksLength: i64 = 0;
         if (asks != Value::Null) {
             asksLength = get_array_length(&asks).as_i64().unwrap_or_default();
         }
         if (asks != Value::Null) && (asksLength > 0) {
-            bestAsk = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(0));
-            bestAskVolume = get_value(&get_value(&asks, &Value::Int(0)), &Value::Int(1));
+            bestAsk = self.safe_number(get_value(&asks, &Value::Int(0)), Value::Int(0), &[]).as_f64();
+            bestAskVolume = self.safe_number(get_value(&asks, &Value::Int(0)), Value::Int(1), &[]).as_f64();
         }
-        let mut mid: Value = Value::Null;
-        if (bestBid != Value::Null) && (bestAsk != Value::Null) {
-            let mut sum: Option<String> = crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(bestBid.clone())), &Value::from(self.number_to_string(bestAsk.clone()))).as_str().map(str::to_owned);
-            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum, &Value::Str("2".into())), &[]);
-        }  else if (bestBid != Value::Null) {
-            mid = bestBid.clone();
+        let mut mid: Option<f64> = None;
+        if (bestBid.is_some()) && (bestAsk.is_some()) {
+            let mut sum: Option<String> = crate::precise::Precise::stringAdd(&Value::from(self.number_to_string(Value::from(bestBid))), &Value::from(self.number_to_string(Value::from(bestAsk)))).as_str().map(str::to_owned);
+            mid = self.parse_number(crate::precise::Precise::stringDiv(&sum, &Value::Str("2".into())), &[]).as_f64();
+        }  else if (bestBid.is_some()) {
+            mid = bestBid;
         }  else {
-            mid = bestAsk.clone();
+            mid = bestAsk;
         }
         let mut market: Option<crate::types::Market> = self.safe_outcome(Value::from(outcomeValue.as_deref()), None);
         return self.safe_prediction_ticker(Value::Map({
@@ -5039,18 +5039,18 @@ if _try_result.is_err() {
         m.insert("datetime".to_string(), orderbook.book_field("datetime"));
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
-        m.insert("bid".to_string(), bestBid);
-        m.insert("bidVolume".to_string(), bestBidVolume);
-        m.insert("ask".to_string(), bestAsk);
-        m.insert("askVolume".to_string(), bestAskVolume);
+        m.insert("bid".to_string(), Value::from(bestBid));
+        m.insert("bidVolume".to_string(), Value::from(bestBidVolume));
+        m.insert("ask".to_string(), Value::from(bestAsk));
+        m.insert("askVolume".to_string(), Value::from(bestAskVolume));
         m.insert("vwap".to_string(), Value::Null);
         m.insert("open".to_string(), Value::Null);
-        m.insert("close".to_string(), mid.clone());
-        m.insert("last".to_string(), mid.clone());
+        m.insert("close".to_string(), Value::from(mid));
+        m.insert("last".to_string(), Value::from(mid));
         m.insert("previousClose".to_string(), Value::Null);
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
-        m.insert("average".to_string(), mid);
+        m.insert("average".to_string(), Value::from(mid));
         m.insert("baseVolume".to_string(), Value::Null);
         m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), Value::from(&orderbook));

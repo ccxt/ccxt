@@ -4515,7 +4515,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("RETAIL_PRICE_IMPROVEMENT".to_string(), Value::Str("RETAIL_PRICE_IMPROVEMENT".into()));
             m
         });
-        return self.safe_string_upper(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_upper_opt(&types, type_var.clone(), &[type_var.clone()]);
 }
 
     pub fn time_in_force_to_int(&self, mut timeInForce: Value) -> Value {

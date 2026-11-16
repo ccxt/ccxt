@@ -297,7 +297,6 @@ impl crate::exchange::DerivedExchange for Aster {
         //            "orderListId": "-1"
         //        }
         //
-        let mut info: Value = order.clone();
         let mut positionSide: Option<String> = self.safe_string_k_opt(order.clone(), "positionSide", &[]);
         let mut defaultType: String = "spot".to_string();
         if (positionSide.is_some()) {
@@ -313,7 +312,7 @@ impl crate::exchange::DerivedExchange for Aster {
         let mut triggerPrice: Option<f64> = self.parse_number(Value::from(self.omit_zero(stopPriceString.map(Value::from).unwrap_or(Value::Null))), &[]).as_f64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), info);
+        m.insert("info".to_string(), order.clone());
         m.insert("id".to_string(), self.safe_string_k(order.clone(), "orderId", &[]));
         m.insert("clientOrderId".to_string(), self.safe_string_k(order.clone(), "clientOrderId", &[]));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]));
@@ -5667,8 +5666,8 @@ impl Aster {
             m
         });
         let mut msg: crate::value::Bytes = self.eth_encode_structured_data(Value::Map(domain), Value::Map(messageTypes), Value::Map(request));
-        let mut signature: Value = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default()).map(Value::from).unwrap_or(Value::Null);
-        return signature.as_str().map(str::to_owned);
+        let mut signature: Option<String> = self.sign_message(Value::from(&msg), (self.privateKey.clone()).as_str().unwrap_or_default());
+        return signature;
 }
 
 /*

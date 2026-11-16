@@ -1147,9 +1147,9 @@ impl Okx {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let channelparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchBidsAsks".into()), Value::Str("channel".into()), &[Value::Str("bbo-tbt".into())]).as_array().cloned().unwrap_or_default();
-        let mut channel: Value = channelparamsChannelVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut channel: Option<String> = channelparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsChannel: crate::value::Dict = channelparamsChannelVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut url: Option<String> = self.get_url(channel.clone(), &[Value::Str("public".into())]);
+        let mut url: Option<String> = self.get_url(channel.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("public".into())]);
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
         {
@@ -1159,7 +1159,7 @@ impl Okx {
             let mut marketId: Option<String> = self.market_id(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
             let mut arg: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("channel".to_string(), channel.clone());
+                    m.insert("channel".to_string(), channel.clone().map(Value::from).unwrap_or(Value::Null));
                     m.insert("instId".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
                 m
             });

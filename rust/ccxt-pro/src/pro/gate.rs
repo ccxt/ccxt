@@ -1124,15 +1124,15 @@ impl Gate {
         let mut marketId: Option<String> = self.safe_string_k_opt(delta.clone(), "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
-        let mut storedOrderBook: Value = Value::from(Some(self.orderbooks.lookup_or(&symbol, self.order_book(&[Value::Map({
+        let mut storedOrderBook: Option<crate::pro::order_book::Book> = Some(self.orderbooks.lookup_or(&symbol, self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]))));
-        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
+})])));
+        let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         if (nonce.is_none()) {
             let mut cacheLength: Option<i64> = self.parse_to_int(Value::Int(0));
-            if (storedOrderBook != Value::Null) {
-                let mut storedCacheLength: Value = get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into())));
+            if (storedOrderBook.is_some()) {
+                let mut storedCacheLength: Value = get_array_length(&storedOrderBook.book_field("cache"));
                 cacheLength = self.parse_to_int(storedCacheLength);
             }
             let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(10)]));
@@ -1149,23 +1149,23 @@ impl Gate {
                     m
                 })]); // needed for c#, number of args needs to match
             }
-            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), delta.clone());
+            storedOrderBook.cache_push(delta);
             return;
         }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
             return;
         }  else if (deltaStart.is_some()) && (nonce.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
-            self.handle_book_delta(storedOrderBook.clone(), delta);
+            self.handle_book_delta(Value::from(&storedOrderBook), delta);
         }  else {
             __ch.remove_subscription(messageHash.as_str());
             storedOrderBook.set_book_meta("nonce", Value::Null);
-            crate::set_value(&mut storedOrderBook, &Value::Str("cache".into()), Value::from(vec![]));
+            storedOrderBook.set_book_meta("cache", Value::from(vec![]));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
                 let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
                 client.reject(error, messageHash.as_str());
             }
         }
-        client.resolve(storedOrderBook, messageHash.as_str());
+        client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
     pub fn get_cache_index(&self, mut orderBook: Value, mut cache: Value) -> Value {
@@ -1909,11 +1909,11 @@ impl Gate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut marketId: Value = Value::Str(format!("{}{}", "!", "all").into());
+        let mut marketId: Option<String> = Some(format!("{}{}", "!", "all"));
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            marketId = crate::value::KeyRead::key_read(&&market, "id");
+            marketId = self.safe_string_k_opt(&market, "id", &[]);
         }
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1937,7 +1937,7 @@ impl Gate {
         }
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
         let mut url: Option<String> = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
-        let mut payload: crate::value::List = std::sync::Arc::new(vec![marketId]);
+        let mut payload: crate::value::List = std::sync::Arc::new(vec![marketId.map(Value::from).unwrap_or(Value::Null)]);
         // uid required for non spot markets
         let mut requiresUid: bool = type_var.as_deref() != Some("spot");
         let mut trades: Value = self.subscribe_private(url.as_deref(), messageHash.as_str(), &payload, Some(channel.as_str()), Value::Dict(paramsSubType), &[Value::Bool(requiresUid)]).await;
@@ -2898,7 +2898,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
             }
             if (id.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                __ch.remove_subscription(&id.clone().map(Value::from).unwrap_or(Value::Null));
+                __ch.remove_subscription(id.as_deref());
             }
             return Value::Bool(true);
         }

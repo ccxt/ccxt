@@ -694,8 +694,8 @@ impl Hollaex {
                 account = (if let (Some(__m), Some(__k)) = (self.balance.as_map(), code.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             let mut second: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
-            let mut freeOrTotal: Value = (if (second.as_deref() == Some("available")) { Value::Str("free".into()) } else { Value::Str("total".into()) });
-            add_element_to_object(&mut account, &freeOrTotal, self.safe_string(&data, Value::from(key.as_deref()), &[]));
+            let mut freeOrTotal: String = (if (second.as_deref() == Some("available")) { "free".to_string() } else { "total".to_string() });
+            add_element_to_object(&mut account, &Value::from(freeOrTotal.as_str()), self.safe_string(&data, Value::from(key.as_deref()), &[]));
             if (code.is_some()) {
                 if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), account); }
             }

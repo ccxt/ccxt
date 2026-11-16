@@ -774,7 +774,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         if (id.is_none()) {
             id = self.safe_string2_opt(details.clone(), Value::Str("orderId".into()), Value::Str("uid".into()), &[]);
         }
-        let mut type_var: Option<String> = self.safe_string_lower2(details.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_lower2_opt(details.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]);
         let mut parsedType: Option<String> = self.parse_order_type(type_var.as_deref());
         let mut timeInForce: String = "gtc".to_string();
         if (type_var.as_deref() == Some("ioc")) || (parsedType.as_deref() == Some("market")) {

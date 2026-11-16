@@ -1294,9 +1294,8 @@ impl crate::exchange::DerivedExchange for Okx {
 }
     fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
-        let mut chains: Value = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        let mut firstChain: crate::value::Dict = self.safe_dict(chains.clone(), Value::Int(0), &[Value::Map({
+        let mut firstChain: crate::value::Dict = self.safe_dict(currency.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -1307,12 +1306,12 @@ impl crate::exchange::DerivedExchange for Okx {
             m
         });
         let mut type_var: String = "crypto".to_string();
-        let mut chainsLength: f64 = ((chains.len() as i64) as f64);
+        let mut chainsLength: f64 = ((currency.len() as i64) as f64);
         {
                         let mut j: i64 = 0;
             let mut __for_first_1006: bool = true;
             while { if !__for_first_1006 { j += 1; } __for_first_1006 = false; (j as f64) < chainsLength } {
-            let mut chain: Option<crate::value::Dict> = self.safe_dict(chains.clone(), Value::Int(j), &[]).into_opt_dict();
+            let mut chain: Option<crate::value::Dict> = self.safe_dict(currency.clone(), Value::Int(j), &[]).into_opt_dict();
             // allow empty string for rare fiat-currencies, e.g. TRY
             let mut networkId: String = self.safe_string_k(&chain, "chain", &[Value::Str("".into())]).as_str().unwrap_or("").to_string(); // USDT-BEP20, USDT-Avalance-C, etc
             if (networkId == "") {
@@ -1351,7 +1350,7 @@ impl crate::exchange::DerivedExchange for Okx {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), chains);
+        m.insert("info".to_string(), currency);
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("name".to_string(), self.safe_string_k(&firstChain, "name", &[]));
@@ -12066,9 +12065,9 @@ impl Okx {
         }
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("until".into()), &[]).into_dict();
-        let mut end: Value = Value::Null;
+        let mut end: Option<i64> = None;
         if (until.is_some()) {
-            end = Value::from((if let Some(__m0) = until { Some((__m0 + 1)) } else { None }));
+            end = (if let Some(__m0) = until { Some((__m0 + 1)) } else { None });
         }
         if (since != Value::Null) {
             // end the window after limit periods, so that the earliest entries from since on come back
@@ -12088,11 +12087,11 @@ impl Okx {
             }  else {
                 windowDuration = (if let Some(__l) = ((if let Some(__l) = effectiveLimit { Some(__l * (self.parse_timeframe((if let Some(__s) = unitPeriod.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null })))) } else { None })) { Some(__l * 1000) } else { None });
             }
-            let mut windowEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), windowDuration) { Some((__m0 + __m1)) } else { None }));
-            end = (if (end == Value::Null) { windowEnd.clone() } else { crate::runtime::Math::min(&end, &windowEnd) });
+            let mut windowEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (since.as_i64(), windowDuration) { Some((__m0 + __m1)) } else { None });
+            end = (if (end.is_none()) { windowEnd } else { (if let (Some(__m0), Some(__m1)) = (end, windowEnd) { Some(i64::min(__m0, __m1)) } else { None }) });
         }
-        if (end != Value::Null) {
-            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), end); }
+        if (end.is_some()) {
+            if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("end".into(), Value::from(end)); }
         }
         return Value::from(vec![request, Value::Dict(paramsOmitted)]);
 

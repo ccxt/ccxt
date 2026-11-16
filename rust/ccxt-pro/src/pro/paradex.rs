@@ -1372,17 +1372,17 @@ if _try_result.is_err() {
             while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < (symbolsNormalized.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             // the feed the market is on, a market is on one of them at a time
-            let mut deltasChannel: Value = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(true)]).map(Value::from).unwrap_or(Value::Null);
-            let mut snapshotChannel: Value = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(false)]).map(Value::from).unwrap_or(Value::Null);
-            let mut channel: Value = (if (deltasOption) { deltasChannel.clone() } else { snapshotChannel.clone() });
+            let mut deltasChannel: Option<String> = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(true)]);
+            let mut snapshotChannel: Option<String> = self.get_order_book_channel(Value::from((market).id.as_deref()), &[Value::Bool(false)]);
+            let mut channel: Option<String> = (if (deltasOption) { deltasChannel.clone() } else { snapshotChannel.clone() });
             // a market switching to the deltas feed is on neither feed until its snapshot unsubscribe is acknowledged
-            let mut requestedHash: String = format!("{}{}", deltasChannel, ":requested");
-            if (client.has_subscription(&deltasChannel)) || (client.has_subscription(requestedHash.as_str())) {
+            let mut requestedHash: String = format!("{}{}", deltasChannel.as_deref().unwrap_or("null"), ":requested");
+            if (client.has_subscription(deltasChannel.as_deref())) || (client.has_subscription(requestedHash.as_str())) {
                 channel = deltasChannel;
-            }  else if (client.has_subscription(&snapshotChannel)) {
+            }  else if (client.has_subscription(snapshotChannel.as_deref())) {
                 channel = snapshotChannel;
             }
-            channels.push(channel);
+            channels.push(channel.map(Value::from).unwrap_or(Value::Null));
             subMessageHashes.push(Value::Str(format!("{}{}", "orderbook:", Value::from((market).symbol.clone())).into()));
         }
         }

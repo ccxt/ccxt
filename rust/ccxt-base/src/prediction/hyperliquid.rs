@@ -837,14 +837,14 @@ impl Hyperliquid {
                     let mut thresholdsLength: i64 = thresholds.len() as i64;
                     let mut index: Option<i64> = self.parse_to_int(indexStr.map(Value::from).unwrap_or(Value::Null));
                     if thresholdsLength > 0 {
-                        let mut bucketLabel: Value = Value::Null;
+                        let mut bucketLabel: String = "".to_string();
                         if (index.is_some() && index <= Some(0)) {
-                            bucketLabel = Value::Str(format!("{}{}", "BELOW_", thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).into());
+                            bucketLabel = format!("{}{}", "BELOW_", thresholds.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null));
                         }  else if index >= Some(thresholdsLength) {
                             let mut lastIdx: i64 = (thresholdsLength - 1);
-                            bucketLabel = Value::Str(format!("{}{}", "ABOVE_", get_value(&thresholds, &Value::from(lastIdx))).into());
+                            bucketLabel = format!("{}{}", "ABOVE_", get_value(&thresholds, &Value::from(lastIdx)));
                         }  else {
-                            bucketLabel = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &Value::from((if let Some(__l) = index { Some(__l - 1) } else { None })))).into()), "_").into()), get_value(&thresholds, &Value::from(index))).into());
+                            bucketLabel = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "BETWEEN_", get_value(&thresholds, &Value::from((if let Some(__l) = index { Some(__l - 1) } else { None })))).into()), "_").into()), get_value(&thresholds, &Value::from(index)));
                         }
                         return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", questionUnderlying.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null), Value::Str("_".into())).into()), bucketLabel).into()), questionExpiryPart));
                     }

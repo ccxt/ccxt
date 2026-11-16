@@ -126,7 +126,7 @@ impl crate::exchange::DerivedExchange for Apex {
         let mut timestamp: Option<i64> = self.safe_integer_n(trade.clone(), Value::from(vec![Value::Str("t".into()), Value::Str("T".into()), Value::Str("createdAt".into())]), &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
         let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("v".into()), Value::Str("size".into()), &[]);
-        let mut side: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("S".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(trade.clone(), Value::Str("S".into()), Value::Str("side".into()), &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
         let mut fee: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         return self.safe_trade(Value::Map({

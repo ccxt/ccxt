@@ -154,7 +154,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         if (timestamp.is_none()) {
             timestamp = self.parse8601(self.safe_string_k(tradeValue.clone(), "time", &[]));
         }
-        let mut side: Option<String> = self.safe_string_lower2(tradeValue.clone(), Value::Str("side".into()), Value::Str("taker_side".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(tradeValue.clone(), Value::Str("side".into()), Value::Str("taker_side".into()), &[]);
         let mut priceString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "price", &[]);
         let mut amountString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "amount", &[]);
         let mut costString: Option<String> = self.safe_string_k_opt(tradeValue.clone(), "volume", &[]);

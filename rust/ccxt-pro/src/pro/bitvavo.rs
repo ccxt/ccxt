@@ -1324,11 +1324,11 @@ impl Bitvavo {
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("-".into())]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, "@").into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }));
-        let mut orderbook: Value = Value::from(self.orderbooks.lookup(&symbol));
-        if (orderbook == Value::Null) {
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        if (orderbook.is_none()) {
             return;
         }
-        if (self.safe_integer_k(orderbook.clone(), "nonce", &[]) == Value::Null) {
+        if (self.safe_integer_k(Value::from(&orderbook), "nonce", &[]) == Value::Null) {
             let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1348,10 +1348,10 @@ impl Bitvavo {
                 // fetch the snapshot in a separate async call after a warmup delay
                 self.delay(delay, &[Value::Str("watch_order_book_snapshot".into()).clone(), client.clone(), message.clone(), subscription]).await;
             }
-            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+            orderbook.cache_push(message);
         }  else {
-            self.handle_order_book_message(client.clone(), message, orderbook.clone());
-            client.resolve(orderbook, messageHash.as_str());
+            self.handle_order_book_message(client.clone(), message, Value::from(&orderbook));
+            client.resolve(Value::from(&orderbook), messageHash.as_str());
         }
 }
 
@@ -1422,12 +1422,12 @@ impl Bitvavo {
         std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), self.safe_integer_k(&response, "nonce", &[]));
         orderbook.reset(Value::Dict(snapshot));
         // unroll the accumulated deltas
-        let mut messages: Value = orderbook.book_field("cache");
+        let mut messages: crate::value::List = orderbook.cache_items();
         {
                         let mut i: i64 = 0;
             let mut __for_first_156: bool = true;
-            while { if !__for_first_156 { i += 1; } __for_first_156 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-            let mut messageItem: Value = get_value(&messages, &Value::Int(i));
+            while { if !__for_first_156 { i += 1; } __for_first_156 = false; i < (messages.len() as i64) } {
+            let mut messageItem: Value = messages.get(i as usize).cloned().unwrap_or(Value::Null);
             self.handle_order_book_message(client.clone(), messageItem, Value::from(&orderbook));
         }
         }

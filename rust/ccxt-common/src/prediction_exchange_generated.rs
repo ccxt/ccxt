@@ -171,11 +171,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                                 let mut i: i64 = 0;
                 let mut __for_first_187: bool = true;
                 while { if !__for_first_187 { i += 1; } __for_first_187 = false; i < (result.len() as i64) } {
-                let mut event: Value = self.safe_value(result.clone(), Value::Int(i), &[]);
-                let mut idMatch: bool = (eventId.is_some()) && ((eventId.as_deref() == self.safe_string_k(event.clone(), "id", &[]).as_str()));
-                let mut slugMatch: bool = (slug.is_some()) && ((slug.as_deref() == self.safe_string_k(event.clone(), "slug", &[]).as_str()));
+                let mut event: crate::value::Dict = self.safe_dict(result.clone(), Value::Int(i), &[]).into_dict();
+                let mut idMatch: bool = (eventId.is_some()) && ((eventId.as_deref() == self.safe_string_k(&event, "id", &[]).as_str()));
+                let mut slugMatch: bool = (slug.is_some()) && ((slug.as_deref() == self.safe_string_k(&event, "slug", &[]).as_str()));
                 if idMatch || slugMatch {
-                    std::sync::Arc::make_mut(&mut filtered).push(event);
+                    std::sync::Arc::make_mut(&mut filtered).push(self.safe_value(result.clone(), Value::Int(i), &[]));
                 }
             }
             }
@@ -241,11 +241,11 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_189: bool = true;
             while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (events.len() as i64) } {
-            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut isActive: Option<bool> = self.safe_bool_k(event.clone(), "active", &[]).as_bool();
+            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
+            let mut isActive: Option<bool> = self.safe_bool_k(&event, "active", &[]).as_bool();
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive.is_none()) || ((isActive == wantActive.as_bool())) {
-                result.push(event);
+                result.push(self.safe_value(events.clone(), Value::Int(i), &[]));
             }
         }
         }
@@ -272,9 +272,9 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_191: bool = true;
             while { if !__for_first_191 { i += 1; } __for_first_191 = false; i < (events.len() as i64) } {
-            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut title: String = self.safe_string_lower_k(event.clone(), "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut description: String = self.safe_string_lower_k(event.clone(), "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
+            let mut title: String = self.safe_string_lower_k(&event, "title", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            let mut description: String = self.safe_string_lower_k(&event, "description", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut matched: bool = false;
             {
                                 let mut qi: i64 = 0;
@@ -298,7 +298,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             if matched {
-                result.push(event);
+                result.push(self.safe_value(events.clone(), Value::Int(i), &[]));
             }
         }
         }
@@ -367,8 +367,8 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                         let mut i: i64 = 0;
             let mut __for_first_196: bool = true;
             while { if !__for_first_196 { i += 1; } __for_first_196 = false; i < (events.len() as i64) } {
-            let mut event: Value = self.safe_value(events.clone(), Value::Int(i), &[]);
-            let mut eventTags: crate::value::List = self.safe_list_k(event.clone(), "tags", &[Value::from(vec![])]).into_list();
+            let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
+            let mut eventTags: crate::value::List = self.safe_list_k(&event, "tags", &[Value::from(vec![])]).into_list();
             let mut matched: bool = false;
             {
                                 let mut ti: i64 = 0;
@@ -400,7 +400,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             }
             if matched {
-                result.push(event);
+                result.push(self.safe_value(events.clone(), Value::Int(i), &[]));
             }
         }
         }

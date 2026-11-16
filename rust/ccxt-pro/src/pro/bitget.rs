@@ -443,7 +443,7 @@ impl Bitget {
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let instTypeparamsValueVariable: Vec<Value> = self.get_inst_type(Value::Str("watchTickers".into()), Some(&market), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsUta)]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = instTypeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -455,7 +455,7 @@ impl Bitget {
             let mut marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instType".to_string(), instType.clone());
+                    m.insert("instType".to_string(), instType.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let mut topicOrChannel: String = "channel".to_string();
@@ -731,7 +731,7 @@ impl Bitget {
         let mut uta: Option<bool> = utaparamsUtaVariable.get(0).and_then(Value::as_bool);
         let mut paramsUta: crate::value::Dict = utaparamsUtaVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let instTypeparamsValueVariable: Vec<Value> = self.get_inst_type(Value::Str("watchBidsAsks".into()), Some(&market), &[uta.map_or(Value::Null, Value::Bool), Value::Dict(paramsUta)]).as_array().cloned().unwrap_or_default();
-        let mut instType: Value = instTypeparamsValueVariable.get(0).cloned().unwrap_or(Value::Null);
+        let mut instType: Option<String> = instTypeparamsValueVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsValue: crate::value::Dict = instTypeparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -743,7 +743,7 @@ impl Bitget {
             let mut marketInner: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut args: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("instType".to_string(), instType.clone());
+                    m.insert("instType".to_string(), instType.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             });
             let mut topicOrChannel: String = "channel".to_string();
@@ -2196,9 +2196,9 @@ impl Bitget {
         let mut timestamp: Option<i64> = self.safe_integer_n(position.clone(), Value::from(vec![Value::Str("updatedTime".into()), Value::Str("uTime".into()), Value::Str("cTime".into()), Value::Str("createdTime".into())]), &[]).as_i64();
         let mut percentageDecimal: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("unrealizedPLR".into()), Value::Str("profitRate".into()), &[]);
         let mut percentage: Option<String> = crate::precise::Precise::stringMul(&percentageDecimal, &Value::Str("100".into())).as_str().map(str::to_owned);
-        let mut contractSize: Value = Value::Null;
+        let mut contractSize: Option<f64> = None;
         if (market.is_some()) {
-            contractSize = crate::value::KeyRead::key_read(&market, "contractSize");
+            contractSize = self.safe_number_k(&market, "contractSize", &[]).as_f64();
         }
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2212,7 +2212,7 @@ impl Bitget {
         m.insert("unrealizedPnl".to_string(), self.safe_number2(position.clone(), Value::Str("unrealizedPL".into()), Value::Str("unrealisedPnl".into()), &[]));
         m.insert("percentage".to_string(), self.parse_number(percentage.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("contracts".to_string(), self.safe_number2(position.clone(), Value::Str("total".into()), Value::Str("size".into()), &[]));
-        m.insert("contractSize".to_string(), contractSize);
+        m.insert("contractSize".to_string(), Value::from(contractSize));
         m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
         m.insert("side".to_string(), self.safe_string2(position.clone(), Value::Str("holdSide".into()), Value::Str("posSide".into()), &[]));
         m.insert("hedged".to_string(), Value::Bool(hedged));
@@ -2742,7 +2742,7 @@ impl Bitget {
             // for spot trigger order, limit price is this
             price = self.safe_number_k(order.clone(), "executePrice", &[]).as_f64();
         }
-        let mut avgPriceString: Option<String> = self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]).as_str().map(str::to_owned);
+        let mut avgPriceString: Option<String> = self.safe_string_lower_n_opt(order.clone(), Value::from(vec![Value::Str("priceAvg".into()), Value::Str("fillPrice".into()), Value::Str("avgPrice".into())]), &[]);
         let mut avgPrice: Option<String> = (if (avgPriceString.is_none()) { None } else { self.omit_zero(avgPriceString.map(Value::from).unwrap_or(Value::Null)) });
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "orderType", &[]);

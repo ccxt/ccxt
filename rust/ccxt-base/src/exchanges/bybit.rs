@@ -7838,7 +7838,7 @@ impl Bybit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut unifiedType: Option<String> = self.safe_string_upper(&accountTypes, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut unifiedType: Option<String> = self.safe_string_upper_opt(&accountTypes, type_var.clone().map(Value::from).unwrap_or(Value::Null), &[type_var.clone().map(Value::from).unwrap_or(Value::Null)]);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchBalance".into()), &[Value::from(&paramsSubType)]).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -7970,9 +7970,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut types: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedAccount: Value = types.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (enableUnifiedAccount.as_bool() != Some(true)) {
+        let mut types: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedAccount: bool = self.safe_bool(&types, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if (enableUnifiedAccount != true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createMarketSellOrderWithCost() supports UTA accounts only")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -8045,12 +8045,12 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut parts: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedAccount: Value = parts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut parts: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedAccount: bool = self.safe_bool(&parts, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut isTrailingOrder: bool = self.safe_string2(params.clone(), Value::Str("trailingAmount".into()), Value::Str("trailingStop".into()), &[]) != Value::Null;
         let mut isStopLossOrder: bool = self.safe_string_k(params.clone(), "stopLossPrice", &[]) != Value::Null;
         let mut isTakeProfitOrder: bool = self.safe_string_k(params.clone(), "takeProfitPrice", &[]) != Value::Null;
-        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone(), enableUnifiedAccount]).into_dict();
+        let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, params.clone(), Value::Bool(enableUnifiedAccount)]).into_dict();
         let mut switchToOco: bool = (isStopLossOrder && isTakeProfitOrder) || self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)]).as_bool() == Some(true);
         let mut defaultMethod: Option<String> = None;
         if (isTrailingOrder || (switchToOco)) && !(market).spot {
@@ -8406,8 +8406,8 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut accounts: Value = self.is_unified_enabled(&[]).await;
-        let mut isUta: Value = accounts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut accounts: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut isUta: bool = self.safe_bool(&accounts, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut ordersRequests: Vec<Value> = Vec::new();
         let mut orderSymbols: Vec<Value> = Vec::new();
         {
@@ -8425,7 +8425,7 @@ impl Bybit {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut orderRequest: Value = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams), isUta.clone()]);
+            let mut orderRequest: Value = self.create_order_request(marketId.as_deref(), type_var.as_deref(), side.as_deref(), amount, &[price, Value::Dict(orderParams), Value::Bool(isUta)]);
             remove(&mut orderRequest, &Value::Str("category".into()));
             ordersRequests.push(orderRequest);
         }
@@ -8838,9 +8838,9 @@ impl Bybit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut types: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedAccount: Value = types.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (enableUnifiedAccount.as_bool() != Some(true)) {
+        let mut types: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedAccount: bool = self.safe_bool(&types, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if (enableUnifiedAccount != true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrders() supports UTA accounts only")));
         }
         let categoryparamsValueVariable: Vec<Value> = self.get_bybit_type("cancelOrders", Some(&market), &[params]).as_array().cloned().unwrap_or_default();
@@ -8997,9 +8997,9 @@ impl Bybit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut types: Value = self.is_unified_enabled(&[]).await;
-        let mut enableUnifiedAccount: Value = types.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
-        if (enableUnifiedAccount.as_bool() != Some(true)) {
+        let mut types: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut enableUnifiedAccount: bool = self.safe_bool(&types, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        if (enableUnifiedAccount != true) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrdersForSymbols() supports UTA accounts only")));
         }
         let mut ordersRequests: Vec<Value> = Vec::new();
@@ -10705,12 +10705,12 @@ impl Bybit {
         let tagWithdrawTagparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagWithdrawTag: Option<String> = tagWithdrawTagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagWithdrawTagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut accounts: Value = self.is_unified_enabled(&[]).await;
-        let mut isUta: Value = accounts.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null);
+        let mut accounts: crate::value::List = self.is_unified_enabled(&[]).await.into_list();
+        let mut isUta: bool = self.safe_bool(&accounts, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let accountTypeOptionparamsAccountTypeVariable: Vec<Value> = self.handle_option_string_and_params(&paramsWithdrawTag, Value::Str("withdraw".into()), Value::Str("accountType".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut accountTypeOption: Option<String> = accountTypeOptionparamsAccountTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsAccountType: crate::value::Dict = accountTypeOptionparamsAccountTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut defaultAccountType: String = (if (isUta.as_bool() == Some(true)) { "UTA".to_string() } else { "SPOT".to_string() });
+        let mut defaultAccountType: String = (if (isUta == true) { "UTA".to_string() } else { "SPOT".to_string() });
         let mut accountType: Option<String> = (if (accountTypeOption.is_none()) { Some(defaultAccountType) } else { accountTypeOption });
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }

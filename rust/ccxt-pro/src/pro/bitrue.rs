@@ -634,10 +634,10 @@ impl Bitrue {
         let mut isFutures: bool = channelKind.as_deref() == Some("e");
         let mut market: Value = Value::Null;
         if isFutures {
-            let mut wsBaseQuote: Option<String> = self.safe_string_lower(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+            let mut wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
             market = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
         }  else {
-            let mut marketId: Option<String> = self.safe_string_upper(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_upper_opt(&parts, Value::Int(1), &[]);
             market = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
         }
         let mut symbol: Option<String> = self.safe_string_k_opt(market, "symbol", &[]);
@@ -917,7 +917,7 @@ if _try_result.is_err() {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut wsBaseQuote: Option<String> = self.safe_string_lower(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {
@@ -1129,7 +1129,7 @@ if _try_result.is_err() {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut wsBaseQuote: Option<String> = self.safe_string_lower(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {
@@ -1254,7 +1254,7 @@ if _try_result.is_err() {
         //
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut wsBaseQuote: Option<String> = self.safe_string_lower(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut wsBaseQuote: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(2), &[]);
         let mut market: Value = self.find_swap_market_by_ws_base_quote(wsBaseQuote.map(Value::from).unwrap_or(Value::Null));
         let mut symbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
         if (symbol.is_none()) {

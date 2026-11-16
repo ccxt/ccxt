@@ -2360,11 +2360,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-            let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+            let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer2(data.clone(), Value::Str("sequenceEnd".into()), Value::Str("timestamp".into()), &[]).as_i64();
             if (nonce.is_none()) {
-                let mut cacheLength: i64 = get_value(&orderbook, &Value::Str("cache".into())).len() as i64;
+                let mut cacheLength: i64 = orderbook.book_field("cache").len() as i64;
                 let mut subscriptions: Vec<Value> = __ch.subscription_keys();
                 let mut subscription: Value = Value::Null;
                 {
@@ -2386,7 +2386,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m
                     })]);
                 }
-                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), data.clone());
+                orderbook.cache_push(data);
                 return;
             }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
                 return;
@@ -2430,7 +2430,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut depth: String = (match message.get("dp") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "uta:orderbook:", symbol).into()), ":depth:").into()), depth);
         if (type_var.as_deref() == Some("snapshot")) {
@@ -2439,10 +2439,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             orderbook.reset(Value::Dict(parsed));
             CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         }  else {
-            let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+            let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
             let mut deltaEnd: Option<i64> = self.safe_integer_k(data.clone(), "C", &[]).as_i64();
             if (nonce.is_none()) {
-                let mut cacheLength: i64 = get_value(&orderbook, &Value::Str("cache".into())).len() as i64;
+                let mut cacheLength: i64 = orderbook.book_field("cache").len() as i64;
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -2457,7 +2457,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if ((Some(cacheLength as f64) == snapshotDelay.as_f64())) {
                     self.spawn(&[Value::Str("load_order_book".into()).clone(), client.clone(), Value::from(messageHash.clone()), Value::from(symbol.as_str()), Value::from(limit), Value::Map(utaParams)]);
                 }
-                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), data.clone());
+                orderbook.cache_push(data);
                 return;
             }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
                 return;

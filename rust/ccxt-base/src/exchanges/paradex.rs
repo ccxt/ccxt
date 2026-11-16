@@ -945,9 +945,9 @@ impl crate::exchange::DerivedExchange for Paradex {
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut version: Value = self.version.clone();
-        let mut pathValue: Value = path.clone();
+        let mut pathValue: String = path.as_str().unwrap_or_default().to_string();
         if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
-            pathValue = path.as_str().map(|__s| Value::Str(__s.replace("v2/", "").into())).unwrap_or_else(|| path.clone());
+            pathValue = path.as_str().unwrap_or_default().to_string().replace("v2/", "");
         }
         if (Value::Int(path.as_str().and_then(|__s| __s.find("v2/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)) {
             version = Value::Str("v2".into());
@@ -956,8 +956,8 @@ impl crate::exchange::DerivedExchange for Paradex {
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
-        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), self.implode_params(pathValue.clone(), params.clone()));
-        let mut query: Value = self.omit(params, self.extract_params(pathValue.clone()), &[]);
+        let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(baseApiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), self.implode_params(Value::from(pathValue.clone()), params.clone()));
+        let mut query: Value = self.omit(params, self.extract_params(Value::from(pathValue.clone())), &[]);
         if (apiName.as_deref() == Some("public")) {
             if ((Value::Array(query.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(query.clone(), &[])));
@@ -971,12 +971,12 @@ impl crate::exchange::DerivedExchange for Paradex {
             });
             let mut privateBody: Option<String> = None;
             // TODO: optimize
-            if (pathValue.as_str() == Some("auth")) {
+            if (pathValue == "auth") {
                 privateHeaders.insert("PARADEX-STARKNET-ACCOUNT".into(), self.safe_string_k(query.clone(), "account", &[]));
                 privateHeaders.insert("PARADEX-STARKNET-SIGNATURE".into(), self.safe_string_k(query.clone(), "signature", &[]));
                 privateHeaders.insert("PARADEX-TIMESTAMP".into(), self.safe_string_k(query.clone(), "timestamp", &[]));
                 privateHeaders.insert("PARADEX-SIGNATURE-EXPIRATION".into(), self.safe_string_k(query.clone(), "expiration", &[]));
-            }  else if (pathValue.as_str() == Some("onboarding")) {
+            }  else if (pathValue == "onboarding") {
                 privateHeaders.insert("PARADEX-ETHEREUM-ACCOUNT".into(), self.walletAddress.clone());
                 privateHeaders.insert("PARADEX-STARKNET-ACCOUNT".into(), self.safe_string_k(query.clone(), "account", &[]));
                 privateHeaders.insert("PARADEX-STARKNET-SIGNATURE".into(), self.safe_string_k(query.clone(), "signature", &[]));
@@ -993,7 +993,7 @@ impl crate::exchange::DerivedExchange for Paradex {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() requires an authToken, call authenticateRest() first")));
                 }
                 privateHeaders.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token.as_deref().unwrap_or("null")).into()));
-                if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || ((method.as_str() == Some("DELETE")) && (pathValue.as_str() == Some("orders/batch"))) {
+                if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) || ((method.as_str() == Some("DELETE")) && (pathValue == "orders/batch")) {
                     privateHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
                     privateBody = json_stringify(&query).as_str().map(str::to_owned);
                 }  else {
@@ -3293,7 +3293,7 @@ impl Paradex {
                 m.insert("TAKE_PROFIT_MARKET".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string_lower(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_lower_opt(&types, type_var.clone(), &[type_var.clone()]);
 }
 
     pub fn scale_number(&self, num: Option<&str>) -> Option<String> {

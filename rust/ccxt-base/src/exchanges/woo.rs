@@ -555,7 +555,7 @@ impl crate::exchange::DerivedExchange for Woo {
         size = crate::precise::Precise::stringAbs(&size).as_str().map(str::to_owned);
         let mut notional: Option<String> = crate::precise::Precise::stringMul(&size, &markPrice).as_str().map(str::to_owned);
         let mut positionSide: Option<String> = self.safe_string_k_opt(position.clone(), "positionSide", &[]); // 'SHORT' or 'LONG' for hedged, 'BOTH' for non-hedged
-        let mut marginMode: Option<String> = self.safe_string_lower2(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]).as_str().map(str::to_owned);
+        let mut marginMode: Option<String> = self.safe_string_lower2_opt(position.clone(), Value::Str("marginMode".into()), Value::Str("margin_mode".into()), &[]);
         let mut positionMargin: Option<f64> = None;
         if (marginMode.as_deref() == Some("isolated")) {
             positionMargin = self.safe_number2(position.clone(), Value::Str("isolatedMarginAmount".into()), Value::Str("isolated_margin_amount".into()), &[]).as_f64();
@@ -935,7 +935,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut networkizedCode: String = self.safe_string_k(transaction.clone(), "token", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut currencyDefined: Value = self.get_currency_from_chaincode(networkizedCode.as_str(), &[crate::Value::from(currency)]);
         let mut code: Option<String> = self.safe_string_k_opt(currencyDefined, "code", &[]);
-        let mut movementDirection: Option<String> = self.safe_string_lower_n(transaction.clone(), Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]).as_str().map(str::to_owned);
+        let mut movementDirection: Option<String> = self.safe_string_lower_n_opt(transaction.clone(), Value::from(vec![Value::Str("token_side".into()), Value::Str("tokenSide".into()), Value::Str("type".into())]), &[]);
         if (movementDirection.as_deref() == Some("withdraw")) {
             movementDirection = Some("withdrawal".to_string());
         }

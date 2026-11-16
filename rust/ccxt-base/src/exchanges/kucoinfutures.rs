@@ -225,6 +225,6 @@ impl Kucoinfutures {
                 m.insert("funding".to_string(), Value::Str("MAIN".into()));
             m
         });
-        return self.safe_string_upper(&transferTypes, transferType.clone(), &[transferType.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_upper_opt(&transferTypes, transferType.clone(), &[transferType.clone()]);
 }
 }

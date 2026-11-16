@@ -4502,7 +4502,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 m.insert("FILLED".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string_lower(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_lower_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
 /*

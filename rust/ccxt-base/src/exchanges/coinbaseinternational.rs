@@ -337,7 +337,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 lastTradeTimestamp = lastUpdateTimestamp;
             }
             nativeLastUpdateTimestamp = lastUpdateTimestamp.take();
-            orderType = self.safe_string_lower2(order.clone(), Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]).as_str().map(str::to_owned);
+            orderType = self.safe_string_lower2_opt(order.clone(), Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]);
             reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
             fee = ({
                 let mut m = indexmap::IndexMap::new();
@@ -382,7 +382,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut lowercaseId: Option<String> = self.safe_string_lower_k_opt(market.clone(), "instrument_name", &[]);
         let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "base_currency", &[]);
         let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "counter_currency", &[]);
-        let mut settleId: Value = self.safe_string_k(market.clone(), "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut settleId: Option<String> = self.safe_string_k_opt(market.clone(), "settlement_currency", &[quoteId.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut kind: String = self.safe_string_k(market.clone(), "kind", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut settlementPeriod: Option<String> = self.safe_string_k_opt(market.clone(), "settlement_period", &[]);
         let mut isSpot: bool = kind == "spot";
@@ -393,7 +393,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut isComboMarket: bool = comboPosition >= 0;
         let mut base: Option<String> = self.safe_currency_code(baseId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut settle: Option<String> = self.safe_currency_code(settleId.clone(), None);
+        let mut settle: Option<String> = self.safe_currency_code(Value::from(settleId.as_deref()), None);
         let mut type_var: String = "swap".to_string();
         if isSpot {
             type_var = "spot".to_string();
@@ -412,7 +412,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut linear: Option<bool> = (if isSpot { None } else { Some(settle == quote) });
         let mut inverse: Option<bool> = (if isSpot { None } else { Some(settle != quote) });
         let mut marketSettle: Option<String> = (if isSpot { None } else { settle });
-        let mut marketSettleId: Value = (if isSpot { Value::Null } else { settleId });
+        let mut marketSettleId: Option<String> = (if isSpot { None } else { settleId });
         let mut minTradeAmount: Option<f64> = self.safe_number_k(market.clone(), "min_trade_amount", &[]).as_f64();
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
         let mut isFutureOrOption: bool = isFuture || matches!(&isOption, Value::Bool(true));
@@ -442,7 +442,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
                 m.insert("settle".to_string(), marketSettle.map(Value::from).unwrap_or(Value::Null));
                 m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
-                m.insert("settleId".to_string(), marketSettleId);
+                m.insert("settleId".to_string(), marketSettleId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("type".to_string(), Value::from(type_var));
                 m.insert("spot".to_string(), Value::Bool(isSpot));
                 m.insert("margin".to_string(), Value::Bool(false));

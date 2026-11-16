@@ -3319,8 +3319,8 @@ impl Nado {
             let mut baseAsset: crate::value::Dict = self.safe_dict(&assetsByCode, base.clone().map(Value::from).unwrap_or(Value::Null), &[Value::from(&asset)]).into_dict();
             let mut quoteAsset: crate::value::Dict = self.safe_dict(&assetsByCode, quote.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_dict();
             let mut baseId: Option<String> = self.safe_string_k_opt(&baseAsset, "product_id", &[rawBaseId.map(Value::from).unwrap_or(Value::Null)]);
-            let mut quoteId: Value = self.safe_string_k(&quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
-            let mut settleId: Value = (if contract { quoteId.clone() } else { Value::Null });
+            let mut quoteId: Option<String> = self.safe_string_k_opt(&quoteAsset, "product_id", &[Value::from(rawQuoteId)]);
+            let mut settleId: Option<String> = (if contract { quoteId.clone() } else { None });
             let mut settle: Option<String> = (if contract { quote.clone() } else { None });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
             if contract {
@@ -3340,8 +3340,8 @@ impl Nado {
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
         m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("quoteId".to_string(), quoteId);
-        m.insert("settleId".to_string(), settleId);
+        m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
+        m.insert("settleId".to_string(), settleId.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("spot".to_string(), (Value::Bool(type_var.as_deref() == Some("spot"))));
         m.insert("margin".to_string(), Value::Null);

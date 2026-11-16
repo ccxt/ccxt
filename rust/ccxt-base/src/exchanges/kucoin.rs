@@ -4834,9 +4834,9 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut fetchTickersFees: Value = Value::Null;
+        let mut fetchTickersFees: bool = true;
         let mut paramsRequest: crate::value::Dict = Default::default();
-        { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("fetchTickersFees".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default(); fetchTickersFees = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        { let __destr_tmp = self.handle_option_bool_and_params(params, Value::Str("fetchMarkets".into()), Value::Str("fetchTickersFees".into()), &[Value::Bool(true)]).into_list(); fetchTickersFees = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut uta: bool = false;
         { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(&paramsRequest, Value::Str("fetchMarkets".into()), Value::Str("uta".into()), &[Value::Bool(uta)]).as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsRequest = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if uta {
@@ -4853,7 +4853,7 @@ impl Kucoin {
             fetchContractMarkets = true;
         }
         let mut fetchSpotMarkets: bool = self.in_array(Value::Str("spot".into()), types);
-        fetchTickersFees = Value::Bool(fetchTickersFees.as_bool() == Some(true) && fetchSpotMarkets); // tickers and fees are only fetched for spot markets
+        fetchTickersFees = (fetchTickersFees && fetchSpotMarkets); // tickers and fees are only fetched for spot markets
         let mut promises: Vec<Value> = Vec::new();
         if fetchSpotMarkets {
             promises.push(self.public_get_symbols(&[Value::from(&paramsRequest)]).await);
@@ -4873,7 +4873,7 @@ impl Kucoin {
             //
             promises.push(self.private_get_isolated_symbols(&[Value::from(&paramsRequest)]).await); // isolated margin symbols
         }
-        if fetchTickersFees.as_bool() == Some(true) {
+        if fetchTickersFees {
             //
             //     {
             //         "code": "200000",
@@ -4926,7 +4926,7 @@ impl Kucoin {
             nextIndex = (nextIndex + 2);
             isolatedIndex = (crossIndex + 1);
         }
-        if fetchTickersFees.as_bool() == Some(true) {
+        if fetchTickersFees {
             tickersIndex = nextIndex;
             nextIndex = (nextIndex + 1);
         }
@@ -4948,7 +4948,7 @@ impl Kucoin {
 }) }).into_dict();
         let mut isolatedItems: crate::value::List = self.safe_list_k(&isolatedData, "data", &[Value::from(vec![])]).into_list();
         let mut isolatedById: crate::value::Dict = self.index_by(Value::Arr(isolatedItems), Value::Str("symbol".into())).into_dict();
-        let mut tickersResponse: crate::value::Dict = (if fetchTickersFees.as_bool() == Some(true) { self.safe_dict(&responses, tickersIndex, &[Value::Map({
+        let mut tickersResponse: crate::value::Dict = (if fetchTickersFees { self.safe_dict(&responses, tickersIndex, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) } else { Value::Map({
@@ -5690,7 +5690,7 @@ impl Kucoin {
             let mut accountId: Option<String> = self.safe_string_k_opt(&account, "id", &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(&account, "currency", &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-            let mut type_var: Option<String> = self.safe_string_lower2(&account, Value::Str("type".into()), Value::Str("accountType".into()), &[]).as_str().map(str::to_owned); // main or trade or unified
+            let mut type_var: Option<String> = self.safe_string_lower2_opt(&account, Value::Str("type".into()), Value::Str("accountType".into()), &[]); // main or trade or unified
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));

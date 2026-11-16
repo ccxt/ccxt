@@ -339,7 +339,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         let mut ms: Option<String> = self.safe_string_k_opt(position.clone(), "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(ms.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
         // open positions use "order_type", closed positions (history) use "position_type"
-        let mut rawSide: Option<String> = self.safe_string_upper2(position.clone(), Value::Str("order_type".into()), Value::Str("position_type".into()), &[]).as_str().map(str::to_owned);
+        let mut rawSide: Option<String> = self.safe_string_upper2_opt(position.clone(), Value::Str("order_type".into()), Value::Str("position_type".into()), &[]);
         let mut side: Option<String> = None;
         if (rawSide.as_deref() == Some("LONG")) {
             side = Some("long".to_string());
@@ -1930,13 +1930,13 @@ impl Mudrex {
         let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut candidates: Value = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), Value::from((market).symbol.clone()), &[]);
+            let mut candidates: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), Value::from((market).symbol.clone()), &[]).into_list();
             if (side != Value::Null) {
-                candidates = self.filter_by(candidates, Value::Str("side".into()), side, &[]);
+                candidates = self.filter_by(Value::Arr(candidates), Value::Str("side".into()), side, &[]).into_list();
             }
             let mut numCandidates: i64 = candidates.len() as i64;
             if numCandidates > 0 {
-                let mut found: crate::value::Dict = candidates.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).into_dict();
+                let mut found: crate::value::Dict = candidates.get(0).cloned().unwrap_or(Value::Null).into_dict();
                 positionId = self.safe_string_k_opt(&found, "id", &[]);
             }
         }

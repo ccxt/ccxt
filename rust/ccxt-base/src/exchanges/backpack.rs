@@ -1040,7 +1040,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         let mut code: Option<String> = self.safe_currency_code(coin.map(Value::from).unwrap_or(Value::Null), currency);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(transaction.clone(), "createdAt", &[]));
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "quantity", &[]).as_f64();
-        let mut networkId: Option<String> = self.safe_string_lower2(transaction.clone(), Value::Str("source".into()), Value::Str("blockchain".into()), &[]).as_str().map(str::to_owned);
+        let mut networkId: Option<String> = self.safe_string_lower2_opt(transaction.clone(), Value::Str("source".into()), Value::Str("blockchain".into()), &[]);
         let mut network: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut addressTo: Option<String> = self.safe_string_k_opt(transaction.clone(), "toAddress", &[]);
         let mut addressFrom: Option<String> = self.safe_string_k_opt(transaction.clone(), "fromAddress", &[]);

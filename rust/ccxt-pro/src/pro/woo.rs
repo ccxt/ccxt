@@ -504,10 +504,10 @@ impl Woo {
             if !(self.orderbooks.has(&symbol)) {
                 return;
             }
-            let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-            let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
+            let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+            let mut timestamp: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "timestamp", &[]).as_i64();
             if (timestamp.is_none()) {
-                crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+                orderbook.cache_push(message);
             }  else {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                     let mut ts: Option<i64> = (match __pro_message.get("ts") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
@@ -515,8 +515,8 @@ impl Woo {
                         return true;
                     }
                     if (ts.is_some() && timestamp.is_some() && ts > timestamp) {
-                        self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
-                        client.resolve(orderbook.clone(), topic.as_deref());
+                        self.handle_order_book_message(client.clone(), message.clone(), Value::from(&orderbook));
+                        client.resolve(Value::from(&orderbook), topic.as_deref());
                     }
                  #[allow(unreachable_code)] { false }}));
 match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
@@ -582,12 +582,12 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             }
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             orderbook.reset(snapshot);
-            let mut messages: Value = orderbook.book_field("cache");
+            let mut messages: crate::value::List = orderbook.cache_items();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_712: bool = true;
-                while { if !__for_first_712 { i += 1; } __for_first_712 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageItem: Value = get_value(&messages, &Value::Int(i));
+                while { if !__for_first_712 { i += 1; } __for_first_712 = false; i < (messages.len() as i64) } {
+                let mut messageItem: Value = messages.get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut ts: Option<i64> = self.safe_integer_k(messageItem.clone(), "ts", &[]).as_i64();
                 if (ts.is_none()) {
                     continue;

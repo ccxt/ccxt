@@ -346,7 +346,7 @@ impl crate::exchange::DerivedExchange for Phemex {
             if tradeLength > 4 {
                 id = self.safe_string_opt(trade.clone(), Value::Int((tradeLength - 4)), &[]);
             }
-            side = self.safe_string_lower(trade.clone(), Value::Int((tradeLength - 3)), &[]).as_str().map(str::to_owned);
+            side = self.safe_string_lower_opt(trade.clone(), Value::Int((tradeLength - 3)), &[]);
             priceString = self.safe_string(trade.clone(), Value::Int((tradeLength - 2)), &[]);
             amountString = self.safe_string(trade.clone(), Value::Int((tradeLength - 1)), &[]);
             let mut priceAmount: Value = get_value(&trade, &Value::Int((tradeLength - 2)));
@@ -5696,12 +5696,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut defaultNetworks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "defaultNetworks", &[]).into_dict();
-        let mut defaultNetwork: Option<String> = self.safe_string_upper(&defaultNetworks, code.clone(), &[]).as_str().map(str::to_owned);
+        let mut defaultNetwork: Option<String> = self.safe_string_upper_opt(&defaultNetworks, code.clone(), &[]);
         let mut networks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut network: Option<String> = self.safe_string_upper2(params.clone(), Value::Str("network".into()), Value::Str("chainName".into()), &[defaultNetwork.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
+        let mut network: Option<String> = self.safe_string_upper2_opt(params.clone(), Value::Str("network".into()), Value::Str("chainName".into()), &[defaultNetwork.map(Value::from).unwrap_or(Value::Null)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("network".into()), &[]).into_dict();
         if (network.is_some()) {
             network = self.safe_string_opt(&networks, self.safe_string(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]), &[Value::from(network.as_deref())]);

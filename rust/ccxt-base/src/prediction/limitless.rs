@@ -2457,9 +2457,9 @@ impl Limitless {
         //         "lastTradePrice": "0.161"
         //     }
         //
-        let mut decimals: Value = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]);
+        let mut decimals: i64 = self.safe_integer_k(self.options.clone(), "usdcDecimals", &[Value::Int(6)]).as_i64().unwrap_or(6);
         // sizes are scaled by 10^decimals, USDC uses 6 decimals
-        let mut scaleStr: Option<String> = self.parse_precision(&[Value::from(self.number_to_string((match &(decimals) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null })))]).as_str().map(str::to_owned);
+        let mut scaleStr: Option<String> = self.parse_precision(&[Value::from(self.number_to_string(Value::Int(-decimals)))]).as_str().map(str::to_owned);
         let mut outcomeLabel: Option<String> = self.safe_string_lower_k_opt(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "outcomeLabel", &[Value::Str("yes".into())]);
         let mut isYes: bool = outcomeLabel.as_deref() != Some("no");
         let mut rawBids: crate::value::List = self.safe_list_k(&response, "bids", &[Value::from(vec![])]).into_list();

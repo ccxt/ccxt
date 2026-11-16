@@ -2311,7 +2311,7 @@ impl Upbit {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         let mut customType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("ordType".into()), Value::Str("ord_type".into()), &[]);
         let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
-        let mut timeInForce: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_lower2_opt(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut selfTradePrevention: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), &[]);
         let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         if postOnly && (selfTradePrevention.is_some()) {
@@ -2483,7 +2483,7 @@ impl Upbit {
         let mut customType: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("newOrdType".into()), Value::Str("new_ord_type".into()), &[]);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "newClientOrderId", &[]);
         let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
-        let mut timeInForce: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), &[]).as_str().map(str::to_owned);
+        let mut timeInForce: Option<String> = self.safe_string_lower2_opt(params.clone(), Value::Str("newTimeInForce".into()), Value::Str("new_time_in_force".into()), &[]);
         let mut selfTradePrevention: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("new_smp_type".into()), &[]);
         if postOnly && (selfTradePrevention.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " editOrder() does not support post_only and selfTradePrevention simultaneously.")));
@@ -3161,7 +3161,7 @@ impl Upbit {
         if (code.as_str() != Some("KRW")) {
             self.check_address(&[address.clone(), code, tagResolved.clone().map(Value::from).unwrap_or(Value::Null)]);
             // 2023-05-23 Change to required parameters for digital assets
-            let mut network: Option<String> = self.safe_string_upper2(Value::from(&paramsTag), Value::Str("network".into()), Value::Str("net_type".into()), &[]).as_str().map(str::to_owned);
+            let mut network: Option<String> = self.safe_string_upper2_opt(Value::from(&paramsTag), Value::Str("network".into()), Value::Str("net_type".into()), &[]);
             if (network.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires a network argument")));
             }

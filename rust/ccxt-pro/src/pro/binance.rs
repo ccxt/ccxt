@@ -1568,13 +1568,13 @@ impl Binance {
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             orderbook.reset(snapshot);
             // unroll the accumulated deltas
-            let mut messages: Value = orderbook.book_field("cache");
+            let mut messages: crate::value::List = orderbook.cache_items();
             orderbook.set_book_meta("cache", Value::from(vec![]));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_58: bool = true;
-                while { if !__for_first_58 { i += 1; } __for_first_58 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                let mut messageItem: Value = self.safe_value(messages.clone(), Value::Int(i), &[]);
+                while { if !__for_first_58 { i += 1; } __for_first_58 = false; i < (messages.len() as i64) } {
+                let mut messageItem: Value = self.safe_value(&messages, Value::Int(i), &[]);
                 let mut U: Option<i64> = self.safe_integer_k(messageItem.clone(), "U", &[]).as_i64();
                 let mut u: Option<i64> = self.safe_integer_k(messageItem.clone(), "u", &[]).as_i64();
                 if (U.is_none()) || (u.is_none()) {
@@ -1690,11 +1690,11 @@ impl Binance {
         if !(self.orderbooks.has(&symbol)) {
             return;
         }
-        let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-        let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "nonce", &[]).as_i64();
         if (nonce.is_none()) {
             // 2. Buffer the events you receive from the stream.
-            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+            orderbook.cache_push(message);
         }  else {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut U: Option<i64> = (match __pro_message.get("U") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
@@ -1710,7 +1710,7 @@ impl Binance {
                     // spot
                     // 4. Drop any event where u is <= lastUpdateId in the snapshot
                     if (u.is_some() && nonce.is_some() && u > nonce) {
-                        let mut timestamp: Option<i64> = self.safe_integer_k(orderbook.clone(), "timestamp", &[]).as_i64();
+                        let mut timestamp: Option<i64> = self.safe_integer_k(Value::from(&orderbook), "timestamp", &[]).as_i64();
                         let mut conditional: Option<bool> = None;
                         if (timestamp.is_none()) {
                             // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1
@@ -1720,10 +1720,10 @@ impl Binance {
                             conditional = Some(((if let Some(__l) = U { Some(__l - 1) } else { None })) == nonce);
                         }
                         if (conditional == Some(true)) {
-                            self.handle_order_book_message(client.clone(), message.clone(), orderbook.clone());
-                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            self.handle_order_book_message(client.clone(), message.clone(), Value::from(&orderbook));
+                            let mut newNonce: i64 = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                             if (nonce.is_some() && nonce < Some(newNonce)) {
-                                client.resolve(orderbook.clone(), messageHash.as_str());
+                                client.resolve(Value::from(&orderbook), messageHash.as_str());
                             }
                         }  else {
                             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
@@ -1739,10 +1739,10 @@ impl Binance {
                         // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
                         // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3
                         if ((U.is_some() && nonce.is_some() && U <= nonce)) || (pu == nonce) {
-                            self.handle_order_book_message(client.clone(), message, orderbook.clone());
-                            let mut newNonce: i64 = self.safe_integer_k(orderbook.clone(), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
+                            self.handle_order_book_message(client.clone(), message, Value::from(&orderbook));
+                            let mut newNonce: i64 = self.safe_integer_k(Value::from(&orderbook), "nonce", &[Value::Int(0)]).as_i64().unwrap_or(0);
                             if (nonce.is_some() && nonce <= Some(newNonce)) {
-                                client.resolve(orderbook.clone(), messageHash.as_str());
+                                client.resolve(Value::from(&orderbook), messageHash.as_str());
                             }
                         }  else {
                             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
@@ -2393,7 +2393,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut symbolValue: Value = Value::from((market).symbol.clone());
+        let mut symbolValue: String = (market).symbol.clone();
         let stockparamsStockVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("watchOHLCV".into()), Value::Str("stock".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut stock: Value = stockparamsStockVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2404,8 +2404,8 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
             std::sync::Arc::make_mut(&mut paramsStock).insert("stock".into(), Value::Bool(true));
         }
         std::sync::Arc::make_mut(&mut paramsStock).insert("callerMethodName".into(), Value::Str("watchOHLCV".into()));
-        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![symbolValue.clone(), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsStock)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        return get_value(&crate::value::KeyRead::read(&&result, &symbolValue), &timeframe);
+        let mut result: crate::types::OHLCVsBySymbol = (match self.watch_ohlcv_for_symbols((Value::from(vec![Value::from(vec![Value::from(symbolValue.as_str()), timeframe.clone()])])).to_str_vec_vec(), since.as_i64(), limit.as_i64(), Value::Dict(paramsStock)).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        return get_value(&crate::value::KeyRead::key_read(&&result, symbolValue.as_str()), &timeframe);
         Value::Null
         }).await?))
     }

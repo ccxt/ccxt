@@ -231,7 +231,7 @@ impl crate::exchange::DerivedExchange for Modetrade {
         let mut price: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_price".into()), Value::Str("price".into()), &[]);
         let mut amount: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_quantity".into()), Value::Str("quantity".into()), &[]); // This is base amount
         let mut cost: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_amount".into()), Value::Str("amount".into()), &[]); // This is quote amount
-        let mut orderType: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("order_type".into()), Value::Str("type".into()), &[]).as_str().map(str::to_owned);
+        let mut orderType: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("order_type".into()), Value::Str("type".into()), &[]);
         let mut status: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
         let mut success: Option<bool> = self.safe_bool_k(order.clone(), "success", &[]).as_bool();
         if (success.is_some()) {
@@ -3299,7 +3299,7 @@ impl Modetrade {
         if (type_var == Value::Null) {
             return None;
         }
-        return self.safe_string_lower(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_lower_opt(&types, type_var.clone(), &[type_var.clone()]);
 }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: Option<&str>, side: Option<&str>, mut amount: Value, optional_args: &[Value]) -> Value {

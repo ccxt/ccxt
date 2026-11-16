@@ -411,7 +411,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let mut countryDisabled: bool = self.safe_bool_k(currency.clone(), "country-disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut visible: bool = self.safe_bool_k(currency.clone(), "visible", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut state: Option<String> = self.safe_string_k_opt(currency.clone(), "state", &[]);
-        let mut active: Value = Value::Bool(((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true)));
+        let mut active: bool = ((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true));
         let mut name: Option<String> = self.safe_string_k_opt(currency.clone(), "display-name", &[]);
         let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "withdraw-precision", &[])]), &[]).as_f64();
         return self.safe_currency_structure(Value::Map({
@@ -420,7 +420,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Str("crypto".into()));
         m.insert("name".to_string(), name.map(Value::from).unwrap_or(Value::Null));
-        m.insert("active".to_string(), active);
+        m.insert("active".to_string(), Value::Bool(active));
         m.insert("deposit".to_string(), depositEnabled.map_or(Value::Null, Value::Bool));
         m.insert("withdraw".to_string(), withdrawEnabled.map_or(Value::Null, Value::Bool));
         m.insert("fee".to_string(), Value::Null);
@@ -3287,7 +3287,7 @@ impl Bittrade {
         if (network.is_some()) {
             network = self.safe_string_opt(self.networkAliases.clone(), Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // accepts aliases like ETH for ERC20
         }
-        network = self.safe_string_lower(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), Value::from(network.as_deref()), &[Value::from(network.as_deref())]).as_str().map(str::to_owned); // handle ETH>ERC20 alias
+        network = self.safe_string_lower_opt(self.options.as_map().and_then(|__m| __m.get("networks")).cloned().unwrap_or(Value::Null), Value::from(network.as_deref()), &[Value::from(network.as_deref())]); // handle ETH>ERC20 alias
         if (network.is_some()) {
             // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
             if (network.as_deref() == Some("erc20")) {

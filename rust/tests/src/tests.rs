@@ -2164,11 +2164,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_true(&exchange.is_dictionary(entry.clone())) {
             return Value::Bool(true);
         }
-        let mut marginMode: Option<String> = exchange.safe_string(&entry, Value::Str("marginMode".into()), &[]).as_str().map(str::to_owned);
+        let mut marginMode: Option<String> = exchange.safe_string_opt(&entry, Value::Str("marginMode".into()), &[]);
         if (marginMode.as_deref() != Some("isolated")) {
             return Value::Bool(true);
         }
-        let mut side: Option<String> = exchange.safe_string(&entry, Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = exchange.safe_string_opt(&entry, Value::Str("side".into()), &[]);
         let mut entryPrice: Option<f64> = exchange.safe_number(&entry, Value::Str("entryPrice".into()), &[]).as_f64();
         let mut liquidationPrice: Option<f64> = exchange.safe_number(&entry, Value::Str("liquidationPrice".into()), &[]).as_f64();
         let mut contracts: Option<f64> = exchange.safe_number(&entry, Value::Str("contracts".into()), &[]).as_f64();
@@ -2588,23 +2588,23 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if (disabledString != "") {
                     continue;
                 }
-                let mut isDisabledCSharp: Option<String> = exchange.safe_string(&result, Value::Str("disabledCS".into()), &[]).as_str().map(str::to_owned);
+                let mut isDisabledCSharp: Option<String> = exchange.safe_string_opt(&result, Value::Str("disabledCS".into()), &[]);
                 if (isDisabledCSharp.is_some()) && (self.lang.as_str() == Some("C#")) {
                     continue;
                 }
-                let mut isDisabledGo: Option<String> = exchange.safe_string(&result, Value::Str("disabledGO".into()), &[]).as_str().map(str::to_owned);
+                let mut isDisabledGo: Option<String> = exchange.safe_string_opt(&result, Value::Str("disabledGO".into()), &[]);
                 if (isDisabledGo.is_some()) && (self.lang.as_str() == Some("GO")) {
                     continue;
                 }
-                let mut isDisabledJava: Option<String> = exchange.safe_string(&result, Value::Str("disabledJava".into()), &[]).as_str().map(str::to_owned);
+                let mut isDisabledJava: Option<String> = exchange.safe_string_opt(&result, Value::Str("disabledJava".into()), &[]);
                 if (isDisabledJava.is_some()) && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
-                let mut isDisabledPhp: Option<String> = exchange.safe_string(&result, Value::Str("disabledPHP".into()), &[]).as_str().map(str::to_owned);
+                let mut isDisabledPhp: Option<String> = exchange.safe_string_opt(&result, Value::Str("disabledPHP".into()), &[]);
                 if (isDisabledPhp.is_some()) && (self.lang.as_str() == Some("PHP")) {
                     continue;
                 }
-                let mut isDisabledRust: Option<String> = exchange.safe_string(&result, Value::Str("disabledRS".into()), &[]).as_str().map(str::to_owned);
+                let mut isDisabledRust: Option<String> = exchange.safe_string_opt(&result, Value::Str("disabledRS".into()), &[]);
                 if (isDisabledRust.is_some()) && (self.lang.as_str() == Some("RUST")) {
                     continue;
                 }
@@ -2614,13 +2614,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     m
                 })]);
                 exchange.extend_exchange_options(testExchangeOptions);
-                let mut apiKey: Value = exchange.safe_string(&result, Value::Str("apiKey".into()), &[]);
-                if !is_true(&exchange.is_empty_string(apiKey.clone())) {
-                    ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), to_string_val(&apiKey));
+                let mut apiKey: Option<String> = exchange.safe_string_opt(&result, Value::Str("apiKey".into()), &[]);
+                if !is_true(&exchange.is_empty_string(Value::from(apiKey.as_deref()))) {
+                    ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), Value::Str(format!("{}", apiKey.as_deref().unwrap_or("null")).into()));
                 }
-                let mut secret: Value = exchange.safe_string(&result, Value::Str("secret".into()), &[]);
-                if !is_true(&exchange.is_empty_string(secret.clone())) {
-                    ccxt::set_value(&mut exchange, &Value::Str("secret".into()), to_string_val(&secret));
+                let mut secret: Option<String> = exchange.safe_string_opt(&result, Value::Str("secret".into()), &[]);
+                if !is_true(&exchange.is_empty_string(Value::from(secret.as_deref()))) {
+                    ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str(format!("{}", secret.as_deref().unwrap_or("null")).into()));
                 }
                 let mut skipKeys: Value = self.effective_skip_keys(exchange.clone(), exchangeData.clone(), result.clone());
                 self.test_ws_statically(exchange.clone(), method.clone(), skipKeys, result).await;
@@ -2782,25 +2782,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         })]);
         // read apiKey/secret from the test file
-        let mut apiKey: Value = exchange.safe_string(&exchangeData, Value::Str("apiKey".into()), &[]);
-        if !is_true(&exchange.is_empty_string(apiKey.clone())) {
+        let mut apiKey: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("apiKey".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(apiKey.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), Value::Str(format!("{}", apiKey.as_deref().unwrap_or("null")).into()));
         }
-        let mut secret: Value = exchange.safe_string(&exchangeData, Value::Str("secret".into()), &[]);
-        if !is_true(&exchange.is_empty_string(secret.clone())) {
+        let mut secret: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("secret".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(secret.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str(format!("{}", secret.as_deref().unwrap_or("null")).into()));
         }
-        let mut privateKey: Value = exchange.safe_string(&exchangeData, Value::Str("privateKey".into()), &[]);
-        if !is_true(&exchange.is_empty_string(privateKey.clone())) {
+        let mut privateKey: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("privateKey".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(privateKey.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str(format!("{}", privateKey.as_deref().unwrap_or("null")).into()));
         }
-        let mut walletAddress: Value = exchange.safe_string(&exchangeData, Value::Str("walletAddress".into()), &[]);
-        if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
+        let mut walletAddress: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("walletAddress".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(walletAddress.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), Value::Str(format!("{}", walletAddress.as_deref().unwrap_or("null")).into()));
         }
         let mut accounts: Value = exchange.safe_list(&exchangeData, Value::Str("accounts".into()), &[]);
         if (accounts != Value::Null) && (accounts != Value::Null) {
@@ -2861,7 +2861,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 if isDisabledJava && (self.lang.as_str() == Some("java")) {
                     continue;
                 }
-                let mut type_var: Option<String> = exchange.safe_string(&exchangeData, Value::Str("outputType".into()), &[]).as_str().map(str::to_owned);
+                let mut type_var: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("outputType".into()), &[]);
                 let mut skipKeys: Value = self.effective_skip_keys(exchange.clone(), exchangeData.clone(), result.clone());
                 match std::panic::AssertUnwindSafe(self.test_request_statically(exchange.clone(), method.clone(), result, type_var.map(Value::from).unwrap_or(Value::Null), skipKeys)).catch_unwind().await {
             Ok(_) => {},
@@ -2893,25 +2893,25 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut testName = get_arg(optional_args, 0, Value::Null);
         let mut exchange: Value = self.init_offline_exchange(exchangeName, &[]);
         // read apiKey/secret from the test file
-        let mut apiKey: Value = exchange.safe_string(&exchangeData, Value::Str("apiKey".into()), &[]);
-        if !is_true(&exchange.is_empty_string(apiKey.clone())) {
+        let mut apiKey: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("apiKey".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(apiKey.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), to_string_val(&apiKey));
+            ccxt::set_value(&mut exchange, &Value::Str("apiKey".into()), Value::Str(format!("{}", apiKey.as_deref().unwrap_or("null")).into()));
         }
-        let mut secret: Value = exchange.safe_string(&exchangeData, Value::Str("secret".into()), &[]);
-        if !is_true(&exchange.is_empty_string(secret.clone())) {
+        let mut secret: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("secret".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(secret.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), to_string_val(&secret));
+            ccxt::set_value(&mut exchange, &Value::Str("secret".into()), Value::Str(format!("{}", secret.as_deref().unwrap_or("null")).into()));
         }
-        let mut privateKey: Value = exchange.safe_string(&exchangeData, Value::Str("privateKey".into()), &[]);
-        if !is_true(&exchange.is_empty_string(privateKey.clone())) {
+        let mut privateKey: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("privateKey".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(privateKey.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), to_string_val(&privateKey));
+            ccxt::set_value(&mut exchange, &Value::Str("privateKey".into()), Value::Str(format!("{}", privateKey.as_deref().unwrap_or("null")).into()));
         }
-        let mut walletAddress: Value = exchange.safe_string(&exchangeData, Value::Str("walletAddress".into()), &[]);
-        if !is_true(&exchange.is_empty_string(walletAddress.clone())) {
+        let mut walletAddress: Option<String> = exchange.safe_string_opt(&exchangeData, Value::Str("walletAddress".into()), &[]);
+        if !is_true(&exchange.is_empty_string(Value::from(walletAddress.as_deref()))) {
             // c# to string requirement
-            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), to_string_val(&walletAddress));
+            ccxt::set_value(&mut exchange, &Value::Str("walletAddress".into()), Value::Str(format!("{}", walletAddress.as_deref().unwrap_or("null")).into()));
         }
         let mut methods: Value = exchange.safe_value(&exchangeData, Value::Str("methods".into()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3550,7 +3550,7 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitFapiAlgoOrderRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut implicitFapiClientAlgoId: Option<String> = exchange.safe_string(&implicitFapiAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]).as_str().map(str::to_owned);
+            let mut implicitFapiClientAlgoId: Option<String> = exchange.safe_string_opt(&implicitFapiAlgoOrderRequest, Value::Str("clientAlgoId".into()), &[]);
             assert((implicitFapiClientAlgoId.is_some()), &[Value::Str("binance - implicit fapi algo order must inject clientAlgoId".into())]);
             assert(((if let (Some(__h), Some(__n)) = (implicitFapiClientAlgoId.as_deref(), (swapId).as_str()) { __h.starts_with(__n) } else { false })), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit fapi clientAlgoId: ", implicitFapiClientAlgoId.as_deref().unwrap_or("null")).into()), " does not start with swapId").into()), swapId).into())]);
             // the papi order endpoints resolve the broker id from the path, not from the api section
@@ -3810,9 +3810,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOcoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut ocoListClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut ocoAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("aboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut ocoBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOcoListRequest, Value::Str("belowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut ocoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOcoListRequest, Value::Str("listClientOrderId".into()), &[]);
+            let mut ocoAboveClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOcoListRequest, Value::Str("aboveClientOrderId".into()), &[]);
+            let mut ocoBelowClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOcoListRequest, Value::Str("belowClientOrderId".into()), &[]);
             assert((ocoListClientOrderId.is_some()), &[Value::Str("binance - implicit oco list must inject listClientOrderId".into())]);
             assert(((if let (Some(__h), Some(__n)) = (ocoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false })), &[Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "binance - implicit oco listClientOrderId: ", ocoListClientOrderId.as_deref().unwrap_or("null")).into()), " does not start with spotId").into()), spotId).into())]);
             assert(((ocoAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (ocoAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oco aboveClientOrderId must inject the spot broker id".into())]);
@@ -3841,9 +3841,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOtocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut otocoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut otocoPendingAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut otocoPendingBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOtocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otocoWorkingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtocoListRequest, Value::Str("workingClientOrderId".into()), &[]);
+            let mut otocoPendingAboveClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]);
+            let mut otocoPendingBelowClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]);
             assert(((otocoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco workingClientOrderId must inject the spot broker id".into())]);
             assert(((otocoPendingAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoPendingAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco pendingAboveClientOrderId must inject the spot broker id".into())]);
             assert(((otocoPendingBelowClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otocoPendingBelowClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit otoco pendingBelowClientOrderId must inject the spot broker id".into())]);
@@ -3865,8 +3865,8 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitSapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut sapiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut sapiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitSapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut sapiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string_opt(&implicitSapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
+            let mut sapiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string_opt(&implicitSapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
             assert(((sapiMarginOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (sapiMarginOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit sapi margin oco limitClientOrderId must inject the spot broker id".into())]);
             assert(((sapiMarginOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (sapiMarginOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit sapi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitPapiMarginOcoRequest: Value = Value::Map({
@@ -3887,10 +3887,10 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitPapiMarginOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut papiMarginOcoListClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut papiMarginOcoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitPapiMarginOcoRequest, Value::Str("listClientOrderId".into()), &[]);
             assert(((papiMarginOcoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco listClientOrderId must inject the spot broker id".into())]);
-            let mut papiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut papiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitPapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut papiMarginOcoLimitClientOrderId: Option<String> = exchange.safe_string_opt(&implicitPapiMarginOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
+            let mut papiMarginOcoStopClientOrderId: Option<String> = exchange.safe_string_opt(&implicitPapiMarginOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
             assert(((papiMarginOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco limitClientOrderId must inject the spot broker id".into())]);
             assert(((papiMarginOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (papiMarginOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit papi margin oco stopClientOrderId must inject the spot broker id".into())]);
             let mut implicitLegacyOcoRequest: Value = Value::Map({
@@ -3911,9 +3911,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitLegacyOcoRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut legacyOcoListClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut legacyOcoLimitClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("limitClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut legacyOcoStopClientOrderId: Option<String> = exchange.safe_string(&implicitLegacyOcoRequest, Value::Str("stopClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut legacyOcoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitLegacyOcoRequest, Value::Str("listClientOrderId".into()), &[]);
+            let mut legacyOcoLimitClientOrderId: Option<String> = exchange.safe_string_opt(&implicitLegacyOcoRequest, Value::Str("limitClientOrderId".into()), &[]);
+            let mut legacyOcoStopClientOrderId: Option<String> = exchange.safe_string_opt(&implicitLegacyOcoRequest, Value::Str("stopClientOrderId".into()), &[]);
             assert(((legacyOcoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco listClientOrderId must inject the spot broker id".into())]);
             assert(((legacyOcoLimitClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoLimitClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco limitClientOrderId must inject the spot broker id".into())]);
             assert(((legacyOcoStopClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (legacyOcoStopClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit legacy oco stopClientOrderId must inject the spot broker id".into())]);
@@ -3938,9 +3938,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOtoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut otoListClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut otoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut otoPendingClientOrderId: Option<String> = exchange.safe_string(&implicitOtoListRequest, Value::Str("pendingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut otoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtoListRequest, Value::Str("listClientOrderId".into()), &[]);
+            let mut otoWorkingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtoListRequest, Value::Str("workingClientOrderId".into()), &[]);
+            let mut otoPendingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOtoListRequest, Value::Str("pendingClientOrderId".into()), &[]);
             assert(((otoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto listClientOrderId must inject the spot broker id".into())]);
             assert(((otoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto workingClientOrderId must inject the spot broker id".into())]);
             assert(((otoPendingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (otoPendingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit oto pendingClientOrderId must inject the spot broker id".into())]);
@@ -3965,9 +3965,9 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOpoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut opoListClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut opoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut opoPendingClientOrderId: Option<String> = exchange.safe_string(&implicitOpoListRequest, Value::Str("pendingClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpoListRequest, Value::Str("listClientOrderId".into()), &[]);
+            let mut opoWorkingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpoListRequest, Value::Str("workingClientOrderId".into()), &[]);
+            let mut opoPendingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpoListRequest, Value::Str("pendingClientOrderId".into()), &[]);
             assert(((opoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo listClientOrderId must inject the spot broker id".into())]);
             assert(((opoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo workingClientOrderId must inject the spot broker id".into())]);
             assert(((opoPendingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opoPendingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opo pendingClientOrderId must inject the spot broker id".into())]);
@@ -3995,10 +3995,10 @@ if _try_result.is_err() {
 if _try_result.is_err() {
                 implicitOpocoListRequest = self.urlencoded_to_dict(get_value(&exchange, &Value::Str("last_request_body".into())));
             }
-            let mut opocoListClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("listClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut opocoWorkingClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("workingClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut opocoPendingAboveClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]).as_str().map(str::to_owned);
-            let mut opocoPendingBelowClientOrderId: Option<String> = exchange.safe_string(&implicitOpocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]).as_str().map(str::to_owned);
+            let mut opocoListClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpocoListRequest, Value::Str("listClientOrderId".into()), &[]);
+            let mut opocoWorkingClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpocoListRequest, Value::Str("workingClientOrderId".into()), &[]);
+            let mut opocoPendingAboveClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpocoListRequest, Value::Str("pendingAboveClientOrderId".into()), &[]);
+            let mut opocoPendingBelowClientOrderId: Option<String> = exchange.safe_string_opt(&implicitOpocoListRequest, Value::Str("pendingBelowClientOrderId".into()), &[]);
             assert(((opocoListClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoListClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco listClientOrderId must inject the spot broker id".into())]);
             assert(((opocoWorkingClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoWorkingClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco workingClientOrderId must inject the spot broker id".into())]);
             assert(((opocoPendingAboveClientOrderId.is_some()) && ((if let (Some(__h), Some(__n)) = (opocoPendingAboveClientOrderId.as_deref(), (spotId).as_str()) { __h.starts_with(__n) } else { false }))), &[Value::Str("binance - implicit opoco pendingAboveClientOrderId must inject the spot broker id".into())]);

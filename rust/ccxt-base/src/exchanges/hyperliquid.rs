@@ -1024,14 +1024,13 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.implode_hostname(apiUrl.map(Value::from).unwrap_or(Value::Null)), Value::Str("/".into())).into()), path);
         let mut isPost: bool = method.as_str() == Some("POST");
-        let mut postHeaders: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
-            m
-        });
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPost {
-            requestHeaders = postHeaders;
+            requestHeaders = Some(crate::value::Dict::new({
+                let mut m = indexmap::IndexMap::new();
+                    m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
+                m
+            }));
         }
         let mut requestBody: Option<String> = None;
         if isPost {
@@ -1042,7 +1041,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 
@@ -5843,19 +5842,19 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // the first symbol sets the dex (undefined for the main dex); every other symbol must match it,
         // so a mix of main-dex and HIP-3 symbols throws instead of silently dropping one side
         let mut firstMarket: crate::types::Market = (match self.market((symbols.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut dexName: Value = self.get_dex_from_hip3_symbol(Some(&firstMarket)).map(Value::from).unwrap_or(Value::Null);
+        let mut dexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&firstMarket));
         {
                         let mut i: i64 = 1;
             let mut __for_first_825: bool = true;
             while { if !__for_first_825 { i += 1; } __for_first_825 = false; i < symbolsLength } {
             let mut market: crate::types::Market = (match self.market((symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut currentDexName: Option<String> = self.get_dex_from_hip3_symbol(Some(&market));
-            if ((currentDexName.as_deref() != dexName.as_str())) {
+            if (currentDexName != dexName) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), " only supports symbols from one DEX at a time for HIP3 markets")));
             }
         }
         }
-        return dexName.as_str().map(str::to_owned);
+        return dexName;
 }
 
 /*
@@ -6009,14 +6008,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("leverage".to_string(), Value::from(leverage));
             m
         });
-        let mut vaultAddress: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params2(&params2, Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().cloned().unwrap_or_default(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        if (vaultAddress != Value::Null) {
-            if (vaultAddress.as_str().unwrap_or("").starts_with("0x")) {
-                vaultAddress = vaultAddress.as_str().map(|__s| Value::Str(__s.replace("0x", "").into())).unwrap_or_else(|| vaultAddress.clone());
-            }
-        }
-        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_str(), None).into_dict();
+        let mut vaultAddress: Option<String> = None;
+        { let __destr_tmp = self.handle_option_string_and_params2(&params2, Value::Str("setMarginMode".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).into_list(); vaultAddress = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); params2 = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        vaultAddress = self.format_vault_address(vaultAddress.as_deref());
+        let mut signature: crate::value::Dict = self.sign_l1_action(Value::Map(updateAction.clone()), Value::from(nonce), vaultAddress.as_deref(), None).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Map(updateAction));
@@ -6024,8 +6019,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("signature".to_string(), Value::Dict(signature));
             m
         });
-        if (vaultAddress != Value::Null) {
-            request.insert("vaultAddress".into(), vaultAddress);
+        if (vaultAddress.is_some()) {
+            request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
         let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
         return response;
@@ -6166,15 +6161,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut asset: Option<i64> = self.parse_to_int(Value::from((market).base_id.as_deref()));
-        let mut szAbs: Value = Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.amount_to_precision(symbol, amount)), &Value::Str("1000000".into()))));
-        let mut sz: Value = (if (type_var.as_str() == Some("reduce")) { (match &(szAbs) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { szAbs });
+        let mut szAbs: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.amount_to_precision(symbol, amount)), &Value::Str("1000000".into())));
+        let mut sz: Option<i64> = (if (type_var.as_str() == Some("reduce")) { (if let Some(__v) = szAbs { Some(-__v) } else { None }) } else { szAbs });
         let mut nonce: i64 = self.incrementing_nonce();
         let mut updateAction: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("type".to_string(), Value::Str("updateIsolatedMargin".into()));
                 m.insert("asset".to_string(), Value::from(asset));
                 m.insert("isBuy".to_string(), Value::Bool(true));
-                m.insert("ntli".to_string(), sz);
+                m.insert("ntli".to_string(), Value::from(sz));
             m
         });
         let mut vaultAddressOption: Option<String> = self.handle_option_string_and_params2(params, Value::Str("modifyMargin".into()), Value::Str("vaultAddress".into()), Value::Str("subAccountAddress".into()), &[]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);

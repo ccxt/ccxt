@@ -2196,12 +2196,12 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut cachedInfo: Value = self.safe_dict_k(self.options.clone(), "exchangeInfo", &[]);
-        let mut response: Value = cachedInfo.clone();
-        if (cachedInfo != Value::Null) {
+        let mut cachedInfo: Option<crate::value::Dict> = self.safe_dict_k(self.options.clone(), "exchangeInfo", &[]).into_opt_dict();
+        let mut response: Option<crate::value::Dict> = cachedInfo.clone();
+        if (cachedInfo.is_some()) {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("exchangeInfo".into(), Value::Null); }; // reset it to avoid using old cached data
         }  else {
-            response = self.common_get_api_v1_exchange_info(&[params]).await;
+            response = self.common_get_api_v1_exchange_info(&[params]).await.into_opt_dict();
         }
         //
         //    {
@@ -2331,8 +2331,8 @@ impl Toobit {
         //            },
         //          ...
         //
-        let mut symbols: crate::value::List = self.safe_list_k(response.clone(), "symbols", &[Value::from(vec![])]).into_list();
-        let mut contracts: crate::value::List = self.safe_list_k(response, "contracts", &[Value::from(vec![])]).into_list();
+        let mut symbols: crate::value::List = self.safe_list_k(&response, "symbols", &[Value::from(vec![])]).into_list();
+        let mut contracts: crate::value::List = self.safe_list_k(&response, "contracts", &[Value::from(vec![])]).into_list();
         let mut all: crate::value::List = self.array_concat(&symbols, &contracts).into_list();
         let mut result: Vec<Value> = Vec::new();
         {

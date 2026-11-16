@@ -485,7 +485,7 @@ impl crate::exchange::DerivedExchange for Xt {
             }
             postOnly = Some(timeInForce.as_deref() == Some("PO"));
         }
-        let mut side: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("side".into()), Value::Str("orderSide".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("side".into()), Value::Str("orderSide".into()), &[]);
         if (side.is_none()) {
             // the stop loss and take profit entries carry only the position
             // side, they close the position, so a long position closes with a
@@ -1413,7 +1413,7 @@ impl crate::exchange::DerivedExchange for Xt {
         // {"returnCode":1,"msgInfo":"failure","error":{"code":"insufficient_balance","msg":"insufficient balance","args":[]},"result":null}
         //
         //
-        let mut status: Option<String> = self.safe_string_upper2(response.clone(), Value::Str("msgInfo".into()), Value::Str("mc".into()), &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_upper2_opt(response.clone(), Value::Str("msgInfo".into()), Value::Str("mc".into()), &[]);
         if (status.is_some()) && (status.as_deref() != Some("SUCCESS")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             let mut error: crate::value::Dict = self.safe_dict_k(response.clone(), "error", &[Value::Map({

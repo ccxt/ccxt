@@ -250,7 +250,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id(Some(&market)).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
@@ -327,7 +327,7 @@ impl Bithumb {
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut streamMarketId: Value = Value::Null;
             if isGenerationTwo {
-                streamMarketId = self.parent.get_gen2_market_id((market).raw.clone());
+                streamMarketId = self.parent.get_gen2_market_id(Some(&market));
             }  else {
                 streamMarketId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base.as_str()), Value::Str("_".into())).into()), Value::from((market).quote.as_str())).into());
             }
@@ -625,7 +625,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id(Some(&market)).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), Value::from(self.uuid(&[])));
@@ -847,7 +847,7 @@ impl Bithumb {
             m
         });
         if isGenerationTwo {
-            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id((market).raw.clone()).as_str().map(str::to_owned);
+            let mut marketIdRequest: Option<String> = self.parent.get_gen2_market_id(Some(&market)).as_str().map(str::to_owned);
             request = Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("ticket".to_string(), Value::from(self.uuid(&[])));

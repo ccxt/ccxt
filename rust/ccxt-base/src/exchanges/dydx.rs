@@ -1809,7 +1809,7 @@ impl Dydx {
                 m.insert("TRAILING_STOP".to_string(), Value::Str("MARKET".into()));
             m
         });
-        return self.safe_string_upper(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_upper_opt(&types, type_var.clone(), &[type_var.clone()]);
 }
 
 /*

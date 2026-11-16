@@ -917,8 +917,8 @@ impl Htx {
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
             let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
-            let mut messages: Value = orderbook.book_field("cache");
-            let mut firstMessage: crate::value::Dict = self.safe_dict(messages.clone(), Value::Int(0), &[Value::Map({
+            let mut messages: crate::value::List = orderbook.cache_items();
+            let mut firstMessage: crate::value::Dict = self.safe_dict(&messages, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -960,8 +960,8 @@ impl Htx {
                 {
                                         let mut i: i64 = 0;
                     let mut __for_first_384: bool = true;
-                    while { if !__for_first_384 { i += 1; } __for_first_384 = false; (i as f64) < get_array_length(&messages).as_f64().unwrap_or(f64::NAN) } {
-                    self.handle_order_book_message(client.clone(), get_value(&messages, &Value::Int(i)));
+                    while { if !__for_first_384 { i += 1; } __for_first_384 = false; i < (messages.len() as i64) } {
+                    self.handle_order_book_message(client.clone(), messages.get(i as usize).cloned().unwrap_or(Value::Null));
                 }
                 }
                 orderbook.set_book_meta("cache", Value::from(vec![]));
@@ -1224,12 +1224,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     m
 }), Value::from(limit)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut orderbook: Value = Value::from(self.orderbooks.at(&symbol));
-        if (event.is_none()) && (self.safe_integer_k(orderbook.clone(), "nonce", &[]) == Value::Null) {
-            crate::runtime::append_to_object_array(&mut orderbook, &Value::Str("cache".into()), message.clone());
+        let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        if (event.is_none()) && (self.safe_integer_k(Value::from(&orderbook), "nonce", &[]) == Value::Null) {
+            orderbook.cache_push(message);
         }  else {
             self.handle_order_book_message(client.clone(), message);
-            client.resolve(orderbook, messageHash.as_deref());
+            client.resolve(Value::from(&orderbook), messageHash.as_deref());
         }
 }
 
@@ -1968,7 +1968,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (typeSide.is_some()) {
             if typeSide.as_deref().unwrap_or_default().contains("-") {
                 typeSideParts = Value::Array(if let Some(__s) = typeSide.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
-                type_var = self.safe_string_lower(&typeSideParts, Value::Int(1), &[]).as_str().map(str::to_owned);
+                type_var = self.safe_string_lower_opt(&typeSideParts, Value::Int(1), &[]);
             }  else {
                 type_var = typeSide;
             }
@@ -1976,7 +1976,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (type_var.is_none()) {
             type_var = self.safe_string_k_opt(order.clone(), "order_price_type", &[]);
         }
-        let mut side: Option<String> = self.safe_string_lower(&typeSideParts, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower_opt(&typeSideParts, Value::Int(0), &[]);
         if (side.is_none()) {
             side = self.safe_string2_opt(order.clone(), Value::Str("direction".into()), Value::Str("side".into()), &[]);
         }
@@ -3074,7 +3074,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                  #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                     let mut messageHash: Option<String> = self.safe_string_k_opt(&subscription, "messageHash", &[]);
-                    client.reject(e.clone(), &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                    client.reject(e.clone(), messageHash.as_deref());
                     client.reject(e.clone(), id.as_deref());
                     if (__ch.has_subscription(id.as_deref())) {
                         if (id.is_some()) {
@@ -3086,7 +3086,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
                     if (messageHash.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        __ch.remove_subscription(&messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+                        __ch.remove_subscription(messageHash.as_deref());
                     }
                 }
             }

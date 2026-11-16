@@ -5876,7 +5876,7 @@ impl Htx {
                     marketType = Some("swap".to_string());
                     let mut parts: Value = Value::Array(if let Some(__s) = contractId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
                     baseId = self.safe_string_lower_k_opt(&market, "symbol", &[]);
-                    quoteId = self.safe_string_lower(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+                    quoteId = self.safe_string_lower_opt(parts, Value::Int(1), &[]);
                     if (inverse == Some(true)) {
                         settleId = baseId.clone();
                     }  else {
@@ -5894,7 +5894,7 @@ impl Htx {
                             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " method() missing pair")));
                         }
                         let mut parts: Value = Value::Array(if let Some(__s) = pair.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-                        quoteId = self.safe_string_lower(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+                        quoteId = self.safe_string_lower_opt(parts, Value::Int(1), &[]);
                         settleId = quoteId.clone();
                     }
                 }
@@ -6822,11 +6822,11 @@ impl Htx {
         //         "ts": 1781066959396
         //     }
         //
-        let mut trades: Value = self.safe_value_k(&response, "data", &[]);
-        if !(matches!(&trades, Value::Arr(_))) {
-            trades = self.safe_list_k(trades, "trades", &[]);
+        let mut trades: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
+        if (trades.is_none()) {
+            trades = self.safe_list_k(self.safe_dict_k(&response, "data", &[]), "trades", &[Value::from(vec![])]).into_opt_list();
         }
-        return self.parse_trades(trades, market.as_ref(), &[since, limit]);
+        return self.parse_trades(&trades, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -7891,9 +7891,14 @@ impl Htx {
         //         "ts": 1780967407144
         //     }
         //
-        let mut rawOrder: Value = self.safe_value_k(&response, "data", &[]);
-        let mut order: Value = (if (matches!(&rawOrder, Value::Arr(_))) { self.safe_dict(rawOrder.clone(), Value::Int(0), &[]) } else { rawOrder.clone() });
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, order, market.as_ref());
+        let mut order: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
+        if (order.is_none()) {
+            order = self.safe_dict(self.safe_list_k(&response, "data", &[Value::from(vec![])]), Value::Int(0), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_opt_dict();
+        }
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, market.as_ref());
         Value::Null
         }).await?))
     }
@@ -8124,9 +8129,11 @@ impl Htx {
                 }
             }
         }
-        let mut rawOrders: Value = self.safe_value_k(&response, "data", &[]);
-        let mut orders: Value = (if (matches!(&rawOrders, Value::Arr(_))) { rawOrders.clone() } else { self.safe_list_k(rawOrders, "orders", &[Value::from(vec![])]) });
-        return self.parse_orders(orders, Some(&market), &[since, limit]);
+        let mut orders: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
+        if (orders.is_none()) {
+            orders = self.safe_list_k(self.safe_dict_k(&response, "data", &[]), "orders", &[Value::from(vec![])]).into_opt_list();
+        }
+        return self.parse_orders(&orders, Some(&market), &[since, limit]);
 
     Value::Null
 }
@@ -8774,9 +8781,11 @@ impl Htx {
         //         "ts": 1780739390596
         //     }
         //
-        let mut rawOrders: Value = self.safe_value_k(&response, "data", &[]);
-        let mut orders: Value = (if (matches!(&rawOrders, Value::Arr(_))) { rawOrders.clone() } else { self.safe_list_k(rawOrders, "orders", &[Value::from(vec![])]) });
-        return self.parse_orders(orders, market.as_ref(), &[since, limit]);
+        let mut orders: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
+        if (orders.is_none()) {
+            orders = self.safe_list_k(self.safe_dict_k(&response, "data", &[]), "orders", &[Value::from(vec![])]).into_opt_list();
+        }
+        return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
     }
@@ -9667,9 +9676,9 @@ impl Htx {
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             result = self.safe_list_k(&response, "data", &[Value::from(vec![])]);
         }  else {
-            let mut data: Value = self.safe_value_k(&response, "data", &[]);
-            if (matches!(&data, Value::Arr(_))) {
-                result = data;
+            let mut data: Option<crate::value::List> = self.safe_list_k(&response, "data", &[]).into_opt_list();
+            if (data.is_some()) {
+                result = data.map_or(Value::Null, Value::Arr);
             }  else {
                 let mut batchData: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
                     let mut m = indexmap::IndexMap::new();

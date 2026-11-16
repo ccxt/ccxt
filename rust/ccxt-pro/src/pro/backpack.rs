@@ -1754,14 +1754,14 @@ impl Backpack {
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
-        let mut storedOrderBook: Value = Value::from(self.orderbooks.at(&symbol));
-        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
+        let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
+        let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         let mut deltaNonce: Option<i64> = self.safe_integer_k(data.clone(), "u", &[]).as_i64();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
-            let mut cacheLength: Value = Value::Int(get_value(&storedOrderBook, &Value::Str("cache".into())).len() as i64);
+            let mut cacheLength: Value = Value::Int(storedOrderBook.book_field("cache").len() as i64);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
-            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), data.clone());
+            storedOrderBook.cache_push(data);
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isStockMarket: bool = ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
@@ -1777,8 +1777,8 @@ impl Backpack {
         }  else if (deltaNonce.is_some()) && ((nonce.is_some() && deltaNonce.is_some() && nonce > deltaNonce)) {
             return;
         }
-        self.handle_book_delta(storedOrderBook.clone(), data);
-        client.resolve(storedOrderBook, messageHash.as_str());
+        self.handle_book_delta(Value::from(&storedOrderBook), data);
+        client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {

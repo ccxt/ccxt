@@ -513,7 +513,7 @@ impl crate::exchange::DerivedExchange for Bitfinex {
         let mut description: Option<String> = self.safe_string_opt(&itemList, Value::Int(8), &[]);
         if (description.is_some()) {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = description.as_deref() { __s.split(" @ ").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut first: Option<String> = self.safe_string_lower(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
+            let mut first: Option<String> = self.safe_string_lower_opt(&parts, Value::Int(0), &[]);
             type_var = self.parse_ledger_entry_type(first.as_deref());
         }
         return self.safe_ledger_entry(Value::Map({

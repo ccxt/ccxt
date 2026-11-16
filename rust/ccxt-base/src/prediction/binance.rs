@@ -954,7 +954,7 @@ impl Binance {
             if (l2Category.is_some()) {
                 listingRequest.insert("l2Category".into(), l2Category.map(Value::from).unwrap_or(Value::Null));
             }
-            let mut sortBy: Option<String> = self.safe_string_upper2(&paramsOmitted, Value::Str("sortBy".into()), Value::Str("sort".into()), &[]).as_str().map(str::to_owned);
+            let mut sortBy: Option<String> = self.safe_string_upper2_opt(&paramsOmitted, Value::Str("sortBy".into()), Value::Str("sort".into()), &[]);
             if (sortBy.is_some()) {
                 // map the unified sort values onto the server enum, one of RECOMMENDED,
                 // VOLUME, PARTICIPANTS, CREATED_TIME or END_DATE — 'liquidity' has no

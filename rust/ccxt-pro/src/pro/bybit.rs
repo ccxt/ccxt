@@ -2158,10 +2158,7 @@ impl Bybit {
         let mut topic: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().map(str::to_owned);
         let mut spot: bool = topic.as_deref() == Some("ticketInfo");
         let mut executionFast: bool = topic.as_deref() == Some("execution.fast");
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        if !(matches!(&data, Value::Arr(_))) {
-            data = self.safe_list_k(data, "result", &[Value::from(vec![])]);
-        }
+        let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         if (self.myTrades.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myTrades = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
@@ -2191,7 +2188,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_195: bool = true;
             while { if !__for_first_195 { i += 1; } __for_first_195 = false; i < (data.len() as i64) } {
-            let mut rawTrade: crate::value::Dict = self.safe_dict(data.clone(), Value::Int(i), &[Value::Map({
+            let mut rawTrade: crate::value::Dict = self.safe_dict(&data, Value::Int(i), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
@@ -2617,7 +2614,7 @@ impl Bybit {
         let mut timestamp: Option<i64> = self.safe_integer2(liquidation.clone(), Value::Str("updatedTime".into()), Value::Str("T".into()), &[]).as_i64();
         // bybit sends the side of the liquidated position (Buy - a long was liquidated),
         // the unified side is the side of the liquidation order, as on binance and okx
-        let mut positionSide: Option<String> = self.safe_string_lower2(liquidation.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]).as_str().map(str::to_owned);
+        let mut positionSide: Option<String> = self.safe_string_lower2_opt(liquidation.clone(), Value::Str("side".into()), Value::Str("S".into()), &[]);
         let mut side: Option<String> = None;
         if (positionSide.as_deref() == Some("buy")) {
             side = Some("sell".to_string());
@@ -2860,16 +2857,7 @@ impl Bybit {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut rawOrders: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) });
-        let mut first: crate::value::Dict = self.safe_dict(rawOrders.clone(), Value::Int(0), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        })]).into_dict();
-        let mut category: Option<String> = self.safe_string_k_opt(&first, "category", &[]);
-        let mut isSpot: bool = category.as_deref() == Some("spot");
-        if !isSpot {
-            rawOrders = self.safe_value_k(rawOrders.clone(), "result", &[rawOrders.clone()]);
-        }
+        let mut rawOrders: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut symbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2878,7 +2866,7 @@ impl Bybit {
                         let mut i: i64 = 0;
             let mut __for_first_202: bool = true;
             while { if !__for_first_202 { i += 1; } __for_first_202 = false; i < (rawOrders.len() as i64) } {
-            let mut parsed: crate::value::Dict = self.parse_order(rawOrders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
+            let mut parsed: crate::value::Dict = self.parse_order(rawOrders.get(i as usize).cloned().unwrap_or(Value::Null), None).into_dict();
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

@@ -1575,7 +1575,7 @@ impl Hitbtc {
             return;
         }
         let mut orders: Option<crate::pro::cache::Cache> = self.orders.clone();
-        let mut marketId: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("instrument".into()), Value::Str("symbol".into()), &[]);
         let mut method: String = (match message.get("method") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         let mut splitMethod: crate::value::List = Value::Array(method.split("_order").map(Value::from).collect()).into_list();
         let mut messageHash: Option<String> = self.safe_string_opt(&splitMethod, Value::Int(0), &[]);

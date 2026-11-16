@@ -555,7 +555,7 @@ impl crate::exchange::DerivedExchange for Btse {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "timestamp", &[]).as_i64();
         let mut marginType: Option<String> = self.safe_string_k_opt(position.clone(), "marginType", &[]);
-        let mut side: Option<String> = self.safe_string_lower2(position.clone(), Value::Str("positionDirection".into()), Value::Str("side".into()), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_lower2_opt(position.clone(), Value::Str("positionDirection".into()), Value::Str("side".into()), &[]);
         let mut positionMode: Option<String> = self.safe_string_k_opt(position.clone(), "positionMode", &[]);
         let mut hedged: bool = ((positionMode.as_deref() == Some("HEDGE")) || (positionMode.as_deref() == Some("ISOLATED")));
         let mut takeProfitOrder: crate::value::Dict = self.safe_dict_k(position.clone(), "takeProfitOrder", &[Value::Map({
@@ -970,14 +970,14 @@ impl crate::exchange::DerivedExchange for Btse {
             let mut row: crate::value::Dict = self.safe_dict(&rows, Value::Int(i), &[]).into_dict();
             let mut status: Option<String> = self.safe_string_k_opt(&row, "status", &[]);
             if (status.is_some()) {
-                let mut message: Value = self.safe_string_k(&row, "message", &[]);
-                let mut embedded: Value = self.parse_json_value(message.clone());
+                let mut rowMessage: Option<String> = self.safe_string_k_opt(&row, "message", &[]);
+                let mut embedded: Value = self.parse_json_value(Value::from(rowMessage.as_deref()));
                 if (embedded != Value::Null) {
-                    message = self.safe_string_k(embedded, "default_msg", &[message.clone()]);
+                    rowMessage = self.safe_string_k_opt(embedded, "default_msg", &[rowMessage.map(Value::from).unwrap_or(Value::Null)]);
                 }
                 let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
                 self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), status.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.as_str()));
-                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message, Value::from(feedback));
+                self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), rowMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
             }
         }
         }

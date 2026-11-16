@@ -1211,7 +1211,7 @@ impl crate::exchange::DerivedExchange for Binance {
         if ((marketResolved).inverse == Some(true)) {
             cost = self.safe_string_k_opt(order.clone(), "cumBase", &[cost.map(Value::from).unwrap_or(Value::Null)]);
         }
-        let mut type_var: Option<String> = self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(order.clone(), "side", &[]);
         let mut fills: crate::value::List = self.safe_list2(order.clone(), Value::Str("fills".into()), Value::Str("trades".into()), &[Value::from(vec![])]).into_list();
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "timeInForce", &[]);
@@ -16035,8 +16035,8 @@ impl Binance {
             });
             let mut feeTier: Option<i64> = self.safe_integer_k(&response, "feeTier", &[]).as_i64();
             let mut feeTiers: crate::value::Dict = self.safe_value(self.safe_value(self.safe_value_k(self.fees.clone(), "linear", &[]), Value::Str("trading".into()), &[]), Value::Str("tiers".into()), &[]).into_dict();
-            let mut maker: Value = self.safe_value(self.safe_value(self.safe_value_k(&feeTiers, "maker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]);
-            let mut taker: Value = self.safe_value(self.safe_value(self.safe_value_k(&feeTiers, "taker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]);
+            let mut maker: Option<f64> = self.safe_number(self.safe_value(self.safe_value_k(&feeTiers, "maker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]).as_f64();
+            let mut taker: Option<f64> = self.safe_number(self.safe_value(self.safe_value_k(&feeTiers, "taker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]).as_f64();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
@@ -16052,8 +16052,8 @@ impl Binance {
     m
 }));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), maker.clone());
-        m.insert("taker".to_string(), taker.clone());
+        m.insert("maker".to_string(), Value::from(maker));
+        m.insert("taker".to_string(), Value::from(taker));
     m
 }));
                 }
@@ -16081,8 +16081,8 @@ impl Binance {
             });
             let mut feeTier: Option<i64> = self.safe_integer_k(&response, "feeTier", &[]).as_i64();
             let mut feeTiers: crate::value::Dict = self.safe_value(self.safe_value(self.safe_value_k(self.fees.clone(), "inverse", &[]), Value::Str("trading".into()), &[]), Value::Str("tiers".into()), &[]).into_dict();
-            let mut maker: Value = self.safe_value(self.safe_value(self.safe_value_k(&feeTiers, "maker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]);
-            let mut taker: Value = self.safe_value(self.safe_value(self.safe_value_k(&feeTiers, "taker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]);
+            let mut maker: Option<f64> = self.safe_number(self.safe_value(self.safe_value_k(&feeTiers, "maker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]).as_f64();
+            let mut taker: Option<f64> = self.safe_number(self.safe_value(self.safe_value_k(&feeTiers, "taker", &[]), Value::from(feeTier), &[]), Value::Int(1), &[]).as_f64();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_299: bool = true;
@@ -16098,8 +16098,8 @@ impl Binance {
     m
 }));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("maker".to_string(), maker.clone());
-        m.insert("taker".to_string(), taker.clone());
+        m.insert("maker".to_string(), Value::from(maker));
+        m.insert("taker".to_string(), Value::from(taker));
     m
 }));
                 }

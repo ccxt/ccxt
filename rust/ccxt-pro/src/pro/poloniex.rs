@@ -1343,7 +1343,7 @@ impl Poloniex {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "createTime", &[]).as_i64();
-        let mut takerMaker: Option<String> = self.safe_string_lower2(trade.clone(), Value::Str("matchRole".into()), Value::Str("taker".into()), &[]).as_str().map(str::to_owned);
+        let mut takerMaker: Option<String> = self.safe_string_lower2_opt(trade.clone(), Value::Str("matchRole".into()), Value::Str("taker".into()), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());

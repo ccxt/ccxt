@@ -2788,7 +2788,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("trader".into(), self.walletAddress.clone());
             }
         }
-        let mut requestedTradingModel: Option<String> = self.safe_string_lower2(params.clone(), Value::Str("tradingModel".into()), Value::Str("trading_model".into()), &[]).as_str().map(str::to_owned);
+        let mut requestedTradingModel: Option<String> = self.safe_string_lower2_opt(params.clone(), Value::Str("tradingModel".into()), Value::Str("trading_model".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["tradingModel", "trading_model"], &[]).into_dict();
         let mut outcomeObj: Option<crate::types::Market> = None;
         let mut outcomeSymbol: Option<String> = None;

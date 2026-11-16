@@ -353,8 +353,8 @@ impl Bitstamp {
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut storedOrderBook: Value = Value::from(self.orderbooks.lookup(&symbol));
-        let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
+        let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
+        let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         let mut delta: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
         let mut deltaNonce: Option<i64> = self.safe_integer_k(delta.clone(), "microtimestamp", &[]).as_i64();
         if (deltaNonce.is_none()) {
@@ -362,7 +362,7 @@ impl Bitstamp {
         }
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
-            let mut cacheLength: Option<i64> = self.parse_to_int(get_array_length(&get_value(&storedOrderBook, &Value::Str("cache".into()))));
+            let mut cacheLength: Option<i64> = self.parse_to_int(get_array_length(&storedOrderBook.book_field("cache")));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             let mut snapshotDelay: Option<i64> = self.parse_to_int(self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("snapshotDelay".into()), &[Value::Int(6)]));
@@ -372,13 +372,13 @@ impl Bitstamp {
                     m
                 })]);
             }
-            crate::runtime::append_to_object_array(&mut storedOrderBook, &Value::Str("cache".into()), delta.clone());
+            storedOrderBook.cache_push(delta);
             return;
         }  else if (nonce.is_some() && deltaNonce.is_some() && nonce >= deltaNonce) {
             return;
         }
-        self.handle_book_delta(storedOrderBook.clone(), delta);
-        client.resolve(storedOrderBook, messageHash.as_str());
+        self.handle_book_delta(Value::from(&storedOrderBook), delta);
+        client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
     pub fn handle_book_delta(&self, mut orderbook: Value, mut delta: Value) {
