@@ -1344,11 +1344,11 @@ impl crate::exchange::DerivedExchange for Delta {
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut timestamp: Value = Value::Str(format!("{}", Value::Int(self.seconds())).into());
+            let mut timestamp: String = format!("{}", self.seconds());
             let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("api-key".to_string(), self.apiKey.clone());
-                    m.insert("timestamp".to_string(), timestamp.clone());
+                    m.insert("timestamp".to_string(), Value::from(timestamp.as_str()));
                 m
             });
             let mut auth: String = format!("{}{}", Value::Str(format!("{}{}", method, timestamp).into()), requestPath);
@@ -3441,7 +3441,7 @@ impl Delta {
         if (clientOrderId.is_some()) {
             request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsOmitted, "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&paramsOmitted, "reduceOnly", &[]);
         if (reduceOnly == Some(true)) {
             request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
         }

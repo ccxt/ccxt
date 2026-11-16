@@ -142,7 +142,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
-        let mut isSellerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_seller_maker", &[]).as_bool();
+        let mut isSellerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_seller_maker", &[]);
         let mut side: Option<String> = None;
         if (isSellerMaker.is_some()) {
             side = (if (isSellerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
@@ -400,7 +400,7 @@ impl crate::exchange::DerivedExchange for Coinone {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiName: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
-        let mut request: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut request: String = self.implode_params(path.clone(), params.clone());
         let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path), &[]).into_dict();
         let mut apiUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "rest", &[]);
         if (apiUrl.is_none()) {
@@ -430,13 +430,13 @@ impl crate::exchange::DerivedExchange for Coinone {
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPublic {
-            url.push_str(&request.to_string());
+            url.push_str(&request);
             if ((Value::Array(query.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
-            url.push_str(&request.to_string());
+            url.push_str(&request);
             // the v2.1 api requires a uuid nonce, the older apis use a numeric one
             let mut nonce: Option<String> = None;
             if (apiName.as_deref() == Some("v2_1Private")) {

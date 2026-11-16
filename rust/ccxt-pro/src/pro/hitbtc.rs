@@ -2191,7 +2191,7 @@ impl Hitbtc {
             let mut __for_first_375: bool = true;
             while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscription: Value = get_value(&__ch.subscriptions.clone(), &subscriptionHashes.get(i as usize).cloned().unwrap_or(Value::Null));
-            let mut isUnSubscription: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isUnSubscription: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             let mut subscriptionId: Option<String> = self.safe_string_k_opt(subscription.clone(), "id", &[]);
             if isUnSubscription && (subscriptionId.is_some()) && (subscriptionId == id) {
                 let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();

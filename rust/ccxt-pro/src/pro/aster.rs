@@ -607,7 +607,7 @@ impl Aster {
                 m.insert("params".to_string(), subscriptionArgs.clone());
             m
         });
-        let mut use1sFreq: bool = self.safe_bool_k(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut use1sFreq: bool = self.safe_bool_k_opt(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
             let mut __for_first_20: bool = true;
@@ -686,7 +686,7 @@ impl Aster {
                 m.insert("params".to_string(), subscriptionArgs.clone());
             m
         });
-        let mut use1sFreq: bool = self.safe_bool_k(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut use1sFreq: bool = self.safe_bool_k_opt(&paramsOmitted, "use1sFreq", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
             let mut __for_first_21: bool = true;
@@ -1753,15 +1753,15 @@ impl Aster {
         }
         let __ws_arg_10 = self.extend(Value::Map(request), &[self.omit(&paramsCallerMethodName, Value::Str("callerMethodName".into()), &[])]);
         let mut symboltimeframestoredVariable = self.watch_multiple(url.as_deref(), &messageHashes, __ws_arg_10, &messageHashes, Value::Null).await;
-        let mut symbol: Value = get_value(&symboltimeframestoredVariable, &Value::Int(0));
+        let mut symbol: Option<String> = get_value(&symboltimeframestoredVariable, &Value::Int(0)).as_str().map(str::to_owned);
         let mut timeframe: Value = get_value(&symboltimeframestoredVariable, &Value::Int(1));
         let mut stored: Option<crate::pro::cache::Cache> = get_value(&symboltimeframestoredVariable, &Value::Int(2)).into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = stored.get_limit(symbol.as_str(), limit.as_i64());
+            limitResolved = stored.get_limit(symbol.as_deref(), limit.as_i64());
         }
         let mut filtered: crate::value::List = self.filter_by_since_limit(&stored, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
-        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
+        return self.create_ohlcv_object(symbol.map(Value::from).unwrap_or(Value::Null), timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -2069,8 +2069,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), typeMarketType.clone().map(Value::from).unwrap_or(Value::Null));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
+        let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", typeMarketType.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
@@ -2087,7 +2087,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, ":fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {

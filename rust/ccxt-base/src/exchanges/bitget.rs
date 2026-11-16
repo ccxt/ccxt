@@ -934,7 +934,7 @@ impl crate::exchange::DerivedExchange for Bitget {
         //         "1399132.341"
         //     ]
         //
-        let mut inverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut inverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut volumeIndex: i64 = (if inverse { 6 } else { 5 });
         return Value::from(vec![self.safe_integer(ohlcv.clone(), Value::Int(0), &[]), self.safe_number(ohlcv.clone(), Value::Int(1), &[]), self.safe_number(ohlcv.clone(), Value::Int(2), &[]), self.safe_number(ohlcv.clone(), Value::Int(3), &[]), self.safe_number(ohlcv.clone(), Value::Int(4), &[]), self.safe_number(ohlcv, Value::from(volumeIndex), &[])]);
 
@@ -2241,7 +2241,7 @@ impl crate::exchange::DerivedExchange for Bitget {
             }
         }
         let mut headersResult: Option<crate::value::Dict> = requestHeaders;
-        let mut sandboxMode: bool = self.safe_bool2(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandboxMode".into()), Value::Str("sandbox".into()), &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode && (path.as_str() != Some("v2/public/time")) && (path.as_str() != Some("v3/market/current-fund-rate")) {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336
             if (headersResult.is_none()) {
@@ -8020,7 +8020,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut adjustForTimeDifference: bool = self.safe_bool_k(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut adjustForTimeDifference: bool = self.safe_bool_k_opt(self.options.clone(), "adjustForTimeDifference", &[Value::Bool(false)]).unwrap_or(false);
         if adjustForTimeDifference {
             self.load_time_difference(&[]).await;
         }
@@ -8113,7 +8113,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut isBorrowable: Option<bool> = self.safe_bool_k(&firstData, "isBorrowable", &[]).as_bool();
+            let mut isBorrowable: Option<bool> = self.safe_bool_k_opt(&firstData, "isBorrowable", &[]);
             if fetchMargins && (isBorrowable.is_some()) {
                 // cross and isolated availability are per-symbol - a coin can be listed by
                 // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
@@ -8130,13 +8130,13 @@ if _try_result.is_err() {
     m
 })]).into_dict();
                     let mut entrySymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
-                    let mut entryBorrowable: bool = self.safe_bool_k(&entry, "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isCrossBorrowable: bool = self.safe_bool_k(&entry, "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut entryBorrowable: bool = self.safe_bool_k_opt(&entry, "isBorrowable", &[Value::Bool(true)]).unwrap_or(true);
+                    let mut isCrossBorrowable: bool = self.safe_bool_k_opt(&entry, "isCrossBorrowable", &[Value::Bool(true)]).unwrap_or(true);
                     if entryBorrowable && isCrossBorrowable {
                         std::sync::Arc::make_mut(&mut crossKeys).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null));
                     }
-                    let mut isolatedBase: bool = self.safe_bool_k(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-                    let mut isolatedQuote: bool = self.safe_bool2(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                    let mut isolatedBase: bool = self.safe_bool_k_opt(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).unwrap_or(true);
+                    let mut isolatedQuote: bool = self.safe_bool2_opt(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).unwrap_or(true);
                     if entryBorrowable && (isolatedBase || isolatedQuote) {
                         std::sync::Arc::make_mut(&mut isolatedKeys).push(entrySymbol.map(Value::from).unwrap_or(Value::Null));
                     }
@@ -9025,7 +9025,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("currency".into(), code); }
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert("amount".into(), amount); }
@@ -9742,7 +9742,7 @@ if _try_result.is_err() {
                 while { if !__for_first_374 { i += 1; } __for_first_374 = false; i < (allSymbols.len() as i64) } {
                 let mut symbol: Option<String> = allSymbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
                 let mut entry: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                let mut isStockMarket: bool = self.safe_bool_k(&entry, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isStockMarket: bool = self.safe_bool_k_opt(&entry, "stock", &[Value::Bool(false)]).unwrap_or(false);
                 if isStockMarket {
                     let mut marketSymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
                     if (marketSymbol.is_some()) {
@@ -10195,7 +10195,7 @@ if _try_result.is_err() {
         let mut uta: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_uta_and_params(&paramsMarginMode, Some("fetchTradingFees"), &[Value::Bool(false)]).await.as_array().cloned().unwrap_or_default(); uta = __destr_tmp.get(0).and_then(Value::as_bool); paramsMarginMode = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (uta == Some(true)) {
-            let mut utaMargin: bool = self.safe_bool_k(&paramsMarginMode, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut utaMargin: bool = self.safe_bool_k_opt(&paramsMarginMode, "margin", &[Value::Bool(false)]).unwrap_or(false);
             paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("margin".into()), &[]).into_dict();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -10255,7 +10255,7 @@ if _try_result.is_err() {
             return Value::Map(utaResult);
         }
         if (marketType.as_deref() == Some("spot")) {
-            let mut margin: bool = self.safe_bool_k(&paramsMarginMode, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut margin: bool = self.safe_bool_k_opt(&paramsMarginMode, "margin", &[Value::Bool(false)]).unwrap_or(false);
             paramsMarginMode = self.omit(&paramsMarginMode, Value::Str("margin".into()), &[]).into_dict();
             if (marginMode.is_some()) || margin {
                 response = self.public_margin_get_v2_margin_currencies(&[Value::from(&paramsMarginMode)]).await.into_opt_dict();
@@ -10426,8 +10426,8 @@ if _try_result.is_err() {
         let mut defaultLimit: i64 = 100; // default 100, max 1000
         let mut maxLimitForRecentEndpoint: i64 = 1000;
         let mut maxLimitForHistoryEndpoint: i64 = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-        let mut useHistoryEndpoint: bool = self.safe_bool_k(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut useHistoryEndpointForPagination: bool = self.safe_bool_k(params.clone(), "useHistoryEndpointForPagination", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut useHistoryEndpoint: bool = self.safe_bool_k_opt(params.clone(), "useHistoryEndpoint", &[Value::Bool(false)]).unwrap_or(false);
+        let mut useHistoryEndpointForPagination: bool = self.safe_bool_k_opt(params.clone(), "useHistoryEndpointForPagination", &[Value::Bool(true)]).unwrap_or(true);
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPaginate: crate::value::Dict = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -11225,7 +11225,7 @@ if _try_result.is_err() {
                 request.insert("timeInForce".into(), Value::Str("ioc".into()));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k(paramsProductType.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsProductType.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut hedged: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsProductType.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsProductType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if reduceOnly {
@@ -11318,7 +11318,7 @@ if _try_result.is_err() {
             if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price.clone()))); }
         }
         let mut triggerPriceType: String = self.safe_string2(paramsMarketType.clone(), Value::Str("triggerPriceType".into()), Value::Str("triggerType".into()), &[Value::Str("mark_price".into())]).as_str().unwrap_or("mark_price").to_string();
-        let mut reduceOnly: bool = self.safe_bool_k(paramsMarketType.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsMarketType.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
         let mut exchangeSpecificTifParam: Option<String> = self.safe_string2_opt(paramsMarketType.clone(), Value::Str("force".into()), Value::Str("timeInForce".into()), &[]);
         let mut postOnly: Option<bool> = None;
@@ -11849,7 +11849,7 @@ if _try_result.is_err() {
         }  else if (market).spot {
             let mut cost: Option<String> = self.safe_string_k_opt(&paramsOmitted, "cost", &[]);
             paramsOmitted = self.omit(Value::Dict(paramsOmitted), Value::Str("cost".into()), &[]).into_dict();
-            let mut editMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "editMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+            let mut editMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(self.options.clone(), "editMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).unwrap_or(true);
             if (editMarketBuyOrderRequiresPrice || (cost.is_some())) && isMarketOrder && (side.as_str() == Some("buy")) {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")));
@@ -12035,8 +12035,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trailing: bool = self.safe_bool_k(&paramsMarginMode, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsMarginMode, "trailing", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         paramsMarginMode = self.omit(&paramsMarginMode, &["stop", "trigger", "trailing"], &[]).into_dict();
         if !((market).spot && (trigger == Some(true))) {
             request.insert("symbol".into(), Value::from((market).id.as_deref()));
@@ -12292,7 +12292,7 @@ if _try_result.is_err() {
         }
         let mut marginMode: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrders".into()), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsUTA, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsUTA, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         paramsUTA = self.omit(&paramsUTA, &["stop", "trigger"], &[]).into_dict();
         let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -12414,7 +12414,7 @@ if _try_result.is_err() {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         paramsMarginMode = self.omit(&paramsMarginMode, &["stop", "trigger"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         let mut uta: Option<bool> = None;
@@ -12775,8 +12775,8 @@ if _try_result.is_err() {
             return self.fetch_paginated_call_cursor(Value::Str("fetchOpenOrders".into()), &[symbol, since.clone(), limit.clone(), Value::from(&paramsMarginMode), cursorReceived.map(Value::from).unwrap_or(Value::Null), cursorSent.map(Value::from).unwrap_or(Value::Null)]).await;
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut trailing: bool = self.safe_bool_k(&paramsMarginMode, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsMarginMode, "trailing", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsMarginMode, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut planTypeValue: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "planType", &[]);
         let mut planTypeDefined: bool = planTypeValue.is_some();
         let mut isTrigger: bool = (trigger == Some(true)) || planTypeDefined;
@@ -13293,8 +13293,8 @@ if _try_result.is_err() {
             return self.fetch_paginated_call_cursor(Value::Str("fetchCanceledAndClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsUTA), cursorReceived.map(Value::from).unwrap_or(Value::Null), Value::Str("idLessThan".into())]).await;
         }
         let mut response: Value = Value::Null;
-        let mut trailing: bool = self.safe_bool_k(&paramsUTA, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsUTA, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsUTA, "trailing", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsUTA, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         paramsUTA = self.omit(&paramsUTA, &["stop", "trigger", "trailing"], &[]).into_dict();
         { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Dict(request), &paramsUTA, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (since != Value::Null) {
@@ -13610,7 +13610,7 @@ if _try_result.is_err() {
             std::sync::Arc::make_mut(&mut request).insert("limit".into(), limit.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut trigger: Option<bool> = self.safe_bool2(&paramsProductType, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(&paramsProductType, Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         paramsProductType = self.omit(&paramsProductType, &["stop", "trigger"], &[]).into_dict();
         if (trigger == Some(true)) {
             let __ws_arg_95 = self.extend(&request, &[&paramsProductType]);
@@ -14525,7 +14525,7 @@ if _try_result.is_err() {
             return self.fetch_paginated_call_cursor(Value::Str("fetchPositions".into()), &[Value::Null, Value::Null, Value::Null, Value::from(&paramsPaginate), Value::Str("endId".into()), Value::Str("idLessThan".into())]).await;
         }
         let mut method: Option<String> = None;
-        let mut useHistoryEndpoint: bool = self.safe_bool_k(&paramsPaginate, "useHistoryEndpoint", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut useHistoryEndpoint: bool = self.safe_bool_k_opt(&paramsPaginate, "useHistoryEndpoint", &[Value::Bool(false)]).unwrap_or(false);
         if useHistoryEndpoint {
             method = Some("privateMixGetV2MixPositionHistoryPosition".to_string());
         }  else {

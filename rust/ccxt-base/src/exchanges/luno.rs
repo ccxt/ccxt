@@ -1281,8 +1281,8 @@ impl Luno {
         //     }
         //
         let mut currenciesData: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut grouped: Value = self.group_by(Value::Arr(currenciesData), Value::Str("native_currency".into()), &[]);
-        let mut values: crate::value::List = Value::Array(grouped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut grouped: crate::value::Dict = self.group_by(Value::Arr(currenciesData), Value::Str("native_currency".into()), &[]).into_dict();
+        let mut values: crate::value::List = Value::Array(grouped.values().cloned().collect()).into_list();
         return self.parse_currencies(&values);
         Value::Null
         }).await?))

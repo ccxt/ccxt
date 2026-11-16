@@ -277,7 +277,7 @@ impl crate::exchange::DerivedExchange for Xt {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into()), marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "b", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "b", &[]);
         if (isBuyerMaker.is_some()) {
             side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
             takerOrMaker = Some("taker".to_string()); // public trades always taker
@@ -286,7 +286,7 @@ impl crate::exchange::DerivedExchange for Xt {
             if (takerMaker.is_some()) {
                 takerOrMaker = takerMaker;
             }  else {
-                let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+                let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
                 if (isMaker.is_some()) {
                     takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 }
@@ -750,7 +750,7 @@ impl crate::exchange::DerivedExchange for Xt {
         }
         let mut isActive: bool = false;
         if contract {
-            isActive = self.safe_bool_k(market.clone(), "isOpenApi", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            isActive = self.safe_bool_k_opt(market.clone(), "isOpenApi", &[Value::Bool(false)]).unwrap_or(false);
         }  else {
             if (state.as_deref() == Some("ONLINE")) && matches!((self.safe_bool_k(market.clone(), "tradingEnabled", &[Value::Bool(false)])), Value::Bool(true)) && matches!((self.safe_bool_k(market.clone(), "openapiEnabled", &[Value::Bool(false)])), Value::Bool(true)) {
                 isActive = true;
@@ -853,7 +853,7 @@ impl crate::exchange::DerivedExchange for Xt {
         //         "v": "702461.58895"
         //     }
         //
-        let mut isInverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut volumeIndex: String = "a".to_string();
         if isInverse {
             volumeIndex = "v".to_string();
@@ -4844,7 +4844,7 @@ impl Xt {
             timeInForce = self.safe_string_upper_k_opt(&paramsMarginMode, "timeInForce", &[Value::Str("FOK".into())]);
             if (side.as_str() == Some("buy")) {
                 let mut cost: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "cost", &[]);
-                let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(true)]).unwrap_or(true);
                 if createMarketBuyOrderRequiresPrice {
                     if (price == Value::Null) && (cost.is_none()) {
                         panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")));
@@ -4935,7 +4935,7 @@ impl Xt {
         if (timeInForce.is_some()) {
             request.insert("timeInForce".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
         }
-        let mut reduceOnly: bool = self.safe_bool_k(&paramsOmitted4, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsOmitted4, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         if (side.as_str() == Some("buy")) {
             let mut requestType: String = "LONG".to_string();
             if reduceOnly {
@@ -5094,9 +5094,9 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         if trailing {
             let mut isContract: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
             if !isContract {
@@ -5329,8 +5329,8 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOrders".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         if trailing {
             let mut isContract: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
             if !isContract {
@@ -5527,9 +5527,9 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchOrdersByStatus".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         if trailing {
             let mut isContract: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
             if !isContract {
@@ -5990,9 +5990,9 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         if trailing {
             let mut isContract: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
             if !isContract {
@@ -6122,9 +6122,9 @@ impl Xt {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         if trailing {
             let mut isContract: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
             if !isContract {

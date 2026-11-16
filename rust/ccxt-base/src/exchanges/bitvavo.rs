@@ -167,7 +167,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         let mut id: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("fillId".into()), &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "market", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into())]).as_str().map(str::to_owned);
-        let mut taker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
+        let mut taker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (taker.is_some()) {
             takerOrMaker = (if (taker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -284,7 +284,7 @@ impl crate::exchange::DerivedExchange for Bitvavo {
         }
         let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "fills", &[Value::from(vec![])]).into_list();
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());

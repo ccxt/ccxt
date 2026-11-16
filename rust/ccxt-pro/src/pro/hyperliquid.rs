@@ -1293,7 +1293,7 @@ impl Hyperliquid {
         //
         let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         // every subscription starts with a snapshot, a resubscribe replays it
-        let mut isSnapshot: bool = self.safe_bool_k(&entry, "isSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSnapshot: bool = self.safe_bool_k_opt(&entry, "isSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if isSnapshot || (self.myLiquidations.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myLiquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myLiquidations = Some(ArrayCache::new(Value::from(limit)));
@@ -1766,7 +1766,7 @@ impl Hyperliquid {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
-        let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
@@ -1830,7 +1830,7 @@ impl Hyperliquid {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
-        let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnifiedEnabled: bool = self.safe_bool_opt(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
         let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));

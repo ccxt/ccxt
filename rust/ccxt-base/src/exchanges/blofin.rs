@@ -75,7 +75,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "open24h", &[]);
-        let mut spot: bool = self.safe_bool_k(&marketResolved, "spot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut spot: bool = self.safe_bool_k_opt(&marketResolved, "spot", &[Value::Bool(false)]).unwrap_or(false);
         let mut quoteVolume: Option<String> = (if spot { self.safe_string_k_opt(ticker.clone(), "volCurrency24h", &[]) } else { None });
         let mut baseVolume: Option<String> = self.safe_string_k_opt(ticker.clone(), "vol24h", &[]);
         let mut high: Option<String> = self.safe_string_k_opt(ticker.clone(), "high24h", &[]);
@@ -3059,7 +3059,7 @@ impl Blofin {
         let mut triggerPriceAny: Option<String> = self.safe_string_n_opt(&query, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         let mut triggerPriceSlTp: Option<String> = self.safe_string2_opt(&query, Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(&query, "timeInForce", &[Value::Str("GTC".into())]);
-        let mut isHedged: bool = self.safe_bool_k(&query, "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isHedged: bool = self.safe_bool_k_opt(&query, "hedged", &[Value::Bool(false)]).unwrap_or(false);
         if isHedged {
             request.insert("positionSide".into(), (if (side.as_str() == Some("buy")) { Value::Str("long".into()) } else { Value::Str("short".into()) }));
         }
@@ -3189,7 +3189,7 @@ impl Blofin {
         let mut isCombinedSlTp: bool = (isStopLossPriceDefined && isTakeProfitPriceDefined) || isTpslEndpoint;
         let mut isSlOrTp: bool = (isStopLossPriceDefined || isTakeProfitPriceDefined);
         let mut response: Option<crate::value::Dict> = None;
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(&paramsTpsl, "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(&paramsTpsl, "reduceOnly", &[]);
         if (reduceOnly.is_some()) {
             std::sync::Arc::make_mut(&mut paramsTpsl).insert("reduceOnly".into(), (if (reduceOnly == Some(true)) { Value::Str("true".into()) } else { Value::Str("false".into()) }));
         }
@@ -3231,7 +3231,7 @@ impl Blofin {
     m
 }));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut hedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut hedged: bool = self.safe_bool_k_opt(params.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
         let mut positionSide: String = "net".to_string();
         if hedged {
             positionSide = (if (side.as_str() == Some("buy")) { "short".to_string() } else { "long".to_string() });
@@ -3330,8 +3330,8 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut isTrigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isTpsl: bool = self.safe_bool2(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool_k_opt(params.clone(), "trigger", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isTpsl: bool = self.safe_bool2_opt(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -3451,7 +3451,7 @@ impl Blofin {
                 m.insert("instId".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut isTpsl: bool = self.safe_bool2(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTpsl: bool = self.safe_bool2_opt(params.clone(), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         if (clientOrderId.is_some()) {
             request.insert("clientOrderId".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
@@ -3527,8 +3527,8 @@ impl Blofin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone()); // default 100, max 100
         }
-        let mut isTrigger: bool = self.safe_bool_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isTpSl: bool = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool_n_opt(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).unwrap_or(false);
+        let mut isTpSl: bool = self.safe_bool2_opt(Value::from(&paramsPaginate), Value::Str("tpsl".into()), Value::Str("TPSL".into()), &[Value::Bool(false)]).unwrap_or(false);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchOpenOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersPending".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3893,8 +3893,8 @@ impl Blofin {
         //
         // one row per currency + chain pair, group them per currency
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut dataByCurrencyId: Value = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
-        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut dataByCurrencyId: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
+        let mut currencies: crate::value::List = Value::Array(dataByCurrencyId.values().cloned().collect()).into_list();
         return self.parse_currencies(&currencies);
         Value::Null
         }).await?))
@@ -4391,7 +4391,7 @@ impl Blofin {
         let mut method: Option<String> = self.handle_option(Value::Str("cancelOrders".into()), Value::Str("method".into()), &[Value::Str("privatePostTradeCancelBatchOrders".into())]).as_str().map(str::to_owned);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "clientOrderId", &[]));
         let mut tpslIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "tpslId", &[]));
-        let mut trigger: Option<bool> = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]);
         if (trigger == Some(true)) {
             method = Some("privatePostTradeCancelTpsl".to_string());
         }
@@ -4964,7 +4964,7 @@ impl Blofin {
         if (since != Value::Null) {
             request.insert("begin".into(), since.clone());
         }
-        let mut isTrigger: bool = self.safe_bool_n(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool_n_opt(Value::from(&paramsPaginate), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into()), Value::Str("TPSL".into())]), &[Value::Bool(false)]).unwrap_or(false);
         let methodparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsPaginate, Value::Str("fetchClosedOrders".into()), Value::Str("method".into()), &[Value::Str("privateGetTradeOrdersHistory".into())]).as_array().cloned().unwrap_or_default();
         let mut method: Option<String> = methodparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = methodparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

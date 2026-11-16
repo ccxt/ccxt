@@ -410,15 +410,15 @@ impl Coinbaseexchange {
         }
         let mut channel: String = "ticker".to_string();
         let mut messageHash: String = "ticker".to_string();
-        let mut ticker: Value = self.subscribe_multiple(channel.as_str(), &[symbols.clone(), Value::from(messageHash), params]).await;
+        let mut ticker: crate::value::Dict = self.subscribe_multiple(channel.as_str(), &[symbols.clone(), Value::from(messageHash), params]).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
+            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (tickerSymbol.is_some()) {
-                result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
+                result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker));
             }
             return Value::Map(result);
         }

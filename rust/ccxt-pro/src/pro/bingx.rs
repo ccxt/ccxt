@@ -1100,8 +1100,8 @@ impl Bingx {
         //
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
-        let mut isSpot: bool = self.safe_bool_k(&market, "spot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isInverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSpot: bool = self.safe_bool_k_opt(&market, "spot", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: String = "T".to_string();
         if isSpot {
             timestamp = "t".to_string();
@@ -2522,7 +2522,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut isUnSubMessage: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnSubMessage: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSubMessage {
             self.handle_un_subscription(client, &subscription);
         }

@@ -266,7 +266,7 @@ impl crate::exchange::DerivedExchange for Coinbaseexchange {
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "time_in_force", &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
         let mut triggerPrice: Option<f64> = self.safe_number_k(order.clone(), "stop_price", &[]).as_f64();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "client_oid", &[]);
         return self.safe_order(Value::Map({
@@ -2680,7 +2680,7 @@ impl Coinbaseexchange {
         if (timeInForce.is_some()) {
             request.insert("time_in_force".into(), timeInForce.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut postOnly: bool = self.safe_bool2(params.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool2_opt(params.clone(), Value::Str("postOnly".into()), Value::Str("post_only".into()), &[Value::Bool(false)]).unwrap_or(false);
         if postOnly {
             request.insert("post_only".into(), Value::Bool(true));
         }

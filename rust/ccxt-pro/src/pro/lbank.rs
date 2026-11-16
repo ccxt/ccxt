@@ -1501,7 +1501,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 //
                 // {"result":true,"data":"4e9958623e6006bd7b13ff9f36c03b36132f0f8da37f70b14ff2c4eab1fe0c97","error_code":0,"ts":1705602277198}
                 //
-                let mut result: bool = self.safe_bool_k(&response, "result", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut result: bool = self.safe_bool_k_opt(&response, "result", &[Value::Bool(false)]).unwrap_or(false);
                 if !result {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " failed to get subscribe key")));
                 }

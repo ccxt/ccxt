@@ -475,7 +475,7 @@ impl crate::exchange::DerivedExchange for Mudrex {
         if (response == Value::Null) || !matches!(&response, Value::Dict(_)) {
             return Value::Null;
         }
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
             let mut errors: crate::value::List = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]).into_list();
             let mut first: crate::value::Dict = self.safe_dict(&errors, Value::Int(0), &[Value::Map({

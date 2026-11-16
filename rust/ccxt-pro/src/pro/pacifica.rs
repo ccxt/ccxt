@@ -589,7 +589,7 @@ impl Pacifica {
             while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
             let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
-            let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut orderId: Option<String> = self.safe_string_k_opt(&order, "i", &[]);

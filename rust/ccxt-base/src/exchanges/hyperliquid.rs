@@ -125,7 +125,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }
         let mut fee: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut takerOrMaker: Option<String> = None;
-        let mut crossed: Option<bool> = self.safe_bool_k(trade.clone(), "crossed", &[]).as_bool();
+        let mut crossed: Option<bool> = self.safe_bool_k_opt(trade.clone(), "crossed", &[]);
         if (crossed.is_some()) {
             takerOrMaker = (if (crossed == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
         }
@@ -297,7 +297,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if (tif.is_some()) {
             postOnly = Some(tif.as_deref() == Some("ALO"));
         }
-        let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool_k_opt(&entry, "isTrigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut triggerPx: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
@@ -3148,7 +3148,7 @@ impl Hyperliquid {
         let mut vaultAdress: Value = vaultAdress.into();
         let mut expiresAfter: Value = expiresAfter.into();
         let mut hash: Value = self.action_hash(action, vaultAdress.as_str(), nonce, expiresAfter.as_i64());
-        let mut isTestnet: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTestnet: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[Value::Bool(isTestnet)]).into_dict();
         // const data: Dict = {
         //     'domain': {
@@ -3503,7 +3503,7 @@ if _try_result.is_err() {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
@@ -3552,8 +3552,8 @@ if _try_result.is_err() {
 }
 
     pub async fn handle_builder_fee_approval(&mut self) -> Value {
-        let mut buildFee: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-        let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }
@@ -3672,7 +3672,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userSetAbstraction".into())]).as_str().unwrap_or("userSetAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3725,7 +3725,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut userAddress: Option<String> = userAddressparamsPublicAddressVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPublicAddress: crate::value::Dict = userAddressparamsPublicAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut type_var: String = self.safe_string_k(&paramsPublicAddress, "type", &[Value::Str("userDexAbstraction".into())]).as_str().unwrap_or("userDexAbstraction").to_string();
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3880,7 +3880,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut nonce: i64 = self.incrementing_nonce();
         let mut isBuy: bool = (side.as_str().unwrap_or_default().to_string().to_uppercase()) == "BUY";
-        let mut randomize: bool = self.safe_bool_k(params.clone(), "randomize", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut randomize: bool = self.safe_bool_k_opt(params.clone(), "randomize", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("randomize".into()), &[]).into_dict();
         let vaultAddressOptionparamsVaultVariable: Vec<Value> = self.handle_option_string_and_params(&paramsOmitted, Value::Str("createOrder".into()), Value::Str("vaultAddress".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut vaultAddressOption: Option<String> = vaultAddressOptionparamsVaultVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -4059,7 +4059,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if isMarket {
             defaultTimeInForce = "ioc".to_string();
         }
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly {
             defaultTimeInForce = "alo".to_string();
         }
@@ -4080,7 +4080,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             px = self.price_to_precision(symbol.clone(), price);
         }
         let mut sz: Option<String> = self.amount_to_precision(symbol.clone(), amount);
-        let mut reduceOnly: bool = self.safe_bool_k(params, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderType: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4516,7 +4516,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
          */
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
-        let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fast: bool = self.safe_bool_k_opt(params.clone(), "fast", &[Value::Bool(false)]).unwrap_or(false);
         let mut params2: crate::value::Dict = self.omit(params, &["clientOrderId", "client_id", "fast"], &[]).into_dict();
         let mut nonce: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4659,7 +4659,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         cancelAction.insert("type".into(), (if cancelByCloid { Value::Str("cancelByCloid".into()) } else { Value::Str("cancel".into()) }));
         cancelAction.insert("cancels".into(), Value::Arr(cancelReq));
-        let mut fast: bool = self.safe_bool_k(params.clone(), "fast", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fast: bool = self.safe_bool_k_opt(params.clone(), "fast", &[Value::Bool(false)]).unwrap_or(false);
         if fast {
             // "f" must be omitted when false, actions hashed with "f": false are rejected
             cancelAction.insert("f".into(), Value::Bool(true));
@@ -4798,7 +4798,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if isMarket {
                 defaultTimeInForce = "ioc".to_string();
             }
-            let mut postOnly: bool = self.safe_bool_k(&orderParams, "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut postOnly: bool = self.safe_bool_k_opt(&orderParams, "postOnly", &[Value::Bool(false)]).unwrap_or(false);
             if postOnly {
                 defaultTimeInForce = "alo".to_string();
             }
@@ -4809,7 +4809,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut stopLossPrice: Option<String> = self.safe_string_k_opt(&orderParams, "stopLossPrice", &[triggerPrice.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(&orderParams, "takeProfitPrice", &[]);
             let mut isTrigger: bool = (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
-            let mut reduceOnly: bool = self.safe_bool_k(&orderParams, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k_opt(&orderParams, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             orderParams = self.omit(&orderParams, &["slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"], &[]).into_dict();
             let mut px: Option<String> = self.number_to_string(price.map(Value::from).unwrap_or(Value::Null));
             if isMarket {
@@ -6237,7 +6237,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut nonce: i64 = self.incrementing_nonce();
         if self.in_array(fromAccount.clone(), Value::from(vec![Value::Str("spot".into()), Value::Str("swap".into()), Value::Str("perp".into())])) {
             // handle swap <> spot account transfer
@@ -6479,7 +6479,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             sig = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);
         }  else {
-            let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
             let mut payload: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));

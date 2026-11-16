@@ -132,7 +132,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "type", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "action", &[]);
         if (side.is_none()) {
-            let mut isBuyer: bool = self.safe_bool_k(trade.clone(), "isBuyer", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isBuyer: bool = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[Value::Bool(false)]).unwrap_or(false);
             if isBuyer {
                 side = Some("buy".to_string());
             }  else {
@@ -155,7 +155,7 @@ impl crate::exchange::DerivedExchange for Bitopro {
                 m
             }));
         }
-        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "isTaker", &[]).as_bool();
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isTaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isTaker.is_some()) {
             if (isTaker == Some(true)) {
@@ -376,8 +376,8 @@ impl crate::exchange::DerivedExchange for Bitopro {
         let mut fiatCurrencies: Value = self.handle_option(Value::Str("fetchCurrencies".into()), Value::Str("fiatCurrencies".into()), &[Value::from(vec![])]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut deposit: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "deposit", &[]).as_bool();
-        let mut withdraw: Option<bool> = self.safe_bool_k(rawCurrency.clone(), "withdraw", &[]).as_bool();
+        let mut deposit: Option<bool> = self.safe_bool_k_opt(rawCurrency.clone(), "deposit", &[]);
+        let mut withdraw: Option<bool> = self.safe_bool_k_opt(rawCurrency.clone(), "withdraw", &[]);
         let mut isFiat: bool = self.in_array(&code, fiatCurrencies);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();

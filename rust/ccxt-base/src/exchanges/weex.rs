@@ -200,9 +200,9 @@ impl crate::exchange::DerivedExchange for Weex {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
-        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
+        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyerMaker", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyerMaker", &[]);
         if (isBuyer.is_some()) {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }  else if (isBuyerMaker.is_some()) {
@@ -240,7 +240,7 @@ impl crate::exchange::DerivedExchange for Weex {
                 m
             }));
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
@@ -385,7 +385,7 @@ impl crate::exchange::DerivedExchange for Weex {
         let mut rawStatus: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]); // algo (trigger) order payloads carry algoStatus instead of status
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]));
         let mut rawType: Option<String> = self.safe_string_upper2_opt(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]);
-        let mut isReduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
+        let mut isReduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         let mut isEntryTrigger: bool = !(self.safe_bool_k(order.clone(), "reduceOnly", &[Value::Bool(true)]).as_bool() == Some(true));
@@ -520,7 +520,7 @@ impl crate::exchange::DerivedExchange for Weex {
                 isInverse = Some(true);
             }
         }  else {
-            active = self.safe_bool_k(market.clone(), "enableTrade", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            active = self.safe_bool_k_opt(market.clone(), "enableTrade", &[Value::Bool(false)]).unwrap_or(false);
         }
         let mut amountPrecision: Option<f64> = self.safe_number_k(market.clone(), "stepSize", &[]).as_f64();
         let mut pricePrecision: Option<f64> = self.safe_number_k(market.clone(), "tickSize", &[]).as_f64();
@@ -1201,7 +1201,7 @@ impl crate::exchange::DerivedExchange for Weex {
             m
         });
         if isPrivate {
-            let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
             if sandboxMode && (Value::Int(path.as_str().and_then(|__s| __s.find("capi/v3/sim/")).map(|__i| __i as i64).unwrap_or(-1)).as_f64() != Some(0.0)) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), path).into()), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")));
             }
@@ -3486,7 +3486,7 @@ impl Weex {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
         let mut type_var: Option<String> = marketType;
         if sandboxMode && (requestedType.is_none()) {
@@ -3554,7 +3554,7 @@ impl Weex {
                 m.insert("info".to_string(), response.clone());
             m
         });
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut balances: crate::value::List = self.safe_list_k(response.clone(), "balances", &[response.clone()]).into_list();
         {
                         let mut i: i64 = 0;
@@ -3690,7 +3690,7 @@ impl Weex {
         if (market).contract {
             return self.create_contract_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), &[price.clone(), params.clone()]).await;
         }  else {
-            let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
             if sandboxMode {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() only supports swap markets in sandbox mode")));
             }
@@ -3831,7 +3831,7 @@ impl Weex {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var, side, amount, &[price, params]).into_dict();
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&request, "triggerPrice", &[]);
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::Dict> = None;
         if (triggerPrice.is_some()) {
             if sandboxMode {
@@ -3893,7 +3893,7 @@ impl Weex {
         if isTrigger && (isStopLoss || isTakeProfit) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")));
         }
-        let mut reduceOnly: bool = self.safe_bool_k(&query, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&query, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut isReduceOnly: bool = isStopLoss || isTakeProfit || reduceOnly;
         let mut positionSide: String = "LONG".to_string();
         if isReduceOnly {
@@ -4068,7 +4068,7 @@ impl Weex {
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: bool = self.safe_bool_k(&paramsMarketType, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(&paramsMarketType, "trigger", &[Value::Bool(false)]).unwrap_or(false);
         if trigger && (id == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires an id argument for trigger orders")));
         }
@@ -4157,7 +4157,7 @@ impl Weex {
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut trigger: bool = self.safe_bool_k(&paramsMarketType, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(&paramsMarketType, "trigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("trigger".into()), &[]).into_dict();
         let mut response: Option<crate::value::List> = None;
         if (marketType.as_deref() == Some("spot")) {
@@ -4435,7 +4435,7 @@ impl Weex {
             let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
             let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
             let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-            let mut trigger: bool = self.safe_bool_k(&paramsUntil, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut trigger: bool = self.safe_bool_k_opt(&paramsUntil, "trigger", &[Value::Bool(false)]).unwrap_or(false);
             if trigger {
                 let mut paramsOmitted: crate::value::Dict = self.omit(&paramsUntil, Value::Str("trigger".into()), &[]).into_dict();
                 //
@@ -4742,7 +4742,7 @@ impl Weex {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("endTime".into()), Value::Map(request), &paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::List> = None;
         if sandboxMode {
             let __ws_arg_30 = self.extend(&requestUntil, &[&paramsUntil]);
@@ -5206,7 +5206,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::List> = None;
         if sandboxMode {
             response = self.contract_private_get_capi_v3_sim_position_all_position(&[params.clone()]).await.into_opt_list();
@@ -5269,7 +5269,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         if sandboxMode {
             return crate::types::IntoRaw::into_raw(self.fetch_positions((Value::from(vec![Value::from((market).symbol.clone())])).to_opt_str_vec(), params.clone()).await);
         }
@@ -5906,7 +5906,7 @@ impl Weex {
  * @returns {string} the market id for the request
  */
     pub fn to_sandbox_market_id(&self, market: Option<&crate::types::Market>) -> Option<String> {
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut baseId: Option<String> = self.safe_string_k_opt(&market, "baseId", &[]);
         if sandboxMode && (baseId.is_some()) {
             return Some(format!("{}{}", baseId.as_deref().unwrap_or("null"), "SUSDT"));
@@ -5924,7 +5924,7 @@ impl Weex {
  */
     pub fn from_sandbox_market_id(&self, marketId: Option<&str>) -> Option<String> {
         let mut marketId: Value = marketId.into();
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         if (!sandboxMode) || (marketId == Value::Null) {
             return marketId.as_str().map(str::to_owned);
         }

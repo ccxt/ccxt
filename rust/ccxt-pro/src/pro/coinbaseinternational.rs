@@ -2561,9 +2561,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             request.insert("price".into(), self.parse_number(Value::from(self.price_to_precision(symbol, price)), &[]));
         }
-        let mut postOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
         if (self.parent.is_native_deribit_credentials().as_bool() == Some(true)) {
-            let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
             if (reduceOnly.is_some()) {
                 request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
             }
@@ -2599,12 +2599,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str(format!("{}{}", "private/", side).into()), &[__ws_arg_6, Value::Bool(true)]).await;
-        let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict_k(result.clone(), "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])])); }
-        return self.parse_order(order, Some(&market));
+        })]).into_dict();
+        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
+        return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
         }).await?))
     }
@@ -2664,12 +2664,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut paramsRequest: crate::value::Dict = self.omit(&paramsResolved, &["triggerPrice", "stopPrice", "stop_price"], &[]).into_dict();
         let __ws_arg_7 = self.extend(Value::Map(request), &[&paramsRequest]);
         let mut result: Value = self.request_ws(Value::Str("private/edit".into()), &[__ws_arg_7, Value::Bool(true)]).await;
-        let mut order: Value = self.safe_dict_k(result.clone(), "order", &[Value::Map({
+        let mut order: crate::value::Dict = self.safe_dict_k(result.clone(), "order", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if let Value::Dict(__d) = &mut order { std::sync::Arc::make_mut(__d).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])])); }
-        return self.parse_order(order, Some(&market));
+        })]).into_dict();
+        std::sync::Arc::make_mut(&mut order).insert("trades".into(), self.safe_list_k(result, "trades", &[Value::from(vec![])]));
+        return self.parse_order(Value::Dict(order), Some(&market));
         Value::Null
         }).await?))
     }

@@ -530,7 +530,7 @@ impl Gate {
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel_cp");
         let channelOptionparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("channel".into()), &[Value::from(channel)]).as_array().cloned().unwrap_or_default();
@@ -586,7 +586,7 @@ impl Gate {
         }  else {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]).into_dict();
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1017,7 +1017,7 @@ impl Gate {
         //      "event":"update"
         //   }
         let mut result: crate::value::Dict = message.get("result").cloned().unwrap_or_default().into_dict();
-        let mut full: bool = self.safe_bool_k(&result, "full", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut full: bool = self.safe_bool_k_opt(&result, "full", &[Value::Bool(false)]).unwrap_or(false);
         let mut marketIdWithPrefix: Option<String> = self.safe_string_k_opt(&result, "s", &[]);
         if (marketIdWithPrefix.is_none()) {
             return;
@@ -1118,10 +1118,10 @@ impl Gate {
         if isSpot {
             marketType = "spot".to_string();
         }
-        let mut delta: Value = (match __pro_message.get("result").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut deltaStart: Option<i64> = self.safe_integer_k(delta.clone(), "U", &[]).as_i64();
-        let mut deltaEnd: Option<i64> = self.safe_integer_k(delta.clone(), "u", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k_opt(delta.clone(), "s", &[]);
+        let mut delta: Option<crate::value::Dict> = __pro_message.get("result").cloned().unwrap_or_default().into_opt_dict();
+        let mut deltaStart: Option<i64> = self.safe_integer_k(&delta, "U", &[]).as_i64();
+        let mut deltaEnd: Option<i64> = self.safe_integer_k(&delta, "u", &[]).as_i64();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&delta, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("_".into()), Value::from(marketType)]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = Some(self.orderbooks.lookup_or(&symbol, self.order_book(&[Value::Map({
@@ -1149,12 +1149,12 @@ impl Gate {
                     m
                 })]); // needed for c#, number of args needs to match
             }
-            storedOrderBook.cache_push(delta);
+            storedOrderBook.cache_push(delta.clone().map_or(Value::Null, Value::Dict));
             return;
         }  else if (deltaEnd.is_some()) && ((nonce.is_some() && deltaEnd.is_some() && nonce >= deltaEnd)) {
             return;
         }  else if (deltaStart.is_some()) && (nonce.is_some()) && (matches!((nonce, ((if let Some(__l) = deltaStart { Some(__l - 1) } else { None }))), (Some(__l), Some(__r)) if (__l as f64) >= (__r as f64))) {
-            self.handle_book_delta(Value::from(&storedOrderBook), delta);
+            self.handle_book_delta(Value::from(&storedOrderBook), delta.map_or(Value::Null, Value::Dict));
         }  else {
             __ch.remove_subscription(messageHash.as_str());
             storedOrderBook.set_book_meta("nonce", Value::Null);

@@ -364,7 +364,7 @@ impl Independentreserve {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut receivedSnapshot: bool = self.safe_bool_k(&subscription, "receivedSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut receivedSnapshot: bool = self.safe_bool_k_opt(&subscription, "receivedSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: Option<i64> = (match message.get("Time") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if !(self.orderbooks.has(&symbol)) {

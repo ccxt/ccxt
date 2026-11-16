@@ -1467,7 +1467,7 @@ impl Krakenfutures {
         //        "reduce_only": false
         //    }
         //
-        let mut isCancelled: Option<bool> = self.safe_bool_k(order.clone(), "is_cancel", &[]).as_bool();
+        let mut isCancelled: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_cancel", &[]);
         let mut unparsedOrder: Value = order.clone();
         let mut status: Option<String> = None;
         if (isCancelled.is_some()) {
@@ -2179,7 +2179,7 @@ impl Krakenfutures {
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "instrument", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut isBuy: bool = self.safe_bool_k(trade.clone(), "buy", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isBuy: bool = self.safe_bool_k_opt(trade.clone(), "buy", &[Value::Bool(false)]).unwrap_or(false);
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_currency", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();

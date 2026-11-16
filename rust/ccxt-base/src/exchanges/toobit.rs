@@ -133,10 +133,10 @@ impl crate::exchange::DerivedExchange for Toobit {
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("t".into()), Value::Str("time".into()), &[]).as_i64();
         let mut priceString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("p".into()), Value::Str("price".into()), &[]);
         let mut amountString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("q".into()), Value::Str("qty".into()), &[]);
-        let mut isBuyer: bool = self.safe_bool_k(trade.clone(), "isBuyer", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isBuyer: bool = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: Option<String> = None;
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "ibm", &[]).as_bool();
-        let mut isBuyerTaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
+        let mut isBuyerTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         if (isBuyerMaker.is_some()) {
             side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }  else if (isBuyerTaker.is_some()) {
@@ -159,7 +159,7 @@ impl crate::exchange::DerivedExchange for Toobit {
                 m
             }));
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
@@ -330,7 +330,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         })]).into_dict();
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut isContract: bool = (self.safe_string_k(market.clone(), "contractMultiplier", &[]) != Value::Null);
-        let mut inverse: Option<bool> = self.safe_bool2(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]).as_bool();
+        let mut inverse: Option<bool> = self.safe_bool2_opt(market.clone(), Value::Str("isInverse".into()), Value::Str("inverse".into()), &[]);
         if isContract {
             symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
         }
@@ -2164,10 +2164,10 @@ impl Toobit {
             let mut __for_first_1130: bool = true;
             while { if !__for_first_1130 { i += 1; } __for_first_1130 = false; i < (coins.len() as i64) } {
             let mut coin: crate::value::Dict = coins.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: Value = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin);
-            if (parsed != Value::Null) {
+            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_currency(self, &coin).into_dict();
+            if (true) {
                 let mut code: Option<String> = crate::value::KeyRead::key_read(&&parsed, "code").as_str().map(str::to_owned);
-                result.insert(code.as_deref().unwrap_or("null").to_string(), parsed);
+                result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Dict(parsed));
             }
         }
         }

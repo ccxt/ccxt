@@ -421,7 +421,7 @@ impl crate::exchange::DerivedExchange for Cex {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "fiat", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isFiat: bool = self.safe_bool_k_opt(rawCurrency.clone(), "fiat", &[Value::Bool(false)]).unwrap_or(false);
         let mut type_var: String = "crypto".to_string();
         if isFiat {
             type_var = "fiat".to_string();

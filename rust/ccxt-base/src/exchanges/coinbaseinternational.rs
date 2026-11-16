@@ -338,7 +338,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
             }
             nativeLastUpdateTimestamp = lastUpdateTimestamp.take();
             orderType = self.safe_string_lower2_opt(order.clone(), Value::Str("original_order_type".into()), Value::Str("order_type".into()), &[]);
-            reduceOnly = self.safe_bool_k(order.clone(), "reduce_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            reduceOnly = self.safe_bool_k_opt(order.clone(), "reduce_only", &[Value::Bool(false)]).unwrap_or(false);
             fee = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("cost".to_string(), self.safe_number_k(order.clone(), "commission", &[]));
@@ -417,7 +417,7 @@ impl crate::exchange::DerivedExchange for Coinbaseinternational {
         let mut tickSize: Option<f64> = self.safe_number_k(market.clone(), "tick_size", &[]).as_f64();
         let mut isFutureOrOption: bool = isFuture || isOption;
         let mut expiry: Option<i64> = (if isFutureOrOption { self.safe_integer_k(market.clone(), "expiration_timestamp", &[]).as_i64() } else { None });
-        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "is_active", &[]).as_bool();
+        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "is_active", &[]);
         let mut strike: Option<f64> = self.safe_number_k(market.clone(), "strike", &[]).as_f64();
         let mut optionType: Option<String> = self.safe_string_k_opt(market.clone(), "option_type", &[]);
         if !isComboMarket && (isOption || isFuture) {
@@ -3682,10 +3682,10 @@ impl Coinbaseinternational {
                 request.insert("price".into(), Value::from(self.price_to_precision(symbol, price)));
             }
         }
-        let mut postOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("postOnly".into()), Value::Str("post_only".into()), &[]);
         let mut timeInForce: Option<String> = self.safe_string2_opt(&paramsResolved, Value::Str("tif".into()), Value::Str("timeInForce".into()), &[]);
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let mut reduceOnly: Option<bool> = self.safe_bool2(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+            let mut reduceOnly: Option<bool> = self.safe_bool2_opt(&paramsResolved, Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
             if (reduceOnly.is_some()) {
                 request.insert("reduce_only".into(), reduceOnly.map_or(Value::Null, Value::Bool));
             }
@@ -4631,7 +4631,7 @@ impl Coinbaseinternational {
         if self.is_native_deribit_credentials().as_bool() == Some(true) {
             return Value::Null;
         }
-        let mut forceRefresh: bool = self.safe_bool_k(&paramsResolved, "forceRefresh", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut forceRefresh: bool = self.safe_bool_k_opt(&paramsResolved, "forceRefresh", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsResolved, Value::Str("forceRefresh".into()), &[]).into_dict();
         let mut now: i64 = self.milliseconds();
         let mut token: Option<String> = self.get_v2_access_token();
@@ -4696,7 +4696,7 @@ impl Coinbaseinternational {
         if secretIsPem {
             return Value::Bool(false);
         }
-        let mut useV2CloudApiKey: bool = self.safe_bool_k(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut useV2CloudApiKey: bool = self.safe_bool_k_opt(self.options.clone(), "v2CloudAPiKey", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Bool((Value::Int(self.secret.len() as i64).as_f64() == Some(88.0)) || useV2CloudApiKey || (self.secret.as_str().unwrap_or("").ends_with("=")));
 
     Value::Null
@@ -4722,7 +4722,7 @@ impl Coinbaseinternational {
         let mut route: Option<String> = routeparamsResolvedVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsResolved: crate::value::Dict = routeparamsResolvedVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut deribit: Value = self.resolve_route(&[route.map(Value::from).unwrap_or(Value::Null)]);
-        let mut previousBackend: Option<bool> = self.safe_bool_k(self.options.clone(), "routeBackend", &[]).as_bool();
+        let mut previousBackend: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "routeBackend", &[]);
         let mut configuredBackend: bool = self.is_native_deribit_credentials().as_bool().unwrap_or_default();
         let mut currentToken: Option<String> = self.get_v2_access_token();
         let mut hasToken: bool = (currentToken.is_some()) && (currentToken.as_deref() != Some(""));

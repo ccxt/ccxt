@@ -164,16 +164,16 @@ impl crate::exchange::DerivedExchange for Hashkey {
         if (side.is_some()) {
             side = self.safe_string_opt(Value::Array(if let Some(__s) = side.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[]);
         }
-        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
+        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         if (isBuyer.is_some()) {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
         let mut takerOrMaker: Option<String> = None;
-        let mut isMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isMaker".into()), Value::Str("isMarker".into()), &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isMaker".into()), Value::Str("isMarker".into()), &[]);
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "ibm", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "ibm", &[]);
         // if public trade
         if (isBuyerMaker.is_some()) {
             takerOrMaker = Some("taker".to_string());
@@ -569,7 +569,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut active: bool = status.as_deref() == Some("TRADING");
         let mut isLinear: Option<bool> = None;
         let mut subType: Option<String> = None;
-        let mut isInverse: Option<bool> = self.safe_bool_k(market.clone(), "inverse", &[]).as_bool();
+        let mut isInverse: Option<bool> = self.safe_bool_k_opt(market.clone(), "inverse", &[]);
         if (isInverse.is_some()) {
             if (isInverse == Some(true)) {
                 isLinear = Some(false);
@@ -936,7 +936,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(&currency, "id", &[]);
         let mut status: Option<String> = None;
-        let mut success: bool = self.safe_bool_k(transfer.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(transfer.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
         if success {
             status = Some("ok".to_string());
         }
@@ -1135,7 +1135,7 @@ impl crate::exchange::DerivedExchange for Hashkey {
         let mut address: Option<String> = self.safe_string_k_opt(transaction.clone(), "address", &[]);
         let mut status: Option<String> = self.safe_string_k_opt(transaction.clone(), "status", &[]); // for fetchDeposits
         if (status.is_none()) {
-            let mut success: bool = self.safe_bool_k(transaction.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false); // for withdraw
+            let mut success: bool = self.safe_bool_k_opt(transaction.clone(), "success", &[Value::Bool(false)]).unwrap_or(false); // for withdraw
             if success {
                 status = Some("ok".to_string());
             }  else {
@@ -3895,7 +3895,7 @@ impl Hashkey {
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
-        let mut test: bool = self.safe_bool_k(params, "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut test: bool = self.safe_bool_k_opt(params, "test", &[Value::Bool(false)]).unwrap_or(false);
         if test {
             response = self.private_post_api_v1_spot_order_test(&[Value::from(&request)]).await.into_dict();
         }  else if isMarketBuy && (cost.is_none()) {

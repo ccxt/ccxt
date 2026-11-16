@@ -254,7 +254,7 @@ impl crate::exchange::DerivedExchange for Derive {
         let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "filled_amount", &[]);
         let mut fee: Option<String> = self.safe_string_k_opt(order.clone(), "order_fee", &[]);
         let mut orderType: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_type", &[]);
-        let mut isBid: bool = self.safe_bool_k(order.clone(), "is_bid", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isBid: bool = self.safe_bool_k_opt(order.clone(), "is_bid", &[Value::Bool(false)]).unwrap_or(false);
         let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "direction", &[]);
         if (side.is_none()) {
             if isBid {
@@ -627,7 +627,7 @@ impl crate::exchange::DerivedExchange for Derive {
 })]).into_dict();
         let mut amount: Option<String> = self.safe_string_k_opt(&stats, "oi", &[]);
         let mut value: Option<String> = None;
-        let mut isOption: bool = self.safe_bool_k(&market, "option", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isOption: bool = self.safe_bool_k_opt(&market, "option", &[Value::Bool(false)]).unwrap_or(false);
         // for options the mark is the premium, a notional derived from it would be misleading, so only the contract amount is reported there
         if (market.is_some()) && !isOption {
             value = crate::precise::Precise::stringMul(&amount, &self.safe_string_k(interest.clone(), "M", &[])).as_str().map(str::to_owned);
@@ -2833,8 +2833,8 @@ impl Derive {
         let mut settlements: crate::value::List = self.safe_list_k(&result, "settlements", &[Value::from(vec![])]).into_list();
         let mut parsed: crate::value::List = self.parse_settlements(Value::Arr(settlements), market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(parsed), Value::Str("timestamp".into()), &[]).into_list();
-        let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
-        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
+        return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -3371,7 +3371,7 @@ impl Derive {
 
     pub fn hash_order_message(&self, mut order: Value) -> Option<String> {
         let mut accountHash: crate::value::Bytes = self.hash_binary(self.eth_abi_encode(Value::from(vec![Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("bytes32".into()), Value::Str("uint256".into()), Value::Str("address".into()), Value::Str("address".into())]), order), Value::Str("keccak".into()));
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         // EIP712Domain (name "Matching", version "1.0", verifyingContract 0xeB8d770ec18DB98Db922E9D83260A585b9F0DeAD) precomputed for chainId 1 (mainnet) and 11155111 (sepolia testnet)
         let mut DOMAIN_SEPARATOR: String = "da616dfabb88681b08e1592820a41d55ddc62d68de110e327ae99d734506fe19".to_string();
         if sandboxMode {
@@ -3482,10 +3482,10 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("createOrder", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut test: bool = self.safe_bool_k(&paramsDeriveSubaccountId, "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut reduceOnly: Option<bool> = self.safe_bool2(Value::from(&paramsDeriveSubaccountId), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut test: bool = self.safe_bool_k_opt(&paramsDeriveSubaccountId, "test", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Option<String> = self.safe_string_lower2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(&paramsDeriveSubaccountId, "postOnly", &[]);
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut orderSideIsBuy: bool = orderSide == "buy"; // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3675,9 +3675,9 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("editOrder", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut reduceOnly: Option<bool> = self.safe_bool2(Value::from(&paramsDeriveSubaccountId), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut timeInForce: Option<String> = self.safe_string_lower2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k(&paramsDeriveSubaccountId, "postOnly", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(&paramsDeriveSubaccountId, "postOnly", &[]);
         let mut orderType: String = type_var.as_str().map(str::to_lowercase).unwrap_or_default();
         let mut orderSide: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
         let mut orderSideIsBuy: bool = orderSide == "buy"; // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -3861,7 +3861,7 @@ impl Derive {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("cancelOrder", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -4218,7 +4218,7 @@ impl Derive {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["trigger", "stop"], &[]).into_dict();
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("fetchOpenOrders", &paramsOmitted).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
@@ -5293,7 +5293,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             // normalized through the int ids: the raw arguments arrive as strings in some languages and as numbers in others
             transferEntry.insert("fromAccount".into(), Value::from(self.number_to_string(Value::from(fromId))));
@@ -5624,7 +5624,7 @@ impl Derive {
         let subaccountIdparamsDeriveSubaccountIdVariable: Vec<Value> = self.handle_derive_subaccount_id("withdraw", params).as_array().cloned().unwrap_or_default();
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut forceBatch: bool = self.safe_bool2(Value::from(&paramsDeriveSubaccountId), Value::Str("force_batch".into()), Value::Str("forceBatch".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut forceBatch: bool = self.safe_bool2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("force_batch".into()), Value::Str("forceBatch".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut defaultMaxFee: String = (if forceBatch { "10".to_string() } else { "1".to_string() });
         let mut maxFeeUsd: Option<String> = self.safe_string2_opt(Value::from(&paramsDeriveSubaccountId), Value::Str("max_fee_usd".into()), Value::Str("maxFeeUsd".into()), &[Value::from(defaultMaxFee)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsDeriveSubaccountId, &["max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch"], &[]).into_dict();
@@ -5673,7 +5673,7 @@ impl Derive {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             // the response carries only the operation ids, the known request values fill the rest
             transaction.insert("currency".into(), crate::value::KeyRead::key_read(&&currency, "code"));

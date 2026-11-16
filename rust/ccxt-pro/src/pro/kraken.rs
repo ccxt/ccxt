@@ -384,7 +384,7 @@ impl Kraken {
             priceType = "pct".to_string();
         }
         if (method.as_str() == Some("createOrderWs")) {
-            let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             if reduceOnly {
                 orderParams.insert("reduce_only".into(), Value::Bool(true));
             }
@@ -2123,13 +2123,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut length: i64 = Value::Int(CacheSlot::size(&stored)).as_i64().unwrap_or_default();
                 if (length == limit) && (previousOrder.is_none()) {
                     let mut first: Value = get_value(&Value::from(&stored), &Value::Int(0));
-                    let mut symbolsByOrderId: Value = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
+                    let mut symbolsByOrderId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "symbolsByOrderId", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
-                    })]);
+                    })]).into_dict();
                     let mut firstId: Option<String> = self.safe_string_k_opt(first, "id", &[]);
-                    if (firstId.is_some()) && (matches!((&symbolsByOrderId, firstId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                        if let (Value::Dict(__d), Some(__k)) = (&mut symbolsByOrderId, firstId.as_deref()) { std::sync::Arc::make_mut(__d).shift_remove(__k); }
+                    if (firstId.is_some()) && (matches!(firstId.as_deref(), Some(__k) if symbolsByOrderId.contains_key(__k))) {
+                        if let Some(__k) = firstId.as_deref() { std::sync::Arc::make_mut(&mut symbolsByOrderId).shift_remove(__k); }
                     }
                 }
                 stored.append(newOrder);

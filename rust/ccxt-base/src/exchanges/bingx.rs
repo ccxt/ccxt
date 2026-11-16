@@ -296,9 +296,9 @@ impl crate::exchange::DerivedExchange for Bingx {
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         let mut currencyId: Option<String> = self.safe_string_n_opt(trade.clone(), Value::from(vec![Value::Str("currency".into()), Value::Str("N".into()), Value::Str("commissionAsset".into())]), &[]);
         let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut m: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
+        let mut m: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         let mut marketId: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_n(trade.clone(), Value::from(vec![Value::Str("buyerMaker".into()), Value::Str("isBuyerMaker".into()), Value::Str("maker".into())]), &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_n_opt(trade.clone(), Value::from(vec![Value::Str("buyerMaker".into()), Value::Str("isBuyerMaker".into()), Value::Str("maker".into())]), &[]);
         let mut takeOrMaker: Option<String> = None;
         let mut isMakerSide: bool = (isBuyerMaker == Some(true)) || (m == Some(true));
         if (isBuyerMaker.is_some()) || (m.is_some()) {
@@ -311,11 +311,11 @@ impl crate::exchange::DerivedExchange for Bingx {
                 takeOrMaker = Some("taker".to_string());
             }
         }
-        let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
+        let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
         if (isBuyer.is_some()) {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         if (isMaker.is_some()) {
             takeOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
@@ -1148,7 +1148,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         //
         let mut marketId: Value = self.safe_string_k(position.clone(), "symbol", &[Value::Str("".into())]);
         marketId = marketId.as_str().map(|__s| Value::Str(__s.replace("/", "-").into())).unwrap_or_else(|| marketId.clone()); // standard return different format
-        let mut isolated: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
+        let mut isolated: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
         let mut marginMode: Option<String> = None;
         if (isolated.is_some()) {
             marginMode = (if (isolated == Some(true)) { Some("isolated".to_string()) } else { Some("cross".to_string()) });
@@ -1416,7 +1416,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         let mut id: Option<String> = self.safe_string_k_opt(interest.clone(), "symbol", &[]);
         let mut symbol: Option<String> = self.safe_symbol(id.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("-".into()), Value::Str("swap".into())]).as_str().map(str::to_owned);
         let mut openInterest: Option<f64> = self.safe_number_k(interest.clone(), "openInterest", &[]).as_f64();
-        let mut inverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut inverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut isInverse: bool = inverse;
         let mut openInterestAmount: Option<f64> = (if isInverse { openInterest } else { None });
         let mut openInterestValue: Option<f64> = (if isInverse { None } else { openInterest });
@@ -1854,7 +1854,7 @@ impl crate::exchange::DerivedExchange for Bingx {
         let mut type_var: Option<String> = section.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut version: Option<String> = section.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<String> = section.get(2).and_then(Value::as_str).map(str::to_owned);
-        let mut isSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandbox: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut url: Option<String> = self.implode_hostname((if let (Some(__m), Some(__k)) = (self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map(), type_var.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null })).as_str().map(str::to_owned);
         if isSandbox && (url.is_none()) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " does not have a testnet/sandbox URL for ").into()), type_var.as_deref().unwrap_or("null")).into()), " endpoints")));
@@ -4063,7 +4063,7 @@ impl Bingx {
     m
 });
         }
-        let mut isSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandbox: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         if isSandbox {
             return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4249,7 +4249,7 @@ impl Bingx {
     m
 }));
         let mut requests: Vec<Value> = vec![self.fetch_swap_markets(params.clone()).await];
-        let mut isSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandbox: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         if !isSandbox {
             requests.push(self.fetch_inverse_swap_markets(params.clone()).await);
             requests.push(self.fetch_spot_markets(params).await); // sandbox is swap only
@@ -4874,8 +4874,8 @@ impl Bingx {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchFundingHistory".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut isInverse: Value = (if (market.is_some()) { (Value::Bool(crate::value::KeyRead::key_read(&&market, "inverse").as_bool() == Some(true))) } else { (Value::Bool(subType.as_deref() == Some("inverse"))) });
-        if isInverse.as_bool() == Some(true) {
+        let mut isInverse: bool = (if (market.is_some()) { (crate::value::KeyRead::key_read(&&market, "inverse").as_bool() == Some(true)) } else { subType.as_deref() == Some("inverse") });
+        if isInverse {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingHistory() is not supported for inverse swap markets")));
         }
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSubType, Value::Str("fetchFundingHistory".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
@@ -5879,7 +5879,7 @@ impl Bingx {
             if ((typeValue.as_deref() == Some("LIMIT")) || (typeValue.as_deref() == Some("TRIGGER_LIMIT")) || (typeValue.as_deref() == Some("STOP")) || (typeValue.as_deref() == Some("TAKE_PROFIT"))) && !isTrailing {
                 request.insert("price".into(), self.parse_to_numeric(Value::from(self.price_to_precision(symbol.clone(), price))));
             }
-            let mut reduceOnlyParam: bool = self.safe_bool_k(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnlyParam: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             // stop loss / take profit price orders are always reduce only
             let mut reduceOnly: bool = reduceOnlyParam || (!isTriggerOrder && (isStopLossPriceOrder || isTakeProfitPriceOrder));
             let mut triggerPriceType: Option<String> = self.safe_string2_opt(paramsTakeProfit.clone(), Value::Str("triggerPriceType".into()), Value::Str("workingType".into()), &[]);
@@ -5977,7 +5977,7 @@ impl Bingx {
                 }
             }
             let mut positionSide: Option<String> = None;
-            let mut hedged: bool = self.safe_bool_k(paramsTakeProfit.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut hedged: bool = self.safe_bool_k_opt(paramsTakeProfit.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
             paramsOrder = (if hedged { self.omit(paramsTakeProfit.clone(), Value::Str("reduceOnly".into()), &[]) } else { paramsTakeProfit });
             if hedged {
                 if reduceOnly {
@@ -5989,7 +5989,7 @@ impl Bingx {
                 positionSide = Some("BOTH".to_string());
             }
             request.insert("positionSide".into(), positionSide.map(Value::from).unwrap_or(Value::Null));
-            let mut closePosition: bool = self.safe_bool_k(paramsOrder.clone(), "closePosition", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut closePosition: bool = self.safe_bool_k_opt(paramsOrder.clone(), "closePosition", &[Value::Bool(false)]).unwrap_or(false);
             if (cost.is_some()) {
                 request.insert("quoteOrderQty".into(), self.parse_to_numeric(Value::from(self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null)))));
             }  else if !closePosition {
@@ -6079,7 +6079,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut test: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         if test && (!(market).swap || ((market).inverse == Some(true))) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() only supports test orders for linear swap markets")));
         }
@@ -6423,7 +6423,7 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isTwapOrder: bool = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTwapOrder: bool = self.safe_bool_k_opt(params.clone(), "twap", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("twap".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         let mut market: Option<crate::types::Market> = None;
@@ -6814,7 +6814,7 @@ impl Bingx {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isTwapOrder: bool = self.safe_bool_k(params.clone(), "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTwapOrder: bool = self.safe_bool_k_opt(params.clone(), "twap", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("twap".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         let mut market: Option<crate::types::Market> = None;
@@ -7051,7 +7051,7 @@ impl Bingx {
             let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
             response = self.spot_v1_private_get_trade_open_orders(&[__ws_arg_41]).await.into_opt_dict();
         }  else {
-            let mut isTwapOrder: bool = self.safe_bool_k(&paramsSubType, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isTwapOrder: bool = self.safe_bool_k_opt(&paramsSubType, "twap", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, Value::Str("twap".into()), &[]).into_dict();
             if isTwapOrder {
                 let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -7360,7 +7360,7 @@ impl Bingx {
             let __ws_arg_46 = self.extend(Value::Map(request.clone()), &[&paramsSpot]);
             response = self.spot_v1_private_get_trade_history_orders(&[__ws_arg_46]).await.into_opt_dict();
         }  else {
-            let mut isTwapOrder: bool = self.safe_bool_k(&paramsStandard, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isTwapOrder: bool = self.safe_bool_k_opt(&paramsStandard, "twap", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsStandard, Value::Str("twap".into()), &[]).into_dict();
             if !isTwapOrder {
                 if (limit != Value::Null) {

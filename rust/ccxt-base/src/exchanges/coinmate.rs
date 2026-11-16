@@ -1635,7 +1635,7 @@ impl Coinmate {
             m
         })]).into_dict();
         let mut transaction: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_transaction(self, &data, Some(&currency)).as_map().cloned().unwrap_or_default();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&withdrawOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             transaction.insert("amount".into(), amount);
             transaction.insert("currency".into(), code);

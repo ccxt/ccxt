@@ -1402,10 +1402,10 @@ impl Upbit {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut canWithdraw: Option<bool> = self.safe_bool_k(&withdrawLimits, "can_withdraw", &[]).as_bool();
+        let mut canWithdraw: Option<bool> = self.safe_bool_k_opt(&withdrawLimits, "can_withdraw", &[]);
         let mut walletState: Option<String> = self.safe_string_k_opt(&currencyInfo, "wallet_state", &[]);
-        let mut walletLocked: Option<bool> = self.safe_bool_k(&memberInfo, "wallet_locked", &[]).as_bool();
-        let mut locked: Option<bool> = self.safe_bool_k(&memberInfo, "locked", &[]).as_bool();
+        let mut walletLocked: Option<bool> = self.safe_bool_k_opt(&memberInfo, "wallet_locked", &[]);
+        let mut locked: Option<bool> = self.safe_bool_k_opt(&memberInfo, "locked", &[]);
         let mut active: bool = true;
         if (canWithdraw.is_some()) && (!(canWithdraw == Some(true))) {
             active = false;
@@ -2243,7 +2243,7 @@ impl Upbit {
         let __params_empty = indexmap::IndexMap::new();
         let params = params.as_map().unwrap_or(&__params_empty);
         let mut quoteAmount: Option<String> = None;
-        let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut createMarketBuyOrderRequiresPrice: bool = self.safe_bool_k_opt(self.options.clone(), "createMarketBuyOrderRequiresPrice", &[Value::Bool(false)]).unwrap_or(false);
         let mut cost: Option<String> = (match params.get("cost") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (cost.is_some()) {
             quoteAmount = self.cost_to_precision(symbol.clone(), cost.map(Value::from).unwrap_or(Value::Null));
@@ -2312,7 +2312,7 @@ impl Upbit {
         let mut postOnly: bool = self.is_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(false), &[params.clone()]);
         let mut timeInForce: Option<String> = self.safe_string_lower2_opt(params.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[]);
         let mut selfTradePrevention: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("selfTradePrevention".into()), Value::Str("smp_type".into()), &[]);
-        let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut test: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly && (selfTradePrevention.is_some()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() does not support post_only and selfTradePrevention simultaneously.")));
         }

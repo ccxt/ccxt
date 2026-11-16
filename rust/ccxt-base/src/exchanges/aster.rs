@@ -203,18 +203,18 @@ impl crate::exchange::DerivedExchange for Aster {
         let mut costString: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("quoteQty".into()), Value::Str("baseQty".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
             if (side.is_none()) {
-                let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "buyer", &[]).as_bool();
+                let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "buyer", &[]);
                 if (isBuyer.is_some()) {
                     side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
                 }
             }
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
         if (isBuyerMaker.is_some()) {
             side = (if (isBuyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
@@ -4283,7 +4283,7 @@ impl Aster {
         //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
         // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
         //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
-        let mut closePosition: bool = self.safe_bool_k(params.clone(), "closePosition", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut closePosition: bool = self.safe_bool_k_opt(params.clone(), "closePosition", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForceIsRequired: bool = false;
         let mut priceIsRequired: bool = false;
         let mut triggerPriceIsRequired: bool = false;
@@ -5363,7 +5363,7 @@ impl Aster {
         if (timestamp == Some(0)) {
             timestamp = None;
         }
-        let mut isolatedRaw: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
+        let mut isolatedRaw: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
         let mut isolated: bool = false;
         if (isolatedRaw.is_none()) {
             let mut isolatedMarginRaw: Option<String> = self.safe_string_k_opt(position.clone(), "isolatedMargin", &[]);
@@ -5922,7 +5922,7 @@ impl Aster {
         if !(builderFee == Some(true)) {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }

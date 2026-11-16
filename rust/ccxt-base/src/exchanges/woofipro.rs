@@ -228,7 +228,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut cost: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("order_amount".into()), Value::Str("amount".into()), &[]); // This is quote amount
         let mut orderType: Option<String> = self.safe_string_lower2_opt(order.clone(), Value::Str("order_type".into()), Value::Str("type".into()), &[]);
         let mut status: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("status".into()), Value::Str("algoStatus".into()), &[]);
-        let mut success: Option<bool> = self.safe_bool_k(order.clone(), "success", &[]).as_bool();
+        let mut success: Option<bool> = self.safe_bool_k_opt(order.clone(), "success", &[]);
         if (success.is_some()) {
             status = (if (success == Some(true)) { Some("NEW".to_string()) } else { Some("REJECTED".to_string()) });
         }
@@ -719,7 +719,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "timestamp", &[]).as_i64();
-        let mut success: bool = self.safe_bool_k(data.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(data.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), data);
@@ -860,7 +860,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let section = section.as_array().unwrap_or(&__section_empty);
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -870,14 +870,14 @@ impl crate::exchange::DerivedExchange for Woofipro {
         let mut requestBody: Option<String> = None;
         let mut requestHeaders: Option<crate::value::Dict> = None;
         if (access.as_deref() == Some("public")) {
-            url.push_str(&pathWithParams.to_string());
+            url.push_str(&pathWithParams);
             if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
             }
         }  else {
             self.check_required_credentials(&[]);
             if ((method.as_str() == Some("POST")) || (method.as_str() == Some("PUT"))) && ((path.as_str() == Some("algo/order")) || (path.as_str() == Some("order")) || (path.as_str() == Some("batch-order"))) {
-                let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
                 if !isSandboxMode {
                     let mut brokerId: Value = self.safe_string_k(self.options.clone(), "brokerId", &[Value::Str("CCXT".into())]);
                     if (path.as_str() == Some("batch-order")) {
@@ -897,7 +897,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             }
             let mut auth: String = "".to_string();
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
-            url.push_str(&pathWithParams.to_string());
+            url.push_str(&pathWithParams);
             let mut hasKeyPrefix: bool = self.apiKey.as_str().unwrap_or("").contains("ed25519:");
             let mut apiKey: Option<String> = (if (hasKeyPrefix) { self.apiKey.as_str().map(str::to_owned) } else { Some(format!("{}{}", "ed25519:", self.apiKey.clone())) });
             let mut authHeaders: indexmap::IndexMap<String, Value> = ({
@@ -950,7 +950,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut errorCode: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
         if !success {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
@@ -3438,7 +3438,7 @@ impl Woofipro {
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         if (side == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrderRequest() requires a side argument")));
@@ -3823,7 +3823,7 @@ impl Woofipro {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         if (!trigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
@@ -3987,7 +3987,7 @@ impl Woofipro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4048,7 +4048,7 @@ impl Woofipro {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -4149,7 +4149,7 @@ impl Woofipro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut maxLimit: i64 = (if isTrigger { 100 } else { 500 });
         let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchOrders".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut paginate: bool = paginateparamsPaginateVariable.get(0).and_then(Value::as_bool) == Some(true);

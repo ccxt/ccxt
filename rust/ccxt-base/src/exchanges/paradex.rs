@@ -3335,7 +3335,7 @@ impl Paradex {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a side argument")));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut orderSide: String = side.as_str().map(str::to_uppercase).unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4559,7 +4559,7 @@ impl Paradex {
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "DEPOSIT").into_list();
             return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
-        let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allKinds: bool = self.safe_bool_k_opt(&paramsPaginate, "allKinds", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4667,7 +4667,7 @@ impl Paradex {
             let mut transactionsOfKind: crate::value::List = self.filter_transactions_by_kind(transactions, "WITHDRAWAL").into_list();
             return self.filter_by_since_limit(&transactionsOfKind, since.as_i64(), limit.as_i64(), &[]);
         }
-        let mut allKinds: bool = self.safe_bool_k(&paramsPaginate, "allKinds", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allKinds: bool = self.safe_bool_k_opt(&paramsPaginate, "allKinds", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsKinds: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("allKinds".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

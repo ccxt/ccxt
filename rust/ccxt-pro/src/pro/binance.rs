@@ -1814,7 +1814,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         if (method.is_some()) {
             self.dispatch_ws_handler(&method, &[client.clone(), message.clone(), subscription.clone()]);
         }
-        let mut isUnSubMessage: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnSubMessage: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if isUnSubMessage {
             self.handle_un_subscription(client, subscription);
         }
@@ -2762,7 +2762,7 @@ match _try_result { Ok(__try_ret) => { if __try_ret { return; } } Err(_try_err) 
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(marketType)]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
-        let mut inverse: Option<bool> = self.safe_bool_k(&market, "inverse", &[]).as_bool();
+        let mut inverse: Option<bool> = self.safe_bool_k_opt(&market, "inverse", &[]);
         let mut volumeKey: String = (if (inverse == Some(true)) { "q".to_string() } else { "v".to_string() });
         let mut parsed: crate::value::List = std::sync::Arc::new(vec![self.safe_integer_k(&kline, "t", &[]), self.safe_float_k(&kline, "o", &[]), self.safe_float_k(&kline, "h", &[]), self.safe_float_k(&kline, "l", &[]), self.safe_float_k(&kline, "c", &[]), self.safe_float(&kline, Value::from(volumeKey), &[])]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv::", symbol.as_deref().unwrap_or("null")).into()), "::").into()), unifiedTimeframe.as_deref().unwrap_or("null"));
@@ -4116,7 +4116,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 // Step 1: Create listenToken via REST API
                 let mut symbol: Option<String> = self.safe_string_k_opt(params.clone(), "symbol", &[]);
-                let mut isIsolated: bool = self.safe_bool_k(params.clone(), "isIsolated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isIsolated: bool = self.safe_bool_k_opt(params.clone(), "isIsolated", &[Value::Bool(false)]).unwrap_or(false);
                 let mut validity: Option<i64> = self.safe_integer_k(params.clone(), "validity", &[]).as_i64();
                 let mut request: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
@@ -4212,7 +4212,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         })]).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&options, "symbol", &[]);
-        let mut isIsolated: bool = self.safe_bool_k(&options, "isIsolated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isIsolated: bool = self.safe_bool_k_opt(&options, "isIsolated", &[Value::Bool(false)]).unwrap_or(false);
         let mut validity: Option<i64> = self.safe_integer_k(&options, "validity", &[]).as_i64();
         let mut renewParams: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4532,7 +4532,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, ":fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {
@@ -4947,7 +4947,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if isPortfolioMargin.as_bool() == Some(true) {
                 urlType = Some("papi".to_string());
             }  else if (type_var.as_deref() == Some("option")) {
-                let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut demoMode: bool = self.safe_bool_k_opt(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if demoMode || self.isSandboxModeEnabled.as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchBalance() does not support option markets in demo/testnet mode")));
                 }
@@ -4963,8 +4963,8 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[isPortfolioMargin.clone()]);
         self.set_positions_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Null, isPortfolioMargin]);
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
+        let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
@@ -5231,7 +5231,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }
         let mut requestId: i64 = self.request_id(url.clone().map(Value::from).unwrap_or(Value::Null));
         let mut messageHash: String = format!("{}", requestId);
-        let mut sor: bool = self.safe_bool2(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sor: bool = self.safe_bool2_opt(params.clone(), Value::Str("sor".into()), Value::Str("SOR".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("sor".into()), &[Value::Str("SOR".into())]).into_dict();
         let mut isConditional: bool = self.parent.is_conditional_order(&[Value::from(&paramsOmitted)]).as_bool().unwrap_or_default();
         if ((market).inverse == Some(true)) && isConditional {
@@ -5248,7 +5248,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut returnRateLimits: Option<bool> = returnRateLimitsparamsReturnRateLimitsVariable.get(0).and_then(Value::as_bool);
         let mut paramsReturnRateLimits: crate::value::Dict = returnRateLimitsparamsReturnRateLimitsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         payload.insert("returnRateLimits".into(), returnRateLimits.map_or(Value::Null, Value::Bool));
-        let mut test: bool = self.safe_bool_k(&paramsReturnRateLimits, "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut test: bool = self.safe_bool_k_opt(&paramsReturnRateLimits, "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsReturnRateLimits, Value::Str("test".into()), &[]).into_dict();
         if isAlgoOrder {
             payload.insert("algoType".into(), Value::Str("CONDITIONAL".into()));
@@ -5646,7 +5646,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                 m.insert("returnRateLimits".to_string(), returnRateLimits.map_or(Value::Null, Value::Bool));
             m
         });
-        let mut isConditional: Option<bool> = self.safe_bool_n(Value::from(&paramsReturnRateLimits), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]).as_bool();
+        let mut isConditional: Option<bool> = self.safe_bool_n_opt(Value::from(&paramsReturnRateLimits), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("conditional".into())]), &[]);
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(Value::from(&paramsReturnRateLimits), Value::from(vec![Value::Str("clientAlgoId".into()), Value::Str("origClientOrderId".into()), Value::Str("clientOrderId".into())]), &[]);
         let mut shouldUseAlgoOrder: bool = ((market).linear.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) && (((market).swap) || ((market).future)) && (isConditional == Some(true));
         if (clientOrderId.is_some()) {
@@ -6178,7 +6178,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if isPortfolioMargin.as_bool() == Some(true) {
                 urlType = Some("papi".to_string());
             }  else if (type_var.as_deref() == Some("option")) {
-                let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut demoMode: bool = self.safe_bool_k_opt(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if demoMode || self.isSandboxModeEnabled.as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOrders() does not support option markets in demo/testnet mode")));
                 }
@@ -6882,7 +6882,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (isPortfolioMargin == Some(true)) {
             urlType = Some("papi".to_string());
         }  else if (type_var.as_deref() == Some("option")) {
-            let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut demoMode: bool = self.safe_bool_k_opt(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).unwrap_or(false);
             if demoMode || self.isSandboxModeEnabled.as_bool() == Some(true) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchPositions() does not support option markets in demo/testnet mode")));
             }
@@ -7481,7 +7481,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
             if (isPortfolioMargin == Some(true)) {
                 urlType = Some("papi".to_string());
             }  else if (type_var.as_deref() == Some("option")) {
-                let mut demoMode: bool = self.safe_bool_k(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut demoMode: bool = self.safe_bool_k_opt(self.options.clone(), "enableDemoTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if demoMode || self.isSandboxModeEnabled.as_bool() == Some(true) {
                     panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchMyTrades() does not support option markets in demo/testnet mode")));
                 }

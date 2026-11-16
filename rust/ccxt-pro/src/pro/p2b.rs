@@ -683,7 +683,7 @@ impl P2b {
         //    }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut isFullUpdate: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isFullUpdate: bool = self.safe_bool_opt(&params, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut data: crate::value::Dict = self.safe_dict(&params, Value::Int(1), &[]).into_dict();
         let mut asks: Option<crate::value::List> = self.safe_list_k(&data, "asks", &[]).into_opt_list();
         let mut bids: Option<crate::value::List> = self.safe_list_k(&data, "bids", &[]).into_opt_list();

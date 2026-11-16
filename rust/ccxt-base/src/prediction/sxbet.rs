@@ -73,7 +73,7 @@ impl crate::exchange::DerivedExchange for Sxbet {
         //
         let mut orderId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("id".into()), Value::Str("orderId".into()), &[]);
         let mut marketHash: String = self.safe_string_k(order.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isBettingOutcomeOne: bool = self.safe_bool_k(order.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(order.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isBettingOutcomeOne {
             outcomeId = Some(marketHash.clone());
@@ -1159,12 +1159,12 @@ impl Sxbet {
             let mut __for_first_1502: bool = true;
             while { if !__for_first_1502 { i += 1; } __for_first_1502 = false; i < rawMarketsLength } {
             let mut raw: crate::value::Dict = rawMarkets.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut parsed: Value = self.parse_sxbet_market(Value::from(&raw));
-            if (parsed == Value::Null) {
+            let mut parsed: crate::value::Dict = self.parse_sxbet_market(Value::from(&raw)).into_dict();
+            if (false) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseEvent() could not resolve parsed market")));
             }
-            marketsList.push(parsed.clone());
-            if matches!(self.safe_bool_k(parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
+            marketsList.push(Value::from(&parsed));
+            if matches!(self.safe_bool_k(&parsed, "active", &[Value::Bool(false)]), Value::Bool(true)) {
                 anyActive = true;
             }
             if (teamOneName.is_none()) {
@@ -1402,7 +1402,7 @@ impl Sxbet {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " approve() requires params.amount - the USDC amount to move into the proxy wallet")));
         }
         let mut proxy: crate::value::Dict = self.fetch_sxbet_proxy().await.into_dict();
-        let mut deployed: bool = self.safe_bool_k(&proxy, "deployed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut deployed: bool = self.safe_bool_k_opt(&proxy, "deployed", &[Value::Bool(false)]).unwrap_or(false);
         if !deployed {
             self.sxbet_private_post_user_deploy_proxy(&[]).await;
             {
@@ -1585,7 +1585,7 @@ impl Sxbet {
         }
         // the venue has no post-only or trigger mechanics - reject the unified params instead
         // of forwarding fields the exchange would silently ignore
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support postOnly - GTC orders may cross on entry")));
         }
@@ -1720,7 +1720,7 @@ impl Sxbet {
         }
         // useBetCredits and externalUserId are per-order fields - route them into the order item,
         // not the top-level body, where the venue would silently ignore them
-        let mut useBetCredits: Option<bool> = self.safe_bool_k(&paramsTimeInForce, "useBetCredits", &[]).as_bool();
+        let mut useBetCredits: Option<bool> = self.safe_bool_k_opt(&paramsTimeInForce, "useBetCredits", &[]);
         if (useBetCredits.is_some()) {
             std::sync::Arc::make_mut(&mut orderItem).insert("useBetCredits".into(), useBetCredits.map_or(Value::Null, Value::Bool));
         }
@@ -1728,7 +1728,7 @@ impl Sxbet {
         if (externalUserId.is_some()) {
             std::sync::Arc::make_mut(&mut orderItem).insert("externalUserId".into(), externalUserId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut waitForOutcome: bool = self.safe_bool_k(&paramsTimeInForce, "waitForOutcome", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut waitForOutcome: bool = self.safe_bool_k_opt(&paramsTimeInForce, "waitForOutcome", &[Value::Bool(true)]).unwrap_or(true);
         let mut rest: crate::value::Dict = self.omit(&paramsTimeInForce, &["salt", "expiry", "clientOrderId", "waitForOutcome", "useBetCredits", "externalUserId"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2042,10 +2042,10 @@ impl Sxbet {
         let mut result: crate::value::List = std::sync::Arc::new(Vec::new());
         result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(&response)).into_list();
         // both paths paginate their async submission - keep going on the SAME route while more remain
-        let mut hasMore: bool = self.safe_bool(self.safe_dict_k(&response, "data", &[Value::Map({
+        let mut hasMore: bool = self.safe_bool_k_opt(self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("hasMore".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]), "hasMore", &[Value::Bool(false)]).unwrap_or(false);
         {
                         let mut guard: i64 = 0;
             let mut __for_first_1510: bool = true;
@@ -2066,10 +2066,10 @@ impl Sxbet {
                 nextResponse = self.sxbet_private_delete_orders_v3_all(&[Value::from(&rest)]).await.into_opt_dict();
             }
             result = self.array_concat(Value::Arr(result), self.parse_sxbet_cancel_response(&nextResponse)).into_list();
-            hasMore = self.safe_bool(self.safe_dict_k(&nextResponse, "data", &[Value::Map({
+            hasMore = self.safe_bool_k_opt(self.safe_dict_k(&nextResponse, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("hasMore".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+})]), "hasMore", &[Value::Bool(false)]).unwrap_or(false);
         }
         }
         return Value::Arr(result);
@@ -2387,7 +2387,7 @@ impl Sxbet {
         //     }
         //
         let mut marketHash: String = self.safe_string_k(fill.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isBettingOutcomeOne: bool = self.safe_bool_k(fill.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(fill.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isBettingOutcomeOne {
             outcomeId = Some(marketHash.clone());
@@ -2403,7 +2403,7 @@ impl Sxbet {
         let mut amount: Option<f64> = self.parse_number(crate::precise::Precise::stringDivPrec(&fillAmount, &usdcDecimals, &Value::Int(6)), &[]).as_f64();
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(fill.clone(), "createdAt", &[]));
         // isMaker: true when the account's order was the resting one - absent on older rows
-        let mut isMaker: Option<bool> = self.safe_bool_k(fill.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(fill.clone(), "isMaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
@@ -2600,7 +2600,7 @@ impl Sxbet {
         //     }
         //
         let mut marketHash: String = self.safe_string_k(raw.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isOutcomeOneMaxWin: bool = self.safe_bool_k(raw.clone(), "isOutcomeOneMaxWin", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isOutcomeOneMaxWin: bool = self.safe_bool_k_opt(raw.clone(), "isOutcomeOneMaxWin", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isOutcomeOneMaxWin {
             outcomeId = Some(marketHash.clone());
@@ -2738,7 +2738,7 @@ impl Sxbet {
         //     }
         //
         let mut marketHash: String = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isBettingOutcomeOne: bool = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isBettingOutcomeOne {
             outcomeId = Some(marketHash.clone());
@@ -3881,7 +3881,7 @@ impl Sxbet {
     pub fn parse_sxbet_v3_public_trade(&self, trade: impl Into<crate::Value>) -> Value {
         let mut trade: Value = trade.into();
         let mut marketHash: String = self.safe_string_k(trade.clone(), "marketHash", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut isBettingOutcomeOne: bool = self.safe_bool_k(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isBettingOutcomeOne: bool = self.safe_bool_k_opt(trade.clone(), "isBettingOutcomeOne", &[Value::Bool(true)]).unwrap_or(true);
         let mut outcomeId: Option<String> = None;
         if isBettingOutcomeOne {
             outcomeId = Some(marketHash.clone());

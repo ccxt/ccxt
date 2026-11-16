@@ -400,7 +400,7 @@ impl crate::exchange::DerivedExchange for Revolutx {
         let mut amount: Option<f64> = self.parse_number(amountString.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "s", &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(trade.clone(), Value::Str("tdt".into()), Value::Str("pdt".into()), &[]).as_i64();
-        let mut isMaker: bool = self.safe_bool_k(trade.clone(), "im", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "im", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerOrMaker: String = (if isMaker { "maker".to_string() } else { "taker".to_string() });
         let mut cost: Option<f64> = None;
         if (priceString.is_some()) && (amountString.is_some()) {
@@ -1965,7 +1965,7 @@ impl Revolutx {
         if (orderStates.is_some()) {
             request.insert("order_states".into(), Value::Str(orderStates.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
-        let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(params.clone(), "trigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderTypes: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]).into_opt_list();
         if (orderTypes.is_none()) && trigger {
             orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]).into_opt_list();
@@ -2068,7 +2068,7 @@ impl Revolutx {
         if (orderStates.is_some()) {
             request.insert("order_states".into(), Value::Str(orderStates.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into()));
         }
-        let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(params.clone(), "trigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderTypes: Option<crate::value::List> = self.safe_list2(params.clone(), Value::Str("orderTypes".into()), Value::Str("order_types".into()), &[]).into_opt_list();
         if (orderTypes.is_none()) && trigger {
             orderTypes = Value::from(vec![Value::Str("conditional".into()), Value::Str("tpsl".into())]).into_opt_list();

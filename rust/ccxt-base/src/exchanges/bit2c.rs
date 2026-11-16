@@ -142,7 +142,7 @@ impl crate::exchange::DerivedExchange for Bit2c {
             let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
             let mut marketByPair: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
             tradeMarket = Some(self.safe_market(reference_parts.get(0).cloned().unwrap_or(Value::Null), Some(&marketByPair), &[]));
-            let mut isMaker: bool = self.safe_bool_k(trade.clone(), "isMaker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "isMaker", &[Value::Bool(false)]).unwrap_or(false);
             makerOrTaker = (if isMaker { Some("maker".to_string()) } else { Some("taker".to_string()) });
             orderId = (if isMaker { reference_parts.get(2).and_then(Value::as_str).map(str::to_owned) } else { reference_parts.get(1).and_then(Value::as_str).map(str::to_owned) });
             let mut action: Option<i64> = self.safe_integer_k(trade.clone(), "action", &[]).as_i64();

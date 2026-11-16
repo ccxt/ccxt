@@ -355,8 +355,8 @@ impl Bitstamp {
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.lookup(&symbol);
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
-        let mut delta: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut deltaNonce: Option<i64> = self.safe_integer_k(delta.clone(), "microtimestamp", &[]).as_i64();
+        let mut delta: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
+        let mut deltaNonce: Option<i64> = self.safe_integer_k(&delta, "microtimestamp", &[]).as_i64();
         if (deltaNonce.is_none()) {
             return;
         }
@@ -372,12 +372,12 @@ impl Bitstamp {
                     m
                 })]);
             }
-            storedOrderBook.cache_push(delta);
+            storedOrderBook.cache_push(delta.clone().map_or(Value::Null, Value::Dict));
             return;
         }  else if (nonce.is_some() && deltaNonce.is_some() && nonce >= deltaNonce) {
             return;
         }
-        self.handle_book_delta(Value::from(&storedOrderBook), delta);
+        self.handle_book_delta(Value::from(&storedOrderBook), delta.map_or(Value::Null, Value::Dict));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 

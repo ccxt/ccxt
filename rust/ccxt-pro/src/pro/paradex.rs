@@ -866,7 +866,7 @@ if _try_result.is_err() {
             }
         }
         }
-        let mut prefix: bool = self.safe_bool_k(subscription.clone(), "prefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut prefix: bool = self.safe_bool_k_opt(subscription.clone(), "prefix", &[Value::Bool(false)]).unwrap_or(false);
         let mut subMessageHashes: crate::value::List = self.safe_list_k(subscription.clone(), "subMessageHashes", &[Value::from(vec![])]).into_list();
         {
                         let mut j: i64 = 0;
@@ -1170,15 +1170,15 @@ if _try_result.is_err() {
             // one cache per market, kept in the options next to the request id counter: this.liquidations
             // is typed as a single cache in some languages and initialized as a map in others
             let mut liquidation: crate::value::Dict = self.parse_ws_liquidation(&data, None).into_dict();
-            let mut caches: Value = self.safe_dict_k(self.options.clone(), "liquidationsBySymbol", &[Value::Map({
+            let mut caches: crate::value::Dict = self.safe_dict_k(self.options.clone(), "liquidationsBySymbol", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut liquidations: Value = self.safe_value(caches.clone(), symbol.clone(), &[]);
+            })]).into_dict();
+            let mut liquidations: Value = self.safe_value(&caches, symbol.clone(), &[]);
             if (liquidations == Value::Null) {
                 liquidations = Value::from(ArrayCache::new(self.safe_integer_k(self.options.clone(), "liquidationsLimit", &[Value::Int(1000)])));
-                if let Value::Dict(__d) = &mut caches { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), liquidations.clone()); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("liquidationsBySymbol".into(), caches); }
+                std::sync::Arc::make_mut(&mut caches).insert(crate::runtime::stringify_param(&symbol), liquidations.clone());
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("liquidationsBySymbol".into(), Value::Dict(caches)); }
             }
             liquidations.append(Value::Dict(liquidation));
             client.resolve(liquidations, &(Value::Str(format!("{}{}", "liquidations:", symbol).into())));

@@ -6118,7 +6118,7 @@ impl Htx {
             }
             let mut marketBase: String = self.safe_string_k(&market, "base", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut marketQuote: String = self.safe_string_k(&market, "quote", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            let mut marketLinear: bool = self.safe_bool_k(&market, "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marketLinear: bool = self.safe_bool_k_opt(&market, "linear", &[Value::Bool(false)]).unwrap_or(false);
             let mut marketSymbol: Value = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]);
             // see comment on formats a bit above
             let mut constructedId: Option<String> = None;
@@ -7729,11 +7729,11 @@ impl Htx {
                 response = self.spot_private_get_v1_order_orders_order_id(&[__ws_arg_49]).await.into_opt_dict();
             }
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut stopLoss: bool = self.safe_bool_k(&paramsMarketType, "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut takeProfit: bool = self.safe_bool_k(&paramsMarketType, "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut trailing: bool = self.safe_bool_k(&paramsMarketType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut stopLoss: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLoss", &[Value::Bool(false)]).unwrap_or(false);
+            let mut takeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "takeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut trailing: bool = self.safe_bool_k_opt(&paramsMarketType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
             let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
             let mut clientOrderId: Option<String> = self.safe_string_n_opt(&paramsOmitted, Value::from(vec![Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), Value::Str("algo_client_order_id".into())]), &[]);
@@ -8055,11 +8055,11 @@ impl Htx {
         }).into_dict();
         let mut paramsUntil: crate::value::Dict = Default::default();
         let mut response: Option<crate::value::Dict> = None;
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut stopLoss: bool = self.safe_bool_k(params.clone(), "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut takeProfit: bool = self.safe_bool_k(params.clone(), "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(params.clone(), "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut stopLoss: bool = self.safe_bool_k_opt(params.clone(), "stopLoss", &[Value::Bool(false)]).unwrap_or(false);
+        let mut takeProfit: bool = self.safe_bool_k_opt(params.clone(), "takeProfit", &[Value::Bool(false)]).unwrap_or(false);
+        let mut trailing: bool = self.safe_bool_k_opt(params.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
         if (since != Value::Null) {
@@ -8158,11 +8158,11 @@ impl Htx {
         });
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         if ((market).linear == Some(true)) {
-            let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut stopLossTakeProfit: bool = self.safe_bool_k(params.clone(), "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut stopLoss: bool = self.safe_bool_k(params.clone(), "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut takeProfit: bool = self.safe_bool_k(params.clone(), "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut trailing: bool = self.safe_bool_k(params.clone(), "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(params.clone(), "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut stopLoss: bool = self.safe_bool_k_opt(params.clone(), "stopLoss", &[Value::Bool(false)]).unwrap_or(false);
+            let mut takeProfit: bool = self.safe_bool_k_opt(params.clone(), "takeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut trailing: bool = self.safe_bool_k_opt(params.clone(), "trailing", &[Value::Bool(false)]).unwrap_or(false);
             let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
             if isAlgo {
                 request.insert("states".into(), Value::Str("effective".into()));
@@ -8294,11 +8294,11 @@ impl Htx {
                 m
             });
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-                let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                let mut stopLoss: bool = self.safe_bool_k(&paramsMarketType, "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                let mut takeProfit: bool = self.safe_bool_k(&paramsMarketType, "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-                let mut trailing: bool = self.safe_bool_k(&paramsMarketType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+                let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+                let mut stopLoss: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLoss", &[Value::Bool(false)]).unwrap_or(false);
+                let mut takeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "takeProfit", &[Value::Bool(false)]).unwrap_or(false);
+                let mut trailing: bool = self.safe_bool_k_opt(&paramsMarketType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
                 let mut isAlgo: bool = (((((trigger == Some(true)) || stopLoss) || takeProfit) || stopLossTakeProfit) || trailing);
                 if isAlgo {
                     request.insert("states".into(), Value::Str("canceled".into()));
@@ -8463,11 +8463,11 @@ impl Htx {
                     request.insert("page_size".into(), limit.clone());
                 }
             }
-            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut stopLoss: bool = self.safe_bool_k(&paramsSubType, "stopLoss", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut takeProfit: bool = self.safe_bool_k(&paramsSubType, "takeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut stopLoss: bool = self.safe_bool_k_opt(&paramsSubType, "stopLoss", &[Value::Bool(false)]).unwrap_or(false);
+            let mut takeProfit: bool = self.safe_bool_k_opt(&paramsSubType, "takeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
             if isLinear {
                 if (trigger == Some(true)) || trailing || stopLossTakeProfit || stopLoss || takeProfit {
@@ -9105,8 +9105,8 @@ impl Htx {
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut query: Value = Value::Dict(paramsSubType);
         let mut isLinear: bool = subType.as_deref() == Some("linear");
-        let mut reduceOnly: bool = self.safe_bool2(query.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut hedged: bool = self.safe_bool_k(query.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool2_opt(query.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
+        let mut hedged: bool = self.safe_bool_k_opt(query.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: String = self.safe_string_lower2(query.clone(), Value::Str("timeInForce".into()), Value::Str("time_in_force".into()), &[Value::Str("gtc".into())]).as_str().unwrap_or("gtc").to_string();
         if isLinear {
             let marginModeparamsMarginModeVariable: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[query.clone(), Value::Str("cross".into())]).as_array().cloned().unwrap_or_default();
@@ -9740,9 +9740,9 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).as_bool();
-        let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsSubType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n_opt(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]);
+        let mut trailing: bool = self.safe_bool_k_opt(&paramsSubType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
         let mut query: crate::value::Dict = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
@@ -9945,8 +9945,8 @@ impl Htx {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+        let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
         let mut query: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trigger"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
@@ -10288,9 +10288,9 @@ impl Htx {
                 request.insert("symbol".into(), self.safe_string_k(&market, "settleId", &[]));
             }
             request.insert("contract_code".into(), self.safe_string_k(&market, "id", &[]));
-            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-            let mut stopLossTakeProfit: bool = self.safe_bool_k(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut trailing: bool = self.safe_bool_k(&paramsMarketType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
+            let mut stopLossTakeProfit: bool = self.safe_bool_k_opt(&paramsMarketType, "stopLossTakeProfit", &[Value::Bool(false)]).unwrap_or(false);
+            let mut trailing: bool = self.safe_bool_k_opt(&paramsMarketType, "trailing", &[Value::Bool(false)]).unwrap_or(false);
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "stopLossTakeProfit", "trailing", "trigger"], &[]).into_dict();
             if matches!(self.safe_bool_k(&market, "linear", &[Value::Bool(false)]), Value::Bool(true)) {
                 let __ws_arg_101 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -10754,7 +10754,7 @@ impl Htx {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut includeFee: bool = self.safe_bool_k_opt(&withdrawOptions, "includeFee", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsFee: crate::value::Dict = Value::from(&paramsNetwork).into_dict();
         if includeFee {
             paramsFee = self.omit(&paramsNetwork, Value::Str("fee".into()), &[]).into_dict();

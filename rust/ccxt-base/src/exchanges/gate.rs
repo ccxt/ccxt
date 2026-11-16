@@ -561,7 +561,7 @@ impl crate::exchange::DerivedExchange for Gate {
         //         "amend_text": "-"
         //     }
         //
-        let mut succeeded: bool = self.safe_bool_k(order.clone(), "succeeded", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut succeeded: bool = self.safe_bool_k_opt(order.clone(), "succeeded", &[Value::Bool(true)]).unwrap_or(true);
         if !succeeded {
             return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -698,7 +698,7 @@ impl crate::exchange::DerivedExchange for Gate {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut reduceOnlyInitial: Option<bool> = self.safe_bool_k(&initial, "is_reduce_only", &[]).as_bool();
+        let mut reduceOnlyInitial: Option<bool> = self.safe_bool_k_opt(&initial, "is_reduce_only", &[]);
         let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "is_reduce_only", &[reduceOnlyInitial.map_or(Value::Null, Value::Bool)]).as_bool();
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "text", &[]);
         if (clientOrderId.is_none()) {
@@ -5161,7 +5161,7 @@ impl Gate {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut unifiedAccount: Option<bool> = self.safe_bool_k(self.options.clone(), "unifiedAccount", &[]).as_bool();
+        let mut unifiedAccount: Option<bool> = self.safe_bool_k_opt(self.options.clone(), "unifiedAccount", &[]);
         if (unifiedAccount.is_none()) {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 //
@@ -5672,7 +5672,7 @@ if _try_result.is_err() {
         }
         let mut status: Option<String> = self.safe_string_k_opt(market.clone(), "status", &[Value::Str("trading".into())]); // or "suspend"
         let mut amountPrecision: Option<f64> = Some(1_f64);
-        let mut enableDecimal: bool = self.safe_bool_k(market.clone(), "enable_decimal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut enableDecimal: bool = self.safe_bool_k_opt(market.clone(), "enable_decimal", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderSizeMin: Option<String> = self.safe_string_k_opt(market.clone(), "order_size_min", &[]);
         let mut swap: bool = marketType == "swap";
         let mut minAmount: Option<f64> = self.parse_number(orderSizeMin.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
@@ -5786,7 +5786,7 @@ if _try_result.is_err() {
                 }
                 let mut expiry: Option<i64> = self.safe_timestamp_k(&market, "expiration_time", &[]).as_i64();
                 let mut strike: String = self.safe_string_k(&market, "strike_price", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut isCall: bool = self.safe_bool_k(&market, "is_call", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isCall: bool = self.safe_bool_k_opt(&market, "is_call", &[Value::Bool(false)]).unwrap_or(false);
                 let mut optionLetter: String = "P".to_string();
                 if isCall {
                     optionLetter = "C".to_string();
@@ -6450,7 +6450,7 @@ if _try_result.is_err() {
         //        "futures_maker_fee": "0"
         //    }
         //
-        let mut gtDiscount: bool = self.safe_bool_k(info.clone(), "gt_discount", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut gtDiscount: bool = self.safe_bool_k_opt(info.clone(), "gt_discount", &[Value::Bool(false)]).unwrap_or(false);
         let mut taker: String = "taker_fee".to_string();
         if gtDiscount {
             taker = "gt_taker_fee".to_string();
@@ -6459,7 +6459,7 @@ if _try_result.is_err() {
         if gtDiscount {
             maker = "gt_maker_fee".to_string();
         }
-        let mut contract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut contract: bool = self.safe_bool_k_opt(&market, "contract", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerKey: String = taker;
         if contract {
             takerKey = "futures_taker_fee".to_string();
@@ -6638,7 +6638,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut symbolResolved: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol") } else { Value::Null });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { crate::value::KeyRead::key_read(&&market, "symbol").into_opt_string() } else { None });
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchFundingHistory".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = type_varqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6663,7 +6663,7 @@ if _try_result.is_err() {
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " fetchFundingHistory() only support swap & future market type")));
         }
-        return self.parse_funding_histories(&response, symbolResolved.as_str(), since.as_i64(), limit.as_i64());
+        return self.parse_funding_histories(&response, symbolResolved.as_deref(), since.as_i64(), limit.as_i64());
         Value::Null
         }).await?))
     }
@@ -8086,7 +8086,7 @@ if _try_result.is_err() {
         }
         self.load_unified_status(&[]).await;
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut trigger: Option<bool> = self.safe_bool_k(params.clone(), "trigger", &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool_k_opt(params.clone(), "trigger", &[]);
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[Value::from(triggerPrice)]).as_f64();
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
@@ -8215,8 +8215,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut isSwap: bool = self.safe_bool_k(&market, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut enableDecimal: bool = self.safe_bool_k(&info, "enable_decimal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSwap: bool = self.safe_bool_k_opt(&market, "swap", &[Value::Bool(false)]).unwrap_or(false);
+        let mut enableDecimal: bool = self.safe_bool_k_opt(&info, "enable_decimal", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Bool((isSwap && enableDecimal));
 
     Value::Null
@@ -8249,7 +8249,7 @@ if _try_result.is_err() {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut contract: bool = (market).contract;
-        let mut trigger: Option<bool> = self.safe_bool_k(params.clone(), "trigger", &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool_k_opt(params.clone(), "trigger", &[]);
         let mut triggerPrice: Option<f64> = self.safe_number2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]).as_f64();
         let mut stopLossPrice: Option<f64> = self.safe_number_k(params.clone(), "stopLossPrice", &[Value::from(triggerPrice)]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(params.clone(), "takeProfitPrice", &[]).as_f64();
@@ -8259,7 +8259,7 @@ if _try_result.is_err() {
         if isStopLossOrder && isTakeProfitOrder {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")));
         }
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(params.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[]);
         let mut exchangeSpecificTimeInForce: Option<String> = self.safe_string_lower_n_opt(params.clone(), Value::from(vec![Value::Str("timeInForce".into()), Value::Str("tif".into()), Value::Str("time_in_force".into())]), &[]);
         let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(type_var.as_str() == Some("market")), Value::Bool(exchangeSpecificTimeInForce.as_deref() == Some("poc")), &[params]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -8297,7 +8297,7 @@ if _try_result.is_err() {
         let mut signedAmount: Option<String> = None;
         let mut useGateFuturesDecimalSize: Value = Value::Bool(false);
         if (contract == true) {
-            let mut isClose: bool = self.safe_bool_k(&query, "close", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isClose: bool = self.safe_bool_k_opt(&query, "close", &[Value::Bool(false)]).unwrap_or(false);
             if !isClose {
                 signedAmount = self.get_gate_futures_signed_amount(symbol.as_str(), side.as_str(), amount.clone());
                 useGateFuturesDecimalSize = self.is_gate_futures_contract_with_decimal_size(Some(&market));
@@ -8382,7 +8382,7 @@ if _try_result.is_err() {
                     request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
                 }
             }
-            let mut textIsRequired: bool = self.safe_bool_k(&query, "textIsRequired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut textIsRequired: bool = self.safe_bool_k_opt(&query, "textIsRequired", &[Value::Bool(false)]).unwrap_or(false);
             if (clientOrderIdRaw.is_some()) {
                 // user-defined, must follow the rules if not empty
                 //     prefixed with t-
@@ -8700,7 +8700,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]).into_dict();
         let mut clientOrderIdRaw: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("text".into()), Value::Str("clientOrderId".into()), &[]);
         let mut orderId: Option<String> = id.as_str().map(str::to_owned);
@@ -8767,7 +8767,7 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut type_var: Option<String> = self.handle_market_type_and_params(Value::Str("fetchOrder".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
-        let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("trigger".into()), Value::Str("is_stop_order".into()), Value::Str("stop".into())]), &[Value::Bool(false)]).unwrap_or(false);
         let requestrequestParamsVariable: Vec<Value> = self.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -8995,7 +8995,7 @@ if _try_result.is_err() {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut type_var: Option<String> = self.handle_market_type_and_params(Value::Str("fetchOrdersByStatus".into()), market.as_ref(), &[params.clone()]).as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
         // don't omit here, omits done in prepareOrdersByStatusRequest
         let requestrequestParamsVariable: Vec<Value> = self.prepare_orders_by_status_request(status.as_str(), symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[params]).as_array().cloned().unwrap_or_default();
@@ -9247,7 +9247,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: bool = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_n_opt(params.clone(), Value::from(vec![Value::Str("is_stop_order".into()), Value::Str("stop".into()), Value::Str("trigger".into())]), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["is_stop_order", "stop", "trigger"], &[]).into_dict();
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -9464,7 +9464,7 @@ if _try_result.is_err() {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let type_varqueryVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelAllOrders".into()), market.as_ref(), &[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -11331,7 +11331,7 @@ if _try_result.is_err() {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut isUnified: bool = self.safe_bool_k(params.clone(), "unified", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnified: bool = self.safe_bool_k_opt(params.clone(), "unified", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("unified".into()), &[]).into_dict();
         if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             request.insert("currency_pair".into(), self.safe_string_k(&market, "id", &[]));
@@ -11379,7 +11379,7 @@ if _try_result.is_err() {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut response: Option<crate::value::List> = None;
-        let mut isUnified: bool = self.safe_bool_k(params.clone(), "unified", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnified: bool = self.safe_bool_k_opt(params.clone(), "unified", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("unified".into()), &[]).into_dict();
         let mut marketIdRequest: String = "id".to_string();
         if isUnified {

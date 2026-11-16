@@ -405,7 +405,7 @@ impl crate::exchange::DerivedExchange for Btse {
         let mut minPriceString: Option<String> = self.safe_string_k_opt(market.clone(), "minOrderPrice", &[]);
         let mut pricePrecision: Option<String> = self.safe_string_k_opt(market.clone(), "minPriceIncrement", &[]);
         let mut amountPrecision: Option<String> = self.safe_string_k_opt(market.clone(), "minSizeIncrement", &[]);
-        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "active", &[]).as_bool();
+        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "active", &[]);
         let mut type_var: String = "spot".to_string();
         let mut expiry: Option<i64> = None;
         let mut contractSize: Option<String> = None;
@@ -919,7 +919,7 @@ impl crate::exchange::DerivedExchange for Btse {
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
             let mut spotErrorCode: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
             let mut spotMessage: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
@@ -2932,7 +2932,7 @@ impl Btse {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut paginate: bool = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paginate: bool = self.safe_bool_k_opt(params.clone(), "paginate", &[Value::Bool(false)]).unwrap_or(false);
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), self.omit(params.clone(), Value::Str("paginate".into()), &[])]).await;
         }
@@ -3751,7 +3751,7 @@ impl Btse {
         if (price != Value::Null) {
             request.insert("orderPrice".into(), Value::from(self.price_to_precision(symbol, price.clone())));
         }
-        let mut isSlide: bool = self.safe_bool_k(&query, "slide", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSlide: bool = self.safe_bool_k_opt(&query, "slide", &[Value::Bool(false)]).unwrap_or(false);
         if (amount == Value::Null) && (price == Value::Null) && (triggerPrice.is_none()) && (!isSlide) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")));
         }
@@ -4880,7 +4880,7 @@ impl Btse {
         if (marginModeValue != "cross") && (marginModeValue != "isolated") {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setMarginMode() marginMode argument should be either cross or isolated")));
         }
-        let mut hedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut hedged: bool = self.safe_bool_k_opt(params.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
         if (marginModeValue == "cross") {
             if !(matches!(&params, Value::Dict(__d) if __d.contains_key("hedged"))) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " setMarginMode() requires a hedged parameter for cross margin mode")));

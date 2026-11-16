@@ -337,11 +337,11 @@ impl crate::exchange::DerivedExchange for Zebpay {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "chainId", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut depositAllowed: bool = self.safe_bool_k(&chain, "isDepositEnabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut depositAllowed: bool = self.safe_bool_k_opt(&chain, "isDepositEnabled", &[Value::Bool(false)]).unwrap_or(false);
             if depositAllowed {
                 deposit = true;
             }
-            let mut withdrawAllowed: bool = self.safe_bool_k(&chain, "isWithdrawEnabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut withdrawAllowed: bool = self.safe_bool_k_opt(&chain, "isWithdrawEnabled", &[Value::Bool(false)]).unwrap_or(false);
             if withdrawAllowed {
                 withdraw = true;
             }

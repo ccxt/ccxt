@@ -126,7 +126,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         }  else if (side.as_deref() == Some("short")) {
             side = Some("sell".to_string());
         }
-        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "taker", &[]).as_bool();
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "taker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isTaker.is_some()) {
             takerOrMaker = (if (isTaker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -206,7 +206,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("created_timestamp".into()), Value::Str("cts".into()), &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("updated_timestamp".into()), Value::Str("uts".into()), &[]).as_i64();
-        let mut isBuy: Option<bool> = self.safe_bool_k(order.clone(), "buy", &[]).as_bool();
+        let mut isBuy: Option<bool> = self.safe_bool_k_opt(order.clone(), "buy", &[]);
         let mut side: Option<String> = None;
         if (isBuy.is_some()) {
             side = (if (isBuy == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
@@ -381,7 +381,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
             let mut isLong: bool = crate::precise::Precise::stringGt(&size, &Value::Str("0".into())).as_bool().unwrap_or(false);
             side = (if isLong { Some("long".to_string()) } else { Some("short".to_string()) });
         }
-        let mut isCross: Option<bool> = self.safe_bool_k(position.clone(), "cross", &[]).as_bool();
+        let mut isCross: Option<bool> = self.safe_bool_k_opt(position.clone(), "cross", &[]);
         let mut marginMode: Option<String> = None;
         if (isCross.is_some()) {
             marginMode = (if (isCross == Some(true)) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
@@ -587,7 +587,7 @@ impl crate::exchange::DerivedExchange for Polymarket {
         let mut leverage: Value = leverage.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(leverage.clone(), "instrument_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut isCross: Option<bool> = self.safe_bool_k(leverage.clone(), "cross", &[]).as_bool();
+        let mut isCross: Option<bool> = self.safe_bool_k_opt(leverage.clone(), "cross", &[]);
         let mut marginMode: Option<String> = None;
         if (isCross.is_some()) {
             marginMode = (if (isCross == Some(true)) { Some("cross".to_string()) } else { Some("isolated".to_string()) });
@@ -1413,7 +1413,7 @@ impl Polymarket {
         //         "engine_version": "0.0.69"
         //     }
         //
-        let mut cancelOnly: bool = self.safe_bool_k(&response, "cancel_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut cancelOnly: bool = self.safe_bool_k_opt(&response, "cancel_only", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if cancelOnly { Value::Str("maintenance".into()) } else { Value::Str("ok".into()) }));
@@ -2291,7 +2291,7 @@ impl Polymarket {
             }
         }
         let mut tif: Option<String> = timeInForce.as_deref().map(str::to_lowercase);
-        let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("c".into()), &[]);
         paramsOmitted = self.omit(paramsOmitted, &["timeInForce", "reduceOnly", "clientOrderId"], &[]);
         let mut instrumentId: Option<i64> = self.parse_to_int(crate::Value::from(market).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));

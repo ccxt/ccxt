@@ -358,15 +358,15 @@ impl Bithumb {
         }  else {
             message = self.extend(message.clone(), &[&paramsOmitted]);
         }
-        let mut newTicker: Value = self.watch_multiple(url.as_str(), &messageHashes, message, &messageHashes, Value::Null).await;
+        let mut newTicker: crate::value::Dict = self.watch_multiple(url.as_str(), &messageHashes, message, &messageHashes, Value::Null).await.into_dict();
         if self.newUpdates.as_bool() == Some(true) {
             let mut result: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(newTicker.clone(), "symbol", &[]);
+            let mut newTickerSymbol: Option<String> = self.safe_string_k_opt(&newTicker, "symbol", &[]);
             if (newTickerSymbol.is_some()) {
-                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), newTicker);
+                result.insert(newTickerSymbol.as_deref().unwrap_or("null").to_string(), Value::Dict(newTicker));
             }
             return Value::Map(result);
         }

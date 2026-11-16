@@ -1860,7 +1860,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut isSwap: bool = self.safe_bool_k(market.clone(), "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isSwap: bool = self.safe_bool_k_opt(market.clone(), "swap", &[Value::Bool(false)]).unwrap_or(false);
             if isSwap {
                 let mut additionalId: String = format!("{}{}", self.safe_string_k(market.clone(), "baseId", &[Value::Str("".into())]), self.safe_string_k(market.clone(), "quoteId", &[Value::Str("".into())]));
                 if (self.markets_by_id.clone() != Value::Null) {
@@ -1999,7 +1999,7 @@ impl Deepcoin {
         if (until.is_some()) {
             request.insert("after".into(), Value::from(until));
         }
-        let mut calculateUntil: bool = self.safe_bool_k(&paramsPaginate, "calculateUntil", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut calculateUntil: bool = self.safe_bool_k_opt(&paramsPaginate, "calculateUntil", &[Value::Bool(false)]).unwrap_or(false);
         let mut keysToOmit: Vec<Value> = vec![Value::Str("price".into()), Value::Str("until".into())];
         if calculateUntil {
             keysToOmit.push(Value::Str("calculateUntil".into()));
@@ -2698,7 +2698,7 @@ impl Deepcoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
             std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);
@@ -2943,7 +2943,7 @@ impl Deepcoin {
             paramsRequest = Value::from(&paramsMrgPosition);
             request.insert("mrgPosition".into(), mrgPosition.map(Value::from).unwrap_or(Value::Null));
             let mut posSide: Option<String> = None;
-            let mut reduceOnly: bool = self.safe_bool_k(&paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMrgPosition, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             if reduceOnly {
                 if (side.as_str() == Some("buy")) {
                     posSide = Some("short".to_string());
@@ -3029,7 +3029,7 @@ impl Deepcoin {
         if (marginModeOption.as_deref() == Some("isolated")) {
             isCrossMargin = 0;
         }
-        let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarginMode, Value::Str("reduceOnly".into()), &[]).into_dict();
         request.insert("isCrossMargin".into(), Value::from(isCrossMargin));
         request.insert("tdMode".into(), marginModeOption.map(Value::from).unwrap_or(Value::Null));
@@ -3355,7 +3355,7 @@ impl Deepcoin {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchCanceledAndClosedOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
-        let mut trigger: bool = self.safe_bool_k(&paramsPaginate, "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(&paramsPaginate, "trigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut methodName: String = self.safe_string_k(&paramsPaginate, "methodName", &[Value::Str("fetchCanceledAndClosedOrders".into())]).as_str().unwrap_or("fetchCanceledAndClosedOrders").to_string();
         let mut paramsMethodName: crate::value::Dict = self.omit(&paramsPaginate, Value::Str("methodName".into()), &[]).into_dict();
         let mut market: Option<crate::types::Market> = None;
@@ -3595,7 +3595,7 @@ impl Deepcoin {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(params.clone(), "trigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::Str("trigger".into()), &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if trigger {
@@ -3731,7 +3731,7 @@ impl Deepcoin {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut trigger: bool = self.safe_bool_k(params.clone(), "trigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool_k_opt(params.clone(), "trigger", &[Value::Bool(false)]).unwrap_or(false);
         if trigger {
             let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), Value::Str("trigger".into()), &[]).into_dict();
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);

@@ -1945,7 +1945,7 @@ impl Foxbit {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", typeValue).into()), ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
         }
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut triggerPrice: Option<f64> = self.safe_number_k(params.clone(), "triggerPrice", &[]).as_f64();
         self.check_required_argument(Value::Str("createOrder".into()), side.clone(), Value::Str("side".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2033,7 +2033,7 @@ impl Foxbit {
                 panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", "Invalid order type: ", type_var).into()), ". Must be one of: limit, market, stop_market, stop_limit, instant.")));
             }
             let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(orderParams.clone(), "timeInForce", &[]);
-            let mut postOnly: bool = self.safe_bool_k(orderParams.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut postOnly: bool = self.safe_bool_k_opt(orderParams.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
             let mut triggerPrice: Option<f64> = self.safe_number_k(orderParams.clone(), "triggerPrice", &[]).as_f64();
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();

@@ -310,7 +310,7 @@ impl Weex {
 }));
         let mut id: i64 = self.request_id();
         let mut method: String = "SUBSCRIBE".to_string();
-        let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unsubscribe: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if unsubscribe {
             method = "UNSUBSCRIBE".to_string();
         }
@@ -355,7 +355,7 @@ impl Weex {
         let mut url: String = format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::from(type_var), &[Value::Str("".into())]), Value::Str("/private".into()));
         self.authenticate(Value::from(url.clone()));
         let mut method: String = "SUBSCRIBE".to_string();
-        let mut unsubscribe: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unsubscribe: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if unsubscribe {
             method = "UNSUBSCRIBE".to_string();
         }
@@ -965,7 +965,7 @@ impl Weex {
         }  else {
             symbol = crate::value::KeyRead::key_read(&market, "symbol").into_opt_string();
         }
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool(); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
@@ -2373,8 +2373,8 @@ impl Weex {
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_str()));
         self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null));
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut awaitBalanceSnapshot: bool = self.safe_bool_k(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
+        let mut awaitBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "awaitBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
@@ -2389,7 +2389,7 @@ impl Weex {
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut fetchBalanceSnapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut fetchBalanceSnapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(false)]).unwrap_or(false);
         if fetchBalanceSnapshot {
             let mut messageHash: String = format!("{}{}", type_var, ":fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {
@@ -2789,9 +2789,9 @@ impl Weex {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut unsubscribe: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unsubscribe: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
         if unsubscribe {
-            let mut subHashIsPrefix: bool = self.safe_bool_k(&subscription, "subHashIsPrefix", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut subHashIsPrefix: bool = self.safe_bool_k_opt(&subscription, "subHashIsPrefix", &[Value::Bool(false)]).unwrap_or(false);
             let mut messageHashes: crate::value::List = self.safe_list_k(&subscription, "messageHashes", &[Value::from(vec![])]).into_list();
             let mut subHashes: crate::value::List = self.safe_list_k(&subscription, "subMessageHashes", &[Value::from(vec![])]).into_list();
             {

@@ -1721,20 +1721,20 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        }
         //    }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
-        let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
+        let mut data: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         if (marketId.is_some()) {
             let mut event: String = (match message.get("event") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let mut splitEvent: crate::value::List = Value::Array(event.split(",").map(Value::from).collect()).into_list();
             event = self.safe_string(&splitEvent, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut tradeType: String = "spot".to_string();
-            if (data != Value::Null) && (matches!(&data, Value::Dict(__d) if __d.contains_key("fu"))) {
+            if (data.is_some()) && (matches!(data.as_deref(), Some(__d) if __d.contains_key("fu"))) {
                 tradeType = "contract".to_string();
             }
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::from(tradeType.clone())]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-            let mut obAsks: Option<crate::value::List> = self.safe_list_k(data.clone(), "a", &[]).into_opt_list();
-            let mut obBids: Option<crate::value::List> = self.safe_list_k(data.clone(), "b", &[]).into_opt_list();
+            let mut obAsks: Option<crate::value::List> = self.safe_list_k(&data, "a", &[]).into_opt_list();
+            let mut obBids: Option<crate::value::List> = self.safe_list_k(&data, "b", &[]).into_opt_list();
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", event, "::").into()), tradeType);
             if !(self.orderbooks.has(&symbol)) {
                 let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.clone()), &[Value::Map({
@@ -1758,7 +1758,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         m
                     })]);
                 }
-                orderbook.cache_push(data);
+                orderbook.cache_push(data.clone().map_or(Value::Null, Value::Dict));
                 return;
             }
             if (obAsks.is_some()) {
@@ -1787,8 +1787,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 }
                 }
             }
-            let mut timestamp: Option<i64> = self.safe_integer_k(data.clone(), "t", &[]).as_i64();
-            orderbook.set_book_meta("nonce", self.safe_integer2(data, Value::Str("i".into()), Value::Str("u".into()), &[]));
+            let mut timestamp: Option<i64> = self.safe_integer_k(&data, "t", &[]).as_i64();
+            orderbook.set_book_meta("nonce", self.safe_integer2(&data, Value::Str("i".into()), Value::Str("u".into()), &[]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
             orderbook.set_book_meta("symbol", symbol.map(Value::from).unwrap_or(Value::Null));
@@ -2209,7 +2209,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut unsubscribe: bool = self.safe_bool_k(&subscription, "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut unsubscribe: bool = self.safe_bool_k_opt(&subscription, "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             if unsubscribe {
                 self.handle_un_subscription(client, &subscription);
             }

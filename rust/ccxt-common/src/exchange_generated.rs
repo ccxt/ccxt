@@ -2327,7 +2327,7 @@ pub trait ExchangeBase:
         // init the request rate limiter
         self.init_rest_rate_limiter();
         // sanbox mode
-        let mut isSandbox: bool = self.safe_bool2(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandbox: bool = self.safe_bool2_opt(self.options.clone(), Value::Str("sandbox".into()), Value::Str("testnet".into()), &[Value::Bool(false)]).unwrap_or(false);
         if isSandbox {
             if let Err(__e) = self.set_sandbox_mode(true) { panic!("{}", __e) }
         }
@@ -2700,13 +2700,13 @@ pub trait ExchangeBase:
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-                let mut deposit: Option<bool> = self.safe_bool_k(&network, "deposit", &[]).as_bool();
-                let mut currencyDeposit: Option<bool> = self.safe_bool_k(currency.clone(), "deposit", &[]).as_bool();
+                let mut deposit: Option<bool> = self.safe_bool_k_opt(&network, "deposit", &[]);
+                let mut currencyDeposit: Option<bool> = self.safe_bool_k_opt(currency.clone(), "deposit", &[]);
                 if (currencyDeposit.is_none()) || (deposit == Some(true)) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("deposit".into(), deposit.map_or(Value::Null, Value::Bool)); }
                 }
-                let mut withdraw: Option<bool> = self.safe_bool_k(&network, "withdraw", &[]).as_bool();
-                let mut currencyWithdraw: Option<bool> = self.safe_bool_k(currency.clone(), "withdraw", &[]).as_bool();
+                let mut withdraw: Option<bool> = self.safe_bool_k_opt(&network, "withdraw", &[]);
+                let mut currencyWithdraw: Option<bool> = self.safe_bool_k_opt(currency.clone(), "withdraw", &[]);
                 if (currencyWithdraw.is_none()) || (withdraw == Some(true)) {
                     if let Value::Dict(__d) = &mut currency { std::sync::Arc::make_mut(__d).insert("withdraw".into(), withdraw.map_or(Value::Null, Value::Bool)); }
                 }
@@ -3382,7 +3382,7 @@ pub trait ExchangeBase:
             }
         }
         // ensure that the average field is calculated correctly
-        let mut inverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut inverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut contractSize: Option<String> = self.number_to_string(self.safe_value_k(&market, "contractSize", &[Value::Int(1)]));
         // inverse
         // price = filled * contract size / cost
@@ -3435,13 +3435,13 @@ pub trait ExchangeBase:
             { let __be_tmp = self.safe_number_k(entry.clone(), "amount", &[]); add_element_to_object(&mut entry, &Value::Str("amount".into()), __be_tmp); }
             { let __be_tmp = self.safe_number_k(entry.clone(), "price", &[]); add_element_to_object(&mut entry, &Value::Str("price".into()), __be_tmp); }
             { let __be_tmp = self.safe_number_k(entry.clone(), "cost", &[]); add_element_to_object(&mut entry, &Value::Str("cost".into()), __be_tmp); }
-            let mut tradeFee: Value = self.safe_dict_k(entry.clone(), "fee", &[Value::Map({
+            let mut tradeFee: crate::value::Dict = self.safe_dict_k(entry.clone(), "fee", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
-            { let __be_tmp = self.safe_number_k(tradeFee.clone(), "cost", &[]); if let Value::Dict(__d) = &mut tradeFee { std::sync::Arc::make_mut(__d).insert("cost".into(), __be_tmp); } }
-            if (matches!(&tradeFee, Value::Dict(__d) if __d.contains_key("rate"))) {
-                { let __be_tmp = self.safe_number_k(tradeFee.clone(), "rate", &[]); if let Value::Dict(__d) = &mut tradeFee { std::sync::Arc::make_mut(__d).insert("rate".into(), __be_tmp); } }
+})]).into_dict();
+            { let __be_tmp = self.safe_number_k(&tradeFee, "cost", &[]); std::sync::Arc::make_mut(&mut tradeFee).insert("cost".into(), __be_tmp); }
+            if (tradeFee.contains_key("rate")) {
+                { let __be_tmp = self.safe_number_k(&tradeFee, "rate", &[]); std::sync::Arc::make_mut(&mut tradeFee).insert("rate".into(), __be_tmp); }
             }
             let mut entryFees: Value = self.safe_list_k(entry.clone(), "fees", &[Value::from(vec![])]);
             {
@@ -3452,7 +3452,7 @@ pub trait ExchangeBase:
             }
             }
             add_element_to_object(&mut entry, &Value::Str("fees".into()), entryFees);
-            add_element_to_object(&mut entry, &Value::Str("fee".into()), tradeFee);
+            add_element_to_object(&mut entry, &Value::Str("fee".into()), Value::Dict(tradeFee));
         }
         }
         let mut timeInForce: Option<String> = self.safe_string_k_opt(orderDict.clone(), "timeInForce", &[]);
@@ -3669,7 +3669,7 @@ pub trait ExchangeBase:
             let mut contractSize: Option<String> = self.safe_string_k_opt(&market, "contractSize", &[]);
             let mut multiplyPrice: Option<String> = price.clone();
             if (contractSize.is_some()) {
-                let mut inverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut inverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
                 if inverse {
                     multiplyPrice = crate::precise::Precise::stringDiv(&Value::Str("1".into()), &price).as_str().map(str::to_owned);
                 }
@@ -4381,7 +4381,7 @@ pub trait ExchangeBase:
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut muteOnFailure: bool = self.safe_bool_k(&options, "webApiMuteFailure", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut muteOnFailure: bool = self.safe_bool_k_opt(&options, "webApiMuteFailure", &[Value::Bool(true)]).unwrap_or(true);
         {
             // if it was not explicitly disabled, then don't fetch
             if !matches!(self.safe_bool_k(&options, "webApiEnable", &[Value::Bool(true)]), Value::Bool(true)) {
@@ -4950,7 +4950,7 @@ pub trait ExchangeBase:
                 let mut id: Option<String> = (if (marketIdKey == Value::Null) { None } else { self.safe_string_opt(item.clone(), marketIdKey.clone(), &[]) });
                 let mut market: crate::types::Market = self.safe_market(id.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("swap".into())]);
                 let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut contract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut contract: bool = self.safe_bool_k_opt(&market, "contract", &[Value::Bool(false)]).unwrap_or(false);
                 if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(&symbol, symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
                     tiers.insert(symbol.clone(), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
                 }
@@ -4966,7 +4966,7 @@ pub trait ExchangeBase:
                 let mut item: Value = self.safe_value(response.clone(), Value::from(marketId.as_deref()), &[]);
                 let mut market: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::Null, Value::Str("swap".into())]);
                 let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-                let mut contract: bool = self.safe_bool_k(&market, "contract", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut contract: bool = self.safe_bool_k_opt(&market, "contract", &[Value::Bool(false)]).unwrap_or(false);
                 if contract && (noSymbols || ((symbolsNormalized.is_some()) && self.in_array(&symbol, symbolsNormalized.clone().map_or(Value::Null, Value::Arr)))) {
                     tiers.insert(symbol.clone(), <Self as crate::exchange_generated::ExchangeBase>::parse_market_leverage_tiers(self, item, Some(&market)));
                 }
@@ -5892,7 +5892,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if is_instance(&e, &Value::Str("OperationFailed".into())) {
                     if (i as f64) < retriesMaxRetriesOnFailure.as_f64().unwrap_or(f64::NAN) {
                         if self.verbose.as_bool() == Some(true) {
-                            let mut index: Value = Value::Int((i + 1));
+                            let mut index: i64 = (i + 1);
                             self.log(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str("Request failed with the error: ".into()), to_string_val(&e)).into()), ", retrying ").into()), Value::Str(format!("{}", index).into())).into()),
                                 " of ").into()), Value::Str(format!("{}", retriesMaxRetriesOnFailure).into())).into()), "...").into()));
                         }
@@ -5971,7 +5971,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut skipZeroPrices: bool = self.safe_bool_k(&options, "skipZeroPrices", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut skipZeroPrices: bool = self.safe_bool_k_opt(&options, "skipZeroPrices", &[Value::Bool(true)]).unwrap_or(true);
         {
                         let mut i: i64 = 0;
             let mut __for_first_134: bool = true;
@@ -6561,8 +6561,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     fn require_value(&self, mut value: Value, optional_args: &[Value]) -> Value {
         let mut message = get_arg(optional_args, 0, Value::Null);
         if (value == Value::Null) {
-            let mut errorMessage: Value = (if (message != Value::Null) { message } else { Value::Str("value is required".into()) });
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage)));
+            let mut errorMessage: Option<String> = (if (message != Value::Null) { message.as_str().map(str::to_owned) } else { Some("value is required".to_string()) });
+            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage.as_deref().unwrap_or("null"))));
         }
         return value;
 
@@ -8444,7 +8444,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn handle_trigger_and_params(&self, params: impl Into<crate::Value>) -> Value {
         let mut params: Value = params.into();
-        let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: Value = (if (isTrigger == Some(true)) { self.omit(params.clone(), &["trigger", "stop"], &[]) } else { params });
         return Value::from(vec![isTrigger.map_or(Value::Null, Value::Bool), paramsOmitted]);
 
@@ -9599,7 +9599,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 errors = 0;
                 let mut responseLength: i64 = get_array_length(&response).as_i64().unwrap_or_default();
                 if self.verbose.as_bool() == Some(true) {
-                    let mut iteration: Value = (Value::Int((i + 1)));
+                    let mut iteration: i64 = (i + 1);
                     let mut incrementalMessage: String = format!("{}{}{}{}{}{}", Value::Str("Incremental pagination call ".into()), iteration, " method ", method, " response length ", responseLength);
                     self.log(Value::from(incrementalMessage));
                 }

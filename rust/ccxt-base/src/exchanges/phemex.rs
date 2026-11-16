@@ -449,7 +449,7 @@ impl crate::exchange::DerivedExchange for Phemex {
 }
     fn parse_order(&self, order: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut order: Value = order.into();
-        let mut isSwap: bool = self.safe_bool_k(&market, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSwap: bool = self.safe_bool_k_opt(&market, "swap", &[Value::Bool(false)]).unwrap_or(false);
         let mut hasPnl: bool = (matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnl"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("closedPnlRv"))) || (matches!(&order, Value::Dict(__d) if __d.contains_key("totalPnlRv")));
         if isSwap || hasPnl {
             return self.parse_swap_order(order.clone(), market);
@@ -624,7 +624,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         let mut apiUnrealizedPnl: Option<String> = self.safe_string_k_opt(position.clone(), "unRealisedPnlRv", &[unrealizedPnl.map(Value::from).unwrap_or(Value::Null)]);
         let mut marginRatio: Option<String> = crate::precise::Precise::stringDiv(&maintenanceMarginString, &collateral).as_str().map(str::to_owned);
-        let mut isCross: bool = self.safe_bool_k(position.clone(), "crossMargin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isCross: bool = self.safe_bool_k_opt(position.clone(), "crossMargin", &[Value::Bool(false)]).unwrap_or(false);
         let mut timestamp: Option<i64> = self.safe_integer_k(position.clone(), "openedTimeNs", &[]).as_i64();
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(position.clone(), "updatedTimeNs", &[self.safe_integer_product_k(position.clone(), "transactTimeNs", Value::Float(0.000001), &[])]).as_i64();
         return self.safe_position(Value::Map({
@@ -896,7 +896,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         //     }
         //
         let mut marketResolved: Value = crate::types::IntoRaw::into_raw(self.safe_market(Value::Null, market, &[]));
-        let mut inverse: bool = self.safe_bool_k(marketResolved.clone(), "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut inverse: bool = self.safe_bool_k_opt(marketResolved.clone(), "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut codeCurrency: String = (if inverse { "base".to_string() } else { "quote".to_string() });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -994,24 +994,24 @@ impl crate::exchange::DerivedExchange for Phemex {
         let mut networkId: Option<String> = self.safe_string_k_opt(transaction.clone(), "chainName", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_n(transaction.clone(), Value::from(vec![Value::Str("createdAt".into()), Value::Str("submitedAt".into()), Value::Str("submittedAt".into())]), &[]).as_i64();
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(transaction.clone(), "type", &[]);
-        let mut feeCost: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "feeEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]);
-        if (feeCost == Value::Null) {
-            feeCost = self.safe_number_k(transaction.clone(), "feeRv", &[]);
+        let mut feeCost: Option<f64> = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "feeEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        if (feeCost.is_none()) {
+            feeCost = self.safe_number_k(transaction.clone(), "feeRv", &[]).as_f64();
         }
         let mut fee: Option<crate::value::Dict> = None;
-        if (feeCost != Value::Null) {
+        if (feeCost.is_some()) {
             type_var = Some("withdrawal".to_string());
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost);
+                    m.insert("cost".to_string(), Value::from(feeCost));
                     m.insert("currency".to_string(), Value::from(code.as_deref()));
                 m
             }));
         }
         let mut status: Option<String> = self.parse_transaction_status((self.safe_string_k(transaction.clone(), "status", &[])).as_str());
-        let mut amount: Value = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "amountEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]);
-        if (amount == Value::Null) {
-            amount = self.safe_number_k(transaction.clone(), "amountRv", &[]);
+        let mut amount: Option<f64> = self.parse_number(self.from_en(self.safe_string_k(transaction.clone(), "amountEv", &[]), (self.safe_integer_k(&currencyResolved, "valueScale", &[])).as_i64()).map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+        if (amount.is_none()) {
+            amount = self.safe_number_k(transaction.clone(), "amountRv", &[]).as_f64();
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1028,7 +1028,7 @@ impl crate::exchange::DerivedExchange for Phemex {
         m.insert("tagTo".to_string(), Value::from(tag.as_deref()));
         m.insert("tagFrom".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), amount);
+        m.insert("amount".to_string(), Value::from(amount));
         m.insert("currency".to_string(), Value::from(code.as_deref()));
         m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("updated".to_string(), Value::Null);
@@ -4526,7 +4526,7 @@ impl Phemex {
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "timeInForce", &[])).as_str());
         let mut triggerPrice: Option<String> = self.omit_zero(self.safe_string2(order.clone(), Value::Str("stopPx".into()), Value::Str("stopPxRp".into()), &[]));
         let mut postOnly: bool = timeInForce.as_deref() == Some("PO");
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
         let mut execInst: Option<String> = self.safe_string_k_opt(order.clone(), "execInst", &[]);
         if (execInst.as_deref() == Some("ReduceOnly")) {
             reduceOnly = Some(true);
@@ -4695,7 +4695,7 @@ impl Phemex {
                 request.insert("baseQtyEv".into(), self.to_ev(amountString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }
         }  else if (market).swap {
-            let mut hedged: bool = self.safe_bool_k(orderParams.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut hedged: bool = self.safe_bool_k_opt(orderParams.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
             orderParams = self.omit(orderParams, Value::Str("hedged".into()), &[]);
             let mut posSide: Option<String> = self.safe_string_lower_k_opt(orderParams.clone(), "posSide", &[]);
             // a hedged reduceOnly order without posSide closes the opposite side
@@ -5106,7 +5106,7 @@ impl Phemex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -6647,7 +6647,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut isHedged: bool = self.safe_bool_k(params.clone(), "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isHedged: bool = self.safe_bool_k_opt(params.clone(), "hedged", &[Value::Bool(false)]).unwrap_or(false);
         let mut longLeverageRr: Option<i64> = self.safe_integer_k(params.clone(), "longLeverageRr", &[]).as_i64();
         let mut shortLeverageRr: Option<i64> = self.safe_integer_k(params.clone(), "shortLeverageRr", &[]).as_i64();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -6779,7 +6779,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             if (self.safe_string_k(transfer.clone(), "fromAccount", &[]) == Value::Null) {
                 if let Value::Dict(__d) = &mut transfer { std::sync::Arc::make_mut(__d).insert("fromAccount".into(), fromAccount); }

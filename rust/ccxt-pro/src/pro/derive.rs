@@ -1429,11 +1429,11 @@ impl Derive {
         if !(self.positionsByType.has(&subaccountIdKey)) {
             CacheStore::put(&mut self.positionsByType, &subaccountIdKey, ArrayCacheBySymbolBySide::new(Value::Null));
         }
-        let mut loadedSnapshots: Value = self.safe_dict_k(self.options.clone(), "loadedPositionsSnapshots", &[Value::Map({
+        let mut loadedSnapshots: crate::value::Dict = self.safe_dict_k(self.options.clone(), "loadedPositionsSnapshots", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if fetchSnapshot && !(matches!((&loadedSnapshots, subaccountIdKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
+        })]).into_dict();
+        if fetchSnapshot && !(matches!(subaccountIdKey.as_deref(), Some(__k) if loadedSnapshots.contains_key(__k))) {
             let mut snapshotRequest: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("subaccount_id".to_string(), Value::from(subaccountId));
@@ -1450,8 +1450,8 @@ impl Derive {
                 cache.append(snapshotPosition);
             }
             }
-            if let Value::Dict(__d) = &mut loadedSnapshots { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true)); }
-            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), loadedSnapshots.clone()); }
+            std::sync::Arc::make_mut(&mut loadedSnapshots).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
+            if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("loadedPositionsSnapshots".into(), Value::Dict(loadedSnapshots)); }
         }
         let mut subaccountIdString: Option<String> = self.number_to_string(Value::from(subaccountId));
         let mut topic: String = format!("{}{}", subaccountIdString.as_deref().unwrap_or("null"), ".balances");

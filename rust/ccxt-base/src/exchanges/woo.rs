@@ -767,7 +767,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //
         let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(transfer.clone(), "token", &[]), currency);
         let mut timestamp: Option<i64> = self.safe_timestamp2(transfer.clone(), Value::Str("createdTime".into()), Value::Str("timestamp".into()), &[]).as_i64();
-        let mut success: Option<bool> = self.safe_bool_k(transfer.clone(), "success", &[]).as_bool();
+        let mut success: Option<bool> = self.safe_bool_k_opt(transfer.clone(), "success", &[]);
         let mut status: Option<String> = None;
         if (success.is_some()) {
             status = (if (success == Some(true)) { Some("ok".to_string()) } else { Some("failed".to_string()) });
@@ -1170,7 +1170,7 @@ impl crate::exchange::DerivedExchange for Woo {
         let mut requestBody: Option<String> = None;
         let mut version: Option<&str> = section.get(0).and_then(Value::as_str);
         let mut access: Option<&str> = section.get(1).and_then(Value::as_str);
-        let mut pathWithParams: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathWithParams: String = self.implode_params(path.clone(), params.clone());
         let mut baseApiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(access.as_deref()), &[]);
         if (baseApiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
@@ -1192,7 +1192,7 @@ impl crate::exchange::DerivedExchange for Woo {
         }  else {
             self.check_required_credentials(&[]);
             if (method.as_str() == Some("POST")) && ((path.as_str() == Some("trade/algoOrder")) || (path.as_str() == Some("trade/order"))) {
-                let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
                 if !isSandboxMode {
                     let mut applicationId: String = "bc830de7-50f3-460b-9ee0-f430f83f9dad".to_string();
                     let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "brokerId", &[Value::from(applicationId)]);
@@ -1264,7 +1264,7 @@ impl crate::exchange::DerivedExchange for Woo {
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut errorCode: Option<String> = self.safe_string_k_opt(response.clone(), "code", &[]);
         if !success {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&response));
@@ -3391,7 +3391,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["reduceOnly", "reduce_only"], &[]).into_dict();
         let mut orderType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         if (self.markets.clone() == Value::Null) {
@@ -3649,7 +3649,7 @@ impl Woo {
                 request.insert("callbackRate".into(), convertedTrailingPercent.map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"], &[]).into_dict();
         let mut isConditional: bool = isTrigger || isTrailing || (triggerPrice.is_some()) || (self.safe_list_k(&paramsOmitted, "childOrders", &[]) != Value::Null);
         let mut response: Option<crate::value::Dict> = None;
@@ -3718,7 +3718,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["trigger", "stop"], &[]).into_dict();
         if (!isTrigger) && (symbol == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
@@ -3806,7 +3806,7 @@ impl Woo {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3910,7 +3910,7 @@ impl Woo {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3987,7 +3987,7 @@ impl Woo {
             m
         });
         let mut market: Option<crate::types::Market> = None;
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["stop", "trigger"], &[]).into_dict();
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -5178,7 +5178,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("amount".into(), amount);
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);

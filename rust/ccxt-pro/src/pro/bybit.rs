@@ -464,8 +464,8 @@ impl Bybit {
         isSpot = Some(type_var.as_deref() == Some("spot"));
         if isPrivate.as_bool() == Some(true) {
             let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
-            let mut isUnifiedMargin: bool = self.safe_bool(&unified, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut isUnifiedAccount: bool = self.safe_bool(&unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isUnifiedMargin: bool = self.safe_bool_opt(&unified, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
+            let mut isUnifiedAccount: bool = self.safe_bool_opt(&unified, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
             if (isUsdcSettled == Some(true)) && (!isUnifiedMargin) && (!isUnifiedAccount) {
                 url = accessibilityUrls.get("usdc").cloned().unwrap_or(Value::Null);
             }  else {
@@ -1360,7 +1360,7 @@ impl Bybit {
         //         "timestamp": 1670363219614
         //     }
         //
-        let mut isInverse: bool = self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isInverse: bool = self.safe_bool_k_opt(&market, "inverse", &[Value::Bool(false)]).unwrap_or(false);
         let mut volumeIndex: String = "volume".to_string();
         if isInverse {
             volumeIndex = "turnover".to_string();
@@ -2923,8 +2923,8 @@ impl Bybit {
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut unified: crate::value::List = self.parent.is_unified_enabled(&[]).await.into_list();
-        let mut isUnifiedMargin: bool = self.safe_bool(&unified, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isUnifiedAccount: bool = self.safe_bool(&unified, Value::Int(1), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isUnifiedMargin: bool = self.safe_bool_opt(&unified, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
+        let mut isUnifiedAccount: bool = self.safe_bool_opt(&unified, Value::Int(1), &[Value::Bool(false)]).unwrap_or(false);
         let mut url: Option<String> = self.get_url_by_market_type(None, &[Value::Bool(true), Value::from(method), Value::from(&paramsSubType)]).await.as_str().map(str::to_owned);
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topicByMarket: indexmap::IndexMap<String, Value> = ({

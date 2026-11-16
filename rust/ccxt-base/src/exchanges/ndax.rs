@@ -433,7 +433,7 @@ impl crate::exchange::DerivedExchange for Ndax {
             return Value::Null;
         }
         let mut sessionStatus: Option<String> = self.safe_string_k_opt(market.clone(), "SessionStatus", &[]);
-        let mut isDisable: bool = self.safe_bool_k(market.clone(), "IsDisable", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isDisable: bool = self.safe_bool_k_opt(market.clone(), "IsDisable", &[Value::Bool(false)]).unwrap_or(false);
         let mut sessionRunning: bool = sessionStatus.as_deref() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();

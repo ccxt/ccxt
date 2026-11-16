@@ -113,7 +113,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         if (price.is_some()) && (amount.is_some()) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]).as_f64();
         }
-        let mut crossed: bool = self.safe_bool_k(trade.clone(), "crossed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut crossed: bool = self.safe_bool_k_opt(trade.clone(), "crossed", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerOrMaker: String = "maker".to_string();
         if crossed {
             takerOrMaker = "taker".to_string();
@@ -186,7 +186,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut tifRaw: Option<String> = self.safe_string_k_opt(&entry, "tif", &[]);
         let mut tif: Option<String> = self.parse_time_in_force(tifRaw.as_deref());
         let mut postOnly: bool = tif.as_deref() == Some("PO");
-        let mut isTrigger: bool = self.safe_bool_k(&entry, "isTrigger", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool_k_opt(&entry, "isTrigger", &[Value::Bool(false)]).unwrap_or(false);
         let mut triggerPrice: Option<f64> = (if isTrigger { self.safe_number_k(&entry, "triggerPx", &[]).as_f64() } else { None });
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -288,7 +288,7 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let __api_empty = Vec::new();
         let api = api.as_array().unwrap_or(&__api_empty);
         let mut apiGroup: Option<&str> = api.get(0).and_then(Value::as_str);
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut baseUrl: Option<String> = None;
         if sandboxMode {
             let mut testUrls: crate::value::Dict = self.safe_dict_k(self.urls.clone(), "test", &[Value::Map({
@@ -2071,8 +2071,8 @@ impl Hyperliquid {
         let mut isMarket: bool = (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }).as_str() == Some("MARKET");
         let mut assetId: Option<i64> = self.safe_integer_k(&outcomeInfo, "assetId", &[]).as_i64();
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOrderId".into()), Value::Str("client_id".into()), &[]);
-        let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut defaultSlippage: String = self.safe_string_k(self.options.clone(), "defaultSlippage", &[Value::Str("0.05".into())]).as_str().unwrap_or("0.05").to_string();
         let mut slippage: Option<String> = self.safe_string_k_opt(params.clone(), "slippage", &[Value::from(defaultSlippage)]);
         let mut defaultTif: String = "Gtc".to_string();
@@ -2497,7 +2497,7 @@ impl Hyperliquid {
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsPublicAddress]);
         let mut response: Value = self.public_post_info(&[__ws_arg_9]).await;
         // Deduplicate by oid keeping most recent statusTimestamp
-        let mut deduped: Value = Value::Map({
+        let mut deduped: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -2516,19 +2516,19 @@ impl Hyperliquid {
             }
             let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!((&deduped, oid.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone()); }
+                if !(matches!(oid.as_deref(), Some(__k) if deduped.contains_key(__k))) {
+                    deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone());
                 }  else {
-                    let mut existingTs: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();
+                    let mut existingTs: Option<i64> = self.safe_integer(deduped.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();
                     let mut currentTs: Option<i64> = self.safe_integer_k(raw.clone(), "statusTimestamp", &[]).as_i64();
                     if (currentTs.is_some()) && ((existingTs.is_none()) || (currentTs.is_some() && existingTs.is_some() && currentTs > existingTs)) {
-                        if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw); }
+                        deduped.insert(oid.as_deref().unwrap_or("null").to_string(), raw);
                     }
                 }
             }
         }
         }
-        let mut dedupedValues: Value = Value::Array(deduped.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default());
+        let mut dedupedValues: Value = Value::Array(deduped.values().cloned().collect());
         let mut parsed: Value = self.parse_prediction_orders(dedupedValues, &[Value::Null, since.clone()]);
         let mut outcomeHandle: Option<String> = None;
         if (outcome != Value::Null) {
@@ -2817,7 +2817,7 @@ impl Hyperliquid {
     m
 }));
         self.require_event_query(&[params.clone()]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         // hyperliquid has no dedicated events endpoint - events are grouped from the outcome
         // markets. use the cached load so the handles advertised here always match the
         // outcome cache (hyperliquid re-assigns outcome ids over time; a fresh fetch could
@@ -2825,11 +2825,11 @@ impl Hyperliquid {
         let mut marketsDict: crate::types::Markets = (match self.load_markets(false, Value::Null).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut marketValues: crate::value::List = self.to_array(crate::types::IntoRaw::into_raw(marketsDict)).into_list();
         // Group markets by parentSymbol
-        let mut groupMap: Value = Value::Map({
+        let mut groupMap: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut lowerQueries: crate::value::List = std::sync::Arc::new(Vec::new());
@@ -2837,7 +2837,7 @@ impl Hyperliquid {
                         let mut i: i64 = 0;
             let mut __for_first_1253: bool = true;
             while { if !__for_first_1253 { i += 1; } __for_first_1253 = false; i < (queries.len() as i64) } {
-            let mut queryString: Value = queries.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut queryString: Value = crate::value::KeyRead::read(&&queries, &Value::Int(i));
             std::sync::Arc::make_mut(&mut lowerQueries).push((if let Some(__s) = queryString.as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
         }
         }
@@ -2896,29 +2896,29 @@ impl Hyperliquid {
             if (parentSymbol == Value::Null) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing parentSymbol")));
             }
-            if !(matches!((&groupMap, &parentSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if !(matches!(&parentSymbol, Value::Str(__k) if groupMap.contains_key(__k.as_ref()))) {
                 if (parentSymbol != Value::Null) {
-                    if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![])); }
+                    groupMap.insert(crate::runtime::stringify_param(&parentSymbol), Value::from(vec![]));
                 }
             }
             // push through a local and write the slice back — the go transpiler's
             // AppendToArray reassigns only a local copy of a map-stored array, so a
             // direct push on groupMap[parentSymbol] loses the element in go
-            let mut parentMarkets: Value = self.safe_list(groupMap.clone(), parentSymbol.clone(), &[Value::from(vec![])]);
+            let mut parentMarkets: Value = self.safe_list(&groupMap, parentSymbol.clone(), &[Value::from(vec![])]);
             if let Value::Arr(__a) = &mut parentMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(mkt)); }
             if (parentSymbol != Value::Null) {
-                if let Value::Dict(__d) = &mut groupMap { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets); }
+                groupMap.insert(crate::runtime::stringify_param(&parentSymbol), parentMarkets);
             }
         }
         }
         let mut events: Vec<Value> = Vec::new();
-        let mut groupKeys: Vec<Value> = Value::Array(groupMap.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut groupKeys: Vec<Value> = Value::Array(groupMap.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut gi: i64 = 0;
             let mut __for_first_1257: bool = true;
             while { if !__for_first_1257 { gi += 1; } __for_first_1257 = false; gi < (groupKeys.len() as i64) } {
             let mut key: Option<&str> = groupKeys.get(gi as usize).and_then(Value::as_str);
-            let mut groupMarkets: Value = (if let (Some(__m), Some(__k)) = (groupMap.as_map(), key.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut groupMarkets: Value = groupMap.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             let mut event: crate::value::Dict = self.parse_event(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("parentSymbol".to_string(), Value::from(key.as_deref()));
@@ -2928,7 +2928,7 @@ impl Hyperliquid {
             events.push(Value::Dict(event));
         }
         }
-        return self.apply_event_fetch_params(Value::from(events), &[params, queries]);
+        return self.apply_event_fetch_params(Value::from(events), &[params, Value::Arr(queries)]);
         Value::Null
         }).await?))
     }
@@ -3122,7 +3122,7 @@ impl Hyperliquid {
         let mut vaultAddress: Value = vaultAddress.into();
         self.check_required_credentials(&[]);
         let mut hash: Value = self.action_hash(action, vaultAddress.as_str(), nonce);
-        let mut isTestnet: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTestnet: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut phantomAgent: crate::value::Dict = self.construct_phantom_agent(hash, &[Value::Bool(isTestnet)]).into_dict();
         let mut zeroAddress: Option<String> = self.safe_string_k_opt(self.options.clone(), "zeroAddress", &[]);
         let mut domain: indexmap::IndexMap<String, Value> = ({
@@ -3218,7 +3218,7 @@ impl Hyperliquid {
         let mut builder: Value = builder.into();
         let mut maxFeeRate: Value = maxFeeRate.into();
         let mut nonce: i64 = self.incrementing_nonce();
-        let mut isSandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut payload: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("hyperliquidChain".to_string(), (if isSandboxMode { Value::Str("Testnet".into()) } else { Value::Str("Mainnet".into()) }));
@@ -3256,7 +3256,7 @@ impl Hyperliquid {
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut buildFee: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(false)]).unwrap_or(false);
         if !buildFee {
             return Value::Null;
         }

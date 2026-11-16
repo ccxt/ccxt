@@ -147,7 +147,7 @@ impl crate::exchange::DerivedExchange for Limitless {
 })]).into_dict();
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
-        let mut isExpired: bool = self.safe_bool_k(raw.clone(), "expired", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isExpired: bool = self.safe_bool_k_opt(raw.clone(), "expired", &[Value::Bool(false)]).unwrap_or(false);
         let mut marketStatus: Option<String> = self.safe_string_k_opt(raw.clone(), "status", &[]);
         let mut active: bool = (!(isExpired) && (marketStatus.as_deref() == Some("FUNDED")));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist
@@ -1461,7 +1461,7 @@ impl Limitless {
             }
         }
         let mut markets: Vec<Value> = Vec::new();
-        let mut eventGroups: Value = Value::Map({
+        let mut eventGroups: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1481,22 +1481,22 @@ impl Limitless {
             let mut m: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_market(self, raw.clone()).into_dict();
             markets.push(Value::from(&m));
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
+                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-})); }
+}));
                 }
-                let mut eventGroup: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
                 let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(m)); };
+                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(Value::Dict(m)); }
                 add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
             }
         }
@@ -1505,13 +1505,13 @@ impl Limitless {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut eventKeys: Vec<Value> = Value::Array(eventGroups.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut eventKeys: Vec<Value> = Value::Array(eventGroups.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1306: bool = true;
             while { if !__for_first_1306 { i += 1; } __for_first_1306 = false; i < (eventKeys.len() as i64) } {
             let mut eventKey: Option<&str> = eventKeys.get(i as usize).and_then(Value::as_str);
-            let mut g: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            let mut g: Value = eventGroups.get(eventKey.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             eventsDict.insert(eventKey.as_deref().unwrap_or("null").to_string(), self.parse_event(g));
         }
         }
@@ -4170,7 +4170,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
         }
-        let mut eventGroups: Value = Value::Map({
+        let mut eventGroups: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4194,34 +4194,34 @@ if _try_result.is_err() {
             }
             add_element_to_object(&mut self.markets, &m.as_map().and_then(|__m| __m.get("market")).cloned().unwrap_or(Value::Null), m.clone());
             if (eventKey != Value::Null) && (eventKey.as_str() != Some("")) {
-                if !(matches!((&eventGroups, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    if let Value::Dict(__d) = &mut eventGroups { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+                if !(matches!(&eventKey, Value::Str(__k) if eventGroups.contains_key(__k.as_ref()))) {
+                    eventGroups.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("groupId".to_string(), Value::from(groupId.as_deref()));
         m.insert("title".to_string(), self.safe_string2(raw.clone(), Value::Str("groupTitle".into()), Value::Str("title".into()), &[groupId.map(Value::from).unwrap_or(Value::Null)]));
         m.insert("raw".to_string(), raw);
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-})); }
+}));
                 }
-                let mut eventGroup: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                let mut eventGroup: Value = eventGroups.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                 // push through a local and write the slice back — the go transpiler's
                 // AppendToArray reassigns only a local copy of a map-stored array, so a
                 // direct push on eventGroup['markets'] loses the element in go
                 let mut groupMarkets: Value = crate::value::get_value_k(&eventGroup, "markets");
-                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m); };
+                if let Value::Arr(__a) = &mut groupMarkets { std::sync::Arc::make_mut(__a).push(m.clone()); }
                 add_element_to_object(&mut eventGroup, &Value::Str("markets".into()), groupMarkets);
             }
         }
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut eventKeys: Vec<Value> = Value::Array(eventGroups.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut eventKeys: Vec<Value> = Value::Array(eventGroups.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut eventKeysLength: i64 = eventKeys.len() as i64;
         {
                         let mut i: i64 = 0;
             let mut __for_first_1333: bool = true;
             while { if !__for_first_1333 { i += 1; } __for_first_1333 = false; i < eventKeysLength } {
-            let mut ev: crate::value::Dict = self.parse_event(self.safe_dict(eventGroups.clone(), eventKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
+            let mut ev: crate::value::Dict = self.parse_event(self.safe_dict(&eventGroups, eventKeys.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })])).into_dict();

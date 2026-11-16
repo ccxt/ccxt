@@ -465,7 +465,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "active", &[]).as_bool();
+        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "active", &[]);
         let mut timeStart: Option<String> = self.safe_string_k_opt(market.clone(), "timeStart", &[]);
         let mut created: Option<i64> = self.parse8601(timeStart.map(Value::from).unwrap_or(Value::Null));
         let mut minCost: Option<f64> = None;
@@ -473,7 +473,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut quoteInUsd: bool = self.safe_bool(currenciesValuedInUsd, quote.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut quoteInUsd: bool = self.safe_bool_opt(currenciesValuedInUsd, quote.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
         if quoteInUsd {
             let mut settings: crate::value::Dict = self.safe_dict_k(market.clone(), "settings", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -643,7 +643,7 @@ impl crate::exchange::DerivedExchange for Bitteam {
         let mut id: Option<String> = self.safe_string_k_opt(currency.clone(), "symbol", &[]);
         let mut numericId: Option<i64> = self.safe_integer_k(currency.clone(), "id", &[]).as_i64();
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut active: bool = self.safe_bool_k(currency.clone(), "active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut active: bool = self.safe_bool_k_opt(currency.clone(), "active", &[Value::Bool(false)]).unwrap_or(false);
         let mut precision: Option<f64> = self.parse_number(self.parse_precision(&[self.safe_string_k(currency.clone(), "precision", &[])]), &[]).as_f64();
         let mut txLimits: crate::value::Dict = self.safe_dict_k(currency.clone(), "txLimits", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -676,8 +676,8 @@ impl crate::exchange::DerivedExchange for Bitteam {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut deposit: Option<bool> = self.safe_bool_k(&statuses, "depositStatus", &[]).as_bool();
-        let mut withdraw: Option<bool> = self.safe_bool_k(&statuses, "withdrawStatus", &[]).as_bool();
+        let mut deposit: Option<bool> = self.safe_bool_k_opt(&statuses, "depositStatus", &[]);
+        let mut withdraw: Option<bool> = self.safe_bool_k_opt(&statuses, "withdrawStatus", &[]);
         let mut networkIds: Vec<Value> = Value::Array(feesByNetworkId.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

@@ -339,8 +339,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
         }
         let mut timestamp: Option<i64> = self.safe_timestamp2(order.clone(), Value::Str("ctime".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "ftime", &[]).as_i64();
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
-        let mut ioc: bool = self.safe_bool_k(order.clone(), "ioc", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
+        let mut ioc: bool = self.safe_bool_k_opt(order.clone(), "ioc", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = None;
         if ioc {
             timeInForce = Some("IOC".to_string());
@@ -388,8 +388,8 @@ impl crate::exchange::DerivedExchange for Whitebit {
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut active: Option<bool> = self.safe_bool_k(market.clone(), "tradesEnabled", &[]).as_bool();
-        let mut isCollateral: bool = self.safe_bool_k(market.clone(), "isCollateral", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut active: Option<bool> = self.safe_bool_k_opt(market.clone(), "tradesEnabled", &[]);
+        let mut isCollateral: bool = self.safe_bool_k_opt(market.clone(), "isCollateral", &[Value::Bool(false)]).unwrap_or(false);
         let mut typeId: Option<String> = self.safe_string_k_opt(market.clone(), "type", &[]);
         let mut type_var: Option<String> = None;
         let mut settle: Option<String> = None;
@@ -1139,7 +1139,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
                 panic!("{}", crate::exchange_errors::exchange_error(feedback));
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+            let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
             if !success {
                 let mut errMsg: crate::value::Dict = self.safe_dict_k(response, "message", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3231,8 +3231,8 @@ impl Whitebit {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         // Extract control parameters from params
-        let mut checkActive: bool = self.safe_bool_k(params.clone(), "checkActive", &[Value::Bool(true)]).as_bool().unwrap_or(true);
-        let mut checkExecuted: bool = self.safe_bool_k(params.clone(), "checkExecuted", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut checkActive: bool = self.safe_bool_k_opt(params.clone(), "checkActive", &[Value::Bool(true)]).unwrap_or(true);
+        let mut checkExecuted: bool = self.safe_bool_k_opt(params.clone(), "checkExecuted", &[Value::Bool(true)]).unwrap_or(true);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["checkActive", "checkExecuted"], &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

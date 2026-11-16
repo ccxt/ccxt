@@ -406,10 +406,10 @@ impl crate::exchange::DerivedExchange for Bittrade {
         let mut currency: Value = currency.into();
         let mut id: Option<String> = self.safe_string_k_opt(currency.clone(), "name", &[]);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut depositEnabled: Option<bool> = self.safe_bool_k(currency.clone(), "deposit-enabled", &[]).as_bool();
-        let mut withdrawEnabled: Option<bool> = self.safe_bool_k(currency.clone(), "withdraw-enabled", &[]).as_bool();
-        let mut countryDisabled: bool = self.safe_bool_k(currency.clone(), "country-disabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut visible: bool = self.safe_bool_k(currency.clone(), "visible", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut depositEnabled: Option<bool> = self.safe_bool_k_opt(currency.clone(), "deposit-enabled", &[]);
+        let mut withdrawEnabled: Option<bool> = self.safe_bool_k_opt(currency.clone(), "withdraw-enabled", &[]);
+        let mut countryDisabled: bool = self.safe_bool_k_opt(currency.clone(), "country-disabled", &[Value::Bool(false)]).unwrap_or(false);
+        let mut visible: bool = self.safe_bool_k_opt(currency.clone(), "visible", &[Value::Bool(false)]).unwrap_or(false);
         let mut state: Option<String> = self.safe_string_k_opt(currency.clone(), "state", &[]);
         let mut active: bool = ((((visible && (depositEnabled == Some(true))) && (withdrawEnabled == Some(true))) && (state.as_deref() == Some("online"))) && (countryDisabled != true));
         let mut name: Option<String> = self.safe_string_k_opt(currency.clone(), "display-name", &[]);

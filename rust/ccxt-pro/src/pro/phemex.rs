@@ -1151,7 +1151,7 @@ impl Phemex {
             while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (subscriptionHashes.len() as i64) } {
             let mut subscriptionHash: Option<String> = subscriptionHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut subscription: Value = __ch.get_subscription(subscriptionHash.as_deref());
-            let mut isUnSubscription: bool = self.safe_bool_k(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isUnSubscription: bool = self.safe_bool_k_opt(subscription.clone(), "unsubscribe", &[Value::Bool(false)]).unwrap_or(false);
             let mut subscriptionId: Option<String> = self.safe_string_k_opt(subscription.clone(), "id", &[]);
             if isUnSubscription && (subscriptionId.is_some()) && (subscriptionId == id) {
                 let mut subMessageHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "subMessageHash", &[]);

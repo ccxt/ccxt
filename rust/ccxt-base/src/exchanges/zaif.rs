@@ -452,7 +452,7 @@ impl crate::exchange::DerivedExchange for Zaif {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), error.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }
-        let mut success: bool = self.safe_bool_k(response, "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response, "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }

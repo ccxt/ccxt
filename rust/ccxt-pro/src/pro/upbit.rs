@@ -895,7 +895,7 @@ impl Upbit {
             cost = crate::precise::Precise::stringMul(&price, &amount).as_str().map(str::to_owned);
         }
         let mut takerOrMaker: Option<String> = None;
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_maker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker", &[]);
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }

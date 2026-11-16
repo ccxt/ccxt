@@ -1837,8 +1837,8 @@ impl Polymarket {
             let mut conditionId: Option<String> = self.safe_string_k_opt(&market, "conditionId", &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
             let mut marketSlug: Option<String> = self.safe_string_k_opt(&market, "slug", &[conditionId.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut active: bool = self.safe_bool_k(&market, "active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut closed: bool = self.safe_bool_k(&market, "closed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut active: bool = self.safe_bool_k_opt(&market, "active", &[Value::Bool(false)]).unwrap_or(false);
+            let mut closed: bool = self.safe_bool_k_opt(&market, "closed", &[Value::Bool(false)]).unwrap_or(false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             let mut marketResolved: Value = Value::Bool((closed || (self.safe_string_lower_k(&market, "umaResolutionStatus", &[]).as_str() == Some("resolved"))));
             let mut resolvedOutcome: Option<String> = None;
@@ -1847,7 +1847,7 @@ impl Polymarket {
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             let mut orderMinSize: Value = self.safe_number_k(&market, "orderMinSize", &[Value::Int(1)]);
             let mut priceMax: Option<f64> = self.parse_number(crate::precise::Precise::stringSub(&Value::Str("1".into()), &Value::from(self.number_to_string(Value::from(tickSize)))), &[]).as_f64();
-            let mut negRisk: bool = self.safe_bool_k(&market, "negRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut negRisk: bool = self.safe_bool_k_opt(&market, "negRisk", &[Value::Bool(false)]).unwrap_or(false);
             let mut endDate: Option<String> = self.safe_string_k_opt(&market, "endDate", &[self.safe_string_k(&market, "end_date_iso", &[])]);
             // Gamma API returns these arrays as JSON-encoded strings
             let mut outcomeLabels: Value = Value::from(vec![]);
@@ -2637,15 +2637,15 @@ impl Polymarket {
             if !(matches!((&buckets, Some(bucketKey.as_str())), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey.clone(), Value::from(vec![Value::from(snappedMs), Value::from(price), Value::from(price), Value::from(price), Value::from(price), Value::from(vol)])); }
             }  else {
-                let mut candle: Value = self.safe_list(buckets.clone(), Value::from(bucketKey.clone()), &[Value::from(vec![])]);
-                { let __be_tmp = crate::runtime::Math::max(&get_value(&candle, &Value::Int(2)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
-                { let __be_tmp = crate::runtime::Math::min(&get_value(&candle, &Value::Int(3)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
+                let mut candle: crate::value::List = self.safe_list(buckets.clone(), Value::from(bucketKey.clone()), &[Value::from(vec![])]).into_list();
+                { let __be_tmp = crate::runtime::Math::max(&crate::value::KeyRead::read(&&candle, &Value::Int(2)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(2), __be_tmp); }; // high
+                { let __be_tmp = crate::runtime::Math::min(&crate::value::KeyRead::read(&&candle, &Value::Int(3)), &Value::from(price)); add_element_to_object(&mut candle, &Value::Int(3), __be_tmp); }; // low
                 add_element_to_object(&mut candle, &Value::Int(4), Value::from(price)); // close (last tick wins)
                 if (vol.is_some()) {
-                    let mut prevVol: Value = candle.as_array().and_then(|__arr| __arr.get(5)).cloned().unwrap_or(Value::Null);
+                    let mut prevVol: Value = crate::value::KeyRead::read(&&candle, &Value::Int(5));
                     add_element_to_object(&mut candle, &Value::Int(5), (if (prevVol == Value::Null) { Value::from(vol) } else { self.sum(&[prevVol, Value::from(vol)]) })); // volume
                 }
-                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey, candle); }; // reassign after mutation, php arrays are value types
+                if let Value::Dict(__d) = &mut buckets { std::sync::Arc::make_mut(__d).insert(bucketKey, Value::Arr(candle)); }; // reassign after mutation, php arrays are value types
             }
         }
         }
@@ -3530,7 +3530,7 @@ impl Polymarket {
         let mut tickSize: Option<String> = self.safe_string_k_opt(params.clone(), "tickSize", &[Value::from(self.number_to_string(self.safe_number_k(&outcomePrecision, "price", &[Value::Float(0.01)])))]);
         let mut negRisk: Option<bool> = self.safe_bool_k(params.clone(), "negRisk", &[self.safe_bool_k(&outcomeObj, "negRisk", &[Value::Bool(false)])]).as_bool();
         // maker-only: the CLOB rejects the order if it would immediately take
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         let mut signatureType: Option<i64> = self.safe_integer2(params.clone(), Value::Str("signatureType".into()), Value::Str("signature_type".into()), &[self.safe_integer_k(self.options.clone(), "signatureType", &[Value::Int(3)])]).as_i64();
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -3559,7 +3559,7 @@ impl Polymarket {
         if (builderRaw.is_some()) {
             let mut builderHex: Option<String> = self.remove0x_prefix(builderRaw.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
             if ((builderHex.as_deref().unwrap_or_default().chars().count() as i64)) <= 40 {
-                let mut builderFeeEnabled: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+                let mut builderFeeEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
                 let mut feeRate: i64 = 0;
                 if builderFeeEnabled {
                     feeRate = self.safe_integer_k(self.options.clone(), "feeRate", &[Value::Int(0)]).as_i64().unwrap_or(0);
@@ -4126,9 +4126,9 @@ impl Polymarket {
         self.require_event_query(&[params.clone()]);
         let mut requestedEventId: Option<String> = self.safe_string_k_opt(params.clone(), "eventId", &[]);
         let mut requestedSlug: Option<String> = self.safe_string_k_opt(params.clone(), "slug", &[]);
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["query", "queries", "eventId", "slug"], &[]).into_dict();
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -4148,7 +4148,7 @@ impl Polymarket {
             let mut responseIsArray: bool = matches!(&response, Value::Arr(_));
             rawEvents = (if (responseIsArray) { response } else { Value::from(vec![]) }).into_list();
         }  else if queriesLength > 0 {
-            rawEvents = self.fetch_raw_events_by_search(queries.clone(), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_raw_events_by_search(Value::from(&queries), &[Value::from(&rest)]).await.into_list();
         }  else {
             rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
         }
@@ -4226,7 +4226,7 @@ impl Polymarket {
             add_element_to_object(&mut effectiveParams, &Value::Str("status".into()), self.safe_string_k(params.clone(), "status", &[Value::Str("active".into())]));
             add_element_to_object(&mut effectiveParams, &Value::Str("searchIn".into()), self.safe_string_k(params, "searchIn", &[Value::Str("title".into())]));
         }
-        return self.apply_event_fetch_params(Value::from(result), &[effectiveParams, queries]);
+        return self.apply_event_fetch_params(Value::from(result), &[effectiveParams, Value::Arr(queries)]);
         Value::Null
         }).await?))
     }
@@ -4354,7 +4354,7 @@ impl Polymarket {
         let mut closed: bool = self.safe_bool_k_opt(rawEvent.clone(), "closed", &[Value::Bool(false)]).unwrap_or(false);
         let mut active: Option<bool> = None;
         if (rawActive.is_some()) {
-            active = Some(rawActive == Some(true) && (!(closed)));
+            active = Some((rawActive == Some(true)) && (!closed));
         }
         // surface gamma's tag objects as a top-level string[] so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
@@ -4788,7 +4788,7 @@ if _try_result.is_err() {
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut timestamp: Option<i64> = self.parse_poly_timestamp((self.safe_string_k(event, "timestamp", &[])).as_str()).as_i64();
         let mut changes: crate::value::List = __pro_message.get("price_changes").cloned().unwrap_or_default().into_list();
-        let mut updated: Value = Value::Map({
+        let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4812,10 +4812,10 @@ if _try_result.is_err() {
             sideRef.store_array(Value::from(vec![Value::from(price), Value::from(size)]));
             orderbook.set_book_meta("timestamp", Value::from(timestamp));
             orderbook.set_book_meta("datetime", self.iso8601(timestamp));
-            if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&outcome), Value::Bool(true)); }
+            updated.insert(crate::runtime::stringify_param(&outcome), Value::Bool(true));
         }
         }
-        let mut updatedSymbols: Vec<Value> = Value::Array(updated.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut k: i64 = 0;
             let mut __for_first_1456: bool = true;

@@ -339,7 +339,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         if crate::precise::Precise::stringEq(&triggerPrice, &Value::Str("0".into())).as_bool() == Some(true) {
             triggerPrice = None;
         }
-        let mut immediateOrCancel: bool = self.safe_bool_k(order.clone(), "immediate_or_cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut immediateOrCancel: bool = self.safe_bool_k_opt(order.clone(), "immediate_or_cancel", &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = None;
         if immediateOrCancel {
             timeInForce = Some("IOC".to_string());
@@ -460,8 +460,8 @@ impl crate::exchange::DerivedExchange for Bigone {
             let mut chain: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "gateway_name", &[]);
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
-            let mut deposit: Option<bool> = self.safe_bool_k(&chain, "is_deposit_enabled", &[]).as_bool();
-            let mut withdraw: Option<bool> = self.safe_bool_k(&chain, "is_withdrawal_enabled", &[]).as_bool();
+            let mut deposit: Option<bool> = self.safe_bool_k_opt(&chain, "is_deposit_enabled", &[]);
+            let mut withdraw: Option<bool> = self.safe_bool_k_opt(&chain, "is_withdrawal_enabled", &[]);
             let mut minDepositAmount: Option<String> = self.safe_string_k_opt(&chain, "min_deposit_amount", &[]);
             let mut minWithdrawalAmount: Option<String> = self.safe_string_k_opt(&chain, "min_withdrawal_amount", &[]);
             let mut withdrawalFee: Option<String> = self.safe_string_k_opt(&chain, "withdrawal_fee", &[]);
@@ -613,7 +613,7 @@ impl crate::exchange::DerivedExchange for Bigone {
         if (self.safe_string_k(transaction.clone(), "customer_id", &[]) != Value::Null) {
             type_var = "withdrawal".to_string();
         }
-        let mut internal: Option<bool> = self.safe_bool_k(transaction.clone(), "is_internal", &[]).as_bool();
+        let mut internal: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "is_internal", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transaction);
@@ -1738,7 +1738,7 @@ impl Bigone {
                 continue;
             }
             let mut settle: Option<String> = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
-            let mut inverse: Option<bool> = self.safe_bool_k(&market, "isInverse", &[]).as_bool();
+            let mut inverse: Option<bool> = self.safe_bool_k_opt(&market, "isInverse", &[]);
             result.push(self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
@@ -2402,7 +2402,7 @@ impl Bigone {
         }
         let mut uppercaseType: String = type_var.as_str().unwrap_or_default().to_string().to_uppercase();
         let mut isLimit: bool = uppercaseType == "LIMIT";
-        let mut exchangeSpecificParam: bool = self.safe_bool_k(params.clone(), "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut exchangeSpecificParam: bool = self.safe_bool_k_opt(params.clone(), "post_only", &[Value::Bool(false)]).unwrap_or(false);
         let mut postOnly: Option<bool> = None;
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Bool(exchangeSpecificParam), &[params]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).and_then(Value::as_bool); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
@@ -3186,7 +3186,7 @@ impl Bigone {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);
             std::sync::Arc::make_mut(&mut transfer).insert("toAccount".into(), toAccount);

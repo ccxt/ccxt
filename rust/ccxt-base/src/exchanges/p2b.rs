@@ -458,7 +458,7 @@ impl crate::exchange::DerivedExchange for P2b {
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         if !success {
             let mut errorCode: Option<String> = self.safe_string_k_opt(response, "errorCode", &[]);
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);

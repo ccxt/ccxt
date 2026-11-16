@@ -244,7 +244,7 @@ impl crate::exchange::DerivedExchange for Digifinex {
             if (type_var.is_none()) {
                 type_var = Some("limit".to_string());
             }
-            let mut isMaker: bool = self.safe_bool_k(trade.clone(), "is_maker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "is_maker", &[Value::Bool(false)]).unwrap_or(false);
             takerOrMaker = (if isMaker { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         let mut fee: Option<crate::value::Dict> = None;
@@ -2219,8 +2219,8 @@ impl Digifinex {
         //     }
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut groupedById: Value = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]);
-        let mut values: crate::value::List = Value::Array(groupedById.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut groupedById: crate::value::Dict = self.group_by(Value::Arr(data), Value::Str("currency".into()), &[]).into_dict();
+        let mut values: crate::value::List = Value::Array(groupedById.values().cloned().collect()).into_list();
         return self.parse_currencies(&values);
         Value::Null
         }).await?))
@@ -2375,7 +2375,7 @@ impl Digifinex {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
                 isInverse = self.safe_bool_k(&market, "is_inverse", &[]).as_bool();
                 isLinear = Some(if (isInverse != Some(true)) { true } else { false });
-                let mut isTrading: bool = self.safe_bool_k(&market, "isTrading", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isTrading: bool = self.safe_bool_k_opt(&market, "isTrading", &[Value::Bool(false)]).unwrap_or(false);
                 if isTrading {
                     isTradingSwap = true;
                 }
@@ -3572,7 +3572,7 @@ impl Digifinex {
         let mut postOnlyParsed: i64 = 0;
         let mut paramsRequest: Option<crate::value::Dict> = None;
         if swap {
-            let mut reduceOnly: bool = self.safe_bool_k(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsMarginMode, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
             let mut timeInForce: Option<String> = self.safe_string_k_opt(&paramsMarginMode, "timeInForce", &[]);
             let mut orderType: Option<i64> = None;
             if (side.as_str() == Some("buy")) {
@@ -6054,7 +6054,7 @@ impl Digifinex {
          * @returns {Array} the marginMode in lowercase
          */
         let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
-        let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMargin: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

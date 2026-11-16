@@ -177,7 +177,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "quantity", &[]);
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
-        let mut isTaker: bool = self.safe_bool_k(trade.clone(), "isTaker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTaker: bool = self.safe_bool_k_opt(trade.clone(), "isTaker", &[Value::Bool(false)]).unwrap_or(false);
         let mut currency: Option<String> = self.safe_string_k_opt(&marketResolved, "quote", &[]);
         let mut code: Option<String> = self.safe_currency_code(currency.map(Value::from).unwrap_or(Value::Null), None);
         let mut feeCost: Option<f64> = self.safe_number_k(trade.clone(), "quoteFee", &[]).as_f64();
@@ -1052,7 +1052,7 @@ impl crate::exchange::DerivedExchange for Bullish {
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
         if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut nonce: Value = Value::Str(format!("{}", Value::Int(self.microseconds())).into());
+            let mut nonce: String = format!("{}", self.microseconds());
             let mut timestamp: Value = Value::Str(format!("{}", self.get_timestamp()).into());
             let mut headers: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1064,7 +1064,7 @@ impl crate::exchange::DerivedExchange for Bullish {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp.clone());
-                        m.insert("BX-NONCE".to_string(), nonce.clone());
+                        m.insert("BX-NONCE".to_string(), Value::from(nonce.as_str()));
                         m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                     m
                 });
@@ -1075,7 +1075,7 @@ impl crate::exchange::DerivedExchange for Bullish {
                 headers = Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("BX-TIMESTAMP".to_string(), timestamp);
-                        m.insert("BX-NONCE".to_string(), nonce);
+                        m.insert("BX-NONCE".to_string(), Value::from(nonce));
                         m.insert("BX-SIGNATURE".to_string(), Value::from(signature));
                         m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m
@@ -2648,7 +2648,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 }));
         promise_all(&Value::from(vec![crate::types::IntoRaw::into_raw(self.load_markets(false, Value::Null).await), self.handle_token(&[]).await])).await;
         let mut tradingAccountId: Option<String> = self.load_account(&[params.clone()]).await.as_str().map(str::to_owned);
-        let mut paginate: bool = self.safe_bool_k(params.clone(), "paginate", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut paginate: bool = self.safe_bool_k_opt(params.clone(), "paginate", &[Value::Bool(false)]).unwrap_or(false);
         if paginate {
             let mut paramsPagination: crate::value::Dict = self.handle_pagination_params("fetchOrders", since.as_i64(), &[params.clone()]).into_dict();
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrders".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::Dict(paramsPagination), Value::Int(100)]).await;
@@ -3123,7 +3123,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (type_var != Value::Null) {
             request.insert("type".into(), (if let Some(__s) = type_var.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
         }
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly {
             request.insert("type".into(), Value::Str("POST_ONLY".into()));
         }
@@ -3835,7 +3835,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         let mut transfer: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_transfer(self, &response, Some(&currency)).into_dict();
         if fillResponseFromRequest {
             std::sync::Arc::make_mut(&mut transfer).insert("fromAccount".into(), fromAccount);

@@ -248,7 +248,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         id = self.safe_string2_opt(trade.clone(), Value::Str("id".into()), Value::Str("tradeId".into()), &[id.map(Value::from).unwrap_or(Value::Null)]);
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "orderId", &[]);
-        let mut buyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]).as_bool();
+        let mut buyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("m".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut takerOrMaker: Option<String> = None;
         if (buyerMaker.is_some()) {
             side = (if (buyerMaker == Some(true)) { Some("sell".to_string()) } else { Some("buy".to_string()) }); // this is reversed intentionally
@@ -717,7 +717,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         let mut responseParsed: Value = response.clone();
         if !success {
             let mut messageInner: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);

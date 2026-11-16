@@ -512,7 +512,7 @@ impl Bitopro {
                 m
             }));
         }
-        let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             if (isMaker == Some(true)) {

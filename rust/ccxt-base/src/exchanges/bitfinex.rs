@@ -3401,8 +3401,8 @@ impl Bitfinex {
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let mut trailingAmount: Option<String> = self.safe_string_k_opt(params.clone(), "trailingAmount", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(params.clone(), "timeInForce", &[]);
-        let mut postOnlyParam: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnlyParam: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<i64> = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]).as_i64();
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         if (trailingAmount.is_some()) {
@@ -4703,7 +4703,7 @@ impl Bitfinex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut includeFee: bool = self.safe_bool_k(&withdrawOptions, "includeFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut includeFee: bool = self.safe_bool_k_opt(&withdrawOptions, "includeFee", &[Value::Bool(false)]).unwrap_or(false);
         if includeFee {
             request.insert("fee_deduct".into(), Value::Int(1));
         }
@@ -5524,8 +5524,8 @@ impl Bitfinex {
         let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), &[]);
         let mut trailingAmount: Option<String> = self.safe_string_k_opt(params.clone(), "trailingAmount", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(params.clone(), "timeInForce", &[]);
-        let mut postOnlyParam: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut reduceOnly: bool = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnlyParam: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(params.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut clientOrderId: Option<i64> = self.safe_integer2(params.clone(), Value::Str("cid".into()), Value::Str("clientOrderId".into()), &[]).as_i64();
         if (trailingAmount.is_some()) {
             request.insert("price_trailing".into(), trailingAmount.map(Value::from).unwrap_or(Value::Null));

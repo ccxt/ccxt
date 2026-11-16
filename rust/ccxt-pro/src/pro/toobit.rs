@@ -55,7 +55,7 @@ impl crate::exchange::DerivedExchange for Toobit {
         let mut trade: Value = trade.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut ts: Option<String> = self.safe_string_k_opt(trade.clone(), "t", &[]);
-        let mut isMaker: bool = self.safe_bool_k(trade.clone(), "m", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMaker: bool = self.safe_bool_k_opt(trade.clone(), "m", &[Value::Bool(false)]).unwrap_or(false);
         let mut takerOrMaker: String = "taker".to_string();
         if isMaker {
             takerOrMaker = "maker".to_string();

@@ -1336,7 +1336,7 @@ impl Bitvavo {
             // multi-symbol watches share one subscription object, so the
             // snapshot-in-flight flag must be tracked per market
             let mut flagKey: String = format!("{}{}", Value::Str("watchingOrderBookSnapshot@".into()), (match __pro_message.get("market").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }));
-            let mut watchingOrderBookSnapshot: Option<bool> = self.safe_bool(subscription.clone(), Value::from(flagKey.clone()), &[]).as_bool();
+            let mut watchingOrderBookSnapshot: Option<bool> = self.safe_bool_opt(subscription.clone(), Value::from(flagKey.clone()), &[]);
             if (watchingOrderBookSnapshot.is_none()) {
                 add_element_to_object(&mut subscription, &Value::from(flagKey.as_str()), Value::Bool(true));
                 __ch.add_subscription(messageHash.as_str(), subscription.clone());

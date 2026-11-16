@@ -101,7 +101,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         // vol24h counts contracts: base units on linear markets, quote (usd) units
         // on inverse ones, where the base side has to come from vwap24h instead
         let mut baseVolume: Option<String> = None;
-        let mut isIndex: bool = self.safe_bool_k(&marketResolved, "index", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isIndex: bool = self.safe_bool_k_opt(&marketResolved, "index", &[Value::Bool(false)]).unwrap_or(false);
         if !isIndex {
             if ((marketResolved).linear == Some(true)) {
                 baseVolume = volume.take();
@@ -234,7 +234,7 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
         let mut type_var: Option<String> = self.parse_order_type(rawType.as_deref()); // undefined stays undefined
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut cost: Option<String> = None;
-        let mut linear: bool = self.safe_bool_k(&marketResolved, "linear", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut linear: bool = self.safe_bool_k_opt(&marketResolved, "linear", &[Value::Bool(false)]).unwrap_or(false);
         if (true) && (price.is_some()) && (true) {
             if linear {
                 cost = crate::precise::Precise::stringMul(&amount, &price).as_str().map(str::to_owned); // in quote
@@ -3107,7 +3107,7 @@ impl Krakenfutures {
         let mut isTakeProfitTriggerOrder: bool = takeProfitTriggerPrice.is_some();
         let mut isStopLossOrTakeProfitTrigger: bool = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         let mut triggerSignal: String = self.safe_string_k(&paramsPostOnly, "triggerSignal", &[Value::Str("last".into())]).as_str().unwrap_or("last").to_string();
-        let mut reduceOnlyParam: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnlyParam: bool = self.safe_bool_k_opt(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut reduceOnly: bool = reduceOnlyParam == true;
         if isStopLossOrTakeProfitTrigger || isTriggerOrder {
             request.insert("triggerSignal".into(), Value::from(triggerSignal));
@@ -3816,7 +3816,7 @@ impl Krakenfutures {
         if (since != Value::Null) {
             request.insert("since".into(), since.clone());
         }
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut response: Option<crate::value::Dict> = None;
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
@@ -3910,7 +3910,7 @@ impl Krakenfutures {
             request.insert("since".into(), since.clone());
         }
         let mut response: Option<crate::value::Dict> = None;
-        let mut isTrigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isTrigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params.clone(), &["trigger", "stop"], &[]).into_dict();
         if isTrigger {
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);

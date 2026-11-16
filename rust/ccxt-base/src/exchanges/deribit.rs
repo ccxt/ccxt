@@ -305,7 +305,7 @@ impl crate::exchange::DerivedExchange for Deribit {
         // injected in createOrder
         let mut trades: Option<crate::value::List> = self.safe_list_k(order.clone(), "trades", &[]).into_opt_list();
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(order.clone(), "time_in_force", &[])).as_str());
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), order.clone());
@@ -2683,7 +2683,7 @@ impl Deribit {
                     inverse = Some(quote != settle);
                     linear = Some(settle == quote);
                 }
-                let mut parsedMarketValue: Option<bool> = self.safe_bool(&parsedMarkets, Value::from(symbol.as_deref()), &[]).as_bool();
+                let mut parsedMarketValue: Option<bool> = self.safe_bool_opt(&parsedMarkets, Value::from(symbol.as_deref()), &[]);
                 if (parsedMarketValue.is_some()) {
                     continue;
                 }
@@ -3771,7 +3771,7 @@ impl Deribit {
         });
         let mut trigger: String = self.safe_string_k(params.clone(), "trigger", &[Value::Str("last_price".into())]).as_str().unwrap_or("last_price").to_string();
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
-        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         // only stop loss sell orders are allowed when price crossed from above
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         // only take profit buy orders are allowed when price crossed from below
@@ -3790,7 +3790,7 @@ impl Deribit {
         let mut isStopOrder: bool = (isStopLossOrder || isTakeProfitOrder);
         let mut isLimitOrder: bool = (((type_var.as_str() == Some("limit")) || isStopLimit) || isTakeLimit);
         let mut isMarketOrder: bool = (((type_var.as_str() == Some("market")) || isStopMarket) || isTakeMarket);
-        let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k(params.clone(), "post_only", &[]).as_bool();
+        let mut exchangeSpecificPostOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "post_only", &[]);
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder.clone()), exchangeSpecificPostOnly.map_or(Value::Null, Value::Bool), &[params.clone()]);
         if isLimitOrder {
             request.insert("type".into(), Value::Str("limit".into()));
@@ -5130,7 +5130,7 @@ impl Deribit {
             endTimestamp = self.parse_to_int(Value::from(until));
         }
         request.insert("end_timestamp".into(), Value::from(endTimestamp));
-        let mut isPaginationCall: bool = self.safe_bool_k(&paramsUntil, "isDeribitPaginationCall", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isPaginationCall: bool = self.safe_bool_k_opt(&paramsUntil, "isDeribitPaginationCall", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = Value::from(&paramsUntil).into_dict();
         if isPaginationCall {
             paramsOmitted = self.omit(&paramsUntil, Value::Str("isDeribitPaginationCall".into()), &[]).into_dict();

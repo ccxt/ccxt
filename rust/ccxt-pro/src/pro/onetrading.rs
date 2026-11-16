@@ -1442,7 +1442,7 @@ impl Onetrading {
                     let mut m = indexmap::IndexMap::new();
                     m
                 })]).into_dict();
-                let mut marketSubscribed: bool = self.safe_bool(&ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut marketSubscribed: bool = self.safe_bool_opt(&ohlcvMarket, timeframe.clone(), &[Value::Bool(false)]).unwrap_or(false);
                 if !marketSubscribed {
                     type_var = "UPDATE_SUBSCRIPTION".to_string();
                     __ch.add_subscription(&subscriptionHash, Value::Null);
@@ -1722,7 +1722,7 @@ impl Onetrading {
                     let mut __for_first_566: bool = true;
                     while { if !__for_first_566 { i += 1; } __for_first_566 = false; i < (marketIds.len() as i64) } {
                     let mut marketId: Option<String> = marketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-                    let mut marketSubscribed: bool = self.safe_bool(subscription.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                    let mut marketSubscribed: bool = self.safe_bool_opt(subscription.clone(), marketId.map(Value::from).unwrap_or(Value::Null), &[Value::Bool(false)]).unwrap_or(false);
                     if !marketSubscribed {
                         type_var = "UPDATE_SUBSCRIPTION".to_string();
                         __ch.add_subscription(&subscriptionHash, Value::Null);

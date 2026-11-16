@@ -395,7 +395,7 @@ impl Whitebit {
         //  }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut isSnapshot: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSnapshot: bool = self.safe_bool_opt(&params, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
         let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1305,7 +1305,7 @@ impl Whitebit {
             let mut hasSymbolSubscription: bool = true;
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut marketId: Value = Value::from((market).id.as_deref());
-            let mut isSubscribed: bool = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isSubscribed: bool = self.safe_bool_opt(subscription.clone(), marketId.clone(), &[Value::Bool(false)]).unwrap_or(false);
             if !isSubscribed {
                 if (marketId != Value::Null) {
                     add_element_to_object(&mut subscription, &marketId, Value::Bool(true));

@@ -193,7 +193,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
                 m
             });
         }
-        let mut isBuyer: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]).as_bool();
+        let mut isBuyer: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyer".into()), Value::Str("isBuyerMaker".into()), &[]);
         let mut side: Option<String> = None;
         if (isBuyer.is_some()) {
             side = (if (isBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
@@ -395,7 +395,7 @@ impl crate::exchange::DerivedExchange for Coinsph {
         let mut rawCurrency: Value = rawCurrency.into();
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "coin", &[]);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut isFiat: bool = self.safe_bool_k(rawCurrency.clone(), "isLegalMoney", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isFiat: bool = self.safe_bool_k_opt(rawCurrency.clone(), "isLegalMoney", &[Value::Bool(false)]).unwrap_or(false);
         let mut networkList: crate::value::List = self.safe_list_k(rawCurrency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2400,7 +2400,7 @@ impl Coinsph {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut testOrder: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
         let mut orderType: Option<String> = self.safe_string_k_opt(&paramsOmitted, "type", &[type_var.clone()]);
         orderType = self.encode_order_type(orderType.as_deref());
@@ -2963,7 +2963,7 @@ impl Coinsph {
         let mut tag: Option<String> = tagparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "withdraw", &[]).into_dict();
-        let mut warning: bool = self.safe_bool_k(&options, "warning", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut warning: bool = self.safe_bool_k_opt(&options, "warning", &[Value::Bool(true)]).unwrap_or(true);
         if warning {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")));
         }

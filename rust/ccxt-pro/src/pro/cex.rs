@@ -1137,7 +1137,7 @@ impl Cex {
             order = self.parse_ws_order_update(&data, Some(&market));
         }
         add_element_to_object(&mut order, &Value::Str("remaining".into()), remains.map(Value::from).unwrap_or(Value::Null));
-        let mut canceled: bool = self.safe_bool_k(&data, "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut canceled: bool = self.safe_bool_k_opt(&data, "cancel", &[Value::Bool(false)]).unwrap_or(false);
         if canceled {
             add_element_to_object(&mut order, &Value::Str("status".into()), Value::Str("canceled".into()));
         }
@@ -1236,7 +1236,7 @@ impl Cex {
         if isTransaction {
             timestamp = self.parse8601(Value::from(time));
         }
-        let mut canceled: bool = self.safe_bool_k(order.clone(), "cancel", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut canceled: bool = self.safe_bool_k_opt(order.clone(), "cancel", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: String = "open".to_string();
         if canceled {
             status = "canceled".to_string();

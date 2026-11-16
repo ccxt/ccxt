@@ -223,10 +223,10 @@ impl Bitfinex {
                 m.insert("checksum".to_string(), Value::Bool(false));
             m
         })).await;
-        let mut checksum: bool = self.safe_bool_k(self.options.clone(), "checksum", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut checksum: bool = self.safe_bool_k_opt(self.options.clone(), "checksum", &[Value::Bool(true)]).unwrap_or(true);
         if checksum && (channel.as_str() == Some("book")) {
             let mut sub: Value = client.get_subscription(&messageHash);
-            let mut subChecksum: bool = self.safe_bool_k(sub.clone(), "checksum", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut subChecksum: bool = self.safe_bool_k_opt(sub.clone(), "checksum", &[Value::Bool(false)]).unwrap_or(false);
             if (sub != Value::Null) && !subChecksum {
                 add_element_to_object(get_value_mut(&mut (client).subscriptions, &messageHash), &Value::Str("checksum".into()), Value::Bool(true));
                 client.send(&[Value::Map({

@@ -1870,7 +1870,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // route dollar-sizing through createMarketBuyOrderWithCost (which sets costDenominated); a
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         let mut sideLower: String = side.as_str().unwrap_or_default().to_string().to_lowercase();
-        let mut isCostDenominated: bool = self.safe_bool_k(params.clone(), "costDenominated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isCostDenominated: bool = self.safe_bool_k_opt(params.clone(), "costDenominated", &[Value::Bool(false)]).unwrap_or(false);
         if (sideLower == "buy") && (!isCostDenominated) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")));
         }
@@ -3259,7 +3259,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut active: bool = state == "open";
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         let mut resolvedOutcomeId: String = self.safe_string_k(raw.clone(), "resolvedOutcomeId", &[Value::Str("-1".into())]).as_str().unwrap_or("-1").to_string();
-        let mut voided: bool = self.safe_bool_k(raw.clone(), "voided", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut voided: bool = self.safe_bool_k_opt(raw.clone(), "voided", &[Value::Bool(false)]).unwrap_or(false);
         let mut hasResolution: bool = (((resolvedOutcomeId != "-1") && (true)) && (resolvedOutcomeId != ""));
         let mut marketResolved: bool = (hasResolution || voided);
         let mut resolvedOutcome: Option<String> = None;
@@ -4308,13 +4308,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
         let mut rest: crate::value::Dict = self.omit(params.clone(), &["query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"], &[]).into_dict();
-        if (queries == Value::Null) {
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -4326,7 +4326,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawQuestions: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // some markets are only discoverable through the questions search endpoint
-            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(queries.clone(), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(queries.clone(), &[Value::from(&rest)]).await])).await.into_list();
+            let mut responses: crate::value::List = promise_all(&Value::from(vec![self.fetch_raw_markets_by_search(Value::from(&queries), &[Value::from(&rest)]).await, self.fetch_raw_questions_by_search(Value::from(&queries), &[Value::from(&rest)]).await])).await.into_list();
             rawMarkets = self.safe_list(&responses, Value::Int(0), &[Value::from(vec![])]).into_list();
             rawQuestions = self.safe_list(&responses, Value::Int(1), &[Value::from(vec![])]).into_list();
         }  else if (eventId.is_some()) {
@@ -4435,7 +4435,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
         let mut postParams: crate::value::Dict = self.omit(params, &["tags"], &[]).into_dict();
-        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), queries]);
+        return self.apply_event_fetch_params(Value::from(result), &[Value::Dict(postParams), Value::Arr(queries)]);
         Value::Null
         }).await?))
     }
@@ -4769,7 +4769,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut ts: Option<i64> = (match data.get("ts") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut changes: crate::value::List = data.get("changes").cloned().unwrap_or_default().into_list();
         let mut changesLength: i64 = changes.len() as i64;
-        let mut updated: Value = Value::Map({
+        let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -4794,10 +4794,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             bookSide.store_array(Value::from(vec![Value::from(price), Value::from(amount)]));
             orderbook.set_book_meta("timestamp", Value::from(ts));
             orderbook.set_book_meta("datetime", self.iso8601(ts));
-            if let Value::Dict(__d) = &mut updated { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&sym), Value::Bool(true)); }
+            updated.insert(crate::runtime::stringify_param(&sym), Value::Bool(true));
         }
         }
-        let mut updatedSymbols: Vec<Value> = Value::Array(updated.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut updatedLength: i64 = updatedSymbols.len() as i64;
         {
                         let mut k: i64 = 0;
@@ -5451,17 +5451,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }
         let mut deltaShares: Option<String> = crate::precise::Precise::stringDiv(&deltaStr, &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut contracts: Option<f64> = None;
-        let mut posId: Value = Value::Null;
+        let mut posId: Option<String> = None;
         if (networkId.is_some()) && (marketId.is_some()) && (outcomeId.is_some()) {
-            posId = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null")).into()), "/").into()), outcomeId.as_deref().unwrap_or("null")).into());
+            posId = Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", networkId.as_deref().unwrap_or("null"), ":").into()), marketId.as_deref().unwrap_or("null")).into()), "/").into()), outcomeId.as_deref().unwrap_or("null")));
             let mut balances: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "positionBalances", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut prior: String = self.safe_string(&balances, posId.clone(), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
+            let mut prior: String = self.safe_string(&balances, posId.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
             let mut updated: Option<String> = crate::precise::Precise::stringAdd(&prior, &deltaShares).as_str().map(str::to_owned);
-            if (posId != Value::Null) {
-                balances.insert(crate::runtime::stringify_param(&posId), updated.clone().map(Value::from).unwrap_or(Value::Null));
+            if (posId.is_some()) {
+                balances.insert(posId.as_deref().unwrap_or("null").to_string(), updated.clone().map(Value::from).unwrap_or(Value::Null));
             }
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("positionBalances".into(), Value::Map(balances)); }
             contracts = self.parse_number(updated.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
@@ -5469,9 +5469,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut parsed: Value = self.safe_prediction_position(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), data);
-                m.insert("id".to_string(), posId.clone());
+                m.insert("id".to_string(), posId.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("outcome".to_string(), sym.map(Value::from).unwrap_or(Value::Null));
-                m.insert("outcomeId".to_string(), posId);
+                m.insert("outcomeId".to_string(), posId.map(Value::from).unwrap_or(Value::Null));
                 m.insert("label".to_string(), self.safe_string_k(&outcomeObj, "label", &[]));
                 m.insert("market".to_string(), self.safe_string_k(&outcomeObj, "market", &[]));
                 m.insert("timestamp".to_string(), Value::from(ts));

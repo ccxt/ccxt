@@ -1622,7 +1622,7 @@ impl Nado {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         if (trigger == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")));
         }
@@ -1701,7 +1701,7 @@ impl Nado {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         if (trigger == Some(true)) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")));
         }
@@ -2128,7 +2128,7 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into())).as_i64();
-        let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
+        let mut isTakerBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker_buyer", &[]);
         let mut side: Option<String> = None;
         if (isTakerBuyer.is_some()) {
             side = (if (isTakerBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
@@ -2177,12 +2177,12 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.parse_ws_timestamp(trade.clone(), Value::Str("timestamp".into())).as_i64();
-        let mut isBid: Option<bool> = self.safe_bool_k(trade.clone(), "is_bid", &[]).as_bool();
+        let mut isBid: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_bid", &[]);
         let mut side: Option<String> = None;
         if (isBid.is_some()) {
             side = (if (isBid == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
-        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker", &[]).as_bool();
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isTaker.is_some()) {
             takerOrMaker = (if (isTaker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });

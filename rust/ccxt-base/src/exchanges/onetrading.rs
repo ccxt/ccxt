@@ -277,7 +277,7 @@ impl crate::exchange::DerivedExchange for Onetrading {
         let mut side: Option<String> = self.safe_string_lower_k_opt(&rawOrder, "side", &[]);
         let mut type_var: Option<String> = self.safe_string_lower_k_opt(&rawOrder, "type", &[]);
         let mut timeInForce: Option<String> = self.parse_time_in_force((self.safe_string_k(&rawOrder, "time_in_force", &[])).as_str());
-        let mut postOnly: Option<bool> = self.safe_bool_k(&rawOrder, "is_post_only", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(&rawOrder, "is_post_only", &[]);
         let mut rawTrades: crate::value::List = self.safe_list_k(order.clone(), "trades", &[Value::from(vec![])]).into_list();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();

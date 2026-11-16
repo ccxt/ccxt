@@ -71,7 +71,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut changePcnt: Option<String> = None;
         let mut changeValue: Option<String> = None;
         let mut prevClose: Option<String> = None;
-        let mut isSwap: bool = self.safe_bool_k(&marketResolved, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isSwap: bool = self.safe_bool_k_opt(&marketResolved, "swap", &[Value::Bool(false)]).unwrap_or(false);
         // if swap
         if isSwap || (matches!(&ticker, Value::Dict(__d) if __d.contains_key("timestamp"))) {
             //
@@ -289,15 +289,15 @@ impl crate::exchange::DerivedExchange for Mexc {
                         m.insert("currency".to_string(), self.safe_currency_code(self.safe_string_k(trade.clone(), "feeCurrency", &[]), None).map(Value::from).unwrap_or(Value::Null));
                     m
                 }));
-                let mut isTaker: bool = self.safe_bool2(trade.clone(), Value::Str("isTaker".into()), Value::Str("taker".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isTaker: bool = self.safe_bool2_opt(trade.clone(), Value::Str("isTaker".into()), Value::Str("taker".into()), &[Value::Bool(false)]).unwrap_or(false);
                 takerOrMaker = (if isTaker { Some("taker".to_string()) } else { Some("maker".to_string()) });
             }  else {
                 timestamp = self.safe_integer2(trade.clone(), Value::Str("time".into()), Value::Str("T".into()), &[]).as_i64();
                 amountString = self.safe_string2_opt(trade.clone(), Value::Str("qty".into()), Value::Str("q".into()), &[]);
                 costString = self.safe_string_k_opt(trade.clone(), "quoteQty", &[]);
-                let mut isBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "isBuyer", &[]).as_bool();
-                let mut isMaker: Option<bool> = self.safe_bool_k(trade.clone(), "isMaker", &[]).as_bool();
-                let mut buyerMaker: Option<bool> = self.safe_bool2(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]).as_bool();
+                let mut isBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isBuyer", &[]);
+                let mut isMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isMaker", &[]);
+                let mut buyerMaker: Option<bool> = self.safe_bool2_opt(trade.clone(), Value::Str("isBuyerMaker".into()), Value::Str("m".into()), &[]);
                 if (isMaker.is_some()) {
                     takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
                 }
@@ -1250,7 +1250,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         let mut requestBody: Option<String> = None;
         let mut section: Option<String> = api.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut access: Option<&str> = api.get(1).and_then(Value::as_str);
-        let mut pathValue: Value = Value::from(self.implode_params(path.clone(), params.clone()));
+        let mut pathValue: String = self.implode_params(path.clone(), params.clone());
         let mut paramsValue: Value = self.omit(params, self.extract_params(path), &[]);
         let mut url: String = "".to_string();
         if (section.as_deref() == Some("spot")) || (section.as_deref() == Some("broker")) {
@@ -1315,8 +1315,8 @@ impl crate::exchange::DerivedExchange for Mexc {
             if (apiUrl.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
             }
-            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(pathValue.clone(), paramsValue.clone()));
-            let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(pathValue), &[]);
+            url = format!("{}{}", Value::Str(format!("{}{}", apiUrl.as_deref().unwrap_or("null"), "/").into()), self.implode_params(Value::from(pathValue.clone()), paramsValue.clone()));
+            let mut paramsOmitted: Value = self.omit(paramsValue, self.extract_params(Value::from(pathValue)), &[]);
             if (access.as_deref() == Some("public")) {
                 if ((Value::Array(paramsOmitted.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(paramsOmitted.clone(), &[])));
@@ -1373,7 +1373,7 @@ impl crate::exchange::DerivedExchange for Mexc {
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false); // v1
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false); // v1
         if success {
             return Value::Null;
         }
@@ -3523,7 +3523,7 @@ impl Mexc {
             //
             //     {"success":true,"code":"0","data":"1648124374985"}
             //
-            let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
             status = (if success { Some("ok".to_string()) } else { json_stringify(&response).as_str().map(str::to_owned) });
             updated = self.safe_integer_k(response.clone(), "data", &[]).as_i64();
         }
@@ -3715,12 +3715,12 @@ impl Mexc {
                 continue;
             }
             let mut status: Option<String> = self.safe_string_k_opt(&market, "status", &[]);
-            let mut isSpotTradingAllowed: Option<bool> = self.safe_bool_k(&market, "isSpotTradingAllowed", &[]).as_bool();
+            let mut isSpotTradingAllowed: Option<bool> = self.safe_bool_k_opt(&market, "isSpotTradingAllowed", &[]);
             let mut active: bool = false;
             if (status.as_deref() == Some("1")) && (isSpotTradingAllowed == Some(true)) {
                 active = true;
             }
-            let mut isMarginTradingAllowed: Option<bool> = self.safe_bool_k(&market, "isMarginTradingAllowed", &[]).as_bool();
+            let mut isMarginTradingAllowed: Option<bool> = self.safe_bool_k_opt(&market, "isMarginTradingAllowed", &[]);
             let mut makerCommission: Option<f64> = self.safe_number_k(&market, "makerCommission", &[]).as_f64();
             let mut takerCommission: Option<f64> = self.safe_number_k(&market, "takerCommission", &[]).as_f64();
             let mut maxQuoteAmount: Option<f64> = self.safe_number_k(&market, "maxQuoteAmount", &[]).as_f64();
@@ -4765,7 +4765,7 @@ impl Mexc {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut test: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut test: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
         let mut request: crate::value::Dict = self.create_spot_order_request(market, type_var.as_str(), side.as_str(), amount.clone(), &[price.clone(), marginMode, Value::Dict(paramsOmitted)]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
@@ -4897,8 +4897,8 @@ impl Mexc {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createSwapOrder() requires a leverage parameter for isolated margin orders")));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut hedged: bool = self.safe_bool_k(&paramsPostOnly, "hedged", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(&paramsPostOnly, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
+        let mut hedged: bool = self.safe_bool_k_opt(&paramsPostOnly, "hedged", &[Value::Bool(false)]).unwrap_or(false);
         let mut sideInteger: Option<i64> = None;
         if hedged {
             if reduceOnly {
@@ -5460,7 +5460,7 @@ impl Mexc {
             }
             return self.parse_orders(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+            let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
             let mut swapParams: crate::value::Dict = self.omit(&paramsMarketType, &["stop", "trigger"], &[]).into_dict();
             if (limit == Value::Null) {
                 request.insert("page_size".into(), Value::Int(100)); // max
@@ -5647,7 +5647,7 @@ impl Mexc {
                 data = self.spot_private_delete_order(&[__ws_arg_32]).await;
             }
         }  else {
-            let mut trigger: Option<bool> = self.safe_bool2(Value::from(&query), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+            let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&query), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
             let mut method: Option<String> = self.safe_string_k_opt(self.options.clone(), "cancelOrder", &[Value::Str("contractPrivatePostOrderCancel".into())]); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
             method = self.safe_string_k_opt(&query, "method", &[method.map(Value::from).unwrap_or(Value::Null)]);
             if (trigger == Some(true)) {
@@ -6241,7 +6241,7 @@ impl Mexc {
         let mut paramsMarketType: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchBalance".into()), None, &[params]).as_array().cloned().unwrap_or_default(); marketType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsMarketType = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut marginMode: Option<String> = self.safe_string_k_opt(&paramsMarketType, "marginMode", &[]);
-        let mut isMargin: bool = self.safe_bool_k(&paramsMarketType, "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMargin: bool = self.safe_bool_k_opt(&paramsMarketType, "margin", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, &["margin", "marginMode"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
@@ -7750,7 +7750,7 @@ impl Mexc {
         let tagResolvedparamsWithdrawTagVariable: Vec<Value> = self.handle_param_string(params, Value::Str("tag".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut tagResolved: Option<String> = tagResolvedparamsWithdrawTagVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsWithdrawTag: crate::value::Dict = tagResolvedparamsWithdrawTagVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut internal: bool = self.safe_bool_k(&paramsWithdrawTag, "internal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut internal: bool = self.safe_bool_k_opt(&paramsWithdrawTag, "internal", &[Value::Bool(false)]).unwrap_or(false);
         if internal {
             let mut paramsInternal: crate::value::Dict = self.omit(&paramsWithdrawTag, Value::Str("internal".into()), &[]).into_dict();
             let mut requestForInternal: indexmap::IndexMap<String, Value> = ({
@@ -8085,7 +8085,7 @@ impl Mexc {
          * @returns {Array} the marginMode in lowercase
          */
         let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
-        let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMargin: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
         let marginModeparamsMarginModeVariable: Vec<Value> = self.super_handle_margin_mode_and_params(methodName, params, defaultValue).as_array().cloned().unwrap_or_default();
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

@@ -1711,25 +1711,25 @@ impl Bithumb {
                 let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "market", &[]);
                 let mut baseId: Option<String> = None;
                 let mut quoteId: Option<String> = None;
-                let mut base: Value = Value::Null;
-                let mut quote: Value = Value::Null;
+                let mut base: Option<String> = None;
+                let mut quote: Option<String> = None;
                 if (marketId.is_some()) {
                     let mut parts: Vec<Value> = Value::Array(if let Some(__s) = marketId.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                     // to match gen 1, the quoteId is the first currency derived from the market id
                     baseId = parts.get(1).and_then(Value::as_str).map(str::to_owned);
                     quoteId = parts.get(0).and_then(Value::as_str).map(str::to_owned);
-                    base = self.safe_currency_code(Value::from(baseId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
-                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None).map(Value::from).unwrap_or(Value::Null);
+                    base = self.safe_currency_code(Value::from(baseId.as_deref()), None);
+                    quote = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
                 }
-                if (base == Value::Null) || (quote == Value::Null) {
+                if (base.is_none()) || (quote.is_none()) {
                     continue;
                 }
                 result.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), marketId.map(Value::from).unwrap_or(Value::Null));
-                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, "/").into()), quote).into()));
-                        m.insert("base".to_string(), base);
-                        m.insert("quote".to_string(), quote);
+                        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()));
+                        m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
+                        m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                         m.insert("settle".to_string(), Value::Null);
                         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
@@ -3203,7 +3203,7 @@ impl Bithumb {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut twap: bool = self.safe_bool_k_opt(&paramsGeneration, "twap", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3397,7 +3397,7 @@ impl Bithumb {
         let mut market: Option<crate::types::Market> = None;
         let mut response: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
-            let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut twap: bool = self.safe_bool_k_opt(&paramsGeneration, "twap", &[Value::Bool(false)]).unwrap_or(false);
             let __ws_arg_26 = self.extend(&paramsGeneration, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("state".to_string(), (if twap { Value::Str("progress".into()) } else { Value::Str("wait".into()) }));
@@ -3467,7 +3467,7 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut twap: bool = self.safe_bool_k_opt(&paramsGeneration, "twap", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut clientOrderIds: Value = Value::Null;
         if twap {
@@ -3662,7 +3662,7 @@ impl Bithumb {
             m
         });
         let mut response: Option<crate::value::Dict> = None;
-        let mut twap: bool = self.safe_bool_k(&paramsGeneration, "twap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut twap: bool = self.safe_bool_k_opt(&paramsGeneration, "twap", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsGeneration, Value::Str("twap".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string2_opt(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]);
         let mut useClientOrderId: bool = ((!(twap) && (generation == Some(2))) && (clientOrderId.is_some()));
@@ -4401,15 +4401,15 @@ impl Bithumb {
             let mut __for_first_407: bool = true;
             while { if !__for_first_407 { i += 1; } __for_first_407 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut value: Value = self.safe_value(query.clone(), Value::from(key.as_deref()), &[]);
-            if (matches!(&value, Value::Arr(_))) {
+            let mut value: Option<crate::value::List> = self.safe_value(query.clone(), Value::from(key.as_deref()), &[]).into_opt_list();
+            if (value.is_some()) {
                 let mut encodedKey: String = format!("{}{}", self.encode_uri_component(Value::from(key.as_deref())), Value::Str("[]".into()));
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_406: bool = true;
-                    while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.len() as i64) } {
-                    let mut item: Value = value.as_array().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
-                    let mut valueString: Option<String> = self.safe_string_opt(value.clone(), Value::Int(j), &[]);
+                    while { if !__for_first_406 { j += 1; } __for_first_406 = false; j < (value.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+                    let mut item: Value = value.as_deref().map(Vec::as_slice).unwrap_or_default().get(j as usize).cloned().unwrap_or(Value::Null);
+                    let mut valueString: Option<String> = self.safe_string_opt(&value, Value::Int(j), &[]);
                     if (valueString.is_none()) {
                         valueString = json_stringify(&item).as_str().map(str::to_owned);
                     }

@@ -359,7 +359,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
             let mut idParts: crate::value::List = Value::Array(if let Some(__s) = id.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
             quoteId = self.safe_string(&idParts, Value::Int(1), &[quoteId.clone()]);
         }
-        let mut isolatedOnly: bool = self.safe_bool_k(market.clone(), "isolated_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isolatedOnly: bool = self.safe_bool_k_opt(market.clone(), "isolated_only", &[Value::Bool(false)]).unwrap_or(false);
         if isSwap {
             settleId = quoteId.clone();
             type_var = "swap".to_string();
@@ -488,7 +488,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut margin: Option<String> = self.safe_string_k_opt(position.clone(), "margin", &[]);
-        let mut rawIsolated: Option<bool> = self.safe_bool_k(position.clone(), "isolated", &[]).as_bool();
+        let mut rawIsolated: Option<bool> = self.safe_bool_k_opt(position.clone(), "isolated", &[]);
         let mut isIsolated: bool = ((margin.is_some()) && (margin.as_deref() != Some("0")));
         if (rawIsolated.is_some()) {
             isIsolated = (rawIsolated == Some(true));
@@ -640,7 +640,7 @@ impl crate::exchange::DerivedExchange for Pacifica {
         //   "code": null
         // }
         //
-        let mut success: Option<bool> = self.safe_bool_k(transfer.clone(), "success", &[]).as_bool();
+        let mut success: Option<bool> = self.safe_bool_k_opt(transfer.clone(), "success", &[]);
         let mut status: Option<String> = None;
         if (success.is_some()) {
             status = (if (success == Some(true)) { Some("ok".to_string()) } else { Some("failed".to_string()) });
@@ -1968,11 +1968,11 @@ if _try_result.is_err() {
         if self.isSandboxModeEnabled.as_bool() == Some(true) {
             return Value::Bool(false);
         }
-        let mut buildFee: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
         if !buildFee {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }
@@ -2240,7 +2240,7 @@ if _try_result.is_err() {
         //       "updated_at": 1758086074002
         //    },
         // }
-        let mut isIsolated: bool = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isIsolated: bool = self.safe_bool_k_opt(setting.clone(), "isolated", &[Value::Bool(false)]).unwrap_or(false);
         let mut leverage: Option<i64> = self.safe_integer_k(setting.clone(), "leverage", &[]).as_i64();
         let mut marginMode: String = "cross".to_string();
         if isIsolated {
@@ -2428,7 +2428,7 @@ if _try_result.is_err() {
         //       "updated_at": 1758086074002
         //
         // }
-        let mut isIsolated: bool = self.safe_bool_k(setting.clone(), "isolated", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isIsolated: bool = self.safe_bool_k_opt(setting.clone(), "isolated", &[Value::Bool(false)]).unwrap_or(false);
         let mut marginMode: String = "cross".to_string();
         if isIsolated {
             marginMode = "isolated".to_string();
@@ -2905,7 +2905,7 @@ if _try_result.is_err() {
         //    },
         // }
         //
-        let mut success: bool = self.safe_bool_k(&response, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: Option<String> = None;
         if !success {
             status = Some("rejected".to_string());
@@ -2977,7 +2977,7 @@ if _try_result.is_err() {
             m
         });
         let mut operationType: String = "create_order".to_string();
-        let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(params.clone(), "triggerPrice", &[]);
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
@@ -3208,7 +3208,7 @@ if _try_result.is_err() {
             while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
-            let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
             if (error.is_some()) || (!success) {
                 status = Some("rejected".to_string());
@@ -3296,7 +3296,7 @@ if _try_result.is_err() {
             while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = results.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
-            let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut success: bool = self.safe_bool_k_opt(&order, "success", &[Value::Bool(false)]).unwrap_or(false);
             let mut status: Option<String> = None;
             if (error.is_some()) || (!success) {
                 status = Some("closed".to_string());
@@ -3417,7 +3417,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut excludeReduceOnly: bool = self.safe_bool_k(params.clone(), "excludeReduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut excludeReduceOnly: bool = self.safe_bool_k_opt(params.clone(), "excludeReduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         sigPayload.insert("exclude_reduce_only".into(), Value::Bool(excludeReduceOnly));
         if (symbol != Value::Null) {
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -3466,7 +3466,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelOrder() requires a symbol argument")));
         }
         let mut request: crate::value::Dict = self.cancel_order_request(id.clone(), symbol.as_str(), &[params.clone()]).into_dict();
-        let mut isStopOrder: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isStopOrder: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow", "trigger", "stop", "clientOrderId"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if isStopOrder {
@@ -3483,7 +3483,7 @@ if _try_result.is_err() {
         //   "data": null
         // }
         //
-        let mut success: bool = self.safe_bool_k(&response, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut success: bool = self.safe_bool_k_opt(&response, "success", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: String = "closed".to_string();
         if success {
             status = "canceled".to_string();
@@ -3508,7 +3508,7 @@ if _try_result.is_err() {
     m
 }));
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut isStopOrder: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isStopOrder: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut operationType: String = "cancel_order".to_string();
         if isStopOrder {
             operationType = "cancel_stop_order".to_string();
@@ -5437,7 +5437,7 @@ if _try_result.is_err() {
                 builderCode = self.handle_option(Value::Str("postActionRequest".into()), Value::Str("builderCode".into()), &[]);
             }
             if (builderCode != Value::Null) {
-                let mut isOperationSupportBuilder: bool = self.safe_bool(self.options.as_map().and_then(|__m| __m.get("builderSupportOperations")).cloned().unwrap_or(Value::Null), operationType.clone(), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut isOperationSupportBuilder: bool = self.safe_bool_opt(self.options.as_map().and_then(|__m| __m.get("builderSupportOperations")).cloned().unwrap_or(Value::Null), operationType.clone(), &[Value::Bool(false)]).unwrap_or(false);
                 if isOperationSupportBuilder {
                     sigPayload.insert("builder_code".into(), builderCode);
                 }

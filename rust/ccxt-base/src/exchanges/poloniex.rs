@@ -430,7 +430,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         }
         let mut clientOrderId: Option<String> = self.safe_string2_opt(order.clone(), Value::Str("clientOrderId".into()), Value::Str("clOrdId".into()), &[]);
         let mut marginMode: Option<String> = self.safe_string_lower_k_opt(order.clone(), "mgnMode", &[]);
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
         let mut leverage: Option<i64> = self.safe_integer_k(order.clone(), "lever", &[]).as_i64();
         let mut hedged: bool = (self.safe_string_k(order.clone(), "posSide", &[]).as_str() != Some("BOTH"));
         return self.safe_order(Value::Map({
@@ -933,7 +933,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
             { let __be_tmp = self.encode_uri_component(crate::value::get_value_k(&params, "symbol")); add_element_to_object(&mut params, &Value::Str("symbol".into()), __be_tmp); }; // handle symbols like 索拉拉/USDT'
         }
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut implodedPath: Value = Value::from(self.implode_params(path, params));
+        let mut implodedPath: String = self.implode_params(path, params);
         let mut url: String = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("spot".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
         if self.in_array(Value::from(apiName.as_deref()), Value::from(vec![Value::Str("swapPublic".into()), Value::Str("swapPrivate".into())])) {
             url = format!("{}{}", Value::Str(format!("{}{}", self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("swap".into()), &[Value::Str("".into())]), Value::Str("/".into())).into()), implodedPath);
@@ -3110,7 +3110,7 @@ impl Poloniex {
                 request.insert("limit".into(), crate::runtime::Math::max(&limit, &Value::Int(100)));
             }
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trigger", "stop"], &[]).into_dict();
         let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketType.as_deref() != Some("spot")) {
@@ -3724,7 +3724,7 @@ impl Poloniex {
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
         let mut idValue: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { id.as_str().map(str::to_owned) });
         request.insert("id".into(), idValue.map(Value::from).unwrap_or(Value::Null));
-        let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "trigger", "stop"], &[]).into_dict();
         let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -3878,7 +3878,7 @@ impl Poloniex {
             response = self.safe_list_k(&raw, "data", &[Value::from(vec![])]).into_list();
             return self.parse_orders(&response, market.as_ref(), &[]);
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trigger", "stop"], &[]).into_dict();
         if (isTrigger == Some(true)) {
             let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3934,7 +3934,7 @@ impl Poloniex {
         if (marketType.as_deref() != Some("spot")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() is not supported for ").into()), marketType.map(Value::from).unwrap_or(Value::Null)).into()), " markets yet")));
         }
-        let mut isTrigger: Option<bool> = self.safe_bool2(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
+        let mut isTrigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsMarketType), Value::Str("trigger".into()), Value::Str("stop".into()), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, &["trigger", "stop"], &[]).into_dict();
         let mut response: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

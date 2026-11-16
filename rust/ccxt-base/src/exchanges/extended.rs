@@ -163,7 +163,7 @@ impl crate::exchange::DerivedExchange for Extended {
         m.insert("currency".to_string(), (if (false) { Value::Null } else { crate::value::KeyRead::key_read(&&marketResolved, "settle") }));
     m
 }) });
-        let mut isTaker: Option<bool> = self.safe_bool_k(trade.clone(), "isTaker", &[]).as_bool();
+        let mut isTaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "isTaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isTaker.is_some()) {
             takerOrMaker = (if (isTaker == Some(true)) { Some("taker".to_string()) } else { Some("maker".to_string()) });
@@ -597,7 +597,7 @@ impl crate::exchange::DerivedExchange for Extended {
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        let mut validSignature: Option<bool> = self.safe_bool_k(transfer.clone(), "validSignature", &[]).as_bool();
+        let mut validSignature: Option<bool> = self.safe_bool_k_opt(transfer.clone(), "validSignature", &[]);
         let mut status: Option<String> = None;
         if (validSignature.is_some()) {
             status = (if (validSignature == Some(true)) { Some("ok".to_string()) } else { Some("failed".to_string()) });
@@ -653,7 +653,7 @@ impl crate::exchange::DerivedExchange for Extended {
         }
         let mut name: Option<String> = self.safe_string_k_opt(currency.clone(), "name", &[]);
         let mut precision: i64 = self.safe_integer_k(currency.clone(), "precision", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut isActive: Option<bool> = self.safe_bool_k(currency.clone(), "isActive", &[]).as_bool();
+        let mut isActive: Option<bool> = self.safe_bool_k_opt(currency.clone(), "isActive", &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
@@ -3353,7 +3353,7 @@ impl Extended {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut validSignature: Option<bool> = self.safe_bool_k(&data, "validSignature", &[]).as_bool();
+        let mut validSignature: Option<bool> = self.safe_bool_k_opt(&data, "validSignature", &[]);
         let mut now: i64 = self.milliseconds();
         let mut status: String = "pending".to_string();
         if (validSignature.is_some()) {
@@ -4092,7 +4092,7 @@ impl Extended {
         let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount);
         let mut priceString: Option<String> = self.price_to_precision(symbol.clone(), price);
         let mut postOnly: bool = self.is_post_only(Value::Bool(uppercaseType == "MARKET"), Value::Null, &[params.clone()]);
-        let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
         if (timeInForce.is_none()) {
             timeInForce = (if (uppercaseType == "MARKET") { Some("IOC".to_string()) } else { Some("GTT".to_string()) });
@@ -4101,7 +4101,7 @@ impl Extended {
         let mut builderFeeRate: Option<String> = None;
         let mut builderId: Option<String> = None;
         let mut paramsBuilder: crate::value::Dict = params.clone().into_dict();
-        let mut builderEnabled: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut builderEnabled: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(false)]).unwrap_or(false);
         if builderEnabled {
             if self.isSandboxModeEnabled.as_bool() == Some(true) {
                 builderFeeRate = self.safe_string2_opt(params.clone(), Value::Str("builderFeeRate".into()), Value::Str("defaultBuilderFeeRate".into()), &[]);
@@ -4431,8 +4431,8 @@ impl Extended {
         let mut amountValue: Option<f64> = amount.as_f64();
         let mut priceValue: Option<f64> = price.as_f64();
         let mut expiryEpochMillis: Option<i64> = self.safe_integer_k(params.clone(), "expiryEpochMillis", &[]).as_i64();
-        let mut postOnly: Option<bool> = self.safe_bool_k(params.clone(), "postOnly", &[]).as_bool();
-        let mut reduceOnly: Option<bool> = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(params.clone(), "postOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[]);
         let mut cancelId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("cancelId".into()), Value::Str("previousOrderId".into()), &[]);
         if (amountValue.is_none()) || (priceValue.is_none()) || (expiryEpochMillis.is_none()) || (postOnly.is_none()) || (reduceOnly.is_none()) || (cancelId.is_none()) {
             let mut response: crate::value::Dict = self.v1_private_get_user_orders_id(&[Value::Map({

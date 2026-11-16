@@ -785,7 +785,7 @@ impl Binance {
                 collected.push(pageTopics.get(i as usize).cloned().unwrap_or(Value::Null));
             }
             }
-            let mut hasMore: bool = self.safe_bool_k(&response, "hasMore", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut hasMore: bool = self.safe_bool_k_opt(&response, "hasMore", &[Value::Bool(false)]).unwrap_or(false);
             if (!hasMore) || (Some(pageTopicsLength) < reqLimit) {
                 break;
             }
@@ -898,7 +898,7 @@ impl Binance {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }

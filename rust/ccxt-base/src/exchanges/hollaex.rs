@@ -216,7 +216,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut postOnly: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
@@ -459,9 +459,9 @@ impl crate::exchange::DerivedExchange for Hollaex {
         }
         let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "currency", &[]);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
-        let mut completed: bool = self.safe_bool_k(transaction.clone(), "status", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut dismissed: bool = self.safe_bool_k(transaction.clone(), "dismissed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut rejected: bool = self.safe_bool_k(transaction.clone(), "rejected", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut completed: bool = self.safe_bool_k_opt(transaction.clone(), "status", &[Value::Bool(false)]).unwrap_or(false);
+        let mut dismissed: bool = self.safe_bool_k_opt(transaction.clone(), "dismissed", &[Value::Bool(false)]).unwrap_or(false);
+        let mut rejected: bool = self.safe_bool_k_opt(transaction.clone(), "rejected", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: Option<String> = None;
         if completed {
             status = Some("ok".to_string());
@@ -564,7 +564,7 @@ impl crate::exchange::DerivedExchange for Hollaex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut allowWithdrawal: bool = self.safe_bool_k(fee.clone(), "allow_withdrawal", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allowWithdrawal: bool = self.safe_bool_k_opt(fee.clone(), "allow_withdrawal", &[Value::Bool(false)]).unwrap_or(false);
         if allowWithdrawal {
             result.insert("withdraw".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2237,7 +2237,7 @@ impl Hollaex {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut exchangeSpecificParam: bool = self.safe_bool_k(&meta, "post_only", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut exchangeSpecificParam: bool = self.safe_bool_k_opt(&meta, "post_only", &[Value::Bool(false)]).unwrap_or(false);
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: bool = self.is_post_only(Value::Bool(isMarketOrder), Value::Bool(exchangeSpecificParam), &[params.clone()]);
         if !isMarketOrder {

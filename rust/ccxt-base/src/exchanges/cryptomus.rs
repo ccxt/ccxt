@@ -1058,8 +1058,8 @@ impl Cryptomus {
         //     }
         //
         let mut coins: Option<crate::value::List> = self.safe_list_k(&response, "result", &[]).into_opt_list();
-        let mut groupedById: Value = self.group_by(coins.map_or(Value::Null, Value::Arr), Value::Str("currency_code".into()), &[]);
-        let mut groupedArray: crate::value::List = Value::Array(groupedById.as_map().map(|__m| __m.values().cloned().collect()).unwrap_or_default()).into_list();
+        let mut groupedById: crate::value::Dict = self.group_by(coins.map_or(Value::Null, Value::Arr), Value::Str("currency_code".into()), &[]).into_dict();
+        let mut groupedArray: crate::value::List = Value::Array(groupedById.values().cloned().collect()).into_list();
         return self.parse_currencies(&groupedArray);
         Value::Null
         }).await?))

@@ -323,7 +323,7 @@ impl Backpack {
         let mut bidAsk = get_arg(optional_args, 2, Value::Bool(false));
         let unwatch: bool = get_arg(optional_args, 3, Value::Bool(false)).is_truthy();
         let mut query: crate::value::Dict = self.prepare_ws_stock_params(methodName.as_str().unwrap_or_default(), params).await.into_dict();
-        let mut stock: bool = self.safe_bool_k(&query, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         let mut explicitSource: Option<String> = self.safe_string_k_opt(&query, "source", &[]);
         let mut channel: Option<String> = self.safe_string_k_opt(&query, "channel", &[]);
         let mut normalized: crate::value::List = self.market_symbols(&[symbols.clone(), Value::Null, Value::Bool(false)]).into_list();
@@ -350,7 +350,7 @@ impl Backpack {
                 continue;
             }
             let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, &[(market).raw.clone()]).into_list();
-            let mut marketStock: bool = self.safe_bool(&marketSelection, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marketStock: bool = self.safe_bool_opt(&marketSelection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
             let mut marketParams: crate::value::Dict = self.safe_dict(&marketSelection, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1181,15 +1181,15 @@ impl Backpack {
         }
         }
         let mut symboltimeframecandlesVariable = self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[])]).await;
-        let mut symbol: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(0));
+        let mut symbol: Option<String> = get_value(&symboltimeframecandlesVariable, &Value::Int(0)).as_str().map(str::to_owned);
         let mut timeframe: Value = get_value(&symboltimeframecandlesVariable, &Value::Int(1));
         let mut candles: Option<crate::pro::cache::Cache> = get_value(&symboltimeframecandlesVariable, &Value::Int(2)).into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
-            limitResolved = candles.get_limit(symbol.as_str(), limit.as_i64());
+            limitResolved = candles.get_limit(symbol.as_deref(), limit.as_i64());
         }
         let mut filtered: crate::value::List = self.filter_by_since_limit(&candles, since.as_i64(), limitResolved, &[Value::Int(0), Value::Bool(true)]).into_list();
-        return self.create_ohlcv_object(symbol, timeframe, Value::Arr(filtered));
+        return self.create_ohlcv_object(symbol.map(Value::from).unwrap_or(Value::Null), timeframe, Value::Arr(filtered));
         Value::Null
         }).await?))
     }
@@ -1522,7 +1522,7 @@ impl Backpack {
         let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "t", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
         if (isBuyerMaker.is_some()) {
@@ -1745,23 +1745,20 @@ impl Backpack {
         //         "stream": "depth.ETH_USDC"
         //     }
         //
-        let mut data: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) });
-        let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "s", &[]);
+        let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
+        let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
         }
         let mut storedOrderBook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
-        let mut deltaNonce: Option<i64> = self.safe_integer_k(data.clone(), "u", &[]).as_i64();
+        let mut deltaNonce: Option<i64> = self.safe_integer_k(&data, "u", &[]).as_i64();
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
         if (nonce.is_none()) {
             let mut cacheLength: Value = Value::Int(storedOrderBook.book_field("cache").len() as i64);
             // cache the triggering delta before a synchronous snapshot can inspect the cache
-            storedOrderBook.cache_push(data);
+            storedOrderBook.cache_push(Value::from(&data));
             // stock streams can be quiet, so do not wait for more deltas to fetch their snapshot
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut isStockMarket: bool = ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) || ((marketId.is_some()) && ((marketId.as_deref().unwrap_or_default().contains(".US_")) || (marketId.as_deref().unwrap_or_default().contains(".HK_"))));
@@ -1777,7 +1774,7 @@ impl Backpack {
         }  else if (deltaNonce.is_some()) && ((nonce.is_some() && deltaNonce.is_some() && nonce > deltaNonce)) {
             return;
         }
-        self.handle_book_delta(Value::from(&storedOrderBook), data);
+        self.handle_book_delta(Value::from(&storedOrderBook), Value::Dict(data));
         client.resolve(Value::from(&storedOrderBook), messageHash.as_str());
 }
 
@@ -2071,7 +2068,7 @@ impl Backpack {
     m
 }));
         let mut query: crate::value::Dict = self.prepare_ws_stock_params("watchBalance", params).await.into_dict();
-        let mut stock: bool = self.safe_bool_k(&query, "stock", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut stock: bool = self.safe_bool_k_opt(&query, "stock", &[Value::Bool(false)]).unwrap_or(false);
         if stock && (self.safe_list_k(self.options.clone(), "securities", &[]) == Value::Null) {
             self.parent.fetch_securities(&[]).await;
         }

@@ -861,7 +861,7 @@ impl Hashkey {
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
-        let mut isBuyerMaker: Option<bool> = self.safe_bool_k(trade.clone(), "m", &[]).as_bool();
+        let mut isBuyerMaker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "m", &[]);
         let mut isPublicTrade: bool = self.safe_string_k(trade.clone(), "e", &[]) == Value::Null;
         let mut side: Option<String> = None;
         let mut takerOrMaker: Option<String> = None;
@@ -1069,7 +1069,7 @@ impl Hashkey {
             return;
         }
         let mut options: crate::value::Dict = self.safe_dict_k(self.options.clone(), "watchBalance", &[]).into_dict();
-        let mut snapshot: bool = self.safe_bool_k(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut snapshot: bool = self.safe_bool_k_opt(&options, "fetchBalanceSnapshot", &[Value::Bool(true)]).unwrap_or(true);
         if snapshot {
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", type_var, ":").into()), "fetchBalanceSnapshot");
             if !(__ch.has_future(messageHash.as_str())) {

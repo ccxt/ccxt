@@ -767,7 +767,7 @@ impl Mexc {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut unsubscribed: bool = self.safe_bool_k(params.clone(), "unsubscribed", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut unsubscribed: bool = self.safe_bool_k_opt(params.clone(), "unsubscribed", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["unsubscribed"], &[]).into_dict();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "spot").as_str().map(str::to_owned);
         let mut method: String = "SUBSCRIPTION".to_string();
@@ -1262,7 +1262,7 @@ impl Mexc {
         //      }
         // }
         //
-        let mut data: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]);
+        let mut data: Option<crate::value::Dict> = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("data".into()), Value::Str("publicAggreDepths".into())]), &[]).into_opt_dict();
         let mut marketId: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("s".into()), Value::Str("symbol".into()), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
@@ -1283,11 +1283,11 @@ impl Mexc {
                     m
                 })]);
             }
-            storedOrderBook.cache_push(data);
+            storedOrderBook.cache_push(data.clone().map_or(Value::Null, Value::Dict));
             return;
         }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            self.handle_book_delta(Value::from(&storedOrderBook), data);
+            self.handle_book_delta(Value::from(&storedOrderBook), data.map_or(Value::Null, Value::Dict));
             let mut timestamp: Option<i64> = self.safe_integer_n(message, Value::from(vec![Value::Str("t".into()), Value::Str("ts".into()), Value::Str("sendTime".into())]), &[]).as_i64();
             storedOrderBook.set_book_meta("timestamp", Value::from(timestamp));
             storedOrderBook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -2618,7 +2618,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __ws_arg_6 = crate::value::get_value_k(&self.urls, "api");
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(&(crate::value::get_value_k(&crate::value::get_value_k(&__ws_arg_6, "ws"), "spot"))));
         let mut messageHash: String = "authenticate:listenKey".to_string();
-        let mut isFetching: bool = self.safe_bool_k(self.options.clone(), "listenKeyFetching", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isFetching: bool = self.safe_bool_k_opt(self.options.clone(), "listenKeyFetching", &[Value::Bool(false)]).unwrap_or(false);
         if isFetching {
             crate::exchange_stubs::ws_await_flight(&client.future(messageHash.as_str())).await;
             return self.safe_string_k(self.options.clone(), "listenKey", &[]);

@@ -255,7 +255,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         let mut initialMarginPercentage: Option<String> = crate::precise::Precise::stringDiv(&initialMargin, &notional).as_str().map(str::to_owned);
         // const marginRatio = Precise.stringDiv (maintenanceRate, collateral);
         let mut unrealisedPnl: Option<String> = self.safe_string2_opt(position.clone(), Value::Str("unrealisedPnl".into()), Value::Str("unrealizedPnL".into()), &[]);
-        let mut crossMode: Option<bool> = self.safe_bool_k(position.clone(), "crossMode", &[]).as_bool();
+        let mut crossMode: Option<bool> = self.safe_bool_k_opt(position.clone(), "crossMode", &[]);
         // currently crossMode is always set to false and only isolated positions are supported
         let mut marginMode: Option<String> = self.safe_string_lower_k_opt(position.clone(), "marginMode", &[]);
         if (crossMode.is_some()) {
@@ -820,7 +820,7 @@ if _try_result.is_err() {
         let mut id: Option<String> = self.safe_string_k_opt(info.clone(), "id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(id.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut currencyId: Option<String> = self.safe_string_k_opt(info.clone(), "settleCurrency", &[]);
-        let mut crossMode: bool = self.safe_bool_k(info.clone(), "crossMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut crossMode: bool = self.safe_bool_k_opt(info.clone(), "crossMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut mode: String = (if crossMode { "cross".to_string() } else { "isolated".to_string() });
         let mut marketId: Option<String> = self.safe_string_k_opt(&marketResolved, "symbol", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(info.clone(), "currentTimestamp", &[]).as_i64();
@@ -933,7 +933,7 @@ if _try_result.is_err() {
         let mut updatedAtMs: Option<i64> = (if (updatedAt.is_none()) { None } else { (if let Some(__l) = updatedAt { Some(__l * 1000) } else { None }) });
         let mut timestamp: Option<i64> = (if isV1 { createdAtMs } else { createdAt });
         let mut updated: Option<i64> = (if isV1 { updatedAtMs } else { updatedAt });
-        let mut internal: Option<bool> = self.safe_bool_k(transaction.clone(), "isInner", &[]).as_bool();
+        let mut internal: Option<bool> = self.safe_bool_k_opt(transaction.clone(), "isInner", &[]);
         let mut tag: Option<String> = self.safe_string_k_opt(transaction.clone(), "memo", &[]);
         let mut chainId: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
         return Value::Map({
@@ -5168,7 +5168,7 @@ impl Kucoin {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", symbol, "-").into()), self.yymmdd(Value::from(expiry), &[Value::Str("".into())]));
                 type_var = "future".to_string();
             }
-            let mut inverse: Option<bool> = self.safe_bool_k(&market, "isInverse", &[]).as_bool();
+            let mut inverse: Option<bool> = self.safe_bool_k_opt(&market, "isInverse", &[]);
             let mut status: Option<String> = self.safe_string_k_opt(&market, "status", &[]);
             let mut multiplier: Option<String> = self.safe_string_k_opt(&market, "multiplier", &[]);
             let mut tickSize: Option<f64> = self.safe_number_k(&market, "tickSize", &[]).as_f64();
@@ -5510,12 +5510,12 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut migrated: bool = self.safe_bool_k(self.options.clone(), "hf", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut migrated: bool = self.safe_bool_k_opt(self.options.clone(), "hf", &[Value::Bool(false)]).unwrap_or(false);
         let mut hf: bool = false;
         if migrated {
             hf = true;
         }
-        let mut hfParam: Option<bool> = self.safe_bool_k(params.clone(), "hf", &[]).as_bool();
+        let mut hfParam: Option<bool> = self.safe_bool_k_opt(params.clone(), "hf", &[]);
         if (hfParam.is_some()) {
             hf = (hfParam == Some(true));
         }
@@ -7481,7 +7481,7 @@ impl Kucoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut testOrder: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[Value::Dict(paramsOmitted)]).as_array().cloned().unwrap_or_default();
         let mut hf: bool = hfparamsHfVariable.get(0).and_then(Value::as_bool) == Some(true);
@@ -7571,8 +7571,8 @@ impl Kucoin {
         let mut quoteAmount: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut amountString: Option<String> = None;
         let mut costString: Option<String> = None;
-        let mut marginMode: Value = Value::Null;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut marginMode: Option<String> = None;
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (type_var.as_str() == Some("market")) {
             if (quoteAmount.is_some()) {
                 paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["cost", "funds"], &[]).into_dict();
@@ -7594,7 +7594,7 @@ impl Kucoin {
         let mut stopLossPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "stopLossPrice", &[]).as_f64();
         let mut takeProfitPrice: Option<f64> = self.safe_number_k(&paramsOmitted, "takeProfitPrice", &[]).as_f64();
         let mut isTriggerOrder: bool = (triggerPrice.is_some()) || (stopLossPrice.is_some()) || (takeProfitPrice.is_some());
-        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode != Value::Null);
+        let mut isMarginOrder: bool = (tradeType.as_deref() == Some("MARGIN_TRADE")) || (marginMode.is_some());
         paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["stopLossPrice", "takeProfitPrice", "triggerPrice", "stopPrice"], &[]).into_dict();
         if isTriggerOrder {
             if (triggerPrice.is_some()) {
@@ -7608,17 +7608,17 @@ impl Kucoin {
                     request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, Value::from(takeProfitPrice))));
                 }
             }
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " createOrder does not support isolated margin for stop orders")));
-            }  else if (marginMode.as_str() == Some("cross")) {
+            }  else if (marginMode.as_deref() == Some("cross")) {
                 let mut marginModes: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "marginModes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-                request.insert("tradeType".into(), marginModes.get(marginMode.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                request.insert("tradeType".into(), marginModes.get(marginMode.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
         }  else if isMarginOrder {
-            if (marginMode.as_str() == Some("isolated")) {
+            if (marginMode.as_deref() == Some("isolated")) {
                 request.insert("isIsolated".into(), Value::Bool(true));
             }
         }
@@ -7702,7 +7702,7 @@ impl Kucoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut testOrder: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("test".into()), &[]).into_dict();
         let mut hasTpOrSlOrder: bool = (self.safe_dict_k(&paramsOmitted, "stopLoss", &[]) != Value::Null) || (self.safe_dict_k(&paramsOmitted, "takeProfit", &[]) != Value::Null);
         let mut orderRequest: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(paramsOmitted)]).into_dict();
@@ -7859,7 +7859,7 @@ impl Kucoin {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a visibleSize parameter for iceberg orders")));
             }
         }
-        let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut hedged: Option<bool> = None;
         { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).and_then(Value::as_bool); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
         if reduceOnly {
@@ -8038,7 +8038,7 @@ impl Kucoin {
                         }
                     }
                 }
-                let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut reduceOnly: bool = self.safe_bool_k_opt(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
                 let mut hedged: Value = Value::Bool(false);
                 { let __destr_tmp: Vec<Value> = self.handle_param_bool(paramsOmitted.clone(), Value::Str("hedged".into()), &[hedged.clone()]).as_array().cloned().unwrap_or_default(); hedged = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
                 if (hedged.as_bool() == Some(true)) {
@@ -8656,7 +8656,7 @@ impl Kucoin {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
         let mut hf: bool = hfparamsHfVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9003,7 +9003,7 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
         let mut hf: bool = hfparamsHfVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9314,7 +9314,7 @@ impl Kucoin {
         }
         let mut lowercaseStatus: Value = (if let Some(__s) = (status).as_str() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
         let mut until: Option<i64> = self.safe_integer_k(params.clone(), "until", &[]).as_i64();
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
         let mut hf: bool = hfparamsHfVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -9437,7 +9437,7 @@ impl Kucoin {
         if paginate {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchOrdersByStatus".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsPaginate)]).await;
         }
-        let mut trigger: Option<bool> = self.safe_bool2(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
+        let mut trigger: Option<bool> = self.safe_bool2_opt(Value::from(&paramsPaginate), Value::Str("stop".into()), Value::Str("trigger".into()), &[]);
         let mut until: Option<i64> = self.safe_integer_k(&paramsPaginate, "until", &[]).as_i64();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsPaginate, &["stop", "until", "trigger"], &[]).into_dict();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
@@ -9891,7 +9891,7 @@ impl Kucoin {
             m
         });
         let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("clientOid".into()), Value::Str("clientOrderId".into()), &[]);
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let hfparamsHfVariable: Vec<Value> = self.handle_hf_and_params(&[params]).as_array().cloned().unwrap_or_default();
         let mut hf: bool = hfparamsHfVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHf: crate::value::Dict = hfparamsHfVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -10292,8 +10292,8 @@ impl Kucoin {
         // precision reported by their api is 8 d.p.
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
-        let mut isActive: Option<bool> = self.safe_bool_k(order.clone(), "isActive", &[]).as_bool();
-        let mut cancelExist: bool = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isActive: Option<bool> = self.safe_bool_k_opt(order.clone(), "isActive", &[]);
+        let mut cancelExist: bool = self.safe_bool_k_opt(order.clone(), "cancelExist", &[Value::Bool(false)]).unwrap_or(false);
         let mut status: Option<String> = None;
         if (isActive.is_some()) {
             status = (if (isActive == Some(true)) { Some("open".to_string()) } else { Some("closed".to_string()) });
@@ -10310,8 +10310,8 @@ impl Kucoin {
         }
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(order.clone(), "clientOid", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(order.clone(), "timeInForce", &[]);
-        let mut postOnly: Option<bool> = self.safe_bool_k(order.clone(), "postOnly", &[]).as_bool();
-        let mut reduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduceOnly", &[]).as_bool();
+        let mut postOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "postOnly", &[]);
+        let mut reduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduceOnly", &[]);
         let mut lastUpdateTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedAt", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -10469,11 +10469,11 @@ impl Kucoin {
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "createdAt", &[]).as_i64();
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(order.clone(), "feeCurrency", &[]);
-        let mut cancelExist: bool = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut cancelExist: bool = self.safe_bool_k_opt(order.clone(), "cancelExist", &[Value::Bool(false)]).unwrap_or(false);
         let mut responseStop: Option<String> = self.safe_string_k_opt(order.clone(), "stop", &[]);
         let mut trigger: bool = responseStop.is_some();
-        let mut stopTriggered: bool = self.safe_bool_k(order.clone(), "stopTriggered", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut isActive: Option<bool> = self.safe_bool2(order.clone(), Value::Str("isActive".into()), Value::Str("active".into()), &[]).as_bool();
+        let mut stopTriggered: bool = self.safe_bool_k_opt(order.clone(), "stopTriggered", &[Value::Bool(false)]).unwrap_or(false);
+        let mut isActive: Option<bool> = self.safe_bool2_opt(order.clone(), Value::Str("isActive".into()), Value::Str("active".into()), &[]);
         let mut responseStatus: Option<String> = self.safe_string_k_opt(order.clone(), "status", &[]);
         let mut status: Option<String> = None;
         if (isActive.is_some()) {
@@ -11056,7 +11056,7 @@ impl Kucoin {
             return self.fetch_paginated_call_dynamic(Value::Str("fetchMyTrades".into()), &[symbol.clone(), since.clone(), limit.clone(), Value::from(&paramsRequest)]).await;
         }
         let mut marketType: Option<String> = self.safe_string_k_opt(&paramsRequest, "marketType", &[]);
-        let mut paramsOmitted: Value = (if (marketType.is_some()) { self.omit(&paramsRequest, Value::Str("marketType".into()), &[]) } else { Value::from(&paramsRequest) });
+        let mut paramsOmitted: crate::value::Dict = (if (marketType.is_some()) { self.omit(&paramsRequest, Value::Str("marketType".into()), &[]).into_dict() } else { paramsRequest });
         let mut request: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -11073,13 +11073,12 @@ impl Kucoin {
             isContract = true;
         }
         let mut accountMode: Option<String> = Some("unified".to_string());
-        { let __destr_tmp: Vec<Value> = self.handle_option_string_and_params(paramsOmitted.clone(), Value::Str("fetchMyTrades".into()), Value::Str("accountMode".into()), &[Value::from(&accountMode)]).as_array().cloned().unwrap_or_default(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
-            paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp = self.handle_option_string_and_params(&paramsOmitted, Value::Str("fetchMyTrades".into()), Value::Str("accountMode".into()), &[Value::from(&accountMode)]).into_list(); accountMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         std::sync::Arc::make_mut(&mut request).insert("accountMode".into(), accountMode.clone().map(Value::from).unwrap_or(Value::Null));
         let mut marginMode: Option<String> = None;
-        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[paramsOmitted.clone()]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isUnified: bool = accountMode.as_deref() == Some("unified");
-        let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool(isContract), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), paramsOmitted.clone()]);
+        let mut tradeType: Option<String> = self.handle_trade_type(&[Value::Bool(isContract), marginMode.map(Value::from).unwrap_or(Value::Null), Value::Bool(isUnified), Value::from(&paramsOmitted)]);
         std::sync::Arc::make_mut(&mut request).insert("tradeType".into(), tradeType.map(Value::from).unwrap_or(Value::Null));
         if (since != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("startAt".into(), since.clone());
@@ -11087,8 +11086,8 @@ impl Kucoin {
         if (limit != Value::Null) {
             std::sync::Arc::make_mut(&mut request).insert("pageSize".into(), limit.clone());
         }
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_86 = self.extend(request, &[paramsOmitted]);
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let __ws_arg_86 = self.extend(request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.uta_private_get_account_mode_order_execution(&[__ws_arg_86]).await.into_dict();
         //
         //     {
@@ -12906,7 +12905,7 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             transfer.insert("amount".into(), amount);
             transfer.insert("fromAccount".into(), fromAccount);
@@ -13014,7 +13013,7 @@ impl Kucoin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut fillResponseFromRequest: bool = self.safe_bool_k(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut fillResponseFromRequest: bool = self.safe_bool_k_opt(&transferOptions, "fillResponseFromRequest", &[Value::Bool(true)]).unwrap_or(true);
         if fillResponseFromRequest {
             transfer.insert("amount".into(), amount);
             transfer.insert("fromAccount".into(), fromAccount);
@@ -15572,7 +15571,7 @@ impl Kucoin {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut clientOrderId: Option<String> = self.safe_string_k_opt(params.clone(), "clientOrderId", &[]);
-        let mut testOrder: bool = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut testOrder: bool = self.safe_bool_k_opt(params.clone(), "test", &[Value::Bool(false)]).unwrap_or(false);
         let mut marginMode: Option<String> = self.safe_string_upper_k_opt(params.clone(), "marginMode", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["test", "clientOrderId", "marginMode"], &[]).into_dict();
         if (clientOrderId.is_none()) {
@@ -16007,7 +16006,7 @@ impl Kucoin {
             m
         }).into_dict();
         let mut until: Option<i64> = self.safe_integer_k(&paramsRequest, "until", &[]).as_i64();
-        let mut paramsOmitted: Value = (if (until.is_some()) { self.omit(&paramsRequest, Value::Str("until".into()), &[]) } else { Value::from(&paramsRequest) });
+        let mut paramsOmitted: crate::value::Dict = (if (until.is_some()) { self.omit(&paramsRequest, Value::Str("until".into()), &[]).into_dict() } else { paramsRequest });
         if (until.is_some()) {
             std::sync::Arc::make_mut(&mut request).insert("endAt".into(), Value::from(until));
         }
@@ -16024,8 +16023,8 @@ impl Kucoin {
         }  else {
             std::sync::Arc::make_mut(&mut request).insert("pageSize".into(), Value::Int(500));
         }
-        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), paramsOmitted.clone(), &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let __ws_arg_155 = self.extend(request, &[paramsOmitted]);
+        { let __destr_tmp: Vec<Value> = self.handle_until_option(Value::Str("endAt".into()), Value::Dict(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default(); request = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).into_dict(); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let __ws_arg_155 = self.extend(request, &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_get_accounts_ledgers(&[__ws_arg_155]).await.into_dict();
         //
         // {

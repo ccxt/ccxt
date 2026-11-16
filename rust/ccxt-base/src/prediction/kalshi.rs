@@ -403,7 +403,7 @@ impl crate::exchange::DerivedExchange for Kalshi {
         if (price.is_some()) && (amount.is_some()) {
             cost = (if let (Some(__l), Some(__r)) = (price, amount) { Some(__l * __r) } else { None });
         }
-        let mut isTaker: bool = self.safe_bool_k(fill.clone(), "is_taker", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut isTaker: bool = self.safe_bool_k_opt(fill.clone(), "is_taker", &[Value::Bool(true)]).unwrap_or(true);
         let mut takerOrMaker: String = "maker".to_string();
         if isTaker {
             takerOrMaker = "taker".to_string();
@@ -1795,7 +1795,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         //     { "exchange_active": true, "trading_active": true }
         //
-        let mut tradingActive: bool = self.safe_bool_k(&response, "trading_active", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut tradingActive: bool = self.safe_bool_k_opt(&response, "trading_active", &[Value::Bool(false)]).unwrap_or(false);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if tradingActive { Value::Str("ok".into()) } else { Value::Str("maintenance".into()) }));
@@ -3314,8 +3314,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut queries: Value = self.parse_search_queries(&[params.clone()]);
-        if (queries == Value::Null) {
+        let mut queries: crate::value::List = self.parse_search_queries(&[params.clone()]).into_list();
+        if (false) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchEvents() missing queries")));
         }
         let mut queriesLength: i64 = queries.len() as i64;
@@ -3348,7 +3348,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut rawEvents: crate::value::List = std::sync::Arc::new(Vec::new());
         if queriesLength > 0 {
             // free-text search: ranked events from the search endpoint, top `fetchCap` fetched canonically
-            rawEvents = self.fetch_events_by_query(queries, Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
+            rawEvents = self.fetch_events_by_query(Value::Arr(queries), Value::from(fetchCap), &[Value::from(&rest)]).await.into_list();
         }  else if (eventId.is_some()) {
             // kalshi's event id (and slug) is the event_ticker — fetch it directly
             let mut fullEvent: crate::value::Dict = self.fetch_raw_event_by_ticker(eventId.as_deref().unwrap_or_default(), &[Value::from(&rest)]).await.into_dict();
@@ -3854,7 +3854,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if marketsCount > 0 {
             active = Some(anyActive);
         }
-        let mut resolved: Option<bool> = self.safe_bool_k(rawEvent.clone(), "resolved", &[]).as_bool();
+        let mut resolved: Option<bool> = self.safe_bool_k_opt(rawEvent.clone(), "resolved", &[]);
         if (resolved.is_none()) && (marketsCount > 0) {
             resolved = Some(allResolved);
         }

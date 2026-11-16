@@ -2338,8 +2338,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut settle: Option<String> = (if spot { None } else { self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None) });
             let mut optionType: Option<String> = self.safe_string_lower_k_opt(&market, "put_call", &[]);
             let mut strike: Option<String> = self.safe_string_k_opt(&market, "strike", &[]);
-            let mut marginBuyEnabled: bool = self.safe_bool_k(&market, "margin_buy_enabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut marginSellEnabled: bool = self.safe_bool_k(&market, "margin_sell_enabled", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut marginBuyEnabled: bool = self.safe_bool_k_opt(&market, "margin_buy_enabled", &[Value::Bool(false)]).unwrap_or(false);
+            let mut marginSellEnabled: bool = self.safe_bool_k_opt(&market, "margin_sell_enabled", &[Value::Bool(false)]).unwrap_or(false);
             let mut expiryRaw: Option<i64> = self.safe_integer_k(&market, "expiry_timestamp_ms", &[]).as_i64();
             let mut expiry: Option<i64> = (if (expiryRaw == Some(0)) { None } else { expiryRaw });
             let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
@@ -3051,7 +3051,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut postOnly: bool = self.safe_bool_k(&paramsValue, "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(&paramsValue, "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly || (timeInForce.as_deref() == Some("PO")) {
             request.insert("exec_inst".into(), Value::from(vec![Value::Str("POST_ONLY".into())]));
             request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
@@ -3328,7 +3328,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 request.insert("time_in_force".into(), timeInForce.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }
-        let mut postOnly: bool = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(params.clone(), "postOnly", &[Value::Bool(false)]).unwrap_or(false);
         if postOnly || (timeInForce.as_deref() == Some("PO")) {
             request.insert("exec_inst".into(), Value::from(vec![Value::Str("POST_ONLY".into())]));
             request.insert("time_in_force".into(), Value::Str("GOOD_TILL_CANCEL".into()));
@@ -4352,7 +4352,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
          * @returns {Array} the marginMode in lowercase
          */
         let mut defaultType: Option<String> = self.safe_string_k_opt(self.options.clone(), "defaultType", &[]);
-        let mut isMargin: bool = self.safe_bool_k(params.clone(), "margin", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMargin: bool = self.safe_bool_k_opt(params.clone(), "margin", &[Value::Bool(false)]).unwrap_or(false);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("margin".into()), &[]).into_dict();
         let mut marginMode: Option<String> = None;
         let mut paramsMarginMode: crate::value::Dict = Default::default();
@@ -5271,7 +5271,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: String = self.safe_string(&self.symbols, Value::Int(i), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut isSwap: bool = self.safe_bool_k(&market, "swap", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isSwap: bool = self.safe_bool_k_opt(&market, "swap", &[Value::Bool(false)]).unwrap_or(false);
             let mut takerFeeKey: String = "effective_spot_taker_rate_bps".to_string();
             if isSwap {
                 takerFeeKey = "effective_deriv_taker_rate_bps".to_string();

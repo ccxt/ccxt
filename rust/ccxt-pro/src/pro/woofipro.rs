@@ -886,7 +886,7 @@ impl Woofipro {
         let mut side: Option<String> = self.safe_string_lower_k_opt(trade.clone(), "side", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
         let mut takerOrMaker: Option<String> = None;
-        let mut maker: Option<bool> = self.safe_bool_k(trade.clone(), "maker", &[]).as_bool();
+        let mut maker: Option<bool> = self.safe_bool_k_opt(trade.clone(), "maker", &[]);
         if (maker.is_some()) {
             takerOrMaker = (if (maker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
@@ -1075,7 +1075,7 @@ impl Woofipro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
         if trigger {
             topic = "algoexecutionreport".to_string();
@@ -1136,7 +1136,7 @@ impl Woofipro {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut trigger: bool = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut trigger: bool = self.safe_bool2_opt(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[Value::Bool(false)]).unwrap_or(false);
         let mut topic: String = "executionreport".to_string();
         if trigger {
             topic = "algoexecutionreport".to_string();

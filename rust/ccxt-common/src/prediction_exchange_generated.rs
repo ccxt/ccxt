@@ -242,7 +242,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             let mut __for_first_189: bool = true;
             while { if !__for_first_189 { i += 1; } __for_first_189 = false; i < (events.len() as i64) } {
             let mut event: crate::value::Dict = self.safe_dict(events.clone(), Value::Int(i), &[]).into_dict();
-            let mut isActive: Option<bool> = self.safe_bool_k(&event, "active", &[]).as_bool();
+            let mut isActive: Option<bool> = self.safe_bool_k_opt(&event, "active", &[]);
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive.is_none()) || ((isActive == wantActive.as_bool())) {
                 result.push(self.safe_value(events.clone(), Value::Int(i), &[]));
@@ -961,7 +961,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
             }
             let mut missingLength: i64 = missing.len() as i64;
             let mut wasWarm: bool = (self.pred().outcomes.clone() != Value::Null) && !(self.is_empty(self.pred().outcomes.clone()).as_bool() == Some(true));
-            let mut loadAll: bool = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut loadAll: bool = self.safe_bool_k_opt(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
             if (missingLength > 0) && loadAll && !wasWarm && !(reload.as_bool() == Some(true)) {
                 // same trade-off as loadOutcome: on venues where the whole universe is one cheap
                 // request (hyperliquid), a cold miss bulk-warms once instead of fetching per outcome
@@ -1048,7 +1048,7 @@ pub trait PredictionBase: crate::exchange_generated::ExchangeBase {
                     return self.safe_outcome(outcomeSymbol.clone(), None);
                 }
             }
-            let mut loadAll: bool = self.safe_bool_k(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut loadAll: bool = self.safe_bool_k_opt(self.options.clone(), "loadAllOutcomes", &[Value::Bool(false)]).unwrap_or(false);
             if loadAll && !wasWarm {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
                 // a miss on an already-warm cache is authoritative — the outcome genuinely isn't
@@ -2072,7 +2072,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut orderType: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "type", &[]);
         let mut timeInForce: Option<String> = self.safe_string_k_opt(outcomeOrder.clone(), "timeInForce", &[]);
         // the venue flag and the derived one are each written once, so neither local widens
-        let mut postOnlyValue: Option<bool> = self.safe_bool_k(outcomeOrder.clone(), "postOnly", &[]).as_bool();
+        let mut postOnlyValue: Option<bool> = self.safe_bool_k_opt(outcomeOrder.clone(), "postOnly", &[]);
         let mut derivedPostOnly: Value = Value::Null;
         if (timeInForce.is_none()) {
             if (orderType.as_deref() == Some("market")) {

@@ -160,14 +160,14 @@ impl crate::exchange::DerivedExchange for Grvt {
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_product_k(trade.clone(), "event_time", Value::Float(0.000001), &[]).as_i64();
         let mut takerOrMaker: Option<String> = None;
-        let mut isTakerBuyer: Option<bool> = self.safe_bool_k(trade.clone(), "is_taker_buyer", &[]).as_bool();
+        let mut isTakerBuyer: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_taker_buyer", &[]);
         let mut side: Option<String> = None;
         if (isTakerBuyer.is_some()) {
             side = (if (isTakerBuyer == Some(true)) { Some("buy".to_string()) } else { Some("sell".to_string()) });
             takerOrMaker = Some("taker".to_string());
         }  else {
-            let mut isTaker: bool = self.safe_bool_k(trade.clone(), "is_taker", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut isBuyer: bool = self.safe_bool_k(trade.clone(), "is_buyer", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isTaker: bool = self.safe_bool_k_opt(trade.clone(), "is_taker", &[Value::Bool(false)]).unwrap_or(false);
+            let mut isBuyer: bool = self.safe_bool_k_opt(trade.clone(), "is_buyer", &[Value::Bool(false)]).unwrap_or(false);
             takerOrMaker = (if isTaker { Some("taker".to_string()) } else { Some("maker".to_string()) });
             side = (if isBuyer { Some("buy".to_string()) } else { Some("sell".to_string()) });
         }
@@ -277,13 +277,13 @@ impl crate::exchange::DerivedExchange for Grvt {
     m
 }), None);
         }
-        let mut isMarket: bool = self.safe_bool_k(order.clone(), "is_market", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isMarket: bool = self.safe_bool_k_opt(order.clone(), "is_market", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderType: String = "limit".to_string();
         if isMarket {
             orderType = "market".to_string();
         }
-        let mut isPostOnly: Option<bool> = self.safe_bool_k(order.clone(), "post_only", &[]).as_bool();
-        let mut isReduceOnly: Option<bool> = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
+        let mut isPostOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "post_only", &[]);
+        let mut isReduceOnly: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduce_only", &[]);
         let mut timeInForceRaw: Option<String> = self.safe_string_k_opt(order.clone(), "time_in_force", &[]);
         let mut timeInForce: Option<String> = (if (isPostOnly == Some(true)) { Some("PO".to_string()) } else { self.parse_time_in_force(timeInForceRaw.as_deref()) });
         let mut size: Option<String> = None;
@@ -308,7 +308,7 @@ impl crate::exchange::DerivedExchange for Grvt {
         let mut marketResolved: Option<crate::types::Market> = (if (firstLeg.is_some()) { Some(self.safe_market(legMarketId.map(Value::from).unwrap_or(Value::Null), market, &[])) } else { market.cloned() });
         if (firstLeg.is_some()) {
             size = self.safe_string_k_opt(&firstLeg, "size", &[]);
-            let mut isBuyingAsset: bool = self.safe_bool_k(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+            let mut isBuyingAsset: bool = self.safe_bool_k_opt(&firstLeg, "is_buying_asset", &[Value::Bool(false)]).unwrap_or(false);
             side = (if isBuyingAsset { Some("buy".to_string()) } else { Some("sell".to_string()) });
             price = self.safe_string_k_opt(&firstLeg, "limit_price", &[]);
             filled = self.safe_string_opt(&filledAmounts, Value::from(primaryOrderIndex), &[]);
@@ -2298,7 +2298,7 @@ impl Grvt {
         if !(builderFee == Some(true)) {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }
@@ -2357,7 +2357,7 @@ impl Grvt {
                 // }
                 //
                 let mut authResult: crate::value::Dict = self.safe_dict_k(&authResponse, "result", &[]).into_dict();
-                let mut ack: bool = self.safe_bool_k(&authResult, "ack", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+                let mut ack: bool = self.safe_bool_k_opt(&authResult, "ack", &[Value::Bool(false)]).unwrap_or(false);
                 if !ack {
                     panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str("Builder authorization failed, ".into()), json_stringify(&authResponse))));
                 }
@@ -2970,7 +2970,7 @@ if _try_result.is_err() {
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut useTransfersEndpoint: bool = self.safe_bool_k_opt(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_9 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_9, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await.into_list();
@@ -3047,7 +3047,7 @@ if _try_result.is_err() {
         let requestUntilOptionStringparamsUntilOptionStringVariable: Vec<Value> = self.handle_until_option_string("end_time", Value::Map(request), &[params, Value::Int(1000000)]).as_array().cloned().unwrap_or_default();
         let mut requestUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntilOptionString: crate::value::Dict = requestUntilOptionStringparamsUntilOptionStringVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut useTransfersEndpoint: bool = self.safe_bool_k(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut useTransfersEndpoint: bool = self.safe_bool_k_opt(self.options.clone(), "useTransfersEndpointForDepositsWithdrawals", &[Value::Bool(true)]).unwrap_or(true);
         if useTransfersEndpoint {
             let __ws_arg_11 = self.extend(&requestUntilOptionString, &[&paramsUntilOptionString]);
             let mut transfers: crate::value::List = self.internal_fetch_transfers(__ws_arg_11, &[crate::Value::from(currency.as_ref()), since.clone(), limit.clone()]).await.into_list();
@@ -3532,7 +3532,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut paramsOmitted3: crate::value::Dict = self.omit(params, &["clientOrderId"], &[]).into_dict();
         let mut isMarketOrder: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut subAccountId: Option<String> = self.get_sub_account_id(&paramsOmitted3);
-        let mut isReduceOnly: bool = self.safe_bool_k(&paramsOmitted3, "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut isReduceOnly: bool = self.safe_bool_k_opt(&paramsOmitted3, "reduceOnly", &[Value::Bool(false)]).unwrap_or(false);
         let mut orderRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sub_account_id".to_string(), subAccountId.map(Value::from).unwrap_or(Value::Null));

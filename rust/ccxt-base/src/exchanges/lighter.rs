@@ -182,7 +182,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         let mut accountIndex: Option<String> = self.safe_string_k_opt(trade.clone(), "account_index", &[]);
         let mut askAccountId: Option<String> = self.safe_string_k_opt(trade.clone(), "ask_account_id", &[]);
         let mut bidAccountId: Option<String> = self.safe_string_k_opt(trade.clone(), "bid_account_id", &[]);
-        let mut isMakerAsk: Option<bool> = self.safe_bool_k(trade.clone(), "is_maker_ask", &[]).as_bool();
+        let mut isMakerAsk: Option<bool> = self.safe_bool_k_opt(trade.clone(), "is_maker_ask", &[]);
         let mut side: Option<String> = None;
         let mut orderId: Option<String> = None;
         if (accountIndex.is_some()) {
@@ -200,8 +200,8 @@ impl crate::exchange::DerivedExchange for Lighter {
         }
         let mut takerOrMaker: Option<String> = None;
         if (side.is_some()) && (isMakerAsk.is_some()) {
-            let mut isMaker: Value = (if (side.as_deref() == Some("sell")) { (Value::Bool(isMakerAsk == Some(true))) } else { (Value::Bool(isMakerAsk == Some(false))) });
-            takerOrMaker = (if isMaker.as_bool() == Some(true) { Some("maker".to_string()) } else { Some("taker".to_string()) });
+            let mut isMaker: bool = (if (side.as_deref() == Some("sell")) { (isMakerAsk == Some(true)) } else { (isMakerAsk == Some(false)) });
+            takerOrMaker = (if isMaker { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -265,7 +265,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market_index", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "timestamp", &[]).as_i64();
-        let mut isAsk: Option<bool> = self.safe_bool_k(order.clone(), "is_ask", &[]).as_bool();
+        let mut isAsk: Option<bool> = self.safe_bool_k_opt(order.clone(), "is_ask", &[]);
         let mut isAskAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "is_ask", &[]).as_i64();
         let mut side: Option<String> = None;
         if (isAsk.is_some()) {
@@ -292,7 +292,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         let mut tifAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "time_in_force", &[]).as_i64();
         let mut tif: Option<String> = (if (tifAsInteger.is_some()) { self.parse_order_time_in_force_integer(Value::from(tifAsInteger).as_f64().unwrap_or_default()) } else { self.safe_string_k_opt(order.clone(), "time_in_force", &[]) });
-        let mut reduceOnlyAsBool: Option<bool> = self.safe_bool_k(order.clone(), "reduce_only", &[]).as_bool();
+        let mut reduceOnlyAsBool: Option<bool> = self.safe_bool_k_opt(order.clone(), "reduce_only", &[]);
         let mut reduceOnlyAsInteger: Option<i64> = self.safe_integer_k(order.clone(), "reduce_only", &[]).as_i64();
         let mut reduceOnly: Option<bool> = reduceOnlyAsBool;
         if (reduceOnlyAsBool.is_none()) && (reduceOnlyAsInteger.is_some()) {
@@ -409,7 +409,7 @@ impl crate::exchange::DerivedExchange for Lighter {
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealized_pnl", &[]));
         m.insert("liquidationPrice".to_string(), self.safe_number_k(position, "liquidation_price", &[]));
-        m.insert("marginMode".to_string(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("marginMode".to_string(), marginMode.map(Value::from).unwrap_or(Value::Null));
         m.insert("percentage".to_string(), Value::Null);
     m
 }));
@@ -1910,11 +1910,11 @@ impl Lighter {
 }
 
     pub async fn handle_builder_fee_approval(&mut self, mut accountIndex: Value, mut apiKeyIndex: Value) -> Value {
-        let mut buildFee: bool = self.safe_bool_k(self.options.clone(), "builderFee", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut buildFee: bool = self.safe_bool_k_opt(self.options.clone(), "builderFee", &[Value::Bool(true)]).unwrap_or(true);
         if !buildFee {
             return Value::Bool(false);
         }
-        let mut approvedBuilderFee: bool = self.safe_bool_k(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut approvedBuilderFee: bool = self.safe_bool_k_opt(self.options.clone(), "approvedBuilderFee", &[Value::Bool(false)]).unwrap_or(false);
         if approvedBuilderFee {
             return Value::Bool(true);
         }
@@ -1949,7 +1949,7 @@ if _try_result.is_err() {
     m
 })]).as_map().cloned().unwrap_or_default();
         let mut accountIndexStr: Option<String> = self.number_to_string(accountIndex.clone());
-        let mut isStandardTier: Option<bool> = self.safe_bool(&tiersForAccountIndexes, Value::from(accountIndexStr.as_deref()), &[]).as_bool();
+        let mut isStandardTier: Option<bool> = self.safe_bool_opt(&tiersForAccountIndexes, Value::from(accountIndexStr.as_deref()), &[]);
         if (isStandardTier.is_some()) {
             let mut cachedIsStandard: Value = (Value::Bool(isStandardTier == Some(true)));
             return cachedIsStandard;
@@ -2143,7 +2143,7 @@ if _try_result.is_err() {
         if (price == Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " createOrder() requires a price argument")));
         }
-        let mut reduceOnly: bool = self.safe_bool2(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).as_bool().unwrap_or(false); // default false
+        let mut reduceOnly: bool = self.safe_bool2_opt(params.clone(), Value::Str("reduceOnly".into()), Value::Str("reduce_only".into()), &[Value::Bool(false)]).unwrap_or(false); // default false
         let mut orderType: Option<String> = type_var.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut orderSide: Option<String> = side.as_str().map(str::to_owned).as_deref().map(str::to_uppercase);

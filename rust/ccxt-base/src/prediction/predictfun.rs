@@ -319,7 +319,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the API gateway.
         // the testnet is the exception, it is served without an API key at all
-        let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut sandboxMode: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         let mut apiKey: Value = self.apiKey.clone();
         if (apiKey == Value::Null) && !sandboxMode {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " sign() requires the \"apiKey\" credential for all endpoints")));
@@ -385,7 +385,7 @@ impl crate::exchange::DerivedExchange for Predictfun {
         if (response == Value::Null) {
             return Value::Null;
         }
-        let mut success: bool = self.safe_bool_k(response.clone(), "success", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+        let mut success: bool = self.safe_bool_k_opt(response.clone(), "success", &[Value::Bool(true)]).unwrap_or(true);
         if success {
             return Value::Null;
         }
@@ -991,7 +991,7 @@ impl Predictfun {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut allowUnscopedFetchEvents: bool = self.safe_bool_k_opt(self.options.clone(), "allowUnscopedFetchEvents", &[Value::Bool(false)]).unwrap_or(false);
         if !allowUnscopedFetchEvents {
             self.require_event_query(&[params.clone()]);
         }
@@ -2604,7 +2604,7 @@ impl Predictfun {
         let optional_args: &[Value] = &__optional_args;
         // read before the flag is overwritten: only an actual switch touches the token, so calling
         // this twice with the same value is a no-op rather than a forced re-authentication
-        let mut wasSandbox: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut wasSandbox: bool = self.safe_bool_k_opt(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).unwrap_or(false);
         self.super_set_sandbox_mode(enable.clone());
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
@@ -2964,9 +2964,9 @@ impl Predictfun {
         })]).into_dict();
         let mut marketFeeRateBps: String = self.safe_string_k(&marketRow, "feeRateBps", &[Value::Str("200".into())]).as_str().unwrap_or("200").to_string(); // should be at least 200
         let mut feeRateBps: Option<String> = self.safe_string_k_opt(&paramsWarnOnMarketOrderWithoutPrice, "feeRateBps", &[Value::from(marketFeeRateBps)]);
-        let mut marketIsNegRisk: bool = self.safe_bool_k(&marketRow, "isNegRisk", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut marketIsNegRisk: bool = self.safe_bool_k_opt(&marketRow, "isNegRisk", &[Value::Bool(false)]).unwrap_or(false);
         let mut isNegRisk: bool = self.safe_bool_k(&paramsWarnOnMarketOrderWithoutPrice, "isNegRisk", &[Value::Bool(marketIsNegRisk)]).as_bool() == Some(true);
-        let mut marketIsYieldBearing: bool = self.safe_bool_k(&marketRow, "isYieldBearing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut marketIsYieldBearing: bool = self.safe_bool_k_opt(&marketRow, "isYieldBearing", &[Value::Bool(false)]).unwrap_or(false);
         let mut isYieldBearing: bool = self.safe_bool_k(&paramsWarnOnMarketOrderWithoutPrice, "isYieldBearing", &[Value::Bool(marketIsYieldBearing)]).as_bool() == Some(true);
         let mut defaultExpiration: i64 = self.safe_integer_k(self.options.clone(), "defaultExpiration", &[Value::Int(3600)]).as_i64().unwrap_or(3600); // 1 hour
         let mut expirationDelta: Option<i64> = Some(defaultExpiration);
@@ -3016,7 +3016,7 @@ impl Predictfun {
                 m.insert("strategy".to_string(), Value::from(strategy));
             m
         });
-        let mut postOnly: bool = self.safe_bool_k(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
+        let mut postOnly: bool = self.safe_bool_k_opt(&paramsTaker, "isPostOnly", &[Value::Bool(false)]).unwrap_or(false);
         let postOnlyOptionparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(postOnly), &[Value::from(&paramsTaker)]).as_array().cloned().unwrap_or_default();
         let mut postOnlyOption: Option<bool> = postOnlyOptionparamsPostOnlyVariable.get(0).and_then(Value::as_bool);
         let mut paramsPostOnly: crate::value::Dict = postOnlyOptionparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -3856,7 +3856,7 @@ impl Predictfun {
             if (rpcUrl.is_none()) || (ctfToken.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " approve() could not resolve the \"rpcUrl\" or the conditional tokens for chain ").into()), chainKey.as_deref().unwrap_or("null"))));
             }
-            let mut approved: bool = self.safe_bool_k(params.clone(), "approved", &[Value::Bool(true)]).as_bool().unwrap_or(true);
+            let mut approved: bool = self.safe_bool_k_opt(params.clone(), "approved", &[Value::Bool(true)]).unwrap_or(true);
             let mut approvedHex: String = "0000000000000000000000000000000000000000000000000000000000000000".to_string();
             if approved {
                 approvedHex = "0000000000000000000000000000000000000000000000000000000000000001".to_string();
@@ -4999,7 +4999,7 @@ impl Predictfun {
         let mut price: Option<String> = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedPriceWei", &[]), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut amount: Option<String> = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedSizeWei", &[]), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
         let mut cost: Option<String> = crate::precise::Precise::stringDiv(&self.safe_string_k(&fill, "executedValueWei", &[]), &Value::Str("1000000000000000000".into())).as_str().map(str::to_owned);
-        let mut isMaker: Option<bool> = self.safe_bool_k(event.clone(), "isMaker", &[]).as_bool();
+        let mut isMaker: Option<bool> = self.safe_bool_k_opt(event.clone(), "isMaker", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (isMaker.is_some()) {
             takerOrMaker = (if (isMaker == Some(true)) { Some("maker".to_string()) } else { Some("taker".to_string()) });
