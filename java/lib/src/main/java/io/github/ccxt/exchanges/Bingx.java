@@ -5797,6 +5797,23 @@ public class Bingx extends BingxApi
             {
                 Boolean isTwapOrder = (Boolean) this.safeBool(paramsStandard, "twap", false);
                 Map<String, Object> paramsOmitted = this.omit(paramsStandard, "twap");
+                if (!Boolean.TRUE.equals(isTwapOrder))
+                {
+                    if (!java.util.Objects.equals(limit, null))
+                    {
+                        request.put("limit", Math.min(limit, 1000));
+                    }
+                    if (!java.util.Objects.equals(since, null))
+                    {
+                        request.put("startTime", since);
+                    }
+                    Long until = this.safeInteger(paramsOmitted, "until");
+                    if (!java.util.Objects.equals(until, null))
+                    {
+                        request.put("endTime", until);
+                        paramsOmitted = this.omit(paramsOmitted, "until");
+                    }
+                }
                 if (Boolean.TRUE.equals(isTwapOrder))
                 {
                     request.put("pageIndex", 1);

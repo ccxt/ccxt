@@ -3802,12 +3802,13 @@ public class Okx extends OkxApi
             Pair<Boolean, Map<String, Object>> paginateparamsPaginateVariable = this.handleOptionBoolAndParams((Map<String, Object>) (parameters), "fetchOHLCV", "paginate", false);
             Boolean paginate = paginateparamsPaginateVariable.first();
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
-            if (Boolean.TRUE.equals(paginate))
-            {
-                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, 200L)).join();
-            }
             String priceType = this.safeString(paramsPaginate, "price");
             boolean isMarkOrIndex = this.inArray(priceType, new ArrayList<Object>(Arrays.asList("mark", "index")));
+            if (Boolean.TRUE.equals(paginate))
+            {
+                Long maxEntriesPerRequest = ((isMarkOrIndex)) ? 100L : 200L;
+                return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, java.util.Objects.requireNonNullElse(timeframe, "1m"), paramsPaginate, maxEntriesPerRequest)).join();
+            }
             Map<String, Object> paramsPrice = this.omit(paramsPaginate, "price");
             Map<String, Object> options = (Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
@@ -3852,7 +3853,11 @@ public class Okx extends OkxApi
             Long until = this.safeInteger(paramsPrice, "until");
             if (!java.util.Objects.equals(until, null))
             {
-                request.put("after", until);
+                Long afterSince = this.safeInteger(request, "after");
+                if ((java.util.Objects.equals(afterSince, null)) || ((afterSince != null && (until == null || until < afterSince))))
+                {
+                    request.put("after", until);
+                }
             }
             Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPrice, "until") : paramsPrice;
             defaultType = this.safeString(options, "type", defaultType); // Candles or HistoryCandles
