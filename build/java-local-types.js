@@ -339,6 +339,10 @@ export const JAVA_STRING_RETURN_METHODS = new Set ([
 //     the safeString reads, the `code` local) already prints String — no cast.
 export const JAVA_STRING_RETURN_METHODS_CAST = new Set ([
     'getExtendedCurrencyCodeById', 'marketId', 'safeCurrencyCode', 'safeSymbol',
+    // ral-84j5: networkCodeToId (Exchange.ts, never redeclared in ts/src): every return is null, a safeString read,
+    // the String param, or an element read of options.networks (the one checkcast; every venue table maps to string literals).
+    // safeOutcomeSymbol / slugToMarketSymbol prove the same way but their locals only feed Object slots: left out
+    'networkCodeToId',
 ]);
 
 // listed names that additionally carry `this.safeStringUpper/Lower (...)` return sites:
@@ -13506,6 +13510,9 @@ function stringListJoinLocal (printer, declaration, seen) {
         if (stringListFeedsJoinedLocal (printer, host, seen)) {
             continue;
         }
+        if (stringListStringArrayAssertion (host.parent)) {
+            continue; // ral-84j5: `(x as string[])` printed `(java.util.List<String>)(x)`; the typed local prints bare, same static type
+        }
         if (stringListReturnUse (n, scope) || stringListStoredAsValue (host) || stringListAnyParamArgument (printer, host)
             || objectKeysUseIsSafe (n)) {
             continue;
@@ -13513,6 +13520,13 @@ function stringListJoinLocal (printer, declaration, seen) {
         return false;
     }
     return true;
+}
+
+// ral-84j5: `x as string[]`: printAsExpression prints `(java.util.List<String>)(x)`, an expression whose static
+// type is List<String> whatever x's declaration; on a List<String> local the same expression prints `x` (identity)
+function stringListStringArrayAssertion (node) {
+    return node !== undefined && ts.isAsExpression (node) && node.type?.kind === ts.SyntaxKind.ArrayType
+        && node.type.elementType?.kind === ts.SyntaxKind.StringKeyword;
 }
 
 // linked locals (a = b, b feeds a) are decided together: an in-progress local is assumed
@@ -13603,6 +13617,16 @@ export function patchJavaStringListReturnLocals (transpiler) {
                 ? `${name}.add(${parsedArg})` : upstreamPush (node, identation, name, parsedArg);
         };
     }
+    // ral-84j5: drop the identity `(java.util.List<String>)` assertion on a local this section retyped
+    const upstreamAs = printer.printAsExpression.bind (printer);
+    printer.printAsExpression = function (node, identation) {
+        const operand = node?.expression;
+        if (stringListStringArrayAssertion (node) && operand !== undefined && ts.isIdentifier (operand)
+            && typed.has (stringListLocalDeclaration (printer, operand))) {
+            return printer.printNode (operand, identation);
+        }
+        return upstreamAs (node, identation);
+    };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
 
@@ -17836,6 +17860,9 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     if (ts.isIdentifier (value)) {
         return value.text === declaration.name.text || javaOmitSourceIsMap (printer, value, 0) ? { cast: false } : undefined;
     }
+    if (javaUrlsApiRead (printer, value)) {
+        return { cast: true, needsElementRead: true }; // ral-84j5: `this.urls['api']`
+    }
     if (!ts.isCallExpression (value) || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
         return undefined;
     }
@@ -17871,6 +17898,42 @@ function javaMapLocalValue (printer, node, declaration, depth = 0) {
     return undefined;
 }
 
+// ral-84j5: `this.urls['api']` (optionally `as Dict`): the base field `urls` is typed `{ api: Dict, .. }` in
+// ts/src/base/Exchange.ts and printed `Map<String, Object> urls`, so the read is a Map box (or null when a
+// venue's describe () leaves `api` out: the checkcast passes null). The local only moves the receiver cast
+// every `baseUrls['x']` read printed onto the declaration, so it is typed only with such a read.
+function javaUrlsApiRead (printer, node) {
+    let value = node;
+    while (value !== undefined && (ts.isParenthesizedExpression (value) || ts.isAsExpression (value))) {
+        if (ts.isAsExpression (value) && !(ts.isTypeReferenceNode (value.type) && ts.isIdentifier (value.type.typeName)
+            && value.type.typeName.text === 'Dict')) {
+            return false;
+        }
+        value = value.expression;
+    }
+    if (value === undefined || !ts.isElementAccessExpression (value) || !ts.isStringLiteral (value.argumentExpression)
+        || value.argumentExpression.text !== 'api' || !ts.isPropertyAccessExpression (value.expression)
+        || value.expression.expression.kind !== ts.SyntaxKind.ThisKeyword || value.expression.name.text !== 'urls') {
+        return false;
+    }
+    try {
+        const field = printer.getChecker ().getSymbolAtLocation (value.expression.name)?.valueDeclaration?.resolve ();
+        return field !== undefined && BASE_SOURCE_FILE.test (field.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
+function javaMapLocalHasElementRead (declaration) {
+    const scope = enclosingFunction (declaration);
+    return scope !== undefined && (identifierIndex (scope).get (declaration.name.text) ?? []).some ((n) => {
+        const host = unwrapParensUp (n);
+        const read = host.parent !== undefined && ts.isAsExpression (host.parent) ? unwrapParensUp (host.parent) : host;
+        return read.parent !== undefined && ts.isElementAccessExpression (read.parent) && read.parent.expression === read
+            && ts.isStringLiteral (read.parent.argumentExpression);
+    });
+}
+
 function javaMapLocal (printer, declaration) {
     if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
         || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
@@ -17878,7 +17941,7 @@ function javaMapLocal (printer, declaration) {
         return undefined;
     }
     const init = javaMapLocalValue (printer, declaration.initializer, declaration);
-    if (init === undefined) {
+    if (init === undefined || (init.needsElementRead === true && !javaMapLocalHasElementRead (declaration))) {
         return undefined;
     }
     const scope = enclosingFunction (declaration);

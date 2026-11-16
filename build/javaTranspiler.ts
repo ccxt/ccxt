@@ -5821,7 +5821,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -5853,6 +5853,40 @@ function javaBaseProducerLocalsSelfTest (): string[] {
         if (!/String pp = this\.parsePrecision\(/.test(out)) problems.push("base producers: 'pp' (base-tier String method) must print String with no checkcast");
     } catch (e: any) {
         problems.push(`base producers self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j5: base `: Str` callees whose every return prints String (networkCodeToId) print `public String`,
+// so the caller's local is String and its `.toUpperCase ()` is native (no `((String)x)` receiver cast)
+function javaR84j5CalleeReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz84j5selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Strings, Dict } from './base/types.js';",
+        `export default class zz84j5selftest${process.pid} extends Exchange {`,
+        "    net (code: string, networkCode: string) { const request: any = {}; const nid = this.networkCodeToId (networkCode, code); if (nid !== undefined) { request['chain'] = nid.toUpperCase (); } return request; }",
+        "    syms (symbols: Strings = undefined) { const sn: Strings = this.marketSymbols (symbols, undefined, false); const out = []; for (let i = 0; i < (sn as string[]).length; i++) { out.push (this.market ((sn as string[])[i])); } return out; }",
+        "    urlOf (g: string) { const bu = this.urls['api'] as Dict; return this.safeString (bu, g, bu['public']); }",
+        "    urlOnly (g: string) { const bu2 = this.urls['api'] as Dict; return this.safeString (bu2, g); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String nid = this\.networkCodeToId\(/.test(out)) problems.push("ral-84j5: 'nid' (networkCodeToId, every return String) must print String");
+        if (!/nid\.toUpperCase\(\)/.test(out) || /\(\(String\)nid\)/.test(out)) problems.push("ral-84j5: 'nid.toUpperCase ()' must print natively with no (String) receiver cast");
+        // `x as string[]` uses of a marketSymbols local: the List<String> local takes them as the identity
+        if (!/List<String> sn = this\.marketSymbols\(/.test(out)) problems.push("ral-84j5: 'sn' (marketSymbols, used through `as string[]`) must print List<String>");
+        if (/<\?>\)\(List<String>\)\(sn\)/.test(out)) problems.push("ral-84j5: '(sn as string[]).length' must print without the List<String> assertion cast");
+        // `this.urls['api']` locals read by a string key: Map local, native `.get`; with no element read they stay Object
+        if (!/(java\.util\.)?Map<String, Object> bu = \((java\.util\.)?Map<String, Object>\) this\.urls\.get\("api"\);/.test(out) || !/bu\.get\("public"\)/.test(out)) problems.push("ral-84j5: 'bu' (this.urls['api'] read by key) must print Map<String, Object> with a native .get");
+        if (!/Object bu2 = /.test(out)) problems.push("ral-84j5: 'bu2' (no element read) must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j5 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
