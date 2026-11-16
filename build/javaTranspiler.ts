@@ -37,6 +37,7 @@ import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals }
 import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
+import { installJavaR84j8Locals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2498,6 +2499,7 @@ class NewTranspiler {
         installJavaR84j2MapConditionalLocals(this.transpiler);
         installJ84j6TrueOnlyLocals(this.transpiler);
         installJ84j6StringListLocals(this.transpiler);
+        installJavaR84j8Locals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5825,7 +5827,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -5990,7 +5992,9 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("fresh local 'a' must put natively");
         for (const name of [ 'c', 'd' ]) {
-            if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
+            // 84j8 declares the self-merged literal 'c' Map<String, Object>: its literal-key put is then native
+            const declaredMap = name === 'c' && /Map<String, Object> c = /.test(out) && /\bc\.put\("free", /.test(out);
+            if (!declaredMap && !new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
         }
         // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
         if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("'b' is unproven and must not take the cast put");
@@ -9957,6 +9961,48 @@ function j84j6TrueOnlyLocalsSelfTest (): string[] {
         if (!/\bObject ww = /.test(out)) problems.push("ral-84j6: 'ww' is written and must stay Object");
     } catch (e: any) {
         problems.push(`ral-84j6 self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 84j8: balance-map literals merged into themselves and per-binding Object.keys lists
+function javaR84j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Int } from './base/types.js';",
+        'export default class zzr84j8selftest extends Exchange {',
+        "    bal (response: any, code: string) { let result: Dict = { 'info': response }; result[code] = this.account (); result = this.mergeBalanceAccount (result, code, this.account ()); return this.safeBalance (result); }",
+        "    other (response: any, code: string, x: Dict) { let r: Dict = { 'info': response }; r = this.mergeBalanceAccount (x, code, this.account ()); return r; }",
+        "    later (response: any, stock: boolean) { let xs: Dict[] = []; if (stock) { const rows = this.safeList (response, 'rows', []); xs = rows; } return xs.length; }",
+        "    laterBad (response: any, stock: boolean) { let ys: Dict[] = []; if (stock) { const rows = this.safeValue (response, 'rows'); ys = rows; } return ys.length; }",
+        "    asserted (s: string) { let zs: any[] = []; const parsed = this.parseJson (s); if (parsed !== undefined) { zs = parsed as any[]; } return zs.length; }",
+        "    until (since: Int = undefined, params = {}) { let request: Dict = {}; if (since !== undefined) { request['startTime'] = since; } let paramsUntil: Dict = {}; [ request, paramsUntil ] = this.handleUntilOption ('endTime', request, params); if (since === undefined) { request = this.omit (request, 'count'); } request['x'] = 1; return this.extend (request, paramsUntil); }",
+        "    splitJoin (s: string, v: string) { const parts = s.split ('-'); let more = v.split (','); const w: string = more.join (''); more = w.split (' '); return parts.join ('') + this.safeString (more, 0); }",
+        "    keys2 (a: Dict, b: Dict, f: boolean) { if (f) { const keys = Object.keys (a); throw new Error ('one of ' + keys.join (', ')); } else { const keys = Object.keys (b); throw new Error ('one of ' + keys.join (', ')); } }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> result = /.test(out)) problems.push("'result' (self-merged balance literal) must print Map<String, Object>");
+        if (!/result = \(java\.util\.Map<String, Object>\) this\.mergeBalanceAccount\(result, /.test(out)) problems.push("'result' merge write needs one checkcast and a bare Map argument");
+        if (!/\bObject r = /.test(out)) problems.push("'r' (merge of a foreign map) must stay Object");
+        if ((out.match(/List<String> keys = new java\.util\.ArrayList<String>\(/g) ?? []).length !== 2) problems.push("both sibling 'keys' bindings must print List<String>");
+        // (the `.size()` read goes native in the file post-pass, which this raw printer probe does not run)
+        if (!/List<Object> xs = /.test(out) || !/\bxs = rows;/.test(out)) problems.push("'xs' (copy of a later safeList const) must print List<Object> and copy rows without a cast");
+        if (!/List<Object> zs = /.test(out) || !/\bzs = \(java\.util\.List<Object>\)\(parsed\);/.test(out)) problems.push("'zs' (as any[] write) must print List<Object> with only the assertion's own cast");
+        if (!/Map<String, Object> request = /.test(out)) problems.push("'request' (handleUntilOption Pair slot 0) must print Map<String, Object>");
+        if (!/List<String> parts = new java\.util\.ArrayList<String>\(/.test(out) || !/String\.join\("", parts\)/.test(out)) problems.push("'parts' (native split joined) must print List<String> and join without a checkcast");
+        if (!/List<String> more = /.test(out) || !/more = new java\.util\.ArrayList<String>\(/.test(out)) problems.push("'more' (split write) must print List<String> with a List<String> write");
+        if (!/\bObject ys = /.test(out)) problems.push("'ys' (copy of a safeValue const) must stay Object");
+        if (/\(java\.util\.List<String>\)keys\)/.test(out) || !/String\.join\(", ", keys\)/.test(out)) problems.push("'keys' join must read the declared List<String> without a checkcast");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
