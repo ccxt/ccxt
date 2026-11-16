@@ -210,7 +210,6 @@ if (platform === 'win32') {
 
 const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const EXCHANGE_WRAPPER_FOLDER = './java/lib/src/main/java/io/github/ccxt/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
 const ERRORS_FOLDER = './java/lib/src/main/java/io/github/ccxt/errors/';
 const BASE_METHODS_FILE = './java/lib/src/main/java/io/github/ccxt/BaseExchange.java';
 // hand-written above the delimiter of BaseExchange.java with typed Pair returns
@@ -1702,7 +1701,6 @@ function javaWorkerThreads () {
 class NewTranspiler {
 
     transpiler!: Transpiler;
-    pythonStandardLibraries;
     oldTranspiler = new OldTranspiler();
     // lazily created in webworkerTranspile and kept alive for the lifetime of the
     // transpiler, so worker threads (and their warm Transpiler + ts.Program batch)
@@ -1721,18 +1719,7 @@ class NewTranspiler {
     }
 
     constructor() {
-
         this.setupTranspiler()
-        // this.transpiler.csharpTranspiler.VAR_TOKEN = 'var'; // tmp fix
-
-
-        this.pythonStandardLibraries = {
-            'hashlib': 'hashlib',
-            'math': 'math',
-            'json.loads': 'json',
-            'json.dumps': 'json',
-            'sys': 'sys',
-        }
     }
 
 
@@ -2082,12 +2069,6 @@ class NewTranspiler {
             log.bright.cyan(message, (fileName as any).yellow)
             overwriteFileAndFolder(fileName, file)
         }
-        // const javaBodyIntellisense = '\npackage io.github.ccxt;\n' + this.createGeneratedHeader().join('\n') + '\n' + javaBaseError + '\n' + javaErrors.join ('\n') + '\n'
-        // if (fs.existsSync (ERRORS_FILE)) {
-        //     log.bright.cyan (message, (ERRORS_FILE as any).yellow)
-        //     overwriteFileAndFolder (ERRORS_FILE, javaBodyIntellisense)
-        // }
-        // log.bright.cyan (message, (ERRORS_FILE as any).yellow)
     }
 
     // Common regex/AST-artifact fixes applied to the whole transpiled Exchange.ts
@@ -2108,7 +2089,6 @@ class NewTranspiler {
             [/(\w+)(\.storeArray\(.+\))/gm, '((IOrderBookSide)$1)$2'],
             [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
 
-            // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
             [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
@@ -2553,23 +2533,6 @@ class NewTranspiler {
             ? await this.webworkerTranspile(allFilesPath, this.getTranspilerConfig())
             : allFilesPath.map((file: string) => this.transpiler.transpileJavaByPath(file));
 
-        if (!ws) {
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = EXCHANGE_WRAPPER_FOLDER + this.capitalize(exchangeName) + '.java';
-                // this.createJavaWrappers(exchangeName, path, transpiled.methodsTypes)
-                // break;
-            }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                // const transpiled = transpiledFiles[i];
-                // const exchangeName = exchanges[i].replace('.ts','');
-                // const path = EXCHANGE_WS_WRAPPER_FOLDER + exchangeName + '.cs';
-                // this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
-            }
-        }
         exchangeFiles.map((file: string, idx: number) => this.transpileDerivedExchangeFile(jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
         const classes = {}
@@ -2596,9 +2559,6 @@ class NewTranspiler {
             ''
         ].join('\n');
 
-        const regex = /class (\w+) extends (\w+)/
-        // const res = content.match(regex)
-        // const parentExchange = res[1].toLowerCase();
         // override extends from Exchange to ClassApi
         content = content.replace(/extends\s\w+/g, `extends ${this.capitalize(name)}Api`);
         content = content.replace(/class\s+\w+\s+extends/, `class ${className} extends`);
@@ -3451,7 +3411,6 @@ class NewTranspiler {
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`],
             [/, (sha1|sha384|sha512|sha256|md5|ed25519|keccak|p256|secp256k1)([,)])/gm, `, $1()$2`], // quick fix to replace twice
             [/assert/g, 'Assert'],
-            // [/(^\s*Assert\(equals\(ecdsa\([^;]+;)/gm, '/*\n $1\nTODO: add ecdsa\n*/'] // temporarily disable ecdsa tests
         ]).trim()
 
         const contentLines = content.split('\n');
@@ -3626,7 +3585,6 @@ class NewTranspiler {
         log.magenta('[java] Transpiling from', files.tsFile.yellow)
         // by path, so the program includes the base Exchange the `any`-typed receivers bind to
         const java = this.transpiler.transpileJavaByPath(files.tsFile);
-        // let contentIndentend = csharp.content.split('\n').map(line => line ? '    ' + line : line).join('\n');
         let contentIndentend = java.content;
 
 
@@ -3895,7 +3853,6 @@ class NewTranspiler {
             } else {
                 contentIndentend = this.lateBindTypedSurfaceCalls(contentIndentend);
             }
-            // const namespace = isWs ? 'using ccxt;\nusing ccxt.pro;' : 'using ccxt;';
 
             const preciseImport = contentIndentend.indexOf('Precise.') >= 0 ? 'import io.github.ccxt.base.Precise;\n' : '';
             const packageName = isWs ? 'tests.exchange.ws' : 'tests.exchange';
@@ -3920,7 +3877,6 @@ class NewTranspiler {
                     [/public (java\.util\.concurrent\.CompletableFuture<\w+>) /g, 'public static $1 '], // make tests static
                     [/public Object /g, 'public static Object ']
                 ])
-                // const doubleIndented = contentIndentend.split('\n').map((line: string) => line ? '    ' + line : line).join('\n');
                 java = [
                     ...fileHeaders,
                     contentIndentend,
