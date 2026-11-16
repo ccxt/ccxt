@@ -536,7 +536,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap === true) {
+        if (isSwap) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -574,7 +574,7 @@ export default class phemex extends phemexRest {
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
         let name = 'spot_market24h';
-        if (isSwap === true) {
+        if (isSwap) {
             name = settleIsUSDT ? 'perp_market24h_pack_p' : 'market24h';
         }
         const url = this.urls['api']['ws'];
@@ -625,7 +625,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const isUsdtSwap = (isSwap) && settleIsUSDT;
         let name: Str = 'trade';
         if (isUsdtSwap) {
             name = 'trade_p';
@@ -671,7 +671,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const isUsdtSwap = (isSwap) && settleIsUSDT;
         let name: Str = 'orderbook';
         if (isUsdtSwap) {
             name = 'orderbook_p';
@@ -714,7 +714,7 @@ export default class phemex extends phemexRest {
         const requestId = this.requestId ();
         const isSwap = market['swap'];
         const settleIsUSDT = market['settle'] === 'USDT';
-        const isUsdtSwap = (isSwap === true) && settleIsUSDT;
+        const isUsdtSwap = (isSwap) && settleIsUSDT;
         let name: Str = 'kline';
         if (isUsdtSwap) {
             name = 'kline_p';
@@ -771,7 +771,7 @@ export default class phemex extends phemexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const isUsdtSwap = (market['swap']) && (market['settle'] === 'USDT');
         let name: Str = 'trade';
         if (isUsdtSwap) {
             name = 'trade_p';
@@ -799,7 +799,7 @@ export default class phemex extends phemexRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const symbolValue: string = market['symbol'];
-        const isUsdtSwap = (market['swap'] === true) && (market['settle'] === 'USDT');
+        const isUsdtSwap = (market['swap']) && (market['settle'] === 'USDT');
         let name: Str = 'kline';
         if (isUsdtSwap) {
             name = 'kline_p';

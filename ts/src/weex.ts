@@ -1808,7 +1808,7 @@ export default class weex extends Exchange {
         if (commission !== undefined) {
             const commissionAsset = this.safeString (trade, 'commissionAsset');
             let feeCurrency = this.safeCurrencyCode (commissionAsset);
-            if (isSpot === true) {
+            if (isSpot) {
                 if (side === 'buy') {
                     feeCurrency = this.safeString (marketResolved, 'base');
                 } else {

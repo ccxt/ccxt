@@ -366,8 +366,8 @@ export default class kucoin extends kucoinRest {
         const isFuturesMethod = market['contract'];
         const url = await this.negotiate (false, isFuturesMethod);
         const [ spotMethod, paramsSpotMethod ] = this.handleOptionStringAndParams (paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-        const method = (isFuturesMethod === true) ? '/contractMarket/ticker' : spotMethod;
-        const query = (isFuturesMethod === true) ? paramsUta : paramsSpotMethod;
+        const method = (isFuturesMethod) ? '/contractMarket/ticker' : spotMethod;
+        const query = (isFuturesMethod) ? paramsUta : paramsSpotMethod;
         const topic = method + ':' + market['id'];
         return await this.subscribe (url, messageHash, topic, query);
     }
@@ -407,8 +407,8 @@ export default class kucoin extends kucoinRest {
         } else {
             const url = await this.negotiate (false, isFuturesMethod);
             const [ spotMethod, paramsSpotMethod ] = this.handleOptionStringAndParams (paramsUta, 'watchTicker', 'spotMethod', '/market/snapshot');
-            const method = (isFuturesMethod === true) ? '/contractMarket/ticker' : spotMethod;
-            const query = (isFuturesMethod === true) ? paramsUta : paramsSpotMethod;
+            const method = (isFuturesMethod) ? '/contractMarket/ticker' : spotMethod;
+            const query = (isFuturesMethod) ? paramsUta : paramsSpotMethod;
             const topic = method + ':' + market['id'];
             const messageHash = 'unsubscribe:' + subMessageHash;
             subscription['messageHashes'] = [ messageHash, topic ];
@@ -923,7 +923,7 @@ export default class kucoin extends kucoinRest {
             const isFuturesMethod = market['contract'];
             const url = await this.negotiate (false, isFuturesMethod);
             let channelName = '/market/candles:';
-            if (isFuturesMethod === true) {
+            if (isFuturesMethod) {
                 channelName = '/contractMarket/limitCandle:';
             }
             const topic = channelName + this.safeString (market, 'id', '') + '_' + period;
@@ -979,7 +979,7 @@ export default class kucoin extends kucoinRest {
             const isFuturesMethod = market['contract'];
             const url = await this.negotiate (false, isFuturesMethod);
             let channelName = '/market/candles:';
-            if (isFuturesMethod === true) {
+            if (isFuturesMethod) {
                 channelName = '/contractMarket/limitCandle:';
             }
             const messageHash = 'unsubscribe:' + subMessageHash;

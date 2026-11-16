@@ -4707,13 +4707,13 @@ export default class gate extends Exchange {
             }
         }
         let priceResolved: Num = price;
-        if (isMarketOrder && (contract === true)) {
+        if (isMarketOrder && (contract)) {
             priceResolved = 0;
         }
         let contractAmount: Num = 0;
         let signedAmount: Str = undefined;
         let useGateFuturesDecimalSize = false;
-        if (contract === true) {
+        if (contract) {
             const isClose = this.safeBool (query, 'close', false);
             if (!isClose) {
                 signedAmount = this.getGateFuturesSignedAmount (symbol, side, amount);
@@ -4723,7 +4723,7 @@ export default class gate extends Exchange {
                 }
             }
         }
-        const amountResolved: Num = (contract === true) ? contractAmount : amount;
+        const amountResolved: Num = (contract) ? contractAmount : amount;
         let sizeRequest: any = amountResolved;
         if (useGateFuturesDecimalSize) {
             sizeRequest = signedAmount;
@@ -4731,7 +4731,7 @@ export default class gate extends Exchange {
         let request: Dict = {};
         const nonTriggerOrder = !isTpsl && (trigger === undefined);
         if (nonTriggerOrder) {
-            if (contract === true) {
+            if (contract) {
                 // contract order
                 request = {
                     'contract': market['id'], // filled in prepareRequest above
@@ -4827,7 +4827,7 @@ export default class gate extends Exchange {
             if (this.safeBool (market, 'option', false)) {
                 throw new NotSupported (this.id + ' createOrder() conditional option orders are not supported');
             }
-            if (contract === true) {
+            if (contract) {
                 // contract conditional order
                 const initial: Dict = {
                     'contract': market['id'],

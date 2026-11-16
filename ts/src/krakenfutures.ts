@@ -1324,7 +1324,7 @@ export default class krakenfutures extends Exchange {
         const isStopLossOrTakeProfitTrigger = isStopLossTriggerOrder || isTakeProfitTriggerOrder;
         const triggerSignal = this.safeString (paramsPostOnly, 'triggerSignal', 'last');
         const reduceOnlyParam = this.safeBool (paramsPostOnly, 'reduceOnly', false);
-        let reduceOnly = (reduceOnlyParam === true);
+        let reduceOnly = (reduceOnlyParam);
         if (isStopLossOrTakeProfitTrigger || isTriggerOrder) {
             request['triggerSignal'] = triggerSignal;
         }

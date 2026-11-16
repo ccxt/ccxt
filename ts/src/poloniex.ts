@@ -2150,7 +2150,7 @@ export default class poloniex extends Exchange {
             const marketType = this.safeString (market, 'type');
             if (market === undefined) {
                 market = marketInner;
-                isContract = (marketInner['contract'] === true);
+                isContract = (marketInner['contract']);
             } else if (marketType !== marketInnerType) {
                 throw new BadRequest (this.id + ' createOrders() requires all orders to be of the same market type, either spot or swap');
             }
@@ -2218,7 +2218,7 @@ export default class poloniex extends Exchange {
         const result: Dict = this.extend ({}, request);
         const triggerPrice = this.safeNumber2 (params, 'stopPrice', 'triggerPrice');
         const market = this.market (symbol);
-        const isContract = (market['contract'] === true);
+        const isContract = (market['contract']);
         const [ marginMode, paramsMarginMode ] = this.handleParamString (params, 'marginMode');
         const [ hedged, paramsHedged ] = this.handleParamString (paramsMarginMode, 'hedged');
         // marginMode and hedged are consumed for contract markets only
