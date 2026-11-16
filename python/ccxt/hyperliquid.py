@@ -4214,7 +4214,8 @@ class hyperliquid(Exchange, ImplicitAPI):
                 'type': 'vaultTransfer',
                 'vaultAddress': '0x' + vaultAddress,
                 'isDeposit': False,
-                'usd': amount,
+                # like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd': self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000')),
             }
             sig = self.sign_l1_action(action, nonce)
         else:
