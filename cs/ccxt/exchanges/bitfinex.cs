@@ -587,13 +587,9 @@ public partial class bitfinex : Exchange
                 { "trading", new Dictionary<string, object>() {
                     { "feeSide", "get" },
                     { "percentage", true },
-                    { "tierBased", true },
-                    { "maker", this.parseNumber("0.001") },
-                    { "taker", this.parseNumber("0.002") },
-                    { "tiers", new Dictionary<string, object>() {
-                        { "taker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("7500000"), this.parseNumber("0.002")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0.0018")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0.0016")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0.0014")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0.0012")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0.001")}} },
-                        { "maker", new List<object>() {new List<object> {this.parseNumber("0"), this.parseNumber("0.001")}, new List<object> {this.parseNumber("500000"), this.parseNumber("0.0008")}, new List<object> {this.parseNumber("1000000"), this.parseNumber("0.0006")}, new List<object> {this.parseNumber("2500000"), this.parseNumber("0.0004")}, new List<object> {this.parseNumber("5000000"), this.parseNumber("0.0002")}, new List<object> {this.parseNumber("7500000"), this.parseNumber("0")}, new List<object> {this.parseNumber("10000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("15000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("20000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("25000000"), this.parseNumber("0")}, new List<object> {this.parseNumber("30000000"), this.parseNumber("0")}} },
-                    } },
+                    { "tierBased", false },
+                    { "maker", this.parseNumber("0") },
+                    { "taker", this.parseNumber("0") },
                 } },
                 { "funding", new Dictionary<string, object>() {
                     { "withdraw", new Dictionary<string, object>() {} },
@@ -946,6 +942,8 @@ public partial class bitfinex : Exchange
                 { "contract", !spot },
                 { "linear", swap ? true : null },
                 { "inverse", swap ? false : null },
+                { "maker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "maker") },
+                { "taker", this.safeNumber((this.fees != null && this.fees.ContainsKey("trading") ? this.fees["trading"] : null), "taker") },
                 { "contractSize", swap ? this.parseNumber("1") : null },
                 { "expiry", null },
                 { "expiryDatetime", null },
