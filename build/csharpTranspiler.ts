@@ -8871,10 +8871,9 @@ export function csharpStringAddEqualityTruth (content: string): string {
     const preciseString = [ 'stringAdd', 'stringSub', 'stringMul', 'stringDiv', 'stringMod', 'stringNeg', 'stringAbs', 'stringMin', 'stringMax' ];
     const preciseBool = [ 'stringGt', 'stringGe', 'stringLt', 'stringLe', 'stringEq' ];
     const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
     // the return types every in-file declaration of a method gives it
     const ownReturns: { [name: string]: string[] } = {};
-    for (const l of masked) {
+    for (const l of lines.map (csharpHelperMaskLine)) {
         const m = /^[ ]{4}(?:(?:public|private|protected|internal|static|virtual|override|async|new)[ ]+)+([\w<>,.?\[\]]+)[ ]+([A-Za-z_]\w*)[ ]*\(/.exec (l);
         if (m !== null) (ownReturns[m[2]] = ownReturns[m[2]] ?? []).push (m[1]);
     }
@@ -8884,11 +8883,9 @@ export function csharpStringAddEqualityTruth (content: string): string {
         if (own !== undefined) return own.every ((t) => kinds.includes (t));
         return table.includes (name);
     };
-    const signatures = csharpMethodSignatures (masked);
-    const regions = signatures.map ((start, n) => {
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = csharpRegionDeclarations (masked, start, end);
-        // names bound by any other syntax (for/foreach/out/lambda/pattern/catch) are not proven
+    // per region, on its first line: the names bound by any other syntax (for/foreach/out/lambda/pattern/catch) are not proven, and its `for (int i = ...` counters
+    const regionNames = (region) => {
+        const { start, end, declarations, lines: masked } = region;
         const bound = new Set<string> ();
         for (let i = start + 1; i < end; i++) {
             for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
@@ -8913,8 +8910,10 @@ export function csharpStringAddEqualityTruth (content: string): string {
             if ((types.size === 1) && !clash) counters.set (name, [ ...types ][0]);
         }
         for (const name of counters.keys ()) bound.delete (name);
-        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked, bound, counters };
-    });
+        region.bound = bound;
+        region.counters = counters;
+        region.lines = masked.slice (); // the pass reads the masked text as it was before its own rewrites
+    };
     // the outermost parenthesis pair wraps the whole text
     const wrapped = (m: string) => m.startsWith ('(') && (csharpHelperCallEnd (m, 0) === m.length - 1);
     // top-level `+` operands of a text with no other top-level operator, else undefined
@@ -9254,12 +9253,10 @@ export function csharpStringAddEqualityTruth (content: string): string {
         }
         return undefined;
     };
-    let changed = false;
-    for (let i = 0; i < lines.length; i++) {
-        if (!/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/.test (masked[i]) || /['@$]/.test (masked[i]) || /^[ ]*(\/\/|\*|\/\*)/.test (masked[i])) continue;
-        const region = regions.filter ((r) => r.start < i && i < r.end)[0];
-        if (region === undefined) continue;
-        const comment = masked[i].indexOf ('//');
+    return csharpLinePass (content, false, (region, line, masked, i) => {
+        if (region.bound === undefined) regionNames (region);
+        if (!/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/.test (masked) || /['@$]/.test (masked) || /^[ ]*(\/\/|\*|\/\*)/.test (masked)) return undefined;
+        const comment = masked.indexOf ('//');
         let code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
         const fixpoint = (text: string) => {
             let next = rewrite (region, i, text);
@@ -9282,9 +9279,10 @@ export function csharpStringAddEqualityTruth (content: string): string {
         }
         if (objectConcatContextsBad (code) !== undefined) code = original;
         const out = code + ((comment < 0) ? '' : lines[i].slice (comment));
-        if (out !== lines[i]) { lines[i] = out; changed = true; }
-    }
-    return changed ? lines.join ('\n') : content;
+        if (out === lines[i]) return undefined;
+        lines[i] = out;
+        return out;
+    });
 }
 
 // snippet checks (part of `csharpTranspiler.ts --self-test`)
