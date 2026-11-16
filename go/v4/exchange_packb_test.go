@@ -2,7 +2,7 @@ package ccxt
 
 import (
 	"bytes"
-	"crypto/sha256"
+	csha "crypto/sha256"
 	"encoding/hex"
 	"strings"
 	"testing"
@@ -125,7 +125,7 @@ func TestPackbBytes(t *testing.T) {
 			v = a
 		}
 		got := packbWith("polymarket", v)
-		sum := sha256.Sum256(got)
+		sum := csha.Sum256(got)
 		if len(got) != c.size || hex.EncodeToString(sum[:]) != c.sha {
 			t.Errorf("%s: got %d bytes sha %x", c.name, len(got), sum)
 		}
