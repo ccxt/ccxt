@@ -9003,14 +9003,10 @@ export function csharpDeclaredGetValue (content: string): string {
         if (rType === 'dict') {
             const literal = /^"[ ]*"$/.test (keyMask);
             const key = literal ? undefined : declared (keyMask);
-            if (literal) {
-                return `(${r} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
-            } else if ((key !== undefined) && (key.type === 'string')) {
-                return `(${r} != null && ${k} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
+            if (literal || ((key !== undefined) && (key.type === 'string'))) {
+                return dictionaryGetValue (r, k, literal ? 'literal' : 'string');
             } else if ((key !== undefined) && ((key.type === 'object') || (key.type === 'string?')) && onlyBinding (keyMask, key.type)) {
-                // GetValue's dictionary branch casts the key: a non-string key throws there too
-                const sk = (key.type === 'object') ? `(string)${k}` : k;
-                return `(${r} != null && ${k} != null && ${r}.ContainsKey(${sk}) ? ${r}[${sk}] : null)`;
+                return dictionaryGetValue (r, k, key.type);
             }
         } else if (rType === 'list') {
             // the IList<object> branch: at or past Count reads null, a negative index throws in both
@@ -9023,6 +9019,13 @@ export function csharpDeclaredGetValue (content: string): string {
         }
         return undefined;
     });
+}
+
+// GetValue's dictionary branch inline: null receiver / key read null, a literal key skips the key test,
+// an `object` key is cast like the helper (a non-string key throws there too)
+function dictionaryGetValue (r: string, k: string, keyType: string): string {
+    const sk = (keyType === 'object') ? `(string)${k}` : k;
+    return (keyType === 'literal') ? `(${r} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)` : `(${r} != null && ${k} != null && ${r}.ContainsKey(${sk}) ? ${r}[${sk}] : null)`;
 }
 
 // the shared snippet runner: each case's output must contain its expected text (and be a fixed point when
@@ -9483,14 +9486,7 @@ export function csharpWsAndIndexGetValue (content: string): string {
             // ContainsKey-then-indexer read could race a concurrent TryRemove, so it keeps the helper
             if ((wsMap[2] !== 'subscriptions') || (csharpInOpReceiverType (region, r, i) === undefined)) return undefined;
             const kt = /^"[ ]*"$/.test (keyMask) ? 'literal' : bindingType (keyMask);
-            if (kt === 'literal') {
-                return `(${r} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
-            } else if ((kt === 'string') || (kt === 'string?')) {
-                return `(${r} != null && ${k} != null && ${r}.ContainsKey(${k}) ? ${r}[${k}] : null)`;
-            } else if (kt === 'object') {
-                return `(${r} != null && ${k} != null && ${r}.ContainsKey((string)${k}) ? ${r}[(string)${k}] : null)`;
-            }
-            return undefined;
+            return [ 'literal', 'string', 'string?', 'object' ].includes (kt) ? dictionaryGetValue (r, k, kt) : undefined;
         }
         const rt = bindingType (r);
         if (rt === undefined) return undefined;
@@ -9509,7 +9505,7 @@ export function csharpWsAndIndexGetValue (content: string): string {
             // `keys[j]`: an element of a declared List<object>/IList<object> indexed by an int name
             const el = /^([A-Za-z_]\w*)\[([A-Za-z_]\w*)\]$/.exec (keyMask);
             if ((el !== null) && listTypes.includes ((bindingType (el[1]) ?? '').replace (/\s+/g, '')) && (bindingType (el[2]) === 'int')) {
-                return `(${r} != null && ${k} != null && ${r}.ContainsKey((string)${k}) ? ${r}[(string)${k}] : null)`;
+                return dictionaryGetValue (r, k, 'object');
             }
         }
         return undefined;
@@ -10138,17 +10134,27 @@ export function csharpInlineHelperSwitch (objectNull: boolean, content: string):
     // Double.TryParse can never read it: isEqual answers false at its isNumber gate unless both are equal strings
     const neverNumeric = (body: string) => /^[\x20-\x7e]*$/.test (body) && !/[\\"]/.test (body) && !/nan|inf/i.test (body)
         && (!/[0-9]/.test (body) || /[A-DF-Za-df-z]/.test (body));
-    const rewrite = (args: string[], masks: string[]): string | undefined => {
+    const lines = content.split ('\n');
+    const regions = csharpRegions (lines.map (csharpHelperMaskLine), true);
+    const rewrite = (args: string[], masks: string[], line: number): string | undefined => {
         if (args.length !== 2) return undefined;
         const [ x, k ] = args;
         const lit = /^"[ ]*"$/.test (masks[1]) && /^"(?:[^"\\]|\\.)*"$/.test (k);
         if (k === 'null') return `(((object)(${x})) == null)`;
         if ((k === 'true') || (k === 'false')) return `(((object)(${x})) is ${k})`;
         if (lit) return neverNumeric (k.slice (1, -1)) ? `(((object)(${x})) is ${k})` : undefined;
-        return undefined; // integer literals are decided per line by x05TypedIsEqual
+        // an int literal: the plain `X == n` only when the printed declaration proves X an int / Int64
+        // (or their nullable forms: a null box answers false in both); every other site keeps isEqual
+        const isLit = (t: string) => /^-?\d{1,9}$/.test (csharpStripParens (t));
+        const [ name, n ] = isLit (k) ? [ x, k ] : (isLit (x) ? [ k, x ] : [ undefined, undefined ]);
+        if (name === undefined) return undefined;
+        const bare = csharpStripParens (name);
+        if (!/^[A-Za-z_]\w*$/.test (bare)) return undefined;
+        const region = regions.filter ((r) => r.start < line).pop ();
+        if (region === undefined) return undefined;
+        const type = nonNullIntNameType (region, bare, line);
+        return [ 'int', 'Int64', 'long', 'int?', 'Int64?', 'long?' ].includes (type) ? '(' + bare + ' == ' + csharpStripParens (n) + ')' : undefined;
     };
-    const lines = content.split ('\n');
-    const x05Regions = x05RegionFinder (lines);
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         let masked = csharpHelperMaskLine (lines[i]);
@@ -10168,7 +10174,7 @@ export function csharpInlineHelperSwitch (objectNull: boolean, content: string):
                 masks.push (masked.substring (cuts[a] + 1, cuts[a + 1]).trim ());
             }
             if (args.some ((a) => a.length === 0)) continue;
-            const text = rewrite (args, masks) ?? x05TypedIsEqual (x05Regions, i, args);
+            const text = rewrite (args, masks, i);
             if (text === undefined) continue;
             lines[i] = lines[i].substring (0, s) + text + lines[i].substring (close + 1);
             masked = csharpHelperMaskLine (lines[i]);
@@ -10217,30 +10223,6 @@ function inlineHelperSwitchSnippetChecks (): string[] {
     if (csharpInlineHelperSwitch (false, wrap ('        if (isTrue(x)) { }')) !== wrap ('        if (isTrue(x)) { }')) problems.push ('objectNull=false changed');
     if (csharpInlineHelperSwitch (true, wrap ('        if (isTrue(x)) { }', 'Tests')) !== wrap ('        if (isTrue(x)) { }', 'Tests')) problems.push ('inline helper switch snippet checks tests namespace changed');
     return problems;
-}
-
-// isEqual(X, int literal): the plain `X == n` only when the printed declaration proves X an
-// int / Int64 (or their nullable forms: a null box answers false in both); every other site keeps isEqual
-function x05RegionFinder (lines: string[]): (line: number) => any {
-    const regions = csharpRegions (lines.map (csharpHelperMaskLine), true);
-    return (line: number) => regions.filter ((r) => r.start < line).pop ();
-}
-
-function x05TypedIsEqual (regionOf: (line: number) => any, line: number, args: string[]): string | undefined {
-    if (args.length !== 2) return undefined;
-    const isLit = (t: string) => /^-?\d{1,9}$/.test (csharpStripParens (t));
-    const [ a, b ] = args;
-    const [ name, lit ] = isLit (b) ? [ a, b ] : (isLit (a) ? [ b, a ] : [ undefined, undefined ]);
-    if (name === undefined) return undefined;
-    const bare = csharpStripParens (name);
-    if (!/^[A-Za-z_]\w*$/.test (bare)) return undefined;
-    const region = regionOf (line);
-    if (region === undefined) return undefined;
-    const type = nonNullIntNameType (region, bare, line);
-    if (![ 'int', 'Int64', 'long', 'int?', 'Int64?', 'long?' ].includes (type)) return undefined;
-    const n = csharpStripParens (lit);
-    if (type.startsWith ('int') && (Math.abs (Number (n)) > 2147483647)) return undefined;
-    return '(' + bare + ' == ' + n + ')';
 }
 
 // parseInt / parseFloat on an operand printed as a C# string (`string`/`string?` ident, `((string)ident)`, or its
