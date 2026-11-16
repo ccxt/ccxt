@@ -1822,33 +1822,21 @@ function goAnyObjectKeysLength (lines: string[], masked: string[], start: number
 }
 
 function goAnyObjectKeysLengthSelfTest (): string[] {
-    const problems: string[] = [];
-    const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
-    const arrayRead = run ('\tvar m map[string]any = nil\n\tif IsArray(GetValue(m, "data")) {\n\t}\n');
-    if (!arrayRead.includes ('IsArray(m["data"])')) {
-        problems.push ('goAnyObjectKeysLength: IsArray derefs its argument, so the map index reads the same: ' + arrayRead);
-    }
-    const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
-    if (!ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') || ifForm.includes ('ObjectKeys')) {
-        problems.push ('goAnyObjectKeysLength: if form: ' + ifForm);
-    }
-    const stmt = run ('\tvar query any = this.Omit(optionalArgs, "a")\n\tvar n int = len(ObjectKeys(query))\n');
-    if (!stmt.includes ('\tqueryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)\n')) {
-        problems.push ('goAnyObjectKeysLength: statement form: ' + stmt);
-    }
-    const reused = run ('\tvar query any = nil\n\tquery = 1\n\tvar n int = len(ObjectKeys(query))\n');
-    if (!reused.includes ('queryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)')) {
-        problems.push ('goAnyObjectKeysLength: a re-assigned any local binds at the use site: ' + reused);
-    }
-    const twice = run ('\tquery := this.Omit(optionalArgs, \"a\")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tx()\n\t} else if len(ObjectKeys(query)) > 1 {\n\t\ty()\n\t}\n');
-    if (twice.includes ('ObjectKeys') || (twice.match (/queryMap, _ :=/g) ?? []).length !== 2) {
-        problems.push ('goAnyObjectKeysLength: if / else-if chain: ' + twice);
-    }
-    const typed = run ('\tvar query map[string]any = map[string]any{}\n\tvar n int = len(ObjectKeys(query))\n');
-    if (!typed.includes ('len(query)')) {
-        problems.push ('goAnyObjectKeysLength: typed map regressed: ' + typed);
-    }
-    return problems;
+    return runSelfTest ('', (ok) => {
+        const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
+        const arrayRead = run ('\tvar m map[string]any = nil\n\tif IsArray(GetValue(m, "data")) {\n\t}\n');
+        ok (arrayRead.includes ('IsArray(m["data"])'), 'goAnyObjectKeysLength: IsArray derefs its argument, so the map index reads the same: ' + arrayRead);
+        const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
+        ok (ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') && !ifForm.includes ('ObjectKeys'), 'goAnyObjectKeysLength: if form: ' + ifForm);
+        const stmt = run ('\tvar query any = this.Omit(optionalArgs, "a")\n\tvar n int = len(ObjectKeys(query))\n');
+        ok (stmt.includes ('\tqueryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)\n'), 'goAnyObjectKeysLength: statement form: ' + stmt);
+        const reused = run ('\tvar query any = nil\n\tquery = 1\n\tvar n int = len(ObjectKeys(query))\n');
+        ok (reused.includes ('queryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)'), 'goAnyObjectKeysLength: a re-assigned any local binds at the use site: ' + reused);
+        const twice = run ('\tquery := this.Omit(optionalArgs, \"a\")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tx()\n\t} else if len(ObjectKeys(query)) > 1 {\n\t\ty()\n\t}\n');
+        ok (!twice.includes ('ObjectKeys') && (twice.match (/queryMap, _ :=/g) ?? []).length === 2, 'goAnyObjectKeysLength: if / else-if chain: ' + twice);
+        const typed = run ('\tvar query map[string]any = map[string]any{}\n\tvar n int = len(ObjectKeys(query))\n');
+        ok (typed.includes ('len(query)'), 'goAnyObjectKeysLength: typed map regressed: ' + typed);
+    });
 }
 
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
@@ -2024,21 +2012,7 @@ function goMapWriteLocalNeverNil (maskedFunc: string, decl: any, name: string, d
         return false;
     }
     const init = decl.line.replace (/^\s*var\s+\w+\s+\S+\s*=\s*/, '').trim ();
-    // element 0 of the base handleUntilOption tuple is the request map it was handed
-    const until = /^(?:ccxt\.)?MapTyped\((?:ccxt\.)?GetValue\((\w+), 0\)\)$/.exec (init);
     let admitted = producer.test (init);
-    // Omit on a never-nil map answers a fresh map (exchange_functions.go OmitN/OmitMap)
-    const omit = /^(?:ccxt\.)?MapTyped\(this\.Omit\((\w+), /.exec (init);
-    if (!admitted && (omit !== null) && (omit[1] !== name) && (declOf !== undefined) && (depth < 4)) {
-        admitted = goMapWriteLocalNeverNil (maskedFunc, declOf (omit[1]), omit[1], declOf, depth + 1);
-    }
-    if (!admitted && (until !== null) && (declOf !== undefined) && (depth < 4)) {
-        const tuple = declOf (until[1]);
-        const call = (tuple === undefined || tuple.index === undefined) ? null
-            : /^\s*var\s+\w+\s+\[\]any\s*=\s*this\.HandleUntilOption\((?:\w+|\s*), (\w+), /.exec (tuple.line);
-        admitted = (call !== null) && !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (until[1]) + '\\s*=(?!=)|&\\s*' + goAccessEscape (until[1]) + '\\b', 'm').test (maskedFunc)
-            && goMapWriteLocalNeverNil (maskedFunc, declOf (call[1]), call[1], declOf, depth + 1);
-    }
     if (!admitted && (declOf !== undefined) && (depth < 4)) {
         admitted = goTupleSlotNeverNil (maskedFunc, init, declOf, depth);
     }
@@ -2150,8 +2124,7 @@ function goOrderBookReceiverDereferenced (lines: string[], masked: string[], k: 
     return false;
 }
 
-function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, declOf: (name: string) => any,
-    typeAt: (name: string, k: number) => string | undefined, notRebound: (name: string) => boolean): boolean {
+function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, typeAt: (name: string, k: number) => string | undefined): boolean {
     // string literals are blanked in masked: it proves the call is code, lines[k] carries the key
     const head = /^(\s*)(?:ccxt\.)?AddElementToObject\((\w+), /.exec (masked[k]);
     if ((head === null) || (lines[k].substring (0, head[0].length) !== head[0])) {
@@ -2183,50 +2156,35 @@ function goOrderBookSetterPass (content: string): string {
     const applies = /\bAddElementToObject\(\w+, \"(?:timestamp|nonce|datetime|symbol)\"/.test (content) && /\bOrderBookInterface\b/.test (content);
     return goRewriteEachFunc (content, applies, (lines, masked, start, k) => {
         const resolve = goBlockScopeResolver (masked, start, k);
-        const maskedFunc = masked.slice (start, k + 1).join ('\n');
-        const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
-        const declOf = (name: string) => resolve (name, k);
         const typeAt = (name: string, at: number) => { const d = resolve (name, at); return (d === undefined) ? undefined : d.type; };
         for (let j = start + 1; j < k; j++) {
             if (masked[j].indexOf ('AddElementToObject(') >= 0) {
-                goNativeOrderBookSetter (lines, masked, j, declOf, typeAt, notRebound);
+                goNativeOrderBookSetter (lines, masked, j, typeAt);
             }
         }
     });
 }
 
 function goOrderBookSetterCheck (): string[] {
-    const problems: string[] = [];
-    const body = (decl: string, pre: string, tail: string) => 'func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + decl + '\n\tif true {\n' + pre + tail + '\t}\n\treturn nil\n}\n';
-    const decl = 'var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)';
-    const typed = 'var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])';
-    const side = '\t\tthis.HandleDeltas(orderbook.GetAsks(), asks)\n';
-    const write = '\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\tccxt.AddElementToObject(orderbook, \"datetime\", this.Iso8601(ts))\n';
-    let r = goOrderBookSetterPass (body (typed, side, write));
-    if (!r.includes ('orderbook.SetTimestamp(ts)') || !r.includes ('orderbook.SetDatetime(this.Iso8601(ts))')) {
-        problems.push ('orderbook setter: typed book after a GetAsks call must go native: ' + r);
-    }
-    r = goOrderBookSetterPass (body (typed, '', write));
-    if (r.includes ('.SetTimestamp(')) {
-        problems.push ('orderbook setter: no earlier method call must keep the helper: ' + r);
-    }
-    r = goOrderBookSetterPass (body (decl, side, write));
-    if (r.includes ('.SetTimestamp(')) {
-        problems.push ('orderbook setter: an any-typed book must keep the helper: ' + r);
-    }
-    r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
-    if (!r.includes ('orderbook.SetTimestamp(ts)')) {
-        problems.push ('orderbook setter: a book from a single-value assertion is non-nil: ' + r);
-    }
-    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + typed.replace ('OrderBookTyped(this.Orderbooks[*symbol])', 'this.Orderbooks[*symbol].(ccxt.OrderBookInterface)') + '\n\tfor i := 0; i < 2; i++ {\n\t\tif ts != nil {\n\t\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\t}\n\t}\n\treturn nil\n}\n');
-    if (!r.includes ('orderbook.SetTimestamp(ts)')) {
-        problems.push ('orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
-    }
-    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
-    if (r.includes ('.SetTimestamp(')) {
-        problems.push ('orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
-    }
-    return problems;
+    return runSelfTest ('', (ok) => {
+        const body = (decl: string, pre: string, tail: string) => 'func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + decl + '\n\tif true {\n' + pre + tail + '\t}\n\treturn nil\n}\n';
+        const decl = 'var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)';
+        const typed = 'var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])';
+        const side = '\t\tthis.HandleDeltas(orderbook.GetAsks(), asks)\n';
+        const write = '\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\tccxt.AddElementToObject(orderbook, \"datetime\", this.Iso8601(ts))\n';
+        let r = goOrderBookSetterPass (body (typed, side, write));
+        ok (r.includes ('orderbook.SetTimestamp(ts)') && r.includes ('orderbook.SetDatetime(this.Iso8601(ts))'), 'orderbook setter: typed book after a GetAsks call must go native: ' + r);
+        r = goOrderBookSetterPass (body (typed, '', write));
+        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: no earlier method call must keep the helper: ' + r);
+        r = goOrderBookSetterPass (body (decl, side, write));
+        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an any-typed book must keep the helper: ' + r);
+        r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
+        ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: a book from a single-value assertion is non-nil: ' + r);
+        r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + typed.replace ('OrderBookTyped(this.Orderbooks[*symbol])', 'this.Orderbooks[*symbol].(ccxt.OrderBookInterface)') + '\n\tfor i := 0; i < 2; i++ {\n\t\tif ts != nil {\n\t\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\t}\n\t}\n\treturn nil\n}\n');
+        ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
+        r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
+        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
+    });
 }
 
 function goNativeMapWrite (lines: string[], masked: string[], start: number, end: number, k: number, maskedFunc: string,
@@ -2813,15 +2771,6 @@ function goGuardedReadInRangeClause (clause: string, container: string, key: str
         if (new RegExp ('^' + t + '>' + k + '$').test (text)) {
             return true;                                      // len > key
         }
-        if (new RegExp ('^' + t + '>=' + k + '\\+1$').test (text)) {
-            return true;                                      // len >= key + 1
-        }
-        if (new RegExp ('^' + k + '<' + t + '$').test (text)) {
-            return true;                                      // key < len
-        }
-        if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) {
-            return true;                                      // key <= len - 1
-        }
         if (/^\d+$/.test (key)) {
             // a literal bound: len > L / len >= L / len == L, and the mirror forms
             const above = new RegExp ('^' + t + '(>|>=|==)(\\d+)$').exec (text);
@@ -3013,15 +2962,6 @@ export function goChan3ResolvedStmts (ind: string, expr: string, want: string, q
     if (direct) {
         return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr) + '}';
     }
-    if (want === 'OrderBookInterface') {
-        return 'var ' + v + ' ' + q + 'OrderBookInterface = ' + q + 'OrderBookTyped(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'OrderBookInterface]{Value: ' + v + '}';
-    }
-    if (want === 'ArrayCacheInterface') {
-        return 'var ' + v + ' ' + q + 'ArrayCacheInterface = ' + q + 'AsArrayCache(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ArrayCacheInterface]{Value: ' + v + '}';
-    }
-    if (want === 'ClientInterface') {
-        return 'var ' + v + ' ' + q + 'ClientInterface = ' + q + 'AsClient(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + 'ClientInterface]{Value: ' + v + '}';
-    }
     const box = v + 'Box';
     const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
     if (want === 'bool') {
@@ -3047,17 +2987,6 @@ export function goChan3ResolvedStmts (ind: string, expr: string, want: string, q
             'default:', '\t_ = ' + box,
             '}',
             'ch <- ' + q + 'AsyncResult[*string]{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    if ((want === 'int') || (want === 'int64')) {
-        const lines = [
-            'var ' + v + ' ' + want,
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case ' + want + ':', '\t' + v + ' = ' + box,
-            'default:', '\t_ = ' + box,
-            '}',
-            'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
         ];
         return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
     }
@@ -3393,12 +3322,6 @@ function goLevel45OperatorText (content: string, index: number): string | null {
             return null;
         }
         return (next === '^') ? '&^' : '&';
-    }
-    if ((char === '<') || (char === '>')) {
-        if (next !== char) {
-            return null;                  // a comparison, or the `<-` receive operator
-        }
-        return (content[index + 2] === '=') ? null : char + char;
     }
     return null;
 }
