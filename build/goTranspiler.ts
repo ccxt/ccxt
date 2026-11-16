@@ -9350,13 +9350,29 @@ function goIfElseArmAppends (masked: string[], blocks: any[], blk: any, name: st
     return Math.min (before, after);
 }
 
-function goPromiseAllSlotReads (content: string): string {
+// shared skeleton of the promiseAll holder passes: visits each `var h []any = ListTyped(r.Value)` inside a function
+type GoPromiseAllHolder = { lines: string[], masked: string[], blocks: any[], d: number, holder: string, res: string, fn: any, declBlock: any };
+function goPromiseAllEachHolder (content: string, visit: (h: GoPromiseAllHolder) => boolean): string {
     if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
         return content;
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
     const { 'blocks': blocks } = goTextBlocks (masked);
+    let changed = false;
+    for (let d = 0; d < lines.length; d++) {
+        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
+        const fn = (decl === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
+        const declBlock = (decl === null) ? undefined : goTextEnclosingBlock (blocks, d);
+        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) {
+            continue;
+        }
+        changed = visit ({ lines, masked, blocks, d, 'holder': decl[1], 'res': decl[2], fn, declBlock }) || changed;
+    }
+    return changed ? lines.join ('\n') : content;
+}
+
+function goPromiseAllSlotReads (content: string): string {
     const literalArity = (text: string): number => {
         const lit = /^(?:ccxt\.)?\[\]any\{([\s\S]*)\}$/.exec (text.trim ());
         if (lit === null) {
@@ -9376,37 +9392,26 @@ function goPromiseAllSlotReads (content: string): string {
         }
         return ((depth === 0) && (lit[1].trim ().slice (-1) !== ',')) ? count : -1;
     };
-    // the declaration's initialiser, joined over the lines of a multi-line literal
-    const initText = (first: string, j: number, limit: number): string => {
-        let text = first;
-        let depth = 0;
-        for (let q = j; q < limit; q++) {
-            const part = (q === j) ? first : masked[q];
-            if (q > j) {
-                text += '\n' + part;
+    return goPromiseAllEachHolder (content, ({ lines, masked, blocks, d, holder, res, fn, declBlock }) => {
+        let changed = false;
+        // the declaration's initialiser, joined over the lines of a multi-line literal
+        const initText = (first: string, j: number, limit: number): string => {
+            let text = first;
+            let depth = 0;
+            for (let q = j; q < limit; q++) {
+                const part = (q === j) ? first : masked[q];
+                if (q > j) {
+                    text += '\n' + part;
+                }
+                for (const c of part) {
+                    depth += ('([{'.indexOf (c) >= 0 ? 1 : 0) - (')]}'.indexOf (c) >= 0 ? 1 : 0);
+                }
+                if (depth <= 0) {
+                    break;
+                }
             }
-            for (const c of part) {
-                depth += ('([{'.indexOf (c) >= 0 ? 1 : 0) - (')]}'.indexOf (c) >= 0 ? 1 : 0);
-            }
-            if (depth <= 0) {
-                break;
-            }
-        }
-        return text;
-    };
-    let changed = false;
-    for (let d = 0; d < lines.length; d++) {
-        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
-        if (decl === null) {
-            continue;
-        }
-        const holder = decl[1];
-        const res = decl[2];
-        const fn = blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
-        const declBlock = goTextEnclosingBlock (blocks, d);
-        if ((fn === undefined) || (declBlock === undefined)) {
-            continue;
-        }
+            return text;
+        };
         let resLine = -1;
         let arity = -1;
         let ok = true;
@@ -9471,7 +9476,7 @@ function goPromiseAllSlotReads (content: string): string {
             }
         }
         if (!ok || (resLine < 0) || (arity < 0)) {
-            continue;
+            return false;
         }
         const readRx = new RegExp ('(?<![\\w.])(?:ccxt\\.)?GetValue\\(' + holder + ', (\\d+)\\)', 'g');
         for (let k = d + 1; k < fn.close; k++) {
@@ -9486,39 +9491,26 @@ function goPromiseAllSlotReads (content: string): string {
                 return holder + '[' + slot + ']';
             });
         }
-    }
-    return changed ? lines.join ('\n') : content;
+        return changed;
+    });
 }
 
 // inside `for i := 0; i < len(h); i++` (i, h unwritten in the body) `GetValue(h, i)` of a promiseAll holder is `h[i]`.
 function goPromiseAllSelfBoundReads (content: string): string {
-    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    const { 'blocks': blocks } = goTextBlocks (masked);
     const forRx = /^\s*for (\w+) := 0; \1 < len\((\w+)\); \1\+\+ \{$/;
-    let changed = false;
-    for (let d = 0; d < lines.length; d++) {
-        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
-        const fn = (decl === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
-        const declBlock = (decl === null) ? undefined : goTextEnclosingBlock (blocks, d);
-        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) {
-            continue;
-        }
-        const holder = decl[1];
+    return goPromiseAllEachHolder (content, ({ lines, masked, blocks, d, holder, res, fn, declBlock }) => {
+        let changed = false;
         let ok = true;
         let takes = 0;
         for (let k = fn.open + 1; k < fn.close; k++) {
-            if (new RegExp ('^\\s*' + decl[2] + ' := <-(?:ccxt\\.)?[pP]romiseAll\\(').test (masked[k])) {
+            if (new RegExp ('^\\s*' + res + ' := <-(?:ccxt\\.)?[pP]romiseAll\\(').test (masked[k])) {
                 takes++;
-            } else if ((k !== d) && (goTextWritesName (masked[k], holder) || goTextWritesName (masked[k], decl[2]))) {
+            } else if ((k !== d) && (goTextWritesName (masked[k], holder) || goTextWritesName (masked[k], res))) {
                 ok = false;
             }
         }
         if (!ok || (takes !== 1)) {
-            continue;
+            return false;
         }
         for (const b of blocks) {
             const h = forRx.exec (masked[b.open]);
@@ -9540,31 +9532,17 @@ function goPromiseAllSelfBoundReads (content: string): string {
                 });
             }
         }
-    }
-    return changed ? lines.join ('\n') : content;
+        return changed;
+    });
 }
 
 // `P = append(P, ..)` is the only write of `var P []any = []any{}`, runs once per pass of a top-level
 // `for i := 0; i < len(K); i++` (no continue/break/return/goto, i and K unwritten after it opens), so promiseAll(P) holds
 // len(K) results. A later `GetValue(h, j)` inside a `for j := 0; j < len(K); j++` that leaves j and K alone is `h[j]`.
 function goPromiseAllLoopReads (content: string): string {
-    if (!/<-(?:ccxt\.)?[pP]romiseAll\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    const { 'blocks': blocks } = goTextBlocks (masked);
     const forRx = /^\s*for (\w+) := 0; \1 < len\((\w+)\); \1\+\+ \{$/;
-    let changed = false;
-    for (let d = 0; d < lines.length; d++) {
-        const decl = /^\s*var (\w+) \[\]any = (?:ccxt\.)?ListTyped\((\w+)\.Value\)$/.exec (masked[d]);
-        const fn = (decl === null) ? undefined : blocks.find ((b: any) => (b.depth === 1) && (b.open < d) && (d <= b.close));
-        const declBlock = (decl === null) ? undefined : goTextEnclosingBlock (blocks, d);
-        if ((decl === null) || (fn === undefined) || (declBlock === undefined)) {
-            continue;
-        }
-        const holder = decl[1];
-        const res = decl[2];
+    return goPromiseAllEachHolder (content, ({ lines, masked, blocks, d, holder, res, fn, declBlock }) => {
+        let changed = false;
         let takeLine = -1;
         let list = '';
         let ok = true;
@@ -9579,7 +9557,7 @@ function goPromiseAllLoopReads (content: string): string {
             }
         }
         if (!ok || (takeLine < 0)) {
-            continue;
+            return false;
         }
         let declared = false;
         let appendLine = -1;
@@ -9596,7 +9574,7 @@ function goPromiseAllLoopReads (content: string): string {
         const head = (loop === undefined) ? null : forRx.exec (masked[loop.open]);
         const outer = (loop === undefined) ? undefined : goTextEnclosingBlock (blocks, loop.open);
         if (!ok || !declared || (head === null) || (outer === undefined) || (outer.open !== fn.open) || (loop.close >= takeLine)) {
-            continue;
+            return false;
         }
         const bound = head[2];
         const counter = head[1];
@@ -9612,7 +9590,7 @@ function goPromiseAllLoopReads (content: string): string {
             }
         }
         if (!ok || !known) {
-            continue;
+            return false;
         }
         for (let k = d + 1; k < fn.close; k++) {
             const read = new RegExp ('^(\\s*(?:var \\w+ [\\w.*\\[\\]]+ = |\\w+ := ))(?:ccxt\\.)?GetValue\\(' + holder + ', (\\w+)\\)$').exec (lines[k]);
@@ -9632,8 +9610,8 @@ function goPromiseAllLoopReads (content: string): string {
                 changed = true;
             }
         }
-    }
-    return changed ? lines.join ('\n') : content;
+        return changed;
+    });
 }
 
 function goPromiseAllLoopSelfTest (ok: SelfTestOk): void {
@@ -9800,9 +9778,6 @@ function goSafeDictMapReads (content: string): string {
 // ===== AwaitResult -> native channel receive in typed wrappers =====
 // Same steps as AwaitResult: one receive, "panic:" string -> error, else convert to the wrapper type.
 function goNativeAwaitConversion (converter: string): string {
-    if (converter === 'Untyped') {
-        return 'raw';
-    }
     const assertion = /^AssertAs\[(.+)\]$/.exec (converter);
     return assertion ? `raw.(${assertion[1]})` : `${converter}(raw)`;
 }
@@ -10005,11 +9980,6 @@ function goNativeKeysRewriteLine (line: string, m: string, k: number, maskedFunc
             ind + '}',
         ];
     }
-    const rm = /^(\s*)(?:ccxt\.)?Remove\((\w+), (\w+|"[^"\\\n]*")\)(\s*(?:\/\/.*)?)$/.exec (line);
-    if (rm && /^\s*(?:ccxt\.)?Remove\(/.test (m) && (typeAt (rm[2], k) === 'map[string]any')
-        && (rm[3].startsWith ('"') || (typeAt (rm[3], k) === 'string'))) {
-        return [ rm[1] + 'delete(' + rm[2] + ', ' + rm[3] + ')' + rm[4] ];
-    }
     return [ line ];
 }
 
@@ -10201,9 +10171,6 @@ function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (nam
     if (/^\d+$/.test (key)) {
         return true;
     }
-    if (typeAt (key, k) === 'int') {
-        return true;
-    }
     const n = goAccessEscape (key);
     return (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|\\bvar\\s+' + n + '\\b|[(,]\\s*' + n + '\\s+\\w', 'gm')) ?? []).length === 1
         && new RegExp ('\\bfor ' + n + ' := \\d+; ').test (maskedFunc);
@@ -10214,9 +10181,6 @@ function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (nam
 function goDerefGuardedListReads (lines: string[], masked: string[], start: number, k: number,
     typeAt: (name: string, k: number) => string | undefined, maskedFunc: string, head: string) {
     const m = masked[k];
-    if (m.indexOf ('GetValue(') < 0) {
-        return;
-    }
     const indent = lines[k].substring (0, lines[k].length - lines[k].trimStart ().length);
     const consumerTail = new RegExp ('(?:' + head + ')$');
     const rx = /(?<![\w.])(?:ccxt\.)?GetValue\((\w+), (\w+)\)/g;
