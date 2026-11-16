@@ -454,16 +454,14 @@ func (this *Foxbit) ParseCurrency(rawCurrency any) map[string]any {
 		var networkCode *string = this.NetworkIdToCode(networkId, code)
 		var networkWithdrawInfo map[string]any = SafeMapTyped(network, "withdraw_info")
 		var networkDepositInfo map[string]any = SafeMapTyped(network, "deposit_info")
-		var isWithdrawEnabled bool = (this.SafeString(networkWithdrawInfo, "status") != nil && *this.SafeString(networkWithdrawInfo, "status") == "ENABLED")
-		var isDepositEnabled bool = (this.SafeString(networkDepositInfo, "status") != nil && *this.SafeString(networkDepositInfo, "status") == "ENABLED")
 		if networkCode != nil {
 			parsedNetworks[*networkCode] = map[string]any{
 				"info":      rawCurrency,
 				"id":        networkId,
 				"network":   networkCode,
 				"name":      this.SafeString(network, "name"),
-				"deposit":   isDepositEnabled,
-				"withdraw":  isWithdrawEnabled,
+				"deposit":   (this.SafeString(networkDepositInfo, "status") != nil && *this.SafeString(networkDepositInfo, "status") == "ENABLED"),
+				"withdraw":  (this.SafeString(networkWithdrawInfo, "status") != nil && *this.SafeString(networkWithdrawInfo, "status") == "ENABLED"),
 				"active":    true,
 				"precision": nil,
 				"fee":       this.SafeNumber(networkWithdrawInfo, "fee"),
@@ -1140,11 +1138,11 @@ func (this *Foxbit) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes88415 []any = OrdersToList(r.Value)
-	if retRes88415 == nil {
+	var retRes88215 []any = OrdersToList(r.Value)
+	if retRes88215 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes88415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes88215)}
 	}
 	return nil
 }
@@ -1181,11 +1179,11 @@ func (this *Foxbit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes89915 []any = OrdersToList(r.Value)
-	if retRes89915 == nil {
+	var retRes89715 []any = OrdersToList(r.Value)
+	if retRes89715 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes89915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes89715)}
 	}
 	return nil
 }
@@ -1210,11 +1208,11 @@ func (this *Foxbit) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes90315 []any = OrdersToList(r.Value)
-	if retRes90315 == nil {
+	var retRes90115 []any = OrdersToList(r.Value)
+	if retRes90115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes90315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes90115)}
 	}
 	return nil
 }

@@ -553,14 +553,8 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 			panic(r.Err)
 		}
 	}
-	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
-	var symbolsList []string = symbolsNormalized
-	var firstMarket map[string]any = this.Market(func() any {
-		if 0 >= 0 && 0 < len(symbolsList) {
-			return symbolsList[0]
-		}
-		return nil
-	}())
+	var symbolsList []string = this.MarketSymbols(symbols, nil, false)
+	var firstMarket map[string]any = this.Market(symbolsList[0])
 	var channel string = "tickers"
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBidsAsks", firstMarket, params)
 	var typeUrls map[string]any = ccxt.SafeMapTyped(this.UrlsApi["ws"], marketType)
@@ -593,7 +587,7 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		return nil
 	}
 
-	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsNormalized)}
+	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsList)}
 	return nil
 }
 func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
@@ -972,12 +966,10 @@ func (this *Blofin) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], opti
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
 	params["callerMethodName"] = "watchOrders"
-	var symbolsArray any = func() any {
-		if symbol != nil {
-			return []any{symbol}
-		}
-		return []any{}
-	}()
+	var symbolsArray []any = []any{}
+	if symbol != nil {
+		symbolsArray = append(symbolsArray, symbol)
+	}
 
 	r := <-this.WatchOrdersForSymbolsAsync(symbolsArray, since, limit, params)
 	if r.Err != nil {
@@ -1384,8 +1376,7 @@ func (this *Blofin) unsubscribeMultipleWrapperBody(ch chan ccxt.AsyncResult[any]
 		var market map[string]any = this.Market(this.SafeString(symbols, i))
 		var channel any = channelName
 		if isOHLCV {
-			var tfArray any = ccxt.GetValue(symbolsArray, i)
-			var tf any = ccxt.GetValue(tfArray, 1)
+			var tf *string = this.SafeString(this.SafeList(symbolsArray, i), 1)
 			var interval *string = this.SafeString(this.Timeframes, tf, tf)
 			channel = ccxt.Add(channel, interval)
 		}

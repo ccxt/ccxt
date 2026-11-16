@@ -2504,7 +2504,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var typeVar *string = this.SafeString(order, "ord_type")
 	var timestamp *int64 = this.Parse8601(this.SafeString(order, "created_at"))
 	var status *string = this.ParseOrderStatus(this.SafeString(order, "state"))
-	var lastTradeTimestamp any = nil
+	var lastTradeTimestamp *int64 = nil
 	var price *string = this.SafeString(order, "price")
 	var amount *string = this.SafeString(order, "volume")
 	var remaining *string = this.SafeString(order, "remaining_volume")
@@ -2528,7 +2528,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) Order {
 	if numTrades > 0 {
 		// the timestamp in fetchOrder trades is missing
 		var lastTrade map[string]any = SafeMapTyped(trades, numTrades-1)
-		lastTradeTimestamp = lastTrade["timestamp"]
+		lastTradeTimestamp = this.SafeInteger(lastTrade, "timestamp")
 		var getFeesFromTrades bool = false
 		if feeCost == nil {
 			getFeesFromTrades = true
@@ -3253,17 +3253,16 @@ func (this *Upbit) Sign(path string, optionalArgs ...any) map[string]any {
 		var token string = Jwt(request, this.Encode(this.Secret), sha256)
 		headers["Authorization"] = "Bearer " + token
 	}
-	var requestHeaders any = func() any {
-		if apiName == "private" {
-			return headers
-		}
-		return nil
-	}()
 	return map[string]any{
-		"url":     url,
-		"method":  method,
-		"body":    requestBody,
-		"headers": requestHeaders,
+		"url":    url,
+		"method": method,
+		"body":   requestBody,
+		"headers": func() any {
+			if apiName == "private" {
+				return headers
+			}
+			return nil
+		}(),
 	}
 }
 func (this *Upbit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

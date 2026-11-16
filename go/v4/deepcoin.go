@@ -526,13 +526,12 @@ func (this *Deepcoin) HandleMarketTypeAndParams(methodName any, optionalArgs ...
 	var instType *string = this.SafeString(params, "instType")
 	var paramsOmitted map[string]any = this.OmitDict(params, "instType")
 	var typeVar *string = this.SafeString(paramsOmitted, "type")
-	var paramsExtended map[string]any = paramsOmitted
 	if (typeVar == nil) && (instType != nil) {
-		paramsExtended = this.Extend(paramsOmitted, map[string]any{
+		return this.Exchange.HandleMarketTypeAndParams(methodName, market, this.Extend(paramsOmitted, map[string]any{
 			"type": instType,
-		})
+		}), defaultValue)
 	}
-	return this.Exchange.HandleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue)
+	return this.Exchange.HandleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue)
 }
 func (this *Deepcoin) ConvertToInstrumentType(typeVar any) *string {
 	var exchangeTypes map[string]any = SafeMapTyped(this.Options, "exchangeType")
@@ -922,11 +921,11 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes68419 []any = r1.Value
-		if retRes68419 == nil {
+		var retRes68319 []any = r1.Value
+		if retRes68319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes68319)}
 		}
 		return nil
 	}
@@ -943,12 +942,10 @@ func (this *Deepcoin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		request["after"] = until
 	}
 	var calculateUntil *bool = this.SafeBool(paramsPaginate, "calculateUntil", false)
-	var keysToOmit any = func() any {
-		if calculateUntil != nil && *calculateUntil {
-			return []any{"price", "until", "calculateUntil"}
-		}
-		return []any{"price", "until"}
-	}()
+	var keysToOmit []any = []any{"price", "until"}
+	if calculateUntil != nil && *calculateUntil {
+		keysToOmit = append(keysToOmit, "calculateUntil")
+	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, keysToOmit)
 	if calculateUntil != nil && *calculateUntil {
 		if since != nil {
@@ -1395,11 +1392,11 @@ func (this *Deepcoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes102719 []any = r1.Value
-		if retRes102719 == nil {
+		var retRes102919 []any = r1.Value
+		if retRes102919 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes102719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes102919)}
 		}
 		return nil
 	}
@@ -1479,11 +1476,11 @@ func (this *Deepcoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes107419 []any = r1.Value
-		if retRes107419 == nil {
+		var retRes107619 []any = r1.Value
+		if retRes107619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes107619)}
 		}
 		return nil
 	}
@@ -2333,17 +2330,15 @@ func (this *Deepcoin) HandleTypePostOnlyAndTimeInForce(typeVar string, params an
 	var postOnlyparamsPostOnlyVariable []any = this.HandlePostOnly((typeVar == "market"), (typeVar == "post_only"), params)
 	var postOnly bool = postOnlyparamsPostOnlyVariable[0].(bool)
 	var paramsPostOnly map[string]any = postOnlyparamsPostOnlyVariable[1].(map[string]any)
-	var typePostOnly string = typeVar
-	if postOnly {
-		typePostOnly = "post_only"
-	}
 	var timeInForce any = this.HandleTimeInForce(paramsPostOnly)
 	var paramsOmitted map[string]any = this.OmitDict(paramsPostOnly, "timeInForce")
-	var typeValue string = typePostOnly
 	if IsEqual(timeInForce, "IOC") {
-		typeValue = "ioc"
+		return []any{"ioc", paramsOmitted}
 	}
-	return []any{typeValue, paramsOmitted}
+	if postOnly {
+		return []any{"post_only", paramsOmitted}
+	}
+	return []any{typeVar, paramsOmitted}
 }
 
 /**

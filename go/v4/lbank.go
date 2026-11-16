@@ -690,8 +690,8 @@ func (this *Lbank) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opti
 		panic(r.Err)
 	}
 	var resolvedMarkets []any = ListTyped(r.Value)
-	var spotMarkets any = this.SafeValue(resolvedMarkets, 0)
-	var swapMarkets any = this.SafeValue(resolvedMarkets, 1)
+	var spotMarkets []any = SafeListTypedDefault(resolvedMarkets, 0, []any{})
+	var swapMarkets []any = SafeListTypedDefault(resolvedMarkets, 1, []any{})
 
 	ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(this.ArrayConcat(spotMarkets, swapMarkets))}
 	return nil

@@ -1167,9 +1167,8 @@ func (this *Derive) getMarketsPaginatedBody(ch chan AsyncResult[[]map[string]any
 	maxPages, paramsMaxPages := this.HandleOptionIntegerAndParams(params, "getMarketsPaginated", "maxMarketPages", 25)
 	pageSize, paramsOmitted := this.HandleOptionIntegerAndParams(paramsMaxPages, "getMarketsPaginated", "maxMarketsPerPage", 1000)
 	for i := 0; int64(i) < maxPages; i++ {
-		var page int = i + 1
 		var requestExtension map[string]any = map[string]any{
-			"page":      page,
+			"page":      i + 1,
 			"page_size": pageSize,
 		}
 		var requestExtended map[string]any = this.Extend(this.Extend(request, requestExtension), paramsOmitted) // nested because the csharp base defines extend with two arguments only
@@ -1972,11 +1971,11 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes141919 []any = r1.Value
-		if retRes141919 == nil {
+		var retRes141819 []any = r1.Value
+		if retRes141819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes141819)}
 		}
 		return nil
 	}
@@ -2195,11 +2194,11 @@ func (this *Derive) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes159419 []any = r1.Value
-		if retRes159419 == nil {
+		var retRes159319 []any = r1.Value
+		if retRes159319 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159419)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes159319)}
 		}
 		return nil
 	}
@@ -3889,11 +3888,11 @@ func (this *Derive) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes296919 []any = r1.Value
-		if retRes296919 == nil {
+		var retRes296819 []any = r1.Value
+		if retRes296819 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296919)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes296819)}
 		}
 		return nil
 	}
@@ -4213,11 +4212,11 @@ func (this *Derive) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322719 []any = r1.Value
-		if retRes322719 == nil {
+		var retRes322619 []any = r1.Value
+		if retRes322619 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322719)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes322619)}
 		}
 		return nil
 	}

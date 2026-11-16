@@ -1882,9 +1882,8 @@ func (this *Cryptocom) watchPublicMultipleBody(ch chan ccxt.AsyncResult[any], me
 		},
 		"nonce": id,
 	}
-	var message map[string]any = this.DeepExtend(request, params)
 
-	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes)
+	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes)
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1920,9 +1919,8 @@ func (this *Cryptocom) unWatchPublicMultipleBody(ch chan ccxt.AsyncResult[bool],
 		"subMessageHashes": subMessageHashes,
 		"messageHashes":    messageHashes,
 	}
-	var message map[string]any = this.DeepExtend(request, params)
 
-	r := <-this.WatchMultiple(url, messageHashes, message, messageHashes, this.Extend(subscription, subExtend))
+	r := <-this.WatchMultiple(url, messageHashes, this.DeepExtend(request, params), messageHashes, this.Extend(subscription, subExtend))
 	if r.Err != nil {
 		panic(r.Err)
 	}

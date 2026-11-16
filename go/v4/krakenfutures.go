@@ -2967,7 +2967,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) Order {
 				executions = append(executions, item)
 			}
 			// Final order (after placement / editing / execution / canceling)
-			var orderTrigger any = this.SafeValue(item, "orderTrigger")
+			var orderTrigger map[string]any = SafeMapTyped(item, "orderTrigger")
 			if IsEqual(details, nil) {
 				details = this.SafeValue2(item, "new", "order", orderTrigger)
 				if !IsEqual(details, nil) {

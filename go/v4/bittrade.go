@@ -3020,8 +3020,7 @@ func (this *Bittrade) Sign(path string, optionalArgs ...any) map[string]any {
 		if method != "POST" {
 			request = this.Extend(request, query)
 		}
-		var requestSorted map[string]any = this.Keysort(request)
-		var auth string = this.Urlencode(requestSorted)
+		var auth string = this.Urlencode(this.Keysort(request))
 		// unfortunately, PHP demands double quotes for the escaped newline symbol
 		// eslint-disable-next-line quotes
 		var payload string = method + "\n" + this.Hostname + "\n" + url + "\n" + auth

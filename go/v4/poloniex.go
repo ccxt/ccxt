@@ -1620,11 +1620,10 @@ func (this *Poloniex) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], o
 	return nil
 }
 func (this *Poloniex) ParseCurrency(currency any) map[string]any {
-	var entry any = currency
-	var id *string = this.SafeString(entry, "coin")
+	var id *string = this.SafeString(currency, "coin")
 	var code *string = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains []any = SafeListTyped(entry, "networkList")
+	var chains []any = SafeListTyped(currency, "networkList")
 	var chainsLength int = len(chains)
 	for j := 0; j < chainsLength; j++ {
 		var chain map[string]any = SafeMapTyped(chains, j)
@@ -1656,18 +1655,18 @@ func (this *Poloniex) ParseCurrency(currency any) map[string]any {
 	}
 	return this.SafeCurrencyStructure(map[string]any{
 		"id":        id,
-		"name":      this.SafeString(entry, "name"),
+		"name":      this.SafeString(currency, "name"),
 		"code":      code,
 		"type":      nil,
 		"precision": nil,
-		"info":      entry,
+		"info":      currency,
 		"networks":  networks,
 		"deposit":   nil,
 		"withdraw":  nil,
 		"active":    nil,
 		"fee":       nil,
 		"limits":    nil,
-		"margin":    this.SafeBool(entry, "supportBorrow"),
+		"margin":    this.SafeBool(currency, "supportBorrow"),
 	})
 }
 
@@ -2010,11 +2009,11 @@ func (this *Poloniex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes158619 []any = r1.Value
-		if retRes158619 == nil {
+		var retRes158519 []any = r1.Value
+		if retRes158519 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158619)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes158519)}
 		}
 		return nil
 	}
@@ -4681,7 +4680,7 @@ func (this *Poloniex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(this.FilterByCurrencySinceLimit(transactions, code, since, limit))}
 	return nil
 }
-func (this *Poloniex) ParseTransactionStatus(status any) *string {
+func (this *Poloniex) ParseTransactionStatus(status *string) *string {
 	var statuses map[string]any = map[string]any{
 		"COMPLETE":          "ok",
 		"COMPLETED":         "ok",
@@ -4740,8 +4739,8 @@ func (this *Poloniex) ParseTransaction(transaction any, optionalArgs ...any) Tra
 	var timestamp *int64 = this.SafeTimestamp(transactionValue, "timestamp")
 	var currencyId *string = this.SafeString(transactionValue, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var status any = (*this.SafeString(transactionValue, "status", "pending"))
-	status = this.ParseTransactionStatus(status)
+	var rawStatus *string = this.SafeString(transactionValue, "status", "pending")
+	var status *string = this.ParseTransactionStatus(rawStatus)
 	var txid *string = this.SafeString(transactionValue, "txid")
 	var typeVar string = "deposit"
 	if this.SafeString(transactionValue, "withdrawalRequestsId") != nil {

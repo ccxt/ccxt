@@ -224,10 +224,8 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 		}
 		return ccxt.Join(symbols, ",")
 	}()
-	var symbolsHash any = nil
-	if this.IsEmpty(symbols) {
-		symbolsHash = messageHash
-	} else {
+	var symbolsHash any = messageHash
+	if !this.IsEmpty(symbols) {
 		symbolsHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolsSuffix)
 	}
 	if !ccxt.IsEqual(name, "balances") {
@@ -1550,9 +1548,9 @@ func (this *Poloniex) HandleOrder(client any, message map[string]any) any {
 				if ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil) {
 					ccxt.AddElementToObject(previousOrder, "trades", []any{})
 				}
-				retRes104920 := ccxt.GetValue(previousOrder, "trades")
-				ccxt.AppendToArray(&retRes104920, trade)
-				ccxt.AddElementToObject(previousOrder, "trades", retRes104920)
+				retRes104720 := ccxt.GetValue(previousOrder, "trades")
+				ccxt.AppendToArray(&retRes104720, trade)
+				ccxt.AddElementToObject(previousOrder, "trades", retRes104720)
 				ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", trade["timestamp"])
 				var totalCost any = "0"
 				var totalAmount any = "0"

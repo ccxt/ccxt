@@ -811,7 +811,6 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
-		var auth string = ts
 		var secret any = this.Secret
 		if strings.Index(this.Secret, "ed25519:") >= 0 {
 			var parts []string = strings.Split(this.Secret, "ed25519:")
@@ -822,7 +821,7 @@ func (this *Woofipro) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 				return nil
 			}()
 		}
-		var signature string = ccxt.Eddsa(this.Encode(auth), this.Base58ToBinary(secret), ccxt.Ed25519)
+		var signature string = ccxt.Eddsa(this.Encode(ts), this.Base58ToBinary(secret), ccxt.Ed25519)
 		var request map[string]any = map[string]any{
 			"event": event,
 			"params": map[string]any{

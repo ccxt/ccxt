@@ -1441,13 +1441,12 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 	if makerFeeCost != nil {
 		var makerCode *string = makerCurrencyCode
 		if takerFeeCost != nil {
-			var takerCode *string = takerCurrencyCode
 			result["fees"] = []any{map[string]any{
 				"cost":     makerFeeCost,
 				"currency": makerCode,
 			}, map[string]any{
 				"cost":     takerFeeCost,
-				"currency": takerCode,
+				"currency": takerCurrencyCode,
 			}}
 		} else {
 			result["fee"] = map[string]any{
@@ -1456,10 +1455,9 @@ func (this *Bigone) ParseTrade(trade any, optionalArgs ...any) Trade {
 			}
 		}
 	} else if takerFeeCost != nil {
-		var takerCode2 *string = takerCurrencyCode
 		result["fee"] = map[string]any{
 			"cost":     takerFeeCost,
-			"currency": takerCode2,
+			"currency": takerCurrencyCode,
 		}
 	} else {
 		result["fee"] = nil
@@ -2396,11 +2394,11 @@ func (this *Bigone) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes195715 []any = OrdersToList(r.Value)
-	if retRes195715 == nil {
+	var retRes195515 []any = OrdersToList(r.Value)
+	if retRes195515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195715)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes195515)}
 	}
 	return nil
 }
@@ -2440,11 +2438,11 @@ func (this *Bigone) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes197515 []any = OrdersToList(r.Value)
-	if retRes197515 == nil {
+	var retRes197315 []any = OrdersToList(r.Value)
+	if retRes197315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes197315)}
 	}
 	return nil
 }

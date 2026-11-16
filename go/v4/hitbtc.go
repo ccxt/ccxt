@@ -1071,8 +1071,7 @@ func (this *Hitbtc) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 	var currencyId *string = this.SafeString(currency, "_coin_id")
 	var code *string = this.SafeCurrencyCode(currencyId)
-	var entry any = currency
-	var rawNetworks []any = SafeListTyped(entry, "networks")
+	var rawNetworks []any = SafeListTyped(currency, "networks")
 	var networks map[string]any = map[string]any{}
 	for j := 0; j < len(rawNetworks); j++ {
 		var rawNetwork any = rawNetworks[j]
@@ -1112,14 +1111,14 @@ func (this *Hitbtc) ParseCurrency(currency any) map[string]any {
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"info":      entry,
+		"info":      currency,
 		"code":      code,
 		"id":        currencyId,
-		"precision": this.SafeNumber(entry, "precision_transfer"),
-		"name":      this.SafeString(entry, "full_name"),
-		"active":    !(*this.SafeBool(entry, "delisted", false)),
-		"deposit":   this.SafeBool(entry, "payin_enabled"),
-		"withdraw":  this.SafeBool(entry, "payout_enabled"),
+		"precision": this.SafeNumber(currency, "precision_transfer"),
+		"name":      this.SafeString(currency, "full_name"),
+		"active":    !(*this.SafeBool(currency, "delisted", false)),
+		"deposit":   this.SafeBool(currency, "payin_enabled"),
+		"withdraw":  this.SafeBool(currency, "payout_enabled"),
 		"networks":  networks,
 		"fee":       nil,
 		"limits": map[string]any{
@@ -2431,11 +2430,11 @@ func (this *Hitbtc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189319 []any = r1.Value
-		if retRes189319 == nil {
+		var retRes189219 []any = r1.Value
+		if retRes189219 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189319)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes189219)}
 		}
 		return nil
 	}
@@ -4003,11 +4002,11 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes297219 []any = r1.Value
-		if retRes297219 == nil {
+		var retRes297119 []any = r1.Value
+		if retRes297119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes297119)}
 		}
 		return nil
 	}

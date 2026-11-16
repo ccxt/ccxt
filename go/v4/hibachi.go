@@ -1262,19 +1262,7 @@ func (this *Hibachi) EditOrderRequest(nonce int64, id *string, symbol any, typeV
 	var market map[string]any = this.Market(symbol)
 	var takerFee *float64 = this.SafeNumber(market, "taker", 0)
 	var makerFee *float64 = this.SafeNumber(market, "maker", 0)
-	var takerFeeValue float64 = func() float64 {
-		if takerFee == nil {
-			return 0
-		}
-		return *takerFee
-	}()
-	var makerFeeValue float64 = func() float64 {
-		if makerFee == nil {
-			return 0
-		}
-		return *makerFee
-	}()
-	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFeeValue), this.NumberToString(makerFeeValue)))
+	var feeRate *float64 = this.ParseNumber(Precise.StringMax(this.NumberToString(takerFee), this.NumberToString(makerFee)))
 	var message any = this.OrderMessage(market, nonce, feeRate, typeVar, side, amount, price)
 	var signature string = this.SignMessage(message, this.PrivateKey)
 	var request map[string]any = map[string]any{

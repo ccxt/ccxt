@@ -1910,21 +1910,20 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan AsyncResult[[]LedgerEntry], o
 		}
 		return *limit
 	}()
-	var since any = nil
 	var request map[string]any = map[string]any{
 		"min_row": entryValue,
 		"max_row": this.Sum(entryValue, limitValue),
 	}
 
-	r := <-this.FetchLedgerAsync(code, since, limitValue, this.Extend(request, params))
+	r := <-this.FetchLedgerAsync(code, nil, limitValue, this.Extend(request, params))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes141115 []any = LedgerEntriesToList(r.Value)
-	if retRes141115 == nil {
+	var retRes141015 []any = LedgerEntriesToList(r.Value)
+	if retRes141015 == nil {
 		ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes141115)}
+		ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes141015)}
 	}
 	return nil
 }

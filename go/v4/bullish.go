@@ -1427,14 +1427,12 @@ func (this *Bullish) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id strin
 		}
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var paramsExtended any = params
+	var orderIdParams map[string]any = map[string]any{}
 	if clientOrderId == nil {
-		paramsExtended = this.Extend(map[string]any{
-			"orderId": id,
-		}, params)
+		orderIdParams["orderId"] = id
 	}
 
-	r1 := <-this.FetchMyTradesAsync(symbol, since, limit, paramsExtended)
+	r1 := <-this.FetchMyTradesAsync(symbol, since, limit, this.Extend(orderIdParams, params))
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

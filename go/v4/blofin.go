@@ -858,7 +858,6 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 	var maxLeverage *string = this.SafeString(market, "maxLeverage", "100")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
 	var isActive bool = (this.SafeString(market, "state") != nil && *this.SafeString(market, "state") == "live")
-	var isMargin bool = spot && (Precise.StringGt(maxLeverage, "1"))
 	var contractType *string = this.SafeString(market, "contractType")
 	var maxLimitAmount *float64 = this.SafeNumber(market, "maxLimitSize")
 	var maxSpotCost *float64 = this.SafeNumber(market, "maxMarketSize") // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -874,7 +873,7 @@ func (this *Blofin) ParseMarket(market any) map[string]any {
 		"type":     typeVar,
 		"spot":     spot,
 		"option":   option,
-		"margin":   isMargin,
+		"margin":   (spot && Precise.StringGt(maxLeverage, "1")),
 		"swap":     swap,
 		"future":   future,
 		"active":   isActive,
@@ -1436,11 +1435,11 @@ func (this *Blofin) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes108519 []any = r1.Value
-		if retRes108519 == nil {
+		var retRes108419 []any = r1.Value
+		if retRes108419 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes108419)}
 		}
 		return nil
 	}
@@ -1525,11 +1524,11 @@ func (this *Blofin) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes113219 []any = r1.Value
-		if retRes113219 == nil {
+		var retRes113119 []any = r1.Value
+		if retRes113119 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes113119)}
 		}
 		return nil
 	}
@@ -2502,11 +2501,11 @@ func (this *Blofin) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes187819 []any = r1.Value
-		if retRes187819 == nil {
+		var retRes187719 []any = r1.Value
+		if retRes187719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes187819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes187719)}
 		}
 		return nil
 	}
@@ -2598,11 +2597,11 @@ func (this *Blofin) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes192819 []any = r1.Value
-		if retRes192819 == nil {
+		var retRes192719 []any = r1.Value
+		if retRes192719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes192819)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes192719)}
 		}
 		return nil
 	}
@@ -2708,11 +2707,11 @@ func (this *Blofin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes199719 []any = r1.Value
-		if retRes199719 == nil {
+		var retRes199619 []any = r1.Value
+		if retRes199619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes199719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes199619)}
 		}
 		return nil
 	}
@@ -2784,11 +2783,11 @@ func (this *Blofin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes203719 []any = r1.Value
-		if retRes203719 == nil {
+		var retRes203619 []any = r1.Value
+		if retRes203619 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203719)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203619)}
 		}
 		return nil
 	}
@@ -2952,8 +2951,7 @@ func (this *Blofin) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], opt
 	ch <- AsyncResult[map[string]any]{Value: this.ParseCurrencies(currencies)}
 	return nil
 }
-func (this *Blofin) ParseCurrency(currency any) map[string]any {
-	var chains any = currency
+func (this *Blofin) ParseCurrency(chains any) map[string]any {
 	var firstChain map[string]any = SafeMapTyped(chains, 0)
 	var currencyId *string = this.SafeString(firstChain, "currency")
 	var code *string = this.SafeCurrencyCode(currencyId)
@@ -3242,7 +3240,7 @@ func (this *Blofin) fetchDepositBody(ch chan AsyncResult[Transaction], id any, o
 	// venue ignores the filter and returns the latest records instead
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeValue(data, i)
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if IsEqual(this.SafeString(entry, "depositId"), id) {
 
 			ch <- AsyncResult[Transaction]{Value: this.ParseTransaction(entry, currency)}
@@ -3304,7 +3302,7 @@ func (this *Blofin) fetchWithdrawalBody(ch chan AsyncResult[Transaction], id any
 	// case the venue ignores the filter and returns the latest records
 	var dataLength int = GetArrayLength(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeValue(data, i)
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var matches bool = false
 		if !IsEqual(id, nil) {
 			matches = (IsEqual(this.SafeString(entry, "withdrawId"), id))
@@ -3478,11 +3476,11 @@ func (this *Blofin) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes254219 []any = r1.Value
-		if retRes254219 == nil {
+		var retRes254019 []any = r1.Value
+		if retRes254019 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254219)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes254019)}
 		}
 		return nil
 	}
@@ -4117,7 +4115,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var entryPriceString *string = this.SafeString2(position, "averagePrice", "openAveragePrice")
 	var unrealizedPnlString *string = this.SafeString(position, "unrealizedPnl")
 	var leverageString *string = this.SafeString(position, "leverage")
-	var initialMarginPercentage any = nil
+	var initialMarginPercentageString *string = nil
 	var collateralString any = nil
 	var marginString any = nil
 	if marginMode != nil && *marginMode == "cross" {
@@ -4133,7 +4131,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 			return initialMarginString
 		}()
 	} else if marginMode != nil && *marginMode == "isolated" {
-		initialMarginPercentage = Precise.StringDiv("1", leverageString)
+		initialMarginPercentageString = Precise.StringDiv("1", leverageString)
 		var isolatedMarginString any = this.OmitZero(this.SafeString2(position, "margin", "initialMargin"))
 		if isolatedMarginString != nil {
 			initialMarginString = isolatedMarginString
@@ -4149,10 +4147,9 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 	var maintenanceMarginString *string = this.SafeString(position, "maintenanceMargin")
 	var maintenanceMargin *float64 = this.ParseNumber(maintenanceMarginString)
 	var maintenanceMarginPercentageString *string = Precise.StringDiv(maintenanceMarginString, notionalString)
-	if initialMarginPercentage == nil {
-		initialMarginPercentage = this.ParseNumber(Precise.StringDiv(initialMarginString, notionalString, 4))
+	if initialMarginPercentageString == nil {
+		initialMarginPercentageString = Precise.StringDiv(initialMarginString, notionalString, 4)
 	} else if IsEqual(initialMarginString, nil) {
-		var initialMarginPercentageString *string = this.NumberToString(initialMarginPercentage)
 		initialMarginString = Precise.StringMul(initialMarginPercentageString, notionalString)
 	}
 	var rounder string = "0.00005" // round to closest 0.01%
@@ -4220,7 +4217,7 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		"positionMargin":              this.ParseNumber(marginString),
 		"collateral":                  this.ParseNumber(collateralString),
 		"initialMargin":               this.ParseNumber(initialMarginString),
-		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentage),
+		"initialMarginPercentage":     this.ParseNumber(initialMarginPercentageString),
 		"leverage":                    this.ParseNumber(leverageString),
 		"marginRatio":                 marginRatio,
 		"stopLossPrice":               nil,
@@ -4538,11 +4535,11 @@ func (this *Blofin) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes332519 []any = r1.Value
-		if retRes332519 == nil {
+		var retRes332219 []any = r1.Value
+		if retRes332219 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332519)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes332219)}
 		}
 		return nil
 	}

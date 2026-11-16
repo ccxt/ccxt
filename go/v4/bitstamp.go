@@ -2831,7 +2831,7 @@ func (this *Bitstamp) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 			panic(r.Err)
 		}
 	}
-	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId
@@ -2888,7 +2888,7 @@ func (this *Bitstamp) fetchOrderBody(ch chan AsyncResult[Order], id string, opti
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var clientOrderId any = this.SafeValue2(params, "client_order_id", "clientOrderId")
+	var clientOrderId *string = this.SafeString2(params, "client_order_id", "clientOrderId")
 	var request map[string]any = map[string]any{}
 	if clientOrderId != nil {
 		request["client_order_id"] = clientOrderId

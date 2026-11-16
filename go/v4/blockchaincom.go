@@ -818,7 +818,7 @@ func (this *Blockchaincom) createOrderBody(ch chan AsyncResult[Order], symbol st
 		"orderQty": this.AmountToPrecision(symbol, amount),
 		"clOrdId":  clientOrderId,
 	}
-	var triggerPrice any = this.SafeValueN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
+	var triggerPrice *string = this.SafeStringN(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
 	var paramsOmitted2 map[string]any = this.OmitDict(paramsOmitted, []any{"triggerPrice", "stopPx", "stopPrice"})
 	if (uppercaseOrderType == "STOP") || (uppercaseOrderType == "STOPLIMIT") {
 		if triggerPrice == nil {

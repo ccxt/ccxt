@@ -3374,9 +3374,8 @@ func (this *Toobit) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingF
 	// }
 	//
 	var result map[string]any = map[string]any{}
-	var entry any = response
-	var marketResolved map[string]any = this.SafeMarket(this.SafeString(entry, "symbol"), market)
-	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(entry, marketResolved))
+	var marketResolved map[string]any = this.SafeMarket(this.SafeString(response, "symbol"), market)
+	var fee map[string]any = TradingFeeInterfaceToMap(this.ParseTradingFee(response, marketResolved))
 	AddElementToObject(result, marketResolved["symbol"], fee)
 
 	ch <- AsyncResult[map[string]TradingFeeInterface]{Value: TradingFeeInterfaceMapFromMap(result)}
@@ -3428,11 +3427,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes277515 []any = TransactionsToList(r.Value)
-	if retRes277515 == nil {
+	var retRes277415 []any = TransactionsToList(r.Value)
+	if retRes277415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277415)}
 	}
 	return nil
 }
@@ -3469,11 +3468,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes279015 []any = TransactionsToList(r.Value)
-	if retRes279015 == nil {
+	var retRes278915 []any = TransactionsToList(r.Value)
+	if retRes278915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279015)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278915)}
 	}
 	return nil
 }

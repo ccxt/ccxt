@@ -1743,7 +1743,7 @@ func (this *Mudrex) closePositionBody(ch chan AsyncResult[Order], symbol string,
 	}
 	var market map[string]any = this.Market(symbol)
 	var positionId *string = this.SafeString(params, "position_id")
-	var amount any = this.SafeValue(params, "amount")
+	var amount *string = this.SafeString(params, "amount")
 	if positionId == nil {
 
 		r1 := <-this.FetchPositionsAsync([]any{symbol}, params)

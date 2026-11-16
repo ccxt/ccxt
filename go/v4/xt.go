@@ -6873,12 +6873,7 @@ func (this *Xt) fetchTradingFeesBody(ch chan AsyncResult[map[string]TradingFeeIn
 func (this *Xt) ParseTradingFee(fee map[string]any, optionalArgs ...any) TradingFeeInterface {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var symbol any = func() any {
-		if market != nil {
-			return market["symbol"]
-		}
-		return nil
-	}()
+	var symbol *string = this.SafeString(market, "symbol")
 	return TradingFeeInterfaceFromMap(map[string]any{
 		"info":       fee,
 		"symbol":     symbol,

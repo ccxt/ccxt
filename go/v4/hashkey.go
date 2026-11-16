@@ -4180,8 +4180,7 @@ func (this *Hashkey) CheckTypeParam(methodName string, params any) {
 func (this *Hashkey) HandleTriggerOptionAndParams(params any, methodName any, optionalArgs ...any) []any {
 	var defaultValue *bool = GetArgBoolPtr(optionalArgs, 0, nil)
 	_ = defaultValue
-	var isTrigger *bool = defaultValue
-	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", isTrigger)
+	var isTriggerStopparamsStopVariable []any = this.HandleOptionBoolAndParams2Nullable(params, methodName, "stop", "trigger", defaultValue)
 	isTriggerStop := func() any {
 		if p, _ := isTriggerStopparamsStopVariable[0].(*bool); p != nil {
 			return *p
@@ -4691,11 +4690,11 @@ func (this *Hashkey) fetchPositionsBody(ch chan AsyncResult[[]Position], optiona
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes401915 []any = PositionsToList(r1.Value)
-	if retRes401915 == nil {
+	var retRes401815 []any = PositionsToList(r1.Value)
+	if retRes401815 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401915)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes401815)}
 	}
 	return nil
 }

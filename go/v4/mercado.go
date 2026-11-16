@@ -800,8 +800,7 @@ func (this *Mercado) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			}
 			var amountString *string = this.NumberToString(amount)
 			var priceString *string = this.NumberToString(price)
-			var cost any = this.ParseToNumeric(Precise.StringMul(amountString, priceString))
-			request["cost"] = this.PriceToPrecision(market["symbol"], cost)
+			request["cost"] = this.PriceToPrecision(market["symbol"], this.ParseToNumeric(Precise.StringMul(amountString, priceString)))
 
 			r3 := <-this.PrivatePostPlaceMarketBuyOrder(this.Extend(request, params))
 			if r3.Err != nil {

@@ -2511,12 +2511,12 @@ func (this *Dydx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalAr
 	ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(this.ParseLedger(response, currency, since, limit))}
 	return nil
 }
-func (this *Dydx) EstimateTxFeeAsync(message any, memo any, account any) <-chan AsyncResult[map[string]any] {
+func (this *Dydx) EstimateTxFeeAsync(message map[string]any, memo any, account any) <-chan AsyncResult[map[string]any] {
 	ch := make(chan AsyncResult[map[string]any], 1)
 	go this.estimateTxFeeBody(ch, message, memo, account)
 	return ch
 }
-func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message any, memo any, account any) any {
+func (this *Dydx) estimateTxFeeBody(ch chan AsyncResult[map[string]any], message map[string]any, memo any, account any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var txBytes any = this.EncodeDydxTxForSimulation(message, memo, this.SafeString(account, "sequence"), this.SafeDict(account, "pub_key", map[string]any{}))
@@ -2632,7 +2632,7 @@ func (this *Dydx) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 	}
 	var usd int64 = this.ParseToInt(Precise.StringMul(this.NumberToString(amount), "1000000"))
 	var payload map[string]any = nil
-	var signingPayload map[string]any = nil
+	var signingPayload map[string]any = map[string]any{}
 	if fromAccount == "main" {
 		// deposit to subaccount
 		if toSubaccountId == nil {

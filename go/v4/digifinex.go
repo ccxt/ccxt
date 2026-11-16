@@ -1570,16 +1570,16 @@ func (this *Digifinex) fetchTickerBody(ch chan AsyncResult[Ticker], symbol strin
 	//
 	var date *int64 = this.SafeInteger(response, "date")
 	var tickers []any = SafeListTyped(response, "ticker")
-	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	var firstTicker map[string]any = this.SafeDictMap(tickers, 0, map[string]any{})
-	var result any = data
 	if !(*this.SafeBool(market, "swap", false)) {
-		result = this.Extend(map[string]any{
+
+		ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.Extend(map[string]any{
 			"date": date,
-		}, firstTicker)
+		}, firstTicker), market)}
+		return nil
 	}
 
-	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(result, market)}
+	ch <- AsyncResult[Ticker]{Value: this.ParseTicker(this.SafeDict(response, "data", map[string]any{}), market)}
 	return nil
 }
 func (this *Digifinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
@@ -2506,11 +2506,9 @@ func (this *Digifinex) CreateOrderRequest(symbol *string, typeVar *string, side 
 		var quantity any = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsMarginMode, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true)
 		var isMarketBuy bool = isMarketOrder && (side != nil && *side == "buy")
-		var keysToOmit []any = nil
+		var keysToOmit []any = []any{"postOnly"}
 		if isMarketBuy {
-			keysToOmit = []any{"cost", "postOnly"}
-		} else {
-			keysToOmit = []any{"postOnly"}
+			keysToOmit = append(keysToOmit, "cost")
 		}
 		paramsRequest = this.OmitDict(paramsRequiresPrice, keysToOmit)
 		if isMarketBuy {
@@ -2787,12 +2785,12 @@ func (this *Digifinex) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []stri
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		retRes212019Recv, _ := OrdersToList(r1.Value), r1.Value != nil
-		var retRes212019 []any = retRes212019Recv
-		if retRes212019 == nil {
+		retRes211619Recv, _ := OrdersToList(r1.Value), r1.Value != nil
+		var retRes211619 []any = retRes211619Recv
+		if retRes211619 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes212019)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes211619)}
 		}
 		return nil
 	}
@@ -4083,11 +4081,11 @@ func (this *Digifinex) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes310815 []any = TransactionsToList(r.Value)
-	if retRes310815 == nil {
+	var retRes310415 []any = TransactionsToList(r.Value)
+	if retRes310415 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes310415)}
 	}
 	return nil
 }
@@ -4124,11 +4122,11 @@ func (this *Digifinex) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], 
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes312315 []any = TransactionsToList(r.Value)
-	if retRes312315 == nil {
+	var retRes311915 []any = TransactionsToList(r.Value)
+	if retRes311915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes312315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes311915)}
 	}
 	return nil
 }

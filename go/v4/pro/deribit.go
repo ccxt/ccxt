@@ -1303,7 +1303,7 @@ func (this *Deribit) watchMultipleWrapperBody(ch chan ccxt.AsyncResult[any], cha
 			panic(ccxt.ArgumentsRequired(this.Id + " watchMultipleWrapper() symbolsArray is required"))
 		}
 		var market map[string]any = nil
-		var currentDescriptor any = nil
+		var currentDescriptor any = ""
 		if isOHLCV {
 			var currentPair []any = ccxt.SafeListTyped(symbolsArray, i)
 			market = this.Market(this.SafeString(currentPair, 0))

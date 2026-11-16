@@ -1514,17 +1514,16 @@ func (this *Whitebit) fetchTradingLimitsBody(ch chan AsyncResult[map[string]any]
 	if this.Markets == nil {
 		panic(ExchangeError(this.Id + " markets not loaded"))
 	}
-	var markets map[string]any = this.Markets
 	var marketIds []string = nil
-	if markets != nil {
-		marketIds = make([]string, 0, len(markets))
-		for objectKey := range markets {
+	if this.Markets != nil {
+		marketIds = make([]string, 0, len(this.Markets))
+		for objectKey := range this.Markets {
 			marketIds = append(marketIds, objectKey)
 		}
 	}
 	for i := 0; i < len(marketIds); i++ {
 		var marketId string = marketIds[i]
-		var market any = this.SafeValue(markets, marketId)
+		var market any = this.SafeDict(this.Markets, marketId)
 		var marketSymbol *string = this.SafeString(market, "symbol")
 		if (market == nil) || (marketSymbol == nil) || (marketSymbol != nil && *marketSymbol == "") {
 			continue
@@ -4420,7 +4419,7 @@ func (this *Whitebit) withdrawBody(ch chan AsyncResult[Transaction], code string
 		request["memo"] = tag
 	}
 	if this.IsFiat(code) {
-		var provider any = this.SafeValue(paramsWithdrawTag, "provider")
+		var provider *string = this.SafeString(paramsWithdrawTag, "provider")
 		if provider == nil {
 			panic(ArgumentsRequired(this.Id + " withdraw() requires a provider when the ticker is fiat"))
 		}
@@ -5849,11 +5848,11 @@ func (this *Whitebit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes424119 []any = r.Value
-		if retRes424119 == nil {
+		var retRes424019 []any = r.Value
+		if retRes424019 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424119)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes424019)}
 		}
 		return nil
 	}
@@ -5964,15 +5963,16 @@ func (this *Whitebit) Sign(path string, optionalArgs ...any) map[string]any {
 	if isPrivate {
 		requestBody = privateBody
 	}
-	var requestHeaders map[string]any = publicHeaders
-	if isPrivate {
-		requestHeaders = privateHeaders
-	}
 	return map[string]any{
-		"url":     url,
-		"method":  method,
-		"body":    requestBody,
-		"headers": requestHeaders,
+		"url":    url,
+		"method": method,
+		"body":   requestBody,
+		"headers": func() any {
+			if isPrivate {
+				return privateHeaders
+			}
+			return publicHeaders
+		}(),
 	}
 }
 func (this *Whitebit) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

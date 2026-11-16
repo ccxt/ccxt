@@ -2232,10 +2232,12 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[Transf
 	}
 	var currency map[string]any = this.Currency(code)
 	var fromMain bool = (fromAccount == "")
-	var targetAccount string = fromAccount
-	if fromMain {
-		targetAccount = toAccount
-	}
+	var targetAccount string = func() string {
+		if fromMain {
+			return toAccount
+		}
+		return fromAccount
+	}()
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
 		"currency":   currency["id"],

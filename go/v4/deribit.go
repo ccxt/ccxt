@@ -2400,25 +2400,25 @@ func (this *Deribit) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
 	for i := 0; i < len(fees); i++ {
-		var fee any = fees[i]
-		var instrumentType *string = this.SafeString(fee, "instrument_type")
+		var feeEntry any = fees[i]
+		var instrumentType *string = this.SafeString(feeEntry, "instrument_type")
 		if instrumentType != nil && *instrumentType == "future" {
 			futureFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		} else if instrumentType != nil && *instrumentType == "perpetual" {
 			perpetualFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		} else if instrumentType != nil && *instrumentType == "option" {
 			optionFee = map[string]any{
-				"info":  fee,
-				"maker": this.SafeNumber(fee, "maker_fee"),
-				"taker": this.SafeNumber(fee, "taker_fee"),
+				"info":  feeEntry,
+				"maker": this.SafeNumber(feeEntry, "maker_fee"),
+				"taker": this.SafeNumber(feeEntry, "taker_fee"),
 			}
 		}
 	}

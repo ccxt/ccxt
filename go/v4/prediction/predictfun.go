@@ -4799,8 +4799,6 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + this.Urlencode(query)
 		}
 	}
-	var existingHeaders map[string]any = map[string]any{}
-	var headersValue map[string]any = existingHeaders
 	var authHeaders map[string]any = map[string]any{}
 	if (apiKey != nil) && (!(sandboxMode != nil && *sandboxMode)) {
 		// the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4830,7 +4828,7 @@ func (this *Predictfun) Sign(path string, optionalArgs ...any) map[string]any {
 		jsonText := this.Json(params)
 		bodyValue = &jsonText
 	}
-	var headersExtended map[string]any = this.Extend(headersValue, authHeaders)
+	var headersExtended map[string]any = this.Extend(map[string]any{}, authHeaders)
 	return map[string]any{
 		"url":     url,
 		"method":  method,

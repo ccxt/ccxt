@@ -1405,8 +1405,7 @@ func (this *Alpaca) GenerateClientOrderId(params any) *string {
 	var defaultClientId string = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
 	})
-	var clientOrderId *string = this.SafeString(params, "clientOrderId", defaultClientId)
-	return clientOrderId
+	return this.SafeString(params, "clientOrderId", defaultClientId)
 }
 
 /**
@@ -1939,11 +1938,11 @@ func (this *Alpaca) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes140415 []any = OrdersToList(r.Value)
-	if retRes140415 == nil {
+	var retRes140315 []any = OrdersToList(r.Value)
+	if retRes140315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes140315)}
 	}
 	return nil
 }
@@ -1985,11 +1984,11 @@ func (this *Alpaca) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes142415 []any = OrdersToList(r.Value)
-	if retRes142415 == nil {
+	var retRes142315 []any = OrdersToList(r.Value)
+	if retRes142315 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142415)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes142315)}
 	}
 	return nil
 }
@@ -2445,11 +2444,14 @@ func (this *Alpaca) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 		}
 	}
 	var currency map[string]any = this.Currency(code)
-	var addressValue any = address
 	var tagSuffix string = *this.SafeString(params, "tag", "")
-	if tagSuffix != "" {
-		addressValue = Add(Add(address, ":"), tagSuffix)
-	}
+	var taggedAddress any = Add(Add(address, ":"), tagSuffix)
+	var addressValue any = func() any {
+		if tagSuffix != "" {
+			return taggedAddress
+		}
+		return address
+	}()
 	var request map[string]any = map[string]any{
 		"asset":   currency["id"],
 		"address": addressValue,

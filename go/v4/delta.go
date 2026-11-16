@@ -434,19 +434,10 @@ func (this *Delta) CreateExpiredOptionMarket(symbol any) any {
 	var optionParts []string = Split(symbol, "-")
 	var symbolBase []string = Split(symbol, "/")
 	var hasSlash bool = (GetIndexOf(symbol, "/") > -1)
-	var partSource any = func() any {
-		if hasSlash {
-			return symbolBase
-		}
-		return optionParts
-	}()
-	var baseIndex int = func() int {
-		if hasSlash {
-			return 0
-		}
-		return 1
-	}()
-	var base *string = this.SafeString(partSource, baseIndex, "")
+	var base *string = this.SafeString(optionParts, 1, "")
+	if hasSlash {
+		base = this.SafeString(symbolBase, 0, "")
+	}
 	var optionType string = *this.SafeString(optionParts, func() int {
 		if hasSlash {
 			return 3
@@ -2864,11 +2855,11 @@ func (this *Delta) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes233015 []any = OrdersToList(r.Value)
-	if retRes233015 == nil {
+	var retRes233115 []any = OrdersToList(r.Value)
+	if retRes233115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233015)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes233115)}
 	}
 	return nil
 }
@@ -2905,11 +2896,11 @@ func (this *Delta) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalA
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes234515 []any = OrdersToList(r.Value)
-	if retRes234515 == nil {
+	var retRes234615 []any = OrdersToList(r.Value)
+	if retRes234615 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234515)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes234615)}
 	}
 	return nil
 }

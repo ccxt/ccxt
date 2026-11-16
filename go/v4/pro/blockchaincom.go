@@ -195,13 +195,13 @@ func (this *Blockchaincom) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV]
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var interval *string = this.SafeString(this.Timeframes, timeframe, timeframe)
 	var messageHash string = "ohlcv:" + symbolValue
-	var request map[string]any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"action":      "subscribe",
 		"channel":     "prices",
 		"symbol":      market["id"],
 		"granularity": this.ParseNumber(interval),
 	}
-	request = this.DeepExtend(request, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash, request)
@@ -299,12 +299,12 @@ func (this *Blockchaincom) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Ticker]
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var messageHash string = "ticker:" + symbolValue
-	var request map[string]any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "ticker",
 		"symbol":  market["id"],
 	}
-	request = this.DeepExtend(request, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash)
 	if r1.Err != nil {
@@ -436,12 +436,12 @@ func (this *Blockchaincom) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade
 	var symbolValue string = *this.SafeString(market, "symbol", "")
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var messageHash string = "trades:" + symbolValue
-	var request map[string]any = map[string]any{
+	var subscribe map[string]any = map[string]any{
 		"action":  "subscribe",
 		"channel": "trades",
 		"symbol":  market["id"],
 	}
-	request = this.DeepExtend(request, params)
+	var request map[string]any = this.DeepExtend(subscribe, params)
 
 	r1 := <-this.Watch(url, messageHash, request, messageHash, request)
 	if r1.Err != nil {

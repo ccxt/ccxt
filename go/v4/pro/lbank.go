@@ -909,25 +909,24 @@ func (this *Lbank) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	var key *string = ccxt.SafeStringPtr(r1.Value)
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash any = nil
-	var pair any = "all"
 	var symbolResolved any = func() any {
 		if symbol == nil {
 			return nil
 		}
 		return this.Symbol(symbol)
 	}()
+	var message map[string]any = map[string]any{
+		"action":       "subscribe",
+		"subscribe":    "orderUpdate",
+		"subscribeKey": key,
+		"pair":         "all",
+	}
 	if symbol == nil {
 		messageHash = "orders:all"
 	} else {
 		var market map[string]any = this.Market(symbol)
 		messageHash = "orders:" + market["symbol"].(string)
-		pair = market["id"]
-	}
-	var message map[string]any = map[string]any{
-		"action":       "subscribe",
-		"subscribe":    "orderUpdate",
-		"subscribeKey": key,
-		"pair":         pair,
+		message["pair"] = market["id"]
 	}
 	var request map[string]any = this.DeepExtend(message, params)
 
