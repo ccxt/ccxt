@@ -1,4 +1,4 @@
-// ===== GOCHAN-1: typed async carriers (`<-chan EndpointResult[T]`) and their consumers =====
+// ===== typed async carriers (`<-chan EndpointResult[T]`) and their consumers =====
 // A tabled method's cores send EndpointResult[T]{Value: v, Raw: v}; Raw is the value sent today, so
 // IsError / PanicOnError / ReturnPanicErrorT see the same payload. Table: build/go-chan-tables.json (endpoint).
 import fs from 'fs';
@@ -7,57 +7,43 @@ import { fileURLToPath } from 'url';
 import { goStructBoxedReturn } from './go-struct-returns.js';
 
 const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
+const GO_MAP = 'map[string]any';
+const GO_LIST = '[]any';
+// `this.X` and `this.DerivedExchange.X` for each [name, type] (retyped on the base and every override)
+const goChanBoth = (rows: string[][]) => rows.flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ]);
+const goChanRows = (names: string[], type: string, prefix = '', suffix = '') => names.map ((n) => [ prefix + n + suffix, type ]);
 // calls whose hand-written Go signature returns this type (go/v4/exchange_*.go)
-export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = {
-    'this.Extend': 'map[string]any', 'this.DeepExtend': 'map[string]any', 'this.ParseToInt': 'int64', 'this.Json': 'string',
-    'this.IndexBy': 'map[string]any',
-    // retyped by the printer's provenReturnFamilies (base + every override)
-    'this.ParseCurrencies': 'map[string]any', 'this.DerivedExchange.ParseCurrencies': 'map[string]any', 'this.ParseCurrenciesCustom': 'map[string]any', 'this.ArraysConcat': '[]any',
-    'OrderToMap': 'map[string]any', 'TickerToMap': 'map[string]any', 'TradeToMap': 'map[string]any', 'StructToMap': 'map[string]any',
-    'PositionToMap': 'map[string]any', 'TransactionToMap': 'map[string]any', 'LedgerEntryToMap': 'map[string]any', 'DepositAddressToMap': 'map[string]any',
-    'TransferEntryToMap': 'map[string]any', 'FundingRateToMap': 'map[string]any', 'OpenInterestToMap': 'map[string]any', 'TradingFeeInterfaceToMap': 'map[string]any',
-    'LeverageToMap': 'map[string]any', 'MarginModeToMap': 'map[string]any', 'GreeksToMap': 'map[string]any', 'OptionToMap': 'map[string]any', 'ConversionToMap': 'map[string]any',
-    'OHLCVToList': '[]any',
-    'TradesToList': '[]any', 'OrdersToList': '[]any', 'OHLCVsToList': '[]any', 'PositionsToList': '[]any', 'TransactionsToList': '[]any', 'LedgerEntriesToList': '[]any', // W28
-    'DepositAddressesToList': '[]any', 'TransferEntriesToList': '[]any', 'OpenInterestsToList': '[]any', 'ConversionsToList': '[]any', 'LiquidationsToList': '[]any', 'BorrowInterestsToList': '[]any', 'FundingHistoriesToList': '[]any', 'FundingRateHistoriesToList': '[]any', 'LeverageTiersToList': '[]any', 'MarginModificationsToList': '[]any', 'LongShortRatiosToList': '[]any', 'ADLsToList': '[]any', 'AccountsToList': '[]any', 'PredictionOrdersToList': '[]any', 'PredictionTradesToList': '[]any', 'PredictionPositionsToList': '[]any', 'PredictionEventsToList': '[]any', 'PredictionSettlementsToList': '[]any', // W3+W4+W5
-    ...Object.fromEntries ([ 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio', 'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo', 'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3', 'MarginLoan', 'Balance', 'Balances', 'LeverageTiers', 'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionEvent', 'PredictionSettlement' ].map ((t) => [ t + 'ToMap', 'map[string]any' ])), // W3+W4+W5
-    ...Object.fromEntries ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice', 'DepositWithdrawFee', 'DepositAddress', 'CrossBorrowRate', 'OrderBook', 'Greeks', 'Option', 'PredictionTicker' ].map ((t) => [ t + 'MapToMap', 'map[string]any' ])), // W29+W3+W4+W5
-    'PredictionOutcomeToMap': 'map[string]any', 'MarketInterfaceToMap': 'map[string]any', 'CurrencyToMap': 'map[string]any', 'CurrenciesToMap': 'map[string]any', 'MapSliceToList': '[]any', 'StringSliceToList': '[]any', // W6
-    'MarketInterfacesToList': '[]any', 'PredictionOutcomeMapToMap': 'map[string]any', 'PredictionEventMapToMap': 'map[string]any', // W8
-    'OHLCVForSymbolsMapToMap': 'map[string]any',
-    'MapTyped': 'map[string]any', 'MarketTyped': 'map[string]any', 'ListTyped': '[]any',
-    // exchange_prediction.go: retyped by transpilePredictionBaseMethods (no venue overrides)
-    'this.ApplyEventFetchParams': '[]any',
-    'this.SafeString': '*string', 'this.SafeString2': '*string', 'this.SafeStringN': '*string',
-    'this.SafeInteger': '*int64', 'this.SafeInteger2': '*int64', 'this.SafeIntegerN': '*int64',
-    'this.SafeFloat': '*float64', 'this.SafeFloat2': '*float64', 'this.SafeFloatN': '*float64',
-    'this.SafeNumber': '*float64', 'this.SafeNumber2': '*float64', 'this.SafeNumberN': '*float64',
-    'this.InsertMissingCandles': '[]any', 'this.DerivedExchange.InsertMissingCandles': '[]any',
-    'this.ParseTradingViewOHLCV': '[]any', 'this.DerivedExchange.ParseTradingViewOHLCV': '[]any',
-    // venue balance parsers retyped by the printer's provenReturnFamilies (goProvenMapCollectionMethods)
-    ...Object.fromEntries ([ 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
-        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList' ]
-        .flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
-    'this.SafeBool': '*bool', 'this.SafeBool2': '*bool', 'this.SafeBoolN': '*bool',
-    'this.ParseMarginLoan': 'map[string]any', 'this.DerivedExchange.ParseMarginLoan': 'map[string]any', 'this.ParseIsolatedBorrowRates': 'map[string]any', 'this.DerivedExchange.ParseIsolatedBorrowRates': 'map[string]any', 'this.ParseBorrowRateHistory': '[]any', 'this.DerivedExchange.ParseBorrowRateHistory': '[]any',
-    ...Object.fromEntries ([ 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
-    'this.ParseTransactionsByType': '[]any', // retyped by goProvenListMethods (kraken only)
-    ...Object.fromEntries ([ [ 'ParseLeverageTiers', 'map[string]any' ], [ 'ParseLeverages', 'map[string]any' ], [ 'ParseMarginModes', 'map[string]any' ], [ 'ParseMarketLeverageTiers', '[]any' ], [ 'ParseEmulatedLeverageTiers', '[]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
-    ...Object.fromEntries ([ [ 'ParseOpenInterestsHistory', '[]any' ], [ 'ParseLiquidations', '[]any' ], [ 'ParseADLRanks', '[]any' ], [ 'FilterByArrayADLRanks', '[]any' ], [ 'ParseOpenInterests', 'map[string]any' ], [ 'ParseADLRank', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
-    ...Object.fromEntries ([ [ 'ParseConversions', '[]any' ], [ 'ParseLongShortRatioHistory', '[]any' ], [ 'ParseAccounts', '[]any' ], [ 'ParseAllGreeks', 'map[string]any' ], [ 'ParseOptionChain', 'map[string]any' ], [ 'ParseAccount', 'map[string]any' ] ].flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ])),
-    'this.ParsePredictionOrders': '[]any', 'this.FilterByOutcomeSinceLimit': '[]any',
-    ...Object.fromEntries ([ 'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories' ].flatMap ((n) => [ [ 'this.' + n, '[]any' ], [ 'this.DerivedExchange.' + n, '[]any' ] ])),
-    'this.ParsePredictionTrades': '[]any',
-    'this.ParseDepositAddressSpecial': 'map[string]any', 'this.DerivedExchange.ParseDepositAddressSpecial': 'map[string]any',
-    ...Object.fromEntries ([ 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee', 'ParsePublicDepositWithdrawFees' ].flatMap ((n) => [ [ 'this.' + n, 'map[string]any' ], [ 'this.DerivedExchange.' + n, 'map[string]any' ] ])),
-    'this.SafePosition': 'map[string]any', 'this.DerivedExchange.SafePosition': 'map[string]any', 'this.ParsePosition': 'map[string]any', 'this.DerivedExchange.ParsePosition': 'map[string]any', 'this.ParseOptionPosition': 'map[string]any', 'this.DerivedExchange.ParseOptionPosition': 'map[string]any',
-    'this.ParsePredictionPositions': '[]any', 'this.DerivedExchange.ParsePredictionPositions': '[]any',
-    'this.ParseDepositAddresses': '[]any', 'this.DerivedExchange.ParseDepositAddresses': '[]any', // W15
-    'this.ParseTransfers': '[]any', 'this.DerivedExchange.ParseTransfers': '[]any', // W16
-    'this.ParseEvent': 'map[string]any', 'this.ParseMarketToEvent': 'map[string]any', // W18
-    'this.SetApiCredentials': 'map[string]any', 'this.Decode': 'string', // W20
-    'this.ParseDepositMethodIds': '[]any', 'this.ParsePortfolioDetails': '[]any', // W23
-};
+export const GO_CHAN_CALL_TYPES: { [callee: string]: string } = Object.fromEntries ([
+    [ 'this.ParseToInt', 'int64' ], [ 'this.Json', 'string' ], [ 'this.Decode', 'string' ],
+    ...goChanRows ([ 'Extend', 'DeepExtend', 'IndexBy', 'ParseCurrenciesCustom', 'ParseEvent', 'ParseMarketToEvent', 'SetApiCredentials' ], GO_MAP, 'this.'),
+    // ApplyEventFetchParams: exchange_prediction.go, retyped by transpilePredictionBaseMethods; ParseTransactionsByType: goProvenListMethods
+    ...goChanRows ([ 'ArraysConcat', 'ApplyEventFetchParams', 'ParseTransactionsByType', 'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', 'ParsePredictionTrades',
+        'ParseDepositMethodIds', 'ParsePortfolioDetails' ], GO_LIST, 'this.'),
+    ...[ [ 'String', '*string' ], [ 'Integer', '*int64' ], [ 'Float', '*float64' ], [ 'Number', '*float64' ], [ 'Bool', '*bool' ] ]
+        .flatMap (([ n, t ]) => goChanRows ([ '', '2', 'N' ], t, 'this.Safe' + n)),
+    ...goChanRows ([ 'Order', 'Ticker', 'Trade', 'Struct', 'Position', 'Transaction', 'LedgerEntry', 'DepositAddress', 'TransferEntry', 'FundingRate', 'OpenInterest',
+        'TradingFeeInterface', 'Leverage', 'MarginMode', 'Greeks', 'Option', 'Conversion', 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
+        'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo', 'DepositWithdrawFee',
+        'Account', 'OrderBook', 'OrderBookL3', 'MarginLoan', 'Balance', 'Balances', 'LeverageTiers', 'PredictionTicker', 'PredictionOrder', 'PredictionTrade',
+        'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionEvent', 'PredictionSettlement', 'PredictionOutcome',
+        'MarketInterface', 'Currency', 'Currencies', 'PredictionOutcomeMap', 'PredictionEventMap', 'OHLCVForSymbolsMap' ], GO_MAP, '', 'ToMap'),
+    ...goChanRows ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice', 'DepositWithdrawFee',
+        'DepositAddress', 'CrossBorrowRate', 'OrderBook', 'Greeks', 'Option', 'PredictionTicker' ], GO_MAP, '', 'MapToMap'),
+    ...goChanRows ([ 'OHLCV', 'Trades', 'Orders', 'OHLCVs', 'Positions', 'Transactions', 'LedgerEntries', 'DepositAddresses', 'TransferEntries', 'OpenInterests', 'Conversions',
+        'Liquidations', 'BorrowInterests', 'FundingHistories', 'FundingRateHistories', 'LeverageTiers', 'MarginModifications', 'LongShortRatios', 'ADLs', 'Accounts',
+        'PredictionOrders', 'PredictionTrades', 'PredictionPositions', 'PredictionEvents', 'PredictionSettlements', 'MapSlice', 'StringSlice', 'MarketInterfaces' ], GO_LIST, '', 'ToList'),
+    [ 'MapTyped', GO_MAP ], [ 'MarketTyped', GO_MAP ], [ 'ListTyped', GO_LIST ],
+    // printer-retyped by provenReturnFamilies (goProvenMapCollectionMethods for the balance parsers)
+    ...goChanBoth (goChanRows ([ 'ParseCurrencies', 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList', 'ParseMarginLoan',
+        'ParseIsolatedBorrowRates', 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash',
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', 'ParseOpenInterests', 'ParseADLRank', 'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount',
+        'ParseDepositAddressSpecial', 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
+        'ParsePublicDepositWithdrawFees', 'SafePosition', 'ParsePosition', 'ParseOptionPosition' ], GO_MAP)),
+    ...goChanBoth (goChanRows ([ 'InsertMissingCandles', 'ParseTradingViewOHLCV', 'ParseBorrowRateHistory', 'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers',
+        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts',
+        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', 'ParsePredictionPositions', 'ParseDepositAddresses', 'ParseTransfers' ], GO_LIST)),
+]);
 // the Go element type of a table value (`T?` marks cores that may also send a bare nil)
 export function goChanType (value: string | undefined): string | undefined {
     return (value === undefined) ? undefined : value.replace (/\?$/, '');
@@ -241,14 +227,16 @@ export function goChanEveryExitSends (lines: string[]): boolean {
     return (last === 'return nil') || /^panic\(/.test (last);
 }
 
-// the concrete return type of the single `func (this *R) name(..) T {` in the file (not any, not a tuple)
+// the concrete return type of a one-line `func ...(..) T {` header (not any, not a tuple)
+function goChanConcreteReturn (header: string): string | undefined {
+    const t = /\) ([^\s(){},]+) \{$/.exec (header);
+    return ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
+}
+
+// the concrete return type of the single `func (this *R) name(..) T {` in the file
 function goChanOwnReturn (masked: string, receiver: string, name: string): string | undefined {
     const decls = masked.match (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\([^\\n]*\\{$', 'gm')) || [];
-    if (decls.length !== 1) {
-        return undefined;
-    }
-    const t = /\) ([^\s(){},]+) \{$/.exec (decls[0]);
-    return ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
+    return (decls.length === 1) ? goChanConcreteReturn (decls[0]) : undefined;
 }
 
 // ===== sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
@@ -268,8 +256,7 @@ export function goChanBaseReturns (dir: string = path.join (path.dirname (fileUR
             const masked = goChanMask (fs.readFileSync (path.join (dir, f), 'utf8'));
             const decl = /^func \(this \*(BaseExchange|Exchange|PredictionExchange)\) (\w+)\([^\n]*\{$/gm;
             for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) {
-                const t = /\) ([^\s(){},]+) \{$/.exec (m[0]);
-                const type = ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
+                const type = goChanConcreteReturn (m[0]);
                 const k = m[1] + '.' + m[2];
                 seen.set (k, seen.has (k) ? undefined : type);
             }
@@ -331,6 +318,8 @@ function goChanVenueReturn (venue: string, name: string): string | undefined {
     }
     return goChanMethodReturn (masked, venue, name);
 }
+
+type GoChanEdit = { start: number, end: number, text: string };
 
 interface GoChanCore { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, sends: { start: number, end: number, expr: string, bind: boolean }[] }
 
@@ -449,7 +438,7 @@ function goChanCores (content: string, masked: string, table: Map<string, string
     return cores;
 }
 
-function goChanSplice (content: string, edits: { start: number, end: number, text: string }[]): string {
+function goChanSplice (content: string, edits: GoChanEdit[]): string {
     edits.sort ((a, b) => b.start - a.start);
     let out = content;
     let floor = Infinity;
@@ -463,9 +452,9 @@ function goChanSplice (content: string, edits: { start: number, end: number, tex
     return out;
 }
 
-function goChanCoreEdits (content: string, core: GoChanCore, type: string, q: string): { start: number, end: number, text: string }[] {
+function goChanCoreEdits (content: string, core: GoChanCore, type: string, q: string): GoChanEdit[] {
     const carrier = q + 'EndpointResult[' + type + ']';
-    const edits: { start: number, end: number, text: string }[] = [];
+    const edits: GoChanEdit[] = [];
     const asyncText = content.substring (core.asyncStart, core.asyncEnd).replace (') <-chan any {', ') <-chan ' + carrier + ' {').replace ('make(chan any, 1)', 'make(chan ' + carrier + ', 1)');
     edits.push ({ 'start': core.asyncStart, 'end': core.asyncEnd, 'text': asyncText });
     const head = content.substring (core.bodyStart, content.indexOf ('\n', core.bodyStart));
@@ -490,12 +479,12 @@ function goChanCoreEdits (content: string, core: GoChanCore, type: string, q: st
 }
 
 // consumer rewrites for every `<recv>.<M>Async(..)` call of a tabled method
-function goChanConsumerEdits (content: string, masked: string, table: Map<string, string>, skip: (at: number) => boolean): { start: number, end: number, text: string }[] {
+function goChanConsumerEdits (content: string, masked: string, table: Map<string, string>, skip: (at: number) => boolean): GoChanEdit[] {
     const names = [ ...table.keys () ];
     if (names.length === 0) {
         return [];
     }
-    const edits: { start: number, end: number, text: string }[] = [];
+    const edits: GoChanEdit[] = [];
     const call = new RegExp ('\\.(' + names.join ('|') + ')Async\\b', 'g');
     for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
         if (skip (m.index)) {
@@ -624,7 +613,7 @@ export function goChanCarrierPass (content: string, table: Map<string, string> =
     const masked = goChanMask (content);
     const q = goChanQual (content);
     const cores = goChanCores (content, masked, table);
-    const edits: { start: number, end: number, text: string }[] = [];
+    const edits: GoChanEdit[] = [];
     for (const core of cores) {
         edits.push (...goChanCoreEdits (content, core, goChanType (table.get (core.method)) as string, q));
     }
@@ -655,7 +644,8 @@ export function goChanSelfTest (): string[] {
     ok (goChanCarrierPass (out, table) === out, 'idempotent');
     const flag = goChanCarrierPass ('package ccxtpro\n\n' + core ('X', '\tch <- true\n\treturn nil\n', 'SetFlag').replace ('ReturnPanicError', 'ccxt.ReturnPanicError'), table);
     ok (flag.includes ('<-chan ccxt.EndpointResult[bool]') && flag.includes ('ccxt.ReturnPanicErrorT(ch)') && flag.includes ('ch <- ccxt.EndpointResult[bool]{Value: true, Raw: true}'), 'qualified bool core');
-    const throws = (body: string, name = 'SetX') => { try { goChanCarrierPass ('package ccxt\n' + core ('X', body, name), table); return false; } catch (e) { return true; } };
+    const tryPass = (src: string) => { try { goChanCarrierPass (src, table); return false; } catch (e) { return true; } };
+    const throws = (body: string, name = 'SetX') => tryPass ('package ccxt\n' + core ('X', body, name));
     ok (throws ('\tvar r any = nil\n\tch <- r\n\treturn nil\n'), 'any local rejected');
     ok (throws ('\tgo func() { ch <- nil }()\n\treturn nil\n'), 'escaping channel rejected');
     ok (throws ('\tvar b bool = true\n\tch <- b\n\treturn nil\n'), 'wrong type rejected');
@@ -690,7 +680,7 @@ export function goChanSelfTest (): string[] {
     ok (goChanCarrierPass (wrapper, new Map ([ [ 'SetX', 'map[string]any?' ] ])).includes ('var res map[string]any = r.Raw.(map[string]any)'), 'nilable wrapper keeps the assertion on Raw');
     ok (conv.includes ('var res Order = NewOrder(r.Raw)'), 'converted wrapper keeps the payload');
     ok (goChanCarrierPass (consumer, new Map ()) === consumer, 'empty table no-op');
-    ok ((() => { try { goChanCarrierPass ('package ccxt\n\nfunc (this *X) SetXAsync(a any) <-chan any {\n\tout := make(chan any)\n\treturn out\n}\n', table); return false; } catch (e) { return true; } }) (), 'hand shape rejected');
+    ok (tryPass ('package ccxt\n\nfunc (this *X) SetXAsync(a any) <-chan any {\n\tout := make(chan any)\n\treturn out\n}\n'), 'hand shape rejected');
     const bound = goChanCarrierPass ('package ccxt\n' + core ('X', '\tif a != nil {\n\t\tch <- this.Extend(a, map[string]any{\n\t\t\t"k": 1,\n\t\t})\n\t\treturn nil\n\t}\n\tch <- map[string]any{}\n\treturn nil\n'), table);
     ok (bound.includes ('\t\tchValue := this.Extend(a, map[string]any{\n\t\t\t"k": 1,\n\t\t})\n\t\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n\t\treturn nil'), 'bound call send');
     ok (bound.includes ('\tchValue := map[string]any{}\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'bound literal send');
@@ -703,7 +693,6 @@ export function goChanSelfTest (): string[] {
     const embed = 'package ccxt\ntype X struct {\n\tExchange\n}\n';
     const inherited = goChanCarrierPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table);
     ok (inherited.includes ('\tchValue := this.ParseBase(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'inherited base typed send');
-    const tryPass = (src: string) => { try { goChanCarrierPass (src, table); return false; } catch (e) { return true; } };
     ok (tryPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n') + 'func (this *X) ParseBase(a any) any {\n\treturn nil\n}\n'), 'own any override beats base');
     ok (tryPass ('package ccxt\ntype X struct {\n\tY\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'non-base embed rejected');
     ok (tryPass ('package ccxtpro\ntype X struct {\n\tExchange\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'other package rejected');

@@ -330,7 +330,7 @@ class GoLineParser {
         if (tok === undefined) {
             this.fail ();
         }
-        if (tok.text === '*') {
+        if (tok.text === '*' || tok.text === '<-') {
             this.p += 1;
             return this.parseType ();
         }
@@ -344,10 +344,6 @@ class GoLineParser {
                 this.fail ();
             }
             this.skipBalanced ();
-            return this.parseType ();
-        }
-        if (tok.text === '<-') {
-            this.p += 1;
             return this.parseType ();
         }
         if (tok.text === 'chan') {
@@ -404,18 +400,18 @@ function goWalkBinary (e: GoNode): [ boolean, boolean, number ] {
     let has4 = e.prec === 4;
     let has5 = e.prec === 5;
     let maxProblem = 0;
-    if (e.x.t === 'bin' && e.x.prec >= e.prec) {
-        const [ h4, h5, mp ] = goWalkBinary (e.x);
+    const walk = (sub: GoNode) => {
+        const [ h4, h5, mp ] = goWalkBinary (sub);
         has4 = has4 || h4;
         has5 = has5 || h5;
         maxProblem = Math.max (maxProblem, mp);
+    };
+    if (e.x.t === 'bin' && e.x.prec >= e.prec) {
+        walk (e.x);
     }
     if (e.y.t === 'bin') {
         if (e.y.prec > e.prec) {
-            const [ h4, h5, mp ] = goWalkBinary (e.y);
-            has4 = has4 || h4;
-            has5 = has5 || h5;
-            maxProblem = Math.max (maxProblem, mp);
+            walk (e.y);
         }
     } else if (e.y.t === 'star') {
         if (e.opText === '/') {
@@ -430,6 +426,12 @@ function goWalkBinary (e: GoNode): [ boolean, boolean, number ] {
         }
     }
     return [ has4, has5, maxProblem ];
+}
+
+function goVisitAll (list: (GoNode | null)[], depth: number, out: GoLayout) {
+    for (const n of list) {
+        goVisitLayout (n, depth, out);
+    }
 }
 
 function goCutoff (e: GoNode, depth: number): number {
@@ -467,16 +469,12 @@ function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
     case 'call': {
         const d = (n.args.length > 1) ? depth + 1 : depth;
         goVisitLayout (n.fun, d, out);
-        for (const arg of n.args) {
-            goVisitLayout (arg, d, out);
-        }
+        goVisitAll (n.args, d, out);
         break;
     }
     case 'index':
         goVisitLayout (n.x, 1, out);
-        for (const item of n.items) {
-            goVisitLayout (item, depth + 1, out);
-        }
+        goVisitAll (n.items, depth + 1, out);
         break;
     case 'slice': {
         goVisitLayout (n.x, 1, out);
@@ -485,15 +483,11 @@ function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
         n.colons.forEach ((colon: number, k: number) => {
             out.colon.set (colon, [ needsBlanks && n.items[k] !== null, needsBlanks && n.items[k + 1] !== null ]);
         });
-        for (const item of n.items) {
-            goVisitLayout (item, depth + 1, out);
-        }
+        goVisitAll (n.items, depth + 1, out);
         break;
     }
     case 'comp':
-        for (const element of n.elts) {
-            goVisitLayout (element, 1, out);
-        }
+        goVisitAll (n.elts, 1, out);
         break;
     case 'kv':
         goVisitLayout (n.k, 1, out);
@@ -525,9 +519,7 @@ function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout, base: number =
             rhs = parser.parseExprList ();
         }
         const depth = (lhs.length > 1 && rhs.length > 1) ? 2 : 1;
-        for (const x of lhs.concat (rhs)) {
-            goVisitLayout (x, Math.max (depth, base), out);
-        }
+        goVisitAll (lhs.concat (rhs), Math.max (depth, base), out);
     } else if (parser.is ('++') || parser.is ('--')) {
         parser.p += 1;
         goVisitLayout (lhs[0], Math.max (2, base), out);
@@ -545,9 +537,7 @@ function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout, base: number =
             }
         }
     } else {
-        for (const x of lhs) {
-            goVisitLayout (x, base, out);
-        }
+        goVisitAll (lhs, base, out);
     }
 }
 
@@ -564,6 +554,19 @@ function goLayoutHeader (parser: GoLineParser, out: GoLayout) {
     }
     parser.noLit = false;
     parser.expect ('{');
+}
+
+// runs one line's layout: a GoLayout/null result is final, otherwise the line must be consumed whole
+function goLayoutRun (parser: GoLineParser, out: GoLayout, layout: (parser: GoLineParser) => GoLayout | null | undefined | void): GoLayout | null {
+    try {
+        const early = layout (parser);
+        if (early !== undefined) {
+            return early;
+        }
+        return parser.atEnd () ? out : null;
+    } catch (e) {
+        return null;
+    }
 }
 
 function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
@@ -598,16 +601,9 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
                 }
             }
         }
-        const parser = new GoLineParser (shim.slice (0, end));
-        try {
-            goLayoutSimpleStmt (parser, out, base);
-            return parser.atEnd () ? out : null;
-        } catch (e) {
-            return null;
-        }
+        return goLayoutRun (new GoLineParser (shim.slice (0, end)), out, (parser) => goLayoutSimpleStmt (parser, out, base));
     }
-    const parser = new GoLineParser (toks);
-    try {
+    return goLayoutRun (new GoLineParser (toks), out, (parser) => {
         if (parser.is ('}')) {
             parser.p += 1;
             if (parser.atEnd () || (parser.is (',') && parser.toks.length === 2)) {
@@ -629,9 +625,7 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
             } else if (word === 'return') {
                 parser.p += 1;
                 if (!parser.atEnd ()) {
-                    for (const x of parser.parseExprList ()) {
-                        goVisitLayout (x, 1, out);
-                    }
+                    goVisitAll (parser.parseExprList (), 1, out);
                 }
             } else if (word === 'case') {
                 parser.p += 1;
@@ -646,9 +640,7 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
                     return out;
                 }
                 parser.p = assign + 1;
-                for (const x of parser.parseExprList ()) {
-                    goVisitLayout (x, 1, out);
-                }
+                goVisitAll (parser.parseExprList (), 1, out);
             } else if (word === 'break' || word === 'continue' || word === 'fallthrough' || word === 'goto' ||
                     word === 'default' || word === 'select') {
                 return out;
@@ -658,10 +650,8 @@ function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
                 goLayoutSimpleStmt (parser, out);
             }
         }
-        return parser.atEnd () ? out : null;
-    } catch (e) {
-        return null;
-    }
+        return undefined;
+    });
 }
 
 // the Go text of `line` with the blanks go/printer gives each binary operator and slice colon

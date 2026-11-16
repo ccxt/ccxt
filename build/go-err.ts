@@ -1,35 +1,13 @@
-// ===== G10K-err-a: errors as values in generated Go =====
-// Async results travel as AsyncResult[any]{Value, Err} (EndpointResult[T] keeps Raw); every await becomes
+// Errors as values in generated Go. Async results travel as AsyncResult[any]{Value, Err} (EndpointResult[T] keeps Raw); every await becomes
 // `r := <-X` + `if r.Err != nil { panic(r.Err) }` + r.Value, typed wrappers return r.Err. Runs last on generated text.
-import { goChanMask } from './go-chan.js';
+import { goChanMask, goChanClose, goChanQual } from './go-chan.js';
 
 export type GoErrStats = { [reason: string]: number };
-
-function goErrQual (content: string): string {
-    return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
-}
 
 function goErrBump (stats: GoErrStats | undefined, reason: string) {
     if (stats !== undefined) {
         stats[reason] = (stats[reason] || 0) + 1;
     }
-}
-
-// index just past the bracket matching masked[open]
-function goErrClose (masked: string, open: number): number {
-    let depth = 0;
-    for (let i = open; i < masked.length; i++) {
-        const c = masked[i];
-        if ((c === '(') || (c === '{') || (c === '[')) {
-            depth++;
-        } else if ((c === ')') || (c === '}') || (c === ']')) {
-            depth--;
-            if (depth === 0) {
-                return i + 1;
-            }
-        }
-    }
-    return -1;
 }
 
 // end (exclusive, trailing blanks trimmed) of the statement starting at `start`: the first newline at depth 0
@@ -63,9 +41,9 @@ function goErrOperandEnd (masked: string, start: number): number {
         i += id[0].length;
         for (;;) {
             if (masked[i] === '(') {
-                i = goErrClose (masked, i);
+                i = goChanClose (masked, i);
             } else if (masked.startsWith ('.(', i)) {
-                i = goErrClose (masked, i + 1);
+                i = goChanClose (masked, i + 1);
             } else {
                 break;
             }
@@ -84,6 +62,11 @@ function goErrOperandEnd (masked: string, start: number): number {
 // Sleep / Throttle / tests' Close (`<-chan bool`) and GetTestFiles (`<-chan map[string]any`) carry no error
 function goErrUncheckedCallee (operand: string): boolean {
     return /^(?:(?:this|exchange|this\.Exchange|this\.BaseExchange|this\.base)\.(?:Sleep|Throttle)|(?:ccxt\.)?(?:Close|GetTestFiles))\(/.test (operand);
+}
+
+// `n := <-call` followed by `if n.Err != nil { <onErr> }`
+function goErrReceive (ind: string, n: string, call: string, onErr: string): string {
+    return ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\t' + onErr + '\n' + ind + '}\n';
 }
 
 function goErrFreshName (fn: string): string {
@@ -132,19 +115,19 @@ function goErrWrappers (content: string): string {
         const fnEnd = content.indexOf ('\n}\n', m.index);
         const name = goErrFreshName (content.substring (fnStart, fnEnd));
         const tail = content.substring (m.index + m[0].length, fnEnd).replace (/\braw\b/g, name + '.Value');
-        out += content.substring (cursor, m.index) + m[1] + name + ' := <-' + m[2] + '\n' + m[1] + 'if ' + name + '.Err != nil {\n' + m[1] + '\treturn ' + m[3] + ', ' + name + '.Err\n' + m[1] + '}\n' + tail;
+        out += content.substring (cursor, m.index) + goErrReceive (m[1], name, m[2], 'return ' + m[3] + ', ' + name + '.Err') + tail;
         cursor = fnEnd;
         plain.lastIndex = fnEnd;
     }
     content = out + content.substring (cursor);
     return content.replace (/^(\t+)(\w+) := <-([^\n]+)\n\1if (?:ccxt\.)?IsError\(\2\.Raw\) \{\n\1\treturn ([^\n]+), (?:ccxt\.)?CreateReturnError\(\2\.Raw\)\n\1\}\n/gm,
-        (_m: string, ind: string, n: string, call: string, zero: string) => ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\treturn ' + zero + ', ' + n + '.Err\n' + ind + '}\n');
+        (_m: string, ind: string, n: string, call: string, zero: string) => goErrReceive (ind, n, call, 'return ' + zero + ', ' + n + '.Err'));
 }
 
 // `xRecv := (<-X)` + `PanicOnError(xRecv.Raw)`: the holder is the result itself
 function goErrListHolders (content: string): string {
     return content.replace (/^(\t+)(\w+) := \(<-([^\n]+)\)\n\1(?:ccxt\.)?PanicOnError\(\2\.Raw\)\n/gm,
-        (_m: string, ind: string, n: string, call: string) => ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\tpanic(' + n + '.Err)\n' + ind + '}\n');
+        (_m: string, ind: string, n: string, call: string) => goErrReceive (ind, n, call, 'panic(' + n + '.Err)'));
 }
 
 // the first receive arrow at/after `from` (a send's arrow follows an operand, a receive's does not)
@@ -249,7 +232,7 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
         const whole = /^\t*$/.test (prefix) && /^\s*$/.test (suffix);
         const lineEnd = (fn.indexOf ('\n', stmtEnd) < 0) ? fn.length : fn.indexOf ('\n', stmtEnd);
         const comment = whole ? fn.substring (stmtEnd, lineEnd).replace (/\s+$/, '') : '';
-        const hoist = indent + name + ' := <-' + operand + comment + '\n' + indent + 'if ' + name + '.Err != nil {\n' + indent + '\tpanic(' + name + '.Err)\n' + indent + '}\n';
+        const hoist = goErrReceive (indent, name, operand + comment, 'panic(' + name + '.Err)');
         let rest = fn.substring (ls, ws) + name + '.' + sel + fn.substring (we, stmtEnd);
         let restEnd = stmtEnd;
         if (whole) {
@@ -333,7 +316,7 @@ export function goErrValuePass (content: string, stats?: GoErrStats): string {
     if (content.indexOf ('<-') < 0) {
         return content;
     }
-    const q = goErrQual (content);
+    const q = goChanQual (content);
     content = goErrListHolders (goErrWrappers (content));
     const masked = goChanMask (content);
     let out = '';
