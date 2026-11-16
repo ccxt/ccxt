@@ -4219,7 +4219,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const types = await this.isUnifiedEnabled();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount = this.safeBool(types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new errors.NotSupported(this.id + ' createMarketSellOrderWithCost() supports UTA accounts only');
         }
@@ -4274,7 +4274,7 @@ class bybit extends bybit$1["default"] {
         }
         const market = this.market(symbol);
         const parts = await this.isUnifiedEnabled();
-        const enableUnifiedAccount = parts[1];
+        const enableUnifiedAccount = this.safeBool(parts, 1, false);
         const isTrailingOrder = this.safeString2(params, 'trailingAmount', 'trailingStop') !== undefined;
         const isStopLossOrder = this.safeString(params, 'stopLossPrice') !== undefined;
         const isTakeProfitOrder = this.safeString(params, 'takeProfitPrice') !== undefined;
@@ -4657,7 +4657,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const accounts = await this.isUnifiedEnabled();
-        const isUta = accounts[1];
+        const isUta = this.safeBool(accounts, 1, false);
         const ordersRequests = [];
         const orderSymbols = [];
         for (let i = 0; i < orders.length; i++) {
@@ -5037,7 +5037,7 @@ class bybit extends bybit$1["default"] {
         }
         const market = this.market(symbol);
         const types = await this.isUnifiedEnabled();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount = this.safeBool(types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new errors.NotSupported(this.id + ' cancelOrders() supports UTA accounts only');
         }
@@ -5155,7 +5155,7 @@ class bybit extends bybit$1["default"] {
             await this.loadMarkets();
         }
         const types = await this.isUnifiedEnabled();
-        const enableUnifiedAccount = types[1];
+        const enableUnifiedAccount = this.safeBool(types, 1, false);
         if (enableUnifiedAccount !== true) {
             throw new errors.NotSupported(this.id + ' cancelOrdersForSymbols() supports UTA accounts only');
         }
@@ -6691,7 +6691,7 @@ class bybit extends bybit$1["default"] {
     async withdraw(code, amount, address, params = {}) {
         const [tagWithdrawTag, paramsWithdrawTag] = this.handleParamString(params, 'tag');
         const accounts = await this.isUnifiedEnabled();
-        const isUta = accounts[1];
+        const isUta = this.safeBool(accounts, 1, false);
         const [accountTypeOption, paramsAccountType] = this.handleOptionStringAndParams(paramsWithdrawTag, 'withdraw', 'accountType');
         const defaultAccountType = (isUta === true) ? 'UTA' : 'SPOT';
         const accountType = (accountTypeOption === undefined) ? defaultAccountType : accountTypeOption;

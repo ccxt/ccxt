@@ -411,8 +411,14 @@ class bithumb extends bithumb$1["default"] {
         if ((marketId !== undefined) && (marketId.indexOf('-') >= 0)) {
             return marketId;
         }
-        const quoteId = this.safeString2(market, 'quoteId', 'quote', '');
-        const baseId = this.safeString2(market, 'baseId', 'base', '');
+        let quoteId = this.safeString(market, 'quoteId');
+        if (quoteId === undefined) {
+            quoteId = this.safeString(market, 'quote', '');
+        }
+        let baseId = this.safeString(market, 'baseId');
+        if (baseId === undefined) {
+            baseId = this.safeString(market, 'base', '');
+        }
         return quoteId + '-' + baseId;
     }
     /**
@@ -557,7 +563,6 @@ class bithumb extends bithumb$1["default"] {
             const results = await Promise.all(promises);
             for (let i = 0; i < quotes.length; i++) {
                 const quote = quotes[i];
-                const quoteId = quote;
                 const response = this.safeDict(results, i);
                 const data = this.safeDict(response, 'data', {});
                 const extension = this.safeDict(quoteCurrencies, quote, {});
@@ -586,7 +591,7 @@ class bithumb extends bithumb$1["default"] {
                         'quote': quote,
                         'settle': undefined,
                         'baseId': currencyId,
-                        'quoteId': quoteId,
+                        'quoteId': quote,
                         'settleId': undefined,
                         'type': 'spot',
                         'spot': true,
@@ -2011,9 +2016,8 @@ class bithumb extends bithumb$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a symbol argument');
             }
-            const marketDefined = market;
-            const base = this.safeString(marketDefined, 'base');
-            const quote = this.safeString(marketDefined, 'quote');
+            const base = this.safeString(market, 'base');
+            const quote = this.safeString(market, 'quote');
             if ((base === undefined) || (quote === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' fetchOrder() requires a market with defined base and quote');
             }
@@ -2573,9 +2577,8 @@ class bithumb extends bithumb$1["default"] {
             if (symbol === undefined) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a symbol argument');
             }
-            const marketDefined = market;
-            const base = this.safeString(marketDefined, 'base');
-            const quote = this.safeString(marketDefined, 'quote');
+            const base = this.safeString(market, 'base');
+            const quote = this.safeString(market, 'quote');
             if ((base === undefined) || (quote === undefined)) {
                 throw new errors.ArgumentsRequired(this.id + ' cancelOrder() requires a market with defined base and quote');
             }
@@ -3390,9 +3393,7 @@ class bithumb extends bithumb$1["default"] {
                 };
             }
         }
-        const headersResult = requestHeaders;
-        const bodyResult = requestBody;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     handleErrors(code, reason, url, method, headers, body, response, requestHeaders, requestBody) {
         if (response === undefined) {

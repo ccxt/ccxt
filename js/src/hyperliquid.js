@@ -4100,11 +4100,7 @@ export default class hyperliquid extends Exchange {
         };
         let vaultAddress = undefined;
         [vaultAddress, params2] = this.handleOptionStringAndParams2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if (vaultAddress !== undefined) {
-            if (vaultAddress.startsWith('0x')) {
-                vaultAddress = vaultAddress.replace('0x', '');
-            }
-        }
+        vaultAddress = this.formatVaultAddress(vaultAddress);
         const signature = this.signL1Action(updateAction, nonce, vaultAddress);
         const request = {
             'action': updateAction,
@@ -5271,12 +5267,11 @@ export default class hyperliquid extends Exchange {
         }
         const url = this.implodeHostname(apiUrl) + '/' + path;
         const isPost = (method === 'POST');
-        const postHeaders = {
-            'Content-Type': 'application/json',
-        };
         let requestHeaders = undefined;
         if (isPost) {
-            requestHeaders = postHeaders;
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            };
         }
         let requestBody = undefined;
         if (isPost) {

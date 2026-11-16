@@ -1637,7 +1637,7 @@ export default class kucoin extends Exchange {
      * @returns {object[]} an array of objects representing market data
      */
     async fetchMarkets(params = {}) {
-        let fetchTickersFees = undefined;
+        let fetchTickersFees = true;
         let paramsRequest = undefined;
         [fetchTickersFees, paramsRequest] = this.handleOptionBoolAndParams(params, 'fetchMarkets', 'fetchTickersFees', true);
         let uta = false;

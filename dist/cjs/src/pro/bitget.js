@@ -1619,7 +1619,7 @@ class bitget extends bitget$1["default"] {
         const percentage = Precise["default"].stringMul(percentageDecimal, '100');
         let contractSize = undefined;
         if (market !== undefined) {
-            contractSize = market['contractSize'];
+            contractSize = this.safeNumber(market, 'contractSize');
         }
         return this.safePosition({
             'info': position,

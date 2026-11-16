@@ -3006,7 +3006,7 @@ class gate extends gate$1["default"] {
         if (this.safeBool(market, 'option', false)) {
             const optionMarketId = this.safeString(market, 'id');
             for (let i = 0; i < response.length; i++) {
-                const entry = response[i];
+                const entry = this.safeDict(response, i);
                 const entryName = this.safeString(entry, 'name');
                 if (entryName === optionMarketId) {
                     ticker = entry;

@@ -323,7 +323,7 @@ export default class hyperliquid extends Exchange {
                     const thresholdsLength = thresholds.length;
                     const index = this.parseToInt(indexStr);
                     if (thresholdsLength > 0) {
-                        let bucketLabel;
+                        let bucketLabel = '';
                         if (index <= 0) {
                             bucketLabel = 'BELOW_' + thresholds[0];
                         }

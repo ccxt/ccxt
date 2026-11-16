@@ -459,7 +459,7 @@ export default class polymarket extends Exchange {
     sign(path: string, api?: string[], method?: string, params?: Dict): {
         url: string;
         method: string;
-        body: any;
+        body: Str;
         headers: any;
     };
     hashMessage(message: any): string;

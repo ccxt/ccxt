@@ -4108,7 +4108,6 @@ export default class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        const info = order;
         const newOrder = this.safeDict2(order, 'newOrderResponse', 'orderOpenResponse');
         const orderData = (newOrder !== undefined) ? newOrder : order;
         const positionSide = this.safeString2(orderData, 'positionSide', 'ps');
@@ -4183,7 +4182,7 @@ export default class bingx extends Exchange {
             }
         }
         return this.safeOrder({
-            'info': info,
+            'info': order,
             'id': this.safeStringN(orderData, ['orderId', 'i', 'mainOrderId']),
             'clientOrderId': this.safeStringN(orderData, ['clientOrderID', 'clientOrderId', 'origClientOrderId', 'c']),
             'symbol': this.safeSymbol(marketId, marketResolved, '-', marketType),
@@ -7416,9 +7415,7 @@ export default class bingx extends Exchange {
                 url += '?' + query + '&' + 'signature=' + signature;
             }
         }
-        const bodyResult = requestBody;
-        const headersResult = requestHeaders;
-        return { 'url': url, 'method': method, 'body': bodyResult, 'headers': headersResult };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
     nonce() {
         return this.milliseconds();

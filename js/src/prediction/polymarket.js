@@ -3191,8 +3191,8 @@ export default class polymarket extends Exchange {
             bidsLength = bids.length;
         }
         if ((bids !== undefined) && (bidsLength > 0)) {
-            bestBid = bids[0][0];
-            bestBidVolume = bids[0][1];
+            bestBid = this.safeNumber(bids[0], 0);
+            bestBidVolume = this.safeNumber(bids[0], 1);
         }
         let bestAsk = undefined;
         let bestAskVolume = undefined;
@@ -3201,8 +3201,8 @@ export default class polymarket extends Exchange {
             asksLength = asks.length;
         }
         if ((asks !== undefined) && (asksLength > 0)) {
-            bestAsk = asks[0][0];
-            bestAskVolume = asks[0][1];
+            bestAsk = this.safeNumber(asks[0], 0);
+            bestAskVolume = this.safeNumber(asks[0], 1);
         }
         let mid = undefined;
         if ((bestBid !== undefined) && (bestAsk !== undefined)) {
