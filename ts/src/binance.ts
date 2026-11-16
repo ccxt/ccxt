@@ -5171,11 +5171,12 @@ export default class binance extends Exchange {
         const price = this.safeString (paramsPaginate, 'price');
         const until = this.safeInteger (paramsPaginate, 'until');
         const paramsOmitted: Dict = this.omit (paramsPaginate, [ 'price', 'until' ]);
-        let limitRequested: Int = limit;
-        if (since !== undefined && until !== undefined && limit === undefined) {
-            limitRequested = maxLimit;
+        let limitValue = this.parseToInt (defaultLimit);
+        if (limit !== undefined) {
+            limitValue = this.parseToInt (Math.min (limit, maxLimit));
+        } else if ((since !== undefined) && (until !== undefined)) {
+            limitValue = this.parseToInt (maxLimit);
         }
-        const limitValue: Int = (limitRequested === undefined) ? defaultLimit : Math.min (limitRequested, maxLimit);
         const request: Dict = {
             'interval': this.safeString (this.timeframes, timeframe, timeframe),
             'limit': limitValue,
@@ -11015,10 +11016,10 @@ export default class binance extends Exchange {
             //         ...
             //     }
             //
-            const markets = this.markets;
-            if (markets === undefined) {
+            if (this.markets === undefined) {
                 throw new ExchangeError (this.id + ' markets not loaded');
             }
+            const markets = this.markets;
             const symbols = Object.keys (markets);
             const linearFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
@@ -11050,10 +11051,10 @@ export default class binance extends Exchange {
             //         "updateTime": 0
             //     }
             //
-            const markets = this.markets;
-            if (markets === undefined) {
+            if (this.markets === undefined) {
                 throw new ExchangeError (this.id + ' markets not loaded');
             }
+            const markets = this.markets;
             const symbols = Object.keys (markets);
             const inverseFees: Dict = {};
             const feeTier = this.safeInteger (response, 'feeTier');
@@ -11512,10 +11513,13 @@ export default class binance extends Exchange {
         if (timestamp === 0) {
             timestamp = undefined;
         }
-        let isolated = this.safeBool (position, 'isolated');
-        if (isolated === undefined) {
+        const isolatedRaw = this.safeBool (position, 'isolated');
+        let isolated: boolean = false;
+        if (isolatedRaw === undefined) {
             const isolatedMarginRaw = this.safeString (position, 'isolatedMargin');
             isolated = !Precise.stringEq (isolatedMarginRaw, '0');
+        } else {
+            isolated = (isolatedRaw === true);
         }
         let marginMode: Str = undefined;
         let collateralString: Str = undefined;
@@ -11795,7 +11799,9 @@ export default class binance extends Exchange {
         } else {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
-        collateralString = (collateralString === undefined) ? '0' : collateralString;
+        if (collateralString === undefined) {
+            collateralString = '0';
+        }
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));
         let timestamp = this.safeInteger (position, 'updateTime');
