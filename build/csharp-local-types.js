@@ -19706,3 +19706,205 @@ function nullGuardStringConcatLocal (csharp, declaration, context) {
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx) ? { type: 'string?', stripObjectBox: true } : undefined;
 }
+
+
+// ===== 84c5: copies of typed parameters and their extend / omit results =====
+// (R1) a read of the trailing `params` bag that dictionaryParameterType proves is printed
+// `IDictionary<string, object> parameters` (PARAMETERS_ARG_TYPED_METHODS, never written in the body) has
+// that static type, so `let q = params` starts its join at the interface. Like the 77c5 core-parameter
+// rule it answers nothing while a call-site parameter proof runs (c5ParameterProofDepth), so no
+// signature moves (lane 84c1 owns signatures); later writes and uses of q are joined and scanned as usual.
+function dictParamsCopyReadType (csharp, scope, identifier) {
+    if (c5ParameterProofDepth > 0 || scope?.kind !== ts.SyntaxKind.MethodDeclaration || enclosingFunction (identifier) !== scope) {
+        return undefined;
+    }
+    const parameter = (scope.parameters ?? []).find ((p) => p.name?.kind === ts.SyntaxKind.Identifier && p.name.text === identifier.text);
+    // the printer must agree it prints the bag typed (csharpIsDictParamsBag reads the same table
+    // through config.dictParamsMethods): a transpile without that config keeps `object parameters`
+    if (parameter === undefined || parameterIsRefSunk (csharp, identifier)
+            || typeof csharp.csharpIsDictParamsBag !== 'function' || !csharp.csharpIsDictParamsBag (parameter)) {
+        return undefined;
+    }
+    return dictionaryParameterType (csharp, parameter);
+}
+const c84UpstreamCoreParameterCopyReadType = coreParameterCopyReadType;
+// eslint-disable-next-line no-func-assign
+coreParameterCopyReadType = function (csharp, scope, identifier) {
+    return c84UpstreamCoreParameterCopyReadType (csharp, scope, identifier) ?? dictParamsCopyReadType (csharp, scope, identifier);
+};
+
+// (R1 guard) the copy is typed only when the type buys a native operation: a use as the receiver of
+// `this.omit (q, k)` (binds the IDictionary overload, no IList pass-through test), an element read /
+// write `q[k]` (the indexer instead of getValue / the interface cast) or `k in q` (ContainsKey). A
+// copy whose every use is an `object`-taking helper argument keeps `object` (a declaration-only type).
+function dictParamsCopyHasNativeUse (csharp, scope, declaration) {
+    const name = declaration.name?.text;
+    for (const n of (indexScope (csharp, scope).identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        let use = n;
+        while (use.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+            use = use.parent;
+        }
+        const parent = use.parent;
+        if (parent?.kind === ts.SyntaxKind.ElementAccessExpression && parent.expression === use) {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.right === use && parent.operatorToken.kind === ts.SyntaxKind.InKeyword) {
+            return true;
+        }
+        if (parent?.kind === ts.SyntaxKind.CallExpression && parent.arguments?.[0] === use && parent.arguments.length === 2
+                && omitCallReceiver (parent) === use) {
+            return true;
+        }
+    }
+    return false;
+}
+const c84UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    let info = c84UpstreamLocalDeclaration (csharp, declaration, context);
+    if (info === undefined) {
+        info = c84DictionarySlotWidening (csharp, declaration, context);
+    }
+    if (info === undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return info;
+    }
+    const scope = (context?.scope) ?? enclosingFunction (declaration);
+    const init = stripParens (declaration.initializer);
+    const bagCopy = init?.kind === ts.SyntaxKind.Identifier && dictParamsCopyReadType (csharp, scope, init) !== undefined
+        && c84UpstreamCoreParameterCopyReadType (csharp, scope, init) === undefined;
+    // R1 / R2 typings stand only with a native use (see dictParamsCopyHasNativeUse)
+    if ((bagCopy || c84SlotWrittenDeclarations.has (declaration)) && !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    // `const x = this.omit (params, k)` over the bag the signature prints IDictionary: the call binds the
+    // IDictionary-receiver overload, whose static type is Dictionary<string, object>, so the interface
+    // declaration needs no cast (omitParamsLocal casts for the untyped `object parameters` print)
+    const receiver = (init?.kind === ts.SyntaxKind.CallExpression && info.cast === 'IDictionary<string, object>' && info.castWhole !== true)
+        ? stripParens (omitCallReceiver (init)) : undefined;
+    if (receiver?.kind === ts.SyntaxKind.Identifier && dictParamsCopyReadType (csharp, scope, receiver) !== undefined) {
+        return Object.assign ({}, info, { cast: undefined });
+    }
+    // a slot-written local (R2) whose declaration would still need a `((IDictionary<string, object>)…)`
+    // cast back keeps object: the R2 typing must not add that conversion spelling
+    if (c84SlotWrittenDeclarations.has (declaration) && info.cast !== undefined) {
+        return undefined;
+    }
+    return info;
+};
+
+// (R2) `[ x, q ] = this.handle*AndParams (q', ...)` written into a local this module already types
+// IDictionary<string, object> (a typed params-bag copy, an omit result): slot 1 of the audited
+// element-1 helpers (nullSeedElement1Call / nullSeedAwaitedSlotCall: CSHARP_ELEMENT_1_PARAMS with a
+// statically Dict argument, or a proven tuple-dict slot) is the caller's params, its omit or an extend,
+// i.e. a dict box, so the element read takes the interface cast installDestructuredCasts prints for the
+// recorded type, exactly as for the element-1 bindings and the null-seed slot family (77c4). Only a
+// non-null-initialised local here (the null seeds stay 77c4's), same function, after the declaration.
+function c84Element1SlotWrite (csharp, index, declaration, idNode, assignment) {
+    const pattern = idNode?.parent;
+    if (pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression || pattern.elements.length !== 2 || pattern.elements[1] !== idNode
+            || declaration?.initializer === undefined || isNullInit (declaration)) {
+        return false;
+    }
+    const right = stripParens (assignment?.right);
+    const awaited = (right?.kind === ts.SyntaxKind.AwaitExpression) ? stripParens (right.expression) : undefined;
+    if (right === undefined || !((awaited === undefined) ? nullSeedElement1Call (csharp, declaration, right) : nullSeedAwaitedSlotCall (csharp, declaration, awaited))) {
+        return false;
+    }
+    if (enclosingFunction (idNode) !== enclosingFunction (declaration) || assignment.getStart () <= declaration.getStart ()) {
+        return false;
+    }
+    return (index.bindingCounts.get (csharp.printNode (idNode, 0)) ?? 0) === 1;
+}
+const c84SlotWrittenDeclarations = new WeakSet ();
+const c84UpstreamDestructuredWriteIsCastable = destructuredWriteIsCastable;
+// eslint-disable-next-line no-func-assign
+destructuredWriteIsCastable = function (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
+    if (csharpType === 'IDictionary<string, object>' && c5ParameterProofDepth === 0 && c84Element1SlotWrite (csharp, index, declaration, idNode, assignment)) {
+        c84SlotWrittenDeclarations.add (declaration);
+        return true;
+    }
+    return c84UpstreamDestructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context);
+};
+
+// (R3) a local whose initialiser is a proven Dictionary<string, object> with no cast (an omit of a
+// dict receiver, a copy of such a local) and that is later written from slot 1 of an audited
+// element-1 helper (R2): the slot is a dict box but not necessarily the concrete class, so the
+// declaration names the interface Dictionary implements (an implicit reference conversion of the
+// same box) and the slot reads take the interface cast. Only when the retype scan accepts the
+// interface for every write and use, at least one slot write exists, and some use is native.
+const c84WideningInProgress = new Set ();
+function c84DictionarySlotWidening (csharp, declaration, context) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.initializer === undefined || isNullInit (declaration)
+            || classifyInProgress.has (declaration) || c84WideningInProgress.size > 0 || c5ParameterProofDepth > 0
+            || !c84HasSlotWriteShape (declaration)) {
+        return undefined;
+    }
+    c84WideningInProgress.add (declaration);
+    try {
+        return c84DictionarySlotWideningInner (csharp, declaration, context);
+    } finally {
+        c84WideningInProgress.delete (declaration);
+    }
+}
+
+// cheap AST pre-check: some `[ a, <name> ] = ...` in the enclosing function
+function c84HasSlotWriteShape (declaration) {
+    const name = declaration.name.text;
+    let found = false;
+    const visit = (node) => {
+        if (found) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ArrayLiteralExpression && node.elements.length === 2 && node.elements[1].kind === ts.SyntaxKind.Identifier
+                && node.elements[1].text === name && node.parent?.kind === ts.SyntaxKind.BinaryExpression && node.parent.left === node) {
+            found = true;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    enclosingFunction (declaration)?.forEachChild (visit);
+    return found;
+}
+
+function c84DictionarySlotWideningInner (csharp, declaration, context) {
+    const scope = context?.scope ?? enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    let initial;
+    classifyInProgress.add (declaration);
+    try {
+        initial = csharpTypeOfValue (csharp, declaration.initializer, ctx);
+    } finally {
+        classifyInProgress.delete (declaration);
+    }
+    if (initial !== 'Dictionary<string, object>') {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const name = declaration.name.text;
+    let slotWrites = 0;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression && parent.parent?.kind === ts.SyntaxKind.BinaryExpression
+                && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (!c84Element1SlotWrite (csharp, index, declaration, n, parent.parent)) {
+                return undefined;
+            }
+            slotWrites++;
+        }
+    }
+    const type = 'IDictionary<string, object>';
+    if (slotWrites === 0 || !csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx)
+            || !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return { type };
+}
