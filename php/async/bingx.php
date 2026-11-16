@@ -7424,7 +7424,7 @@ class bingx extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommissionRate'),
             'taker' => $this->safe_number($fee, 'takerCommissionRate'),
-            'percentage' => false,
+            'percentage' => true,
             'tierBased' => false,
         );
     }
