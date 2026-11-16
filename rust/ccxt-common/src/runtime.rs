@@ -673,10 +673,9 @@ pub async fn promise_all(v: &Value) -> Value {
 pub fn get_arg(args: &[Value], idx: usize, default: Value) -> Value {
     // JS default parameters trigger on `undefined`, so `f(a, b)` and
     // `f(a, b, undefined, undefined)` both apply the declared defaults. The port
-    // collapses `undefined`/`null` into `Value::Null`, and virtual-dispatch
-    // wrappers forward *every* optional slot as an explicit `Null` (see
-    // exchange_generated `parse_order_book` → `DerivedExchange::parse_order_book`
-    // with six `get_arg(..., Null)` args). A plain `unwrap_or` would then hand an
+    // collapses `undefined`/`null` into `Value::Null`, and a caller may pass
+    // any optional slot as an explicit `Null` (`request_typed` hands `sign`
+    // `Null` headers and body). A plain `unwrap_or` would then hand an
     // override an explicit `Null` and clobber its own default (ndax
     // `parseOrderBook`'s priceKey=6/bidsKey='bids'), producing an empty book. So
     // when the slot is `Null` *and* a non-`Null` default is declared, honour the

@@ -232,7 +232,7 @@ pub trait DerivedExchange {
     fn parse_order(&self, order: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_order(p, order, market)) }
     fn parse_market(&self, market: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_market(p, market)) }
     fn parse_ohlcv(&self, ohlcv: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_ohlcv(p, ohlcv, market)) }
-    fn parse_order_book(&self, ob: Value, symbol: Value, ts: Value, bk: Value, ak: Value, pk: Value, ak2: Value, ck: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_order_book(p, ob, symbol, ts, bk, ak, pk, ak2, ck)) }
+    fn parse_order_book(&self, ob: impl Into<Value>, symbol: Value, optional_args: &[Value]) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_order_book(p, ob, symbol, optional_args)) }
     fn parse_balance(&self, response: impl Into<Value>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_balance(p, response)) }
     fn parse_position(&self, position: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_position(p, position, market)) }
     fn parse_funding_rate(&self, rate: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::parse_funding_rate(p, rate, market)) }
@@ -279,7 +279,7 @@ pub trait DerivedExchange {
     /// parent's inherent one. Binance spot then signs its ws-api subscribe with
     /// a seconds timestamp and the venue answers -1130.
     fn nonce(&self) -> Value { self.derived_parent().map_or(Value::Null, |p| DerivedExchange::nonce(p)) }
-    fn sign(&mut self, path: &str, api: Value, method: Value, params: Value, headers: Value, body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::sign(p, path, api, method, params, headers, body)) }
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::sign(p, path, optional_args)) }
     fn handle_errors(&mut self, code: Value, reason: Value, url: Value, method: Value, headers: Value, body: Value, response: Value, request_headers: Value, request_body: Value) -> Value { self.derived_parent_mut().map_or(Value::Null, |p| DerivedExchange::handle_errors(p, code, reason, url, method, headers, body, response, request_headers, request_body)) }
 }
 
@@ -1868,11 +1868,7 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
         let signed = crate::exchange::DerivedExchange::sign(
             self,
             path,
-            api_arg,
-            Value::Str(verb.to_string().into()),
-            params.clone(),
-            Value::Null,
-            Value::Null,
+            &[api_arg, Value::Str(verb.to_string().into()), params.clone(), Value::Null, Value::Null],
         );
         if let Value::Dict(m) = &signed {
             let url = match m.get("url") { Some(Value::Str(s)) => s.to_string(), _ => String::new().into() };

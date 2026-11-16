@@ -9930,7 +9930,8 @@ export class RustTranspilerBuilder {
             parse_order:                ['order', 'market'],
             parse_market:               ['market'],
             parse_ohlcv:                ['ohlcv', 'market'],
-            parse_order_book:           ['ob', 'symbol', 'ts', 'bk', 'ak', 'pk', 'ak2', 'ck'],
+            // a `name: type` slot prints its own type: the trailing optional arguments ride as one slice
+            parse_order_book:           ['ob: impl Into<crate::Value>', 'symbol', 'optional_args: &[Value]'],
             parse_balance:              ['response'],
             parse_position:             ['position', 'market'],
             parse_funding_rate:         ['rate', 'market'],
@@ -9967,7 +9968,7 @@ export class RustTranspilerBuilder {
             parse_prediction_position:  ['position', 'market'],
             create_expired_option_market: ['symbol'],
             market:                     ['symbol'],
-            sign:                       ['path', 'api', 'method', 'params', 'headers', 'body'],
+            sign:                       ['path', 'optional_args: &[Value]'],
             handle_errors:              ['code', 'reason', 'url', 'method', 'headers', 'body', 'response', 'request_headers', 'request_body'],
         };
     }
@@ -10351,11 +10352,12 @@ ${arms.join('\n')}
             `    fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { Some(&mut self.parent) }`,
         ];
         const pushParentAccessors = () => { if (!out.includes(accessors[0])) out.push(...accessors); };
-        for (const [name, args] of Object.entries(traitSigs)) {
+        for (const [name, slots] of Object.entries(traitSigs)) {
+            const args = slots.map(rustDispatch.slotName);
             const inh = inherentSigs.get(name);
             // Trait methods whose overrides write exchange state take `&mut self` end to end.
             if (this.mutReceiverTraitMethods().has(name)) {
-                const traitParams = rustDispatch.slotParams(args);
+                const traitParams = rustDispatch.slotParams(slots);
                 if (!inherent.has(name) || !inh || inh.isAsync) {
                     if (parentCore) pushParentAccessors();
                     continue;
@@ -10370,7 +10372,7 @@ ${arms.join('\n')}
                         callArgs.push(rustDispatch.slotArg(kind, args[traitIdx] ?? 'crate::Value::Null', traitIdx));
                         traitIdx++;
                     } else if (kind === 'slice') {
-                        callArgs.push(`&[${args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ')}]`);
+                        callArgs.push(rustDispatch.isSlotSlice(slots[traitIdx] ?? '') ? args[traitIdx] : `&[${args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ')}]`);
                         break;
                     }
                 }
@@ -10401,7 +10403,7 @@ ${arms.join('\n')}
                 if (parentCore) pushParentAccessors();
                 continue;
             }
-            const traitParams = this.traitSlotParams(name, args);
+            const traitParams = this.traitSlotParams(name, slots);
             // Forwarding call: align inherent param shape (some methods
             // have `(value: Value, optional_args: &[Value])` for variadic
             // TS defaults). Map trait args 0..N onto inherent params:
@@ -10418,7 +10420,7 @@ ${arms.join('\n')}
                     traitIdx++;
                 } else if (kind === 'slice') {
                     const rest = args.slice(traitIdx).map((a, i) => rustDispatch.slotValue(a, traitIdx + i)).join(', ');
-                    callArgs.push(`&[${rest}]`);
+                    callArgs.push(rustDispatch.isSlotSlice(slots[traitIdx] ?? '') ? args[traitIdx] : `&[${rest}]`);
                     traitIdx = args.length;
                     break;
                 }
@@ -11068,20 +11070,24 @@ impl std::ops::DerefMut for ${coreName} {
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
-                    const liftClasses = new Set<string>([ 'same', 'param-differs' ]);
+                    const liftClasses = new Set<string>([ 'same', 'param-differs', 'slice-args', 'typed-return' ]);
                     const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
                     const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
                         if (fact.isAsync) return 'async';
+                        const hasSlice = sig.params.some((p: any) => p.type === '&[Value]');
                         if (fact.isMut && !this.mutReceiverTraitMethods().has(sig.name)) return 'mut-cast';
-                        if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
-                        if (sig.ret !== 'value') return 'typed-return';
+                        // a slice the trait slot does not take carries extra arguments
+                        if (hasSlice && !slots.some(rustDispatch.isSlotSlice)) return 'arity';
+                        // a typed return lifts only when the trait slot carries the same typed signature
+                        const typedSlot = this.typedVirtualSlots().get(sig.name);
+                        if (sig.ret !== 'value') return typedSlot !== undefined && sig.returns === typedSlot.ret && sig.params.map((p: any) => `${p.name}: ${p.type}`).join(', ') === typedSlot.params ? 'typed-return' : 'typed-differs';
                         const types = (text: string) => text.split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
                         const slotTypes = types(rustDispatch.slotParams(slots));
                         if (slotTypes.length !== sig.params.length) return 'arity';
-                        if (sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i])) return 'same';
+                        if (sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i])) return hasSlice ? 'slice-args' : 'same';
                         // a lent first slot is generic in the trait as in the inherent: the item moves unchanged
                         const lentTypes = types(this.traitSlotParams(sig.name, slots));
-                        return sig.params.every((p: any, i: number) => norm(p.type) === lentTypes[i]) ? 'param-differs' : 'other';
+                        return sig.params.every((p: any, i: number) => norm(p.type) === lentTypes[i]) ? (hasSlice ? 'slice-args' : 'param-differs') : 'other';
                     };
                     const implHead = rustContent.match(/\nimpl crate::exchange::DerivedExchange for (\w+) \{\n/);
                     const facts = this.receiverFacts(rustContent);
