@@ -9262,7 +9262,6 @@ function isNonNullNumericAtom (text: string, typeOf: (name: string) => string | 
     const parse = /^this\.parseToInt\((.*)\)$/.exec (t);
     if ((parse !== null) && (csharpClosingParen (t, 'this.parseToInt'.length) === t.length - 1)) {
         const arg = csharpStripParens (parse[1]);
-        if (/^(?:\(\(string\)[A-Za-z_]\w*\)|[A-Za-z_]\w*)\.(?:Length|Count)$/.test (arg) || /^[A-Za-z_]\w*\?\.Count \?\? 0$/.test (arg)) return true;
         const div = /^\(double\?\)([A-Za-z_]\w*) \/ \d{1,9}$/.exec (arg);
         return (div !== null) && [ 'int', 'Int64', 'Int64?', 'long', 'long?' ].includes (typeOf (div[1]));
     }
@@ -9291,11 +9290,37 @@ function isNonNullNumericAtom (text: string, typeOf: (name: string) => string | 
 // bound once from `safeInteger*(…, <int literal>)` (never null: SafeIntegerN answers the default), and
 // handleErrors' `object` status code vs a positive literal.
 export function csharpNonNullIntCompare (content: string): string {
+    return csharpOrderedComparePass (content, (region, line, name, a, b) => nonNullIntCompareText (region, line, name, a, b));
+}
+
+// ordered-compare passes: each 2-arg `isLessThan|isGreaterThan[OrEqual](a, b)` call on a body line goes to
+// `emit`; non-nested answers are spliced in, right to left
+function csharpOrderedComparePass (content: string, emit: (region: CsharpRegion, line: number, name: string, a: string, b: string) => string | undefined): string {
     if (!/(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const statusCode = (region: any) => /\boverride[ ]+object[ ]+handleErrors\([ ]*object[ ]+([A-Za-z_]\w*)[ ]*,/.exec (region.lines[region.start])?.[1];
-    return csharpLinePass (content, true, (region, original, masked, i) => nonNullIntCompareLine (region, original, masked, i, statusCode (region)));
+    return csharpLinePass (content, true, (region, original, masked, line) => {
+        if (/['@$]/.test (original)) return undefined;
+        const edits = [];
+        const call = /(?<![\w.])(isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/g;
+        let m;
+        while ((m = call.exec (masked)) !== null) {
+            const open = m.index + m[0].length - 1;
+            const close = csharpHelperCallEnd (masked, open);
+            if (close === undefined) continue;
+            const comma = csharpHelperTopLevelComma (masked, open, close);
+            if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
+            const text = emit (region, line, m[1], original.substring (open + 1, comma).trim (), original.substring (comma + 1, close).trim ());
+            if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
+        }
+        if (edits.length === 0) return undefined;
+        let out = original;
+        for (const e of edits.sort ((x, y) => y.start - x.start)) {
+            if (edits.some ((o) => (o !== e) && (o.start <= e.start) && (e.end <= o.end))) continue;
+            out = out.substring (0, e.start) + e.text + out.substring (e.end);
+        }
+        return (out === original) ? undefined : out;
+    });
 }
 
 // any write of `name` in the region other than its declaration line
@@ -9340,52 +9365,31 @@ function nonNullIntNameType (region: CsharpRegion, name: string, line: number): 
     return ((type === 'Int64?') && isNonNullInt64Local (region, name)) ? 'Int64' : type;
 }
 
-function nonNullIntCompareLine (region: CsharpRegion, original: string, masked: string, line: number, statusCode: string | undefined): string | undefined {
-    if (/['@$]/.test (original)) return undefined;
+function nonNullIntCompareText (region: CsharpRegion, line: number, name: string, a: string, b: string): string | undefined {
     const atom = (x: string) => ((/^[A-Za-z_][\w.]*$/.test (x) || /^-?[\d.]+$/.test (x) || (csharpStripParens (x) !== x.trim ())) ? x : '(' + x + ')');
     const tokens = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
-    const edits = [];
-    const call = /(?<![\w.])(isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/g;
-    let m;
-    while ((m = call.exec (masked)) !== null) {
-        const open = m.index + m[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const comma = csharpHelperTopLevelComma (masked, open, close);
-        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
-        const a = original.substring (open + 1, comma).trim ();
-        const b = original.substring (comma + 1, close).trim ();
-        // handleErrors(object code, …): every caller passes an int / Int64 / Int64? box. A null box reads 0
-        // through Convert.ToInt64, which answers like the helper's null branch against a positive literal
-        if ((statusCode !== undefined) && (a === statusCode) && /^[1-9]\d{0,8}$/.test (b)
-            && !isWrittenAfterDeclaration (region, statusCode, -1) && !region.bound.has (statusCode)
-            && !region.declarations.some ((d) => d.name === statusCode)) {
-            edits.push ({ start: m.index, end: close + 1, text: `(Convert.ToInt64(${a}) ${tokens[m[1]]} ${b})` });
-            continue;
-        }
-        const operand = (text: string) => {
-            const bare = csharpStripParens (text);
-            if (/^-?\d{1,15}$/.test (bare)) return { kind: 'integer-literal' };
-            const typed = arithmeticOperandType (text, (name: string) => nonNullIntNameType (region, name, line), new Map ());
-            if ((typed === undefined) || typed.literal) return undefined;
-            // integers only here: double operands are handled by the name pass
-            if (![ 'int', 'Int64', 'Int64?' ].includes (typed.type)) return undefined;
-            if (typed.type.endsWith ('?') && !/^[A-Za-z_]\w*$/.test (bare)) return undefined;
-            return { kind: 'name', type: typed.type };
-        };
-        const l = operand (a);
-        const r = operand (b);
-        if ((l === undefined) || (r === undefined) || ((l.kind !== 'name') && (r.kind !== 'name'))) continue;
-        const text = csharpNativeOperatorText (m[1], l, r, atom (a), atom (b), false) ?? csharpNullableIntegerComparisonText (m[1], l, r, atom (a), atom (b));
-        if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
+    // handleErrors(object code, …): every caller passes an int / Int64 / Int64? box. A null box reads 0
+    // through Convert.ToInt64, which answers like the helper's null branch against a positive literal
+    const statusCode = /\boverride[ ]+object[ ]+handleErrors\([ ]*object[ ]+([A-Za-z_]\w*)[ ]*,/.exec (region.lines[region.start])?.[1];
+    if ((statusCode !== undefined) && (a === statusCode) && /^[1-9]\d{0,8}$/.test (b)
+        && !isWrittenAfterDeclaration (region, statusCode, -1) && !region.bound.has (statusCode)
+        && !region.declarations.some ((d) => d.name === statusCode)) {
+        return `(Convert.ToInt64(${a}) ${tokens[name]} ${b})`;
     }
-    if (edits.length === 0) return undefined;
-    let out = original;
-    for (const e of edits.sort ((x, y) => y.start - x.start)) {
-        if (edits.some ((o) => (o !== e) && (o.start <= e.start) && (e.end <= o.end))) continue;
-        out = out.substring (0, e.start) + e.text + out.substring (e.end);
-    }
-    return (out === original) ? undefined : out;
+    const operand = (text: string) => {
+        const bare = csharpStripParens (text);
+        if (/^-?\d{1,15}$/.test (bare)) return { kind: 'integer-literal' };
+        const typed = arithmeticOperandType (text, (x: string) => nonNullIntNameType (region, x, line), new Map ());
+        if ((typed === undefined) || typed.literal) return undefined;
+        // integers only here: double operands are handled by the name pass
+        if (![ 'int', 'Int64', 'Int64?' ].includes (typed.type)) return undefined;
+        if (typed.type.endsWith ('?') && !/^[A-Za-z_]\w*$/.test (bare)) return undefined;
+        return { kind: 'name', type: typed.type };
+    };
+    const l = operand (a);
+    const r = operand (b);
+    if ((l === undefined) || (r === undefined) || ((l.kind !== 'name') && (r.kind !== 'name'))) return undefined;
+    return csharpNativeOperatorText (name, l, r, atom (a), atom (b), false) ?? csharpNullableIntegerComparisonText (name, l, r, atom (a), atom (b));
 }
 
 // snippet checks (run from the --self-test path)
@@ -9536,50 +9540,24 @@ function wsAndIndexGetValueSelfTest (): string[] {
 // `(now - expires)`): its value is the lifted Int64? the helper boxes, so the null-guard table applies
 // with the expression repeated in the guard (pure: no calls)
 export function csharpArithmeticNullableCompare (content: string): string {
-    if (!/(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    return csharpLinePass (content, true, arithmeticCompareLine);
-}
-
-function arithmeticCompareLine (region: CsharpRegion, original: string, masked: string, line: number): string | undefined {
-    if (/['@$]/.test (original)) return undefined;
-    const edits = [];
-    const call = /(?<![\w.])(isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/g;
-    let m;
-    while ((m = call.exec (masked)) !== null) {
-        const open = m.index + m[0].length - 1;
-        const close = csharpHelperCallEnd (masked, open);
-        if (close === undefined) continue;
-        const comma = csharpHelperTopLevelComma (masked, open, close);
-        if ((comma === undefined) || (csharpHelperTopLevelComma (masked, comma, close) !== undefined)) continue;
-        const a = original.substring (open + 1, comma).trim ();
-        const b = original.substring (comma + 1, close).trim ();
+    return csharpOrderedComparePass (content, (region, line, name, a, b) => {
         const operand = (text: string) => {
             const bare = csharpStripParens (text);
             if (/^-?\d{1,15}$/.test (bare)) return { kind: 'integer-literal', text: bare };
             // names, integer literals, `+ - *` and parentheses only: evaluating it twice is the same value
             if (!/^[\w ()+*-]+$/.test (bare) || /\w[ ]*\(/.test (bare) || /\d[A-Za-z_]/.test (bare)) return undefined;
-            const typed = arithmeticOperandType (text, (name: string) => nonNullIntNameType (region, name, line), new Map ());
+            const typed = arithmeticOperandType (text, (x: string) => nonNullIntNameType (region, x, line), new Map ());
             if ((typed === undefined) || typed.literal || ![ 'int', 'Int64', 'Int64?' ].includes (typed.type)) return undefined;
             return { kind: 'name', type: typed.type, text: /^[A-Za-z_]\w*$/.test (bare) ? bare : '(' + bare + ')' };
         };
         const l = operand (a);
         const r = operand (b);
-        if ((l === undefined) || (r === undefined) || ((l.kind !== 'name') && (r.kind !== 'name'))) continue;
+        if ((l === undefined) || (r === undefined) || ((l.kind !== 'name') && (r.kind !== 'name'))) return undefined;
         // plain-name nullable pairs are handled by earlier passes: only rewrite when an expression side is nullable
         const exprNullable = (o, t: string) => (o.kind === 'name') && (o.type === 'Int64?') && !/^[A-Za-z_]\w*$/.test (csharpStripParens (t));
-        if (!exprNullable (l, a) && !exprNullable (r, b)) continue;
-        const text = csharpNullableIntegerComparisonText (m[1], l, r, l.text, r.text);
-        if (text !== undefined) edits.push ({ start: m.index, end: close + 1, text });
-    }
-    if (edits.length === 0) return undefined;
-    let out = original;
-    for (const e of edits.sort ((x, y) => y.start - x.start)) {
-        if (edits.some ((o) => (o !== e) && (o.start <= e.start) && (e.end <= o.end))) continue;
-        out = out.substring (0, e.start) + e.text + out.substring (e.end);
-    }
-    return (out === original) ? undefined : out;
+        if (!exprNullable (l, a) && !exprNullable (r, b)) return undefined;
+        return csharpNullableIntegerComparisonText (name, l, r, l.text, r.text);
+    });
 }
 
 // snippet checks (run from the --self-test path)
@@ -9624,8 +9602,6 @@ export function csharpNonNullDivModNegate (content: string): string {
         const bound = new Set<string> ();
         for (let i = start + 1; i < end; i++) {
             for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
         }
         const typeAt = (name: string, line: number) => bound.has (name) ? undefined : csharpHelperReceiverType (region (), name, line, params)?.type;
         // (D) proves the returned negation itself: that `ref` is the read, not a write before it
@@ -9708,9 +9684,8 @@ export function csharpNonNullDivModNegate (content: string): string {
                 const typed = inner.map ((a) => operandType (a, line));
                 let native: string | undefined;
                 if ((typed[0] !== undefined) && (typed[1] !== undefined)) {
-                    const atom = (t: string) => (topLevelBinaryOperands (t) === undefined) ? t : '(' + t + ')';
-                    const L = atom (typed[0].text);
-                    const R = atom (typed[1].text);
+                    const L = typed[0].text;
+                    const R = typed[1].text;
                     const kinds = [ typed[0].type, typed[1].type ];
                     const base = kinds.map ((k) => k.replace ('?', ''));
                     if (m[1] === 'subtract') {
@@ -9730,20 +9705,17 @@ export function csharpNonNullDivModNegate (content: string): string {
         };
         for (let i = start + 1; i < end; i++) {
             if (!/(?<![A-Za-z0-9_.])(?:subtract|divide)\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
-            const comment = masked[i].indexOf ('//');
-            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
             const strings = [];
-            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
+            const opaque = lines[i].replace (/"(?:[^"\\]|\\.)*"/g, (s) => { strings.push (s); return '\u0001' + '\u0002'.repeat (s.length - 2) + '\u0001'; });
             let k = 0;
             const rewritten = rewrite (opaque, i, 0).replace (/\u0001\u0002*\u0001/g, () => strings[k++]);
             if (k !== strings.length) continue;
-            set (i, rewritten + ((comment < 0) ? '' : lines[i].slice (comment)));
+            set (i, rewritten);
         }
         // (C) mod(<Int64 / Int64? name>, <positive int literal>)
         for (let i = start + 1; i < end; i++) {
             set (i, lines[i].replace (/(?<![A-Za-z0-9_.])mod\(([A-Za-z_]\w*), ([1-9]\d{0,8})\)/g, (all, x, d) => {
                 const t = typeAt (x, i);
-                if ((t === 'Int64') || (t === 'long')) return '((Int64)((double)' + x + ' % ' + d + '))';
                 if ((t === 'Int64?') || (t === 'long?')) return '((Int64?)((double?)' + x + ' % ' + d + '))';
                 return all;
             }));
@@ -9761,7 +9733,7 @@ export function csharpNonNullDivModNegate (content: string): string {
                 const t = csharpStripParens (text);
                 if (/^[A-Za-z_]\w*$/.test (t)) {
                     const type = typeAt (t, at);
-                    return [ 'int', 'Int64', 'long', 'double' ].includes (type) || nonNull (t, at, 0, 1) || ((type === 'object') && blockGuard (t, at));
+                    return [ 'int', 'Int64', 'long', 'double' ].includes (type) || nonNull (t, at, 0, 1);
                 }
                 const q = topLevelSplit (t, ' ? ');
                 const arms = (q.length === 2) ? topLevelSplit (q[1], ' : ') : [];
@@ -9989,7 +9961,6 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
     if (bare !== text) return emittedOperandType (bare, typeOfName, results, file);
     if (/^\d{1,9}$/.test (bare)) return 'int';
     if (/^\d{1,18}L$/.test (bare)) return 'Int64';
-    if (/^\d+\.\d+$/.test (bare)) return 'double';
     const neg = /^-(.+)$/.exec (bare);
     if (neg !== null) {
         const t = emittedOperandType (neg[1], typeOfName, results, file);
@@ -10011,7 +9982,6 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
     }
     const div = /^\(double\??\)([A-Za-z_]\w*|\([^()]*\))[ ]*\/[ ]*([A-Za-z_]\w*)$/.exec (bare);
     if (div !== null) return 'double?';
-    if (/^this\.(milliseconds|seconds|nonce)\(\)$/.test (bare)) return 'Int64';
     const call = /^((?:this\.)?[A-Za-z_][\w.]*)\(/.exec (bare);
     if ((call !== null) && (csharpClosingParen (bare, call[0].length - 1) === bare.length - 1)) {
         const fixed: { [name: string]: string | undefined } = {
@@ -10024,30 +9994,17 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
         // grvt's own `public virtual Int64? convertToBigIntCustom(object x)`
         if ((call[1] === 'this.convertToBigIntCustom') && /public virtual Int64\? convertToBigIntCustom\(object x\)/.test (file)) return 'Int64?';
         if ((call[1] === 'Math.Floor') || (call[1] === 'Math.Ceiling')) {
-            return /^Math\.(Floor|Ceiling)\(Double\.Parse\(/.test (bare) || /^Math\.(Floor|Ceiling)\(Convert\.ToDouble\(/.test (bare) ? 'double' : undefined;
+            return /^Math\.(Floor|Ceiling)\(Double\.Parse\(/.test (bare) ? 'double' : undefined;
         }
-        if ((call[1] === 'this.sum') || (call[1] === 'add') || (call[1] === 'subtract') || (call[1] === 'multiply') || (call[1] === 'divide')) {
+        if ((call[1] === 'this.sum') || (call[1] === 'add') || (call[1] === 'divide')) {
             const open = call[0].length - 1;
             const comma = csharpHelperTopLevelComma (bare, open, bare.length - 1);
             if ((comma === undefined) || (csharpHelperTopLevelComma (bare, comma, bare.length - 1) !== undefined)) return (call[1] === 'this.sum') ? 'object' : undefined;
             const l = emittedOperandType (bare.slice (open + 1, comma), typeOfName, results, file);
             const r = emittedOperandType (bare.slice (comma + 1, -1), typeOfName, results, file);
             if ((l === undefined) || (r === undefined)) return undefined;
-            if (call[1] === 'this.sum') {
-                const ints = [ 'int', 'Int64' ];
-                const nints = [ 'int', 'Int64', 'int?', 'Int64?' ];
-                return (ints.includes (l) && ints.includes (r)) || (nints.includes (l) && nints.includes (r)) ? 'Int64' : 'object';
-            }
-            if ((call[1] === 'subtract') || (call[1] === 'multiply')) return subMulTwinBind (call[1], l, r);
-            if (call[1] === 'add') {
-                // add twins: (Int64, Int64), (double, double), string forms; every other numeric pair binds (object, object)
-                if ([ l, r ].some ((x) => x.startsWith ('string'))) return undefined;
-                if ([ 'int', 'Int64' ].includes (l) && [ 'int', 'Int64' ].includes (r)) return 'Int64';
-                if ([ 'int', 'Int64', 'double' ].includes (l) && [ 'int', 'Int64', 'double' ].includes (r)) return 'double';
-                return 'object';
-            }
-            if ((l === 'object') || (r === 'object')) return 'object';
-            return undefined;
+            // add / divide over these operands bind the (object, object) overload
+            return ((call[1] !== 'this.sum') || ![ l, r ].every ((x) => [ 'int', 'Int64' ].includes (x))) ? 'object' : 'Int64';
         }
         if (Object.prototype.hasOwnProperty.call (fixed, call[1])) return fixed[call[1]];
         return undefined;
@@ -10058,19 +10015,13 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
         const recv = /([A-Za-z_]\w*)\[/.exec (bare)[1];
         return /^(I?Dictionary<string, object>\??)$/.test (typeOfName (recv) ?? '') ? 'object' : undefined;
     }
-    const member = /^([A-Za-z_]\w*)\.(Length|Count|decimals)$/.exec (bare);
-    if (member !== null) {
-        const owner = typeOfName (member[1]);
-        if (member[2] === 'decimals') return (owner === 'Precise') ? 'object' : undefined;
-        if (member[2] === 'Length') return [ 'string', 'string?' ].includes (owner) ? 'int' : undefined;
-        return /^(I?List<object>|List<string>)\??$/.test (owner ?? '') ? 'int' : undefined;
-    }
+    const member = /^([A-Za-z_]\w*)\.Length$/.exec (bare);
+    if (member !== null) return [ 'string', 'string?' ].includes (typeOfName (member[1])) ? 'int' : undefined;
     if (/^[A-Za-z_]\w*$/.test (bare)) {
         const t = typeOfName (bare);
         if (t === undefined) return undefined;
         const norm = t.replace (/^long(\??)$/, 'Int64$1');
-        if ([ 'int', 'Int64', 'double', 'int?', 'Int64?', 'double?', 'object', 'string', 'string?' ].includes (norm)) return norm;
-        return /^(I?Dictionary<string, object>|I?List<object>)\??$/.test (norm) ? 'object-ref' : undefined;
+        return [ 'int', 'Int64', 'double', 'int?', 'Int64?', 'double?', 'object', 'string', 'string?' ].includes (norm) ? norm : undefined;
     }
     return undefined;
 }
@@ -10100,7 +10051,7 @@ function subMulRewrite (text: string, typeOfName: (name: string) => string | und
             out += rebuilt;
             continue;
         }
-        const t = types.map ((x) => (x === 'object-ref' || x === 'string' || x === 'string?') ? 'object' : x);
+        const t = types.map ((x) => (x === 'string' || x === 'string?') ? 'object' : x);
         const bind = subMulTwinBind (m[1], t[0], t[1]);
         let native: string;
         if (bind === 'object') {
@@ -10136,7 +10087,6 @@ export function csharpTypedSubtractMultiply (objectNull: boolean, content: strin
             for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (loops[b[2]] ??= new Set ()).add (b[1]);
             for (const b of masked[i].matchAll (/(?:\bforeach[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
             for (const b of masked[i].matchAll (/\bvar[ ]+([A-Za-z_]\w*)/g)) if (!/new[ ]+Precise\(/.test (masked[i])) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
             for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
             if (/\bref[ ]+[A-Za-z_]/.test (masked[i])) for (const b of masked[i].matchAll (/\bref[ ]+([A-Za-z_]\w*)/g)) bound.add (b[1]);
         }
@@ -10148,13 +10098,11 @@ export function csharpTypedSubtractMultiply (objectNull: boolean, content: strin
                 if (loops[name] !== undefined) return (region.params[name] === undefined) ? openLoopCounterType (masked, start, i, name) : undefined;
                 return csharpHelperReceiverType (region, name, i, region.params)?.type ?? csharpInOpScopedLocal (region, name, i)?.type;
             };
-            const comment = masked[i].indexOf ('//');
-            const code = (comment < 0) ? lines[i] : lines[i].slice (0, comment);
             const strings = [];
-            const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => '\u0001' + (strings.push (s) - 1) + '\u0001');
+            const opaque = lines[i].replace (/"(?:[^"\\]|\\.)*"/g, (s) => '\u0001' + (strings.push (s) - 1) + '\u0001');
             const restored = (s: string) => s.replace (/\u0001(\d+)\u0001/g, (_, k) => strings[Number (k)]);
             // operand typing sees the string literals (dictionary keys), emission keeps them verbatim
-            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content)) + ((comment < 0) ? '' : lines[i].slice (comment));
+            const next = restored (subMulRewrite (restored (opaque), typeOfName, new Map (), content));
             if (next !== lines[i]) {
                 lines[i] = next;
                 changed = true;
