@@ -11800,7 +11800,7 @@ export default class binance extends Exchange {
             collateralString = this.safeString (position, 'isolatedMargin');
         }
         if (collateralString === undefined) {
-            collateralString = '0';
+            collateralString = this.numberToString (0);
         }
         const collateral = this.parseNumber (collateralString);
         const markPrice = this.parseNumber (this.omitZero (this.safeString (position, 'markPrice')));

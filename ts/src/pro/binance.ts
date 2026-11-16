@@ -796,7 +796,7 @@ export default class binance extends binanceRest {
         const [ rpi, paramsRpi ] = this.handleOptionBoolAndParams (paramsRate, 'watchOrderBookForSymbols', 'rpi', false);
         if (rpi && type === 'linear') {
             name = 'rpiDepth';
-            watchOrderBookRate = '500';
+            watchOrderBookRate = this.numberToString (500);
         }
         const subParams: string[] = [];
         const messageHashes: string[] = [];
