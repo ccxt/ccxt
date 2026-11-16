@@ -3044,17 +3044,11 @@ class NewTranspiler {
             // the method body ends at its closing brace, which is the first line indented exactly
             // like the signature — brace counting is unusable here because generated bodies carry
             // `{`/`}` inside string literals (url templates, json payloads)
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             if (isTyped) {
                 lines[i] = `${indent}public async ${modifier} Task<${this.qualifyTypedCoreType (typedType)}> ${printedName}(` + lines[i].split (printedName + '(').slice (1).join (printedName + '(');
             }
@@ -3169,17 +3163,11 @@ class NewTranspiler {
             // the body ends at its closing brace: the first line indented exactly like the
             // signature (brace counting is unusable — generated bodies carry braces inside
             // string literals)
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             for (let j = bodyStart + 1; j < bodyEnd; j++) {
                 if (!lines[j].trim ().startsWith ('return ')) {
                     continue;
@@ -3195,15 +3183,10 @@ class NewTranspiler {
                     j = lastLine;
                     continue;
                 }
+                // close the helper before the `;` first, then open it after `return ` (one line or many)
                 const retAt = lines[j].indexOf ('return ') + 7;
-                if (lastLine === j) {
-                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt, semi) + ')' + lines[j].substring (semi);
-                } else {
-                    // multi-line expression: open the helper on the first line, close it
-                    // before the `;` on the last — formatting is preserved
-                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt);
-                    lines[lastLine] = lines[lastLine].substring (0, semi) + ')' + lines[lastLine].substring (semi);
-                }
+                lines[lastLine] = lines[lastLine].substring (0, semi) + ')' + lines[lastLine].substring (semi);
+                lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt);
                 j = lastLine;
             }
             i = bodyEnd;
@@ -3315,27 +3298,6 @@ class NewTranspiler {
             if (/^this\.(?:safeString|symbol)\s*\(/.test (rhs)) {
                 return true;
             }
-            // `safeSymbol` returns `string?`, exactly like `safeString`
-            if (/^this\.safeSymbol\s*\(/.test (rhs)) {
-                return true;
-            }
-            // `capitalize` returns `string`; `((object)x).ToString()` is a string for any non-null x
-            if (/^this\.capitalize\s*\(/.test (rhs) || /^\(\(object\)[\w.]+\)\.ToString\s*\(\s*\)$/.test (rhs)) {
-                return true;
-            }
-            if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
-                return true;
-            }
-        } else if (targetType === 'bool?') {
-            if (/^(?:true|false)$/.test (rhs)) {
-                return true;
-            }
-        } else if (targetType === 'double?') {
-            // an integer literal would be converted (int -> double), boxing a Double instead of
-            // the Int32 the `object` spelling boxes -- a real literal needs no conversion
-            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
-                return true;
-            }
         }
         const cast = /^\(\(([^()]*)\)/.exec (rhs) || /^\(([\w<>, ?\[\].]+)\)/.exec (rhs);
         if (cast) {
@@ -3380,22 +3342,10 @@ class NewTranspiler {
                 }
             } else if (ch === ';' || (ch === '}' && depth === 0)) {
                 return null;
-            } else if (ch === '{' && depth === 0) {
-                if (!/(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*$/.test (line.slice (0, i))) {
-                    return null;
-                }
             }
             i -= 1;
         }
         return null;
-    }
-
-    // A callee outside the table keeps its argument untyped. No position exception is needed for
-    // a narrowed parameter: castCoreArgCallSites wraps every argument there with `((string)…)`/
-    // To*Arg, and coreArgShadowUseKind answers at that cast before asking about the callee.
-    coreArgShadowCalleeAllows (callee: string): boolean {
-        const name = callee.split ('.').pop () as string;
-        return CORE_ARG_SHADOW_CALLEES.indexOf (name) !== -1 || CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1;
     }
 
     // classification of one occurrence: 'write', 'read', or '' when not provable
@@ -3433,18 +3383,6 @@ class NewTranspiler {
         if (/^[!=]=\s*null\s*\)/.test (postl)) {
             return 'read';
         }
-        // `(alias == "lit")` / `(alias != "lit")`: the native spelling of the isEqual(alias, "lit")
-        // comparison this classifier already accepts at an argument position (the narrowed copy is
-        // a `string` in the emitted declaration, which is what makes the operator a value compare)
-        if (/^[!=]=\s*(?:"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')\s*\)/.test (postl)) {
-            return 'read';
-        }
-        if (pre.trim () === 'return' && postl.trim () === ';') {
-            return methodReturnType.includes ('object') ? 'read' : '';
-        }
-        if (postl.trim () === ';' && /[\}\]]\s*=\s*$/.test (pre) && /I?Dictionary<string,\s*object>/.test (pre)) {
-            return 'read';
-        }
         // the initializer of a new `object` local boxes the same value (Nullable<T> boxes as T)
         if (postl.trim () === ';' && /^\s*object\s+[A-Za-z_]\w*\s*=\s*$/.test (pre)) {
             return 'read';
@@ -3473,14 +3411,14 @@ class NewTranspiler {
         }
 
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
+            // a callee outside the table keeps its argument untyped (a narrowed parameter's
+            // call-site cast was already answered above)
             const callee = this.coreArgShadowCallee (line, at);
-            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0])) {
+            const name = callee === null ? '' : callee[0].split ('.').pop () as string;
+            if (callee !== null && (CORE_ARG_SHADOW_CALLEES.indexOf (name) !== -1 || CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1)) {
                 return 'read';
             }
             return '';
-        }
-        if (postl.charAt (0) === '}' && /\{\s*"[^"]*"\s*,\s*$/.test (pre)) {
-            return 'read';
         }
         return '';
     }
@@ -3775,14 +3713,7 @@ class NewTranspiler {
     // market-row core keeps the object slot as `object marketVar = market;` (the printer's reads
     // agree: build/csharp-local-types.js#parseMarketParamType). Returns the body's last line.
     retypeParseMarketParamShadowed (lines: string[], i: number, indent: string): number {
-        let bodyStart = i + 1;
-        while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-            bodyStart++;
-        }
-        let bodyEnd = lines.length - 1;
-        for (let j = bodyStart + 1; j < lines.length; j++) {
-            if (lines[j] === indent + '}') { bodyEnd = j; break; }
-        }
+        const [ bodyStart, bodyEnd ] = this.methodBodyBounds (lines, i, indent) ?? [ lines.length, lines.length - 1 ];
         lines[i] = lines[i].replace (PARSE_MARKET_PARAM_RE, '$1IDictionary<string, object>$2')
                            .replace (PARSE_MARKET_PARAM_REQUIRED_RE, '$1IDictionary<string, object>$2');
         const writes = lines.slice (bodyStart + 1, bodyEnd).join ('\n').match (/(?<![\w.])market\s*(?:\?\?)?=(?!=)[^;]*;|(?<![\w])(?:ref|out)\s+market(?![\w])/g) ?? [];
@@ -3819,17 +3750,11 @@ class NewTranspiler {
             if (positions === undefined) {
                 continue;
             }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
             const params = this.splitCsharpParams (plist);
             const shadows: string[] = [];
@@ -3976,17 +3901,12 @@ class NewTranspiler {
                 continue; // only a method with its body block on the next line
             }
             const [ , indent, returnType, , plist ] = sig;
-            const params: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const decl = param.split ('=')[0].trim ().split (/\s+/);
-                if (decl.length >= 2) {
-                    params[decl[decl.length - 1]] = decl.slice (0, -1).join (' ');
-                }
+            const params = this.csharpParamTypes (plist);
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
+                continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = i + 2; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const bodyEnd = bounds[1];
             const bodyLines = lines.slice (i + 2, bodyEnd);
             // local declarations of the body: a type the printer or a retype pass already
             // emitted. A name declared twice (two sibling blocks) proves nothing.
@@ -4115,11 +4035,6 @@ class NewTranspiler {
             return '';
         }
         const postl = post.replace (/^\s+/, '');
-        // `alias.ToString ()`: `object.ToString ()` and `string.ToString ()` are the same virtual
-        // call (a null throws either way), so the receiver's static type moves nothing
-        if ((targetType === 'string' || targetType === 'string?') && /^\.ToString\s*\(\s*\)/.test (postl)) {
-            return 'read';
-        }
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
             const callee = this.coreArgShadowCallee (line, at);
             if (callee !== null && IDENTIFIER_COPY_IDENTITY_CALLEES.indexOf (callee[0].split ('.').pop () as string) !== -1) {
@@ -4134,17 +4049,6 @@ class NewTranspiler {
         if (assign !== null && postl.trim () === ';') {
             const target = declared[assign[1]];
             if (target === 'object' || target === targetType || IDENTIFIER_COPY_WIDENING[targetType + '->' + target] === true) {
-                return 'read';
-            }
-        }
-        // `<dict>["key"] = alias;` on a receiver this body declares Dictionary<string, object> /
-        // IDictionary<string, object>: the slot is `object`, so the value boxes the same either
-        // way (the `coreArgShadowUseKind` rule of the same shape needs the cast spelling in the
-        // line, which a typed local does not carry)
-        const element = /^(\w+)\s*\[[^\]]*\]\s*=\s*$/.exec (pre.trim ());
-        if (element !== null && postl.trim () === ';') {
-            const receiver = declared[element[1]];
-            if (receiver === 'Dictionary<string, object>' || receiver === 'IDictionary<string, object>') {
                 return 'read';
             }
         }
@@ -4168,9 +4072,6 @@ class NewTranspiler {
     // any nullable string producer): the write stores the same box either way.
     identifierCopyRhsIsTyped (rhs: string, targetType: string, declared: Record<string, string>): boolean {
         if (targetType === 'string' || targetType === 'string?') {
-            if (this.coreArgShadowRhsIsTyped (rhs, 'string')) {
-                return true;
-            }
             // `this.safeOutcomeSymbol (...)` => string? (Exchange.PredictionAliases.cs /
             // prediction tier), `x.ToString ()` => string for any non-null x, and the
             // `(x as String).PadLeft (...)`: string
@@ -4184,13 +4085,6 @@ class NewTranspiler {
             const arms = /^.*?\)\s*\?\s*(.*?)\s*:\s*(.*?)\s*$/.exec (rhs);
             if (arms !== null && arms[0].indexOf ('?') !== -1 && this.identifierCopyStringArmIsTyped (arms[1], declared)
                 && this.identifierCopyStringArmIsTyped (arms[2], declared)) {
-                return true;
-            }
-        } else if (targetType === 'double?' || targetType === 'double') {
-            if (/^this\.(?:parseNumber|safeNumber)\s*\(/.test (rhs)) {
-                return true;
-            }
-            if (/^-?\d+\.\d*(?:[eE][-+]?\d+)?$/.test (rhs) || /^-?\d+[eE][-+]?\d+$/.test (rhs)) {
                 return true;
             }
         }
@@ -4258,6 +4152,36 @@ class NewTranspiler {
 
     // `visit` each `public virtual|override` method body (its lines, return type, parameter name -> type); a
     // visit answering true had rewritten `bodyLines`, which are written back
+    // the body of the method whose signature is line `i`: [ opening-brace line, closing-brace line ], the
+    // closing brace being the first line indented exactly like the signature (brace counting is unusable:
+    // generated bodies carry braces inside string literals); undefined when no opening brace follows
+    methodBodyBounds (lines: string[], i: number, indent: string): [ number, number ] | undefined {
+        let bodyStart = i + 1;
+        while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+            bodyStart++;
+        }
+        if (bodyStart >= lines.length) {
+            return undefined;
+        }
+        let bodyEnd = lines.length - 1;
+        for (let j = bodyStart + 1; j < lines.length; j++) {
+            if (lines[j] === indent + '}') { bodyEnd = j; break; }
+        }
+        return [ bodyStart, bodyEnd ];
+    }
+
+    // parameter name -> declared type of a printed parameter list (defaults dropped)
+    csharpParamTypes (plist: string): Record<string, string> {
+        const types: Record<string, string> = {};
+        for (const param of this.splitCsharpParams (plist)) {
+            const parts = param.split ('=')[0].trim ().split (/\s+/);
+            if (parts.length >= 2) {
+                types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+            }
+        }
+        return types;
+    }
+
     csharpPublicMethodBodies (content: string, visit: (bodyLines: string[], returnType: string, types: Record<string, string>) => boolean): string {
         const lines = content.split ('\n');
         const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
@@ -4267,25 +4191,13 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, , , returnType, , plist ] = sig;
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
-            const types: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const parts = param.split ('=')[0].trim ().split (/\s+/);
-                if (parts.length >= 2) {
-                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-                }
-            }
+            const types = this.csharpParamTypes (plist);
             const changed = visit (bodyLines, returnType, types);
             if (changed) {
                 for (let k = 0; k < bodyLines.length; k++) {
@@ -4350,17 +4262,11 @@ class NewTranspiler {
                 const decl = param.split ('=')[0].trim ().split (/\s+/);
                 return decl.length >= 2 && decl[decl.length - 1] === 'client' && /WebSocketClient$/.test (decl[decl.length - 2]);
             });
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             let changed = false;
             for (let k = bodyStart + 1; k < bodyEnd; k++) {
                 const line = lines[k];
@@ -4420,17 +4326,11 @@ class NewTranspiler {
             const [ , indent, , , methodName, plist ] = sig;
             const target = targets.get (methodName) as string;
             // body span: opening brace on its own line, closing brace at the signature indent
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, indent);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             const paramNames = this.splitCsharpParams (plist)
                 .map ((p) => p.split ('=')[0].trim ().split (/\s+/).pop ())
                 .filter ((p) => p !== undefined) as string[];
@@ -4519,15 +4419,6 @@ class NewTranspiler {
         }
     }
 
-    // true when the `((string)…)` wrap around this argument would only re-name the type the
-    // argument already has (CORE_ARG_CAST_EXEMPT_NAMES); the call then compiles unchanged.
-    coreArgCastExempt (content: string, at: number, arg: string): boolean {
-        if (CORE_ARG_CAST_EXEMPT_NAMES.indexOf (arg) === -1) {
-            return false;
-        }
-        return this.coreArgCastDeclaredType (content, at, arg) === 'string';
-    }
-
     // Drops the `((string)name)` wrap castCoreArgCallSites left on a `code`/`codeVar` argument already
     // typed `string` (same nearest-declaration proof): static type, overload and box are unchanged.
     // Runs after retypeCoreArgCopies.
@@ -4543,7 +4434,7 @@ class NewTranspiler {
                 const before = content[at - 1];
                 const after = content[at + needle.length];
                 const free = (before === undefined || !/[\w.]/.test (before)) && (after === undefined || !/\w/.test (after));
-                if (free && this.coreArgCastExempt (content, at, name)) {
+                if (free && this.coreArgCastDeclaredType (content, at, name) === 'string') {
                     content = content.slice (0, at) + name + content.slice (at + needle.length);
                     from = at + name.length;
                     continue;
@@ -4591,17 +4482,11 @@ class NewTranspiler {
             if (sig === null) {
                 continue;
             }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
+            const bounds = this.methodBodyBounds (lines, i, sig[1]);
+            if (bounds === undefined) {
                 continue;
             }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
-            }
+            const [ bodyStart, bodyEnd ] = bounds;
             const candidates = new Set<string> ();
             const blocked = new Set<string> ();
             for (const param of this.splitCsharpParams (sig[2])) {
