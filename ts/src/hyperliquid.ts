@@ -5316,8 +5316,9 @@ export default class hyperliquid extends Exchange {
             const data = this.safeDict (responsePayload, 'data', {});
             const statuses: Dict[] = this.safeList (data, 'statuses', []);
             for (let i = 0; i < statuses.length; i++) {
-                message = this.safeString (statuses[i], 'error');
-                if (message !== undefined) {
+                const statusError = this.safeString (statuses[i], 'error');
+                if (statusError !== undefined) {
+                    message = statusError;
                     break;
                 }
             }
