@@ -20,7 +20,7 @@ default = []
 engine = []
 
 [dependencies]
-reqwest = { version = "0.12", features = ["json", "rustls-tls", "socks", "gzip"], default-features = false }
+reqwest = { version = "0.12", features = ["rustls-tls", "socks", "gzip"], default-features = false }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros", "sync", "time", "net", "io-util"] }
 serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
 hmac = "0.12"
@@ -37,7 +37,7 @@ rust_decimal = { version = "1", features = ["serde-str"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 rand = "0.8"
-chrono = { version = "0.4", features = ["serde"] }
+chrono = "0.4"
 futures = "0.3"
 async-trait = "0.1"
 indexmap = { version = "2", features = ["serde"] }
