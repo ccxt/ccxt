@@ -81,32 +81,26 @@ function codeMask (s: string): Uint8Array {
 }
 
 function matchClose (s: string, mask: Uint8Array, open: number): number {
+    return maskedScan (s, mask, open, (i, d) => !d && ')]}'.includes (s[i]));
+}
+
+// first code index `stop (i, depth)` accepts, depth taken through i; else -1
+function maskedScan (s: string, mask: Uint8Array, pos: number, stop: (i: number, d: number) => boolean): number {
     let depth = 0;
-    for (let i = open; i < s.length; i++) {
+    for (let i = pos; i < s.length; i++) {
         if (!mask[i]) continue;
         const c = s[i];
         if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth === 0) return i;
-        }
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        if (stop (i, depth)) return i;
     }
     return -1;
 }
 
 // end (exclusive) of a return expression starting at pos: first newline at bracket depth 0
 function exprEnd (s: string, mask: Uint8Array, pos: number): number {
-    let depth = 0;
-    for (let i = pos; i < s.length; i++) {
-        if (!mask[i]) continue;
-        const c = s[i];
-        if (c === '(' || c === '[' || c === '{') depth++;
-        else if (c === ')' || c === ']' || c === '}') {
-            depth--;
-            if (depth < 0) return i;
-        } else if (c === '\n' && depth === 0) return i;
-    }
-    return s.length;
+    const end = maskedScan (s, mask, pos, (i, d) => d < 0 || (s[i] === '\n' && !d));
+    return (end < 0) ? s.length : end;
 }
 
 function qualifier (content: string): string {

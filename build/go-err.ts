@@ -1,6 +1,6 @@
 // Errors as values in generated Go. Async results travel as AsyncResult[any]{Value, Err} (EndpointResult[T] keeps Raw); every await becomes
 // `r := <-X` + `if r.Err != nil { panic(r.Err) }` + r.Value, typed wrappers return r.Err. Runs last on generated text.
-import { goChanMask, goChanClose, goChanQual } from './go-chan.js';
+import { goChanMask, goChanClose, goChanExprEnd, goChanQual } from './go-chan.js';
 
 export type GoErrStats = { [reason: string]: number };
 
@@ -8,26 +8,6 @@ function goErrBump (stats: GoErrStats | undefined, reason: string) {
     if (stats !== undefined) {
         stats[reason] = (stats[reason] || 0) + 1;
     }
-}
-
-// end (exclusive, trailing blanks trimmed) of the statement starting at `start`: the first newline at depth 0
-function goErrExprEnd (masked: string, start: number): number {
-    let depth = 0;
-    let i = start;
-    for (; i < masked.length; i++) {
-        const c = masked[i];
-        if ((c === '(') || (c === '{') || (c === '[')) {
-            depth++;
-        } else if ((c === ')') || (c === '}') || (c === ']')) {
-            depth--;
-        } else if ((c === '\n') && (depth <= 0)) {
-            break;
-        }
-    }
-    while ((i > start) && /\s/.test (masked[i - 1])) {
-        i--;
-    }
-    return i;
 }
 
 // the received operand: a selector chain of calls / type assertions ending in a call; end index or -1
@@ -189,7 +169,7 @@ function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
             wrapped = true;
         }
         const prefix = masked.substring (ls, ws);
-        const stmtEnd = goErrExprEnd (masked, ls);
+        const stmtEnd = goChanExprEnd (masked, ls, (d: number) => d <= 0);
         const suffix = masked.substring (we, stmtEnd);
         // already in the hoisted shape
         const own = /^\t*(\w+) := $/.exec (masked.substring (ls, p));
@@ -287,7 +267,7 @@ function goErrSends (fn: string, q: string): string {
     const edits: { start: number, end: number, text: string }[] = [];
     for (let m = send.exec (masked); m !== null; m = send.exec (masked)) {
         const start = m.index + m[0].length;
-        const end = goErrExprEnd (masked, start);
+        const end = goChanExprEnd (masked, start, (d: number) => d <= 0);
         const expr = fn.substring (start, end);
         if (/^(?:\(?<-|(?:ccxt\.)?AsyncResult\[any\]\{)/.test (expr)) {
             continue;

@@ -99,35 +99,27 @@ export function goChanMask (content: string): string {
 
 // index just past the bracket matching masked[open]
 export function goChanClose (masked: string, open: number): number {
+    const close = goChanScan (masked, open, (i, d) => !d && ')}]'.includes (masked[i]));
+    return (close < 0) ? -1 : close + 1;
+}
+
+// first index `stop (i, depth)` accepts (depth through i), else -1
+function goChanScan (masked: string, start: number, stop: (i: number, d: number) => boolean): number {
     let depth = 0;
-    for (let i = open; i < masked.length; i++) {
+    for (let i = start; i < masked.length; i++) {
         const c = masked[i];
-        if ((c === '(') || (c === '{') || (c === '[')) {
-            depth++;
-        } else if ((c === ')') || (c === '}') || (c === ']')) {
-            depth--;
-            if (depth === 0) {
-                return i + 1;
-            }
+        depth += ('([{'.includes (c) ? 1 : 0) - (')]}'.includes (c) ? 1 : 0);
+        if (stop (i, depth)) {
+            return i;
         }
     }
     return -1;
 }
 
-// end (exclusive, trailing blanks trimmed) of the expression starting at `start`: the first newline at depth 0
-export function goChanExprEnd (masked: string, start: number): number {
-    let depth = 0;
-    let i = start;
-    for (; i < masked.length; i++) {
-        const c = masked[i];
-        if ((c === '(') || (c === '{') || (c === '[')) {
-            depth++;
-        } else if ((c === ')') || (c === '}') || (c === ']')) {
-            depth--;
-        } else if ((c === '\n') && (depth === 0)) {
-            break;
-        }
-    }
+// end (exclusive, trailing blanks trimmed) of the expression at `start`: first newline at an `atDepth` depth
+export function goChanExprEnd (masked: string, start: number, atDepth = (d: number) => !d): number {
+    let i = goChanScan (masked, start, (j, d) => (masked[j] === '\n') && atDepth (d));
+    i = (i < 0) ? masked.length : i;
     while ((i > start) && /\s/.test (masked[i - 1])) {
         i--;
     }
