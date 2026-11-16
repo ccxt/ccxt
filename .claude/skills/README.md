@@ -79,7 +79,7 @@ Rust skill covering:
 - `Config` / `Params` builders — no dynamic values at the call site
 - Runtime setup (tokio, worker-thread stack size, panic hook)
 - Error handling with the unified hierarchy (`ExchangeError::is`)
-- Untyped escape hatch (`raw`, `Deref` to the base `Exchange`, `call::<Value>` on `dyn TypedExchange`)
+- Untyped escape hatch (`raw`, `Deref` to the base `Exchange`, `TypedExchange::call::<Value>`)
 
 **Invoke with:** `/ccxt-rust`
 

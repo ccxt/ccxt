@@ -73,3 +73,11 @@ impl std::ops::Deref for PredictionExchange {
 impl std::ops::DerefMut for PredictionExchange {
     fn deref_mut(&mut self) -> &mut Self::Target { &mut self.exchange }
 }
+
+/// Receives the concrete prediction venue picked by id (`prediction::with_exchange`).
+/// `PredictionBase` and `ExchangeBase` share unified names, so call those as
+/// `PredictionBase::fetch_ticker(&mut ex, ..)` inside `visit`.
+pub trait PredictionVisitor {
+    type Output;
+    fn visit<E: crate::exchange::TypedExchange + crate::prediction_exchange_generated::PredictionBase + 'static>(self, exchange: E) -> impl ::std::future::Future<Output = Self::Output> + Send;
+}

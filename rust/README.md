@@ -49,7 +49,7 @@ Rules of thumb:
 - `ccxt-prediction`'s ids are the prediction venues (`polymarket`, `kalshi`, `binance` for
   Binance's prediction markets, …); they are separate features from the spot exchange of the
   same name.
-- `from_id("kraken", …)` returns `None` for an exchange that was not compiled in, so code that
+- `with_exchange("kraken", …)` returns `None` for an exchange that was not compiled in, so code that
   picks exchanges at runtime needs them in the list.
 - Docs follow the same features: `cargo doc --open` in your project documents only the
   exchanges you enabled.

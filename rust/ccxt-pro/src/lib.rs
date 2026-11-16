@@ -12,7 +12,7 @@ pub use ccxt_base::{
 };
 pub use ccxt_base::{
     Value, get_value, set_value, safe_string, safe_number, safe_integer, safe_bool,
-    ExchangeError, Exchange, TypedExchange, Result, Params, Config,
+    ExchangeError, Exchange, TypedExchange, ExchangeVisitor, Result, Params, Config,
 };
 pub use ccxt_base::exchange_generated::ExchangeBase;
 // `load_markets` is hand-written runtime, so it lives on this sibling trait

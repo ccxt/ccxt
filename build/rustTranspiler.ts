@@ -9323,7 +9323,7 @@ export class RustTranspilerBuilder {
         const sigs = this.collectExchangeMethodSignatures(table, content, /* allowNoPub */ true);
         // Qualify only genuinely-ambiguous names (also in ExchangeBase /
         // DerivedExchange); a bare call for a prediction-only method avoids the
-        // async-trait-fn lifetime error (E0792).
+        // async-fn-in-trait lifetime error (E0792).
         const exBase = new Set<string>();
         try {
             const src = fs.readFileSync(BASE_METHODS_FILE, 'utf8');
@@ -10519,36 +10519,23 @@ impl std::ops::DerefMut for ${coreName} {
     }
 
     /**
-     * The typed unified methods on `dyn TypedExchange` (any boxed exchange): same signature and
-     * argument lowering as the base trait method, dispatched by name through `call`.
+     * Venue struct re-exports plus `with_exchange`, for a venue `mod.rs`: one arm per venue
+     * builds the concrete struct and hands it to a generic visitor (no boxing, no venue enum).
      */
-    emitDynTypedSurface(content: string, skip: Set<string>): string {
-        const re = /^    fn (\w+)\(&mut self((?:, [^\n]*?)?)\) -> impl ::std::future::Future<Output = crate::Result<(.+?)>> \+ Send \{ async move \{\n\s*let __args: Vec<Value> = vec!\[(.*)\];$/gm;
-        const out: string[] = [];
-        for (const m of content.matchAll(re)) {
-            if (skip.has(m[1])) continue;
-            out.push(`    pub fn ${m[1]}<'a>(&'a mut self${m[2]}) -> impl ::std::future::Future<Output = crate::Result<${m[3]}>> + Send + 'a {`,
-                `        let __args: Vec<Value> = vec![${m[4]}];`,
-                `        async move { self.call("${m[1]}", __args).await }`,
-                '    }');
-        }
-        return out.length ? `\nimpl dyn crate::exchange::TypedExchange {\n${out.join('\n')}\n}\n` : '';
-    }
-
-    /** Venue struct re-exports plus a `from_id` factory over them, for a venue `mod.rs`. */
-    venueRegistry(ids: string[], feature: (id: string) => string): string {
+    venueRegistry(ids: string[], feature: (id: string) => string, prediction = false): string {
         const gate = (n: string) => `#[cfg(feature = "${feature(n)}")]`;
+        const visitor = prediction ? 'crate::prediction_exchange::PredictionVisitor' : 'crate::exchange::ExchangeVisitor';
         const L: string[] = [];
         for (const n of ids) L.push(gate(n), `pub use ${n}::${capitalize(n)};`);
         L.push('',
-            '/// Construct an exchange by id as a `Box<dyn TypedExchange>`; `None` for an unknown id.',
-            'pub fn from_id(id: &str, config: Option<crate::Value>) -> Option<Box<dyn crate::exchange::TypedExchange>> {',
+            '/// Build the venue named `id` and run `visitor` on it; `None` for an id not compiled in.',
+            `pub async fn with_exchange<V: ${visitor}>(id: &str, config: Option<crate::Value>, visitor: V) -> Option<V::Output> {`,
             '    match id {');
-        for (const n of ids) L.push(`        ${gate(n)}`, `        ${JSON.stringify(n)} => Some(Box::new(${n}::${capitalize(n)}::new(config))),`);
+        for (const n of ids) L.push(`        ${gate(n)}`, `        ${JSON.stringify(n)} => Some(visitor.visit(${n}::${capitalize(n)}::new(config)).await),`);
         L.push('        _ => None,', '    }', '}', '',
-            '/// [`from_id`] with the typed [`crate::Config`] builder.',
-            'pub fn from_id_with_config(id: &str, config: crate::Config) -> Option<Box<dyn crate::exchange::TypedExchange>> {',
-            '    from_id(id, config.into_option())',
+            '/// [`with_exchange`] with the typed [`crate::Config`] builder.',
+            `pub async fn with_exchange_config<V: ${visitor}>(id: &str, config: crate::Config, visitor: V) -> Option<V::Output> {`,
+            '    with_exchange(id, config.into_option(), visitor).await',
             '}');
         return L.join('\n');
     }
@@ -10724,7 +10711,7 @@ impl std::ops::DerefMut for ${coreName} {
         }
         if (folder === EXCHANGES_FOLDER || isPredictionFolder) {
             lines.push('');
-            lines.push(this.venueRegistry(baseNames, n => rustFeatureName(n, isPredictionFolder)));
+            lines.push(this.venueRegistry(baseNames, n => rustFeatureName(n, isPredictionFolder), isPredictionFolder));
         }
         // Re-export the hand-written pro types at the module root so
         // existing `use ccxt::pro::ArrayCache;` style imports keep
@@ -10993,7 +10980,7 @@ impl std::ops::DerefMut for ${coreName} {
             // Only qualify a call when it is genuinely AMBIGUOUS — i.e. the name
             // exists in BOTH PredictionBase and (ExchangeBase or DerivedExchange).
             // Qualifying a prediction-only method (load_outcomes, fetch_events)
-            // is unnecessary and, on an async-trait-fn recursion, triggers a
+            // is unnecessary and, on an async-fn-in-trait recursion, triggers a
             // lifetime error (E0792). Read the Exchange base method names once.
             const exBase = new Set<string>();
             try {
@@ -11180,12 +11167,6 @@ impl std::ops::DerefMut for ${coreName} {
             '\n',
         );
 
-        if (isExchangeBase || isPredictionBase) {
-            const inherited = isPredictionBase && fs.existsSync(BASE_METHODS_FILE)
-                ? new Set([...fs.readFileSync(BASE_METHODS_FILE, 'utf8').matchAll(/^    pub fn (\w+)<'a>\(&'a mut self/gm)].map(m => m[1]))
-                : new Set<string>();
-            finalFile += this.emitDynTypedSurface(finalFile, inherited);
-        }
         fs.writeFileSync(outFile, splitLongRustLines(borrowLiteralBoxes(finalFile)));
         log.green('Transpiled base methods to', (outFile as any).yellow);
     }

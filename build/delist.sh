@@ -116,7 +116,7 @@ filter_lines rust/ccxt-pro/src/pro/mod.rs "^pub mod ${EXCHANGE};\$"
 # import and as a `$cb!(<id>, <Id>);` macro arm
 filter_lines rust/tests/src/generated_cores.rs "^[[:space:]]*(${EXCHANGE}::|\\\$cb!\\(${EXCHANGE},)"
 # the venue mod.rs re-exports the struct (`pub use <id>::<Id>;`) and constructs it
-# by id in a `"<id>" => Some(Box::new(...))` from_id arm
+# by id in a `"<id>" => Some(visitor.visit(...))` with_exchange arm
 filter_lines rust/ccxt-base/src/exchanges/mod.rs "(^pub use ${EXCHANGE}::|^[[:space:]]*\"${EXCHANGE}\" =>)"
 filter_lines rust/ccxt-pro/src/pro/mod.rs "(^pub use ${EXCHANGE}::|^[[:space:]]*\"${EXCHANGE}\" =>)"
 

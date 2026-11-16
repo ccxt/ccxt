@@ -43,9 +43,11 @@ async fn main() -> Result<(), ccxt::ExchangeError> {
 ```
 
 Each exchange `Deref`s to the base `Exchange` (fields such as `id`, `has`,
-`markets`). A `Box<dyn TypedExchange>` (`from_id`) carries the same base-spec
-methods, plus `call::<R>(name, args)` to dispatch any method by name (`R = Value`
-for methods without a typed signature).
+`markets`). Code over any venue is generic: `fn f<E: TypedExchange>(ex: &mut E)`
+sees the same base-spec methods, plus `call::<R>(name, args)` to dispatch any
+method by name (`R = Value` for methods without a typed signature). To pick a venue
+by id at runtime, `exchanges::with_exchange(id, config, visitor)` builds the concrete
+venue and passes it to your `ExchangeVisitor`.
 
 ## Feature flags
 

@@ -213,29 +213,37 @@ b.set_sandbox_mode(true)?;
 
 ### Choosing an exchange at runtime
 
-`from_id` / `from_id_with_config` build any compiled-in venue from its id and hand back a
-`Box<dyn TypedExchange>`; the unified methods keep their typed returns on the trait object.
+`exchanges::with_exchange` / `with_exchange_config` build the compiled-in venue named by an id
+and pass the concrete type to an `ExchangeVisitor` (no boxing, no venue enum); the unified
+methods keep their typed returns. `None` means the id is not compiled in.
 
 ```rust
-use ccxt::{from_id_with_config, Config, Params, TypedExchange};
+use ccxt::{Config, ExchangeVisitor, Params, Result, TypedExchange};
+
+struct Last;
+
+impl ExchangeVisitor for Last {
+    type Output = Result<Option<f64>>;
+    async fn visit<E: TypedExchange + 'static>(self, mut exchange: E) -> Result<Option<f64>> {
+        exchange.load_markets(false, ()).await?;
+        Ok(exchange.fetch_ticker("BTC/USDT", Params::none()).await?.last)
+    }
+}
 
 for id in ["binance", "bybit", "okx"] {
-    let Some(mut exchange) = from_id_with_config(id, Config::new().enable_rate_limit(true)) else {
-        continue; // unknown id
-    };
-    exchange.load_markets(false, ()).await?;
-    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-    println!("{id} {:?}", ticker.last);
+    let cfg = Config::new().enable_rate_limit(true);
+    if let Some(last) = ccxt::exchanges::with_exchange_config(id, cfg, Last).await {
+        println!("{id} {:?}", last?);
+    }
 }
 ```
 
-`TypedExchange` is blanket-implemented for every exchange. `dyn TypedExchange` carries the
-base-spec methods under the same names and signatures as each concrete struct (`load_markets`,
-`market`, `set_sandbox_mode`, `fetch_ticker`, …), plus `call::<R>(name, args)` for by-name
-dispatch, and `Deref`s to the base `Exchange`. Generic code takes a trait object:
+`TypedExchange` is blanket-implemented for every exchange: it is `ExchangeBase + ExchangeRuntime`
+(`load_markets`, `market`, `set_sandbox_mode`, `fetch_ticker`, …) plus `call::<R>(name, args)`
+for by-name dispatch. Generic code takes a type parameter:
 
 ```rust
-async fn best_bid(ex: &mut dyn TypedExchange) -> Result<Option<f64>, ccxt::ExchangeError> {
+async fn best_bid<E: TypedExchange>(ex: &mut E) -> Result<Option<f64>, ccxt::ExchangeError> {
     Ok(ex.fetch_ticker("BTC/USDT", Params::none()).await?.bid)
 }
 ```
@@ -916,13 +924,13 @@ signature (exchange-specific implicit endpoints such as `public_get_ticker_price
 ```rust
 use ccxt::{TypedExchange, Value};
 
-let mut ex: Box<dyn TypedExchange> = Box::new(ccxt::Binance::new(None));
+let mut ex = ccxt::Binance::new(None);
 let result: Value = ex
     .call("public_get_ticker_price", vec![Value::Null])
     .await?;
 ```
 
-`call` is on `dyn TypedExchange`; a concrete `Binance` calls its implicit endpoints directly
+`call` comes from `TypedExchange`; a concrete `Binance` can also call its implicit endpoints directly
 (`exchange.public_get_ticker_price(..)`).
 
 ## Prediction Markets
@@ -958,8 +966,8 @@ if let Some(id) = order.id {
   `fetch_event(id, params) -> PredictionEvent`. Methods still taking `Value` (e.g. `fetch_outcomes`)
   can also be reached via `call`.
 
-- Venues are driven generically through `Box<dyn TypedExchange>` (`ccxt_prediction::from_id`),
-  the same trait as in `ccxt`.
+- Venues are driven generically through `E: TypedExchange + PredictionBase`; by id,
+  `ccxt_prediction::with_exchange(id, config, visitor)` takes a `PredictionVisitor`.
 
 ## Order Router
 
@@ -1234,7 +1242,7 @@ second instance.
 **`no method named 'load_markets' found`**
 On a concrete struct, bring the traits into scope: `use ccxt::{ExchangeBase, ExchangeRuntime};`
 (`market`/`set_sandbox_mode`/`fetch_*` live on `ExchangeBase`, `load_markets` on
-`ExchangeRuntime`). On a `Box<dyn TypedExchange>` they are inherent.
+`ExchangeRuntime`). In generic code the bound `E: TypedExchange` brings both.
 
 **`no method named 'fetch_ticker' found`**
 The exchange was not compiled in (check the crate's `features`), or the venue does not implement
@@ -1293,7 +1301,7 @@ The Rust port is newer than the other bindings. Current gaps:
 - **No typed `un_watch_*` and no `close()`** — see
   [Closing connections](#closing-connections).
 - **Not every method is typed** — unified methods have typed signatures; exchange-specific
-  helpers and implicit endpoints go through `call` on `dyn TypedExchange`.
+  helpers and implicit endpoints go through `TypedExchange::call`.
 - **Integer precision** — JSON integers above `u64::MAX` fall back to `f64`; values up to
   `u64::MAX` are preserved losslessly.
 

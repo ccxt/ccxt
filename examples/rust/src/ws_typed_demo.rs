@@ -10,6 +10,15 @@
 use ccxt::Params;
 use ccxt_pro::{Binance, TypedExchange, ExchangeRuntime};
 
+// Any WS venue through the generic bound, monomorphised per venue type.
+async fn last_ticker<E: TypedExchange>(ex: &mut E) {
+    let _ = ex.load_markets(false, ()).await;
+    match ex.watch_ticker(SYMBOL, Params::none()).await {
+        Ok(t) => println!("   last={:?}", t.last),
+        Err(e) => eprintln!("   x [{}] {}", e.kind, e.message),
+    }
+}
+
 const SYMBOL: &str = "BTC/USDT";
 const UPDATES: usize = 3;
 
@@ -73,14 +82,9 @@ async fn main() {
     }
 
     // ── B. generic / dynamic via the `ccxt_pro::TypedExchange` trait ─────────
-    // Same object-safe pattern as the REST `iexchange_demo`, but over `watch_*`.
-    println!("\n→ same surface through Box<dyn TypedExchange>");
-    let mut ex: Box<dyn TypedExchange> = Box::new(Binance::new(None));
-    let _ = ex.load_markets(false, ()).await;
-    match ex.watch_ticker(SYMBOL, Params::none()).await {
-        Ok(t) => println!("   last={:?}", t.last),
-        Err(e) => eprintln!("   x [{}] {}", e.kind, e.message),
-    }
+    // Same generic pattern as the REST `iexchange_demo`, but over `watch_*`.
+    println!("\n→ same surface through a generic `E: TypedExchange`");
+    last_ticker(&mut Binance::new(None)).await;
 
     println!("\ndone.");
 }

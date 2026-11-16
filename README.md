@@ -439,7 +439,7 @@ ccxt = { version = "4.5.75", default-features = false, features = ["binance", "k
 ccxt-pro = { version = "4.5.75", default-features = false, features = ["binance"] }
 ```
 
-With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `from_id` only knows the exchanges compiled in.
+With three exchanges a fresh build takes ~30 s and 2.5 GB instead of minutes and tens of GB (see [rust/BUILD-BENCHMARK.md](rust/BUILD-BENCHMARK.md)). A derived exchange pulls in its parent (`binanceus` → `binance`), `ccxt-prediction` has its own list (`polymarket`, `kalshi`, …), and `with_exchange` only knows the exchanges compiled in.
 
 ```rust
 use ccxt::{Binance, Params, ExchangeBase, ExchangeRuntime};
@@ -999,18 +999,28 @@ match exchange.create_order("BTC/USDT", "limit", "buy", 0.001, Some(50000.0), Pa
 
 #### Choosing an exchange at runtime
 
-`from_id_with_config` builds any compiled-in venue from its id as a `Box<dyn TypedExchange>`; the unified methods keep their typed returns on the trait object.
+Code over any venue is generic over `E: TypedExchange`. `with_exchange_config` builds the compiled-in venue named by an id and hands the concrete type to your `ExchangeVisitor`, so the unified methods keep their typed returns without boxing.
 
 ```rust
-use ccxt::{from_id_with_config, Config, Params, TypedExchange};
+use ccxt::{Config, ExchangeBase, ExchangeVisitor, Params, Result, TypedExchange};
+
+struct Quote;
+
+impl ExchangeVisitor for Quote {
+    type Output = Result<()>;
+    async fn visit<E: TypedExchange + 'static>(self, mut exchange: E) -> Result<()> {
+        exchange.load_markets(false, ()).await?;
+        let market = ExchangeBase::market(&exchange, "BTC/USDT")?;
+        let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
+        println!("{} {:?} {:?}", ticker.symbol, ticker.last, market.limits.cost.min);
+        Ok(())
+    }
+}
 
 for id in ["binance", "bybit", "okx"] {
-    let Some(mut exchange) = from_id_with_config(id, Config::new()) else { continue };
-    exchange.load_markets(false, ()).await?;
-
-    let market = exchange.market("BTC/USDT")?;
-    let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-    println!("{id} {:?} {:?}", ticker.last, market.limits.cost.min);
+    if let Some(done) = ccxt::exchanges::with_exchange_config(id, Config::new(), Quote).await {
+        done?;
+    }
 }
 ```
 
