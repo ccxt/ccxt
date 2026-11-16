@@ -33,7 +33,7 @@
 // full validation and creates nothing. The opt-in path is capped at 25 USD
 // notional per order and cancels whatever it creates.
 use ccxt::types::{Market, Order};
-use ccxt::{Binance, Config, ExchangeError, Params, ExchangeRuntime};
+use ccxt::{Binance, Config, ExchangeBase, ExchangeError, Params, ExchangeRuntime};
 
 /// Hard cap on the notional of any order this example is willing to send.
 const MAX_NOTIONAL_USD: f64 = 25.0;

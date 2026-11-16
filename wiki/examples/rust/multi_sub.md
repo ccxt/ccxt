@@ -15,7 +15,7 @@
 //
 //   cargo run --features ws --bin multi_sub -- [secs]   (default 20)
 use ccxt::Params;
-use ccxt_pro::{from_id, TypedExchange};
+use ccxt_pro::{Binance, ExchangeRuntime};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -23,8 +23,8 @@ use std::time::{Duration, Instant};
 const EXCHANGE: &str = "binance";
 const SYMBOL: &str = "BTC/USDT";
 
-fn build() -> Box<dyn TypedExchange> {
-    from_id(EXCHANGE, None).expect("no pro wrapper for binance")
+fn build() -> Binance {
+    Binance::new(None)
 }
 
 // ── Part A: one instance, two channels on a single connection ────────────────
