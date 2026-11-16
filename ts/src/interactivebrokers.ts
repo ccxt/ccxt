@@ -3955,7 +3955,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#ibkrCheckOauthCredentials
-     * @description throws an AuthenticationError when the oauth 1.0a credentials are missing, requiredCredentials can not be used for this, because the client portal gateway mode needs no credentials
+     * @description throws an AuthenticationError when the oauth 1.0a credentials (apiKey, secret and options.consumer_key) are missing, requiredCredentials can not be used for this, because the client portal gateway mode needs no credentials
      * @ignore
      * @returns {boolean} true if the oauth credentials are set
      */
@@ -3965,6 +3965,10 @@ export default class interactivebrokers extends Exchange {
         }
         if ((this.secret === undefined) || (this.secret === '')) {
             throw new AuthenticationError (this.id + ' requires "secret" credential (the encrypted oauth access token secret), or set options["useGateway"] to use the client portal gateway');
+        }
+        const consumerKey = this.safeString (this.options, 'consumer_key');
+        if ((consumerKey === undefined) || (consumerKey === '')) {
+            throw new AuthenticationError (this.id + ' requires options["consumer_key"] (the oauth consumer key), or set options["useGateway"] to use the client portal gateway');
         }
         return true;
     }
