@@ -871,13 +871,13 @@ impl Kalshi {
             if isNo {
                 baseTicker = outcomeSymbol.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
             }
-            let mut response: Value = Value::Null;
+            let mut response: Option<crate::value::Dict> = None;
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
                 response = self.kalshi_public_get_markets_ticker(&[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("ticker".to_string(), baseTicker);
-                    m
-                })]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("ticker".to_string(), baseTicker);
+    m
+})]).await.into_opt_dict();
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // an unknown ticker returns 'not_found', which handleErrors maps to BadSymbol —
@@ -885,10 +885,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if !(e.names("BadSymbol")) {
                     panic!("{}", e);
                 }
-                response = Value::Null;
+                response = None.clone();
             }
-            if (response != Value::Null) {
-                let mut rawMarket: Value = self.safe_dict_k(response.clone(), "market", &[response.clone()]);
+            if (response.is_some()) {
+                let mut rawMarket: Value = self.safe_dict_k(&response, "market", &[response.clone().map_or(Value::Null, Value::Dict)]);
                 let mut parsed: Value = self.parse_market(rawMarket);
                 if (self.markets.clone() == Value::Null) {
                     { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }

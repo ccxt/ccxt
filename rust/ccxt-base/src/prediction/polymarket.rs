@@ -4031,22 +4031,22 @@ impl Polymarket {
                 // search results may omit the nested markets, fall back to the detail endpoint
                 let mut eventId: Option<String> = self.safe_string_k(rawEvent.clone(), "id", &[]).as_str().map(str::to_owned);
                 let mut rawEventSlug: Option<String> = self.safe_string_k(rawEvent, "slug", &[]).as_str().map(str::to_owned);
-                let mut detailedEvent: Value = Value::Null;
+                let mut detailedEvent: Option<crate::value::Dict> = None;
                 if (eventId.is_some()) {
                     detailedEvent = self.gamma_public_get_events_id(&[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                            m.insert("id".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
-                        m
-                    })]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), eventId.map(Value::from).unwrap_or(Value::Null));
+    m
+})]).await.into_opt_dict();
                 }  else if (rawEventSlug.is_some()) {
                     detailedEvent = self.gamma_public_get_events_slug_slug(&[Value::Map({
-                        let mut m = indexmap::IndexMap::new();
-                            m.insert("slug".to_string(), rawEventSlug.map(Value::from).unwrap_or(Value::Null));
-                        m
-                    })]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), rawEventSlug.map(Value::from).unwrap_or(Value::Null));
+    m
+})]).await.into_opt_dict();
                 }
-                if (detailedEvent != Value::Null) {
-                    eventForParsing = self.safe_dict_k(detailedEvent.clone(), "event", &[detailedEvent.clone()]);
+                if (detailedEvent.is_some()) {
+                    eventForParsing = self.safe_dict_k(&detailedEvent, "event", &[detailedEvent.clone().map_or(Value::Null, Value::Dict)]);
                     ccxtMarkets = self.parse_event_to_markets(eventForParsing.clone());
                 }
             }
@@ -4108,23 +4108,23 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if id.as_str().unwrap_or("").contains("-") {
             let __ws_arg_16 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("slug".to_string(), id.clone());
-                m
-            }), &[params.clone()]);
-            response = self.gamma_public_get_events_slug_slug(&[__ws_arg_16]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("slug".to_string(), id.clone());
+    m
+}), &[params.clone()]);
+            response = self.gamma_public_get_events_slug_slug(&[__ws_arg_16]).await.into_opt_dict();
         }  else {
             let __ws_arg_17 = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), id);
-                m
-            }), &[params]);
-            response = self.gamma_public_get_events_id(&[__ws_arg_17]).await;
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), id);
+    m
+}), &[params]);
+            response = self.gamma_public_get_events_id(&[__ws_arg_17]).await.into_opt_dict();
         }
-        let mut eventForParsing: Value = self.safe_dict_k(response.clone(), "event", &[response.clone()]);
+        let mut eventForParsing: Value = self.safe_dict_k(&response, "event", &[response.clone().map_or(Value::Null, Value::Dict)]);
         if (eventForParsing == Value::Null) {
             eventForParsing = Value::Map({
                 let mut m = indexmap::IndexMap::new();

@@ -1906,11 +1906,11 @@ impl Krakenfutures {
         let mut isHistoricalExecution: bool = matches!(&trade, Value::Dict(__d) if __d.contains_key("takerOrder"));
         if isHistoricalExecution {
             timestamp = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
-            let mut taker: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "takerOrder", &[Value::Map({
+            let mut taker: crate::value::Dict = self.safe_dict_k(trade.clone(), "takerOrder", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
-            if (taker.is_some()) {
+})]).into_dict();
+            if (true) {
                 side = self.safe_string_lower_k(&taker, "direction", &[]).as_str().map(str::to_owned);
                 takerOrMaker = Some("taker".to_string());
             }

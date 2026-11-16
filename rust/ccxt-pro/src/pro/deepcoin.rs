@@ -865,10 +865,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Option<crate::value::Dict> = self.safe_dict_k(&first, "d", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_opt_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&first, "d", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("/".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
@@ -877,7 +877,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             CacheStore::put(&mut self.trades, &symbol, ArrayCache::new(Value::from(limit)));
         }
         let mut strored: Option<crate::pro::cache::Cache> = self.trades.at(&symbol);
-        if (data.is_some()) {
+        if (true) {
             let mut trade: crate::value::Dict = self.parse_ws_trade(&data, Some(&market)).into_dict();
             strored.append(Value::Dict(trade));
         }
@@ -1098,14 +1098,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut data: Value = self.safe_dict_k(&first, "d", &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&first, "d", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut marketId: Option<String> = self.safe_string_k(data.clone(), "I", &[]).as_str().map(str::to_owned);
+        })]).into_dict();
+        let mut marketId: Option<String> = self.safe_string_k(&data, "I", &[]).as_str().map(str::to_owned);
         let mut market: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Str("/".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&market), &[]).as_str().map(str::to_owned);
-        let mut interval: Option<String> = self.safe_string_k(data.clone(), "P", &[]).as_str().map(str::to_owned);
+        let mut interval: Option<String> = self.safe_string_k(&data, "P", &[]).as_str().map(str::to_owned);
         let mut timeframe: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         if !(CacheShelves::has(&self.ohlcvs, &symbol)) {
             CacheShelves::reset(&mut self.ohlcvs, &symbol);
@@ -1115,8 +1115,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             CacheShelves::put2(&mut self.ohlcvs, &symbol, &timeframe, ArrayCacheByTimestamp::new(Value::from(limit)));
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.ohlcvs.shelf(&symbol).at(&timeframe);
-        if (data != Value::Null) {
-            let mut ohlcv: crate::value::List = self.parse_ws_ohlcv(data, Some(&market)).into_list();
+        if (true) {
+            let mut ohlcv: crate::value::List = self.parse_ws_ohlcv(Value::Dict(data), Some(&market)).into_list();
             stored.append(Value::Arr(ohlcv));
         }
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv", "::").into()), symbol.as_deref().unwrap_or("null")).into()), "::").into()), timeframe.as_deref().unwrap_or("null"));

@@ -4690,11 +4690,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        let mut firstResult: Option<crate::value::Dict> = self.safe_dict(&result, Value::Int(0), &[Value::Map({
+        let mut firstResult: crate::value::Dict = self.safe_dict(&result, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
-        if (firstResult.is_none()) {
+})]).into_dict();
+        if (false) {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " privatePostDepositAddresses() returned no addresses for ").into()), codeResolved)));
         }
         return self.parse_deposit_address(&firstResult, Some(&currency));

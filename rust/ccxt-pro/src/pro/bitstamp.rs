@@ -1400,9 +1400,9 @@ impl Bitstamp {
                         let mut i: i64 = 0;
             let mut __for_first_140: bool = true;
             while { if !__for_first_140 { i += 1; } __for_first_140 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if ((if let (Some(__h), Some(__n)) = (channel.as_deref(), (key).as_str()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) > -1 {
-                let mut method: Option<String> = methods.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if ((if let (Some(__h), Some(__n)) = (channel.as_deref(), key.as_deref()) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) > -1 {
+                let mut method: Option<String> = methods.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
                 self.dispatch_ws_handler(&method, &[client.clone(), message.clone()]);
             }
         }

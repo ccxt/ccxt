@@ -4584,7 +4584,7 @@ impl Digifinex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
+        let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
         let mut accountsByType: crate::value::Dict = self.safe_dict_k(self.options.clone(), "accountsByType", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4604,7 +4604,7 @@ impl Digifinex {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() supports transferring between spot and swap, spot and margin, spot and OTC only")));
             }
             request.insert("type".into(), (if toSwap { Value::Int(1) } else { Value::Int(2) })); // 1 = spot to swap, 2 = swap to spot
-            request.insert("currency".into(), currencyId.clone());
+            request.insert("currency".into(), Value::from(currencyId.as_deref()));
             request.insert("transfer_amount".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
             //
             //     {
@@ -4619,7 +4619,7 @@ impl Digifinex {
             let __ws_arg_34 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_swap_post_account_transfer(&[__ws_arg_34]).await.into_opt_dict();
         }  else {
-            request.insert("currency_mark".into(), currencyId);
+            request.insert("currency_mark".into(), currencyId.map(Value::from).unwrap_or(Value::Null));
             request.insert("num".into(), amountString.map(Value::from).unwrap_or(Value::Null));
             request.insert("from".into(), fromId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC
             request.insert("to".into(), toId.map(Value::from).unwrap_or(Value::Null)); // 1 = SPOT, 2 = MARGIN, 3 = OTC

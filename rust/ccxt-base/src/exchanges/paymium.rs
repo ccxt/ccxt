@@ -435,12 +435,12 @@ impl Paymium {
             while { if !__for_first_1074 { i += 1; } __for_first_1074 = false; i < (currencies.len() as i64) } {
             let mut code: Option<&str> = currencies.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
-            let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
-            let mut freeAmount: Option<String> = self.safe_string(response.clone(), Value::Str(format!("{}{}", "balance_", currencyId).into()), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
+            let mut freeAmount: Option<String> = self.safe_string(response.clone(), Value::Str(format!("{}{}", "balance_", currencyId.as_deref().unwrap_or("null")).into()), &[]).as_str().map(str::to_owned);
             if (freeAmount.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
                 account.insert("free".into(), freeAmount.map(Value::from).unwrap_or(Value::Null));
-                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", "locked_", currencyId).into()), &[]));
+                account.insert("used".into(), self.safe_string(response.clone(), Value::Str(format!("{}{}", "locked_", currencyId.as_deref().unwrap_or("null")).into()), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));
             }
         }

@@ -1878,14 +1878,15 @@ impl Apex {
         return self.super_safe_market(marketId, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketResolved).as_ref(), delimiter, marketType);
 }
 
-    pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Option<String> {
-        let mut accountId: Value = Value::Str("".into());
+    pub fn generate_random_client_id_omni(&self, _accountId: Option<&str>) -> Option<String> {
+        let mut _accountId: Value = _accountId.into();
+        let mut accountId: Option<String> = Some("".to_string());
         if (_accountId != Value::Null) && (_accountId.as_str() != Some("")) {
-            accountId = _accountId;
+            accountId = _accountId.as_str().map(str::to_owned);
         }  else {
-            accountId = Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(12)))).into());
+            accountId = Some(format!("{}", self.rand_number(Value::Int(12))));
         }
-        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "apexomni-", accountId).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into())));
+        return Some(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "apexomni-", accountId.as_deref().unwrap_or("null")).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.milliseconds())).into())).into()), "-").into()), Value::Str(format!("{}", Value::Int(self.rand_number(Value::Int(6)))).into())));
 }
 
     pub fn add_hyphen_before_usdt(&self, symbol: &str) -> Option<String> {
@@ -2012,7 +2013,7 @@ impl Apex {
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("postOnly".into()), &[]).into_dict();
         let mut clientOrderId: Option<String> = self.safe_string_n(&paramsOmitted2, Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut accountId: Option<String> = self.get_account_id().await.as_str().map(str::to_owned);
-        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(Value::from(accountId.as_deref())) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(accountId.as_deref()) });
         let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsOmitted2, &["clientId", "clientOrderId", "client_order_id", "stopLossPrice", "takeProfitPrice", "triggerPrice"], &[]).into_dict();
         let mut finalOrderPrice: Option<String> = orderPrice; // java req
         let mut orderToSign: indexmap::IndexMap<String, Value> = ({
@@ -2165,7 +2166,7 @@ impl Apex {
         let mut amountNumber: Option<i64> = self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
-        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni(self.safe_string_k(self.options.clone(), "accountId", &[])) });
+        let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni((self.safe_string_k(self.options.clone(), "accountId", &[])).as_str()) });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientId", "clientOrderId", "client_order_id"], &[]).into_dict();
         if isContract {
             let mut formattedUint32: String = "4294967295".to_string();

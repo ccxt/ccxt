@@ -3326,9 +3326,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_340: bool = true;
             while { if !__for_first_340 { i += 1; } __for_first_340 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = findBy.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
-            if Value::Int(url.as_str().zip(key.as_str()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut value: Value = findBy.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            if Value::Int(url.as_str().zip(key.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64().unwrap_or(f64::NAN) >= ((0i64) as f64) {
                 return value;
             }
         }

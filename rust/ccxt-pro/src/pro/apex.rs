@@ -1695,17 +1695,17 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut contents: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
-        let mut fills: Value = self.safe_list_k(&contents, "fills", &[Value::from(vec![])]);
-        if (fills != Value::Null) {
-            self.handle_my_trades(client.clone(), fills);
+        let mut fills: crate::value::List = self.safe_list_k(&contents, "fills", &[Value::from(vec![])]).into_list();
+        if (true) {
+            self.handle_my_trades(client.clone(), Value::Arr(fills));
         }
-        let mut positions: Value = self.safe_list_k(&contents, "positions", &[Value::from(vec![])]);
-        if (positions != Value::Null) {
-            self.handle_positions(client.clone(), positions);
+        let mut positions: crate::value::List = self.safe_list_k(&contents, "positions", &[Value::from(vec![])]).into_list();
+        if (true) {
+            self.handle_positions(client.clone(), Value::Arr(positions));
         }
-        let mut orders: Value = self.safe_list_k(&contents, "orders", &[Value::from(vec![])]);
-        if (orders != Value::Null) {
-            self.handle_order(client, orders);
+        let mut orders: crate::value::List = self.safe_list_k(&contents, "orders", &[Value::from(vec![])]).into_list();
+        if (true) {
+            self.handle_order(client, Value::Arr(orders));
         }
 }
 

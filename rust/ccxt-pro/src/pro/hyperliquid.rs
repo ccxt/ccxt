@@ -1247,12 +1247,12 @@ impl Hyperliquid {
         //
         // handle hip3 mids
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut mids: Value = self.safe_dict_k(&data, "mids", &[Value::Map({
+        let mut mids: crate::value::Dict = self.safe_dict_k(&data, "mids", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        if (mids != Value::Null) {
-            let mut keys: Vec<Value> = Value::Array(mids.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        if (true) {
+            let mut keys: Vec<Value> = Value::Array(mids.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_399: bool = true;
@@ -1263,7 +1263,7 @@ impl Hyperliquid {
                 let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
                 let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("price".to_string(), self.safe_number(mids.clone(), name.map(Value::from).unwrap_or(Value::Null), &[]));
+                        m.insert("price".to_string(), self.safe_number(&mids, name.map(Value::from).unwrap_or(Value::Null), &[]));
                     m
                 }), Some(&market)).into_dict();
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(ticker)); }

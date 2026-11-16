@@ -3190,11 +3190,11 @@ impl Coinbaseexchange {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccounts".into(), accounts.clone()); }; // cache it
             { let __be_tmp = self.index_by(accounts, Value::Str("currency".into())); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("coinbaseAccountsByCurrencyId".into(), __be_tmp); } }
         }
-        let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
+        let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
         let mut accountsByCurrencyId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "coinbaseAccountsByCurrencyId", &[]).into_dict();
-        let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyId, currencyId.clone(), &[]).into_opt_dict();
+        let mut account: Option<crate::value::Dict> = self.safe_dict(&accountsByCurrencyId, Value::from(currencyId.as_deref()), &[]).into_opt_dict();
         if (account.is_none()) {
-            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createDepositAddress() could not find currency code ").into()), code).into()), " with id = ").into()), currencyId).into()), " in this.options['coinbaseAccountsByCurrencyId']")));
+            panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}{}{}{}{}", self.id.clone(), " createDepositAddress() could not find currency code ", code, " with id = ", currencyId.map(Value::from).unwrap_or(Value::Null), " in this.options['coinbaseAccountsByCurrencyId']")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

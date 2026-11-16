@@ -7467,12 +7467,12 @@ if _try_result.is_err() {
             self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessageInner.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
             panic!("{}", crate::exchange_errors::exchange_error(feedback.clone()));
         }
-        let mut errors: Value = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]);
-        if (errors != Value::Null) {
+        let mut errors: crate::value::List = self.safe_list_k(response.clone(), "errors", &[Value::from(vec![])]).into_list();
+        if (true) {
             let mut numErrors: i64 = errors.len() as i64;
             if numErrors > 0 {
-                errorCode = self.safe_string(errors.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
-                let mut errorMessage: Option<String> = self.safe_string(errors.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null), Value::Str("message".into()), &[]).as_str().map(str::to_owned);
+                errorCode = self.safe_string(crate::value::KeyRead::read(&&errors, &Value::Int(0)), Value::Str("id".into()), &[]).as_str().map(str::to_owned);
+                let mut errorMessage: Option<String> = self.safe_string(crate::value::KeyRead::read(&&errors, &Value::Int(0)), Value::Str("message".into()), &[]).as_str().map(str::to_owned);
                 if (errorCode.is_some()) {
                     self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), errorCode.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
                     self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), errorMessage.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));

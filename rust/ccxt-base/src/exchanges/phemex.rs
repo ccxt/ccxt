@@ -7254,10 +7254,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //         "errorCode": 0
         //     }
         //
-        let mut quoteArgs: Option<crate::value::Dict> = self.safe_dict_k(conversion.clone(), "quoteArgs", &[Value::Map({
+        let mut quoteArgs: crate::value::Dict = self.safe_dict_k(conversion.clone(), "quoteArgs", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
+})]).into_dict();
         let mut requestTime: Option<i64> = self.safe_integer_k(&quoteArgs, "requestAt", &[]).as_i64();
         let mut timestamp: Option<i64> = self.safe_integer_k(conversion.clone(), "createTime", &[Value::from(requestTime)]).as_i64();
         let mut fromCoin: Option<String> = self.safe_string_k(conversion.clone(), "fromCurrency", &[self.safe_string_k(&fromCurrency, "code", &[])]).as_str().map(str::to_owned);
@@ -7267,11 +7267,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut fromValueScale: Option<i64> = self.safe_integer_k(&fromCurrency, "valueScale", &[]).as_i64();
         let mut toValueScale: Option<i64> = self.safe_integer_k(&toCurrency, "valueScale", &[]).as_i64();
         let mut fromAmount: Option<String> = self.from_en(self.safe_string_k(conversion.clone(), "fromAmountEv", &[]), fromValueScale);
-        if (fromAmount.is_none()) && (quoteArgs.is_some()) {
+        if (fromAmount.is_none()) && (true) {
             fromAmount = self.from_en(self.safe_string_k(&quoteArgs, "origin", &[]), fromValueScale);
         }
         let mut toAmount: Option<String> = self.from_en(self.safe_string_k(conversion.clone(), "toAmountEv", &[]), toValueScale);
-        if (toAmount.is_none()) && (quoteArgs.is_some()) {
+        if (toAmount.is_none()) && (true) {
             toAmount = self.from_en(self.safe_string_k(&quoteArgs, "proceeds", &[]), toValueScale);
         }
         return Value::Map({

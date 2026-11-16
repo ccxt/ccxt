@@ -3573,23 +3573,23 @@ impl Btse {
         let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchOpenOrders".into()), market.as_ref(), &[params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (marketTypeOption.as_deref() == Some("spot")) {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.safe_string_k(&market, "id", &[]));
             }
             let __ws_arg_26 = self.extend(Value::Map(request.clone()), &[&paramsMarketType]);
-            response = self.private_get_spot_api_v4_trade_orders(&[__ws_arg_26]).await;
+            response = self.private_get_spot_api_v4_trade_orders(&[__ws_arg_26]).await.into_list();
         }  else {
             if (symbol != Value::Null) {
                 request.insert("symbol".into(), self.futures_request_id(Some(&(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) }))));
             }
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsMarketType]);
-            response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_27]).await;
+            response = self.private_get_futures_api_v3_trade_orders(&[__ws_arg_27]).await.into_list();
         }
         // the endpoints have no server side time filters, accept a bare array
         // and a data envelope and filter client-side
-        let mut rows: Value = self.safe_list_k(response.clone(), "data", &[response.clone()]);
+        let mut rows: Value = self.safe_list_k(&response, "data", &[Value::Arr(response.clone())]);
         return self.parse_orders(rows, market.as_ref(), &[since, limit]);
         Value::Null
         }).await?))
@@ -3789,17 +3789,17 @@ impl Btse {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut response: Value = Value::Null;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut marketType: String = "spot".to_string();
         let marketTypeOptionparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[params, Value::from(marketType)]).as_array().cloned().unwrap_or_default();
         let mut marketTypeOption: Option<String> = marketTypeOptionparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeOptionparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marketTypeOption.as_deref() == Some("spot")) {
-            response = self.private_get_spot_api_v4_trade_fees(&[Value::from(&paramsMarketType)]).await;
+            response = self.private_get_spot_api_v4_trade_fees(&[Value::from(&paramsMarketType)]).await.into_list();
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
-            response = self.private_get_futures_api_v23_user_fees(&[Value::Dict(paramsMarketType)]).await;
+            response = self.private_get_futures_api_v23_user_fees(&[Value::Dict(paramsMarketType)]).await.into_list();
         }
         //
         //     [
@@ -3810,7 +3810,7 @@ impl Btse {
         //         }
         //     ]
         //
-        let mut rows: crate::value::List = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_list();
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::Arr(response.clone())]).into_list();
         let mut responseList: crate::value::List = self.array_concat(Value::from(vec![]), &rows).into_list();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4355,17 +4355,17 @@ impl Btse {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: crate::value::List = std::sync::Arc::new(Vec::new());
         if (market).spot {
             let __ws_arg_30 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.private_get_spot_api_v4_trade_fees(&[__ws_arg_30]).await;
+            response = self.private_get_spot_api_v4_trade_fees(&[__ws_arg_30]).await.into_list();
         }  else {
             // the futures fees stay on the legacy endpoint, the unified futures
             // api has no fees route
             let __ws_arg_31 = self.extend(Value::Map(request), &[params]);
-            response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_31]).await;
+            response = self.private_get_futures_api_v23_user_fees(&[__ws_arg_31]).await.into_list();
         }
-        let mut rows: crate::value::List = self.safe_list_k(response.clone(), "data", &[response.clone()]).into_list();
+        let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::Arr(response.clone())]).into_list();
         let mut feeInfo: crate::value::Dict = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

@@ -1089,11 +1089,11 @@ impl Hyperliquid {
                 if i >= fetchDexesLength {
                     break;
                 }
-                let mut dex: Option<crate::value::Dict> = self.safe_dict(fetchDexes.clone(), Value::Int(i), &[Value::Map({
+                let mut dex: crate::value::Dict = self.safe_dict(fetchDexes.clone(), Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]).into_opt_dict();
-                if (dex.is_none()) {
+})]).into_dict();
+                if (false) {
                     continue;
                 }
                 let mut dexName: Option<String> = self.safe_string_k_opt(&dex, "name", &[]);
@@ -7220,12 +7220,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
             }
             if (data.contains_key("status")) {
-                let mut errorStatus: Option<crate::value::Dict> = self.safe_dict_k(&data, "status", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_opt_dict();
+                let mut errorStatus: crate::value::Dict = self.safe_dict_k(&data, "status", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 let mut errorMsg: Option<String> = self.safe_string_k(&errorStatus, "error", &[]).as_str().map(str::to_owned);
-                if (errorStatus.is_some()) {
+                if (true) {
                     message = errorMsg;
                 }
             }

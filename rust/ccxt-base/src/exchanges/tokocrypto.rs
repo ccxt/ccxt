@@ -1343,13 +1343,13 @@ impl Tokocrypto {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if self.is_native_market(Some(&market)).as_bool() == Some(true) {
             let __ws_arg_0 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await;
+            response = self.public_get_open_v1_market_depth(&[__ws_arg_0]).await.into_opt_dict();
         }  else {
             let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-            response = self.binance_get_depth(&[__ws_arg_1]).await;
+            response = self.binance_get_depth(&[__ws_arg_1]).await.into_opt_dict();
         }
         //
         // future
@@ -1380,8 +1380,8 @@ impl Tokocrypto {
         //         },
         //         "timestamp":1692262634599
         //     }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
-        let mut timestamp: Option<i64> = self.safe_integer2(response, Value::Str("T".into()), Value::Str("timestamp".into()), &[]).as_i64();
+        let mut data: Value = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]);
+        let mut timestamp: Option<i64> = self.safe_integer2(&response, Value::Str("T".into()), Value::Str("timestamp".into()), &[]).as_i64();
         let mut orderbook: indexmap::IndexMap<String, Value> = self.parse_order_book(data.clone(), symbol, &[Value::from(timestamp)]).as_map().cloned().unwrap_or_default();
         orderbook.insert("nonce".into(), self.safe_integer_k(data, "lastUpdateId", &[]));
         return Value::Map(orderbook);

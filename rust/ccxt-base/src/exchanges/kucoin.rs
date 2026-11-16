@@ -5887,10 +5887,10 @@ impl Kucoin {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
+        let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("currency".to_string(), currencyId.clone());
+                m.insert("currency".to_string(), Value::from(currencyId.as_deref()));
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
@@ -5909,14 +5909,14 @@ impl Kucoin {
             m
         })]).into_dict();
         let mut address: Option<String> = self.safe_string_k(&data, "address", &[]).as_str().map(str::to_owned);
-        if (currencyId.as_str() != Some("NIM")) {
+        if (currencyId.as_deref() != Some("NIM")) {
             // contains spaces
             self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), Value::Dict(response));
-        m.insert("currency".to_string(), currencyId);
+        m.insert("currency".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(self.network_id_to_code(&[self.safe_string_k(&data, "chain", &[]), code])));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), self.safe_string_k(&data, "memo", &[]));
@@ -11748,9 +11748,9 @@ impl Kucoin {
     m
 })]).into_dict();
                     let mut currencyId: Option<String> = self.safe_string_k(&currencyEntry, "currency", &[]).as_str().map(str::to_owned);
-                    let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-                    if (currencyCode != Value::Null) {
-                        result = self.merge_balance_account(Value::Dict(result), currencyCode, self.parse_balance_helper(&currencyEntry)).into_dict();
+                    let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+                    if (currencyCode.is_some()) {
+                        result = self.merge_balance_account(Value::Dict(result), currencyCode.map(Value::from).unwrap_or(Value::Null), self.parse_balance_helper(&currencyEntry)).into_dict();
                     }
                 }
                 }

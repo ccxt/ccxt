@@ -2322,13 +2322,13 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         let mut i: i64 = 0;
             let mut __for_first_31: bool = true;
             while { if !__for_first_31 { i += 1; } __for_first_31 = false; i < (B.len() as i64) } {
-            let mut entry: Value = B.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currencyId: Option<String> = self.safe_string_k(entry.clone(), "a", &[]).as_str().map(str::to_owned);
+            let mut entry: crate::value::Dict = B.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut currencyId: Option<String> = self.safe_string_k(&entry, "a", &[]).as_str().map(str::to_owned);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-            account.insert("free".into(), self.safe_string_k(entry.clone(), "f", &[]));
-            account.insert("used".into(), self.safe_string_k(entry.clone(), "l", &[]));
-            account.insert("total".into(), self.safe_string(entry, Value::from(wallet.clone()), &[]));
+            account.insert("free".into(), self.safe_string_k(&entry, "f", &[]));
+            account.insert("used".into(), self.safe_string_k(&entry, "l", &[]));
+            account.insert("total".into(), self.safe_string(&entry, Value::from(wallet.clone()), &[]));
             if (code.is_some()) {
                 if let Value::Dict(__bf03d0) = &mut self.balance { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry(accountType.as_deref().unwrap_or("null").to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account)); } }
             }

@@ -1850,16 +1850,16 @@ impl Whitebit {
             let mut splitEntry: crate::value::List = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut currencyId: Option<String> = splitEntry.get(0).and_then(Value::as_str).map(str::to_owned);
             let mut feeInfo: Value = self.safe_dict(response.clone(), entry.clone(), &[]);
-            let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (code != Value::Null) && ((codesValue.is_none()) || (self.in_array(code.clone(), codesValue.clone().map_or(Value::Null, Value::Arr)))) {
-                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, code.clone(), &[]).into_opt_dict();
+            let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
+            if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
+                let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, Value::from(code.as_deref()), &[]).into_opt_dict();
                 if (depositWithdrawFee.is_none()) {
-                    depositWithdrawFees.insert(crate::runtime::stringify_param(&code), self.deposit_withdraw_fee(Value::Map({
+                    depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), self.deposit_withdraw_fee(Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })));
                 }
-                add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("info".into())), &entry, feeInfo.clone());
+                add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &entry, feeInfo.clone());
                 let mut networkId: Option<String> = self.safe_string(&splitEntry, Value::Int(1), &[]).as_str().map(str::to_owned);
                 let mut withdraw: crate::value::Dict = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]).into_dict();
                 let mut deposit: crate::value::Dict = self.safe_dict_k(feeInfo, "deposit", &[]).into_dict();
@@ -1880,9 +1880,9 @@ impl Whitebit {
                 if (networkId.is_some()) {
                     let mut networkLength: i64 = (networkId.as_deref().unwrap_or_default().chars().count() as i64);
                     let mut networkCode: Option<String> = self.network_id_to_code(&[(if let Some(__s) = networkId.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 1, ((networkLength - 1))); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l));
-                        __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), code.clone()]);
+                        __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None }).map(Value::from).unwrap_or(Value::Null), Value::from(code.as_deref())]);
                     if (networkCode.is_some()) {
-                        add_element_to_object(get_value_mut(depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default(), &Value::Str("networks".into())), &networkCode.map(Value::from).unwrap_or(Value::Null), Value::Map({
+                        add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("networks".into())), &networkCode.map(Value::from).unwrap_or(Value::Null), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
         m.insert("deposit".to_string(), Value::Map(depositResult.clone()));
@@ -1890,8 +1890,8 @@ impl Whitebit {
 }));
                     }
                 }  else {
-                    if let Value::Dict(__d) = depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default() { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Map(withdrawResult)); }
-                    if let Value::Dict(__d) = depositWithdrawFees.entry(crate::runtime::stringify_param(&code)).or_default() { std::sync::Arc::make_mut(__d).insert("deposit".into(), Value::Map(depositResult)); }
+                    if let Value::Dict(__d) = depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default() { std::sync::Arc::make_mut(__d).insert("withdraw".into(), Value::Map(withdrawResult)); }
+                    if let Value::Dict(__d) = depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default() { std::sync::Arc::make_mut(__d).insert("deposit".into(), Value::Map(depositResult)); }
                 }
             }
         }

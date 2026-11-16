@@ -2281,18 +2281,18 @@ impl Mudrex {
                 useInr = true;
             }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if useInr {
             let __ws_arg_21 = self.extend(Value::Map(body.clone()), &[params.clone()]);
-            response = self.private_post_futures_transfers_inr(&[__ws_arg_21]).await;
+            response = self.private_post_futures_transfers_inr(&[__ws_arg_21]).await.into_opt_dict();
         }  else {
             let __ws_arg_22 = self.extend(Value::Map(body), &[params]);
-            response = self.private_post_wallet_futures_transfer(&[__ws_arg_22]).await;
+            response = self.private_post_wallet_futures_transfer(&[__ws_arg_22]).await.into_opt_dict();
         }
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[response.clone()]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
         m.insert("id".to_string(), self.safe_string_k(&data, "id", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);

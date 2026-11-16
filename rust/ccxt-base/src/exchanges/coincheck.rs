@@ -606,11 +606,11 @@ impl Coincheck {
             while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (codes.len() as i64) } {
             let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
             let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
-            let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
-            let mut free: Option<String> = self.safe_string(response.clone(), currencyId.clone(), &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
+            let mut free: Option<String> = self.safe_string(response.clone(), Value::from(currencyId.as_deref()), &[]).as_str().map(str::to_owned);
             if (free.is_some()) {
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-                let mut reserved: String = format!("{}{}", currencyId, "_reserved");
+                let mut reserved: String = format!("{}{}", currencyId.as_deref().unwrap_or("null"), "_reserved");
                 account.insert("free".into(), free.map(Value::from).unwrap_or(Value::Null));
                 account.insert("used".into(), self.safe_string(response.clone(), Value::from(reserved), &[]));
                 result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map(account));

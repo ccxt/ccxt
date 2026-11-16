@@ -1705,8 +1705,8 @@ impl Kraken {
             m
         })]).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
-        let mut a: Value = self.safe_list_k(&first, "asks", &[Value::from(vec![])]);
-        let mut b: Value = self.safe_list_k(&first, "bids", &[Value::from(vec![])]);
+        let mut a: crate::value::List = self.safe_list_k(&first, "asks", &[Value::from(vec![])]).into_list();
+        let mut b: crate::value::List = self.safe_list_k(&first, "bids", &[Value::from(vec![])]).into_list();
         let mut c: Option<i64> = self.safe_integer_k(&first, "checksum", &[]).as_i64();
         let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
         let mut orderbook: Option<crate::pro::order_book::Book> = None;
@@ -1714,11 +1714,11 @@ impl Kraken {
             orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
             let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
             let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
-            if (a != Value::Null) {
-                self.custom_handle_deltas(storedAsks, a.clone());
+            if (true) {
+                self.custom_handle_deltas(storedAsks, Value::from(&a));
             }
-            if (b != Value::Null) {
-                self.custom_handle_deltas(storedBids, b);
+            if (true) {
+                self.custom_handle_deltas(storedBids, Value::Arr(b));
             }
             let mut datetime: Option<String> = self.safe_string_k(&first, "timestamp", &[]).as_str().map(str::to_owned);
             orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));

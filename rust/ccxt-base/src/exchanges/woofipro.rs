@@ -3779,26 +3779,26 @@ impl Woofipro {
         });
         let mut clientOrderId: Option<String> = self.safe_string_n(params.clone(), Value::from(vec![Value::Str("clOrdID".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]).as_str().map(str::to_owned);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"], &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if trigger {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_21 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_21]).await;
+                response = self.v1_private_get_algo_client_order_client_order_id(&[__ws_arg_21]).await.into_opt_dict();
             }  else {
                 request.insert("oid".into(), id.clone());
                 let __ws_arg_22 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.v1_private_get_algo_order_oid(&[__ws_arg_22]).await;
+                response = self.v1_private_get_algo_order_oid(&[__ws_arg_22]).await.into_opt_dict();
             }
         }  else {
             if (clientOrderId.is_some()) && (clientOrderId.as_deref() != Some("")) {
                 request.insert("client_order_id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await;
+                response = self.v1_private_get_client_order_client_order_id(&[__ws_arg_23]).await.into_opt_dict();
             }  else {
                 request.insert("oid".into(), id);
                 let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsOmitted]);
-                response = self.v1_private_get_order_oid(&[__ws_arg_24]).await;
+                response = self.v1_private_get_order_oid(&[__ws_arg_24]).await.into_opt_dict();
             }
         }
         //
@@ -3828,7 +3828,7 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut parsedOrders: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
+        let mut parsedOrders: Value = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]);
         if (parsedOrders == Value::Null) {
             parsedOrders = Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -3905,13 +3905,13 @@ impl Woofipro {
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_t".into()), Value::Map(request), &paramsOmitted, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isTrigger {
             let __ws_arg_25 = self.extend(&requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await;
+            response = self.v1_private_get_algo_orders(&[__ws_arg_25]).await.into_opt_dict();
         }  else {
             let __ws_arg_26 = self.extend(requestUntil, &[&paramsUntil]);
-            response = self.v1_private_get_orders(&[__ws_arg_26]).await;
+            response = self.v1_private_get_orders(&[__ws_arg_26]).await.into_opt_dict();
         }
         //
         //     {
@@ -3947,7 +3947,7 @@ impl Woofipro {
         //         }
         //     }
         //
-        let mut data: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[response.clone()]).into_dict();
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[response.clone().map_or(Value::Null, Value::Dict)]).into_dict();
         let mut orders: Option<crate::value::List> = self.safe_list_k(&data, "rows", &[]).into_opt_list();
         return self.parse_orders(&orders, market.as_ref(), &[since, limit]);
         Value::Null

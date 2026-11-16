@@ -4115,7 +4115,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //        ]
         //    }
         //
-        let mut networkList: Value = self.safe_list_k(fee.clone(), "network_list", &[Value::from(vec![])]);
+        let mut networkList: crate::value::List = self.safe_list_k(fee.clone(), "network_list", &[Value::from(vec![])]).into_list();
         let mut networkListLength: i64 = networkList.len() as i64;
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -4127,12 +4127,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("percentage".to_string(), Value::Null);
             m
         });
-        if (networkList != Value::Null) {
+        if (true) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_595: bool = true;
                 while { if !__for_first_595 { i += 1; } __for_first_595 = false; i < networkListLength } {
-                let mut networkInfo: crate::value::Dict = self.safe_dict(networkList.clone(), Value::Int(i), &[]).into_dict();
+                let mut networkInfo: crate::value::Dict = self.safe_dict(&networkList, Value::Int(i), &[]).into_dict();
                 let mut networkId: Option<String> = self.safe_string_k(&networkInfo, "network_id", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), currencyCode.map(Value::from).unwrap_or(Value::Null)]);
