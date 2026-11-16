@@ -502,7 +502,7 @@ const CONTAINER_OP_CLIENT_STATE = /^&get_value\(&(client), &Value::Str\("(subscr
 // A side marker is the only `Value` whose length differs from `Value::len`.
 const CONTAINER_OP_SIDE_WORD = /asks|bids|[Ss]ide|[Bb]ook|entries|__sideKind/;
 // Sources that yield a plain JSON tree or a plain container.
-const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_str\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
+const CONTAINER_OP_JSON_SOURCE = /^(?:crate::value::)?(?:get_value|get_value_k)\(|^[A-Za-z_]\w*\.get\([A-Za-z_]\w*\.as_(?:str|deref)\(\)\.unwrap_or\(""\)\)\.cloned\(\)\.unwrap_or\(Value::Null\)$|^self\.(?:safe_\w+|parse_\w+|fetch\w*|to_array|array_concat|extend|omit)\(|^get_arg\(|^split\(|^Value::(?:Map|List|Array|Str|from)\(/;
 // Reads that cannot change the stored container shape.
 const CONTAINER_OP_READS = new Set([ 'clone', 'len', 'is_empty', 'as_map', 'as_array', 'as_str', 'as_i64',
     'as_f64', 'as_bool', 'is_truthy', 'is_null', 'is_str', 'is_map', 'is_array', 'to_string', 'to_json' ]);
@@ -3576,230 +3576,6 @@ function mapParamDispatchSelfTest(): number {
     console.log(failures === 0 ? 'self-test: all cases pass' : 'self-test: ' + failures + ' failing');
     return failures;
 }
-
-// ---- narrow str locals ----
-// `safe_string*` locals narrowed to `Option<String>`.
-// A text pass over the final Rust; it does not touch `this`.
-
-/**
- * `let X: Value = self.safe_string*(obj, key, &[])` whose uses are all null tests,
- * `as_str()` compares, `stringify_param` calls or plain `Value` operands becomes
- * `Option<String>` through the `_opt` twin (same lookup and default rules, `None` where
- * the boxed helper yields `Null`). Null tests print `is_none()`/`is_some()`, compares
- * `as_deref()`, `get_value(&X, &Value::Int(0)).as_str() == Some("c")` the `starts_with("c")`
- * of the same first character, `stringify_param(&X)` the text it prints, and a `Value`
- * operand re-boxes through
- * `Value::from`, which builds the `Value::Str` the helper returned. Any other use, a
- * `&mut`, an assignment or a closure keeps `Value`.
- */
-function narrowStrNullLocals(content: string): string {
-    const OPT: { [k: string]: string } = {
-        safe_string: 'safe_string_opt',
-        safe_string_k: 'safe_string_k_opt',
-        safe_string_lower_k: 'safe_string_lower_k_opt',
-        safe_string_upper_k: 'safe_string_upper_k_opt',
-    };
-    const declRe = /^([ \t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = self\.(safe_string[a-z_0-9]*)\(/gm;
-    const strKeyRe = /^"(?:[^"\\]|\\.)*"$/;
-    const maskText = (src: string): string => {
-        let out = ''; let i = 0;
-        while (i < src.length) {
-            const c = src[i];
-            if (c === '/' && src[i + 1] === '/') {
-                while (i < src.length && src[i] !== '\n') { out += ' '; i++; }
-                continue;
-            }
-            if (c === '"') {
-                out += '"'; i++;
-                while (i < src.length && src[i] !== '"') {
-                    if (src[i] === '\\') { out += '  '; i += 2; continue; }
-                    out += src[i] === '\n' ? '\n' : ' ';
-                    i++;
-                }
-                if (i < src.length) { out += '"'; i++; }
-                continue;
-            }
-            out += c; i++;
-        }
-        return out;
-    };
-    const closeParen = (src: string, open: number): number => {
-        let depth = 0;
-        for (let k = open; k < src.length; k++) {
-            const c = src[k];
-            if (c === '(') depth++;
-            else if (c === ')') { depth--; if (depth === 0) return k + 1; }
-        }
-        return -1;
-    };
-    const braceEnd = (src: string, from: number): number => {
-        let depth = 0;
-        for (let k = from; k < src.length; k++) {
-            const c = src[k];
-            if (c === '{') depth++;
-            else if (c === '}') { depth--; if (depth < 0) return k; }
-        }
-        return src.length;
-    };
-    const argSpans = (src: string): Array<[number, number]> => {
-        const out: Array<[number, number]> = [];
-        let depth = 0; let start = 0;
-        for (let i = 0; i < src.length; i++) {
-            const c = src[i];
-            if (c === '(' || c === '[' || c === '{') depth++;
-            else if (c === ')' || c === ']' || c === '}') depth--;
-            else if (c === ',' && depth === 0) { out.push([start, i]); start = i + 1; }
-        }
-        out.push([start, src.length]);
-        return out;
-    };
-
-    const masked = maskText(content);
-    const grown = new Map<number, number>();
-    const groups: Array<{ decl: { start: number, end: number, text: string }, edits: Array<{ start: number, end: number, text: string }> }> = [];
-    const rewrites: Array<{ start: number, end: number, text: string }> = [];
-    // Candidate declarations: boxed `self.safe_string*` calls and the inlined reads of a
-    // `__pro_message` shadow (a `match` over `.get(key)` with the same coercion arms).
-    type Cand = { index: number, stmtEnd: number, name: string, declText: string, intOnly?: boolean };
-    const cands: Cand[] = [];
-    let m: RegExpExecArray | null;
-    while ((m = declRe.exec(masked)) !== null) {
-        const opt = OPT[m[4]];
-        if (opt === undefined) continue;
-        const callOpen = m.index + m[0].length - 1;
-        const callClose = closeParen(masked, callOpen);
-        if (callClose < 0) continue;
-        const tail = /^\s*;/.exec(masked.slice(callClose, callClose + 3));
-        if (tail === null) continue;
-        const base = callOpen + 1;
-        const spans = argSpans(masked.slice(base, callClose - 1));
-        if (spans.length !== 3) continue;
-        const obj = content.slice(base + spans[0][0], base + spans[0][1]).trim();
-        const keyRaw = content.slice(base + spans[1][0], base + spans[1][1]).trim();
-        const defRaw = content.slice(base + spans[2][0], base + spans[2][1]).trim();
-        if (obj.length === 0 || keyRaw.length === 0) continue;
-        if (m[4].endsWith('_k') && !strKeyRe.test(keyRaw)) continue;
-        // Only a `Null` default maps to `None`.
-        if (defRaw !== '&[]') continue;
-        cands.push({
-            index: m.index, stmtEnd: callClose + tail[0].length, name: m[3],
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<String> = self.${opt}(${obj}, ${keyRaw}, ${defRaw});`,
-        });
-    }
-    const inlineRe = new RegExp('^([ \\t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = \\(match __pro_message\\.get\\(("(?:[^"\\\\]|\\\\.)*")\\)\\.cloned\\(\\) \\{ '
-        + 'Some\\(Value::Str\\(__s\\)\\) if !__s\\.is_empty\\(\\) => Value::Str\\(__s\\), '
-        + 'Some\\(Value::Int\\(__n\\)\\) => Value::Str\\(__n\\.to_string\\(\\)\\.into\\(\\)\\), '
-        + 'Some\\(Value::Float\\(__f\\)\\) => Value::Str\\(__f\\.to_string\\(\\)\\.into\\(\\)\\), '
-        + '_ => Value::Null \\}\\);', 'gm');
-    while ((m = inlineRe.exec(content)) !== null) {
-        cands.push({
-            index: m.index, stmtEnd: m.index + m[0].length, name: m[3],
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<String> = match __pro_message.get(${m[4]}).cloned() { `
-                + 'Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), '
-                + 'Some(Value::Int(__n)) => Some(__n.to_string()), '
-                + 'Some(Value::Float(__f)) => Some(__f.to_string()), _ => None };',
-        });
-    }
-    // The `safe_integer` twin narrows to `Option<i64>` and only for null tests.
-    const intRe = new RegExp('^([ \\t]*)let (mut )?([a-zA-Z_][a-zA-Z0-9_]*): Value = \\(match __pro_message\\.get\\(("(?:[^"\\\\]|\\\\.)*")\\)\\.cloned\\(\\) \\{ '
-        + 'Some\\(Value::Int\\(__n\\)\\) => Value::Int\\(__n\\), Some\\(Value::Float\\(__f\\)\\) => Value::Int\\(__f as i64\\), '
-        + 'Some\\(Value::Str\\(__s\\)\\) if !__s\\.is_empty\\(\\) => match __s\\.parse::<i64>\\(\\) \\{ Ok\\(__n\\) => Value::Int\\(__n\\), '
-        + 'Err\\(_\\) => match __s\\.parse::<f64>\\(\\) \\{ Ok\\(__f\\) if __f\\.is_finite\\(\\) => Value::Int\\(__f as i64\\), _ => Value::Null \\} \\}, '
-        + '_ => Value::Null \\}\\);', 'gm');
-    while ((m = intRe.exec(content)) !== null) {
-        cands.push({
-            index: m.index, stmtEnd: m.index + m[0].length, name: m[3], intOnly: true,
-            declText: `${m[1]}let ${m[2] ?? ''}${m[3]}: Option<i64> = match __pro_message.get(${m[4]}).cloned() { `
-                + 'Some(Value::Int(__n)) => Some(__n), Some(Value::Float(__f)) => Some(__f as i64), '
-                + 'Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), '
-                + 'Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None };',
-        });
-    }
-    cands.sort((a, b) => a.index - b.index);
-    for (const cand of cands) {
-        const name = cand.name;
-        const stmtEnd = cand.stmtEnd;
-        const end = braceEnd(masked, stmtEnd);
-        const body = masked.slice(stmtEnd, end);
-        if (new RegExp(`\\b(?:let|for|fn)\\s+(?:mut\\s+)?${name}\\b`).test(body)) continue;
-        if (new RegExp(`\\|[^|\\n]*\\b${name}\\b[^|\\n]*\\|`).test(body)) continue;
-        const useRe = new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`, 'g');
-        const edits: Array<{ start: number, end: number, text: string }> = [];
-        let ok = true; let u: RegExpExecArray | null;
-        while ((u = useRe.exec(body)) !== null) {
-            const at = u.index; const abs = stmtEnd + at; const after = body.slice(at + name.length);
-            const before = body.slice(0, at);
-            let g: RegExpExecArray | null;
-            if (cand.intOnly === true && !/^\s*(==|!=)\s*Value::Null\b/.test(after)) { ok = false; break; }
-            if ((g = /^\s*(==|!=)\s*Value::Null\b/.exec(after)) !== null && !/[&*]\s*$/.test(before)) {
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.${g[1] === '==' ? 'is_none' : 'is_some'}()` });
-            } else if ((g = /^\.as_str\(\)/.exec(after)) !== null) {
-                // `Option<String>::as_deref()` is the same `Option<&str>` the boxed `as_str()` gave.
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}.as_deref()` });
-            } else if (/get_value\(&$/.test(before)
-                && (g = /^, &Value::Int\(0\)\)\.as_str\(\) (==|!=) Some\("/.exec(after)) !== null) {
-                // First character probe; the char sits in the unmasked text at the same offsets.
-                const chPos = abs + name.length + g[0].length;
-                const ch = /^([^"\\])"\)/.exec(content.slice(chPos, chPos + 3));
-                if (ch === null) { ok = false; break; }
-                const probe = `${name}.as_deref().unwrap_or("").starts_with("${ch[1]}")`;
-                edits.push({ start: abs - 'get_value(&'.length, end: chPos + ch[0].length, text: g[1] === '==' ? probe : `!${probe}` });
-            } else if (/crate::runtime::stringify_param\(&$/.test(before) && /^\)/.test(after)) {
-                // The helper prints `null` for `Null` and the text for `Str`: both are `Option<String>` states.
-                const from = abs - 'crate::runtime::stringify_param(&'.length;
-                edits.push({ start: from, end: abs + name.length + 1, text: `${name}.as_deref().unwrap_or("null").to_string()` });
-            // eslint-disable-next-line no-useless-escape
-            } else if (/(?:[(,\[]\s*&?|(?<![=!<>])=\s)$/.test(before) && !/&\s*mut\s*$/.test(before)
-                && (g = /^(\.clone\(\))?(?=\s*[,)\];])/.exec(after)) !== null && !/==\s*$/.test(before)) {
-                // The conversion consumes the `Option`: only the last use, outside any loop, may move it.
-                const lastUse = !new RegExp(`(?<![A-Za-z0-9_.:])${name}(?![A-Za-z0-9_])`).test(after.slice(g[0].length));
-                const inLoop = /\b(?:loop|while|for)\b/.test(body);
-                const move = lastUse && !inLoop && !/&\s*$/.test(before);
-                edits.push({ start: abs, end: abs + name.length + g[0].length, text: `${name}${move ? '' : '.clone()'}.map(Value::from).unwrap_or(Value::Null)` });
-            } else { ok = false; break; }
-        }
-        if (!ok || edits.length === 0) continue;
-        // A longer line must not newly cross 400 chars, counting growth from earlier locals.
-        const declText = cand.declText;
-        const all = [{ start: cand.index, end: stmtEnd, text: declText }, ...edits];
-        const lineGrow = new Map<number, number>();
-        for (const e of all) {
-            const ls = content.lastIndexOf('\n', e.start) + 1;
-            lineGrow.set(ls, (lineGrow.get(ls) ?? 0) + e.text.length - (e.end - e.start));
-        }
-        let longer = false;
-        for (const [ls, grow] of lineGrow) {
-            let le = content.indexOf('\n', ls); if (le < 0) le = content.length;
-            const cur = le - ls + (grown.get(ls) ?? 0);
-            if (cur <= 400 && cur + grow > 400) longer = true;
-        }
-        if (longer) continue;
-        for (const [ls, grow] of lineGrow) grown.set(ls, (grown.get(ls) ?? 0) + grow);
-        groups.push({ decl: { start: cand.index, end: stmtEnd, text: declText }, edits });
-    }
-    // A use that sits inside another narrowed local's initializer would be lost when that
-    // statement is reprinted from its original text: leave the used local boxed.
-    for (let again = true; again;) {
-        again = false;
-        for (let a = 0; a < groups.length; a++) {
-            const hit = groups.some((b, bi) => bi !== a
-                && groups[a].edits.some(e => e.start >= b.decl.start && e.start < b.decl.end));
-            if (hit) { groups.splice(a, 1); again = true; break; }
-        }
-    }
-    for (const gr of groups) { rewrites.push(gr.decl); for (const e of gr.edits) rewrites.push(e); }
-    if (rewrites.length === 0) return content;
-    rewrites.sort((a, b) => a.start - b.start);
-    let out = ''; let last = 0;
-    for (const r of rewrites) {
-        if (r.start < last) continue; // overlapping: keep the first
-        out += content.slice(last, r.start) + r.text;
-        last = r.end;
-    }
-    out += content.slice(last);
-    return out;
-}
-
 
 // ---- bool_k local -> Option<bool> ----
 /**
@@ -10295,8 +10071,6 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustTypedLocals(rustContent);
                 rustContent = fieldChainInserts(rustContent);
                 rustContent = plainDictChains(rustContent);
-                // `safe_string*` locals whose only sink is a `format!` print a `String`.
-                rustContent = narrowStrNullLocals(rustContent);
                 rustContent = this.splitLongIntegerRead(rustContent);
                 rustContent = rustIntLocalNullSinkOptionI64(rustContent);
                 rustContent = rustStrLiteralLocalNativeString(rustContent);
@@ -11141,7 +10915,6 @@ impl std::ops::DerefMut for ${coreName} {
         finalFile = rustTypedLocals(finalFile);
         finalFile = fieldChainInserts(finalFile);
         finalFile = plainDictChains(finalFile);
-        finalFile = narrowStrNullLocals(finalFile);
         finalFile = rustIntLocalNullSinkOptionI64(finalFile);
         finalFile = rustStrLiteralLocalNativeString(finalFile);
         finalFile = rustBoolKLocalOptionBool(finalFile);
@@ -13535,20 +13308,6 @@ function rustPassesSelfTest(): string[] {
     const chain = 'pub fn f(&mut self, symbol: Value) {\n    let mut tf: Value = Value::Null;\n    if let Value::Dict(__r05d) = get_value_mut(&mut self.ohlcvs, &symbol) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&tf), tf.clone()); }\n}\n';
     ok(plainDictChains(chain).includes('.entry(crate::runtime::stringify_param(&symbol)).or_insert(Value::Null)') && !plainDictChains(chain).includes('get_value_mut'), 'plainDictChains: Value-ident key');
     ok(plainDictChains(chain.replace('symbol: Value', 'symbol: &str')).includes('get_value_mut'), 'plainDictChains: unknown key type');
-    const read = (name: string, key: string, dflt = 'Value::Null'): string => 'let mut ' + name + ': Value = (match __pro_message.get("' + key + '").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), '
-        + 'Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => ' + dflt + ' });';
-    const topic = narrowStrNullLocals('fn f() {\n    ' + read('topic', 'topic') + '\n    if (topic != Value::Null) {\n        let ok = topic.as_str() == Some("a");\n    }\n}\n');
-    ok(topic.includes('let mut topic: Option<String> = match __pro_message.get("topic").cloned()') && topic.includes('topic.is_some()') && topic.includes('topic.as_deref() == Some("a")'), 'narrowStrNullLocals: inlined read');
-    const kept = 'fn f() {\n    ' + read('topic', 'topic') + '\n    self.go(&mut topic);\n}\n';
-    ok(narrowStrNullLocals(kept) === kept, 'narrowStrNullLocals: &mut use');
-    const dflt = 'fn f() {\n    ' + read('topic', 'topic', 'Value::Str("".into())') + '\n    let a = topic.as_str();\n}\n';
-    ok(narrowStrNullLocals(dflt) === dflt, 'narrowStrNullLocals: non-Null default');
-    const intRead = 'let mut pong: Value = (match __pro_message.get("pong").cloned() { Some(Value::Int(__n)) => Value::Int(__n), Some(Value::Float(__f)) => Value::Int(__f as i64), '
-        + 'Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null });';
-    const pong = narrowStrNullLocals('fn f() {\n    ' + intRead + '\n    if (pong != Value::Null) { return; }\n}\n');
-    ok(pong.includes('let mut pong: Option<i64> = match __pro_message.get("pong").cloned()') && pong.includes('pong.is_some()'), 'narrowStrNullLocals: integer read');
-    const pongKept = 'fn f() {\n    ' + intRead + '\n    self.go(pong);\n}\n';
-    ok(narrowStrNullLocals(pongKept) === pongKept, 'narrowStrNullLocals: integer used otherwise');
     return problems;
 }
 
