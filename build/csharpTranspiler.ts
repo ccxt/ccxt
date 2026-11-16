@@ -10141,17 +10141,13 @@ function typedSubtractMultiplySnippetChecks (): string[] {
 // isTrue / getArrayLength / getIndexOf / inOp stay helper calls here; isEqual(X, null|bool|non-numeric
 // "lit") becomes a switch over `(object)(X)` copying the helper's type tests in order (X evaluated once).
 export function csharpInlineHelperSwitch (objectNull: boolean, content: string): string {
-    const helperRe = /(?<![A-Za-z0-9_.])(isTrue|getArrayLength|getIndexOf|inOp|isEqual)\(/g;
-    if (!objectNull || !helperRe.test (content) || /^namespace Tests\b/m.test (content)) {
+    if (!objectNull || !/(?<![A-Za-z0-9_.])isEqual\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const sw = (x: string, arms: string) => `(((object)(${x})) switch { ${arms} })`;
     // Double.TryParse can never read it: isEqual answers false at its isNumber gate unless both are equal strings
     const neverNumeric = (body: string) => /^[\x20-\x7e]*$/.test (body) && !/[\\"]/.test (body) && !/nan|inf/i.test (body)
         && (!/[0-9]/.test (body) || /[A-DF-Za-df-z]/.test (body));
-    const rewrite = (helper: string, args: string[], masks: string[]): string | undefined => {
-        // proven isTrue / getArrayLength / getIndexOf / inOp operands went native upstream; the rest keep the helper
-        if (helper !== 'isEqual') return undefined;
+    const rewrite = (args: string[], masks: string[]): string | undefined => {
         if (args.length !== 2) return undefined;
         const [ x, k ] = args;
         const lit = /^"[ ]*"$/.test (masks[1]) && /^"(?:[^"\\]|\\.)*"$/.test (k);
@@ -10165,12 +10161,10 @@ export function csharpInlineHelperSwitch (objectNull: boolean, content: string):
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
         let masked = csharpHelperMaskLine (lines[i]);
-        const starts = Array.from (masked.matchAll (/(?<![A-Za-z0-9_.])(?:isTrue|getArrayLength|getIndexOf|inOp|isEqual)\(/g), (m) => m.index);
+        const starts = Array.from (masked.matchAll (/(?<![A-Za-z0-9_.])isEqual\(/g), (m) => m.index);
         // innermost first: a later start is never the container of an earlier one
         for (const s of starts.reverse ()) {
-            const m = /^(isTrue|getArrayLength|getIndexOf|inOp|isEqual)\(/.exec (masked.substring (s));
-            if (m === null) continue;
-            const open = s + m[1].length;
+            const open = s + 'isEqual'.length;
             const close = csharpHelperCallEnd (masked, open);
             if (close === undefined) continue;
             const cuts = [ open ];
@@ -10183,7 +10177,7 @@ export function csharpInlineHelperSwitch (objectNull: boolean, content: string):
                 masks.push (masked.substring (cuts[a] + 1, cuts[a + 1]).trim ());
             }
             if (args.some ((a) => a.length === 0)) continue;
-            const text = rewrite (m[1], args, masks) ?? ((m[1] === 'isEqual') ? x05TypedIsEqual (x05Regions, i, args) : undefined);
+            const text = rewrite (args, masks) ?? x05TypedIsEqual (x05Regions, i, args);
             if (text === undefined) continue;
             lines[i] = lines[i].substring (0, s) + text + lines[i].substring (close + 1);
             masked = csharpHelperMaskLine (lines[i]);
@@ -10283,50 +10277,31 @@ export function csharpNativeParseCalls (objectNull: boolean, content: string): s
     if (!objectNull || !/\bparse(?:Int|Float)\s*\(/.test (content) || /^namespace Tests;/m.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const regions = csharpRegions (masked);
-    if (regions.length === 0) {
-        return content;
-    }
-    let changed = false;
-    const out = lines.map ((line, i) => {
-        if (!/\bparse(?:Int|Float)\s*\(/.test (masked[i])) {
-            return line;
-        }
-        let region = regions[0];
-        for (const r of regions) {
-            if (r.start <= i) region = r;
-        }
-        if ((i <= region.start) || (i >= region.end)) {
-            return line;
+    return csharpLinePass (content, false, (region, line, masked, i) => {
+        if (!/\bparse(?:Int|Float)\s*\(/.test (masked)) {
+            return undefined;
         }
         const typeOf = (name: string) => csharpHelperReceiverType (region, name, i, region.params)?.type;
         let result = '';
         let from = 0;
         const re = /(?<![\w.])parse(Int|Float)\(/g;
         let m: RegExpExecArray | null;
-        while ((m = re.exec (masked[i])) !== null) {
+        while ((m = re.exec (masked)) !== null) {
             const open = m.index + m[0].length - 1;
-            const close = csharpHelperCallEnd (masked[i], open);
+            const close = csharpHelperCallEnd (masked, open);
             if ((close === undefined) || (m.index < from)) continue;
             if (!parseHelperInnerIsSimple (line.slice (open + 1, close), typeOf)) continue;
             if (m[1] === 'Float') {
-                const before = masked[i].slice (0, m.index);
-                const after = masked[i].slice (close + 1);
+                const before = masked.slice (0, m.index);
+                const after = masked.slice (close + 1);
                 const holdsBox = /(?:[^=!<>]=|\breturn|\?|:|\(object\))[ ]*$/.test (before) && /^[ ]*(?:\)*[ ]*;|\)+[ ]*;)/.test (after);
                 if (!holdsBox) continue;
             }
             result += line.slice (from, m.index) + 'JsParse.parse' + m[1] + line.slice (open, close + 1);
             from = close + 1;
         }
-        if (from === 0) {
-            return line;
-        }
-        changed = true;
-        return result + line.slice (from);
+        return (from === 0) ? undefined : result + line.slice (from);
     });
-    return changed ? out.join ('\n') : content;
 }
 
 // exact snippet checks: `pass (wrap (body[, sig]))` must equal `wrap (expected[, sig])` and be a fixed point
