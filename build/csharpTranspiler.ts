@@ -9486,7 +9486,7 @@ export function csharpWsAndIndexGetValue (content: string): string {
             // ContainsKey-then-indexer read could race a concurrent TryRemove, so it keeps the helper
             if ((wsMap[2] !== 'subscriptions') || (csharpInOpReceiverType (region, r, i) === undefined)) return undefined;
             const kt = /^"[ ]*"$/.test (keyMask) ? 'literal' : bindingType (keyMask);
-            return [ 'literal', 'string', 'string?', 'object' ].includes (kt) ? dictionaryGetValue (r, k, kt) : undefined;
+            return ((kt !== undefined) && [ 'literal', 'string', 'string?', 'object' ].includes (kt)) ? dictionaryGetValue (r, k, kt) : undefined;
         }
         const rt = bindingType (r);
         if (rt === undefined) return undefined;
@@ -10146,14 +10146,14 @@ export function csharpInlineHelperSwitch (objectNull: boolean, content: string):
         // an int literal: the plain `X == n` only when the printed declaration proves X an int / Int64
         // (or their nullable forms: a null box answers false in both); every other site keeps isEqual
         const isLit = (t: string) => /^-?\d{1,9}$/.test (csharpStripParens (t));
-        const [ name, n ] = isLit (k) ? [ x, k ] : (isLit (x) ? [ k, x ] : [ undefined, undefined ]);
+        const name = isLit (k) ? x : (isLit (x) ? k : undefined);
         if (name === undefined) return undefined;
         const bare = csharpStripParens (name);
         if (!/^[A-Za-z_]\w*$/.test (bare)) return undefined;
         const region = regions.filter ((r) => r.start < line).pop ();
         if (region === undefined) return undefined;
         const type = nonNullIntNameType (region, bare, line);
-        return [ 'int', 'Int64', 'long', 'int?', 'Int64?', 'long?' ].includes (type) ? '(' + bare + ' == ' + csharpStripParens (n) + ')' : undefined;
+        return [ 'int', 'Int64', 'long', 'int?', 'Int64?', 'long?' ].includes (type) ? '(' + bare + ' == ' + csharpStripParens (isLit (k) ? k : x) + ')' : undefined;
     };
     let changed = false;
     for (let i = 0; i < lines.length; i++) {
