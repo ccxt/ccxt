@@ -2952,11 +2952,7 @@ public class BaseExchange {
     }
 
     private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(bytes);
     }
 
     // EIP-712 typed-data encoder. Returns the pre-digest bytes

@@ -61,9 +61,7 @@ public final class Crypto {
     private static byte[] toUtf8(Object o) { return toString(o).getBytes(StandardCharsets.UTF_8); }
 
     public static String binaryToHex(byte[] data) {
-        StringBuilder sb = new StringBuilder(data.length * 2);
-        for (byte b : data) sb.append(String.format("%02x", b));
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(data);
     }
 
     public static String BinaryToBase64(byte[] buff) {
