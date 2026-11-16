@@ -6790,10 +6790,7 @@ function isSelfRead (csharp, operand, declaration) {
 // read can never be null) or for a nested `+` tree of the same shape; the operand's own
 // proven type otherwise
 function selfConcatNodeType (csharp, context, declaration, node, state) {
-    let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
+    let current = stripParens (node);
     if (isSelfRead (csharp, current, declaration)) {
         state.selfRead = true;
         return 'string';
@@ -6809,10 +6806,7 @@ function selfConcatNodeType (csharp, context, declaration, node, state) {
 // the proven type of the write value when it is a `+` tree reading the local being
 // classified at least once and every operand is a proven non-null string, or undefined
 function selfConcatWriteType (csharp, context, declaration, value) {
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (value);
     if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
         return undefined;
     }
@@ -6844,10 +6838,7 @@ function selfConcatWriteType (csharp, context, declaration, value) {
 // safeString* read / an `as string` cast must keep the local `object` — the same fence
 // stringPlusOperandIsProvablyString applies to a left-operand read of the local.
 function nonNullStringWriteLeaf (csharp, node) {
-    let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
+    let current = stripParens (node);
     if (current === undefined) {
         return false;
     }
@@ -6885,10 +6876,7 @@ function nonNullStringWriteLeaf (csharp, node) {
 // provable the same way. `state.selfRead` records the read that makes this family
 // applicable at all — without one the initialiser-position rules already answer.
 function stringWriteNodeIsProvable (csharp, context, declaration, node, state) {
-    let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
+    let current = stripParens (node);
     if (current === undefined) {
         return false;
     }
@@ -6931,22 +6919,12 @@ function stringAccumulatorWriteType (csharp, context, declaration, value) {
 // printed write is unchanged (the ternary prints the same text for both spellings), so
 // the join may keep the running type.
 function selfTernaryStringWriteType (csharp, context, declaration, value) {
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (value);
     if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
         return undefined;
     }
-    const armOf = (arm) => {
-        let current = arm;
-        while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-            current = current.expression;
-        }
-        return current;
-    };
-    const whenTrue = armOf (node.whenTrue);
-    const whenFalse = armOf (node.whenFalse);
+    const whenTrue = stripParens (node.whenTrue);
+    const whenFalse = stripParens (node.whenFalse);
     const selfTrue = isSelfRead (csharp, whenTrue, declaration);
     const selfFalse = isSelfRead (csharp, whenFalse, declaration);
     if (selfTrue === selfFalse) {
@@ -6977,16 +6955,10 @@ function selfTernaryStringWriteType (csharp, context, declaration, value) {
 // exactly like add(object, object)'s `(string)b` branch (both hand back the left for null). A
 // member the base declares `object` (name, token, urls, markets, timeout) can hold a non-string
 // and stays unprovable, as does every other right-operand shape.
-const CSHARP_THIS_STRING_MEMBER_TYPES = [
-    'apiKey', 'secret', 'password', 'uid', 'accountId', 'login', 'privateKey', 'walletAddress',
-    'twofa', 'proxy', 'hostname', 'userAgent', 'id', 'version',
-];
+const CSHARP_THIS_STRING_MEMBER_TYPES = [ 'apiKey', 'uid', 'version' ];
 
 function thisStringMemberRead (node) {
-    let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
+    let current = stripParens (node);
     if (current?.kind !== ts.SyntaxKind.PropertyAccessExpression || current.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return false;
     }
@@ -7384,10 +7356,7 @@ function isLiteralLike (node) {
 // Object.keys (client.futures) and adds only `string?` elements, so every element is a string.
 
 function stringElementsProducer (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (initializer);
     if (!node) {
         return false;
     }
@@ -7411,19 +7380,9 @@ function stringElementsProducer (initializer) {
         if (method === 'stringToCharsArray' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
             return true;
         }
-        // this.marketSymbols (...) adds one `string?` per element
-        if (method === 'marketSymbols' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            return true;
-        }
         // this.findMessageHashes (client, element) — every element of the returned list is the
         // one `string?` its body adds (see section header)
         if (method === 'findMessageHashes' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword && node.arguments?.length === 2) {
-            return true;
-        }
-        // this.marketIds (symbols) — the generated body (Exchange.BaseMethods.cs#MarketIds) adds
-        // exactly one `string? id = this.marketId (getValue (symbols, i))` per element and only
-        // when it is non-null, so every element of the result is a string
-        if (method === 'marketIds' && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
             return true;
         }
         return method === 'keys'
@@ -7565,10 +7524,7 @@ function elementValueType (csharp, node, context) {
     if (direct !== undefined) {
         return direct;
     }
-    let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        value = value.expression;
-    }
+    let value = stripParens (node);
     if (value?.kind === ts.SyntaxKind.Identifier) {
         return localIdentifierType (csharp, value);
     }
@@ -7600,10 +7556,7 @@ function joinElementValueTypes (types) {
 // boxes the pushes added: the element type is their join, and only the push sites this proved
 // may be skipped by the read scan; an unproven push (or any other write) rejects the list
 function pushBuiltListElementType (csharp, scope, declaration, context) {
-    let initializer = declaration.initializer;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        initializer = initializer.expression;
-    }
+    let initializer = stripParens (declaration.initializer);
     if (initializer?.kind !== ts.SyntaxKind.ArrayLiteralExpression) {
         return undefined;
     }
@@ -7643,67 +7596,6 @@ function pushBuiltListElementType (csharp, scope, declaration, context) {
         return undefined; // a list nothing was ever added to proves no element box
     }
     return { elementType, pushes };
-}
-
-// `await Promise.all (list)`: PromiseAll (cs/ccxt/base/Exchange.TranspileHelpers.cs) awaits
-// every task and re-boxes each Result through FromTyped, which returns a plain Dictionary /
-// List / string unchanged — so the element box is the promises' common proven Task<T> result
-function promiseAllElementType (csharp, initializer, context, scope) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
-    if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
-        return undefined;
-    }
-    const call = node.expression;
-    if (call?.kind !== ts.SyntaxKind.CallExpression) {
-        return undefined;
-    }
-    const callee = call.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression
-        || callee.expression?.kind !== ts.SyntaxKind.Identifier || callee.expression.text !== 'Promise'
-        || callee.name?.text !== 'all') {
-        return undefined;
-    }
-    const argument = call.arguments?.[0];
-    if (argument === undefined) {
-        return undefined;
-    }
-    let built;
-    if (argument.kind === ts.SyntaxKind.Identifier) {
-        const uses = indexScope (csharp, scope).identifiers.get (argument.text);
-        if (!uses) {
-            return undefined;
-        }
-        let list;
-        let bindings = 0;
-        for (const n of uses) {
-            if (n.parent?.kind === ts.SyntaxKind.VariableDeclaration && n.parent.name === n) {
-                bindings++;
-                list = n.parent;
-            }
-        }
-        if (bindings !== 1 || list === undefined || list.getStart () > argument.getStart ()) {
-            return undefined;
-        }
-        built = pushBuiltListElementType (csharp, scope, list, context);
-    } else if (argument.kind === ts.SyntaxKind.ArrayLiteralExpression) {
-        const types = [];
-        for (const element of argument.elements) {
-            const type = elementValueType (csharp, element, context);
-            if (type === undefined) {
-                return undefined;
-            }
-            types.push (type);
-        }
-        const elementType = joinElementValueTypes (types);
-        built = (elementType === undefined) ? undefined : { elementType, pushes: new Set () };
-    }
-    if (built === undefined) {
-        return undefined;
-    }
-    return built;
 }
 
 // ---- element reads of a narrowed string-list PARAMETER -----------------------------
@@ -7894,45 +7786,6 @@ function stringListParameterElementType (csharp, scope, parameter) {
     return true;
 }
 
-// A string-list parameter left `object` in C#: its elements are strings at `read` only when a
-// `name = <string-list producer>` statement precedes the read in an enclosing block (the caller's
-// list is replaced) and every write is such a producer, with no in-place mutation.
-function rewrittenStringListParameter (csharp, scope, parameter, read) {
-    const name = parameter.name?.text;
-    if (name === undefined || !stringListParameterAnnotation (parameter)) {
-        return false;
-    }
-    const writes = [];
-    for (const use of indexScope (csharp, scope).identifiers.get (name) ?? []) {
-        if (use === parameter.name || isNotAUse (use)) {
-            continue;
-        }
-        if (useRefersToDeclaration (csharp, scope, parameter, use) === false) {
-            continue;
-        }
-        const parent = use.parent;
-        if (parent?.kind === ts.SyntaxKind.BinaryExpression && parent.left === use && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
-            if (parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !stringListParameterWriteProducer (parent.right)) {
-                return false;
-            }
-            writes.push (parent);
-            continue;
-        }
-        if (parameterListUseIsMutation (use) || enclosingFunction (use) !== scope) {
-            return false;
-        }
-    }
-    return writes.some ((write) => {
-        const statement = write.parent;
-        if (statement?.kind !== ts.SyntaxKind.ExpressionStatement || statement.parent?.kind !== ts.SyntaxKind.Block) {
-            return false;
-        }
-        const siblings = statement.parent.statements;
-        const index = siblings.indexOf (statement);
-        return siblings.some ((later, i) => i > index && later.getStart () <= read.getStart () && read.getEnd () <= later.getEnd ());
-    });
-}
-
 // the element type of `recv[key]`, or undefined. `getValue (recv, key)` is an object box, so a
 // named declaration needs the cast csharpLocalTypeOf adds; the receiver must have exactly one
 // binding, declared before the read, and every other use of it must be a read the producer proved
@@ -7966,7 +7819,7 @@ function elementAccessElementType (csharp, initializer, context) {
     }
     if (declaration.kind === ts.SyntaxKind.Parameter) {
         // a parameter receiver -- the receiver IS a narrowed list parameter (see above)
-        return (stringListParameterElementType (csharp, scope, declaration) || rewrittenStringListParameter (csharp, scope, declaration, initializer)) ? 'string' : undefined;
+        return stringListParameterElementType (csharp, scope, declaration) ? 'string' : undefined;
     }
     if (declaration.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined;
@@ -7977,12 +7830,11 @@ function elementAccessElementType (csharp, initializer, context) {
     if (stringListLocal (csharp, scope, declaration)) {
         return 'string';
     }
-    const built = stringElementsProducer (declaration.initializer)
+    const producer = stringElementsProducer (declaration.initializer)
         ? { elementType: 'string', pushes: new Set () }
         : (subMessageHashesProducer (csharp, declaration.initializer)
             ? { elementType: 'string', pushes: new Set () }
             : pushBuiltListElementType (csharp, scope, declaration, context));
-    const producer = (built !== undefined) ? built : promiseAllElementType (csharp, declaration.initializer, context, scope);
     if (producer === undefined) {
         return undefined;
     }
@@ -8000,8 +7852,7 @@ function elementAccessElementType (csharp, initializer, context) {
 // `market['symbol']` — a MARKET ROW read by a literal key. getValue hands back the raw box, so
 // naming the value `string?` needs the `(string)` cast back (see the MARKET_ROW_* header).
 // Keys outside the set (booleans / numerics / dicts) keep the local `object`.
-export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'base', 'quote', 'baseId', 'quoteId', 'settle', 'settleId', 'lowercaseId', 'type',
-    'uppercaseId', 'subType', 'optionType', 'expiryDatetime', 'feeSide' ];
+export const MARKET_ROW_STRING_KEYS = [ 'symbol', 'id', 'quote', 'baseId', 'quoteId', 'type' ];
 
 // `market['swap']` — the BOOL keys of a market row: every market-row writer stores a boolean
 // or nothing at these keys, so `(bool?)` (BaseMethods#safeBool*'s shape) names the box.
@@ -8025,7 +7876,7 @@ const MARKET_ROW_PARAM_TYPES = [ 'Market', 'MarketInterface' ];
 // `const market = this.getMarketFromSymbols (symbols)`: venue market resolvers whose every
 // return path is a market row (or undefined), so the receiving local IS a row. A same-name
 // helper elsewhere must have its return paths proven before it is listed.
-const MARKET_ROW_HELPER_PRODUCERS = [ 'getMarketFromSymbols', 'getMarketFromClientAndMessage', 'getMarketFromOrder' ];
+const MARKET_ROW_HELPER_PRODUCERS = [ 'getMarketFromSymbols', 'getMarketFromClientAndMessage' ];
 
 // the parameter's declared market-row type, or undefined
 function marketRowParamAnnotation (declaration) {
@@ -8219,10 +8070,7 @@ function installTypedDictElementAccess (csharp) {
 // `object`-declared receiver, a parameter, an alias, a `this.markets[...]` read or a
 // destructured name has no proven box here and keeps the local `object`.
 function marketRowProducer (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (initializer);
     if (node === undefined) {
         return false;
     }
@@ -8234,11 +8082,6 @@ function marketRowProducer (initializer) {
         const name = callee.name?.text;
         return name === 'market' || name === 'safeMarket' || name === 'safeMarketStructure' || MARKET_ROW_HELPER_PRODUCERS.includes (name);
     }
-    if (node.kind === ts.SyntaxKind.ConditionalExpression) {
-        const nullish = (n) => (n?.kind === ts.SyntaxKind.NullKeyword || (n?.kind === ts.SyntaxKind.Identifier && n.text === 'undefined'));
-        return (nullish (node.whenTrue) || marketRowProducer (node.whenTrue))
-            && (nullish (node.whenFalse) || marketRowProducer (node.whenFalse));
-    }
     return false;
 }
 
@@ -8246,15 +8089,9 @@ function marketRowProducer (initializer) {
 // undefined` / `market = null` spellings). Any other value breaks the "the box is a row or
 // null" chain and disqualifies the receiver.
 function marketRowValueOrNullish (node) {
-    let value = node;
-    while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        value = value.expression;
-    }
+    let value = stripParens (node);
     if (value === undefined) {
         return false;
-    }
-    if (value.kind === ts.SyntaxKind.NullKeyword) {
-        return true;
     }
     return (value.kind === ts.SyntaxKind.Identifier && value.text === 'undefined') || marketRowProducer (value);
 }
@@ -8301,33 +8138,6 @@ function marketRowUseDisqualifies (n) {
     return false;
 }
 
-// `(market === undefined) ? this.safeMarket (...) : market` over an unwritten MARKET-ROW PARAMETER
-function marketRowParamConditional (csharp, scope, index, node) {
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
-        return false;
-    }
-    const arm = (value) => {
-        while (value?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-            value = value.expression;
-        }
-        if (marketRowValueOrNullish (value)) {
-            return true;
-        }
-        if (value?.kind !== ts.SyntaxKind.Identifier || (index.declarations.get (value.text) ?? []).length !== 0) {
-            return false;
-        }
-        const params = (index.bindings.get (value.text) ?? []).filter ((candidate) => candidate.kind === ts.SyntaxKind.Parameter);
-        if (params.length !== 1 || !MARKET_ROW_PARAM_TYPES.includes (marketRowParamAnnotation (params[0]))) {
-            return false;
-        }
-        return (index.identifiers.get (value.text) ?? []).every ((n) => n === params[0].name || !marketRowUseDisqualifies (n));
-    };
-    return arm (node.whenTrue) && arm (node.whenFalse);
-}
-
 // `market['swap']` on a PROVEN row receiver: the literal key, else undefined. Two receiver
 // shapes: a LOCAL whose single binding is a market-row producer (or a nullish reset), and a
 // MARKET-ROW PARAMETER (the TS annotation, see MARKET_ROW_PARAM_TYPES). Every other use of the
@@ -8358,7 +8168,7 @@ function marketRowReadKey (csharp, initializer) {
     let declaration;
     if (candidates.length === 1) {
         declaration = candidates[0];
-        if (declaration.initializer === undefined || !(marketRowValueOrNullish (declaration.initializer) || marketRowParamConditional (csharp, scope, index, declaration.initializer))) {
+        if (declaration.initializer === undefined || !marketRowValueOrNullish (declaration.initializer)) {
             return undefined;
         }
         if (declaration.getStart () > initializer.getStart ()) {
@@ -8459,12 +8269,6 @@ function addChainLeafBoxType (csharp, node, context) {
     case ts.SyntaxKind.StringLiteral:
     case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
         return 'string';
-    case ts.SyntaxKind.ParenthesizedExpression:
-        return addChainLeafBoxType (csharp, node.expression, context);
-    case ts.SyntaxKind.AsExpression:
-    case ts.SyntaxKind.TypeAssertionExpression:
-        // `x as string` prints `((string)x)`, a string box whatever x was
-        return (node.type?.kind === ts.SyntaxKind.StringKeyword) ? 'string' : undefined;
     case ts.SyntaxKind.Identifier: {
         // a local this module declares string / string? (the emitted type IS the box)
         const declared = localIdentifierType (csharp, node);
@@ -8478,20 +8282,9 @@ function addChainLeafBoxType (csharp, node, context) {
         const own = callReturnType (csharp, node);
         return (own === 'string' || own === 'string?') ? own : undefined;
     }
-    case ts.SyntaxKind.PropertyAccessExpression: {
-        if (node.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
-            return undefined;
-        }
-        const memberType = CSHARP_LOCAL_THIS_MEMBER_TYPES[node.name?.text];
-        return (memberType === 'string' || memberType === 'string?') ? memberType : undefined;
-    }
     case ts.SyntaxKind.ElementAccessExpression: {
-        // a market-row read at a string key is a string or null (MARKET_ROW_STRING_KEYS);
         // an element of a proven string list is a string or null off the end of the list
         // (elementAccessElementType's own cast proof)
-        if (marketRowStringReadType (csharp, node) === 'string') {
-            return 'string?';
-        }
         return (elementAccessElementType (csharp, node, context) === 'string') ? 'string?' : undefined;
     }
     }
@@ -8579,9 +8372,7 @@ function localValueBoxType (csharp, identifier, context) {
                 return undefined; // `x -= v` / `x *= v` / ... prints a numeric helper result back
             }
             const written = csharpTypeOfValue (csharp, parent.right, nested);
-            if (written === 'null') {
-                box = 'string?'; // a null write keeps the box a string-or-null
-            } else if (written !== 'string' && written !== 'string?') {
+            if (written !== 'string' && written !== 'string?') {
                 return undefined;
             }
         }
@@ -8640,26 +8431,15 @@ function addChainStringBoxType (csharp, declaration, context) {
 // write of a `string?` is rejected there: its add would return the right operand for a null
 // left where the object overload returned null).
 //
-// Leaf proofs reuse the declaration-form proofs: market['id'] (marketRowStringReadType), a
-// literal-keyed this.urls string leaf (urlsDescribeStringProducer; dynamic final keys excluded),
-// and this.getWsUrl (…), whose only definition returns a string or null on every path.
-const STRING_BOX_OBJECT_CALLS = [ 'getWsUrl' ];
+// The leaf proof is an `object` local whose initializer and writes are proven string boxes.
 
 // is this leaf — printed statically `object` — provably a string-or-null box? Returns the
-// declaration the chain can take plus the cast that names the box (`undefined` when the
-// printed chain is already statically `string`: a `this.<string member>` leaf).
-const STRING_MEMBER_OBJECT_LEAVES = [ 'apiKey', 'secret', 'password', 'login', 'uid', 'accountId', 'privateKey' ];
+// declaration the chain can take plus the cast that names the box.
 
 function stringBoxLeafProof (csharp, node) {
-    let leaf = node;
-    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        leaf = leaf.expression;
-    }
+    let leaf = stripParens (node);
     if (leaf === undefined || csharpTypeOfValue (csharp, leaf) !== undefined || isProvablyStringOperand (csharp, leaf)) {
         return undefined; // a proven static type (string included) is not this rule's business
-    }
-    if (marketRowStringReadType (csharp, leaf) === 'string' || urlsDescribeStringProducer (leaf)) {
-        return { type: 'string?', cast: 'string' };
     }
     // an `object` local whose initializer and every later write are proven string-or-null boxes
     // (`const apiUrl = this.safeString (…)` kept `object` because it is itself a `+` LEFT
@@ -8670,44 +8450,20 @@ function stringBoxLeafProof (csharp, node) {
             return { type: 'string?', cast: 'string' };
         }
     }
-    // the hand-written base declares these properties `public string <name> { get; set; }`
-    // (Exchange.Options.cs, one declaration each, no shadowing anywhere in cs/**): the read's
-    // C# static type IS string, so the printed chain already binds the string overloads and
-    // takes no cast — and every writer (the base's SafeString, string literals / `(string)`
-    // casts in the generated tree, a user assignment the same property type checks) leaves a
-    // string or null in the box, which the nullable spelling names.
-    if (leaf.kind === ts.SyntaxKind.PropertyAccessExpression && leaf.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && STRING_MEMBER_OBJECT_LEAVES.includes (leaf.name?.text)) {
-        return { type: 'string?', cast: undefined };
-    }
-    if (leaf.kind === ts.SyntaxKind.CallExpression) {
-        const callee = leaf.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression
-            && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-            && STRING_BOX_OBJECT_CALLS.includes (callee.name?.text)) {
-            return { type: 'string?', cast: 'string' };
-        }
-    }
     return undefined;
 }
 
 // the LEFTMOST operand of a `+` chain: `a + b + c` parses as `(a + b) + c` and prints
 // add(add(a, b), c), so this is the operand whose static type picks the bindable overload
 function plusChainLeftmostOperand (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (initializer);
     if (node?.kind !== ts.SyntaxKind.BinaryExpression || node.operatorToken?.kind !== ts.SyntaxKind.PlusToken) {
         return undefined;
     }
     while (node.left?.kind === ts.SyntaxKind.BinaryExpression && node.left.operatorToken?.kind === ts.SyntaxKind.PlusToken) {
         node = node.left;
     }
-    let leaf = node.left;
-    while (leaf?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        leaf = leaf.expression;
-    }
+    let leaf = stripParens (node.left);
     return leaf;
 }
 
