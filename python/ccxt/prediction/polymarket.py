@@ -2946,16 +2946,16 @@ class polymarket(PredictionExchange, ImplicitAPI):
         if bids is not None:
             bidsLength = len(bids)
         if (bids is not None) and (bidsLength > 0):
-            bestBid = bids[0][0]
-            bestBidVolume = bids[0][1]
+            bestBid = self.safe_number(bids[0], 0)
+            bestBidVolume = self.safe_number(bids[0], 1)
         bestAsk = None
         bestAskVolume = None
         asksLength = 0
         if asks is not None:
             asksLength = len(asks)
         if (asks is not None) and (asksLength > 0):
-            bestAsk = asks[0][0]
-            bestAskVolume = asks[0][1]
+            bestAsk = self.safe_number(asks[0], 0)
+            bestAskVolume = self.safe_number(asks[0], 1)
         mid = None
         if (bestBid is not None) and (bestAsk is not None):
             sum = Precise.string_add(self.number_to_string(bestBid), self.number_to_string(bestAsk))

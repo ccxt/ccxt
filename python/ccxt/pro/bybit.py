@@ -1400,8 +1400,6 @@ class bybit(ccxt.async_support.bybit):
         spot = topic == 'ticketInfo'
         executionFast = topic == 'execution.fast'
         data = self.safe_list(message, 'data', [])
-        if not isinstance(data, list):
-            data = self.safe_list(data, 'result', [])
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
@@ -1918,11 +1916,6 @@ class bybit(ccxt.async_support.bybit):
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
         rawOrders = self.safe_list(message, 'data', [])
-        first = self.safe_dict(rawOrders, 0, {})
-        category = self.safe_string(first, 'category')
-        isSpot = category == 'spot'
-        if not isSpot:
-            rawOrders = self.safe_value(rawOrders, 'result', rawOrders)
         symbols = {}
         for i in range(0, len(rawOrders)):
             parsed = self.parse_order(rawOrders[i])

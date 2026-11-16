@@ -2238,7 +2238,6 @@ class aster(Exchange, ImplicitAPI):
         #            "orderListId": "-1"
         #        }
         #
-        info = order
         positionSide = self.safe_string(order, 'positionSide')
         defaultType = 'spot'
         if positionSide is not None:
@@ -2252,7 +2251,7 @@ class aster(Exchange, ImplicitAPI):
         stopPriceString = self.safe_string(order, 'stopPrice')
         triggerPrice = self.parse_number(self.omit_zero(stopPriceString))
         return self.safe_order({
-            'info': info,
+            'info': order,
             'id': self.safe_string(order, 'orderId'),
             'clientOrderId': self.safe_string(order, 'clientOrderId'),
             'symbol': self.safe_symbol(marketId, marketResolved),

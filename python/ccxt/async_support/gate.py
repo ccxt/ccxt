@@ -2906,7 +2906,7 @@ class gate(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'option', False):
             optionMarketId = self.safe_string(market, 'id')
             for i in range(0, len(response)):
-                entry = response[i]
+                entry = self.safe_dict(response, i)
                 entryName = self.safe_string(entry, 'name')
                 if entryName == optionMarketId:
                     ticker = entry

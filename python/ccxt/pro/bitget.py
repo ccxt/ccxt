@@ -1524,7 +1524,7 @@ class bitget(ccxt.async_support.bitget):
         percentage = Precise.string_mul(percentageDecimal, '100')
         contractSize = None
         if market is not None:
-            contractSize = market['contractSize']
+            contractSize = self.safe_number(market, 'contractSize')
         return self.safe_position({
             'info': position,
             'id': self.safe_string(position, 'posId'),

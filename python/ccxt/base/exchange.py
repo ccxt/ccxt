@@ -4462,7 +4462,7 @@ class BaseExchange(object):
             # we parse trades as strings here!
             # i don't think this is needed anymore
             # (this as any).number = String;
-            firstTrade = self.safe_value(rawTrades, 0)
+            firstTrade = self.safe_dict(rawTrades, 0)
             # parse trades if they haven't already been parsed
             tradesAreParsed = ((firstTrade is not None) and ('info' in firstTrade) and ('id' in firstTrade))
             if not tradesAreParsed:
@@ -6088,7 +6088,7 @@ class BaseExchange(object):
                 ])
             else:
                 # still processing the same timeframe -> update opening trade
-                prevCandle = self.safe_value(ohlcvs, candle)
+                prevCandle = self.safe_list(ohlcvs, candle)
                 prevHigh = self.safe_value(prevCandle, i_high)
                 prevLow = self.safe_value(prevCandle, i_low)
                 ohlcvs[candle][i_high] = max(price if (prevHigh is None) else prevHigh, price)

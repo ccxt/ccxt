@@ -663,13 +663,13 @@ class bitfinex(ccxt.async_support.bitfinex):
             if isRaw:
                 deltas = self.safe_list(message, 1, [])
                 for i in range(0, len(deltas)):
-                    delta = deltas[i]
-                    delta2 = self.safe_number(delta, 2)
+                    rawDelta = deltas[i]
+                    delta2 = self.safe_number(rawDelta, 2)
                     size = -delta2 if (delta2 is not None and delta2 < 0) else delta2
                     side = 'asks' if (delta2 is not None and delta2 < 0) else 'bids'
                     bookside = orderbook[side]
-                    idString = self.safe_string(delta, 0)
-                    price = self.safe_float(delta, 1)
+                    idString = self.safe_string(rawDelta, 0)
+                    price = self.safe_float(rawDelta, 1)
                     bookside.storeArray([price, size, idString])
             else:
                 deltas = self.safe_list(message, 1, [])

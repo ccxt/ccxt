@@ -1162,7 +1162,7 @@ class gate(ccxt.async_support.gate):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-            marketId = market['id']
+            marketId = self.safe_string(market, 'id')
         type, paramsMarketType = self.handle_market_type_and_params('watchMyTrades', market, params)
         subType, paramsSubType = self.handle_sub_type_and_params('watchMyTrades', market, paramsMarketType)
         messageType = self.get_supported_mapping(type, {

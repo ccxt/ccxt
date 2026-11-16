@@ -3503,13 +3503,13 @@ class btse(Exchange, ImplicitAPI):
             row = self.safe_dict(rows, i)
             status = self.safe_string(row, 'status')
             if status is not None:
-                message = self.safe_string(row, 'message')
-                embedded = self.parse_json(message)
+                rowMessage = self.safe_string(row, 'message')
+                embedded = self.parse_json(rowMessage)
                 if embedded is not None:
-                    message = self.safe_string(embedded, 'default_msg', message)
+                    rowMessage = self.safe_string(embedded, 'default_msg', rowMessage)
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions['exact'], status, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+                self.throw_broadly_matched_exception(self.exceptions['broad'], rowMessage, feedback)
         return None
 
     def sign(self, path: str, api: list[str] = ['public'], method: str = 'GET', params={}):

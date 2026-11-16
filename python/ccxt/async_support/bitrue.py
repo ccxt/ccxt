@@ -3116,19 +3116,19 @@ class bitrue(Exchange, ImplicitAPI):
             self.check_required_credentials()
             recvWindow = self.safe_integer(self.options, 'recvWindow', 5000)
             if type == 'spot' or type == 'open':
-                query = self.urlencode(self.extend({
+                unsignedQuery = self.urlencode(self.extend({
                     'timestamp': self.nonce(),
                     'recvWindow': recvWindow,
                 }, paramsOmitted))
-                signature = self.hmac(self.encode(query), self.encode(self.secret), hashlib.sha256)
-                query += '&' + 'signature=' + signature
+                signature = self.hmac(self.encode(unsignedQuery), self.encode(self.secret), hashlib.sha256)
+                signedQuery = unsignedQuery + '&' + 'signature=' + signature
                 if (method == 'GET') or (method == 'DELETE'):
-                    url += '?' + query
+                    url += '?' + signedQuery
                     requestHeaders = {
                         'X-MBX-APIKEY': self.apiKey,
                     }
                 else:
-                    requestBody = query
+                    requestBody = signedQuery
                     requestHeaders = {
                         'X-MBX-APIKEY': self.apiKey,
                         'Content-Type': 'application/x-www-form-urlencoded',

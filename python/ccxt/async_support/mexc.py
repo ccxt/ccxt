@@ -1898,13 +1898,13 @@ class mexc(Exchange, ImplicitAPI):
                         request['start'] = self.parse_to_int((until - swapWindow) / 1000)
             priceType = self.safe_string(paramsUntil, 'price', 'default')
             paramsOmitted = self.omit(paramsUntil, 'price')
-            response: dict
+            swapResponse: dict
             if priceType == 'default':
-                response = await self.contractPublicGetKlineSymbol(self.extend(request, paramsOmitted))
+                swapResponse = await self.contractPublicGetKlineSymbol(self.extend(request, paramsOmitted))
             elif priceType == 'index':
-                response = await self.contractPublicGetKlineIndexPriceSymbol(self.extend(request, paramsOmitted))
+                swapResponse = await self.contractPublicGetKlineIndexPriceSymbol(self.extend(request, paramsOmitted))
             elif priceType == 'mark':
-                response = await self.contractPublicGetKlineFairPriceSymbol(self.extend(request, paramsOmitted))
+                swapResponse = await self.contractPublicGetKlineFairPriceSymbol(self.extend(request, paramsOmitted))
             else:
                 raise NotSupported(self.id + ' fetchOHLCV() not support self price type, [default, index, mark]')
             #
@@ -1922,7 +1922,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     }
             #
-            data = self.safe_dict(response, 'data')
+            data = self.safe_dict(swapResponse, 'data')
             candles = self.convert_trading_view_to_ohlcv(data, 'time', 'open', 'high', 'low', 'close', 'vol')
         return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
@@ -2794,13 +2794,13 @@ class mexc(Exchange, ImplicitAPI):
                 request['endTime'] = until
             if limit is not None:
                 request['limit'] = limit
-            response: List
+            spotResponse: List
             if marginMode is not None:
                 if marginMode != 'isolated':
                     raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
-                response = await self.spotPrivateGetMarginAllOrders(self.extend(request, queryInner))
+                spotResponse = await self.spotPrivateGetMarginAllOrders(self.extend(request, queryInner))
             else:
-                response = await self.spotPrivateGetAllOrders(self.extend(request, queryInner))
+                spotResponse = await self.spotPrivateGetAllOrders(self.extend(request, queryInner))
             #
             # spot
             #
@@ -2849,7 +2849,7 @@ class mexc(Exchange, ImplicitAPI):
             #         }
             #     ]
             #
-            return self.parse_orders(response, market, since, limit)
+            return self.parse_orders(spotResponse, market, since, limit)
         else:
             if since is not None:
                 request['start_time'] = since
@@ -3345,18 +3345,18 @@ class mexc(Exchange, ImplicitAPI):
             # the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             method = self.safe_string(self.options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll')
             method = self.safe_string(paramsMarketType, 'method', method)
-            response = {}
+            swapResponse = {}
             if method == 'contractPrivatePostOrderCancelAll':
-                response = await self.contractPrivatePostOrderCancelAll(self.extend(request, paramsMarketType))
+                swapResponse = await self.contractPrivatePostOrderCancelAll(self.extend(request, paramsMarketType))
             elif method == 'contractPrivatePostPlanorderCancelAll':
-                response = await self.contractPrivatePostPlanorderCancelAll(self.extend(request, paramsMarketType))
+                swapResponse = await self.contractPrivatePostPlanorderCancelAll(self.extend(request, paramsMarketType))
             #
             #     {
             #         "success": true,
             #         "code": "0"
             #     }
             #
-            data = self.safe_list(response, 'data', [])
+            data = self.safe_list(swapResponse, 'data', [])
             return self.parse_orders(data, market)
 
     def parse_order(self, order: dict, market: Market = None) -> Order:
@@ -6076,16 +6076,16 @@ class mexc(Exchange, ImplicitAPI):
             else:
                 self.check_required_credentials()
                 timestamp = str(self.nonce())
-                auth = ''
+                payload = ''
                 if method == 'POST':
-                    auth = self.json(paramsOmitted)
-                    requestBody = auth
+                    payload = self.json(paramsOmitted)
+                    requestBody = payload
                 else:
                     paramsSorted = self.keysort(paramsOmitted)
                     if len(paramsSorted) > 0:
-                        auth += self.urlencode(paramsSorted)
-                        url += '?' + auth
-                auth = self.apiKey + timestamp + auth
+                        payload = self.urlencode(paramsSorted)
+                        url += '?' + payload
+                auth = self.apiKey + timestamp + payload
                 signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
                 requestHeaders = {
                     'ApiKey': self.apiKey,

@@ -3831,9 +3831,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         }
         vaultAddress = None
         vaultAddress, params2 = self.handle_option_string_and_params_2(params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress')
-        if vaultAddress is not None:
-            if vaultAddress.startswith('0x'):
-                vaultAddress = vaultAddress.replace('0x', '')
+        vaultAddress = self.format_vault_address(vaultAddress)
         signature = self.sign_l1_action(updateAction, nonce, vaultAddress)
         request = {
             'action': updateAction,
@@ -4903,12 +4901,11 @@ class hyperliquid(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' sign() has no API URL for self endpoint')
         url = self.implode_hostname(apiUrl) + '/' + path
         isPost = (method == 'POST')
-        postHeaders = {
-            'Content-Type': 'application/json',
-        }
         requestHeaders = None
         if isPost:
-            requestHeaders = postHeaders
+            requestHeaders = {
+                'Content-Type': 'application/json',
+            }
         requestBody = None
         if isPost:
             requestBody = self.json(params)

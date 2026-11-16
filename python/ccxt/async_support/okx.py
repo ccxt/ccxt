@@ -2087,16 +2087,15 @@ class okx(Exchange, ImplicitAPI):
         return self.parse_currencies(currencies)
 
     def parse_currency(self, currency: dict) -> CurrencyInterface:
-        chains = currency
         # currencies are grouped by chain entries, so there is at least one entry
-        firstChain = self.safe_dict(chains, 0, {})
+        firstChain = self.safe_dict(currency, 0, {})
         currencyId = self.safe_string(firstChain, 'ccy')
         code = self.safe_currency_code(currencyId)
         networks = {}
         type = 'crypto'
-        chainsLength = len(chains)
+        chainsLength = len(currency)
         for j in range(0, chainsLength):
-            chain = self.safe_dict(chains, j)
+            chain = self.safe_dict(currency, j)
             # allow empty string for rare fiat-currencies, e.g. TRY
             networkId = self.safe_string(chain, 'chain', '')  # USDT-BEP20, USDT-Avalance-C, etc
             if networkId == '':
@@ -2124,7 +2123,7 @@ class okx(Exchange, ImplicitAPI):
                     'info': chain,
                 }
         return self.safe_currency_structure({
-            'info': chains,
+            'info': currency,
             'code': code,
             'id': currencyId,
             'name': self.safe_string(firstChain, 'name'),

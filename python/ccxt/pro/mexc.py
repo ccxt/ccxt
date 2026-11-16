@@ -584,8 +584,8 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'candles:' + symbolValue + ':' + timeframe
         ohlcv = None
         if self.safe_bool(market, 'spot', False):
-            channel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
-            ohlcv = await self.watch_spot_public(channel, messageHash, params)
+            spotChannel = 'spot@public.kline.v3.api.pb@' + self.safe_string(market, 'id', '') + '@' + timeframeId
+            ohlcv = await self.watch_spot_public(spotChannel, messageHash, params)
         else:
             channel = 'sub.kline'
             requestParams = {
@@ -772,8 +772,8 @@ class mexc(ccxt.async_support.mexc):
         orderbook = None
         if self.safe_bool(market, 'spot', False):
             frequency, paramsFrequency = self.handle_option_string_and_params(params, 'watchOrderBook', 'frequency', '100ms')
-            channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
-            orderbook = await self.watch_spot_public(channel, messageHash, paramsFrequency)
+            spotChannel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + self.safe_string(market, 'id', '')
+            orderbook = await self.watch_spot_public(spotChannel, messageHash, paramsFrequency)
         else:
             channel = 'sub.depth'
             requestParams = {
@@ -969,8 +969,8 @@ class mexc(ccxt.async_support.mexc):
         messageHash = 'trades:' + symbolValue
         trades = None
         if self.safe_bool(market, 'spot', False):
-            channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
-            trades = await self.watch_spot_public(channel, messageHash, params)
+            spotChannel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + self.safe_string(market, 'id', '')
+            trades = await self.watch_spot_public(spotChannel, messageHash, params)
         else:
             channel = 'sub.deal'
             requestParams = {

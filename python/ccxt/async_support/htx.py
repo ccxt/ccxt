@@ -2803,9 +2803,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1781066959396
         #     }
         #
-        trades = self.safe_value(response, 'data')
-        if not isinstance(trades, list):
-            trades = self.safe_list(trades, 'trades')
+        trades = self.safe_list(response, 'data')
+        if trades is None:
+            trades = self.safe_list(self.safe_dict(response, 'data'), 'trades', [])
         return self.parse_trades(trades, market, since, limit)
 
     async def fetch_trades(self, symbol: str, since: Int = None, limit: Int = 1000, params: dict = {}) -> list[Trade]:
@@ -3717,8 +3717,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1780967407144
         #     }
         #
-        rawOrder = self.safe_value(response, 'data')
-        order = self.safe_dict(rawOrder, 0) if isinstance(rawOrder, list) else rawOrder
+        order = self.safe_dict(response, 'data')
+        if order is None:
+            order = self.safe_dict(self.safe_list(response, 'data', []), 0, {})
         return self.parse_order(order, market)
 
     def parse_margin_balance_helper(self, balance: dict, code: str, result: dict) -> dict:
@@ -3946,8 +3947,9 @@ class htx(Exchange, ImplicitAPI):
                     response = await self.contractPrivatePostApiV1ContractTrackHisorders(self.extend(request, paramsUntil))
                 else:
                     response = await self.contractPrivatePostApiV3ContractHisorders(self.extend(request, paramsUntil))
-        rawOrders = self.safe_value(response, 'data')
-        orders = rawOrders if isinstance(rawOrders, list) else self.safe_list(rawOrders, 'orders', [])
+        orders = self.safe_list(response, 'data')
+        if orders is None:
+            orders = self.safe_list(self.safe_dict(response, 'data'), 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_contract_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -4449,8 +4451,9 @@ class htx(Exchange, ImplicitAPI):
         #         "ts": 1780739390596
         #     }
         #
-        rawOrders = self.safe_value(response, 'data')
-        orders = rawOrders if isinstance(rawOrders, list) else self.safe_list(rawOrders, 'orders', [])
+        orders = self.safe_list(response, 'data')
+        if orders is None:
+            orders = self.safe_list(self.safe_dict(response, 'data'), 'orders', [])
         return self.parse_orders(orders, market, since, limit)
 
     def parse_order_status(self, status: Str) -> Str:
@@ -5408,8 +5411,8 @@ class htx(Exchange, ImplicitAPI):
         if self.safe_bool(market, 'spot', False):
             result = self.safe_list(response, 'data', [])
         else:
-            data = self.safe_value(response, 'data')
-            if isinstance(data, list):
+            data = self.safe_list(response, 'data')
+            if data is not None:
                 result = data
             else:
                 batchData = self.safe_dict(response, 'data', {})

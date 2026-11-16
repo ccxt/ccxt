@@ -129,11 +129,11 @@ class PredictionExchange(BaseExchange):
         if (eventId is not None) or (slug is not None):
             filtered = []
             for i in range(0, len(result)):
-                event = self.safe_value(result, i)
+                event = self.safe_dict(result, i)
                 idMatch = (eventId is not None) and (self.safe_string(event, 'id') == eventId)
                 slugMatch = (slug is not None) and (self.safe_string(event, 'slug') == slug)
                 if idMatch or slugMatch:
-                    filtered.append(event)
+                    filtered.append(self.safe_value(result, i))
             result = filtered
         result = self.filter_events_by_status(result, self.safe_string(params, 'status'))
         result = self.filter_events_by_tags(result, self.safe_list(params, 'tags'))
@@ -178,11 +178,11 @@ class PredictionExchange(BaseExchange):
         wantActive = (status == 'active')
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             isActive = self.safe_bool(event, 'active')
             # keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isActive is None) or (isActive == wantActive):
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     def filter_events_by_search_in(self, events: list[object], queries: Strings, searchIn: Str = None):
@@ -197,7 +197,7 @@ class PredictionExchange(BaseExchange):
         checkDescription = (searchIn == 'description') or (searchIn == 'both')
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             title = self.safe_string_lower(event, 'title', '')
             description = self.safe_string_lower(event, 'description', '')
             matched = False
@@ -214,7 +214,7 @@ class PredictionExchange(BaseExchange):
                     matched = True
                     break
             if matched:
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     def normalize_tag_key(self, tag: str):
@@ -255,7 +255,7 @@ class PredictionExchange(BaseExchange):
                 wanted.append(wantedKey)
         result = []
         for i in range(0, len(events)):
-            event = self.safe_value(events, i)
+            event = self.safe_dict(events, i)
             eventTags = self.safe_list(event, 'tags', [])
             matched = False
             for ti in range(0, len(eventTags)):
@@ -274,7 +274,7 @@ class PredictionExchange(BaseExchange):
                 if matched:
                     break
             if matched:
-                result.append(event)
+                result.append(self.safe_value(events, i))
         return result
 
     async def fetch_events(self, params: fetchEventsParams = {}):

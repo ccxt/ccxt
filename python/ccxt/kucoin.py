@@ -1647,7 +1647,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :returns dict[]: an array of objects representing market data
         """
-        fetchTickersFees = None
+        fetchTickersFees = True
         paramsRequest = None
         fetchTickersFees, paramsRequest = self.handle_option_bool_and_params(params, 'fetchMarkets', 'fetchTickersFees', True)
         uta = False
