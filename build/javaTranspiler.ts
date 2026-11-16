@@ -1801,7 +1801,6 @@ class NewTranspiler {
         // a lambda body cannot capture a reassigned parameter: fail the transpile instead of copying it
         (this.transpiler as any).javaTranspiler.javaStrictEffectivelyFinal = true;
         installJavaOwnerStores(this.transpiler);
-        this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchJavaPropertyTypes();
         // narrows `Object x = this.safeString(...)` locals to `String` — see
         // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
@@ -4767,47 +4766,78 @@ function orderedCompareNative (helper: string, l, r): string | undefined {
     return undefined;
 }
 
-export function nativeJavaOrderedComparisons (content: string): string {
-    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
-    const lines = content.split ('\n');
+// names of the fields a printed Java class declares (4-space member lines ending in `=` or `;`)
+function javaClassFields (lines: string[]): Set<string> {
     const fields = new Set<string> ();
     for (const line of lines) {
         const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
         if (f !== null) fields.add (f[1]);
     }
+    return fields;
+}
+
+// line indexes of the printed class's member heads; `withParen` keeps only method/ctor heads
+function javaMemberStarts (lines: string[], withParen = false, from = 0): number[] {
+    const head = withParen ? /^    (?:public|private|protected)\b.*\(/ : /^    (?:public|private|protected)\b/;
     const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) {
-        if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
+    for (let i = from; i < lines.length; i++) if (head.test (lines[i])) starts.push (i);
+    return starts;
+}
+
+// rewrites each member of a printed class; text before the first member is kept. undefined: no member
+function mapJavaMembers (content: string, withParen: boolean, rewrite: (member: string) => string): string | undefined {
+    const lines = content.split ('\n');
+    const starts = javaMemberStarts (lines, withParen);
+    if (starts.length === 0) return undefined;
+    starts.push (lines.length);
+    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
+    for (let s = 0; s + 1 < starts.length; s++) parts.push (rewrite (lines.slice (starts[s], starts[s + 1]).join ('\n')));
+    return parts.join ('\n');
+}
+
+// innermost-last rewrite of the two-argument helper calls `re` finds on one printed line: the line is
+// re-scanned after every rewrite; comment lines are kept
+function rewriteHelperCalls (line: string, re: RegExp, native: (m: RegExpExecArray, args: string[], line: string) => string | undefined): string {
+    const trimmed = line.trim ();
+    if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) return line;
+    for (let again = true; again;) {
+        again = false;
+        re.lastIndex = 0;
+        let m;
+        while ((m = re.exec (line)) !== null) {
+            const split = orderedCompareSplitArgs (line, m.index + m[0].length);
+            if (split === undefined || split.args.length !== 2) continue;
+            const text = native (m, split.args, line);
+            if (text === undefined) continue;
+            line = line.slice (0, m.index) + text + line.slice (split.end + 1);
+            again = true;
+            break;
+        }
     }
+    return line;
+}
+
+// the per-member compare skeleton: every method whose text matches `memberRe` gets its `re` calls rewritten
+function rewriteMemberHelperCalls (content: string, re: RegExp, memberRe: RegExp, native: (m: RegExpExecArray, args: string[], member: string, fields: Set<string>) => string | undefined): string {
+    const lines = content.split ('\n');
+    const fields = javaClassFields (lines);
+    const starts = javaMemberStarts (lines, true);
     for (let s = 0; s < starts.length; s++) {
         const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
         const member = lines.slice (from, to).join ('\n');
-        if (!member.includes ('Helpers.is')) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) { // innermost-last: re-scan after each rewrite
-                again = false;
-                ORDERED_COMPARE_CALL.lastIndex = 0;
-                let m;
-                while ((m = ORDERED_COMPARE_CALL.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = orderedCompareOperand (split.args[0], member, fields);
-                    const r = orderedCompareOperand (split.args[1], member, fields);
-                    if (l === undefined || r === undefined) continue;
-                    const native = orderedCompareNative (m[1], l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
+        if (!memberRe.test (member)) continue;
+        for (let i = from; i < to; i++) lines[i] = rewriteHelperCalls (lines[i], re, (m, args) => native (m, args, member, fields));
     }
     return lines.join ('\n');
+}
+
+export function nativeJavaOrderedComparisons (content: string): string {
+    if (!/Helpers\.is(?:Greater|Less)Than/.test (content)) return content;
+    return rewriteMemberHelperCalls (content, ORDERED_COMPARE_CALL, /Helpers\.is/, (m, args, member, fields) => {
+        const l = orderedCompareOperand (args[0], member, fields);
+        const r = orderedCompareOperand (args[1], member, fields);
+        return l === undefined || r === undefined ? undefined : orderedCompareNative (m[1], l, r);
+    });
 }
 
 // Native promiseAll / objectValues / opNeg (post-print text pass)
@@ -5352,45 +5382,13 @@ function nonNullCompareMathNative (helper: string, l, r, args: string[], member:
 
 export function nativeJavaNonNullCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than|mathM(?:in|ax))/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
     const re = /Helpers\.(is(?:GreaterThan|LessThan|GreaterThanOrEqual|LessThanOrEqual)|mathMin|mathMax)\(/g;
-    for (let s = 0; s < starts.length; s++) {
-        const from = starts[s], to = s + 1 < starts.length ? starts[s + 1] : lines.length;
-        const member = lines.slice (from, to).join ('\n');
-        if (!/Helpers\.(?:is|math)/.test (member)) continue;
-        for (let i = from; i < to; i++) {
-            const trimmed = lines[i].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[i], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = nonNullCompareOperand (split.args[0], member, fields, content);
-                    const r = nonNullCompareOperand (split.args[1], member, fields, content);
-                    if (l === undefined || r === undefined) continue;
-                    const helper = m[1].replace (/^is/, '');
-                    const native = m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, split.args, member) : orderedCompareNative (helper, l, r);
-                    if (native === undefined) continue;
-                    line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[i] = line;
-        }
-    }
-    return lines.join ('\n');
+    return rewriteMemberHelperCalls (content, re, /Helpers\.(?:is|math)/, (m, args, member, fields) => {
+        const l = nonNullCompareOperand (args[0], member, fields, content);
+        const r = nonNullCompareOperand (args[1], member, fields, content);
+        if (l === undefined || r === undefined) return undefined;
+        return m[1].startsWith ('math') ? nonNullCompareMathNative (m[1], l, r, args, member) : orderedCompareNative (m[1].replace (/^is/, ''), l, r);
+    });
 }
 
 function javaNonNullCompareSelfTest (): string[] {
@@ -5498,9 +5496,7 @@ export function nativeJavaCoreArgIdentities (content: string): string {
     const MAP_CALLS = /^this\.(?:market|currency|safeMarket|safeCurrency|keysort|deepExtend)\($/;
     const STRING_CALLS = /^this\.(?:safeString|safeString2|safeStringN|safeStringUpper|safeStringUpper2|safeStringLower|safeStringLower2|symbol|marketId|safeSymbol|safeCurrencyCode)\($/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     // closing index of the paren opened at text[open]; strings skipped
     const closeOf = (text: string, open: number): number => {
         let depth = 0;
@@ -5856,14 +5852,7 @@ export function nativeJavaMapLocalsRetype (content: string): string {
     if (!content.includes ('Helpers.toMapArg(')) return content;
     const cls = /^public (?:abstract )?class (\w+)/m.exec (content);
     const className = cls === null ? '' : cls[1];
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (mapLocalsRetypeMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), className));
-    return parts.join ('\n');
+    return mapJavaMembers (content, false, (member) => mapLocalsRetypeMember (member, className)) ?? content;
 }
 
 // Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
@@ -5938,11 +5927,7 @@ export function nativeJavaNumberParamCompare (content: string): string {
     const table = key === undefined ? {} : (numberParamTable ()[key] ?? {});
     const sumOverridden = /^    (?:public|private|protected)[^\n(]* sum\(/m.test (content);
     const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
+    const fields = javaClassFields (lines);
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan)\(/g;
     for (let i = 0; i < lines.length; i++) {
         const head = lines[i].match (/^    public [^(]* (\w+)\(([^)]*)\)$/);
@@ -5971,24 +5956,10 @@ export function nativeJavaNumberParamCompare (content: string): string {
             return undefined;
         };
         for (let k = i + 1; k < end; k++) {
-            const trimmed = lines[k].trim ();
-            if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-            let line = lines[k], again = true;
-            while (again) {
-                again = false;
-                re.lastIndex = 0;
-                let m;
-                while ((m = re.exec (line)) !== null) {
-                    const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                    if (split === undefined || split.args.length !== 2) continue;
-                    const l = operand (split.args[0]), r = operand (split.args[1]);
-                    if (l === undefined || r === undefined || !(l.mine || r.mine)) continue;
-                    line = line.slice (0, m.index) + nullSafeCompareNative (m[1], l, r) + line.slice (split.end + 1);
-                    again = true;
-                    break;
-                }
-            }
-            lines[k] = line;
+            lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+                const l = operand (args[0]), r = operand (args[1]);
+                return l === undefined || r === undefined || !(l.mine || r.mine) ? undefined : nullSafeCompareNative (m[1], l, r);
+            });
         }
         i = end;
     }
@@ -6021,9 +5992,7 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
     const WS_BOOK = /^(?:io\.github\.ccxt\.ws\.)?WsOrderBook(?:\.(?:Counted|Indexed)OrderBook)?$/;
     const LIST_STRING = /^(?:java\.util\.)?List<String>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
@@ -6243,14 +6212,8 @@ function boxLocalsCoreArgsMember (member: string, content: string): string {
 
 export function nativeJavaBoxLocalsCoreArgs (content: string): string {
     if (!/Helpers\.(?:toStringArg|toLongOrNull|toStringListArg|isTrue|isEqual)\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (boxLocalsCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const out = mapJavaMembers (content, false, (member) => boxLocalsCoreArgsMember (member, content));
+    return out === undefined ? content : nativeJavaCoreArgIdentities (out);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -6424,54 +6387,25 @@ function numberProvenCompareMember (member: string, content: string, fields: Set
     const re = /Helpers\.(isGreaterThanOrEqual|isGreaterThan|isLessThanOrEqual|isLessThan|mathMin|mathMax)\(/g;
     const lines = member.split ('\n');
     for (let k = 1; k < lines.length; k++) {
-        const trimmed = lines[k].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[k], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                const l = operand (split.args[0]), r = operand (split.args[1]);
-                if (l === undefined || r === undefined) continue;
-                let native: string;
-                if (m[1].startsWith ('math')) {
-                    // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
-                    if (!l.pure || !r.pure) continue;
-                    const a = orderedCompareStripParens (split.args[0]), b = orderedCompareStripParens (split.args[1]);
-                    const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
-                    const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
-                    native = nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
-                } else {
-                    native = nullSafeCompareNative (m[1], l, r);
-                }
-                line = line.slice (0, m.index) + native + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[k] = line;
+        lines[k] = rewriteHelperCalls (lines[k], re, (m, args) => {
+            const l = operand (args[0]), r = operand (args[1]);
+            if (l === undefined || r === undefined) return undefined;
+            if (!m[1].startsWith ('math')) return nullSafeCompareNative (m[1], l, r);
+            // helper: null if either is null, else the ORIGINAL box of the toDouble-smaller (larger) side
+            if (!l.pure || !r.pure) return undefined;
+            const a = orderedCompareStripParens (args[0]), b = orderedCompareStripParens (args[1]);
+            const pick = `(${l.num} ${m[1] === 'mathMin' ? '<' : '>'} ${r.num} ? (Object) (${a}) : (Object) (${b}))`;
+            const nulls = [ l.nullName, r.nullName ].filter ((x) => x !== undefined).map ((x) => `${x} == null`);
+            return nulls.length === 0 ? pick : `(${nulls.join (' || ')} ? null : ${pick})`;
+        });
     }
     return lines.join ('\n');
 }
 
 export function nativeJavaNumberProvenCompare (content: string): string {
     if (!/Helpers\.(?:is(?:Greater|Less)Than(?:OrEqual)?|mathM(?:in|ax))\(/.test (content)) return content;
-    const lines = content.split ('\n');
-    const fields = new Set<string> ();
-    for (const line of lines) {
-        const f = line.match (/^    (?:(?:public|private|protected|static|final|volatile|transient) )*[\w.][\w.<>, ?\[\]]* ([A-Za-z_$][\w$]*)\s*(?:=|;)/);
-        if (f !== null) fields.add (f[1]);
-    }
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b.*\(/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return content;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (numberProvenCompareMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), content, fields));
-    return parts.join ('\n');
+    const fields = javaClassFields (content.split ('\n'));
+    return mapJavaMembers (content, true, (member) => numberProvenCompareMember (member, content, fields)) ?? content;
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -6581,9 +6515,7 @@ export function nativeJavaMapLocalOps (content: string): string {
     if (!/Helpers\.(?:addElementToObject|GetValue|inOp|objectKeys)\(/.test (content)) return content;
     const MAP = /^(?:java\.util\.)?(?:Map|HashMap|LinkedHashMap)<String, Object>$/;
     const lines = content.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ ...javaMemberStarts (lines), lines.length ];
     let changed = false;
     for (let s = 0; s + 1 < starts.length; s++) {
         const from = starts[s];
@@ -6950,17 +6882,10 @@ function remainingCoreArgsMember (member: string, content: string): string {
 }
 
 export function nativeJavaRemainingCoreArgs (content: string): string {
-    let out = commentMaskedRerun (content);
-
+    const out = commentMaskedRerun (content);
     if (!/Helpers\.(?:isEqual|toMapArg)\(/.test (out)) return out;
-    const lines = out.split ('\n');
-    const starts: number[] = [];
-    for (let i = 0; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    if (starts.length === 0) return out;
-    starts.push (lines.length);
-    const parts: string[] = [ lines.slice (0, starts[0]).join ('\n') ];
-    for (let s = 0; s + 1 < starts.length; s++) parts.push (remainingCoreArgsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), out));
-    return nativeJavaCoreArgIdentities (parts.join ('\n'));
+    const parts = mapJavaMembers (out, false, (member) => remainingCoreArgsMember (member, out));
+    return parts === undefined ? out : nativeJavaCoreArgIdentities (parts);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -7024,24 +6949,10 @@ export function nativeJavaInlineCompare (content: string): string {
     const re = /\bHelpers\.(isGreaterThanOrEqual|isLessThanOrEqual|isGreaterThan|isLessThan|mathMin|mathMax)\(/g;
     const lines = content.split ('\n');
     for (let i = 0; i < lines.length; i++) {
-        const trimmed = lines[i].trim ();
-        if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) continue;
-        let line = lines[i], again = true;
-        while (again) {
-            again = false;
-            re.lastIndex = 0;
-            let m;
-            while ((m = re.exec (line)) !== null) {
-                const before = line.slice (0, m.index);
-                if (before.includes ('//') || (before.split ('"').length - 1) % 2 === 1) continue;
-                const split = orderedCompareSplitArgs (line, m.index + m[0].length);
-                if (split === undefined || split.args.length !== 2) continue;
-                line = before + inlineCompareLambda (m[1], split.args[0], split.args[1]) + line.slice (split.end + 1);
-                again = true;
-                break;
-            }
-        }
-        lines[i] = line;
+        lines[i] = rewriteHelperCalls (lines[i], re, (m, args, line) => {
+            const before = line.slice (0, m.index);
+            return before.includes ('//') || (before.split ('"').length - 1) % 2 === 1 ? undefined : inlineCompareLambda (m[1], args[0], args[1]);
+        });
     }
     return lines.join ('\n');
 }
@@ -7216,9 +7127,7 @@ export function nativeJavaContainerOps (content: string): string {
     let counter = 0;
     const fresh = () => `${prefix}v${++counter}`;
     const lines = content.split ('\n');
-    const starts: number[] = [ 0 ];
-    for (let i = 1; i < lines.length; i++) if (/^    (?:public|private|protected)\b/.test (lines[i])) starts.push (i);
-    starts.push (lines.length);
+    const starts = [ 0, ...javaMemberStarts (lines, false, 1), lines.length ];
     const parts: string[] = [];
     for (let s = 0; s + 1 < starts.length; s++) parts.push (containerOpsMember (lines.slice (starts[s], starts[s + 1]).join ('\n'), fresh));
     return parts.join ('\n');
