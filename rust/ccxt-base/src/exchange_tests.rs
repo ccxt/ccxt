@@ -234,16 +234,19 @@ mod nonce_override_from_lifted_sign_tests {
     // sign now lives in `impl DerivedExchange` and calls the base trait path: it must still reach the override.
     #[tokio::test]
     async fn lifted_sign_reaches_the_venue_nonce_override() {
-        let config = Value::from_json(&serde_json::json!({ "apiKey": "fixture-key", "secret": "fixture-secret" }));
-        let mut exchange = crate::exchanges::binance::Binance::new(Some(config));
+        let mut exchange = crate::exchanges::binance::Binance::new(Some(Value::from_json(
+            &serde_json::json!({ "apiKey": "fixture-key", "secret": "fixture-secret" }))));
         exchange.exchange.mock_response = Value::from_json(&serde_json::json!({ "orderId": 1 }));
-        let params = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT", "side": "BUY", "type": "MARKET", "quantity": "1" }));
         let before_ms = exchange.milliseconds();
-        exchange.request_typed("order", &["private".to_string()], "POST", params, Value::Int(1)).await
-            .expect("signed mock response must not require network access");
+        exchange.request_typed("order", &["private".to_string()], "POST",
+            Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT", "side": "BUY", "type": "MARKET", "quantity": "1" })),
+            Value::Int(1)).await.expect("signed mock response must not require network access");
         let Value::Str(body) = &exchange.exchange.last_request_body else { panic!("signed POST must retain its encoded body") };
-        let ts: i64 = body.split('&').find_map(|kv| kv.strip_prefix("timestamp=")).expect("timestamp in the signed body")
-            .parse().expect("numeric timestamp");
+        let mut ts: Option<i64> = None;
+        for kv in body.split('&') {
+            if let Some(v) = kv.strip_prefix("timestamp=") { ts = v.parse().ok(); }
+        }
+        let ts = ts.expect("numeric timestamp in the signed body");
         assert!(ts >= before_ms, "sign reached the base nonce (seconds) instead of binance's override (milliseconds): {ts} < {before_ms}");
     }
 
