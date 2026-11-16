@@ -4443,6 +4443,8 @@ function goProvenParseMapMethods (): string[] {
         'ParseADLRank',
         'ParseEvent', 'ParseMarketToEvent', // W18
         'SafePosition', 'ParsePosition', 'ParseOptionPosition',
+        // ral-77g8: ws struct parsers, every override returns a struct->map converter or a map literal
+        'ParseWsBidAsk', 'ParseWsPosition', 'ParseWsMyTrade', 'ParseWsOrderTrade', 'ParseWsUtaTrade', 'ParseWsFundingRate',
         'Sign' ]; // base + every override return a request map literal
 }
 
