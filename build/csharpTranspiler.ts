@@ -9991,7 +9991,7 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
             const r = emittedOperandType (bare.slice (comma + 1, -1), typeOfName, results, file);
             if ((l === undefined) || (r === undefined)) return undefined;
             // add / divide over these operands bind the (object, object) overload
-            return ((call[1] !== 'this.sum') || ![ l, r ].every ((x) => [ 'int', 'Int64' ].includes (x))) ? 'object' : 'Int64';
+            return ((call[1] !== 'this.sum') || ![ l, r ].every ((x) => [ 'int', 'Int64', 'int?', 'Int64?' ].includes (x))) ? 'object' : 'Int64';
         }
         if (Object.prototype.hasOwnProperty.call (fixed, call[1])) return fixed[call[1]];
         return undefined;
