@@ -203,7 +203,8 @@ describe ('ral-77c8-literal-right-add-chain', () => {
         const transpiler = new Transpiler (cfg);
         setupCsharpPrinter (transpiler);
         const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/kucoin.ts').content as string;
-        assert.match (kucoin, /string\? messageHash = \(\(string\)\(add\(type, ":fetchBalanceSnapshot"\)\)\);/);
+        // ral-84c8 R3 types `type` (safeString with a non-null default) as `string`, so this concat is now native
+        assert.match (kucoin, /string messageHash = \(type \+ ":fetchBalanceSnapshot"\);/);
         assert.doesNotMatch (kucoin, /object messageHash = add\(type, ":fetchBalanceSnapshot"\);/);
         const xt = (transpiler as any).transpileCSharpByPath ('./ts/src/pro/xt.ts').content as string;
         assert.match (xt, /string\? param = \(\(string\)\(add\(add\(name, "@"\), listenKey\)\)\);/);
