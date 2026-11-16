@@ -2058,7 +2058,10 @@ class binance(ccxt.async_support.binance):
         :param boolean [params.stock]: set to True to use the stocks price stream
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchTickers', 'stock', False)
+        # a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        # option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        methodName, paramsMethodName = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
+        stock, paramsStock = self.handle_option_bool_and_params(paramsMethodName, methodName, 'stock', False)
         symbolsNormalized = symbols
         if stock:
             if symbols is None:
@@ -2068,7 +2071,7 @@ class binance(ccxt.async_support.binance):
             if self.newUpdates:
                 return stockResult
             return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
-        channelName, paramsName = self.handle_option_string_and_params(paramsStock, 'watchTickers', 'name', 'miniTicker')
+        channelName, paramsName = self.handle_option_string_and_params(paramsStock, methodName, 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         newTickers = await self.watch_multi_ticker_helper('watchTickers', channelName, symbolsNormalized, paramsName)
@@ -2093,7 +2096,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        channelName, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'ticker')
+        # same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        channelName, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         return await self.watch_multi_ticker_helper('unWatchTickers', channelName, symbols, paramsName, True)
@@ -2158,7 +2162,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_tickers([symbol], params)
+        # read the channel under watchTicker's options, the stream watchTicker subscribed
+        return self.un_watch_tickers([symbol], self.extend(params, {'callerMethodName': 'watchTicker'}))
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """

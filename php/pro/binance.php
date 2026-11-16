@@ -2335,7 +2335,10 @@ class binance extends \ccxt\async\binance {
          * @param {boolean} [$params->stock] set to true to use the stocks price stream
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchTickers', 'stock', false);
+        // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        // option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        list($methodName, $paramsMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsMethodName, $methodName, 'stock', false);
         $symbolsNormalized = $symbols;
         if ($stock) {
             if ($symbols === null) {
@@ -2348,7 +2351,7 @@ class binance extends \ccxt\async\binance {
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
         }
-        list($channelName, $paramsName) = $this->handle_option_string_and_params($paramsStock, 'watchTickers', 'name', 'miniTicker');
+        list($channelName, $paramsName) = $this->handle_option_string_and_params($paramsStock, $methodName, 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2380,7 +2383,8 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        list($channelName, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'ticker');
+        // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        list($channelName, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2459,7 +2463,8 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_watch_tickers(array( $symbol ), $params);
+        // read the channel under watchTicker's options, the stream watchTicker subscribed
+        return $this->un_watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' )));
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {

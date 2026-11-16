@@ -724,7 +724,13 @@ public partial class lighter : Exchange
             { "api_key_index", this.parseToInt(apiKeyIndex) },
             { "account_index", this.parseToInt(accountIndex) },
         };
-        object token = this.lighterCreateAuthToken(this.safeValue(cachedAuth, "signer"), request);
+        object signer = this.safeValue(cachedAuth, "signer");
+        if ((signer == null))
+        {
+            this.checkRequiredCredentials();
+            throw new AuthenticationError ((this.id + " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")) ;
+        }
+        object token = this.lighterCreateAuthToken(signer, request);
         this.setAuthEntry(accountIndex, apiKeyIndex, new Dictionary<string, object>() {
             { "deadline", deadline },
             { "token", token },
