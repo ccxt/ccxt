@@ -9173,7 +9173,8 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        return this.parseOptionChain (this.safeList (response, 'data', []) as List, undefined, 'instId');
+        const result = this.safeList (response, 'data', []) as List;
+        return this.parseOptionChain (result, undefined, 'instId');
     }
 
     override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
