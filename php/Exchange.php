@@ -1447,23 +1447,21 @@ class BaseExchange {
     }
 
 
-    public function ensure_whitelisted_file(string $filePath, bool $isWrite = false) {
-        // .ccxtfile (cache files) can be read and written, but only inside the temp dir
-        // .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
+    public function ensure_whitelisted_file(string $filePath) {
+        $tempDir = $this->get_temp_dir();
+        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
+            $tempDir .= DIRECTORY_SEPARATOR;
+        }
         // resolve parent dir (which exists) + filename
         $dir = realpath(dirname($filePath));
         if ($dir === false) {
             throw new \RuntimeException('dir path does not exist: ' . $filePath);
         }
         $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_ends_with($sanitized, '.ccxtfile')) {
-            if (str_starts_with($sanitized, $this->get_temp_dir())) {
-                return;
-            }
-        } elseif (str_ends_with($sanitized, '.pem') && !$isWrite) {
+        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
             return;
         }
-        throw new \RuntimeException('invalid file path: ' . $filePath . ', allowed are .ccxtfile (inside the temp dir) and read-only .pem');
+        throw new \RuntimeException('invalid file path: ' . $filePath);
     }
 
     public function read_file(string $filePath) {
@@ -1475,7 +1473,7 @@ class BaseExchange {
     }
 
     public function write_file(string $path, string $data) {
-        $this->ensure_whitelisted_file($path, true);
+        $this->ensure_whitelisted_file($path);
         $dir = dirname($path);
         if (!is_dir($dir)) {
             mkdir($dir, 0777, true);
