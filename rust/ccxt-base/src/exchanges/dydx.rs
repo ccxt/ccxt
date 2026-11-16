@@ -3027,7 +3027,10 @@ impl Dydx {
         let mut account: crate::value::Dict = self.fetch_dydx_account().await.into_dict();
         let mut usd: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&Value::from(self.number_to_string(amount)), &Value::Str("1000000".into())));
         let mut payload: Option<crate::value::Dict> = None;
-        let mut signingPayload: Value = Value::Null;
+        let mut signingPayload: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+            m
+        });
         if (fromAccount.as_str() == Some("main")) {
             // deposit to subaccount
             if (toSubaccountId.is_none()) {
@@ -3046,7 +3049,7 @@ impl Dydx {
                     m.insert("quantums".to_string(), Value::from(usd));
                 m
             }));
-            signingPayload = Value::Map({
+            signingPayload = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.sending.MsgDepositToSubaccount".into()));
                     m.insert("value".to_string(), payload.clone().map_or(Value::Null, Value::Dict));
@@ -3075,16 +3078,16 @@ impl Dydx {
 }));
                 m
             }));
-            signingPayload = Value::Map({
+            signingPayload = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("typeUrl".to_string(), Value::Str("/dydxprotocol.sending.MsgCreateTransfer".into()));
                     m.insert("value".to_string(), payload.map_or(Value::Null, Value::Dict));
                 m
             });
         }
-        let mut txFee: crate::value::Dict = self.estimate_tx_fee(signingPayload.clone(), Some(""), &account).await.into_dict();
+        let mut txFee: crate::value::Dict = self.estimate_tx_fee(Value::Map(signingPayload.clone()), Some(""), &account).await.into_dict();
         let mut chainName: Option<String> = self.safe_string_k_opt(self.options.clone(), "chainName", &[]);
-        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), signingPayload, Some(""), chainName.as_deref(), &account, Value::Null, &[Value::Dict(txFee)]);
+        let mut signedTx: Option<String> = self.sign_dydx_tx((self.safe_string_k(&credentials, "privateKey", &[])).as_str(), Value::Map(signingPayload), Some(""), chainName.as_deref(), &account, Value::Null, &[Value::Dict(txFee)]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("tx".to_string(), signedTx.map(Value::from).unwrap_or(Value::Null));

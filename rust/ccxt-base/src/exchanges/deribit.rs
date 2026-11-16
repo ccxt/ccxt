@@ -3461,30 +3461,30 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_625: bool = true;
             while { if !__for_first_625 { i += 1; } __for_first_625 = false; i < (fees.len() as i64) } {
-            let mut fee: Option<crate::value::Dict> = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
-            let mut instrumentType: Option<String> = self.safe_string_k_opt(&fee, "instrument_type", &[]);
+            let mut feeEntry: crate::value::Dict = fees.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut instrumentType: Option<String> = self.safe_string_k_opt(&feeEntry, "instrument_type", &[]);
             if (instrumentType.as_deref() == Some("future")) {
                 futureFee = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), fee.clone().map_or(Value::Null, Value::Dict));
-                        m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee", &[]));
-                        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee", &[]));
+                        m.insert("info".to_string(), Value::from(&feeEntry));
+                        m.insert("maker".to_string(), self.safe_number_k(&feeEntry, "maker_fee", &[]));
+                        m.insert("taker".to_string(), self.safe_number_k(&feeEntry, "taker_fee", &[]));
                     m
                 });
             }  else if (instrumentType.as_deref() == Some("perpetual")) {
                 perpetualFee = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), fee.clone().map_or(Value::Null, Value::Dict));
-                        m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee", &[]));
-                        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee", &[]));
+                        m.insert("info".to_string(), Value::from(&feeEntry));
+                        m.insert("maker".to_string(), self.safe_number_k(&feeEntry, "maker_fee", &[]));
+                        m.insert("taker".to_string(), self.safe_number_k(&feeEntry, "taker_fee", &[]));
                     m
                 });
             }  else if (instrumentType.as_deref() == Some("option")) {
                 optionFee = ({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("info".to_string(), fee.clone().map_or(Value::Null, Value::Dict));
-                        m.insert("maker".to_string(), self.safe_number_k(&fee, "maker_fee", &[]));
-                        m.insert("taker".to_string(), self.safe_number_k(&fee, "taker_fee", &[]));
+                        m.insert("info".to_string(), Value::from(&feeEntry));
+                        m.insert("maker".to_string(), self.safe_number_k(&feeEntry, "maker_fee", &[]));
+                        m.insert("taker".to_string(), self.safe_number_k(&feeEntry, "taker_fee", &[]));
                     m
                 });
             }
@@ -3501,7 +3501,7 @@ impl Deribit {
             while { if !__for_first_626 { i += 1; } __for_first_626 = false; i < (symbols.len() as i64) } {
             let mut symbol: Option<String> = symbols.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut fee: Value = Value::Map({
+            let mut fee: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("info".to_string(), (market).raw.clone());
                     m.insert("symbol".to_string(), Value::from(symbol.as_deref()));
@@ -3510,15 +3510,15 @@ impl Deribit {
                     m.insert("maker".to_string(), crate::value::KeyRead::key_read(&&market, "maker"));
                     m.insert("taker".to_string(), crate::value::KeyRead::key_read(&&market, "taker"));
                 m
-            });
+            }).into_dict();
             if (market).swap {
-                fee = self.extend(fee, &[Value::Map(perpetualFee.clone())]);
+                fee = self.extend(fee, &[Value::Map(perpetualFee.clone())]).into_dict();
             }  else if (market).future {
-                fee = self.extend(fee, &[Value::Map(futureFee.clone())]);
+                fee = self.extend(fee, &[Value::Map(futureFee.clone())]).into_dict();
             }  else if (market).option {
-                fee = self.extend(fee, &[Value::Map(optionFee.clone())]);
+                fee = self.extend(fee, &[Value::Map(optionFee.clone())]).into_dict();
             }
-            parsedFees.insert(symbol.as_deref().unwrap_or("null").to_string(), fee);
+            parsedFees.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Dict(fee));
         }
         }
         return Value::Map(parsedFees);

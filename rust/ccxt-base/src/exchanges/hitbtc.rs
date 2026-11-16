@@ -506,8 +506,7 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         let mut currency: Value = currency.into();
         let mut currencyId: Option<String> = self.safe_string_k_opt(currency.clone(), "_coin_id", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
-        let mut entry: Value = currency;
-        let mut rawNetworks: crate::value::List = self.safe_list_k(entry.clone(), "networks", &[Value::from(vec![])]).into_list();
+        let mut rawNetworks: crate::value::List = self.safe_list_k(currency.clone(), "networks", &[Value::from(vec![])]).into_list();
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -554,14 +553,14 @@ impl crate::exchange::DerivedExchange for Hitbtc {
         }
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), currency.clone());
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
-        m.insert("precision".to_string(), self.safe_number_k(entry.clone(), "precision_transfer", &[]));
-        m.insert("name".to_string(), self.safe_string_k(entry.clone(), "full_name", &[]));
-        m.insert("active".to_string(), Value::Bool(!(self.safe_bool_k(entry.clone(), "delisted", &[Value::Bool(false)]).as_bool() == Some(true))));
-        m.insert("deposit".to_string(), self.safe_bool_k(entry.clone(), "payin_enabled", &[]));
-        m.insert("withdraw".to_string(), self.safe_bool_k(entry, "payout_enabled", &[]));
+        m.insert("precision".to_string(), self.safe_number_k(currency.clone(), "precision_transfer", &[]));
+        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "full_name", &[]));
+        m.insert("active".to_string(), Value::Bool(!(self.safe_bool_k(currency.clone(), "delisted", &[Value::Bool(false)]).as_bool() == Some(true))));
+        m.insert("deposit".to_string(), self.safe_bool_k(currency.clone(), "payin_enabled", &[]));
+        m.insert("withdraw".to_string(), self.safe_bool_k(currency, "payout_enabled", &[]));
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Map({

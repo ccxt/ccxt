@@ -1785,9 +1785,7 @@ impl Hibachi {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut takerFee: Value = self.safe_number_k(&market, "taker", &[Value::Int(0)]);
         let mut makerFee: Value = self.safe_number_k(&market, "maker", &[Value::Int(0)]);
-        let mut takerFeeValue: Value = (if (takerFee == Value::Null) { Value::Int(0) } else { takerFee });
-        let mut makerFeeValue: Value = (if (makerFee == Value::Null) { Value::Int(0) } else { makerFee });
-        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFeeValue)), &Value::from(self.number_to_string(makerFeeValue))), &[]).as_f64();
+        let mut feeRate: Option<f64> = self.parse_number(crate::precise::Precise::stringMax(&Value::from(self.number_to_string(takerFee)), &Value::from(self.number_to_string(makerFee))), &[]).as_f64();
         let mut message: Value = self.order_message(Some(&market), nonce.clone(), feeRate.unwrap_or_default(), type_var.as_str(), side.as_str(), amount.clone(), &[price.clone()]);
         let mut signature: Option<String> = self.sign_message(message, (self.privateKey.clone()).as_str().unwrap_or_default()).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({

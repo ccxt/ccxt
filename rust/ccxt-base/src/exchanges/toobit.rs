@@ -3808,7 +3808,7 @@ impl Toobit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut market: Option<crate::types::Market> = None;
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("fetchTradingFees".into()), None, &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -3830,7 +3830,7 @@ impl Toobit {
                 m
             });
             let __ws_arg_27 = self.extend(Value::Map(request), &[&paramsSymbol]);
-            response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_27]).await;
+            response = self.private_get_api_v1_futures_commission_rate(&[__ws_arg_27]).await.into_opt_dict();
         }
         //
         // {
@@ -3844,16 +3844,16 @@ impl Toobit {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut entry: Value = response;
-        let mut marketResolved: crate::types::Market = self.safe_market(self.safe_string_k(entry.clone(), "symbol", &[]), market.as_ref(), &[]);
-        let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(entry, Some(&marketResolved)).as_map().cloned().unwrap_or_default();
+        let mut marketResolved: crate::types::Market = self.safe_market(self.safe_string_k(&response, "symbol", &[]), market.as_ref(), &[]);
+        let mut fee: indexmap::IndexMap<String, Value> = self.parse_trading_fee(&response, Some(&marketResolved)).as_map().cloned().unwrap_or_default();
         result.insert(crate::runtime::stringify_param(&(crate::value::KeyRead::key_read(&&marketResolved, "symbol"))), Value::Map(fee));
         return Value::Map(result);
         Value::Null
         }).await?))
     }
 
-    pub fn parse_trading_fee(&self, mut data: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_trading_fee(&self, data: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut data: Value = data.into();
         let mut marketId: Option<String> = self.safe_string_k_opt(data.clone(), "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

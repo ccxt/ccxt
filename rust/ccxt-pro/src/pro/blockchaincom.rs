@@ -316,7 +316,7 @@ impl Blockchaincom {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", "ohlcv:", symbolValue);
-        let mut request: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("prices".into()));
@@ -324,9 +324,9 @@ impl Blockchaincom {
                 m.insert("granularity".to_string(), self.parse_number(interval.map(Value::from).unwrap_or(Value::Null), &[]));
             m
         });
-        request = self.deep_extend(request, &[params]);
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request.clone(), &messageHash[..], request).await.into();
+        let mut ohlcv: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], &request).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(Some(symbolValue.as_str()), limit.as_i64());
@@ -411,15 +411,15 @@ impl Blockchaincom {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
-        let mut request: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("ticker".into()));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        request = self.deep_extend(request, &[params]);
-        return self.watch(url.as_str(), &messageHash[..], request, &messageHash[..], Value::Null).await;
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        return self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
         Value::Null
         }).await?))
     }
@@ -552,15 +552,15 @@ impl Blockchaincom {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trades:", symbolValue);
-        let mut request: Value = Value::Map({
+        let mut subscribe: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("channel".to_string(), Value::Str("trades".into()));
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        request = self.deep_extend(request, &[params]);
-        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], request.clone(), &messageHash[..], request).await.into();
+        let mut request: crate::value::Dict = self.deep_extend(Value::Map(subscribe), &[params]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], &request).await.into();
         return self.filter_by_since_limit(&trades, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))

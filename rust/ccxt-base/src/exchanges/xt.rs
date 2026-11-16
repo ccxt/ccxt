@@ -7395,11 +7395,11 @@ impl Xt {
 
     pub fn parse_trading_fee(&self, fee: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
         let mut fee: Value = fee.into();
-        let mut symbol: Value = (if (market.is_some()) { crate::value::KeyRead::key_read(&market, "symbol") } else { Value::Null });
+        let mut symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), fee.clone());
-        m.insert("symbol".to_string(), symbol);
+        m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
         m.insert("maker".to_string(), self.safe_number_k(fee.clone(), "makerFee", &[]));
         m.insert("taker".to_string(), self.safe_number_k(fee, "takerFee", &[]));
         m.insert("percentage".to_string(), Value::Null);

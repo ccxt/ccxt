@@ -929,13 +929,11 @@ impl crate::exchange::DerivedExchange for Bitteam {
         if (code.as_f64() != Some(200.0)) {
             if (code.as_f64() == Some(404.0)) {
                 if (url.as_str().unwrap_or("").contains("/ccxt/order/")) && (method.as_str() == Some("GET")) {
-                    let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/order/").map(Value::from).collect() } else { Vec::new() });
-                    let mut orderId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut orderId: String = self.safe_string(Value::Array(if let Some(__s) = url.as_str() { __s.split("/order/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " order ").into()), orderId).into()), " not found")));
                 }
                 if url.as_str().unwrap_or("").contains("/cmc/orderbook/") {
-                    let mut parts: Value = Value::Array(if let Some(__s) = url.as_str() { __s.split("/cmc/orderbook/").map(Value::from).collect() } else { Vec::new() });
-                    let mut symbolId: String = self.safe_string(parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                    let mut symbolId: String = self.safe_string(Value::Array(if let Some(__s) = url.as_str() { __s.split("/cmc/orderbook/").map(Value::from).collect() } else { Vec::new() }), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                     panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbolId ").into()), symbolId).into()), " not found")));
                 }
             }

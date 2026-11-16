@@ -578,8 +578,7 @@ impl crate::exchange::DerivedExchange for Bittrade {
             if (method.as_str() != Some("POST")) {
                 request = self.extend(request, &[&query]).into_dict();
             }
-            let mut requestSorted: Value = self.keysort(Value::Dict(request), &[]);
-            let mut auth: String = self.urlencode(requestSorted, &[]);
+            let mut auth: String = self.urlencode(self.keysort(Value::Dict(request), &[]), &[]);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             let mut payload: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", method, "\n").into()), self.hostname.clone()).into()), "\n").into()), url).into()), "\n").into()), auth);

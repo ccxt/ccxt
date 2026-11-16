@@ -2241,8 +2241,7 @@ impl Alpaca {
         m.insert("id".to_string(), Value::from(random_id));
     m
 }));
-        let mut clientOrderId: Value = (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultClientId) });
-        return clientOrderId.as_str().map(str::to_owned);
+        return (match params.get("clientOrderId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::from(defaultClientId) }).as_str().map(str::to_owned);
 }
 
 /*
@@ -2921,15 +2920,13 @@ impl Alpaca {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code);
-        let mut addressValue: Value = address.clone();
         let mut tagSuffix: String = self.safe_string_k(params, "tag", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        if (tagSuffix != "") {
-            addressValue = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagSuffix).into());
-        }
+        let mut taggedAddress: String = format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagSuffix);
+        let mut addressValue: String = (if (tagSuffix != "") { taggedAddress } else { address.as_str().unwrap_or_default().to_string() });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("asset".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("address".to_string(), addressValue);
+                m.insert("address".to_string(), Value::from(addressValue));
                 m.insert("amount".to_string(), Value::from(self.number_to_string(amount)));
             m
         });

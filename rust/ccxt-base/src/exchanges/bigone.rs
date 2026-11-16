@@ -238,32 +238,32 @@ impl crate::exchange::DerivedExchange for Bigone {
             m
         });
         let mut makerCurrencyCode: Option<String> = None;
-        let mut takerCurrencyCode: Value = Value::Null;
+        let mut takerCurrencyCode: Option<String> = None;
         if (takerOrMaker.is_some()) {
             if (side.as_deref() == Some("buy")) {
                 if (takerOrMaker.as_deref() == Some("maker")) {
                     makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
                 }  else {
                     makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
                 }
             }  else {
                 if (takerOrMaker.as_deref() == Some("maker")) {
                     makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
-                    takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                    takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
                 }  else {
                     makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
-                    takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                    takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
                 }
             }
         }  else if (side.as_deref() == Some("SELF_TRADING")) {
             if (takerSide.as_deref() == Some("BID")) {
                 makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
-                takerCurrencyCode = self.safe_string_k(&marketResolved, "base", &[]);
+                takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
             }  else if (takerSide.as_deref() == Some("ASK")) {
                 makerCurrencyCode = self.safe_string_k_opt(&marketResolved, "base", &[]);
-                takerCurrencyCode = self.safe_string_k(&marketResolved, "quote", &[]);
+                takerCurrencyCode = self.safe_string_k_opt(&marketResolved, "quote", &[]);
             }
         }
         let mut makerFeeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "maker_fee", &[]);
@@ -271,7 +271,6 @@ impl crate::exchange::DerivedExchange for Bigone {
         if (makerFeeCost.is_some()) {
             let mut makerCode: Option<String> = makerCurrencyCode;
             if (takerFeeCost.is_some()) {
-                let mut takerCode: Value = takerCurrencyCode.clone();
                 result.insert("fees".into(), Value::from(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), makerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
@@ -280,7 +279,7 @@ impl crate::exchange::DerivedExchange for Bigone {
 }), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), takerFeeCost.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), takerCode);
+        m.insert("currency".to_string(), takerCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null));
     m
 })]));
             }  else {
@@ -292,11 +291,10 @@ impl crate::exchange::DerivedExchange for Bigone {
 }));
             }
         }  else if (takerFeeCost.is_some()) {
-            let mut takerCode2: Value = takerCurrencyCode;
             result.insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), takerFeeCost.map(Value::from).unwrap_or(Value::Null));
-        m.insert("currency".to_string(), takerCode2);
+        m.insert("currency".to_string(), takerCurrencyCode.clone().map(Value::from).unwrap_or(Value::Null));
     m
 }));
         }  else {

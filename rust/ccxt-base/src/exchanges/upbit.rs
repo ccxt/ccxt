@@ -278,7 +278,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "ord_type", &[]);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
         let mut status: Option<String> = self.parse_order_status((self.safe_string_k(order.clone(), "state", &[])).as_str());
-        let mut lastTradeTimestamp: Value = Value::Null;
+        let mut lastTradeTimestamp: Option<i64> = None;
         let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
         let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "volume", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "remaining_volume", &[]);
@@ -307,7 +307,7 @@ impl crate::exchange::DerivedExchange for Upbit {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            lastTradeTimestamp = crate::value::KeyRead::key_read(&&lastTrade, "timestamp");
+            lastTradeTimestamp = self.safe_integer_k(&lastTrade, "timestamp", &[]).as_i64();
             let mut getFeesFromTrades: bool = false;
             if (feeCost.is_none()) {
                 getFeesFromTrades = true;
@@ -349,7 +349,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         m.insert("clientOrderId".to_string(), identifier.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
-        m.insert("lastTradeTimestamp".to_string(), lastTradeTimestamp);
+        m.insert("lastTradeTimestamp".to_string(), Value::from(lastTradeTimestamp));
         m.insert("symbol".to_string(), crate::value::KeyRead::key_read(&&marketResolved, "symbol"));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), self.safe_string_upper_k(order, "time_in_force", &[]));
@@ -629,13 +629,12 @@ impl crate::exchange::DerivedExchange for Upbit {
             let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
             if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into())); }
         }
-        let mut requestHeaders: Value = (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null });
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null }));
     m
 });
 

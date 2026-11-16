@@ -2175,7 +2175,6 @@ impl Luno {
         // by default without entry number or limit number, return most recent entry
         let mut entryValue: Value = (if (entry == Value::Null) { Value::Int(-1) } else { entry });
         let mut limitValue: Value = (if (limit == Value::Null) { Value::Int(1) } else { limit });
-        let mut since: Option<i64> = None;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("min_row".to_string(), entryValue.clone());
@@ -2183,7 +2182,7 @@ impl Luno {
             m
         });
         let __ws_arg_14 = self.extend(Value::Map(request), &[params]);
-        return crate::types::IntoRaw::into_raw(self.fetch_ledger(code.as_str(), since, limitValue.as_i64(), __ws_arg_14).await);
+        return crate::types::IntoRaw::into_raw(self.fetch_ledger(code.as_str(), None, limitValue.as_i64(), __ws_arg_14).await);
 
     Value::Null
 }

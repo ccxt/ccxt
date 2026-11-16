@@ -898,14 +898,12 @@ impl crate::exchange::DerivedExchange for Woofipro {
             let mut auth: String = "".to_string();
             let mut ts: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
             url.push_str(&pathWithParams.to_string());
-            let mut apiKey: Value = self.apiKey.clone();
-            if !self.apiKey.as_str().unwrap_or("").contains("ed25519:") {
-                apiKey = Value::Str(format!("{}{}", "ed25519:", self.apiKey.clone()).into());
-            }
+            let mut hasKeyPrefix: bool = self.apiKey.as_str().unwrap_or("").contains("ed25519:");
+            let mut apiKey: Option<String> = (if (hasKeyPrefix) { self.apiKey.as_str().map(str::to_owned) } else { Some(format!("{}{}", "ed25519:", self.apiKey.clone())) });
             let mut authHeaders: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderly-account-id".to_string(), self.accountId.clone());
-                    m.insert("orderly-key".to_string(), apiKey);
+                    m.insert("orderly-key".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
                     m.insert("orderly-timestamp".to_string(), Value::from(ts.as_str()));
                 m
             });

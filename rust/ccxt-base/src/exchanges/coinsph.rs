@@ -2405,7 +2405,7 @@ impl Coinsph {
         let mut orderType: Option<String> = self.safe_string_k_opt(&paramsOmitted, "type", &[type_var.clone()]);
         orderType = self.encode_order_type(orderType.as_deref());
         let mut paramsType: crate::value::Dict = self.omit(&paramsOmitted, Value::Str("type".into()), &[]).into_dict();
-        let mut paramsQuote: Value = Value::Null;
+        let mut paramsQuote: Value = Value::from(&paramsType);
         let mut orderSide: Option<String> = self.encode_order_side(side.as_str());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2470,8 +2470,7 @@ impl Coinsph {
             request.insert("stopPrice".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         request.insert("newOrderRespType".into(), Value::from(newOrderRespType));
-        let mut paramsBase: Value = (if (paramsQuote != Value::Null) { paramsQuote } else { Value::Dict(paramsType) });
-        let mut paramsRequest: crate::value::Dict = self.omit(paramsBase, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]).into_dict();
+        let mut paramsRequest: crate::value::Dict = self.omit(paramsQuote, Value::Str("price".into()), &[Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("quantity".into()), Value::Str("quoteOrderQty".into())]).into_dict();
         let mut response: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

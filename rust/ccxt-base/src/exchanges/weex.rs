@@ -215,7 +215,7 @@ impl crate::exchange::DerivedExchange for Weex {
             tradeMarketType = "swap".to_string();
         }
         let mut marketResolved: crate::types::Market = self.safe_market((if (market.is_none()) { tradeMarketId.map(Value::from).unwrap_or(Value::Null) } else { Value::Null }), market, &[Value::Null, Value::from(tradeMarketType.clone())]);
-        let mut isSpot: Value = Value::Null;
+        let mut isSpot: Value = Value::Bool(false);
         if (market.is_none()) {
             isSpot = Value::Bool(tradeMarketType == "spot");
         }  else {
@@ -2818,11 +2818,14 @@ impl Weex {
                         let mut i: i64 = 0;
             let mut __for_first_1146: bool = true;
             while { if !__for_first_1146 { i += 1; } __for_first_1146 = false; i < (response.len() as i64) } {
-            let mut rawTicker: Value = self.safe_value(response.clone(), Value::Int(i), &[]);
+            let mut rawTicker: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]).into_dict();
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
-            let mut marketId: Option<String> = self.safe_string_k_opt(rawTicker.clone(), "symbol", &[]);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&rawTicker, "symbol", &[]);
             let mut tickerMarket: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
-            results.push(<Self as crate::exchange::DerivedExchange>::parse_ticker(self, rawTicker, Some(&tickerMarket)));
+            results.push(<Self as crate::exchange::DerivedExchange>::parse_ticker(self, &rawTicker, Some(&tickerMarket)));
         }
         }
         return self.filter_by_array_tickers(Value::from(results), Value::Str("symbol".into()), &[symbolsNormalized.map_or(Value::Null, Value::Arr)]);

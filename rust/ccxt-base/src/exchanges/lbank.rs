@@ -1949,9 +1949,9 @@ impl Lbank {
 }));
         let mut marketsPromises: crate::value::List = std::sync::Arc::new(vec![self.fetch_spot_markets(&[params.clone()]).await, self.fetch_swap_markets(&[params]).await]);
         let mut resolvedMarkets: crate::value::List = promise_all(&Value::Arr(marketsPromises)).await.into_list();
-        let mut spotMarkets: Value = self.safe_value(&resolvedMarkets, Value::Int(0), &[]);
-        let mut swapMarkets: Value = self.safe_value(&resolvedMarkets, Value::Int(1), &[]);
-        return self.array_concat(spotMarkets, swapMarkets);
+        let mut spotMarkets: crate::value::List = self.safe_list(&resolvedMarkets, Value::Int(0), &[Value::from(vec![])]).into_list();
+        let mut swapMarkets: crate::value::List = self.safe_list(&resolvedMarkets, Value::Int(1), &[Value::from(vec![])]).into_list();
+        return self.array_concat(&spotMarkets, &swapMarkets);
         Value::Null
         }).await?))
     }

@@ -993,23 +993,22 @@ if _try_result.is_err() {
         let mut key: Option<String> = self.authenticate(&[params.clone()]).await.as_str().map(str::to_owned);
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut messageHash: Option<String> = None;
-        let mut pair: Value = Value::Str("all".into());
         let mut symbolResolved: Option<String> = (if (symbol == Value::Null) { None } else { Some(self.symbol(symbol.clone())) });
-        if (symbol == Value::Null) {
-            messageHash = Some("orders:all".to_string());
-        }  else {
-            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            messageHash = Some(format!("{}{}", "orders:", Value::from((market).symbol.clone())));
-            pair = Value::from((market).id.as_deref());
-        }
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("action".to_string(), Value::Str("subscribe".into()));
                 m.insert("subscribe".to_string(), Value::Str("orderUpdate".into()));
                 m.insert("subscribeKey".to_string(), key.map(Value::from).unwrap_or(Value::Null));
-                m.insert("pair".to_string(), pair);
+                m.insert("pair".to_string(), Value::Str("all".into()));
             m
         });
+        if (symbol == Value::Null) {
+            messageHash = Some("orders:all".to_string());
+        }  else {
+            let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            messageHash = Some(format!("{}{}", "orders:", Value::from((market).symbol.clone())));
+            message.insert("pair".into(), Value::from((market).id.as_deref()));
+        }
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params]).into_dict();
         let mut orders: Option<crate::pro::cache::Cache> = self.watch(url.as_deref(), messageHash.as_deref(), &request, messageHash.as_deref(), &request).await.into();
         return self.filter_by_symbol_since_limit(&orders, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[Value::Bool(true)]);

@@ -1927,7 +1927,7 @@ impl Mudrex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut positionId: Option<String> = self.safe_string_k_opt(params.clone(), "position_id", &[]);
-        let mut amount: Value = self.safe_value_k(params.clone(), "amount", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(params.clone(), "amount", &[]);
         if (positionId.is_none()) {
             let mut positions: Vec<crate::types::Position> = (match self.fetch_positions((Value::from(vec![symbol.clone()])).to_opt_str_vec(), params.clone()).await { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut candidates: crate::value::List = self.filter_by(crate::types::IntoRaw::into_raw(positions), Value::Str("symbol".into()), Value::from((market).symbol.clone()), &[]).into_list();
@@ -1948,10 +1948,10 @@ impl Mudrex {
                 m.insert("position_id".to_string(), positionId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (amount != Value::Null) {
+        if (amount.is_some()) {
             let mut orderType: String = self.safe_string_upper_k(params.clone(), "order_type", &[Value::Str("LIMIT".into())]).as_str().unwrap_or("LIMIT").to_string();
             request.insert("order_type".into(), Value::from(orderType.clone()));
-            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
+            request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount.map(Value::from).unwrap_or(Value::Null))));
             let mut lp: Option<String> = self.safe_string_k_opt(params.clone(), "limit_price", &[]);
             if (orderType == "LIMIT") && (lp.is_some()) {
                 request.insert("limit_price".into(), lp.map(Value::from).unwrap_or(Value::Null));

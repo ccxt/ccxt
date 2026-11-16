@@ -1958,8 +1958,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("nonce".to_string(), Value::from(id));
             m
         });
-        let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), message, messageHashes.clone(), Value::Null).await;
+        let __ws_arg_3 = self.deep_extend(Value::Map(request), &[params]);
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), __ws_arg_3, messageHashes.clone(), Value::Null).await;
 
     Value::Null
 }
@@ -1997,9 +1997,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("messageHashes".to_string(), messageHashes.clone());
             m
         });
-        let mut message: Value = self.deep_extend(Value::Map(request), &[params]);
-        let __ws_arg_3 = self.extend(Value::Map(subscription), &[subExtend]);
-        return self.watch_multiple(url.as_deref(), messageHashes.clone(), message, messageHashes.clone(), __ws_arg_3).await;
+        let __ws_arg_4 = self.deep_extend(Value::Map(request), &[params]);
+        let __ws_arg_5 = self.extend(Value::Map(subscription), &[subExtend]);
+        return self.watch_multiple(url.as_deref(), messageHashes.clone(), __ws_arg_4, messageHashes.clone(), __ws_arg_5).await;
 
     Value::Null
 }
@@ -2018,8 +2018,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let mut message: crate::value::Dict = self.extend(Value::Map(request), &[params]).into_dict();
-        let __ws_arg_4 = self.number_to_string(nonce);
-        return self.watch(url.as_deref(), &(Value::from(__ws_arg_4)), &message, "true", Value::Null).await;
+        let __ws_arg_6 = self.number_to_string(nonce);
+        return self.watch(url.as_deref(), &(Value::from(__ws_arg_6)), &message, "true", Value::Null).await;
 
     Value::Null
 }

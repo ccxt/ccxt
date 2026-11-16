@@ -4785,8 +4785,7 @@ impl Hashkey {
         let mut params: Value = params.into();
         let mut methodName: Value = methodName.into();
         let mut defaultValue = get_arg(optional_args, 0, Value::Null);
-        let mut isTrigger: Value = defaultValue;
-        let isTriggerStopparamsStopVariable: Vec<Value> = self.handle_option_bool_and_params2(params, methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[isTrigger]).as_array().cloned().unwrap_or_default();
+        let isTriggerStopparamsStopVariable: Vec<Value> = self.handle_option_bool_and_params2(params, methodName, Value::Str("stop".into()), Value::Str("trigger".into()), &[defaultValue]).as_array().cloned().unwrap_or_default();
         let mut isTriggerStop: Option<bool> = isTriggerStopparamsStopVariable.get(0).and_then(Value::as_bool);
         let mut paramsStop: crate::value::Dict = isTriggerStopparamsStopVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         return Value::from(vec![isTriggerStop.map_or(Value::Null, Value::Bool), Value::Dict(paramsStop)]);

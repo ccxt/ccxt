@@ -1374,7 +1374,7 @@ impl Deribit {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchMultipleWrapper() symbolsArray is required")));
             }
             let mut market: Option<crate::types::Market> = None;
-            let mut currentDescriptor: Option<String> = None;
+            let mut currentDescriptor: Option<String> = Some("".to_string());
             if isOHLCV {
                 let mut currentPair: crate::value::List = self.safe_list(symbolsArray.clone(), Value::Int(i), &[Value::from(vec![])]).into_list();
                 market = Some(match self.market((self.safe_string(&currentPair, Value::Int(0), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });

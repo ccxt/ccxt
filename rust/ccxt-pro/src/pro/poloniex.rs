@@ -366,17 +366,15 @@ impl Poloniex {
             marketIds = self.market_ids(&[symbols.clone()]).into_list();
         }
         let mut symbolsSuffix: String = (if (symbols == Value::Null) { "".to_string() } else { symbols.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default() });
-        let mut symbolsHash: Option<String> = None;
-        if self.is_empty(symbols).as_bool() == Some(true) {
-            symbolsHash = messageHash.as_str().map(str::to_owned);
-        }  else {
-            symbolsHash = Some(format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolsSuffix));
+        let mut symbolsHash: String = messageHash.as_str().unwrap_or_default().to_string();
+        if !(self.is_empty(symbols).as_bool() == Some(true)) {
+            symbolsHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, "::").into()), symbolsSuffix);
         }
         if (name.as_str() != Some("balances")) {
             subscribe.insert("symbols".into(), Value::Arr(marketIds));
         }
         let mut request: crate::value::Dict = self.extend(Value::Map(subscribe), &[params]).into_dict();
-        return self.watch(url.as_deref(), (&symbolsHash).as_deref(), &request, (&symbolsHash).as_deref(), Value::Null).await;
+        return self.watch(url.as_deref(), &symbolsHash[..], &request, &symbolsHash[..], Value::Null).await;
 
     Value::Null
 }

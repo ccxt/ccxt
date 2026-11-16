@@ -1087,16 +1087,12 @@ impl crate::exchange::DerivedExchange for Whitebit {
         if isPrivate {
             requestBody = privateBody.take();
         }
-        let mut requestHeaders: Value = publicHeaders;
-        if isPrivate {
-            requestHeaders = privateHeaders;
-        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), (if (isPrivate) { privateHeaders } else { publicHeaders }));
     m
 });
 
@@ -2878,14 +2874,13 @@ impl Whitebit {
         if (self.markets.clone() == Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " markets not loaded")));
         }
-        let mut markets: Value = self.markets.clone();
-        let mut marketIds: Vec<Value> = Value::Array(markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut marketIds: Vec<Value> = Value::Array(self.markets.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1153: bool = true;
             while { if !__for_first_1153 { i += 1; } __for_first_1153 = false; i < (marketIds.len() as i64) } {
             let mut marketId: Option<&str> = marketIds.get(i as usize).and_then(Value::as_str);
-            let mut market: Value = self.safe_value(markets.clone(), Value::from(marketId.as_deref()), &[]);
+            let mut market: Value = self.safe_dict(self.markets.clone(), Value::from(marketId.as_deref()), &[]);
             let mut marketSymbol: Option<String> = self.safe_string_k_opt(market.clone(), "symbol", &[]);
             if (market == Value::Null) || (market == Value::Null) || (marketSymbol.is_none()) || (marketSymbol.as_deref() == Some("")) {
                 continue;
@@ -5074,11 +5069,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("memo".into(), tag.map(Value::from).unwrap_or(Value::Null));
         }
         if self.is_fiat(code.as_str().unwrap_or_default()).as_bool() == Some(true) {
-            let mut provider: Value = self.safe_value_k(&paramsWithdrawTag, "provider", &[]);
-            if (provider == Value::Null) {
+            let mut provider: Option<String> = self.safe_string_k_opt(&paramsWithdrawTag, "provider", &[]);
+            if (provider.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw() requires a provider when the ticker is fiat")));
             }
-            request.insert("provider".into(), provider);
+            request.insert("provider".into(), provider.map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_30 = self.extend(Value::Map(request), &[&paramsWithdrawTag]);
         let mut response: crate::value::Dict = self.v4_private_post_main_account_withdraw(&[__ws_arg_30]).await.into_dict();

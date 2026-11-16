@@ -1241,17 +1241,18 @@ impl crate::exchange::DerivedExchange for Delta {
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
         let mut quote: String = "USDT".to_string();
-        let mut optionParts: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-        let mut symbolBase: Value = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() });
+        let mut optionParts: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
+        let mut symbolBase: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
-        let mut partSource: Value = (if hasSlash { symbolBase } else { optionParts.clone() });
-        let mut baseIndex: i64 = (if hasSlash { 0 } else { 1 });
-        let mut base: String = self.safe_string(partSource, Value::from(baseIndex), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut optionType: String = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut rawExpiry: String = self.safe_string(optionParts.clone(), (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut base: String = self.safe_string(&optionParts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        if hasSlash {
+            base = self.safe_string(&symbolBase, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        }
+        let mut optionType: String = self.safe_string(&optionParts, (if hasSlash { Value::Int(3) } else { Value::Int(0) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut rawExpiry: String = self.safe_string(&optionParts, (if hasSlash { Value::Int(1) } else { Value::Int(3) }), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut expiry: String = format!("{}{}", Value::Str(format!("{}{}", Value::from(rawExpiry.chars().skip(4).collect::<String>()), Value::from(rawExpiry.chars().skip(2).take(2).collect::<String>())).into()), Value::from(rawExpiry.chars().skip(0).take(2).collect::<String>()));
         let mut settle: String = quote.clone();
-        let mut strike: String = self.safe_string(optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut datetime: Option<String> = self.convert_expire_date(Some(expiry.as_str())).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let mut optionTypeUnified: String = "put".to_string();

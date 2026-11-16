@@ -1574,9 +1574,9 @@ impl Indodax {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut orders: Value = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), Some(&market), &[]);
-        orders = self.filter_by(orders, Value::Str("status".into()), Value::Str("closed".into()), &[]);
-        return self.filter_by_symbol_since_limit(orders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
+        let mut orders: crate::value::List = self.parse_orders(historyResult.get("orders").cloned().unwrap_or(Value::Null), Some(&market), &[]).into_list();
+        let mut closedOrders: crate::value::List = self.filter_by(Value::Arr(orders), Value::Str("status".into()), Value::Str("closed".into()), &[]).into_list();
+        return self.filter_by_symbol_since_limit(&closedOrders, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

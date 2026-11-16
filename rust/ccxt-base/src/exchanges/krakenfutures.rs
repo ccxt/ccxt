@@ -672,9 +672,9 @@ impl crate::exchange::DerivedExchange for Krakenfutures {
                     executions.push(Value::from(&item));
                 }
                 // Final order (after placement / editing / execution / canceling)
-                let mut orderTrigger: Value = self.safe_value_k(&item, "orderTrigger", &[]);
+                let mut orderTrigger: Option<crate::value::Dict> = self.safe_dict_k(&item, "orderTrigger", &[]).into_opt_dict();
                 if (details == Value::Null) {
-                    details = self.safe_value2(&item, Value::Str("new".into()), Value::Str("order".into()), &[orderTrigger]);
+                    details = self.safe_value2(&item, Value::Str("new".into()), Value::Str("order".into()), &[orderTrigger.map_or(Value::Null, Value::Dict)]);
                     if (details != Value::Null) {
                         isPrior = false;
                         fixed = true;

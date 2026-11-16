@@ -334,11 +334,6 @@ impl crate::exchange::DerivedExchange for Predictfun {
                 url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(&query, &[])));
             }
         }
-        let mut existingHeaders: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
-        let mut headersValue: Value = existingHeaders;
         let mut authHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -371,7 +366,10 @@ impl crate::exchange::DerivedExchange for Predictfun {
             authHeaders.insert("Content-Type".into(), Value::Str("application/json".into()));
             bodyValue = json_stringify(&params).as_str().map(str::to_owned);
         }
-        let mut headersExtended: crate::value::Dict = self.extend(headersValue, &[Value::Map(authHeaders)]).into_dict();
+        let mut headersExtended: crate::value::Dict = self.extend(Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        }), &[Value::Map(authHeaders)]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));

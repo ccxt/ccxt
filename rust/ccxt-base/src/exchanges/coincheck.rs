@@ -133,8 +133,8 @@ impl crate::exchange::DerivedExchange for Coincheck {
         let mut priceString: Option<String> = self.safe_string_k_opt(trade.clone(), "rate", &[]);
         let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "pair", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]);
-        let mut baseId: Value = crate::value::KeyRead::key_read(&&marketResolved, "baseId");
-        let mut quoteId: Value = crate::value::KeyRead::key_read(&&marketResolved, "quoteId");
+        let mut baseId: Option<String> = self.safe_string_k_opt(&marketResolved, "baseId", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(&marketResolved, "quoteId", &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut takerOrMaker: Option<String> = None;
         let mut amountString: Option<String> = None;
@@ -153,8 +153,8 @@ impl crate::exchange::DerivedExchange for Coincheck {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            amountString = self.safe_string_opt(&funds, baseId, &[]);
-            costString = self.safe_string_opt(&funds, quoteId, &[]);
+            amountString = self.safe_string_opt(&funds, baseId.map(Value::from).unwrap_or(Value::Null), &[]);
+            costString = self.safe_string_opt(&funds, quoteId.map(Value::from).unwrap_or(Value::Null), &[]);
             fee = Some(crate::value::Dict::new({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "fee_currency", &[]));

@@ -2369,10 +2369,9 @@ impl Derive {
                         let mut i: i64 = 0;
             let mut __for_first_630: bool = true;
             while { if !__for_first_630 { i += 1; } __for_first_630 = false; matches!(maxPages, Some(__b) if (i as f64) < (__b as f64)) } {
-            let mut page: Value = Value::Int((i + 1));
             let mut requestExtension: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("page".to_string(), page);
+                    m.insert("page".to_string(), Value::Int((i + 1)));
                     m.insert("page_size".to_string(), Value::from(pageSize));
                 m
             });

@@ -682,9 +682,8 @@ impl Blofin {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]);
-        let mut symbolsList: Value = symbolsNormalized.clone();
-        let mut firstMarket: crate::types::Market = (match self.market((symbolsList.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut symbolsList: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
+        let mut firstMarket: crate::types::Market = (match self.market((symbolsList.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut channel: String = "tickers".to_string();
         let marketTypeparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBidsAsks".into()), Some(&firstMarket), &[params]).as_array().cloned().unwrap_or_default();
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -700,7 +699,7 @@ impl Blofin {
                         let mut i: i64 = 0;
             let mut __for_first_166: bool = true;
             while { if !__for_first_166 { i += 1; } __for_first_166 = false; i < (symbolsList.len() as i64) } {
-            let mut market: crate::types::Market = (match self.market((symbolsList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            let mut market: crate::types::Market = (match self.market((symbolsList.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             std::sync::Arc::make_mut(&mut messageHashes).push(Value::Str(format!("{}{}", "bidask:", Value::from((market).symbol.clone())).into()));
             args.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -724,7 +723,7 @@ impl Blofin {
             }
             return Value::Map(tickers);
         }
-        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), symbolsNormalized, &[]);
+        return self.filter_by_array(self.bidsasks.clone(), Value::Str("symbol".into()), &symbolsList, &[]);
         Value::Null
         }).await?))
     }
@@ -1072,8 +1071,11 @@ impl Blofin {
     m
 }));
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("callerMethodName".into(), Value::Str("watchOrders".into())); }
-        let mut symbolsArray: Value = (if (symbol != Value::Null) { Value::from(vec![symbol]) } else { Value::from(vec![]) });
-        return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols(symbolsArray.to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
+        let mut symbolsArray: Vec<Value> = Vec::new();
+        if (symbol != Value::Null) {
+            symbolsArray.push(symbol);
+        }
+        return crate::types::IntoRaw::into_raw(self.watch_orders_for_symbols((Value::from(symbolsArray)).to_str_vec(), since.as_i64(), limit.as_i64(), params).await);
         Value::Null
         }).await?))
     }
@@ -1451,16 +1453,15 @@ impl Blofin {
             let mut __for_first_173: bool = true;
             while { if !__for_first_173 { i += 1; } __for_first_173 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match self.market((self.safe_string(&symbols, Value::Int(i), &[])).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut channel: Value = channelName.clone();
+            let mut channel: String = channelName.as_str().unwrap_or_default().to_string();
             if isOHLCV {
-                let mut tfArray: Value = get_value(&symbolsArray, &Value::Int(i));
-                let mut tf: Value = get_value(&tfArray, &Value::Int(1));
-                let mut interval: Value = self.safe_string(self.timeframes.clone(), tf.clone(), &[tf.clone()]);
-                channel = Value::Str(format!("{}{}", channel, interval).into());
+                let mut tf: Option<String> = self.safe_string_opt(self.safe_list(symbolsArray.clone(), Value::Int(i), &[]), Value::Int(1), &[]);
+                let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), tf.clone().map(Value::from).unwrap_or(Value::Null), &[tf.clone().map(Value::from).unwrap_or(Value::Null)]);
+                channel = format!("{}{}", channel, interval.as_deref().unwrap_or("null"));
             }
             let mut topic: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("channel".to_string(), channel.clone());
+                    m.insert("channel".to_string(), Value::from(channel.clone()));
                     m.insert("instId".to_string(), Value::from((market).id.as_deref()));
                 m
             });

@@ -389,8 +389,6 @@ impl crate::exchange::DerivedExchange for Foxbit {
             let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             let mut networkWithdrawInfo: crate::value::Dict = self.safe_dict_k(&network, "withdraw_info", &[]).into_dict();
             let mut networkDepositInfo: crate::value::Dict = self.safe_dict_k(&network, "deposit_info", &[]).into_dict();
-            let mut isWithdrawEnabled: Value = Value::Bool(self.safe_string_k(&networkWithdrawInfo, "status", &[]).as_str() == Some("ENABLED"));
-            let mut isDepositEnabled: Value = Value::Bool(self.safe_string_k(&networkDepositInfo, "status", &[]).as_str() == Some("ENABLED"));
             if (networkCode.is_some()) {
                 parsedNetworks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -398,8 +396,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
         m.insert("id".to_string(), networkId.map(Value::from).unwrap_or(Value::Null));
         m.insert("network".to_string(), Value::from(networkCode.as_deref()));
         m.insert("name".to_string(), self.safe_string_k(&network, "name", &[]));
-        m.insert("deposit".to_string(), isDepositEnabled);
-        m.insert("withdraw".to_string(), isWithdrawEnabled);
+        m.insert("deposit".to_string(), (Value::Bool(self.safe_string_k(&networkDepositInfo, "status", &[]).as_str() == Some("ENABLED"))));
+        m.insert("withdraw".to_string(), (Value::Bool(self.safe_string_k(&networkWithdrawInfo, "status", &[]).as_str() == Some("ENABLED"))));
         m.insert("active".to_string(), Value::Bool(true));
         m.insert("precision".to_string(), Value::Null);
         m.insert("fee".to_string(), self.safe_number_k(&networkWithdrawInfo, "fee", &[]));

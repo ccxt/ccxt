@@ -313,9 +313,9 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
                 m.insert("X-API-Token".to_string(), self.secret.clone());
             m
         });
-        let mut requestHeaders: Value = Value::Null;
+        let mut requestHeaders: Option<crate::value::Dict> = None;
         if isPrivate {
-            requestHeaders = privateHeaders.clone();
+            requestHeaders = privateHeaders.clone().into_opt_dict();
         }
         let mut isPrivatePost: bool = (isPrivate && (method.as_str() != Some("GET")));
         let mut requestBody: Option<String> = None;
@@ -341,7 +341,7 @@ impl crate::exchange::DerivedExchange for Blockchaincom {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), requestHeaders);
+        m.insert("headers".to_string(), requestHeaders.map_or(Value::Null, Value::Dict));
     m
 });
 
@@ -1226,14 +1226,14 @@ impl Blockchaincom {
                 m.insert("clOrdId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut triggerPrice: Value = self.safe_value_n(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string_n_opt(&paramsOmitted, Value::from(vec![Value::Str("triggerPrice".into()), Value::Str("stopPx".into()), Value::Str("stopPrice".into())]), &[]);
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsOmitted, &["triggerPrice", "stopPx", "stopPrice"], &[]).into_dict();
         if (uppercaseOrderType.as_deref() == Some("STOP")) || (uppercaseOrderType.as_deref() == Some("STOPLIMIT")) {
-            if (triggerPrice == Value::Null) {
+            if (triggerPrice.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() requires a stopPx or triggerPrice param for a ").into()), uppercaseOrderType.as_deref().unwrap_or("null")).into()), " order")));
             }
         }
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             if (uppercaseOrderType.as_deref() == Some("MARKET")) {
                 request.insert("ordType".into(), Value::Str("STOP".into()));
             }  else if (uppercaseOrderType.as_deref() == Some("LIMIT")) {
@@ -1253,7 +1253,7 @@ impl Blockchaincom {
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
         if stopPriceRequired {
-            request.insert("stopPx".into(), Value::from(self.price_to_precision(symbol, triggerPrice)));
+            request.insert("stopPx".into(), Value::from(self.price_to_precision(symbol, triggerPrice.map(Value::from).unwrap_or(Value::Null))));
         }
         let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted2]);
         let mut response: crate::value::Dict = self.private_post_orders(&[__ws_arg_3]).await.into_dict();

@@ -3984,17 +3984,17 @@ impl Bitstamp {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (clientOrderId != Value::Null) {
-            request.insert("client_order_id".into(), clientOrderId.clone());
+        if (clientOrderId.is_some()) {
+            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_15 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_15]).await.into_dict();
         return self.parse_order_status((self.safe_string_k(&response, "status", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
@@ -4031,17 +4031,17 @@ impl Bitstamp {
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
-        let mut clientOrderId: Value = self.safe_value2(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
+        let mut clientOrderId: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("client_order_id".into()), Value::Str("clientOrderId".into()), &[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if (clientOrderId != Value::Null) {
-            request.insert("client_order_id".into(), clientOrderId.clone());
+        if (clientOrderId.is_some()) {
+            request.insert("client_order_id".into(), clientOrderId.clone().map(Value::from).unwrap_or(Value::Null));
         }  else {
             request.insert("id".into(), id);
         }
-        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId != Value::Null) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
+        let mut paramsOmitted: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(params.clone(), &["client_order_id", "clientOrderId"], &[]) } else { params }).into_dict();
         let __ws_arg_16 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.private_post_order_status(&[__ws_arg_16]).await.into_dict();
         return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, market.as_ref());

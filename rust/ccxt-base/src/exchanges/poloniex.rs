@@ -647,14 +647,13 @@ impl crate::exchange::DerivedExchange for Poloniex {
 }
     fn parse_currency(&self, currency: impl Into<crate::Value>) -> Value {
         let mut currency: Value = currency.into();
-        let mut entry: Value = currency;
-        let mut id: Option<String> = self.safe_string_k_opt(entry.clone(), "coin", &[]);
+        let mut id: Option<String> = self.safe_string_k_opt(currency.clone(), "coin", &[]);
         let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut networks: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut chains: crate::value::List = self.safe_list_k(entry.clone(), "networkList", &[Value::from(vec![])]).into_list();
+        let mut chains: crate::value::List = self.safe_list_k(currency.clone(), "networkList", &[Value::from(vec![])]).into_list();
         let mut chainsLength: i64 = chains.len() as i64;
         {
                         let mut j: i64 = 0;
@@ -699,18 +698,18 @@ impl crate::exchange::DerivedExchange for Poloniex {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-        m.insert("name".to_string(), self.safe_string_k(entry.clone(), "name", &[]));
+        m.insert("name".to_string(), self.safe_string_k(currency.clone(), "name", &[]));
         m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Null);
-        m.insert("info".to_string(), entry.clone());
+        m.insert("info".to_string(), currency.clone());
         m.insert("networks".to_string(), Value::Map(networks));
         m.insert("deposit".to_string(), Value::Null);
         m.insert("withdraw".to_string(), Value::Null);
         m.insert("active".to_string(), Value::Null);
         m.insert("fee".to_string(), Value::Null);
         m.insert("limits".to_string(), Value::Null);
-        m.insert("margin".to_string(), self.safe_bool_k(entry, "supportBorrow", &[]));
+        m.insert("margin".to_string(), self.safe_bool_k(currency, "supportBorrow", &[]));
     m
 }));
 
@@ -787,8 +786,8 @@ impl crate::exchange::DerivedExchange for Poloniex {
         let mut timestamp: Option<i64> = self.safe_timestamp_k(transactionValue.clone(), "timestamp", &[]).as_i64();
         let mut currencyId: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "currency", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
-        let mut status: Value = self.safe_string_k(transactionValue.clone(), "status", &[Value::Str("pending".into())]);
-        status = self.parse_transaction_status(status.as_str()).map(Value::from).unwrap_or(Value::Null);
+        let mut rawStatus: String = self.safe_string_k(transactionValue.clone(), "status", &[Value::Str("pending".into())]).as_str().unwrap_or("pending").to_string();
+        let mut status: Option<String> = self.parse_transaction_status(Some(rawStatus.as_str()));
         let mut txid: Option<String> = self.safe_string_k_opt(transactionValue.clone(), "txid", &[]);
         let mut type_var: String = "deposit".to_string();
         if (self.safe_string_k(transactionValue.clone(), "withdrawalRequestsId", &[]) != Value::Null) {
@@ -815,7 +814,7 @@ impl crate::exchange::DerivedExchange for Poloniex {
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
         m.insert("tagTo".to_string(), Value::Null);
         m.insert("tagFrom".to_string(), Value::Null);
-        m.insert("status".to_string(), status);
+        m.insert("status".to_string(), status.map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), Value::from(type_var));
         m.insert("updated".to_string(), Value::Null);
         m.insert("txid".to_string(), txid.map(Value::from).unwrap_or(Value::Null));

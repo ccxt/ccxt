@@ -2634,16 +2634,13 @@ impl Cex {
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
         let mut fromMain: bool = fromAccount.as_str() == Some("");
-        let mut targetAccount: Value = fromAccount;
-        if fromMain {
-            targetAccount = toAccount;
-        }
+        let mut targetAccount: String = (if (fromMain) { toAccount.as_str().unwrap_or_default().to_string() } else { fromAccount.as_str().unwrap_or_default().to_string() });
         let mut guid: Option<String> = self.safe_string_k_opt(params.clone(), "guid", &[Value::from(self.uuid(&[]))]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("amount".to_string(), Value::from(self.currency_to_precision(code, amount, &[])));
-                m.insert("accountId".to_string(), targetAccount);
+                m.insert("accountId".to_string(), Value::from(targetAccount));
                 m.insert("clientTxId".to_string(), guid.map(Value::from).unwrap_or(Value::Null));
             m
         });
