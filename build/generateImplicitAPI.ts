@@ -11,7 +11,7 @@ import ts from 'typescript6';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { applyJavaImports } from './javaUtilImports.js';
-import { goPredictionEndpointBody, goPredictionNeedsCcxtImport } from './go-pred-endpoint.js';
+import { goPredictionEndpointBody, goPredictionNeedsCcxtImport, goPredictionListArgEndpoints } from './go-pred-endpoint.js';
 
 const HTTP_METHODS = [ 'get', 'post', 'put', 'delete', 'patch' ];
 
@@ -1078,6 +1078,7 @@ function createImplicitMethodsGo(){
             }
         }
         const ownMethodNames = methodNames.filter (method => !(capitalize(method) in inherited));
+        const listArgEndpoints = isPrediction ? goPredictionListArgEndpoints ([ path.join (ROOT, 'ts/src/prediction', exchange + '.ts') ]) : new Set<string> ();
         const resolvable: Map<string, Dict> = storedResolvableNames[exchange] || new Map<string, Dict> ();
         const methods = ownMethodNames.map(method => {
             const own = resolvable.get (method);
@@ -1085,7 +1086,7 @@ function createImplicitMethodsGo(){
             return [
                 `// ${capitalize(method)} returns a channel that yields ${proseReturnShape (exchange, method)}.`,
                 `func (this *${capitalize(exchange)}) ${capitalize(method)}(args ...any) <-chan ${goChannelType (element, pkgPrefix)} {`,
-                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
+                isPrediction ? goPredictionEndpointBody (goEndpointBody (method, own, callEndpoint, pkgPrefix, element), listArgEndpoints.has (method)) : goEndpointBody (method, own, callEndpoint, pkgPrefix, element),
                 `}`,
                 ``,
             ].join('\n')
