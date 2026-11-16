@@ -1710,11 +1710,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            String type = null;
             Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBalance", (Map<String, Object>) null, parameters, (String) null);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
-            if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(typeMarketType, null)))
+            if (java.util.Objects.equals(typeMarketType, null))
             {
                 throw new ArgumentsRequired((this.id + " watchBalance() requires a market type")) ;
             }
@@ -2127,11 +2126,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "orders";
-            String type = null;
             Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, (String) null);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
-            if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(typeMarketType, null)))
+            if (java.util.Objects.equals(typeMarketType, null))
             {
                 throw new ArgumentsRequired((this.id + " watchOrders() requires a market type")) ;
             }
@@ -2184,11 +2182,10 @@ public class Aster extends io.github.ccxt.exchanges.Aster
                 symbolResolved = this.safeString(market, "symbol");
             }
             String messageHash = "myTrades";
-            String type = null;
             Pair<String, Map<String, Object>> typeMarketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, (String) null);
             var typeMarketType = ((List<Object>) typeMarketTypeparamsMarketTypeVariable).get(0);
             Map<String, Object> paramsMarketType = typeMarketTypeparamsMarketTypeVariable.second();
-            if ((java.util.Objects.equals(type, null)) || (java.util.Objects.equals(typeMarketType, null)))
+            if (java.util.Objects.equals(typeMarketType, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() requires a market type")) ;
             }
