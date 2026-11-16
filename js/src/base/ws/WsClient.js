@@ -47,9 +47,6 @@ export default class WsClient extends Client {
             if (this.options && this.options['headers']) {
                 bunOptions['headers'] = this.options['headers'];
             }
-            if (this.options && this.options['rejectUnauthorized'] === false) {
-                bunOptions['tls'] = { 'rejectUnauthorized': false };
-            }
             this.connection = new WebSocketPlatform(this.url, bunOptions);
             this.connection.binaryType = 'nodebuffer'; // bun extension, keeps binary messages as Buffer like the 'ws' package
         }
@@ -147,11 +144,6 @@ export default class WsClient extends Client {
         if (this.connection instanceof WebSocketPlatform) {
             if (this.disconnected === undefined) {
                 this.disconnected = Future();
-            }
-            if (this.connection.readyState === WebSocketPlatform.CLOSED) {
-                // onClose already fired (e.g. a failed tls handshake), nothing left to wait for
-                this.disconnected.resolve(true);
-                return this.disconnected;
             }
             this.connection.close();
         }
