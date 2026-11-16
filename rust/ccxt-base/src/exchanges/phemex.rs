@@ -7042,14 +7042,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let networkCodeparamsNetworkCodeVariable: Vec<Value> = self.handle_network_code_and_params(&paramsWithdrawTag).as_array().cloned().unwrap_or_default();
         let mut networkCode: Option<String> = networkCodeparamsNetworkCodeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsNetworkCode: crate::value::Dict = networkCodeparamsNetworkCodeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut networkId: Value = Value::Null;
+        let mut networkId: Option<String> = None;
         if (networkCode.is_some()) {
-            networkId = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code.clone()]);
+            networkId = self.network_code_to_id(networkCode.map(Value::from).unwrap_or(Value::Null), &[code.clone()]).as_str().map(str::to_owned);
         }
         let mut stableCoins: crate::value::List = self.safe_list_k(self.options.clone(), "stableCoins", &[Value::from(vec![])]).into_list();
-        if (networkId == Value::Null) {
+        if (networkId.is_none()) {
             if !(self.in_array(code, Value::Arr(stableCoins))) {
-                networkId = crate::value::KeyRead::key_read(&&currency, "id");
+                networkId = crate::value::KeyRead::key_read(&&currency, "id").into_opt_string();
             }  else {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " withdraw () requires an extra argument params[\"network\"]")));
             }
@@ -7059,7 +7059,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("address".to_string(), address);
                 m.insert("amount".to_string(), amount);
-                m.insert("chainName".to_string(), (if let Some(__s) = networkId.as_str() { Value::Str(__s.to_uppercase().into()) } else { Value::Null }));
+                m.insert("chainName".to_string(), networkId.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
             m
         });
         if (tagWithdrawTag.is_some()) {

@@ -1501,7 +1501,7 @@ impl Limitless {
             }
         }
         }
-        let mut eventsDict: Value = Value::Map({
+        let mut eventsDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1512,10 +1512,10 @@ impl Limitless {
             while { if !__for_first_1305 { i += 1; } __for_first_1305 = false; i < (eventKeys.len() as i64) } {
             let mut eventKey: Option<&str> = eventKeys.get(i as usize).and_then(Value::as_str);
             let mut g: Value = (if let (Some(__m), Some(__k)) = (eventGroups.as_map(), eventKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
-            if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(eventKey.as_deref().unwrap_or("null").to_string(), self.parse_event(g)); }
+            eventsDict.insert(eventKey.as_deref().unwrap_or("null").to_string(), self.parse_event(g));
         }
         }
-        self.exchange.events = eventsDict.clone();
+        self.exchange.events = Value::Map(eventsDict);
         let mut marketsLength: i64 = markets.len() as i64;
         if (maxMarkets.is_some() && Some(marketsLength) > maxMarkets) {
             return self.array_slice(Value::from(markets), Value::Int(0), &[Value::from(maxMarkets)]);
@@ -3191,8 +3191,8 @@ impl Limitless {
         if (self.walletAddress.as_str() != Some("")) {
             maker = self.walletAddress.clone();
         }
-        let mut paramsValue: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("maker".into()), &[maker.clone()]).as_array().cloned().unwrap_or_default(); maker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsValue: crate::value::Dict = params.into_dict();
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("maker".into()), &[maker.clone()]).as_array().cloned().unwrap_or_default(); maker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.check_address(&[maker.clone()]);
          #[allow(unreachable_code)] { Value::Null }}));
@@ -3208,7 +3208,7 @@ if _try_result.is_err() {
         if isSmartWallet {
             signer = embeddedAddress.map(Value::from).unwrap_or(Value::Null);
         }
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("signer".into()), &[signer.clone()]).as_array().cloned().unwrap_or_default(); signer = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("signer".into()), &[signer.clone()]).as_array().cloned().unwrap_or_default(); signer = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.check_address(&[signer.clone()]);
          #[allow(unreachable_code)] { Value::Null }}));
@@ -3216,7 +3216,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::invalid_address(format!("{}{}", self.id.clone(), " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")));
         }
         let mut taker: Option<String> = self.safe_string_k_opt(self.options.clone(), "nullAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]);
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(&taker)]).as_array().cloned().unwrap_or_default(); taker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("taker".into()), &[Value::from(&taker)]).as_array().cloned().unwrap_or_default(); taker = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.check_address(&[taker.clone().map(Value::from).unwrap_or(Value::Null)]);
          #[allow(unreachable_code)] { Value::Null }}));
@@ -3235,7 +3235,7 @@ if _try_result.is_err() {
         let mut rank: crate::value::Dict = self.safe_dict_k(&accountInfo, "rank", &[]).into_dict();
         // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
         let mut signatureType: Value = (if isSmartWallet { Value::Int(2) } else { Value::Int(0) });
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("signatureType".into()), &[signatureType.clone()]).as_array().cloned().unwrap_or_default(); signatureType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("signatureType".into()), &[signatureType.clone()]).as_array().cloned().unwrap_or_default(); signatureType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut signRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("salt".to_string(), Value::from(nonce));
@@ -3250,9 +3250,9 @@ if _try_result.is_err() {
             m
         });
         // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
-        let mut expirationInt: Option<i64> = self.safe_integer_k(paramsValue.clone(), "expiration", &[]).as_i64();
+        let mut expirationInt: Option<i64> = self.safe_integer_k(&paramsValue, "expiration", &[]).as_i64();
         if (expirationInt.is_some()) {
-            paramsValue = self.omit(paramsValue, Value::Str("expiration".into()), &[]);
+            paramsValue = self.omit(&paramsValue, Value::Str("expiration".into()), &[]).into_dict();
             signRequest.insert("expiration".into(), Value::from(self.number_to_string(Value::from(expirationInt))));
         }  else {
             signRequest.insert("expiration".into(), Value::Str("0".into()));
@@ -3263,19 +3263,18 @@ if _try_result.is_err() {
         let mut takerAmount: Option<String> = None;
         let mut isMarket: bool = type_var.as_str().unwrap_or_default().to_string() == "market";
         let mut postOnly: Value = Value::Bool(false);
-        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[paramsValue.clone()]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut timeInForce: Option<String> = self.safe_string_k_opt(paramsValue.clone(), "timeInForce", &[]);
-        paramsValue = self.omit(paramsValue, Value::Str("timeInForce".into()), &[]);
+        { let __destr_tmp: Vec<Value> = self.handle_post_only(Value::Bool(isMarket), Value::Bool(false), &[Value::from(&paramsValue)]).as_array().cloned().unwrap_or_default(); postOnly = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+        let mut timeInForce: Option<String> = self.safe_string_k_opt(&paramsValue, "timeInForce", &[]);
+        paramsValue = self.omit(&paramsValue, Value::Str("timeInForce".into()), &[]).into_dict();
         if (timeInForce.is_none()) {
             timeInForce = (if isMarket { Some("FOK".to_string()) } else { Some("GTC".to_string()) });
         }
         let mut marketSymbol: Option<String> = self.safe_string_k_opt(&outcomeObj, "market", &[]);
         if isMarket && (side.as_str() == Some("buy")) {
             let mut createMarketBuyOrderRequiresPrice: bool = true;
-            { let __destr_tmp: Vec<Value> = self.handle_option_bool_and_params(paramsValue.clone(), Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
-                createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-            let mut cost: Option<f64> = self.safe_number_k(paramsValue.clone(), "cost", &[]).as_f64();
-            paramsValue = self.omit(paramsValue, Value::Str("cost".into()), &[]);
+            { let __destr_tmp = self.handle_option_bool_and_params(&paramsValue, Value::Str("createOrder".into()), Value::Str("createMarketBuyOrderRequiresPrice".into()), &[Value::Bool(true)]).into_list(); createMarketBuyOrderRequiresPrice = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
+            let mut cost: Option<f64> = self.safe_number_k(&paramsValue, "cost", &[]).as_f64();
+            paramsValue = self.omit(&paramsValue, Value::Str("cost".into()), &[]).into_dict();
             if createMarketBuyOrderRequiresPrice {
                 if (price == Value::Null) && (cost.is_none()) {
                     panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")));
@@ -3320,7 +3319,7 @@ if _try_result.is_err() {
         if postOnly.as_bool() == Some(true) {
             request.insert("postOnly".into(), postOnly);
         }
-        let __ws_arg_24 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_24 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.limitless_private_post_orders(&[__ws_arg_24]).await.into_dict();
         let mut parsedOrder: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &response, outcomeObj.as_ref()).into_dict();
         // the create-order response omits a status field; a freshly accepted order is open
@@ -3691,11 +3690,10 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut paramsValue: Value = params;
+        let mut paramsValue: crate::value::Dict = params.into_dict();
         if (outcome != Value::Null) {
             let mut warn: bool = true;
-            { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("cancelAllOrders".into()), Value::Str("warnOnCancelAllOrdersWithOutcome".into()), &[Value::Bool(warn)]).as_array().cloned().unwrap_or_default(); warn = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true);
-                paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+            { let __destr_tmp = self.handle_option_and_params(&paramsValue, Value::Str("cancelAllOrders".into()), Value::Str("warnOnCancelAllOrdersWithOutcome".into()), &[Value::Bool(warn)]).into_list(); warn = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             if warn {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " cancelAllOrders cancels all orders for entire slug (both YES and NO outcomes). Please provide params.slug to specify the slug, or set the warnOnCancelAllOrdersWithOutcome option to false to suppress this warning message.")));
             }
@@ -3704,14 +3702,14 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut slug: Option<String> = self.safe_string_k_opt(paramsValue.clone(), "slug", &[]);
+        let mut slug: Option<String> = self.safe_string_k_opt(&paramsValue, "slug", &[]);
         if (outcome != Value::Null) {
             let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome, &[]).await;
             request.insert("slug".into(), self.safe_string_k(crate::value::KeyRead::key_read(&&outcomeObj, "info"), "slug", &[]));
         }  else if (slug.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders requires either an outcome argument or a slug parameter")));
         }
-        let __ws_arg_28 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: Value = self.limitless_private_delete_orders_all_slug(&[__ws_arg_28]).await;
         return Value::from(vec![self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3754,11 +3752,11 @@ if _try_result.is_err() {
         }
         let mut paginate: bool = false;
         let mut maxLimit: i64 = 100;
-        let mut paramsValue: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsValue.clone(), Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(paginate)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsValue: crate::value::Dict = params.into_dict();
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsValue, Value::Str("fetchMyTrades".into()), Value::Str("paginate".into()), &[Value::Bool(paginate)]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsValue = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            paramsValue = self.omit(paramsValue, Value::Str("paginate".into()), &[]);
-            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[outcome, since.clone(), limit.clone(), paramsValue.clone(), Value::Str("nextCursor".into()), Value::Str("cursor".into()), Value::Null, Value::from(maxLimit)]).await;
+            paramsValue = self.omit(&paramsValue, Value::Str("paginate".into()), &[]).into_dict();
+            return self.fetch_paginated_call_cursor(Value::Str("fetchMyTrades".into()), &[outcome, since.clone(), limit.clone(), Value::from(&paramsValue), Value::Str("nextCursor".into()), Value::Str("cursor".into()), Value::Null, Value::from(maxLimit)]).await;
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -3767,7 +3765,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
-        let __ws_arg_29 = self.extend(Value::Map(request), &[paramsValue]);
+        let __ws_arg_29 = self.extend(Value::Map(request), &[&paramsValue]);
         let mut response: crate::value::Dict = self.limitless_private_get_portfolio_history(&[__ws_arg_29]).await.into_dict();
         //
         //     {

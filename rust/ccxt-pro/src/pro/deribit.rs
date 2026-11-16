@@ -858,9 +858,9 @@ impl Deribit {
                         let mut i: i64 = 0;
             let mut __for_first_291: bool = true;
             while { if !__for_first_291 { i += 1; } __for_first_291 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
-            cachedTrades.append(trade.clone());
-            let mut symbol: Option<String> = self.safe_string_k_opt(trade, "symbol", &[]);
+            let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsed, &Value::Int(i)).into_opt_dict();
+            cachedTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
+            let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
             marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }

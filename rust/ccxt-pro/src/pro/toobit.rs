@@ -1741,7 +1741,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 // reject the flight - waiters throw and the next caller re-leads.
                 // no rethrow here, the trailing suspension point rethrows to this
                 // caller AND attaches the handler an alone leader needs
-                let mut err = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.exception_message(e, &[]))));
+                let mut err: crate::ExchangeError = (crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.exception_message(e, &[]))));
                 client.reject(err, messageHash.as_str());
             }
             crate::exchange_stubs::ws_await_flight(&future).await;
@@ -1826,7 +1826,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         if (code.is_some()) {
             let mut desc: String = (match message.get("desc") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
             let mut msg: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " code: ").into()), code.as_deref().unwrap_or("null")).into()), " message: ").into()), desc).into());
-            let mut exception = Value::from(crate::exchange_errors::exchange_error(msg)); // c# fix
+            let mut exception: crate::ExchangeError = (crate::exchange_errors::exchange_error(msg)); // c# fix
             client.reject(exception, None);
             return Value::Bool(true);
         }

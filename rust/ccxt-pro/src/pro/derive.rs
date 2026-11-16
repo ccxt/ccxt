@@ -735,7 +735,7 @@ impl Derive {
         // the bid ask stream shares the ticker_slim channel, so its waiters must not be left hanging either
         let mut bidAskHash: String = format!("{}{}", "bidask:", symbol);
         if (__ch.has_future(bidAskHash.as_str())) {
-            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), bidAskHash)));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), bidAskHash)));
             client.reject(error, bidAskHash.as_str());
         }
         self.clean_unsubscription(client, topic.clone(), Value::Str(format!("{}{}", "unwatch", topic).into()), &[]);
@@ -1331,11 +1331,11 @@ impl Derive {
         let mut subaccountId: Option<i64> = subaccountIdparamsDeriveSubaccountIdVariable.get(0).and_then(Value::as_i64);
         let mut paramsDeriveSubaccountId: crate::value::Dict = subaccountIdparamsDeriveSubaccountIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (self.balance.clone() == Value::Null) {
-            let mut emptyBalances: Value = Value::Map({
+            let mut emptyBalances: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            self.balance = emptyBalances;
+            self.balance = Value::Map(emptyBalances);
         }
         // the balance state and the snapshot are tracked per subaccount, mirroring the subaccount-scoped channel and fetchBalance (params.subaccount_id)
         let mut subaccountIdKey: Option<String> = self.number_to_string(Value::from(subaccountId));
@@ -1745,7 +1745,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {

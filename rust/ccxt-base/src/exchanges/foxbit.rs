@@ -322,8 +322,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
         let mut exchangeSymbol: Option<String> = self.safe_string_k_opt(item.clone(), "currency_symbol", &[]);
         let mut currencySymbol: Option<String> = self.safe_currency_code(exchangeSymbol.map(Value::from).unwrap_or(Value::Null), None);
         let mut direction: String = "in".to_string();
-        let mut amount: Value = self.safe_number_k(item.clone(), "amount", &[]);
-        let mut realAmount: Value = amount.clone();
+        let mut amount: Option<f64> = self.safe_number_k(item.clone(), "amount", &[]).as_f64();
+        let mut realAmount: Option<f64> = amount;
         let mut balance: Option<f64> = self.safe_number_k(item.clone(), "balance", &[]).as_f64();
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -331,18 +331,18 @@ impl crate::exchange::DerivedExchange for Foxbit {
                 m.insert("currency".to_string(), currencySymbol.clone().map(Value::from).unwrap_or(Value::Null));
             m
         });
-        if (amount == Value::Null) {
+        if (amount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " parseLedgerEntry() requires a amount argument")));
         }
         if (balance.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " parseLedgerEntry() missing balance")));
         }
-        let mut before: Value = Value::Null;
-        if (amount != Value::Null) && (balance.is_some()) {
-            before = (match (&(Value::from(balance)), &(amount)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
-            if ((0i64) as f64) > amount.as_f64().unwrap_or(f64::NAN) {
+        let mut before: Option<f64> = None;
+        if (amount.is_some()) && (balance.is_some()) {
+            before = (if let (Some(__l), Some(__r)) = (balance, amount) { Some(__l - __r) } else { None });
+            if (amount.is_some() && Some(0.0) > amount) {
                 direction = "out".to_string();
-                realAmount = (match &(amount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null });
+                realAmount = (if let Some(__v) = amount { Some(-__v) } else { None });
             }
         }
         return Value::Map({
@@ -357,8 +357,8 @@ impl crate::exchange::DerivedExchange for Foxbit {
         m.insert("referenceAccount".to_string(), Value::Null);
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), currencySymbol.map(Value::from).unwrap_or(Value::Null));
-        m.insert("amount".to_string(), realAmount);
-        m.insert("before".to_string(), before);
+        m.insert("amount".to_string(), Value::from(realAmount));
+        m.insert("before".to_string(), Value::from(before));
         m.insert("after".to_string(), Value::from(balance));
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("fee".to_string(), Value::Map(fee));

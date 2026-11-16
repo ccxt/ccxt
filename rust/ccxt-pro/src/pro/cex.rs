@@ -1499,7 +1499,7 @@ impl Cex {
         let mut nonce: Option<i64> = self.safe_integer_k(Value::from(&storedOrderBook), "nonce", &[]).as_i64();
         if (nonce.is_none()) || (incrementalId != ((if let Some(__l) = nonce { Some(__l + 1) } else { None }))) {
             __ch.remove_subscription(messageHash.as_str());
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook() skipped a message")));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook() skipped a message")));
             client.reject(error, messageHash.as_str());
             return;
         }

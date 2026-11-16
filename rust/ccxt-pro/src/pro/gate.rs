@@ -1161,7 +1161,7 @@ impl Gate {
             storedOrderBook.set_book_meta("cache", Value::from(vec![]));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
                 client.reject(error, messageHash.as_str());
             }
         }
@@ -1655,7 +1655,7 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
             while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < (parsedTrades.len() as i64) } {
-            let mut trade: Value = crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i));
+            let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsedTrades, &Value::Int(i)).into_opt_dict();
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             let mut cachedTrades: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
             if (cachedTrades.is_none()) {
@@ -1665,7 +1665,7 @@ impl Gate {
                     CacheStore::put(&mut self.trades, &symbol, cachedTrades.clone());
                 }
             }
-            cachedTrades.append(trade);
+            cachedTrades.append(trade.map_or(Value::Null, Value::Dict));
             let mut hash: String = format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null"));
             client.resolve(Value::from(&cachedTrades), hash.as_str());
         }
@@ -1993,8 +1993,8 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < (parsed.len() as i64) } {
-            let mut trade: Value = crate::value::KeyRead::read(&&parsed, &Value::Int(i));
-            cachedTrades.append(trade.clone());
+            let mut trade: Option<crate::value::Dict> = crate::value::KeyRead::read(&&parsed, &Value::Int(i)).into_opt_dict();
+            cachedTrades.append(trade.clone().map_or(Value::Null, Value::Dict));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&trade, "symbol").as_str().map(str::to_owned);
             if (symbol.is_some()) {
                 marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -2544,20 +2544,20 @@ impl Gate {
                         let mut i: i64 = 0;
             let mut __for_first_334: bool = true;
             while { if !__for_first_334 { i += 1; } __for_first_334 = false; i < (parsedOrders.len() as i64) } {
-            let mut parsed: Value = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut parsed: Option<crate::value::Dict> = parsedOrders.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
             // inject order status
-            let mut info: crate::value::Dict = self.safe_dict_k(parsed.clone(), "info", &[]).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&parsed, "info", &[]).into_dict();
             let mut event: Option<String> = self.safe_string_k_opt(&info, "event", &[]);
             if (event.as_deref() == Some("put")) || (event.as_deref() == Some("update")) {
                 add_element_to_object(&mut parsed, &Value::Str("status".into()), Value::Str("open".into()));
             }  else if (event.as_deref() == Some("finish")) {
-                let mut status: Option<String> = self.safe_string_k_opt(parsed.clone(), "status", &[]);
+                let mut status: Option<String> = self.safe_string_k_opt(&parsed, "status", &[]);
                 if (status.is_none()) {
                     let mut left: Option<String> = self.safe_string_k_opt(&info, "left", &[]);
                     add_element_to_object(&mut parsed, &Value::Str("status".into()), (if crate::precise::Precise::stringEquals(&left, &Value::Str("0".into())).as_bool() == Some(true) { Value::Str("closed".into()) } else { Value::Str("canceled".into()) }));
                 }
             }
-            stored.append(parsed.clone());
+            stored.append(parsed.clone().map_or(Value::Null, Value::Dict));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
             let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if (Value::from((market).id.as_deref()) != Value::Null) {

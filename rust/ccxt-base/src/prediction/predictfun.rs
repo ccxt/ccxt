@@ -3186,10 +3186,10 @@ impl Predictfun {
                         let mut i: i64 = 0;
             let mut __for_first_1475: bool = true;
             while { if !__for_first_1475 { i += 1; } __for_first_1475 = false; i < parsedLength } {
-            let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut outcomeId: Option<String> = self.safe_string_k_opt(position.clone(), "outcomeId", &[]);
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut outcomeId: Option<String> = self.safe_string_k_opt(&position, "outcomeId", &[]);
             if (outcomeId.is_some()) && (matches!(outcomeId.as_deref(), Some(__k) if wanted.contains_key(__k))) {
-                result.push(position);
+                result.push(Value::Dict(position));
             }
         }
         }

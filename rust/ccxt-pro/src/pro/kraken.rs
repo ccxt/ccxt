@@ -1688,7 +1688,7 @@ impl Kraken {
             let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("");
             let mut localChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             if (Some(localChecksum) != c) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
                 __ch.remove_subscription(messageHash.as_deref());
                 CacheStore::forget(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
                 client.reject(error, messageHash.as_deref());

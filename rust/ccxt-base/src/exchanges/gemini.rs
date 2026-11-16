@@ -469,13 +469,13 @@ impl crate::exchange::DerivedExchange for Gemini {
             let mut marketIdUpper: Option<String> = marketId.as_str().map(str::to_uppercase);
             let mut isPerp: bool = marketIdUpper.as_deref().unwrap_or_default().contains("PERP");
             let mut marketIdWithoutPerp: Option<String> = (if let Some(__s) = marketIdUpper.as_deref() { Some(__s.replace("PERP", "")) } else { None });
-            let mut conflictingMarkets: Value = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
+            let mut conflictingMarkets: crate::value::Dict = self.safe_dict_k(self.options.clone(), "conflictingMarkets", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             let mut lowerCaseId: Option<String> = marketIdWithoutPerp.as_deref().map(str::to_lowercase);
-            if (matches!((&conflictingMarkets, lowerCaseId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                let mut conflictingMarket: crate::value::Dict = (if let (Some(__m), Some(__k)) = (conflictingMarkets.as_map(), lowerCaseId.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }).into_dict();
+            if (matches!(lowerCaseId.as_deref(), Some(__k) if conflictingMarkets.contains_key(__k))) {
+                let mut conflictingMarket: crate::value::Dict = crate::value::KeyRead::read(&&conflictingMarkets, &Value::from(lowerCaseId.as_deref())).into_dict();
                 baseId = self.safe_string_k_opt(&conflictingMarket, "base", &[]);
                 quoteId = self.safe_string_k_opt(&conflictingMarket, "quote", &[]);
                 if isPerp {

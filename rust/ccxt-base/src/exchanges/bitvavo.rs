@@ -2414,9 +2414,9 @@ impl Bitvavo {
         let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]); // trigger when price crosses from above to below this value
         let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]); // trigger when price crosses from below to above this value
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
-        let mut paramsCost: Value = Value::from(&paramsOmitted);
+        let mut paramsCost: crate::value::Dict = Value::from(&paramsOmitted).into_dict();
         if isMarketOrder {
-            paramsCost = self.omit(&paramsOmitted, &["cost"], &[]);
+            paramsCost = self.omit(&paramsOmitted, &["cost"], &[]).into_dict();
         }
         if isMarketOrder {
             let mut cost: Option<f64> = None;
@@ -2462,7 +2462,7 @@ impl Bitvavo {
         if postOnly {
             request.insert("postOnly".into(), Value::Bool(true));
         }
-        let operatorIdparamsOperatorIdVariable: Vec<Value> = self.handle_option_and_params(paramsCost, Value::Str("createOrder".into()), Value::Str("operatorId".into()), &[]).as_array().cloned().unwrap_or_default();
+        let operatorIdparamsOperatorIdVariable: Vec<Value> = self.handle_option_and_params(&paramsCost, Value::Str("createOrder".into()), Value::Str("operatorId".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut operatorId: Value = operatorIdparamsOperatorIdVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOperatorId: crate::value::Dict = operatorIdparamsOperatorIdVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (operatorId != Value::Null) {

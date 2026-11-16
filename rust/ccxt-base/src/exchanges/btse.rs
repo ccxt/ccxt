@@ -2249,10 +2249,10 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_478: bool = true;
             while { if !__for_first_478 { i += 1; } __for_first_478 = false; i < (rates.len() as i64) } {
-            let mut rate: Value = rates.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut timestamp: Option<i64> = self.safe_integer_k(rate.clone(), "timestamp", &[]).as_i64();
+            let mut rate: crate::value::Dict = rates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&rate, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
-                result.push(rate);
+                result.push(Value::Dict(rate));
             }
         }
         }
@@ -2484,7 +2484,7 @@ impl Btse {
             let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
             if (symbolsNormalized.is_none()) || self.in_array(symbol.clone(), symbolsNormalized.clone().map_or(Value::Null, Value::Arr)) {
                 let mut levels: crate::value::List = self.safe_list_k(&entry, "riskLimits", &[Value::from(vec![])]).into_list();
-                let mut tiers: Value = Value::from(vec![]);
+                let mut tiers: crate::value::List = std::sync::Arc::new(Vec::new());
                 // each tier's floor is the previous tier's cap (0 for the first)
                 let mut minNotional: Option<f64> = None;
                 {
@@ -2495,7 +2495,7 @@ impl Btse {
                     let mut maxNotional: Option<f64> = self.safe_number_k(&level, "value", &[]).as_f64();
                     // the endpoint only reports the notional ladder, the
                     // per-tier leverage and margin rates are not available
-                    if let Value::Arr(__a) = &mut tiers { std::sync::Arc::make_mut(__a).push(Value::Map({
+                    std::sync::Arc::make_mut(&mut tiers).push(Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("tier".to_string(), self.safe_integer_k(&level, "level", &[]));
                             m.insert("symbol".to_string(), symbol.clone());
@@ -2506,11 +2506,11 @@ impl Btse {
                             m.insert("maxLeverage".to_string(), Value::Null);
                             m.insert("info".to_string(), Value::from(&level));
                         m
-                    })); }
+                    }));
                     minNotional = maxNotional.take();
                 }
                 }
-                result.insert(crate::runtime::stringify_param(&symbol), tiers); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
+                result.insert(crate::runtime::stringify_param(&symbol), Value::Arr(tiers)); // rows arrive ordered by level ascending, avoid sortBy which compares numeric keys lexicographically in some transpiled runtimes
             }
         }
         }
@@ -2892,10 +2892,10 @@ impl Btse {
                         let mut i: i64 = 0;
             let mut __for_first_487: bool = true;
             while { if !__for_first_487 { i += 1; } __for_first_487 = false; i < (trades.len() as i64) } {
-            let mut trade: Value = crate::value::KeyRead::read(&&trades, &Value::Int(i));
-            let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+            let mut trade: crate::value::Dict = crate::value::KeyRead::read(&&trades, &Value::Int(i)).into_dict();
+            let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
             if (timestamp.is_none()) || ((timestamp.is_some() && until.is_some() && timestamp <= until)) {
-                result.push(trade);
+                result.push(Value::Dict(trade));
             }
         }
         }

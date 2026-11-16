@@ -10894,9 +10894,9 @@ if _try_result.is_err() {
             request.insert("settle".into(), settle.map(Value::from).unwrap_or(Value::Null));
         }
         let mut isContract: bool = (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
-        let mut paramsSettle: Value = Value::from(&paramsMarketType);
+        let mut paramsSettle: crate::value::Dict = Value::from(&paramsMarketType).into_dict();
         if isContract {
-            paramsSettle = self.omit(&paramsMarketType, Value::Str("settle".into()), &[]);
+            paramsSettle = self.omit(&paramsMarketType, Value::Str("settle".into()), &[]).into_dict();
         }
         if (since != Value::Null) {
             request.insert("from".into(), since.clone());
@@ -10904,7 +10904,7 @@ if _try_result.is_err() {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
         }
-        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), paramsSettle, &[]).as_array().cloned().unwrap_or_default();
+        let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("to".into()), Value::Map(request), &paramsSettle, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (type_var.as_deref() == Some("spot")) {

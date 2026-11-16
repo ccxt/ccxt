@@ -6245,21 +6245,21 @@ impl Mexc {
         let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsMarketType, &["margin", "marginMode"], &[]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         if (marginMode.is_some()) || isMargin || (marketType.as_deref() == Some("margin")) {
-            let mut parsedSymbols: Value = Value::Null;
+            let mut parsedSymbols: Option<String> = None;
             let mut symbol: Option<String> = self.safe_string_k_opt(&paramsOmitted2, "symbol", &[]);
             if (symbol.is_none()) {
                 let mut symbols: Option<crate::value::List> = self.safe_list_k(&paramsOmitted2, "symbols", &[]).into_opt_list();
                 if (symbols.is_some()) {
                     let mut symbolIds: Option<crate::value::List> = self.market_ids(&[symbols.map_or(Value::Null, Value::Arr)]).into_opt_list();
-                    parsedSymbols = Value::Str(symbolIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(",").into());
+                    parsedSymbols = Some(symbolIds.as_deref().map(Vec::as_slice).unwrap_or_default().iter().map(Value::to_string).collect::<Vec<String>>().join(","));
                 }
             }  else {
                 let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                parsedSymbols = Value::from((market).id.as_deref());
+                parsedSymbols = (market).id.as_deref().map(str::to_owned);
             }
-            self.check_required_argument(Value::Str("fetchBalance".into()), parsedSymbols.clone(), Value::Str("symbol or symbols".into()), &[]);
+            self.check_required_argument(Value::Str("fetchBalance".into()), Value::from(parsedSymbols.as_deref()), Value::Str("symbol or symbols".into()), &[]);
             marketType = Some("margin".to_string());
-            request.insert("symbols".into(), parsedSymbols);
+            request.insert("symbols".into(), parsedSymbols.map(Value::from).unwrap_or(Value::Null));
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsOmitted2, &["symbol", "symbols"], &[]).into_dict();
             let __ws_arg_37 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
             response = self.spot_private_get_margin_isolated_account(&[__ws_arg_37]).await.into_opt_dict();

@@ -3461,7 +3461,7 @@ impl Sxbet {
             // unknown channel) - fail the awaiting future and clear the subscription hash that
             // watch() registered at send time, so the next call re-sends the command instead
             // of waiting forever behind a marker that will never be served
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&msg))));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&msg))));
             if (pendingEntry.is_some()) {
                 let mut failedHash: Option<String> = self.safe_string_k_opt(&pendingEntry, "messageHash", &[]);
                 let mut subscription: Option<String> = self.safe_string_k_opt(&pendingEntry, "subscription", &[]);

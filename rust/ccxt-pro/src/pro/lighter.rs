@@ -2258,7 +2258,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     if (subscribedChannel.as_deref() == Some("market_stats/all")) {
                         __ch.remove_subscription(subscriptionHash.as_deref());
                         if (__ch.has_future(subscriptionHash.as_deref())) {
-                            let mut error = Value::from(crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), subscriptionHash.as_deref().unwrap_or("null"))));
+                            let mut error: crate::ExchangeError = (crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), subscriptionHash.as_deref().unwrap_or("null"))));
                             client.reject(error.clone(), subscriptionHash.as_deref());
                         }
                     }

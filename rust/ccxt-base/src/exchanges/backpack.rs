@@ -3652,10 +3652,10 @@ impl Backpack {
                                 let mut i: i64 = 0;
                 let mut __for_first_254: bool = true;
                 while { if !__for_first_254 { i += 1; } __for_first_254 = false; i < (rfqTrades.len() as i64) } {
-                let mut trade: Value = rfqTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "timestamp", &[]).as_i64();
+                let mut trade: crate::value::Dict = rfqTrades.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut timestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
                 if (until.is_none()) || ((timestamp.is_some()) && ((timestamp.is_some() && until.is_some() && timestamp <= until))) {
-                    filtered.push(trade);
+                    filtered.push(Value::Dict(trade));
                 }
             }
             }

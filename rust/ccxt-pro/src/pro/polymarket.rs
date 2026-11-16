@@ -1595,7 +1595,7 @@ impl Polymarket {
                                 future.resolve(Value::Bool(true), None);
                             }
                         }  else {
-                            let mut authError = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " authentication failed ").into()), json_stringify(&data))));
+                            let mut authError: crate::ExchangeError = (crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " authentication failed ").into()), json_stringify(&data))));
                             client.reject(authError, "authenticated");
                             if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
                                 __ch.remove_subscription("authenticated");
@@ -1637,7 +1637,7 @@ impl Polymarket {
         }
         }
         if (errorMessage.is_some()) {
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage.as_deref().unwrap_or("null"))));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), errorMessage.as_deref().unwrap_or("null"))));
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_661: bool = true;

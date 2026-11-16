@@ -1901,10 +1901,10 @@ impl Polymarket {
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut paginate: bool = false;
-        let mut paramsOmitted: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsOmitted, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[paramsOmitted.clone(), Value::Int(1000)]).await;
+            return self.fetch_paginated_call_deterministic("fetchOHLCV", symbol.as_str(), since.as_i64(), limit.as_i64(), timeframe.as_str(), &[Value::from(&paramsOmitted), Value::Int(1000)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -1913,9 +1913,9 @@ impl Polymarket {
                 m.insert("interval".to_string(), self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]));
             m
         });
-        let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
@@ -1929,7 +1929,7 @@ impl Polymarket {
             let mut requestedLimit: i64 = limit.as_i64().unwrap_or(100);
             request.insert("start_timestamp".into(), Value::from((if let Some(__l) = end { Some(__l - ((((requestedLimit - 1)) * duration))) } else { None })));
         }
-        let __ws_arg_2 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_2 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_klines(&[__ws_arg_2]).await.into_dict();
         //
         //     {
@@ -2043,10 +2043,10 @@ impl Polymarket {
         }
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         let mut paginate: bool = false;
-        let mut paramsOmitted: Value = params;
-        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(paramsOmitted.clone(), Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
+        let mut paramsOmitted: crate::value::Dict = params.into_dict();
+        { let __destr_tmp: Vec<Value> = self.handle_option_and_params(&paramsOmitted, Value::Str("fetchFundingRateHistory".into()), Value::Str("paginate".into()), &[]).as_array().cloned().unwrap_or_default(); paginate = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_bool() == Some(true); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if paginate {
-            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), Some("1h"), &[paramsOmitted.clone(), Value::Int(100)]).await;
+            return self.fetch_paginated_call_deterministic("fetchFundingRateHistory", symbol.as_str(), since.as_i64(), limit.as_i64(), Some("1h"), &[Value::from(&paramsOmitted), Value::Int(100)]).await;
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -2057,12 +2057,12 @@ impl Polymarket {
         if (since != Value::Null) {
             request.insert("start_timestamp".into(), since.clone());
         }
-        let mut until: Option<i64> = self.safe_integer_k(paramsOmitted.clone(), "until", &[]).as_i64();
+        let mut until: Option<i64> = self.safe_integer_k(&paramsOmitted, "until", &[]).as_i64();
         if (until.is_some()) {
-            paramsOmitted = self.omit(paramsOmitted, Value::Str("until".into()), &[]);
+            paramsOmitted = self.omit(&paramsOmitted, Value::Str("until".into()), &[]).into_dict();
             request.insert("end_timestamp".into(), Value::from(until));
         }
-        let __ws_arg_3 = self.extend(Value::Map(request), &[paramsOmitted]);
+        let __ws_arg_3 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::Dict = self.public_get_info_funding(&[__ws_arg_3]).await.into_dict();
         //
         //     {
@@ -2476,7 +2476,7 @@ impl Polymarket {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            let mut marketInner: Value = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null);
+            let mut marketInner: crate::value::Dict = ordersMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut echo: crate::value::Dict = self.safe_dict(&ordersEntries, Value::Int(i), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2495,7 +2495,7 @@ impl Polymarket {
             }  else {
                 std::sync::Arc::make_mut(&mut merged).insert("status".into(), Value::Null);
             }
-            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, &merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(marketInner).as_ref()).into_dict();
+            let mut parsed: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_order(self, &merged, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(Value::Dict(marketInner)).as_ref()).into_dict();
             std::sync::Arc::make_mut(&mut parsed).insert("info".into(), Value::Dict(ack));
             results.push(Value::Dict(parsed));
         }

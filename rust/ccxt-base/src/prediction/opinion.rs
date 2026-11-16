@@ -2475,14 +2475,14 @@ impl Opinion {
                         let mut i: i64 = 0;
             let mut __for_first_1402: bool = true;
             while { if !__for_first_1402 { i += 1; } __for_first_1402 = false; i < (parsed.len() as i64) } {
-            let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut info: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&position, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut tokenId: Option<String> = self.safe_string_k_opt(&info, "tokenId", &[]);
             if (tokenId.is_some()) && (matches!(tokenId.as_deref(), Some(__k) if wantedTokenIds.contains_key(__k))) {
-                filtered.push(position);
+                filtered.push(Value::Dict(position));
             }
         }
         }

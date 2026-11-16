@@ -2207,7 +2207,7 @@ impl Okx {
         let mut prevSeqId: Option<i64> = (match message.get("prevSeqId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
         if (prevSeqId.is_some()) && (prevSeqId != Some(-1)) && (nonce != prevSeqId) {
-            let mut error = Value::from(crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce")));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce")));
             __ch.remove_subscription(&messageHash);
             if (symbol.is_some()) {
                 CacheStore::forget(&mut self.orderbooks, &symbol);
@@ -3068,9 +3068,9 @@ impl Okx {
                                 let mut i: i64 = 0;
                 let mut __for_first_550: bool = true;
                 while { if !__for_first_550 { i += 1; } __for_first_550 = false; i < (parsed.len() as i64) } {
-                let mut order: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-                stored.append(order.clone());
-                let mut symbol: String = self.safe_string_k(order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+                let mut order: Option<crate::value::Dict> = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
+                stored.append(order.clone().map_or(Value::Null, Value::Dict));
+                let mut symbol: String = self.safe_string_k(&order, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
                 let mut market: crate::types::Market = (match self.market(symbol.as_str()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
                 marketIds.push(Value::from((market).id.as_deref()));
             }

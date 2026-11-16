@@ -853,12 +853,12 @@ impl Grvt {
         let mut limitOption: Option<i64> = limitOptionparamsLimitOptionVariable.get(0).and_then(Value::as_i64);
         let mut paramsLimitOption: crate::value::Dict = limitOptionparamsLimitOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut limitResolved: Option<i64> = limitOption;
-        let mut paramsLimit: Value = Value::Dict(paramsLimitOption);
+        let mut paramsLimit: crate::value::Dict = Value::from(&paramsLimitOption).into_dict();
         if (limit != Value::Null) {
             limitResolved = limit.as_i64();
-            paramsLimit = Value::Dict(paramsChannel);
+            paramsLimit = paramsChannel;
         }
-        let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
+        let intervalparamsIntervalVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsLimit, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::Int(500)]).as_array().cloned().unwrap_or_default();
         let mut interval: Option<i64> = intervalparamsIntervalVariable.get(0).and_then(Value::as_i64);
         let mut paramsInterval: crate::value::Dict = intervalparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();

@@ -1069,13 +1069,13 @@ impl Bitfinex {
                     let mut __for_first_102: bool = true;
                     while { if !__for_first_102 { i += 1; } __for_first_102 = false; i < (deltas.len() as i64) } {
                     let mut rawDelta: crate::value::List = crate::value::KeyRead::read(&&deltas, &Value::Int(i)).into_list();
-                    let mut delta2: Value = self.safe_number(&rawDelta, Value::Int(2), &[]);
-                    let mut size: Value = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(delta2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { delta2.clone() });
-                    let mut side: String = (if ((delta2 != Value::Null) && delta2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { "asks".to_string() } else { "bids".to_string() });
+                    let mut delta2: Option<f64> = self.safe_number(&rawDelta, Value::Int(2), &[]).as_f64();
+                    let mut size: Option<f64> = (if ((delta2.is_some()) && (delta2.is_some() && delta2 < Some(0.0))) { (if let Some(__v) = delta2 { Some(-__v) } else { None }) } else { delta2 });
+                    let mut side: String = (if ((delta2.is_some()) && (delta2.is_some() && delta2 < Some(0.0))) { "asks".to_string() } else { "bids".to_string() });
                     let mut bookside: Value = get_value(&Value::from(&orderbook), side.as_str());
                     let mut idString: Option<String> = self.safe_string_opt(&rawDelta, Value::Int(0), &[]);
                     let mut price: Option<f64> = self.safe_float(&rawDelta, Value::Int(1), &[]).as_f64();
-                    bookside.store_array(Value::from(vec![Value::from(price), size, idString.map(Value::from).unwrap_or(Value::Null)]));
+                    bookside.store_array(Value::from(vec![Value::from(price), Value::from(size), idString.map(Value::from).unwrap_or(Value::Null)]));
                 }
                 }
             }  else {
@@ -1085,16 +1085,16 @@ impl Bitfinex {
                     let mut __for_first_103: bool = true;
                     while { if !__for_first_103 { i += 1; } __for_first_103 = false; i < (deltas.len() as i64) } {
                     let mut delta: crate::value::List = self.safe_list(&deltas, Value::Int(i), &[]).into_list();
-                    let mut deltaAmount: Value = self.safe_number(&delta, Value::Int(2), &[]);
-                    if (deltaAmount == Value::Null) {
+                    let mut deltaAmount: Option<f64> = self.safe_number(&delta, Value::Int(2), &[]).as_f64();
+                    if (deltaAmount.is_none()) {
                         continue;
                     }
                     let mut counter: Option<f64> = self.safe_number(&delta, Value::Int(1), &[]).as_f64();
                     let mut price: Option<f64> = self.safe_number(&delta, Value::Int(0), &[]).as_f64();
-                    let mut size: Value = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltaAmount) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltaAmount.clone() });
-                    let mut side: String = (if (deltaAmount.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { "asks".to_string() } else { "bids".to_string() });
+                    let mut size: Option<f64> = (if ((deltaAmount.is_some() && deltaAmount < Some(0.0))) { (if let Some(__v) = deltaAmount { Some(-__v) } else { None }) } else { deltaAmount });
+                    let mut side: String = (if ((deltaAmount.is_some() && deltaAmount < Some(0.0))) { "asks".to_string() } else { "bids".to_string() });
                     let mut bookside: Value = get_value(&Value::from(&orderbook), side.as_str());
-                    bookside.store_array(Value::from(vec![Value::from(price), size, Value::from(counter)]));
+                    bookside.store_array(Value::from(vec![Value::from(price), Value::from(size), Value::from(counter)]));
                 }
                 }
             }
@@ -1106,12 +1106,12 @@ impl Bitfinex {
             let mut orderbookItem: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
             if isRaw {
                 let mut price: Option<String> = self.safe_string_opt(&deltas, Value::Int(1), &[]);
-                let mut deltas2: Value = self.safe_number(&deltas, Value::Int(2), &[]);
-                let mut size: Value = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { (match &(deltas2) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }) } else { deltas2.clone() });
-                let mut side: String = (if ((deltas2 != Value::Null) && deltas2.as_f64().unwrap_or(f64::NAN) < ((0i64) as f64)) { "asks".to_string() } else { "bids".to_string() });
+                let mut deltas2: Option<f64> = self.safe_number(&deltas, Value::Int(2), &[]).as_f64();
+                let mut size: Option<f64> = (if ((deltas2.is_some()) && (deltas2.is_some() && deltas2 < Some(0.0))) { (if let Some(__v) = deltas2 { Some(-__v) } else { None }) } else { deltas2 });
+                let mut side: String = (if ((deltas2.is_some()) && (deltas2.is_some() && deltas2 < Some(0.0))) { "asks".to_string() } else { "bids".to_string() });
                 let mut bookside: Value = get_value(&Value::from(&orderbookItem), side.as_str());
                 // price = 0 means that you have to remove the order from your book
-                let mut amount: Value = (if crate::precise::Precise::stringGt(&price, &Value::Str("0".into())).as_bool() == Some(true) { size.clone() } else { Value::Str("0".into()) });
+                let mut amount: Value = (if crate::precise::Precise::stringGt(&price, &Value::Str("0".into())).as_bool() == Some(true) { Value::from(size) } else { Value::Str("0".into()) });
                 let mut idString: Option<String> = self.safe_string_opt(&deltas, Value::Int(0), &[]);
                 bookside.store_array(Value::from(vec![self.parse_number(price.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(amount.clone(), &[]), idString.map(Value::from).unwrap_or(Value::Null)]));
             }  else {
@@ -1159,9 +1159,9 @@ impl Bitfinex {
             }
             if (ask.is_some()) {
                 stringArray.push(Value::from(self.number_to_string(self.safe_number(&ask, Value::from(idToCheck), &[]))));
-                let mut aski1: Value = self.safe_number(&ask, Value::Int(1), &[]);
-                if (aski1 != Value::Null) {
-                    stringArray.push(Value::from(self.number_to_string((match &(aski1) { Value::Int(x) => Value::Int(-x), Value::Float(x) => Value::Float(-x), _ => Value::Null }))));
+                let mut aski1: Option<f64> = self.safe_number(&ask, Value::Int(1), &[]).as_f64();
+                if (aski1.is_some()) {
+                    stringArray.push(Value::from(self.number_to_string(Value::from((if let Some(__v) = aski1 { Some(-__v) } else { None })))));
                 }
             }
         }
@@ -1174,7 +1174,7 @@ impl Bitfinex {
             CacheStore::forget(&mut self.orderbooks, &symbol);
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
-                let mut error = Value::from(crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
                 client.reject(error, messageHash.as_str());
             }
         }
@@ -1477,7 +1477,7 @@ impl Bitfinex {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {

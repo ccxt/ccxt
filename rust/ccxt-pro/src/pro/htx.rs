@@ -1711,7 +1711,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut status: Option<String> = self.parent.parse_order_status((self.safe_string2(&data, Value::Str("orderStatus".into()), Value::Str("status".into()), &[Value::Str("closed".into())])).as_str());
                 let mut filled: Option<String> = self.safe_string_k_opt(&data, "execAmt", &[]);
                 let mut remaining: Option<String> = self.safe_string_k_opt(&data, "remainAmt", &[]);
-                let mut order: Value = Value::Map({
+                let mut order: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
                         m.insert("trades".to_string(), Value::Arr(trades));
@@ -1725,7 +1725,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         m.insert("info".to_string(), data.clone().map_or(Value::Null, Value::Dict));
                     m
                 });
-                parsedOrder = order;
+                parsedOrder = Value::Map(order);
             }  else {
                 parsedOrder = self.parse_ws_order(&data, Some(&market));
             }

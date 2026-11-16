@@ -2717,7 +2717,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         }  else if msg.as_str().unwrap_or("").contains("Not Subscribed successfully") {
             // the venue names the refused channel between brackets, reject only that watcher
             // and drop its subscription so a corrected retry sends a new frame
-            let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), msg)));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), msg)));
             let mut subscriptionHashes: Vec<Value> = __ch.subscription_keys();
             let mut rejected: bool = false;
             {
@@ -2803,7 +2803,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
 
     pub fn handle_text_message(&self, mut client: Value, mut message: Value) {
         if (message.as_str() == Some("Invalid listen key")) {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " invalid listen key")));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " invalid listen key")));
             client.reject(error, None);
         }
 }

@@ -7277,22 +7277,22 @@ impl Okx {
         let positionSideparamsPositionSideVariable: Vec<Value> = self.handle_option_string_and_params(params.clone(), Value::Str("createOrder".into()), Value::Str("positionSide".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut positionSide: Option<String> = positionSideparamsPositionSideVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsPositionSide: crate::value::Dict = positionSideparamsPositionSideVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsSwapOrFuture: Value = params.clone();
+        let mut paramsSwapOrFuture: crate::value::Dict = params.clone().into_dict();
         if isSwapOrFuture {
-            paramsSwapOrFuture = Value::Dict(paramsPositionSide);
+            paramsSwapOrFuture = paramsPositionSide;
         }
         let mut usesHedged: bool = isSwapOrFuture && (positionSide.is_none());
-        let hedgedparamsHedgedOptionVariable: Vec<Value> = self.handle_option_bool_and_params(paramsSwapOrFuture.clone(), Value::Str("createOrder".into()), Value::Str("hedged".into()), &[]).as_array().cloned().unwrap_or_default();
+        let hedgedparamsHedgedOptionVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsSwapOrFuture, Value::Str("createOrder".into()), Value::Str("hedged".into()), &[]).as_array().cloned().unwrap_or_default();
         let mut hedged: bool = hedgedparamsHedgedOptionVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsHedgedOption: crate::value::Dict = hedgedparamsHedgedOptionVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut paramsHedged: Value = paramsSwapOrFuture;
+        let mut paramsHedged: crate::value::Dict = Value::from(&paramsSwapOrFuture).into_dict();
         if usesHedged {
-            paramsHedged = Value::Dict(paramsHedgedOption);
+            paramsHedged = paramsHedgedOption;
         }
         let mut omitReduceOnly: bool = usesHedged && (hedged) && isReduceOnly;
-        let mut paramsReduceOnly: Value = paramsHedged.clone();
+        let mut paramsReduceOnly: crate::value::Dict = Value::from(&paramsHedged).into_dict();
         if omitReduceOnly {
-            paramsReduceOnly = self.omit(paramsHedged, Value::Str("reduceOnly".into()), &[]);
+            paramsReduceOnly = self.omit(&paramsHedged, Value::Str("reduceOnly".into()), &[]).into_dict();
         }
         if spot {
             if margin {
@@ -7323,7 +7323,7 @@ impl Okx {
             request.insert("tdMode".into(), marginMode.clone().map(Value::from).unwrap_or(Value::Null));
         }
         let mut isMarketOrder: bool = type_var.as_str() == Some("market");
-        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[paramsReduceOnly]).as_array().cloned().unwrap_or_default();
+        let postOnlyparamsPostOnlyVariable: Vec<Value> = self.handle_post_only(Value::Bool(isMarketOrder.clone()), Value::Bool(type_var.as_str() == Some("post_only")), &[Value::Dict(paramsReduceOnly)]).as_array().cloned().unwrap_or_default();
         let mut postOnly: bool = postOnlyparamsPostOnlyVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsPostOnly: crate::value::Dict = postOnlyparamsPostOnlyVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut orderParams: crate::value::Dict = self.omit(&paramsPostOnly, &["currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingPrice"], &[]).into_dict();

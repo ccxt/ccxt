@@ -8119,8 +8119,8 @@ if _try_result.is_err() {
                 // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
                 // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
                 // fail with bitget error 50001 "coin does not support cross"
-                let mut crossKeys: Value = Value::from(vec![]);
-                let mut isolatedKeys: Value = Value::from(vec![]);
+                let mut crossKeys: crate::value::List = std::sync::Arc::new(Vec::new());
+                let mut isolatedKeys: crate::value::List = std::sync::Arc::new(Vec::new());
                 {
                                         let mut j: i64 = 0;
                     let mut __for_first_366: bool = true;
@@ -8133,17 +8133,17 @@ if _try_result.is_err() {
                     let mut entryBorrowable: bool = self.safe_bool_k(&entry, "isBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     let mut isCrossBorrowable: bool = self.safe_bool_k(&entry, "isCrossBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && isCrossBorrowable {
-                        if let Value::Arr(__a) = &mut crossKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null)); }
+                        std::sync::Arc::make_mut(&mut crossKeys).push(entrySymbol.clone().map(Value::from).unwrap_or(Value::Null));
                     }
                     let mut isolatedBase: bool = self.safe_bool_k(&entry, "isIsolatedBaseBorrowable", &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     let mut isolatedQuote: bool = self.safe_bool2(&entry, Value::Str("isIsolatedQuotedBorrowable".into()), Value::Str("isIsolatedQuoteBorrowable".into()), &[Value::Bool(true)]).as_bool().unwrap_or(true);
                     if entryBorrowable && (isolatedBase || isolatedQuote) {
-                        if let Value::Arr(__a) = &mut isolatedKeys { std::sync::Arc::make_mut(__a).push(entrySymbol.map(Value::from).unwrap_or(Value::Null)); }
+                        std::sync::Arc::make_mut(&mut isolatedKeys).push(entrySymbol.map(Value::from).unwrap_or(Value::Null));
                     }
                 }
                 }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), crossKeys); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), isolatedKeys); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("crossMarginPairsData".into(), Value::Arr(crossKeys)); }
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("isolatedMarginPairsData".into(), Value::Arr(isolatedKeys)); }
             }  else {
                 markets = self.array_concat(Value::Arr(markets), Value::Arr(data)).into_list();
             }
@@ -12294,7 +12294,7 @@ if _try_result.is_err() {
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("cancelOrders".into()), &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut trigger: Option<bool> = self.safe_bool2(&paramsUTA, Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
         paramsUTA = self.omit(&paramsUTA, &["stop", "trigger"], &[]).into_dict();
-        let mut orderIdList: Value = Value::from(vec![]);
+        let mut orderIdList: crate::value::List = std::sync::Arc::new(Vec::new());
         {
                         let mut i: i64 = 0;
             let mut __for_first_383: bool = true;
@@ -12305,7 +12305,7 @@ if _try_result.is_err() {
                     m.insert("orderId".to_string(), individualId.map(Value::from).unwrap_or(Value::Null));
                 m
             });
-            if let Value::Arr(__a) = &mut orderIdList { std::sync::Arc::make_mut(__a).push(Value::Map(orderId)); }
+            std::sync::Arc::make_mut(&mut orderIdList).push(Value::Map(orderId));
         }
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -12314,9 +12314,9 @@ if _try_result.is_err() {
             m
         });
         if (market).spot && (marginMode.is_none()) {
-            request.insert("orderList".into(), orderIdList.clone());
+            request.insert("orderList".into(), Value::Arr(orderIdList));
         }  else {
-            request.insert("orderIdList".into(), orderIdList);
+            request.insert("orderIdList".into(), Value::Arr(orderIdList));
         }
         let mut response: Option<crate::value::Dict> = None;
         if (market).spot {

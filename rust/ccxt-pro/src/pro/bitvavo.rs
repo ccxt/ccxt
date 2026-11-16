@@ -2750,7 +2750,7 @@ impl Bitvavo {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message.clone(), messageHash.as_str());
         }  else {
-            let mut error = Value::from(crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {
@@ -2800,7 +2800,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.reject(e, messageHash.as_deref());
         }
         if !rejected {
-            let mut feedback = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+            let mut feedback: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
             client.reject(feedback, messageHash.as_deref());
             return Value::Bool(true);
         }

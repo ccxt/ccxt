@@ -1438,7 +1438,7 @@ impl Polymarket {
             rawEvents = self.fetch_raw_events_list(&[Value::Dict(rest)]).await.into_list();
         }
         let mut flatMarkets: Vec<Value> = Vec::new();
-        let mut eventsDict: Value = Value::Map({
+        let mut eventsDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1459,11 +1459,11 @@ impl Polymarket {
             let mut eventSlug: Option<String> = self.safe_string_k_opt(&rawEvent, "slug", &[]);
             if (eventSlug.is_some()) && (eventSlug.as_deref() != Some("")) {
                 let mut eventKey: Value = self.shorten_slug(eventSlug.map(Value::from).unwrap_or(Value::Null));
-                if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map(parsedEvent)); }
+                eventsDict.insert(crate::runtime::stringify_param(&eventKey), Value::Map(parsedEvent));
             }
         }
         }
-        self.exchange.events = eventsDict.clone();
+        self.exchange.events = Value::Map(eventsDict);
         return Value::from(flatMarkets);
         Value::Null
         }).await?))
@@ -3148,14 +3148,14 @@ impl Polymarket {
                         let mut i: i64 = 0;
             let mut __for_first_1439: bool = true;
             while { if !__for_first_1439 { i += 1; } __for_first_1439 = false; i < (parsed.len() as i64) } {
-            let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut info: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut info: crate::value::Dict = self.safe_dict_k(&position, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut assetId: Option<String> = self.safe_string_k_opt(&info, "asset", &[]);
             if (assetId.is_some()) && (matches!(assetId.as_deref(), Some(__k) if wantedIds.contains_key(__k))) {
-                result.push(position);
+                result.push(Value::Dict(position));
             }
         }
         }

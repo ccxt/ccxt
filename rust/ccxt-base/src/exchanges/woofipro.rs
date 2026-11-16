@@ -900,7 +900,7 @@ impl crate::exchange::DerivedExchange for Woofipro {
             url.push_str(&pathWithParams.to_string());
             let mut hasKeyPrefix: bool = self.apiKey.as_str().unwrap_or("").contains("ed25519:");
             let mut apiKey: Option<String> = (if (hasKeyPrefix) { self.apiKey.as_str().map(str::to_owned) } else { Some(format!("{}{}", "ed25519:", self.apiKey.clone())) });
-            let mut authHeaders: Value = Value::Map({
+            let mut authHeaders: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("orderly-account-id".to_string(), self.accountId.clone());
                     m.insert("orderly-key".to_string(), apiKey.map(Value::from).unwrap_or(Value::Null));
@@ -911,13 +911,13 @@ impl crate::exchange::DerivedExchange for Woofipro {
             if (method.as_str() == Some("POST")) || (method.as_str() == Some("PUT")) {
                 requestBody = json_stringify(&Value::Map(requestParams.clone())).as_str().map(str::to_owned);
                 auth.push_str(requestBody.as_deref().unwrap_or("null"));
-                if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/json".into())); }
+                authHeaders.insert("content-type".into(), Value::Str("application/json".into()));
             }  else {
                 if ((Value::Array(requestParams.keys().cloned().map(Value::from).collect()).len() as i64) as f64) > ((0i64) as f64) {
                     url.push_str(&format!("{}{}", Value::Str("?".into()), self.urlencode(Value::Map(requestParams.clone()), &[])));
                     auth.push_str(&format!("{}{}", Value::Str("?".into()), self.rawencode(Value::Map(requestParams), &[])));
                 }
-                if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into())); }
+                authHeaders.insert("content-type".into(), Value::Str("application/x-www-form-urlencoded".into()));
                 if (method.as_str() == Some("DELETE")) {
                     requestBody = Some("".to_string());
                 }
@@ -928,8 +928,8 @@ impl crate::exchange::DerivedExchange for Woofipro {
                 secret = parts.get(1).cloned().unwrap_or(Value::Null);
             }
             let mut signature: String = eddsa(self.encode(Value::from(auth)), self.base58_to_binary(secret, &[]), Value::Str("ed25519".into()));
-            if let Value::Dict(__d) = &mut authHeaders { std::sync::Arc::make_mut(__d).insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(Value::from(signature), &[]), &[])); }
-            requestHeaders = authHeaders.into_opt_dict();
+            authHeaders.insert("orderly-signature".into(), self.urlencode_base64(self.base64_to_binary(Value::from(signature), &[]), &[]));
+            requestHeaders = Some(crate::value::Dict::new(authHeaders));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();

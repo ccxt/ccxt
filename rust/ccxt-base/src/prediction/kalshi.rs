@@ -1387,7 +1387,7 @@ impl Kalshi {
         // loadMarkets cannot run away through every kalshi market via the cursor.
         let mut maxMarkets: Option<i64> = self.safe_integer_k(params, "limit", &[self.safe_integer(self.options.clone(), Value::Str("maxFetchMarketsLimit".into()), &[Value::Int(1000)])]).as_i64();
         let mut flatMarkets: Vec<Value> = Vec::new();
-        let mut eventsDict: Value = Value::Map({
+        let mut eventsDict: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1432,8 +1432,8 @@ impl Kalshi {
                     flatMarkets.push(m.clone());
                     if (eventTitle.is_some()) && (eventTitle.as_deref() != Some("")) {
                         let mut eventKey: Value = self.shorten_slug(Value::from(eventTitle.as_deref()));
-                        if !(matches!((&eventsDict, &eventKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                            if let Value::Dict(__d) = &mut eventsDict { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&eventKey), Value::Map({
+                        if !(matches!(&eventKey, Value::Str(__k) if eventsDict.contains_key(__k.as_ref()))) {
+                            eventsDict.insert(crate::runtime::stringify_param(&eventKey), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("slug".to_string(), eventTicker.clone().map(Value::from).unwrap_or(Value::Null));
@@ -1441,14 +1441,14 @@ impl Kalshi {
         m.insert("title".to_string(), Value::from(eventTitle.as_deref()));
         m.insert("markets".to_string(), Value::from(vec![]));
     m
-})); }
+}));
                         }
-                        let mut eventEntry: Value = (if let (Some(__m), Some(__k)) = (eventsDict.as_map(), eventKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                        let mut eventEntry: Value = eventsDict.get(eventKey.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
                         // push through a local and write the slice back — the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array, so a
                         // direct push on eventEntry['markets'] loses the element in go
                         let mut entryMarkets: Value = crate::value::get_value_k(&eventEntry, "markets");
-                        if let Value::Arr(__a) = &mut entryMarkets { std::sync::Arc::make_mut(__a).push(m); };
+                        if let Value::Arr(__a) = &mut entryMarkets { std::sync::Arc::make_mut(__a).push(m); }
                         add_element_to_object(&mut eventEntry, &Value::Str("markets".into()), entryMarkets);
                     }
                 }
@@ -1461,7 +1461,7 @@ impl Kalshi {
                 break;
             }
         }
-        self.exchange.events = eventsDict.clone();
+        self.exchange.events = Value::Map(eventsDict);
         let mut flatMarketsLength: i64 = flatMarkets.len() as i64;
         if (maxMarkets.is_some() && Some(flatMarketsLength) > maxMarkets) {
             return self.array_slice(Value::from(flatMarkets), Value::Int(0), &[Value::from(maxMarkets)]);
@@ -2633,14 +2633,14 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                         let mut i: i64 = 0;
             let mut __for_first_1280: bool = true;
             while { if !__for_first_1280 { i += 1; } __for_first_1280 = false; i < (parsed.len() as i64) } {
-            let mut position: Value = parsed.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut positionInfo: crate::value::Dict = self.safe_dict_k(position.clone(), "info", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+            let mut position: crate::value::Dict = parsed.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
+            let mut positionInfo: crate::value::Dict = self.safe_dict_k(&position, "info", &[Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            })]).into_dict();
             let mut positionTicker: Option<String> = self.safe_string_k_opt(&positionInfo, "ticker", &[]);
             if (positionTicker.is_some()) && (matches!(positionTicker.as_deref(), Some(__k) if wantedTickers.contains_key(__k))) {
-                result.push(position);
+                result.push(Value::Dict(position));
             }
         }
         }

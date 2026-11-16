@@ -2247,21 +2247,21 @@ pub trait ExchangeBase:
         // numberToString is typed as nullable under strictNullChecks; cast to string
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
-        let mut stringifiedNumber: Value = Value::from(self.number_to_string(number));
-        let mut convertedNumber: Value = (match &stringifiedNumber { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
+        let mut stringifiedNumber: Option<String> = self.number_to_string(number);
+        let mut convertedNumber: Value = (match stringifiedNumber.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null });
         return crate::runtime::parse_int(&convertedNumber).as_i64();
 }
 
     fn parse_to_numeric(&self, mut number: Value) -> Value {
-        let mut stringVersion: Value = Value::from(self.number_to_string(number)); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        let mut stringVersion: Option<String> = self.number_to_string(number); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
         // in PHP:    1 == 1.0 is true, but 1 === 1.0 is false.
-        if stringVersion.as_str().unwrap_or("").contains(".") {
-            return (match &stringVersion { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null });
+        if stringVersion.as_deref().unwrap_or_default().contains(".") {
+            return (match stringVersion.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null });
         }
-        return (match &stringVersion { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+        return (match stringVersion.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
 
     Value::Null
 }
@@ -7958,11 +7958,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if crate::precise::Precise::stringGe(&precision, &Value::Str("0".into())).as_bool() == Some(true) {
             return self.parse_precision(&[precision.clone()]);
         }  else {
-            let mut positivePrecisionString: Value = crate::precise::Precise::stringAbs(&precision);
-            if (positivePrecisionString == Value::Null) {
+            let mut positivePrecisionString: Option<String> = crate::precise::Precise::stringAbs(&precision).as_str().map(str::to_owned);
+            if (positivePrecisionString.is_none()) {
                 return Value::Null;
             }
-            let mut positivePrecision: Value = (match &positivePrecisionString { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
+            let mut positivePrecision: Value = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
             let mut parsedPrecision: String = "1".to_string();
             {
                                 let mut i: i64 = 0;
@@ -8379,32 +8379,32 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut params: Value = params.into();
         let mut omitParams = get_arg(optional_args, 0, Value::Bool(true));
         //
-        let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
+        let mut triggerPrice: Option<String> = self.safe_string2_opt(params.clone(), Value::Str("triggerPrice".into()), Value::Str("stopPrice".into()), &[]);
         let mut triggerPriceStr: Option<String> = None;
-        let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
+        let mut stopLossPrice: Option<String> = self.safe_string_k_opt(params.clone(), "stopLossPrice", &[]);
         let mut stopLossPriceStr: Option<String> = None;
-        let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
+        let mut takeProfitPrice: Option<String> = self.safe_string_k_opt(params.clone(), "takeProfitPrice", &[]);
         let mut takeProfitPriceStr: Option<String> = None;
         //
         let mut keysToOmit: Vec<Value> = Vec::new();
-        if (triggerPrice != Value::Null) {
+        if (triggerPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("triggerPrice".into()));
                 keysToOmit.push(Value::Str("stopPrice".into()));
             }
-            triggerPriceStr = self.price_to_precision(symbol.clone(), (match &triggerPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
+            triggerPriceStr = self.price_to_precision(symbol.clone(), (match triggerPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
         }
-        if (stopLossPrice != Value::Null) {
+        if (stopLossPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("stopLossPrice".into()));
             }
-            stopLossPriceStr = self.price_to_precision(symbol.clone(), (match &stopLossPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
+            stopLossPriceStr = self.price_to_precision(symbol.clone(), (match stopLossPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
         }
-        if (takeProfitPrice != Value::Null) {
+        if (takeProfitPrice.is_some()) {
             if omitParams.as_bool() == Some(true) {
                 keysToOmit.push(Value::Str("takeProfitPrice".into()));
             }
-            takeProfitPriceStr = self.price_to_precision(symbol, (match &takeProfitPrice { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
+            takeProfitPriceStr = self.price_to_precision(symbol, (match takeProfitPrice.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), None => Value::Null }));
         }
         let mut keysToOmitLength: i64 = keysToOmit.len() as i64;
         let mut paramsOmitted: Value = (if (keysToOmitLength > 0) { self.omit(params.clone(), Value::from(keysToOmit), &[]) } else { params });
@@ -10292,7 +10292,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     remove(&mut get_value(&client, &Value::Str("subscriptions".into())), &subHash);
                 }
                 if (matches!((&get_value(&client, &Value::Str("futures".into())), &subHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                    let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), subHash));
+                    let mut error: crate::ExchangeError = (crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), subHash)));
                     client.reject(error.clone(), &subHash);
                 }
             }  else {
@@ -10314,7 +10314,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     while { if !__for_first_179 { i += 1; } __for_first_179 = false; i < (clientFutures.len() as i64) } {
                     let mut future: Value = clientFutures.get(i as usize).cloned().unwrap_or(Value::Null);
                     if (future.as_str().zip(subHash.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
-                        let mut error = crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), future));
+                        let mut error: crate::ExchangeError = (crate::exchange_errors::unsubscribe_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), future)));
                         client.reject(error, &future);
                     }
                 }
