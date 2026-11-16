@@ -35,6 +35,7 @@ import { installJavaListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
+import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
 import { applyJavaImports, shortenJavaReferences, ensureJavaImports } from "./javaUtilImports.js";
@@ -1693,10 +1694,11 @@ function javaRepoMethodUsesIndex (): any {
                 }
                 continue;
             }
-            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts') || /\.nooverloads\.\d+\.ts$/.test (entry.name)) {
+            const text = isTsIndexSource (entry.name) && !/\.nooverloads\.\d+\.ts$/.test (entry.name) ? readTsIndexSource (full) : undefined;
+            if (text === undefined) {
                 continue;
             }
-            const source: any = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'));
+            const source: any = ts.createSourceFile (full, text);
             const visit = (n: any) => {
                 if ((ts.isMethodDeclaration (n) || ts.isPropertyDeclaration (n) || ts.isPropertyAssignment (n)) && n.name !== undefined && ts.isIdentifier (n.name)) {
                     declared.set (n.name.text, (declared.get (n.name.text) ?? 0) + 1);

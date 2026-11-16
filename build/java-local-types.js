@@ -184,7 +184,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { threadId } from 'node:worker_threads';
 import { fileURLToPath } from 'node:url';
-import { ts, urlsDescribeStringProducer } from './csharp-local-types.js';
+import { ts, urlsDescribeStringProducer, isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 
 // ===== safeString rejection census (env-gated debug; inert unless CCXT_SS15_CENSUS=1) =====
 //
@@ -10951,10 +10951,8 @@ const JAVA_VENUE_RETURN_MAP = {
 let javaVenueReturnTable;
 
 function javaVenueScan (file, re, onMatch) {
-    let content;
-    try {
-        content = fs.readFileSync (file, 'utf8');
-    } catch (e) {
+    const content = readTsIndexSource (file);
+    if (content === undefined) {
         return;
     }
     for (const line of content.split ('\n')) {
@@ -10976,12 +10974,7 @@ export function javaVenueAsyncReturnTable () {
     }
     const seen = new Map ();
     for (const dir of [ '', 'pro', 'prediction' ]) {
-        let files = [];
-        try {
-            files = fs.readdirSync (path.join (JAVA_VENUE_TS_ROOT, dir)).filter ((f) => f.endsWith ('.ts'));
-        } catch (e) {
-            continue;
-        }
+        const files = fs.readdirSync (path.join (JAVA_VENUE_TS_ROOT, dir)).filter ((f) => isTsIndexSource (f));
         for (const f of files) {
             // only async declarations print a CompletableFuture core; a same-named sync helper elsewhere is unrelated
             javaVenueScan (path.join (JAVA_VENUE_TS_ROOT, dir, f), /^ {4}(async )(\w+) \(/, (m, line) => {
@@ -14189,10 +14182,14 @@ function javaFreshMapMethods () {
     const classes = new Map ();
     for (const dir of [ '', 'pro', 'prediction', 'base', 'abstract', 'prediction/abstract' ]) {
         const full = path.join (JAVA_FRESH_MAP_TS_ROOT, dir);
-        const names = fs.existsSync (full) ? fs.readdirSync (full).filter ((f) => f.endsWith ('.ts') && !f.endsWith ('.d.ts')) : [];
+        const names = fs.existsSync (full) ? fs.readdirSync (full).filter ((f) => isTsIndexSource (f)) : [];
         for (const name of names) {
             const file = path.join (full, name);
-            const sf = ts.createSourceFile (file, fs.readFileSync (file, 'utf8'));
+            const text = readTsIndexSource (file);
+            if (text === undefined) {
+                continue;
+            }
+            const sf = ts.createSourceFile (file, text);
             const imports = new Map ();
             const local = new Set (sf.statements.filter ((st) => ts.isClassDeclaration (st) && st.name !== undefined).map ((st) => st.name.text));
             let entry;
@@ -17710,11 +17707,12 @@ function javaVenueNameIndex () {
                 }
                 continue;
             }
-            if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+            const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined;
+            if (text === undefined) {
                 continue;
             }
             files.add (path.resolve (full));
-            javaVenueIndexSource (ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, true), declared, referenced, literals);
+            javaVenueIndexSource (ts.createSourceFile (full, text, ts.ScriptTarget.Latest, true), declared, referenced, literals);
         }
     };
     visitDir (JAVA_FRESH_MAP_TS_ROOT);
@@ -18489,8 +18487,9 @@ function javaStringReturnsClassIndex () {
                 }
                 continue;
             }
-            if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
-                javaStringReturnsIndexSource (files, path.resolve (full), fs.readFileSync (full, 'utf8'));
+            const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined;
+            if (text !== undefined) {
+                javaStringReturnsIndexSource (files, path.resolve (full), text);
             }
         }
     };
@@ -18718,7 +18717,8 @@ export function installJavaStringReturns (transpiler) {
         try {
             redeclared = javaRedeclaredByDescendant (node) || javaNumericCallHazard (node, type === 'String' ? 'stringHazards' : 'hazards');
         } catch (e) {
-            redeclared = true;
+            console.error ('[java-local-types] string-returns index failed: ' + (e?.stack ?? e));
+            process.exit (1);
         }
         return redeclared ? undefined : type;
     };

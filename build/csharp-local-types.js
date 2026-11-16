@@ -482,6 +482,26 @@ import { fileURLToPath } from 'node:url';
 import { csharpStructReturns } from './csharp-struct-returns.js';
 import * as astTranspilerUtils from 'ast-transpiler/tsUtils';
 
+// ts/src index scans read real sources plus this process's own stripped base copy; sibling transpilers
+// create and delete their temp copies (`*.nooverloads.<pid>.ts`, `.__ExchangeNoOverloads*.ts`) meanwhile
+export function isTsIndexSource (name) {
+    const temp = /\.nooverloads\.(\d+)\.ts$/.exec (name);
+    return name.endsWith ('.ts') && !name.endsWith ('.d.ts') && !name.startsWith ('.') && (temp === null || temp[1] === String (process.pid));
+}
+
+// a file gone between listing and reading is skipped; any other failure ends the transpile
+export function readTsIndexSource (file) {
+    try {
+        return fs.readFileSync (file, 'utf8');
+    } catch (e) {
+        if (e?.code === 'ENOENT') {
+            return undefined;
+        }
+        console.error ('[local-types] ts/src index scan failed on ' + file + ': ' + (e?.stack ?? e));
+        process.exit (1);
+    }
+}
+
 // The generator hands TS7 nodes/checker objects to these hooks: read enums, guards and parsing
 // from the same typescript package ast-transpiler resolves, plus its TS6-named helpers.
 const generatorRequire = createRequire (createRequire (import.meta.url).resolve ('ast-transpiler'));
@@ -12759,14 +12779,20 @@ function tupleDictSourceTexts () {
                     if (entry.name !== 'node_modules' && entry.name !== 'test') {
                         walk (full);
                     }
-                } else if (entry.name.endsWith ('.ts') && !entry.name.endsWith ('.d.ts')) {
-                    texts.set (full, fs.readFileSync (full, 'utf8'));
+                } else if (isTsIndexSource (entry.name)) {
+                    const text = readTsIndexSource (full);
+                    if (text !== undefined) {
+                        texts.set (full, text);
+                    }
                 }
             }
         };
         walk (path.join (process.cwd (), 'ts', 'src'));
     } catch (e) {
         texts.clear (); // no corpus: nothing proves
+        if (fs.existsSync (path.join (process.cwd (), 'ts', 'src'))) {
+            throw e;
+        }
     }
     return texts;
 }
@@ -15851,11 +15877,11 @@ function csharpCorpus () {
                     }
                     continue;
                 }
-                if (!entry.name.endsWith ('.ts') || entry.name.endsWith ('.d.ts')) {
+                const text = isTsIndexSource (entry.name) ? readTsIndexSource (full) : undefined;
+                if (text === undefined) {
                     continue;
                 }
                 const rel = path.relative (root, full);
-                const text = fs.readFileSync (full, 'utf8');
                 const re = /\.([A-Za-z_$][\w$]*)\s*\(/g;
                 let match;
                 while ((match = re.exec (text)) !== null) {
@@ -15901,6 +15927,9 @@ function csharpCorpus () {
         walk (path.join (root, 'ts/src'));
     } catch (e) {
         // no corpus on disk (in-memory transpiles): no name proves clean, so nothing is retyped
+        if (fs.existsSync (path.join (process.cwd (), 'ts/src'))) {
+            throw e;
+        }
     }
     return table;
 }
