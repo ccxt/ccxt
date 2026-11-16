@@ -146,7 +146,6 @@ for (const [method, indexes] of Object.entries (GO_UNIFIED_REQUIRED_ID_PARAMS)) 
 
 ansi.nice;
 
-// const allExchanges: {ids: string[], ws: string[]} = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const allExchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 let exchanges = allExchanges;
 const exchangeIds = exchanges.ids;
@@ -159,76 +158,10 @@ let __dirname = new URL('.', import.meta.url).pathname;
 
 let shouldTranspileTests = true;
 
-// ast-transpiler emits every async method core as a trampoline over a capacity-1
-// channel (ccxt/ast-transpiler#67): the function makes the channel, launches the body
-// in a goroutine and returns the channel immediately, with an *unnamed* result:
-//
-//     func (this *Bit2cCore) FetchBalance(...) <-chan any {
-//         ch := make(chan any, 1)
-//         go this.fetchBalanceBody(ch)
-//         return ch
-//     }
-//
-//     func (this *Bit2cCore) fetchBalanceBody(ch chan any, ...) any {
-//         defer close(ch)
-//         defer ReturnPanicError(ch)
-//         ...
-//         ch <- value
-//         return nil
-//     }
-//
-// Buffering the channel and shaping the body are therefore the emitter's job now and
-// CCXT no longer post-processes either. One thing the emitter does not do is stop a
-// core after its first send.
-//
-// `try { ... return x } catch (e) { ... }` is emulated with a synthetic, immediately
-// invoked closure, so the `return` inside it only leaves that *closure* — in TypeScript
-// the same `return` leaves the whole async function. Execution therefore carries on
-// round the enclosing retry loop and reaches a second `ch <-`; the channel holds one
-// value, so that send blocks forever. Under the trampoline it parks the body goroutine
-// rather than the caller, but it is still a leaked goroutine — and, worse, the loop has
-// already re-issued the network request to get there.
-//
-// Four base methods have that shape today — Fetch2, FetchWebEndpoint,
-// SafeDeterministicCall and FetchRestOrderBookSafe — each sending from inside a retry
-// loop's try block. The guard threads a `chSent` flag through exactly those cores and
-// leaves the body goroutine as soon as the closure produced a value, which is what the
-// TypeScript said in the first place:
-//
-//     for … {                                     for … {
-//         {                                           {
-//             func(this *X) (ret_ any) {                  func(this *X) (ret_ any) {
-//                 // try block:                               // try block:
-//                 ch <- response                              ch <- response
-//                 return nil                                  chSent = true
-//             }(this)                                         return nil
-//         }                                               }(this)
-//     }                                               }
-//                                                     if chSent {
-//                                                         return nil
-//                                                     }
-//                                                 }
-//
-// `return nil` (not `return ch`) is the right early exit: it leaves the body closure,
-// whose result type is `any`, and `defer close(ch)` still runs — the trampoline handed
-// the channel to the caller long before.
-//
-// That also repairs a real bug the port has today, independent of the emitter: with
-// `maxRetries` at its default 3, `SafeDeterministicCall` and `FetchRestOrderBookSafe`
-// keep looping after a successful call and re-issue the request up to three times
-// (measured: one call, three round trips). The caller only ever saw the first value, so
-// the extra traffic was invisible. The guard makes the loop stop on success.
-//
-// Cores that send only at their own level — the vast majority — are left byte-identical,
-// and any core whose shape is not fully understood is skipped, so a parse we do not
-// fully trust degrades to exactly what ast-transpiler emitted.
-//
-// Everything here matches the *raw* emitted text: this runs before gofmt, which is what
-// later normalises the 4-space indentation to tabs (`<-chan any` and the single-space
-// signatures now come straight out of the printer, F04).
-// The BODY half of a trampoline pair: `func (this *X) fetchTickerBody(ch chan any, …) any {`
-// (or the package-level `func helperABody(ch chan any, …) any {`). The public trampoline
-// itself is three statements and can never multi-send, so only the body is scanned.
+// ast-transpiler emits every async core as a trampoline over a capacity-1 channel plus a body goroutine. A `return` inside
+// the emulated try closure only leaves the closure, so a retry loop reaches a second `ch <-` and blocks forever; the guard
+// threads a `chSent` flag through such cores and returns from the body once the closure produced a value.
+// the BODY half of a trampoline pair (`func (this *X) fetchTickerBody(ch chan any, …) any {`); only the body can multi-send
 const GO_CORE_SIGNATURE = /^func\s+(?:\([^()]*\)\s*)?[a-z_]\w*\s*\(ch chan\s+[^(),\n]+(?:,[^\n]*)?\)\s*any\s*\{$/;
 const GO_CORE_CLOSE = /^([ \t]*)defer close\(ch\)$/;
 // the panic helper is package-qualified in the prediction namespace (ccxt.ReturnPanicError)
@@ -244,10 +177,8 @@ const GO_SENT_FLAG = 'chSent';
 // the transpiler emits one tab per nesting level, exactly what gofmt writes back
 const GO_INDENT_UNIT = '\t';
 
-// drop string/rune literals and comments so brace counting and identifier lookups
-// cannot be fooled by Go source quoted inside a literal or a comment. Block comments
-// span lines (the transpiler copies JSDoc across verbatim), so the caller carries the
-// open-comment state from one line to the next.
+// drop string/rune literals and comments so brace counting and identifier lookups cannot be fooled by quoted Go source;
+// block comments span lines, so the caller carries the open-comment state from one line to the next.
 function stripGoLiterals (line: string, state?: { 'inBlockComment': boolean }): string {
     let stripped = '';
     for (let i = 0; i < line.length; i++) {
@@ -302,10 +233,8 @@ const GO_POINTER_TRANSPARENT_SHIMS = new Set ([
     'ObjectKeys', 'ObjectValues', 'derefScalar', 'DerefScalar',
 ]);
 
-// the whole-argument names of a line that are passed to a pointer-transparent shim: the
-// argument must BE the name (a `[]any{x}` or `Add(x, 1)` chunk carries/consumes it deeper
-// and is not itself a shim boundary), and a `this.`/`x.` method of the same name is not
-// the free function.
+// the whole-argument names of a line passed to a pointer-transparent shim: the argument must BE the name, and a
+// `this.`/`x.` method of the same name is not the free function.
 function goShimDirectArgumentNames (line: string): string[] {
     const names: string[] = [];
     const callPattern = /(?<![\w.])(?:ccxt\.)?([A-Za-z_]\w*)\s*\(/g;
@@ -352,10 +281,8 @@ function goShimDirectArgumentNames (line: string): string[] {
     return names;
 }
 
-// the line with the DerefScalar() wrapper (the name and its closing paren only) and the
-// declaration/assignment target removed: the wrapped call's own arguments still read the
-// local (`x = DerefScalar(this.SafeString(m, "k", x))`), so they must be scanned, not
-// hidden behind the wrap.
+// the line with the DerefScalar() wrapper (name and closing paren only) and the assignment target removed: the
+// wrapped call's own arguments still read the local, so they must be scanned, not hidden behind the wrap.
 function goDerefWrapReadText (line: string): string {
     let text = line;
     let index = text.indexOf ('DerefScalar(');
@@ -401,12 +328,8 @@ function goDerefWrapWriteRhs (line: string, name: string): string | null {
     return null;
 }
 
-// DerefScalar() exists so the `any` box carries the plain value: raw `x == nil`, `x != true`
-// and `switch x` on the pointer box would never match. When every READ of the local in this
-// body is a pointer-transparent shim call, nothing can observe the pointer and the wrap is
-// provably redundant (the shims deref it themselves, #30054). Any other mention — a raw
-// comparison, a dict/slice store, a return, an argument to a non-shim call, or a mention the
-// scan cannot classify — keeps the wrap.
+// DerefScalar() exists so the `any` box carries the plain value. When every READ of the local in this body is a
+// pointer-transparent shim call (the shims deref it themselves), the wrap is provably redundant; any other mention keeps it.
 function goDerefWrapRedundantLocals (fn: string, wrapLines: Set<number>, names: Iterable<string>): Set<string> {
     const commentState = { 'inBlockComment': false };
     const lines = fn.split ('\n').map ((line) => stripGoLiterals (line, commentState));
@@ -452,16 +375,9 @@ function goUnwrapDerefWraps (fn: string, names: Iterable<string>, safeCall: stri
     return fn;
 }
 
-// The printer prints `x === undefined` as a native `x == nil` when the operand's TypeScript
-// type proves the box holds a scalar (goIsAnyBoxExpression). That proof is local to the
-// function: a bare `any` PARAMETER (`func (this *X) F(code any, …)`) keeps whatever the
-// caller boxed, and a caller holding a typed local (`var code *string = this.SafeString(…)`)
-// boxes the pointer itself — `(*string)(nil) == nil` is false in Go, while IsEqual(x, nil)
-// derefs both sides and answers true. The callee then takes the wrong branch: SafeCurrency()
-// dropped the caller's currency for a response without a `currency` id and Currency() panicked
-// on the empty code (binance fetchDepositAddress, STATIC_RESPONSE). GetArg-bound optionals are
-// safe (GetArg runs derefScalar and folds a typed nil pointer into the default) and locals are
-// proven by the printer's own write analysis, so only the bare parameters keep the helper.
+// A bare `any` PARAMETER keeps whatever the caller boxed, including a typed nil pointer, for which the native `x == nil`
+// is false while IsEqual(x, nil) derefs and answers true. GetArg-bound optionals and printer-proven locals are safe,
+// so only the bare parameters keep the helper.
 function goParamNilCompareText (fn: string, isEqualFn: string): string {
     const sigEnd = fn.indexOf ('{');
     if (sigEnd < 0) {
@@ -506,14 +422,9 @@ function goParamNilSelfTest (ok: SelfTestOk): void {
     ok (twice.indexOf ('(IsEqual(response, nil)) || (IsEqual(response, nil))') >= 0, 'both operands of a duplicated check must be wrapped once');
 }
 
-// The same hazard reaches an `any` LOCAL, not only a bare parameter: the printer's proof
-// (goAnyLocalHoldsPointer) recognises only a call to a `*T`-returning helper, so a local fed
-// by a pointer-typed name is misread as a plain scalar and printed as the native
-// `x == nil` -- false for the boxed (*string)(nil), so the guard never fires and the local
-// keeps the pointer. `var currency any = requested` (requested: `var requested *string =
-// this.SafeStringN(...)`) stored a nil info.currency instead of the 'USDT' default (mudrex
-// fetchBalance, STATIC_RESPONSE; master's older pin printed IsEqual here and passed). IsEqual
-// derefs both operands, so every local a pointer can reach keeps the helper.
+// The same hazard reaches an `any` LOCAL fed by a pointer-typed name (`var currency any = requested`, requested `*string`):
+// the printer's proof only recognises `*T`-returning calls, so the native `x == nil` misses the boxed (*string)(nil).
+// IsEqual derefs both operands, so every local a pointer can reach keeps the helper.
 const GO_POINTER_NAME_PATTERN = '\\*[\\w\\[\\].]+';
 
 // the top-level `\nfunc ` blocks, each with the brace that closes it. The brace count skips
@@ -574,10 +485,8 @@ function goBoxedPointerNames (fn: string): Set<string> {
             pointerNames.add (match[1]);
         }
     }
-    // every `any` box fed by one of those names: `var currency any = requested`, `x = code`.
-    // Only the names declared `any` in this block (own declarations, `x := GetArg(...)` and the
-    // bare `any` parameters of the signature) can hold the box: a name declared with a pointer
-    // a typed GetArg twin's local is compared natively too, so it needs no rewrite
+    // every `any` box fed by one of those names; only names declared `any` in this block (own declarations,
+    // `x := GetArg(...)`, bare `any` parameters) can hold the box: a typed GetArg twin's local needs no rewrite
     const anyNames = new Set<string> ();
     const anyDeclRe = /var (\w+) any\b/g;
     while ((match = anyDeclRe.exec (fn)) !== null) {
@@ -774,7 +683,7 @@ function goCallArgsSpanningText (text: string, open: number): string[] | undefin
     return undefined;
 }
 
-function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (name: string) => boolean = () => false, stringSlices: Set<string> = new Set ()): boolean {
+function goAnyNilSafeWrite (rhs: string, scalarLocals: Set<string>, safeLocal: (name: string) => boolean, stringSlices: Set<string>): boolean {
     const text = rhs.replace (/\bccxt\./g, '').replace (/\s+\/\/[^"]*$/, '').trim ();
     if (/^(?:nil|true|false|-?\d+(?:\.\d+)?(?:[eE][-+]?\d+)?|"(?:[^"\\]|\\.)*")$/.test (text)) {
         return true;
@@ -911,8 +820,7 @@ function goAnyLocalNilCompareText (fn: string, isEqualFn: string): string {
             if (!mention.test (line)) {
                 continue;
             }
-            // RF-go-6-A: the printer declares a safeDict-seeded Dict local `map[string]any = this.SafeDictMap(..)` itself; the
-            // call is the same never-nil/absent-nil read as the `any` form it used to be rewritten from
+            // a safeDict-seeded `map[string]any = this.SafeDictMap(..)` local is the same never-nil/absent-nil read as the `any` form
             const decl = new RegExp ('^\\s*var ' + name + ' (?:any|map\\[string\\]any)(?: = (.*))?$').exec (line);
             if (decl) {
                 decls++;
@@ -1093,9 +1001,7 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     if (/^\w+$/.test (text)) {
         return !boxOnly && ident (text);
     }
-    // ===== RF-go-6-A =====
-    // the printer now writes a pointer-free `map[string]any` element read as the native index it used to leave to a
-    // late text pass; that value is as plain as the GetValue read (which derefs) it replaces
+    // a pointer-free `map[string]any` element read is as plain as the GetValue read (which derefs) it replaces
     if (/^[A-Za-z_]\w*\[\"[^\"\\\n]*\"\]$/.test (text)) {
         return true;
     }
@@ -1356,9 +1262,6 @@ function scanCoreBody (body: string[]): CoreBodyScan | null {
             } else {
                 continue;
             }
-            if (funcLiteral.length < 0) {
-                return null;
-            }
         }
         closesTo.push (closed);
     }
@@ -1386,11 +1289,8 @@ function isBalancedGoLine (line: string): boolean {
     return depth === 0;
 }
 
-// Thread the sent-flag through one core BODY. `lines[start]` is the `defer close(ch)`
-// line and `lines[start + 1]` the `defer ReturnPanicError(ch)` right after it; the body
-// statements follow, flat, until the column-0 closing brace. Returns the replacement body
-// (flag declaration + rewritten lines) and the index of that brace, or null when any
-// safety gate fails.
+// Thread the sent-flag through one core BODY (`lines[start]` is `defer close(ch)`, the panic defer follows).
+// Returns the replacement body and the index of the column-0 closing brace, or null when any safety gate fails.
 function guardMultiSendCore (lines: string[], start: number): { 'body': string[]; 'end': number } | null {
     const indent = (GO_CORE_CLOSE.exec (lines[start]) as RegExpExecArray)[1];
     // the two defers open the body at the same level; anything else is a shape we did
@@ -1433,11 +1333,8 @@ function guardMultiSendCore (lines: string[], start: number): { 'body': string[]
             rewritten.push (lineIndent + GO_SENT_FLAG + ' = true');
         }
         if (scan.closesTo[index] === 0 && GO_LITERAL_INVOKED.test (trimmed)) {
-            // the outermost try/catch shim just returned: if it produced a value the
-            // core is done, exactly as the `return` inside the TypeScript `try` meant.
-            // `return nil` leaves the body method (whose result is `any`); the
-            // trampoline already handed the channel to the caller and `defer close`
-            // still runs
+            // the outermost try/catch shim just returned: if it produced a value the core is done;
+            // `return nil` leaves the body method and `defer close` still runs
             rewritten.push (lineIndent + 'if ' + GO_SENT_FLAG + ' {');
             rewritten.push (lineIndent + GO_INDENT_UNIT + 'return nil');
             rewritten.push (lineIndent + '}');
@@ -1551,22 +1448,16 @@ function nativeAppendWriteBack (content: string): string {
     return out.join ('\n');
 }
 
-// gofmt's declaration-list rule (go/printer nodes.go `declList`): a top-level declaration
-// that carries a doc comment is separated from the declaration above it by exactly one
-// blank line (`min = 2` linebreaks), while a declaration without one is emitted adjacent
-// to it. The wrapper joins below used a bare '\n' everywhere, so a wrapper whose
-// `/** ... */` doc template followed the previous wrapper's closing brace came out as
-// `}\n/**` and gofmt re-inserted the blank line.
+// gofmt's declaration-list rule (go/printer `declList`): a top-level declaration carrying a doc comment is separated
+// from the declaration above it by exactly one blank line, a declaration without one is emitted adjacent to it.
 function joinGoDeclarations (decls: string[]): string {
     return decls.filter (decl => decl !== '').map ((decl, index) =>
         (index === 0 ? '' : '\n') + decl).join ('');
 }
 
-// The Go printer emits gofmt-clean text (tabs, go/printer spacing, tabwriter alignment),
-// so no gofmt runs at write time. `--check-gofmt [paths…]` is the gate: it runs `gofmt -l`
-// over go/v4 (pro/, prediction/) and go/tests and exits 1 on any listing or parse error,
-// 2 when gofmt or the tree is missing; `--check-gofmt --self-test` exercises the gate itself.
-// gofmt is resolved from $CCXT_GOFMT, PATH, $GOROOT/bin and /usr/local/go/bin, in that order.
+// The Go printer emits gofmt-clean text; `--check-gofmt [paths…]` is the gate (`gofmt -l` over go/v4 and go/tests, exit 1 on
+// any listing or parse error, 2 when gofmt or the tree is missing). gofmt is resolved from $CCXT_GOFMT, PATH, $GOROOT/bin and
+// /usr/local/go/bin, in that order.
 const GOFMT_BINARY_ENV = 'CCXT_GOFMT';
 // the emitted tree: go/v4 recurses into pro/ and prediction/, go/tests holds the test tier
 const GOFMT_GATE_TREE = [ 'go/v4', 'go/tests' ];
@@ -1682,12 +1573,8 @@ function goTextWritesName (maskedLine: string, name: string): boolean {
     return patterns.some ((rx: RegExp) => rx.test (maskedLine));
 }
 
-// `var x any = [ccxt.]GetValue(s, i)` -> `var x string = s[i]` when `s` is a `[]string`
-// local and the declaration heads a counting loop bounded by `len(s)` (directly or via an
-// unwritten int local); any write to the counter or slice, or a hazard read, keeps `any`.
-// Container helpers on a local/parameter printed `[]any`/`[]string`/`map[string]any` (the only
-// declaration of that name in its top-level func) become native Go where the helper adds nothing:
-// len(x); x["k"] as the first argument of a helper that derefs it at entry; x["k"] = v on a proven non-nil map.
+// `var x any = [ccxt.]GetValue(s, i)` -> `var x string = s[i]` for a `[]string` local inside a counting loop bounded by `len(s)`;
+// container helpers on a sole-declared `[]any`/`[]string`/`map[string]any` local become native Go where the helper adds nothing.
 // argument count that carries the default of each pointer-returning Safe* accessor (go/v4/exchange_safe.go)
 const GO_SAFE_ACCESSOR_DEFAULT_ARG_COUNT: { [name: string]: number } = {
     'this.SafeString': 3, 'this.SafeInteger': 3, 'this.SafeNumber': 3, 'this.SafeBool': 3,
