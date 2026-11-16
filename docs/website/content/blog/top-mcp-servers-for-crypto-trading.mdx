@@ -65,7 +65,7 @@ orders once you add an account to its config file.
 - **Good:** reached OKX, Kraken and Coinbase from one server, with the smallest responses and
   structured errors that say whether to retry. Background WebSocket streams return a merged
   snapshot, and a read can wait for the next change instead of polling. Keys never pass
-  through the chat, and live trading needs `"trading": "live"` plus an order-size cap.
+  through the chat, and live trading needs `"trading": "live"` plus an order-size cap you must set (or explicitly waive).
 - **Watch out:** young (v0.1.x). It lists trading tools even with no account unless
   `hideDisabledTools` is set, and it reported Bybit's geo-block as `RATE_LIMITED`.
 
