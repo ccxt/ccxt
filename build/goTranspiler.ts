@@ -1678,22 +1678,20 @@ function goAnyObjectKeysLength (lines: string[], masked: string[], start: number
     return /^\s*/.exec (line)[0] + bound + '\n' + replaced;
 }
 
-function goAnyObjectKeysLengthSelfTest (): string[] {
-    return runSelfTest ('', (ok) => {
-        const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
-        const arrayRead = run ('\tvar m map[string]any = nil\n\tif IsArray(GetValue(m, "data")) {\n\t}\n');
-        ok (arrayRead.includes ('IsArray(m["data"])'), 'goAnyObjectKeysLength: IsArray derefs its argument, so the map index reads the same: ' + arrayRead);
-        const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
-        ok (ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') && !ifForm.includes ('ObjectKeys'), 'goAnyObjectKeysLength: if form: ' + ifForm);
-        const stmt = run ('\tvar query any = this.Omit(optionalArgs, "a")\n\tvar n int = len(ObjectKeys(query))\n');
-        ok (stmt.includes ('\tqueryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)\n'), 'goAnyObjectKeysLength: statement form: ' + stmt);
-        const reused = run ('\tvar query any = nil\n\tquery = 1\n\tvar n int = len(ObjectKeys(query))\n');
-        ok (reused.includes ('queryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)'), 'goAnyObjectKeysLength: a re-assigned any local binds at the use site: ' + reused);
-        const twice = run ('\tquery := this.Omit(optionalArgs, \"a\")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tx()\n\t} else if len(ObjectKeys(query)) > 1 {\n\t\ty()\n\t}\n');
-        ok (!twice.includes ('ObjectKeys') && (twice.match (/queryMap, _ :=/g) ?? []).length === 2, 'goAnyObjectKeysLength: if / else-if chain: ' + twice);
-        const typed = run ('\tvar query map[string]any = map[string]any{}\n\tvar n int = len(ObjectKeys(query))\n');
-        ok (typed.includes ('len(query)'), 'goAnyObjectKeysLength: typed map regressed: ' + typed);
-    });
+function goAnyObjectKeysLengthSelfTest (ok: SelfTestOk): void {
+    const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}');
+    const arrayRead = run ('\tvar m map[string]any = nil\n\tif IsArray(GetValue(m, "data")) {\n\t}\n');
+    ok (arrayRead.includes ('IsArray(m["data"])'), 'goAnyObjectKeysLength: IsArray derefs its argument, so the map index reads the same: ' + arrayRead);
+    const ifForm = run ('\tquery := this.Omit(optionalArgs, "a")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tthis.Urlencode(query)\n\t}\n');
+    ok (ifForm.includes ('if queryMap, _ := query.(map[string]any); len(queryMap) > 0 {') && !ifForm.includes ('ObjectKeys'), 'goAnyObjectKeysLength: if form: ' + ifForm);
+    const stmt = run ('\tvar query any = this.Omit(optionalArgs, "a")\n\tvar n int = len(ObjectKeys(query))\n');
+    ok (stmt.includes ('\tqueryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)\n'), 'goAnyObjectKeysLength: statement form: ' + stmt);
+    const reused = run ('\tvar query any = nil\n\tquery = 1\n\tvar n int = len(ObjectKeys(query))\n');
+    ok (reused.includes ('queryMap, _ := query.(map[string]any)\n\tvar n int = len(queryMap)'), 'goAnyObjectKeysLength: a re-assigned any local binds at the use site: ' + reused);
+    const twice = run ('\tquery := this.Omit(optionalArgs, \"a\")\n\tif len(ObjectKeys(query)) > 0 {\n\t\tx()\n\t} else if len(ObjectKeys(query)) > 1 {\n\t\ty()\n\t}\n');
+    ok (!twice.includes ('ObjectKeys') && (twice.match (/queryMap, _ :=/g) ?? []).length === 2, 'goAnyObjectKeysLength: if / else-if chain: ' + twice);
+    const typed = run ('\tvar query map[string]any = map[string]any{}\n\tvar n int = len(ObjectKeys(query))\n');
+    ok (typed.includes ('len(query)'), 'goAnyObjectKeysLength: typed map regressed: ' + typed);
 }
 
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
@@ -2009,26 +2007,24 @@ function goOrderBookSetterPass (content: string): string {
     });
 }
 
-function goOrderBookSetterCheck (): string[] {
-    return runSelfTest ('', (ok) => {
-        const body = (decl: string, pre: string, tail: string) => 'func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + decl + '\n\tif true {\n' + pre + tail + '\t}\n\treturn nil\n}\n';
-        const decl = 'var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)';
-        const typed = 'var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])';
-        const side = '\t\tthis.HandleDeltas(orderbook.GetAsks(), asks)\n';
-        const write = '\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\tccxt.AddElementToObject(orderbook, \"datetime\", this.Iso8601(ts))\n';
-        let r = goOrderBookSetterPass (body (typed, side, write));
-        ok (r.includes ('orderbook.SetTimestamp(ts)') && r.includes ('orderbook.SetDatetime(this.Iso8601(ts))'), 'orderbook setter: typed book after a GetAsks call must go native: ' + r);
-        r = goOrderBookSetterPass (body (typed, '', write));
-        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: no earlier method call must keep the helper: ' + r);
-        r = goOrderBookSetterPass (body (decl, side, write));
-        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an any-typed book must keep the helper: ' + r);
-        r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
-        ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: a book from a single-value assertion is non-nil: ' + r);
-        r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + typed.replace ('OrderBookTyped(this.Orderbooks[*symbol])', 'this.Orderbooks[*symbol].(ccxt.OrderBookInterface)') + '\n\tfor i := 0; i < 2; i++ {\n\t\tif ts != nil {\n\t\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\t}\n\t}\n\treturn nil\n}\n');
-        ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
-        r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
-        ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
-    });
+function goOrderBookSetterCheck (ok: SelfTestOk): void {
+    const body = (decl: string, pre: string, tail: string) => 'func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + decl + '\n\tif true {\n' + pre + tail + '\t}\n\treturn nil\n}\n';
+    const decl = 'var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)';
+    const typed = 'var orderbook ccxt.OrderBookInterface = ccxt.OrderBookTyped(this.Orderbooks[*symbol])';
+    const side = '\t\tthis.HandleDeltas(orderbook.GetAsks(), asks)\n';
+    const write = '\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\tccxt.AddElementToObject(orderbook, \"datetime\", this.Iso8601(ts))\n';
+    let r = goOrderBookSetterPass (body (typed, side, write));
+    ok (r.includes ('orderbook.SetTimestamp(ts)') && r.includes ('orderbook.SetDatetime(this.Iso8601(ts))'), 'orderbook setter: typed book after a GetAsks call must go native: ' + r);
+    r = goOrderBookSetterPass (body (typed, '', write));
+    ok (!r.includes ('.SetTimestamp('), 'orderbook setter: no earlier method call must keep the helper: ' + r);
+    r = goOrderBookSetterPass (body (decl, side, write));
+    ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an any-typed book must keep the helper: ' + r);
+    r = goOrderBookSetterPass (body ('var orderbook ccxt.OrderBookInterface = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)', '', write));
+    ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: a book from a single-value assertion is non-nil: ' + r);
+    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\t' + typed.replace ('OrderBookTyped(this.Orderbooks[*symbol])', 'this.Orderbooks[*symbol].(ccxt.OrderBookInterface)') + '\n\tfor i := 0; i < 2; i++ {\n\t\tif ts != nil {\n\t\t\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\t\t}\n\t}\n\treturn nil\n}\n');
+    ok (r.includes ('orderbook.SetTimestamp(ts)'), 'orderbook setter: an assertion above the enclosing blocks still proves non-nil: ' + r);
+    r = goOrderBookSetterPass ('func (this *X) f(p any) any {\n\tvar ts *int64 = this.SafeInteger(p, \"ts\")\n\tvar orderbook ccxt.OrderBookInterface\n\tif ts != nil {\n\t\torderbook = this.Orderbooks[*symbol].(ccxt.OrderBookInterface)\n\t}\n\tccxt.AddElementToObject(orderbook, \"timestamp\", ts)\n\treturn nil\n}\n');
+    ok (!r.includes ('.SetTimestamp('), 'orderbook setter: an assertion in a sibling branch proves nothing: ' + r);
 }
 
 function goNativeMapWrite (lines: string[], masked: string[], start: number, end: number, k: number, maskedFunc: string,
@@ -4224,13 +4220,8 @@ export function goGofmtLayout (content: string, aligner: GoCompositeEntryAligner
     return goGofmtAlignTables (out.join ('\n'), aligner);
 }
 
-function goGofmtLayoutSelfTest (): string[] {
-    let problems: string[] = [];
-    const check = (label: string, actual: string, expected: string) => {
-        if (actual !== expected) {
-            problems.push ('gofmt layout ' + label + ': ' + JSON.stringify (actual));
-        }
-    };
+function goGofmtLayoutSelfTest (ok: SelfTestOk): void {
+    const check = (label: string, actual: string, expected: string) => ok (actual === expected, label + ': ' + JSON.stringify (actual));
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
     const aligner = goCompositeKeyAligner ();
     const fixed = goGofmtLayout (head + 'func (this *X) f(p any) any {\n\tif p != nil { p = map[string]any{} }\n\treturn p\n}\n', aligner);
@@ -4240,7 +4231,6 @@ function goGofmtLayoutSelfTest (): string[] {
         head + 'func (this *X) f() any {\n\treturn map[string]any{\n\t\t"id":     1,\n\t\t"symbol": "BTC/USDT",\n\t}\n}\n');
     const clean = head + 'func f() int {\n\treturn 1\n}\n';
     check ('idempotent', goGofmtLayout (clean, aligner), clean);
-    return problems;
 }
 
 function overwriteFileAndFolder (path: string, content: string) {
@@ -8082,22 +8072,22 @@ async function runMain () {
             goChanSelfTest, [ 'go-typed-deref-self-test-deref: ', goTypedDerefSelfTest ],
             [ 'go-typed-deref-self-test-maplist: ', goTypedMaplistSelfTest ], [ '', goTypedIsEqualSelfTest ],
             [ 'go-typed-deref-self-test-str: ', goTypedStrSelfTest ], [ 'go-typed-deref-self-test-len: ', goTypedLenSelfTest ],
-            goTypedInopSelfTest, w8FuturesPairSelfTest, [ 'gv-list: ', gvListSelfTest ],
+            [ 'go-typed-deref-self-test-inop: ', goTypedInopSelfTest ], [ 'w8-futures-pair: ', w8FuturesPairSelfTest ], [ 'gv-list: ', gvListSelfTest ],
             [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
             [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ],
-            [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], goSelfMapRebindSelfTest, goAnnotatedReturnSelfTest,
-            b02SafeBalanceSelfTest, goMapWriteNilGuardSelfTest, [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ],
-            goStrReturnSelfTest, [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
-            [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], goDefaultedLimitInt64SelfTest, goTupleTruthySelfTest,
+            [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], [ 'go self map rebind self: ', goSelfMapRebindSelfTest, true ], [ 'go annotated return self test: ', goAnnotatedReturnSelfTest, true ],
+            [ 'safe balance self test: ', b02SafeBalanceSelfTest, true ], [ 'go map write nil guard: ', goMapWriteNilGuardSelfTest, true ], [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ],
+            [ 'go str return self test: ', goStrReturnSelfTest, true ], [ 'go any nil compare self: ', goAnyNilCompareSelfTest, true ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
+            [ 'go base native passes self: ', goBaseNativePassesSelfTest, true ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, true ], [ 'go defaulted limit int64 self test: ', goDefaultedLimitInt64SelfTest, true ], goTupleTruthySelfTest,
             [ 'go row string leaf self: ', goRowStringLeafSelfTest, true ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, true ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
-            goFloatComparisonsWiredCheck, [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
-            goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], goArithHelpersWiredCheck,
-            [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, goInOpHelperCheck, goCaseAffixWiredCheck,
-            goStdlibStringHelpersCheck, goParseNativeWiredCheck, goNullableStrParamSelfTest, goTypedIsEqualWiredCheck,
+            [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
+            goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
+            [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, [ '', goInOpHelperCheck ], goCaseAffixWiredCheck,
+            [ '', goStdlibStringHelpersCheck ], goParseNativeWiredCheck, [ 'go nullable str param self: ', goNullableStrParamSelfTest, true ], [ 'go markets-by-id write: ', goTypedIsEqualWiredCheck ],
             goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest,
-            goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], goAnyObjectKeysLengthSelfTest,
-            goGofmtLayoutSelfTest, w8ClientFuturesSelfTest, goIsEqualBoolMethodCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
-            [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], goOrderBookSetterCheck, goJoinStringLocalsCheck, goJoinNativeCheck,
+            goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
+            [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
+            [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], [ '', goOrderBookSetterCheck ], [ 'join locals: ', goJoinStringLocalsCheck ], [ 'join native: ', goJoinNativeCheck ],
             goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ]
         ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
@@ -10515,32 +10505,28 @@ function goJoinCheckInput (body: string): string {
     return goStdlibStringHelpers (goJoinStringLocals (goSelfTestHead (true) + 'func (this *X) F(n any) any {\n\tvar s string = "v"\n' + body + '}\n'));
 }
 
-function goJoinStringLocalsCheck (): string[] {
-    return runSelfTest ('join locals: ', (ok) => {
-        const f = goJoinCheckInput;
-        const base = '\tvar parts []any = []any{}\n\tfor i := 0; i < 3; i++ {\n\t\tparts = append(parts, s)\n\t}\n';
-        const pos = f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n');
-        ok (pos.includes ('var parts []string = []string{}') && pos.includes ('strings.Join(parts, \"_\")'), 'string-only local joins natively');
-        ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn len(parts) + len(j)\n').includes ('strings.Join(parts, '), 'len() is allowed');
-        ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn parts\n').includes ('[]any = []any{}'), 'returned local stays []any');
-        ok (f (base + '\tparts = append(parts, n)\n\tvar j string = Join(parts, \"_\")\n\treturn j\n').includes ('[]any = []any{}'), 'any element stays []any');
-        ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn GetValue(parts, 0)\n').includes ('[]any = []any{}'), 'GetValue read stays []any');
-        ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n') === goStdlibStringHelpers (goJoinStringLocals (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n'))), 'idempotent');
-        ok (f ('\tvar parts []any = []any{\"a\", s}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]string{\"a\", s}'), 'literal string elements');
-        ok (f ('\tvar parts []any = []any{\"a\", n}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]any{\"a\", n}'), 'any literal element stays');
-    });
+function goJoinStringLocalsCheck (ok: SelfTestOk): void {
+    const f = goJoinCheckInput;
+    const base = '\tvar parts []any = []any{}\n\tfor i := 0; i < 3; i++ {\n\t\tparts = append(parts, s)\n\t}\n';
+    const pos = f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n');
+    ok (pos.includes ('var parts []string = []string{}') && pos.includes ('strings.Join(parts, \"_\")'), 'string-only local joins natively');
+    ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn len(parts) + len(j)\n').includes ('strings.Join(parts, '), 'len() is allowed');
+    ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn parts\n').includes ('[]any = []any{}'), 'returned local stays []any');
+    ok (f (base + '\tparts = append(parts, n)\n\tvar j string = Join(parts, \"_\")\n\treturn j\n').includes ('[]any = []any{}'), 'any element stays []any');
+    ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn GetValue(parts, 0)\n').includes ('[]any = []any{}'), 'GetValue read stays []any');
+    ok (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n') === goStdlibStringHelpers (goJoinStringLocals (f (base + '\tvar j string = Join(parts, \"_\")\n\treturn j\n'))), 'idempotent');
+    ok (f ('\tvar parts []any = []any{\"a\", s}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]string{\"a\", s}'), 'literal string elements');
+    ok (f ('\tvar parts []any = []any{\"a\", n}\n\tvar j string = Join(parts, \",\")\n\treturn j\n').includes ('[]any{\"a\", n}'), 'any literal element stays');
 }
 
-function goJoinNativeCheck (): string[] {
-    return runSelfTest ('join native: ', (ok) => {
-        const f = goJoinCheckInput;
-        const join = '\tvar j string = Join(p, ",")\n\treturn j\n';
-        ok (f ('\tvar p []any = []any{this.Hostname, s}\n' + join).includes ('[]string{this.Hostname, s}'), 'plain string field is a string element');
-        ok (f ('\tvar p []any = []any{this.Token, s}\n' + join).includes ('[]any{this.Token, s}'), 'boxed field stays any');
-        ok (f ('\tif n == nil {\n\t\tvar u string = "a"\n\t\t_ = u\n\t} else {\n\t\tvar u string = "b"\n\t\t_ = u\n\t}\n\tvar p []any = []any{u, s}\n' + join).includes ('[]string{u, s}'), 'string declared in sibling scopes');
-        ok (f ('\tvar u string = "a"\n\tvar u any = 1\n\tvar p []any = []any{u, s}\n' + join).includes ('[]any{u, s}'), 'mixed declarations stay any');
-        ok (f ('\tvar p []any = []any{strconv.FormatInt(n, 10), s}\n' + join).includes ('[]string{strconv.FormatInt(n, 10), s}'), 'FormatInt is a string');
-    });
+function goJoinNativeCheck (ok: SelfTestOk): void {
+    const f = goJoinCheckInput;
+    const join = '\tvar j string = Join(p, ",")\n\treturn j\n';
+    ok (f ('\tvar p []any = []any{this.Hostname, s}\n' + join).includes ('[]string{this.Hostname, s}'), 'plain string field is a string element');
+    ok (f ('\tvar p []any = []any{this.Token, s}\n' + join).includes ('[]any{this.Token, s}'), 'boxed field stays any');
+    ok (f ('\tif n == nil {\n\t\tvar u string = "a"\n\t\t_ = u\n\t} else {\n\t\tvar u string = "b"\n\t\t_ = u\n\t}\n\tvar p []any = []any{u, s}\n' + join).includes ('[]string{u, s}'), 'string declared in sibling scopes');
+    ok (f ('\tvar u string = "a"\n\tvar u any = 1\n\tvar p []any = []any{u, s}\n' + join).includes ('[]any{u, s}'), 'mixed declarations stay any');
+    ok (f ('\tvar p []any = []any{strconv.FormatInt(n, 10), s}\n' + join).includes ('[]string{strconv.FormatInt(n, 10), s}'), 'FormatInt is a string');
 }
 
 function goTypedStrNativeStringHelpers (filePath: string, content: string): string {
@@ -10738,17 +10724,15 @@ function w8ClientTableCalls (content: string): string {
     return lines.join ('\n');
 }
 
-function w8ClientFuturesSelfTest (): string[] {
-    return runSelfTest ('w8-', (ok) => {
-        const f = (body: string) => w8ClientFuturesReads ('func (this *X) H(client any, p any) {\n' + body + '}\n');
-        const c = 'client.(ccxt.ClientInterface).GetFutures()';
-        ok (f ('\tvar future any = this.SafeValue(' + c + ', "authenticated")\n').includes ('var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")'), 'futures: literal SafeValue not converted');
-        ok (f ('\tvar h string = "a"\n\tvar future any = ccxt.GetValue(' + c + ', h)\n').includes ('= client.(ccxt.ClientInterface).FutureGet(h)'), 'futures: string local GetValue not converted');
-        ok (!f ('\tvar future any = ccxt.GetValue(' + c + ', p)\n').includes ('GetValue('), 'futures: any key reads FutureGet');
-        const t = w8ClientTableCalls ('func (this *X) H(client any, p any) {\n\tif ccxt.InOp(' + c + ', p) {\n\t}\n\tvar k []string = ccxt.ObjectKeys(' + c + ')\n\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p)\n}\n');
-        ok (t.includes ('if client.(ccxt.ClientInterface).FutureHas(p) {') && t.includes ('= client.(ccxt.ClientInterface).FutureKeys()') && t.includes ('= client.(ccxt.ClientInterface).SubscriptionSafe(p)'), 'tables: InOp/ObjectKeys/SafeValue not converted: ' + t);
-        ok (w8ClientTableCalls ('\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p, 1)\n').includes ('SafeValue('), 'tables: SafeValue with a default keeps the helper');
-    });
+function w8ClientFuturesSelfTest (ok: SelfTestOk): void {
+    const f = (body: string) => w8ClientFuturesReads ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+    const c = 'client.(ccxt.ClientInterface).GetFutures()';
+    ok (f ('\tvar future any = this.SafeValue(' + c + ', "authenticated")\n').includes ('var future any = client.(ccxt.ClientInterface).FutureGet("authenticated")'), 'futures: literal SafeValue not converted');
+    ok (f ('\tvar h string = "a"\n\tvar future any = ccxt.GetValue(' + c + ', h)\n').includes ('= client.(ccxt.ClientInterface).FutureGet(h)'), 'futures: string local GetValue not converted');
+    ok (!f ('\tvar future any = ccxt.GetValue(' + c + ', p)\n').includes ('GetValue('), 'futures: any key reads FutureGet');
+    const t = w8ClientTableCalls ('func (this *X) H(client any, p any) {\n\tif ccxt.InOp(' + c + ', p) {\n\t}\n\tvar k []string = ccxt.ObjectKeys(' + c + ')\n\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p)\n}\n');
+    ok (t.includes ('if client.(ccxt.ClientInterface).FutureHas(p) {') && t.includes ('= client.(ccxt.ClientInterface).FutureKeys()') && t.includes ('= client.(ccxt.ClientInterface).SubscriptionSafe(p)'), 'tables: InOp/ObjectKeys/SafeValue not converted: ' + t);
+    ok (w8ClientTableCalls ('\tvar a any = this.SafeValue(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), p, 1)\n').includes ('SafeValue('), 'tables: SafeValue with a default keeps the helper');
 }
 
 // the masked text of the func opened at line k (through its closing `}` line) and each line's offset in it
@@ -10803,16 +10787,14 @@ function w8FuturesPairInOp (content: string): string {
     return out.join ('\n');
 }
 
-function w8FuturesPairSelfTest (): string[] {
-    return runSelfTest ('w8-futures-pair: ', (ok) => {
-        const c = 'client.(ccxt.ClientInterface).GetFutures()';
-        const f = (body: string) => w8FuturesPairInOp ('func (this *X) H(client any, p any) {\n' + body + '}\n');
-        const head = '\tvar a string = \"x\"\n\tvar b string = \"y\"\n';
-        const hit = f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', b)) {\n\t}\n');
-        ok (hit.includes ('\t_, hasFuture := ' + c + '[a]\n\t_, hasSymbolFuture := ' + c + '[b]\n\tif hasFuture || hasSymbolFuture {'), 'string keys not converted: ' + hit);
-        ok (f ('\tvar a string = \"x\"\n\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', p)) {\n\t}\n').includes ('InOp('), 'any key must keep InOp');
-        ok (f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', \"z\")) {\n\t}\n').includes ('InOp('), 'literal key keeps InOp');
-    });
+function w8FuturesPairSelfTest (ok: SelfTestOk): void {
+    const c = 'client.(ccxt.ClientInterface).GetFutures()';
+    const f = (body: string) => w8FuturesPairInOp ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+    const head = '\tvar a string = \"x\"\n\tvar b string = \"y\"\n';
+    const hit = f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', b)) {\n\t}\n');
+    ok (hit.includes ('\t_, hasFuture := ' + c + '[a]\n\t_, hasSymbolFuture := ' + c + '[b]\n\tif hasFuture || hasSymbolFuture {'), 'string keys not converted: ' + hit);
+    ok (f ('\tvar a string = \"x\"\n\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', p)) {\n\t}\n').includes ('InOp('), 'any key must keep InOp');
+    ok (f (head + '\tif (ccxt.InOp(' + c + ', a)) || (ccxt.InOp(' + c + ', \"z\")) {\n\t}\n').includes ('InOp('), 'literal key keeps InOp');
 }
 
 // ===== InOp on a client's map[string]any accessor -> `if _, ok := m[k]; ok {` =====
@@ -10864,14 +10846,12 @@ function goTypedInopClientMaps (content: string): string {
     return lines.join ('\n');
 }
 
-function goTypedInopSelfTest (): string[] {
-    return runSelfTest ('go-typed-deref-self-test-inop: ', (ok) => {
-        const f = (body: string) => goTypedInopClientMaps ('func (this *X) H(client any, p any) {\n' + body + '}\n');
-        const hit = f ('\tvar h string = \"a\"\n\tif !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h)) {\n\t}\n');
-        ok (hit.includes ('\tif _, ok := client.(ccxt.ClientInterface).GetFutures()[h]; !ok {'), 'string key not converted: ' + hit);
-        ok (f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp('), 'any key must keep InOp');
-        ok (f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp('), 'two calls must keep InOp');
-    });
+function goTypedInopSelfTest (ok: SelfTestOk): void {
+    const f = (body: string) => goTypedInopClientMaps ('func (this *X) H(client any, p any) {\n' + body + '}\n');
+    const hit = f ('\tvar h string = \"a\"\n\tif !(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h)) {\n\t}\n');
+    ok (hit.includes ('\tif _, ok := client.(ccxt.ClientInterface).GetFutures()[h]; !ok {'), 'string key not converted: ' + hit);
+    ok (f ('\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), p) {\n\t}\n').includes ('InOp('), 'any key must keep InOp');
+    ok (f ('\tvar h string = \"a\"\n\tif ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), h) || ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), \"b\") {\n\t}\n').includes ('InOp('), 'two calls must keep InOp');
 }
 
 // ===== bare `x := GetValue(s, N)` on a `[]any` local -> native element read =====
@@ -11404,77 +11384,71 @@ function goSelfTestExTranspile (prefix: string, baseMethods: string, methods: st
 
 // a map-literal local rebound by base omit/mergeBalanceAccount of itself stays map[string]any and
 // its writes go native; the same shape on a non-base callee keeps the box
-function goSelfMapRebindSelfTest (): string[] {
-    return runSelfTest ('go self map rebind self: ', (ok) => {
-        const src = 'type Dict = { [key: string]: any };\ntype Str = string | undefined;\nclass Test {\n'
-            + '    omit (x: Dict, ...args: any[]): any { return x; }\n'
-            + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
-            + '    f1 (side: string) { let request = { \'a\': 1 }; if (side === \'sell\') { request = this.omit (request, \'b\'); } request[\'c\'] = 3; return request; }\n'
-            + '    f2 (codes: string[]) { let result = {}; for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result[\'info\'] = 1; return result; }\n'
-            + '    f4 (side: string, p: Str) { let request = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } request = this.omit (request, \'a\'); return request; }\n'
-            + '    f3 (other: Dict) { let request = { \'a\': 1 }; request = this.omit (other, \'b\'); request[\'c\'] = 3; return request; }\n'
-            + '}\n';
-        const print = (dir: string) => goSelfTestTranspile ('go-self-map-rebind-self-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
-        const base = print ('base');
-        const body = goSelfTestFuncBody;
-        ok (/var request map\[string\]any = /.test (body (base, 'F1')) && /request\["c"\] = 3/.test (body (base, 'F1'))
-            && /request = MapTyped\(this\.Omit\(request, "b"\)\)/.test (body (base, 'F1')), 'self-omit local typed + native write');
-        ok (/var result map\[string\]any = /.test (body (base, 'F2')) && /result = MapTyped\(this\.MergeBalanceAccount\(result, /.test (body (base, 'F2'))
-            && /result\["info"\] = 1/.test (body (base, 'F2')), 'mergeBalanceAccount local typed + native write');
-        ok (/var request any = /.test (body (base, 'F3')), 'omit of another map keeps the box');
-        const post = nativeTypedContainerAccess ('func (this *X) f(codes []any) any {\n\tvar result map[string]any = map[string]any{}\n'
-            + '\tresult = MapTyped(this.MergeBalanceAccount(result, "BTC", map[string]any{}))\n\tAddElementToObject(result, "info", 1)\n\treturn result\n}');
-        ok (post.indexOf ('result["info"] = 1') > 0, 'map write after a self-merge goes native in the post pass');
-        ok (!/request\["p"\] = p\b/.test (body (base, 'F4')), 'a pointer value is never stored un-deref\'d');
-        const other = print ('other');
-        ok (/var request any = /.test (body (other, 'F1')) && /var result any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
-    }, 'go self map rebind self threw: ');
+function goSelfMapRebindSelfTest (ok: SelfTestOk): void {
+    const src = 'type Dict = { [key: string]: any };\ntype Str = string | undefined;\nclass Test {\n'
+        + '    omit (x: Dict, ...args: any[]): any { return x; }\n'
+        + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
+        + '    f1 (side: string) { let request = { \'a\': 1 }; if (side === \'sell\') { request = this.omit (request, \'b\'); } request[\'c\'] = 3; return request; }\n'
+        + '    f2 (codes: string[]) { let result = {}; for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result[\'info\'] = 1; return result; }\n'
+        + '    f4 (side: string, p: Str) { let request = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } request = this.omit (request, \'a\'); return request; }\n'
+        + '    f3 (other: Dict) { let request = { \'a\': 1 }; request = this.omit (other, \'b\'); request[\'c\'] = 3; return request; }\n'
+        + '}\n';
+    const print = (dir: string) => goSelfTestTranspile ('go-self-map-rebind-self-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
+    const base = print ('base');
+    const body = goSelfTestFuncBody;
+    ok (/var request map\[string\]any = /.test (body (base, 'F1')) && /request\["c"\] = 3/.test (body (base, 'F1'))
+        && /request = MapTyped\(this\.Omit\(request, "b"\)\)/.test (body (base, 'F1')), 'self-omit local typed + native write');
+    ok (/var result map\[string\]any = /.test (body (base, 'F2')) && /result = MapTyped\(this\.MergeBalanceAccount\(result, /.test (body (base, 'F2'))
+        && /result\["info"\] = 1/.test (body (base, 'F2')), 'mergeBalanceAccount local typed + native write');
+    ok (/var request any = /.test (body (base, 'F3')), 'omit of another map keeps the box');
+    const post = nativeTypedContainerAccess ('func (this *X) f(codes []any) any {\n\tvar result map[string]any = map[string]any{}\n'
+        + '\tresult = MapTyped(this.MergeBalanceAccount(result, "BTC", map[string]any{}))\n\tAddElementToObject(result, "info", 1)\n\treturn result\n}');
+    ok (post.indexOf ('result["info"] = 1') > 0, 'map write after a self-merge goes native in the post pass');
+    ok (!/request\["p"\] = p\b/.test (body (base, 'F4')), 'a pointer value is never stored un-deref\'d');
+    const other = print ('other');
+    ok (/var request any = /.test (body (other, 'F1')) && /var result any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
 }
 
 // a map-literal local rebound by base safeBalance of itself (or a const declared from it) is map[string]any
-function b02SafeBalanceSelfTest (): string[] {
-    return runSelfTest ('safe balance self test: ', (ok) => {
-        const src = 'type Dict = { [key: string]: any };\nclass Test {\n'
-            + '    safeBalance (balance: Dict): any { return balance; }\n'
-            + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
-            + '    deepExtend (...args: any[]): any { return args[0]; }\n'
-            + '    f1 (codes: string[], spot: boolean) { let result: Dict = { \'info\': 1 }; if (spot) { for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result = this.safeBalance (result); } else { result[\'x\'] = 2; result = this.safeBalance (result); } return result; }\n'
-            + '    f2 () { const result: Dict = { \'info\': 1 }; result[\'a\'] = {}; const balance = this.safeBalance (result); return this.deepExtend ({}, balance); }\n'
-            + '    f3 (other: Dict) { let result: Dict = { \'info\': 1 }; result = this.safeBalance (other); result[\'x\'] = 2; return result; }\n'
-            + '    f4 (other: Dict) { const balance = this.safeBalance (other); return balance; }\n'
-            + '}\n';
-        const print = (dir: string) => goSelfTestTranspile ('safe-balance-self-test-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
-        const base = print ('base');
-        const body = goSelfTestFuncBody;
-        ok (/var result map\[string\]any = /.test (body (base, 'F1')) && /result = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F1'))
-            && /result\["x"\] = 2/.test (body (base, 'F1')), 'self-safeBalance local typed + native write');
-        ok (/var balance map\[string\]any = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F2')), 'const from safeBalance of a map local typed');
-        ok (/var result any = /.test (body (base, 'F3')), 'safeBalance of another value keeps the box');
-        ok (/var balance any = this\.SafeBalance\(other\)/.test (body (base, 'F4')), 'const from safeBalance of a param keeps the box');
-        const post = nativeTypedContainerAccess ('func (this *X) f() any {\n\tvar result map[string]any = map[string]any{}\n'
-            + '\tresult = MapTyped(this.SafeBalance(result))\n\tAddElementToObject(result, "info", 1)\n\treturn result\n}');
-        ok (post.indexOf ('result["info"] = 1') > 0, 'map write after a self-safeBalance goes native in the post pass');
-        const other = print ('other');
-        ok (/var result any = /.test (body (other, 'F1')) && /var balance any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
-    }, 'safe balance self test threw: ');
+function b02SafeBalanceSelfTest (ok: SelfTestOk): void {
+    const src = 'type Dict = { [key: string]: any };\nclass Test {\n'
+        + '    safeBalance (balance: Dict): any { return balance; }\n'
+        + '    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict { return result; }\n'
+        + '    deepExtend (...args: any[]): any { return args[0]; }\n'
+        + '    f1 (codes: string[], spot: boolean) { let result: Dict = { \'info\': 1 }; if (spot) { for (let i = 0; i < codes.length; i++) { result = this.mergeBalanceAccount (result, codes[i], {}); } result = this.safeBalance (result); } else { result[\'x\'] = 2; result = this.safeBalance (result); } return result; }\n'
+        + '    f2 () { const result: Dict = { \'info\': 1 }; result[\'a\'] = {}; const balance = this.safeBalance (result); return this.deepExtend ({}, balance); }\n'
+        + '    f3 (other: Dict) { let result: Dict = { \'info\': 1 }; result = this.safeBalance (other); result[\'x\'] = 2; return result; }\n'
+        + '    f4 (other: Dict) { const balance = this.safeBalance (other); return balance; }\n'
+        + '}\n';
+    const print = (dir: string) => goSelfTestTranspile ('safe-balance-self-test-', { [dir + '/Exchange.ts']: src }, dir + '/Exchange.ts');
+    const base = print ('base');
+    const body = goSelfTestFuncBody;
+    ok (/var result map\[string\]any = /.test (body (base, 'F1')) && /result = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F1'))
+        && /result\["x"\] = 2/.test (body (base, 'F1')), 'self-safeBalance local typed + native write');
+    ok (/var balance map\[string\]any = MapTyped\(this\.SafeBalance\(result\)\)/.test (body (base, 'F2')), 'const from safeBalance of a map local typed');
+    ok (/var result any = /.test (body (base, 'F3')), 'safeBalance of another value keeps the box');
+    ok (/var balance any = this\.SafeBalance\(other\)/.test (body (base, 'F4')), 'const from safeBalance of a param keeps the box');
+    const post = nativeTypedContainerAccess ('func (this *X) f() any {\n\tvar result map[string]any = map[string]any{}\n'
+        + '\tresult = MapTyped(this.SafeBalance(result))\n\tAddElementToObject(result, "info", 1)\n\treturn result\n}');
+    ok (post.indexOf ('result["info"] = 1') > 0, 'map write after a self-safeBalance goes native in the post pass');
+    const other = print ('other');
+    ok (/var result any = /.test (body (other, 'F1')) && /var balance any = /.test (body (other, 'F2')), 'non-base callee keeps the box');
 }
 
 // Dict[] / never-nil Dict-local returns print their native type; Str locals written only as *string are *string
-function goAnnotatedReturnSelfTest (): string[] {
-    return runSelfTest ('go annotated return self test: ', (ok) => {
-        const go = goSelfTestExTranspile ('go-annotated-return-self-test-', '    safeValue (a, b, c?): any { return undefined; }\n',
-            '    rows (xs: any[]): Dict[] { const result: Dict[] = []; for (let i = 0; i < xs.length; i++) { result.push ({ \'a\': xs[i] }); } return result; }\n'
-            + '    request (p: Str): Dict { const request: Dict = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } return request; }\n'
-            + '    rebound (o): Dict { let r: Dict = { \'a\': 1 }; r = this.safeValue (o, \'x\'); return r; }\n'
-            + '    pick (o, side: string) { const a = this.safeString (o, \'a\'); let id: Str = undefined; if (side === \'buy\') { id = a; } return { \'id\': id }; }\n'
-            + '    pick2 (o) { let id: Str = undefined; id = this.safeValue (o, \'a\'); return { \'id\': id }; }\n'
-            + '    use (o) { return [ this.rows ([ 1 ]), this.request (\'x\'), this.rebound (o), this.pick (o, \'buy\'), this.pick2 (o) ]; }\n');
-        ok (go.includes ('func (this *ex) Rows(xs []any) []any {'), 'Dict[] return of a slice local prints []any');
-        ok (go.includes ('func (this *ex) Request(p *string) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
-        ok (go.includes ('func (this *ex) Rebound(o any) any {'), 'a local rebound to an any value keeps the any return');
-        ok (/\tvar id \*string = nil\n\tif side == "buy"/.test (go), 'Str local written only as *string is *string');
-        ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
-    }, 'go annotated return self test threw: ');
+function goAnnotatedReturnSelfTest (ok: SelfTestOk): void {
+    const go = goSelfTestExTranspile ('go-annotated-return-self-test-', '    safeValue (a, b, c?): any { return undefined; }\n',
+        '    rows (xs: any[]): Dict[] { const result: Dict[] = []; for (let i = 0; i < xs.length; i++) { result.push ({ \'a\': xs[i] }); } return result; }\n'
+        + '    request (p: Str): Dict { const request: Dict = { \'a\': 1 }; if (p !== undefined) { request[\'p\'] = p; } return request; }\n'
+        + '    rebound (o): Dict { let r: Dict = { \'a\': 1 }; r = this.safeValue (o, \'x\'); return r; }\n'
+        + '    pick (o, side: string) { const a = this.safeString (o, \'a\'); let id: Str = undefined; if (side === \'buy\') { id = a; } return { \'id\': id }; }\n'
+        + '    pick2 (o) { let id: Str = undefined; id = this.safeValue (o, \'a\'); return { \'id\': id }; }\n'
+        + '    use (o) { return [ this.rows ([ 1 ]), this.request (\'x\'), this.rebound (o), this.pick (o, \'buy\'), this.pick2 (o) ]; }\n');
+    ok (go.includes ('func (this *ex) Rows(xs []any) []any {'), 'Dict[] return of a slice local prints []any');
+    ok (go.includes ('func (this *ex) Request(p *string) map[string]any {'), 'Dict return of a map-literal local prints map[string]any');
+    ok (go.includes ('func (this *ex) Rebound(o any) any {'), 'a local rebound to an any value keeps the any return');
+    ok (/\tvar id \*string = nil\n\tif side == "buy"/.test (go), 'Str local written only as *string is *string');
+    ok (/func \(this \*ex\) Pick2\(o any\) any \{\n\tvar id any = nil/.test (go), 'Str local written from any keeps the box');
 }
 
 // address taken or multi-value rebinding of a map local; a comparison (`f(m, k) != nil`) is not a write
@@ -11507,33 +11481,31 @@ function goEnclosingNilGuard (masked: string[], start: number, k: number, name: 
     return false;
 }
 
-function goMapWriteNilGuardSelfTest (): string[] {
-    return runSelfTest ('go map write nil guard: ', (ok) => {
-        const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n'
-            + '\tvar since *int64 = this.SafeInteger(p, "s")\n' + body + '\treturn request\n}');
-        ok (run ('\tif since != nil {\n\t\tif this.SafeString(request, "a") != nil {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t} else {\n'
-            + '\t\t\tAddElementToObject(request, "t", since)\n\t\t}\n\t}\n').match (/request\["[st]"\] = \*since/g)?.length === 2, 'outer nil guard + nil comparison on the map');
-        ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, '== nil guard prints no bare deref');
-        ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
-        ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
-        ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
-        // any-typed value locals fed only by deref'd producers (printer-go-addelem-map-local-any-key-value)
-        const anyRun = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar result map[string]any = map[string]any{}\n' + body + '\treturn result\n}');
-        ok (anyRun ('\tvar item any = this.SafeDict(p, "k", map[string]any{})\n\tvar id *string = this.SafeString(item, "id")\n\tAddElementToObject(result, id, item)\n').includes ('if id != nil {\n\t\tresult[*id] = item\n\t}'), 'SafeDict any local under a *string key');
-        ok (anyRun ('\tvar item any = GetValue(p, "k")\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item'), 'GetValue any local under a literal key');
-        ok (anyRun ('\tvar item any = this.SafeDict(p, "k")\n\titem = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'a non-deref\'d rewrite keeps the helper');
-        ok (anyRun ('\tvar item any = this.SafeList(p, "k", []any{})\n\tAppendToArray(&item, 1)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an address-taken local keeps the helper');
-        ok (anyRun ('\tvar item any = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an unknown producer keeps the helper');
-        const src = 'type List = any[];\nclass Test {\n'
-            + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
-            + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
-            + '    g (r: any) { const data = this.safeList (r, \'data\', []); return (data as List); }\n'
-            + '}\n';
-        const go = goSelfTestTranspile ('go-map-write-nil-guard-', { 'test.ts': src }, 'test.ts');
-        const body = (name: string) => goSelfTestFuncBody (go, name);
-        ok (/var data \[\]any = SafeListTyped\(r, "data"\)/.test (body ('F')), 'safeList [] default read through `as List` unboxes');
-        ok (/var data \[\]any = SafeListTypedDefault\(r, "data", \[\]any\{\}\)/.test (body ('G')), 'an `as` wrapper that hands the list out keeps its default');
-    }, 'go map write nil guard threw: ');
+function goMapWriteNilGuardSelfTest (ok: SelfTestOk): void {
+    const run = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n'
+        + '\tvar since *int64 = this.SafeInteger(p, "s")\n' + body + '\treturn request\n}');
+    ok (run ('\tif since != nil {\n\t\tif this.SafeString(request, "a") != nil {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t} else {\n'
+        + '\t\t\tAddElementToObject(request, "t", since)\n\t\t}\n\t}\n').match (/request\["[st]"\] = \*since/g)?.length === 2, 'outer nil guard + nil comparison on the map');
+    ok (run ('\tif since == nil {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, '== nil guard prints no bare deref');
+    ok (run ('\tif since != nil {\n\t\tf := func() {\n\t\t\tAddElementToObject(request, "s", since)\n\t\t}\n\t\tf()\n\t}\n').includes ('request["s"] = *since') === false, 'a func literal stops the guard walk');
+    ok (run ('\tif since != nil {\n\t}\n\tAddElementToObject(request, "s", since)\n').includes ('request["s"] = *since') === false, 'a closed guard block does not dominate');
+    ok (run ('\tif (since != nil) || true {\n\t\tAddElementToObject(request, "s", since)\n\t}\n').includes ('request["s"] = *since') === false, 'a || guard prints no bare deref');
+    // any-typed value locals fed only by deref'd producers (printer-go-addelem-map-local-any-key-value)
+    const anyRun = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p any) any {\n\tvar result map[string]any = map[string]any{}\n' + body + '\treturn result\n}');
+    ok (anyRun ('\tvar item any = this.SafeDict(p, "k", map[string]any{})\n\tvar id *string = this.SafeString(item, "id")\n\tAddElementToObject(result, id, item)\n').includes ('if id != nil {\n\t\tresult[*id] = item\n\t}'), 'SafeDict any local under a *string key');
+    ok (anyRun ('\tvar item any = GetValue(p, "k")\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item'), 'GetValue any local under a literal key');
+    ok (anyRun ('\tvar item any = this.SafeDict(p, "k")\n\titem = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'a non-deref\'d rewrite keeps the helper');
+    ok (anyRun ('\tvar item any = this.SafeList(p, "k", []any{})\n\tAppendToArray(&item, 1)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an address-taken local keeps the helper');
+    ok (anyRun ('\tvar item any = this.Foo(p)\n\tAddElementToObject(result, "a", item)\n').includes ('result["a"] = item') === false, 'an unknown producer keeps the helper');
+    const src = 'type List = any[];\nclass Test {\n'
+        + '    safeList (d: any, k: any, v: any = undefined): any { return v; }\n'
+        + '    f (r: any) { const data = this.safeList (r, \'data\', []); const n = (data as List).length; for (let i = 0; i < n; i++) { const e = data[i]; } return n; }\n'
+        + '    g (r: any) { const data = this.safeList (r, \'data\', []); return (data as List); }\n'
+        + '}\n';
+    const go = goSelfTestTranspile ('go-map-write-nil-guard-', { 'test.ts': src }, 'test.ts');
+    const body = (name: string) => goSelfTestFuncBody (go, name);
+    ok (/var data \[\]any = SafeListTyped\(r, "data"\)/.test (body ('F')), 'safeList [] default read through `as List` unboxes');
+    ok (/var data \[\]any = SafeListTypedDefault\(r, "data", \[\]any\{\}\)/.test (body ('G')), 'an `as` wrapper that hands the list out keeps its default');
 }
 
 // ===== plain tuple slots of exchange producers; pro files see their REST producers =====
@@ -11920,18 +11892,16 @@ function goTupleSlotReadsCheck (ok: SelfTestOk): void {
 
 // closed non-parse `: Str` methods returning a *string on every path print *string (caller locals follow);
 // an `undefined` path keeps `any`; `: string[]` never-nil returns print []any
-function goStrReturnSelfTest (): string[] {
-    return runSelfTest ('go str return self test: ', (ok) => {
-        const go = goSelfTestExTranspile ('go-str-return-self-test-', '',
-            '    encodeSide (side): Str { const sides: Dict = { \'buy\': \'BID\' }; return this.safeString (sides, side, side); }\n'
-            + '    maybeSide (side): Str { if (side === undefined) { return undefined; } return this.safeString ({}, side, side); }\n'
-            + '    names (): string[] { const out = []; out.push (\'a\'); return out; }\n'
-            + '    use (o) { const s = this.encodeSide (o); const m = this.maybeSide (o); const n = this.names (); return [ s, m, n.length ]; }\n');
-        ok (go.includes ('func (this *ex) EncodeSide(side any) *string {'), 'Str method returning safeString on every path prints *string');
-        ok (go.includes ('var s *string = this.EncodeSide(o)'), 'caller local of a *string method is *string');
-        ok (go.includes ('func (this *ex) MaybeSide(side any) any {'), 'Str method with an undefined path keeps any');
-        ok (go.includes ('func (this *ex) Names() []any {') && go.includes ('var n []any = this.Names()'), 'never-nil string[] return prints []any');
-    }, 'go str return self test threw: ');
+function goStrReturnSelfTest (ok: SelfTestOk): void {
+    const go = goSelfTestExTranspile ('go-str-return-self-test-', '',
+        '    encodeSide (side): Str { const sides: Dict = { \'buy\': \'BID\' }; return this.safeString (sides, side, side); }\n'
+        + '    maybeSide (side): Str { if (side === undefined) { return undefined; } return this.safeString ({}, side, side); }\n'
+        + '    names (): string[] { const out = []; out.push (\'a\'); return out; }\n'
+        + '    use (o) { const s = this.encodeSide (o); const m = this.maybeSide (o); const n = this.names (); return [ s, m, n.length ]; }\n');
+    ok (go.includes ('func (this *ex) EncodeSide(side any) *string {'), 'Str method returning safeString on every path prints *string');
+    ok (go.includes ('var s *string = this.EncodeSide(o)'), 'caller local of a *string method is *string');
+    ok (go.includes ('func (this *ex) MaybeSide(side any) any {'), 'Str method with an undefined path keeps any');
+    ok (go.includes ('func (this *ex) Names() []any {') && go.includes ('var n []any = this.Names()'), 'never-nil string[] return prints []any');
 }
 // More `any`-local writes whose box never holds a nil scalar pointer or a typed-nil map/[]any/[]string:
 // SortBy2 with a literal key, Safe{Dict,List}* whose default is itself such a write.
@@ -12260,18 +12230,16 @@ function goUnboxDefaultedSafeIntegerSelfTest (ok: SelfTestOk): void {
     ok (formatGoSource ('selftest.go', 'func (this *X) f() any {\n\tvar m *int64 = this.SafeInteger(t, "E", 0)\n\treturn float64(*m)\n}\n').includes ('var m int64 = *this.SafeInteger'), 'wired into formatGoSource');
 }
 // `limit === undefined ? D : limit` over a `*int64` param types as `int64` when every read is a helper argument
-function goDefaultedLimitInt64SelfTest (): string[] {
-    return runSelfTest ('go defaulted limit int64 self test: ', (ok) => {
-        const go = goSelfTestTranspile ('go-defaulted-limit-int64 self-test-', {
-            'ts/src/base/Exchange.ts': 'export type Int = number | undefined;\nexport class Exchange {\n    sum (a, b) { return a; }\n    parseTimeframe (t): number { return 60; }\n}\n',
-            'ts/src/ex.ts': 'import { Exchange, Int } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
-            + '    a (since: Int = undefined, limit: Int = undefined) { const duration = this.parseTimeframe (\'1m\'); const lr = (limit === undefined) ? 200 : limit; return this.sum (since, lr * duration * 1000); }\n'
-            + '    b (since: Int = undefined, limit: Int = undefined) { const lr = (limit === undefined) ? 200 : limit; lr.toString (); return lr; }\n'
-            + '    c (since: Int = undefined, limit: Int = undefined) { const d = (since === undefined) ? limit : 5; return d; }\n}\n'
-        }, 'ts/src/ex.ts');
-        ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
-        ok (!/var d int64/.test (go), 'a non-defaulting shape keeps its type');
-    }, 'go defaulted limit int64 self test threw: ');
+function goDefaultedLimitInt64SelfTest (ok: SelfTestOk): void {
+    const go = goSelfTestTranspile ('go-defaulted-limit-int64 self-test-', {
+        'ts/src/base/Exchange.ts': 'export type Int = number | undefined;\nexport class Exchange {\n    sum (a, b) { return a; }\n    parseTimeframe (t): number { return 60; }\n}\n',
+        'ts/src/ex.ts': 'import { Exchange, Int } from \'./base/Exchange\';\nexport class ex extends Exchange {\n'
+        + '    a (since: Int = undefined, limit: Int = undefined) { const duration = this.parseTimeframe (\'1m\'); const lr = (limit === undefined) ? 200 : limit; return this.sum (since, lr * duration * 1000); }\n'
+        + '    b (since: Int = undefined, limit: Int = undefined) { const lr = (limit === undefined) ? 200 : limit; lr.toString (); return lr; }\n'
+        + '    c (since: Int = undefined, limit: Int = undefined) { const d = (since === undefined) ? limit : 5; return d; }\n}\n'
+    }, 'ts/src/ex.ts');
+    ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
+    ok (!/var d int64/.test (go), 'a non-defaulting shape keeps its type');
 }
 
 // Row-string Add leaves `m["symbol"].(string)` / `c["id"|"code"].(string)`: TS types them `string` and rows are plain;
@@ -12501,15 +12469,13 @@ function goBlockScopedDeclCheck (ok: SelfTestOk): void {
 }
 
 // comparisons reach both the per-exchange (formatGoSource) and base-file pass chains
-function goFloatComparisonsWiredCheck (): string[] {
-    return runSelfTest ('', (ok) => {
-        const head = goSelfTestHead (false);
-        const body = 'func (this *Exchange) F(o any) any {\n\tvar d *float64 = this.SafeNumber(o, \"d\")\n\tif (d != nil) && IsLessThan(d, 0) {\n\t}\n\tvar start int64 = this.Milliseconds()\n\tfor IsLessThan((this.Milliseconds() - start), 5) {\n\t}\n\treturn nil\n}\n';
-        const ex = formatGoSource ('selftest.go', head + body);
-        ok (ex.includes ('(d != nil) && (!(*d >= 0))'), 'formatGoSource float < : ' + ex);
-        const base = goBaseNativePasses (head + body);
-        ok (!(!base.includes ('!(*d >= 0)') || base.includes ('IsLessThan((this.Milliseconds()')), 'base passes: ' + base);
-    }, 'go float comparisons wired check threw: ');
+function goFloatComparisonsWiredCheck (ok: SelfTestOk): void {
+    const head = goSelfTestHead (false);
+    const body = 'func (this *Exchange) F(o any) any {\n\tvar d *float64 = this.SafeNumber(o, \"d\")\n\tif (d != nil) && IsLessThan(d, 0) {\n\t}\n\tvar start int64 = this.Milliseconds()\n\tfor IsLessThan((this.Milliseconds() - start), 5) {\n\t}\n\treturn nil\n}\n';
+    const ex = formatGoSource ('selftest.go', head + body);
+    ok (ex.includes ('(d != nil) && (!(*d >= 0))'), 'formatGoSource float < : ' + ex);
+    const base = goBaseNativePasses (head + body);
+    ok (!(!base.includes ('!(*d >= 0)') || base.includes ('IsLessThan((this.Milliseconds()')), 'base passes: ' + base);
 }
 
 // IsEqual(this.Safe{String,StringLower,StringUpper,Integer,Bool}(args), <literal of that kind>) -> nil-checked `*call == lit`:
@@ -12775,16 +12741,14 @@ function goCompositeKeyAligner (): any {
     return self.cache;
 }
 
-function goArithHelpersWiredCheck (): string[] {
+function goArithHelpersWiredCheck (ok: SelfTestOk): void {
     // proven operands go native, unproven ones keep the helper call, never an inline closure
-    return runSelfTest ('', (ok) => {
-        const out = goWrittenThrough (goSelfTestHead (true) + 'func (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
-        ok (!(/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')), 'inline closure emitted: ' + out);
-        for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
-            ok (out.includes (want), 'unproven call lost its helper (' + want + '): ' + out);
-        }
-        ok (!out.includes ('IsLessThan(n, 10)'), 'proven int64 comparison not native: ' + out);
-    });
+    const out = goWrittenThrough (goSelfTestHead (true) + 'func (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
+    ok (!(/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')), 'inline closure emitted: ' + out);
+    for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
+        ok (out.includes (want), 'unproven call lost its helper (' + want + '): ' + out);
+    }
+    ok (!out.includes ('IsLessThan(n, 10)'), 'proven int64 comparison not native: ' + out);
 }
 
 // IsEqual -> native ==/!= where the operand box is provably plain (no scalar pointer, no nil *sync.Map): credential
@@ -12969,17 +12933,13 @@ function goWrittenThrough (src: string): string {
 }
 
 // the typed operand comparison pass must run in both write paths (overwriteFileAndFolder and the base chain)
-function goTypedIsEqualWiredCheck (): string[] {
+function goTypedIsEqualWiredCheck (ok: SelfTestOk): void {
     const body = 'func (this *X) F(p any) any {\n\tvar a *string = this.SafeString(p, "a")\n\tvar b *string = this.SafeString(p, "b")\n\tif IsEqual(a, b) {\n\t\treturn nil\n\t}\n\treturn a\n}\n';
     const out = goWrittenThrough (goSelfTestHead (false) + body);
-    if (!out.includes ('if a == b || (a != nil && b != nil && *a == *b) {')) {
-        return [ 'go markets-by-id write: not wired into overwriteFileAndFolder: ' + out ];
-    }
-    const base = goBaseNativePasses (goSelfTestHead (false) + body);
-    if (!base.includes ('if a == b ||')) {
-        return [ 'go markets-by-id write: not wired into the base-methods chain: ' + base ];
-    }
-    return [];
+    const wired = out.includes ('if a == b || (a != nil && b != nil && *a == *b) {');
+    ok (wired, 'not wired into overwriteFileAndFolder: ' + out);
+    const base = wired ? goBaseNativePasses (goSelfTestHead (false) + body) : 'if a == b ||';
+    ok (base.includes ('if a == b ||'), 'not wired into the base-methods chain: ' + base);
 }
 
 function goInlineIsEqualWiredCheck (): string[] {
@@ -13001,34 +12961,30 @@ function goParseNativeWiredCheck (): string[] {
 // InOp has exactly two outcomes: goNativeInOp / goTypedInopClientMaps / goFieldInOp emit `_, ok := m[k]` on a proven
 // map[string]any receiver with a proven string key; every other site keeps the InOp(dict, key) helper call.
 // No pass may paste the helper body as an inline `func(a, b any) bool {..}(X, Y)` closure.
-function goInOpHelperCheck (): string[] {
-    return runSelfTest ('', (ok) => {
-        const head = goSelfTestHead (true);
-        const cases = [
-            head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
-            'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
-            head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
-        ];
-        for (const src of cases) {
-            const out = goWrittenThrough (src);
-            ok (!(/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)), 'unproven InOp must stay a helper call: ' + out);
-        }
-    });
+function goInOpHelperCheck (ok: SelfTestOk): void {
+    const head = goSelfTestHead (true);
+    const cases = [
+        head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
+        'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
+        head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
+    ];
+    for (const src of cases) {
+        const out = goWrittenThrough (src);
+        ok (!(/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)), 'unproven InOp must stay a helper call: ' + out);
+    }
 }
 
 // a nullable `Str` parameter whose callers pass `*string` or a proven Go `string` prints `*string`;
 // the string callers are boxed with SafeStringPtr (never nil); any other caller keeps the `any` box
-function goNullableStrParamSelfTest (): string[] {
-    return runSelfTest ('go nullable str param self: ', (ok) => {
-        const go = goSelfTestExTranspile ('go-nullable-str-param-self-', '',
-            '    req (symbol: Str, side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } if (symbol !== undefined) { r[\'y\'] = 2; } return r; }\n'
-            + '    boxed (side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } return r; }\n'
-            + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n');
-        ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params\n' + go);
-        ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr\n' + go);
-        ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box\n' + go);
-        ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively\n' + go);
-    }, 'go nullable str param self threw: ');
+function goNullableStrParamSelfTest (ok: SelfTestOk): void {
+    const go = goSelfTestExTranspile ('go-nullable-str-param-self-', '',
+        '    req (symbol: Str, side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } if (symbol !== undefined) { r[\'y\'] = 2; } return r; }\n'
+        + '    boxed (side: Str): Dict { const r: Dict = {}; if (side === \'buy\') { r[\'s\'] = 1; } return r; }\n'
+        + '    use (o: Dict, raw) { const s: string = \'BTC\'; const p = this.safeString (o, \'p\'); this.boxed (raw); return [ this.req (s, p), this.req (p, \'sell\') ]; }\n');
+    ok (go.includes ('func (this *ex) Req(symbol *string, side *string) map[string]any {'), 'string/*string callers type the Str params\n' + go);
+    ok (go.includes ('this.Req(SafeStringPtr(s), p)') && go.includes ('this.Req(p, SafeStringPtr("sell"))'), 'string arguments are boxed with SafeStringPtr\n' + go);
+    ok (go.includes ('func (this *ex) Boxed(side any) map[string]any {') && go.includes ('this.Boxed(raw)'), 'an any caller keeps the box\n' + go);
+    ok (!/IsEqual\(side, "buy"\)/.test (go.split ('func (this *ex) Boxed')[0]), 'typed param compares natively\n' + go);
 }
 
 // Split/Join/Replace: a proven non-pointer `string` subject (`[]string` for Join) whose other operands are literals or proven
@@ -13099,32 +13055,30 @@ export function goStdlibStringHelpers (content: string): string {
     return used ? goAddImport (text, 'strings') : text;
 }
 
-function goStdlibStringHelpersCheck (): string[] {
-    return runSelfTest ('', (ok) => {
-        const head = goSelfTestHead (true);
-        const run = (body: string, sig = 'a any, b any') => goStdlibStringHelpers (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n');
-        // proven local subject + literal operands: plain stdlib call, no parens, import added
-        const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(x, "-")\n\treturn Replace(Join(a, b), "x", "")');
-        ok (!(!out.includes ('var x string = strings.Join(ids, ",")') || !out.includes ('var y []string = strings.Split(x, "-")') || !out.includes ('return Replace(Join(a, b), "x", "")') || !out.includes ('import "strings"\n') || out.includes ('func(') || out.includes ('(strings.')), 'shape: ' + out);
-        // widened proof: `string` / grouped parameters and proven-string separators
-        const par = run ('\treturn Replace(s, sep, "")', 'a any, s, sep string');
-        ok (par.includes ('return strings.ReplaceAll(s, sep, "")'), 'string parameter not proven: ' + par);
-        // unproven: *string, any, := rebinding, call-expression subject, unproven separator -> helper call left alone
-        const keep = [
-            run ('\tvar m *string = this.SafeString(a, "m")\n\treturn Split(m, "_")'),
-            run ('\treturn Split(a, "_")'),
-            run ('\tvar s string = "x"\n\tif true {\n\t\ts := a\n\t\t_ = s\n\t}\n\treturn Split(s, "_")'),
-            run ('\treturn Split(ToString(a), "_")'),
-            run ('\tvar s string = "x"\n\treturn Split(s, b)'),
-            run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
-        ];
-        for (const k of keep) {
-            ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k);
-        }
-        ok (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') === goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")')), 'not idempotent');
-        const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
-        ok (goStdlibStringHelpers (hand) === hand, 'hand-written file rewritten');
-    });
+function goStdlibStringHelpersCheck (ok: SelfTestOk): void {
+    const head = goSelfTestHead (true);
+    const run = (body: string, sig = 'a any, b any') => goStdlibStringHelpers (head + 'func (this *K) F(' + sig + ') any {\n' + body + '\n}\n');
+    // proven local subject + literal operands: plain stdlib call, no parens, import added
+    const out = run ('\tvar ids []string = ObjectKeys(a)\n\tvar x string = Join(ids, ",")\n\tvar y []string = ccxt.Split(x, "-")\n\treturn Replace(Join(a, b), "x", "")');
+    ok (!(!out.includes ('var x string = strings.Join(ids, ",")') || !out.includes ('var y []string = strings.Split(x, "-")') || !out.includes ('return Replace(Join(a, b), "x", "")') || !out.includes ('import "strings"\n') || out.includes ('func(') || out.includes ('(strings.')), 'shape: ' + out);
+    // widened proof: `string` / grouped parameters and proven-string separators
+    const par = run ('\treturn Replace(s, sep, "")', 'a any, s, sep string');
+    ok (par.includes ('return strings.ReplaceAll(s, sep, "")'), 'string parameter not proven: ' + par);
+    // unproven: *string, any, := rebinding, call-expression subject, unproven separator -> helper call left alone
+    const keep = [
+        run ('\tvar m *string = this.SafeString(a, "m")\n\treturn Split(m, "_")'),
+        run ('\treturn Split(a, "_")'),
+        run ('\tvar s string = "x"\n\tif true {\n\t\ts := a\n\t\t_ = s\n\t}\n\treturn Split(s, "_")'),
+        run ('\treturn Split(ToString(a), "_")'),
+        run ('\tvar s string = "x"\n\treturn Split(s, b)'),
+        run ('\tstrings := a\n\tvar s string = "x"\n\treturn Split(s, "_")'),
+    ];
+    for (const k of keep) {
+        ok (!(!k.includes ('return Split(') || k.includes ('func(') || k.includes ('import "strings"')), 'unproven site not left as the helper call: ' + k);
+    }
+    ok (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")') === goStdlibStringHelpers (run ('\tvar ids []string = nil\n\treturn Join(ids, ",")')), 'not idempotent');
+    const hand = 'package ccxt\n\nfunc Join(slice any, sep any) string {\n\treturn Join(slice, sep)\n}\n';
+    ok (goStdlibStringHelpers (hand) === hand, 'hand-written file rewritten');
 }
 
 // ===== credential fields are plain Go strings =====
