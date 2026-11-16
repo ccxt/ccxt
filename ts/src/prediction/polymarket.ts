@@ -1276,17 +1276,17 @@ export default class polymarket extends Exchange {
         const tokenId = this.safeString (outcomeObj, 'outcomeId');
         const fidelityMin = this.safeInteger (this.timeframes, timeframe, 1); // fidelity in minutes
         const nowS = this.seconds ();
-        let startS: number;
-        let endS: number = nowS;
+        let startS = this.parseToInt (0);
+        let endS = this.parseToInt (nowS);
         if (since !== undefined) {
             startS = this.parseToInt (since / 1000);
             if (limit !== undefined) {
-                const endBound = this.sum (startS, limit * fidelityMin * 60);
+                const endBound = this.parseToInt (this.sum (startS, limit * fidelityMin * 60));
                 endS = (endBound < nowS) ? endBound : nowS;
             }
         } else {
             const barCount = (limit !== undefined) ? limit : 100;
-            startS = nowS - (barCount * fidelityMin * 60);
+            startS = this.parseToInt (nowS - (barCount * fidelityMin * 60));
         }
         // the venue rejects startTs/endTs spans over 15 days ("interval is too long")
         // regardless of fidelity, so clamp the window to the cap: keep the requested
@@ -1295,9 +1295,9 @@ export default class polymarket extends Exchange {
         const maxWindow = this.safeInteger (this.options, 'maxPricesHistoryWindow', 1296000);
         if ((endS - startS) > maxWindow) {
             if (since !== undefined) {
-                endS = this.sum (startS, maxWindow);
+                endS = this.parseToInt (this.sum (startS, maxWindow));
             } else {
-                startS = endS - maxWindow;
+                startS = this.parseToInt (endS - maxWindow);
             }
         }
         const request: Dict = {

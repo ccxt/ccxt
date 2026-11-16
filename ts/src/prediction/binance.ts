@@ -214,7 +214,7 @@ export default class binance extends Exchange {
         let offset: int = 0;
         while (true) {
             const collectedLength = collected.length;
-            const remaining = maxTopicsResolved - collectedLength;
+            const remaining = this.parseToInt (maxTopicsResolved - collectedLength);
             const reqLimit = (remaining < pageLimit) ? remaining : pageLimit;
             if (reqLimit <= 0) {
                 break;
