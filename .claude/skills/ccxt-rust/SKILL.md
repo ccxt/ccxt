@@ -1191,7 +1191,7 @@ Err(e) if e.is("InvalidOrder")  => ...,
 let value = ticker.last * amount;
 
 // Correct — decide what a missing price means
-let Some(last) = ticker.last else { return Err("ticker has no last price".into()) };
+let Some(last) = ticker.last else { return Err(ccxt::ExchangeError::new("BadResponse", "ticker has no last price")) };
 let value = last * amount;
 ```
 
