@@ -681,8 +681,8 @@ impl Predictfun {
                 m
             }), &[&rest]);
             let mut response: crate::value::Dict = self.predictfun_get_v1_categories_slug(&[__ws_arg_1]).await.into_dict();
-            let mut data: Value = self.safe_dict_k(&response, "data", &[]);
-            rawTopics = std::sync::Arc::new(vec![data]);
+            let mut data: Option<crate::value::Dict> = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
+            rawTopics = std::sync::Arc::new(vec![data.map_or(Value::Null, Value::Dict)]);
         }  else if queriesLength > 0 {
             // a query/queries scope is answered by the dedicated search endpoint — the categories
             // listing has no text filter, so paging it and matching client-side would both miss

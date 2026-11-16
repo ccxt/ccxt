@@ -3328,12 +3328,9 @@ impl Nado {
         let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(trade.clone(), "timestamp", &[]).as_i64();
-        let mut rawOrder: Value = self.safe_dict_k(trade.clone(), "order", &[]);
-        let mut isArchiveMatch: bool = rawOrder != Value::Null;
-        let mut order: crate::value::Dict = (if (rawOrder == Value::Null) { Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-}) } else { rawOrder }).into_dict();
+        let mut rawOrder: Option<crate::value::Dict> = self.safe_dict_k(trade.clone(), "order", &[]).into_opt_dict();
+        let mut isArchiveMatch: bool = rawOrder.is_some();
+        let mut order: crate::value::Dict = rawOrder.unwrap_or_default();
         let mut amountString: Option<String> = self.safe_string_k(trade.clone(), "base_filled", &[]).as_str().map(str::to_owned);
         let mut costString: Option<String> = self.safe_string_k(trade.clone(), "quote_filled", &[]).as_str().map(str::to_owned);
         let mut rawOrderAmount: Option<String> = self.safe_string_k(&order, "amount", &[]).as_str().map(str::to_owned);

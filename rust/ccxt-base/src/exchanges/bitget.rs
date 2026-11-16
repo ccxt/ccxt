@@ -11713,10 +11713,10 @@ if _try_result.is_err() {
         if (!uta) && (matches!(&response, Value::Str(_))) {
             response = json_parse(&response);
         }
-        let mut data: Value = self.safe_dict_k(response.clone(), "data", &[]);
-        if (data != Value::Null) {
-            if !(matches!(&data, Value::Arr(_))) {
-                return self.parse_order(data, Some(&market));
+        let mut data: Option<crate::value::Dict> = self.safe_dict_k(response.clone(), "data", &[]).into_opt_dict();
+        if (data.is_some()) {
+            if !(false) {
+                return self.parse_order(&data, Some(&market));
             }
         }
         let mut dataList: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();

@@ -3705,13 +3705,13 @@ impl Weex {
         let mut marketType: Option<String> = marketTypeparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = marketTypeparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = marketType.as_deref() == Some("spot");
-        let mut clientOrderIds: Value = self.safe_list_k(&paramsMarketType, "clientOrderIds", &[]);
+        let mut clientOrderIds: Option<crate::value::List> = self.safe_list_k(&paramsMarketType, "clientOrderIds", &[]).into_opt_list();
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsMarketType, Value::Str("clientOrderIds".into()), &[]).into_dict();
-        if (clientOrderIds != Value::Null) {
+        if (clientOrderIds.is_some()) {
             if isSpot {
-                request.insert("origClientOrderIds".into(), clientOrderIds.clone());
+                request.insert("origClientOrderIds".into(), clientOrderIds.clone().map_or(Value::Null, Value::Arr));
             }  else {
-                request.insert("origClientOrderIdList".into(), clientOrderIds);
+                request.insert("origClientOrderIdList".into(), clientOrderIds.map_or(Value::Null, Value::Arr));
             }
         }  else if (ids != Value::Null) {
             if isSpot {

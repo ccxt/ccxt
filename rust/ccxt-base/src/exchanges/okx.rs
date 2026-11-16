@@ -10905,8 +10905,8 @@ impl Okx {
                 let mut borrowRateStructure: crate::value::Dict = self.parse_borrow_rate(item.map_or(Value::Null, Value::Dict), None).into_dict();
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 std::sync::Arc::make_mut(&mut borrowRateStructure).insert("period".into(), Value::Int(31536000000));
-                let mut borrrowRateCode: Value = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut borrrowRateCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); } if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), borrrowRateCode); }
+                let mut borrrowRateCode: crate::value::List = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_list();
+                std::sync::Arc::make_mut(&mut borrrowRateCode).push(Value::Dict(borrowRateStructure)); if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), Value::Arr(borrrowRateCode)); }
             }
         }
         }

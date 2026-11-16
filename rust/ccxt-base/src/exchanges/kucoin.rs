@@ -9903,10 +9903,10 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
         let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (trades != Value::Null) {
-            tradesList = trades.into_list();
+        if (true) {
+            tradesList = trades;
         }
         return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
@@ -10012,10 +10012,10 @@ impl Kucoin {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut trades: Value = self.safe_list_k(&data, "items", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
         let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (trades != Value::Null) {
-            tradesList = trades.into_list();
+        if (true) {
+            tradesList = trades;
         }
         return self.parse_trades(&tradesList, market.as_ref(), &[since, limit]);
 
@@ -13077,8 +13077,8 @@ if _try_result.is_err() {
                     borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
                 let mut borrowRateStructure: crate::value::Dict = self.parse_borrow_rate(item.map_or(Value::Null, Value::Dict), None).into_dict();
-                let mut borrowRateHistoriesCode: Value = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                if let Value::Arr(__a) = &mut borrowRateHistoriesCode { std::sync::Arc::make_mut(__a).push(Value::Dict(borrowRateStructure)); } if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), borrowRateHistoriesCode); }
+                let mut borrowRateHistoriesCode: crate::value::List = borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null).into_list();
+                std::sync::Arc::make_mut(&mut borrowRateHistoriesCode).push(Value::Dict(borrowRateStructure)); if let Some(__k) = code.as_deref() { borrowRateHistories.insert(__k.to_string(), Value::Arr(borrowRateHistoriesCode)); }
             }
         }
         }

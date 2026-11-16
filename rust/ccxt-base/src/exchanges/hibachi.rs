@@ -1064,10 +1064,10 @@ impl Hibachi {
         //     ]
         // }
         //
-        let mut trades: Value = self.safe_list_k(&response, "trades", &[Value::from(vec![])]);
+        let mut trades: crate::value::List = self.safe_list_k(&response, "trades", &[Value::from(vec![])]).into_list();
         let mut tradesList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (trades != Value::Null) {
-            tradesList = trades.into_list();
+        if (true) {
+            tradesList = trades;
         }
         return self.parse_trades(&tradesList, Some(&market), &[]);
         Value::Null

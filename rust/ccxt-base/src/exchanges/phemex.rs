@@ -6390,10 +6390,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (!isHedged) && (longLeverageRr.is_none()) && (shortLeverageRr.is_none()) {
                 request.insert("leverageRr".into(), leverage.clone());
             }  else {
-                let mut longVar: Value = (if (longLeverageRr.is_some()) { Value::from(longLeverageRr) } else { leverage.clone() });
-                let mut shortVar: Value = (if (shortLeverageRr.is_some()) { Value::from(shortLeverageRr) } else { leverage.clone() });
-                request.insert("longLeverageRr".into(), longVar);
-                request.insert("shortLeverageRr".into(), shortVar);
+                let mut longVar: Option<i64> = (if (longLeverageRr.is_some()) { longLeverageRr } else { leverage.as_i64() });
+                let mut shortVar: Option<i64> = (if (shortLeverageRr.is_some()) { shortLeverageRr } else { leverage.as_i64() });
+                request.insert("longLeverageRr".into(), Value::from(longVar));
+                request.insert("shortLeverageRr".into(), Value::from(shortVar));
             }
             let __ws_arg_56 = self.extend(Value::Map(request.clone()), &[params.clone()]);
             response = self.private_put_g_positions_leverage(&[__ws_arg_56]).await.into_opt_dict();

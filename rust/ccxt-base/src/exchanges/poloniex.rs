@@ -3354,8 +3354,8 @@ impl Poloniex {
 })]), None);
         }
         let mut clientOrderId: Option<String> = self.safe_string_k(params.clone(), "clientOrderId", &[]).as_str().map(str::to_owned);
-        let mut idValue: Value = (if (clientOrderId.is_some()) { clientOrderId.clone().map(Value::from).unwrap_or(Value::Null) } else { id });
-        request.insert("id".into(), idValue);
+        let mut idValue: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { id.as_str().map(str::to_owned) });
+        request.insert("id".into(), idValue.map(Value::from).unwrap_or(Value::Null));
         let mut isTrigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[]).as_bool();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["clientOrderId", "trigger", "stop"], &[]).into_dict();
         let mut response: crate::value::Dict = Value::Map({

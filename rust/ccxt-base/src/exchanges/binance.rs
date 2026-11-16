@@ -11688,8 +11688,8 @@ impl Binance {
                     }
                 }
             }  else if (market).spot {
-                let mut quoteOrderQty: Value = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]);
-                if (quoteOrderQty.as_bool() == Some(true)) {
+                let mut quoteOrderQty: Option<bool> = self.handle_option(Value::Str("createOrder".into()), Value::Str("quoteOrderQty".into()), &[Value::Bool(true)]).as_bool();
+                if (quoteOrderQty == Some(true)) {
                     let mut quoteOrderQtyNew: Option<String> = self.safe_string2(Value::from(&paramsPapi), Value::Str("quoteOrderQty".into()), Value::Str("cost".into()), &[]).as_str().map(str::to_owned);
                     let mut precision: Option<f64> = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "price", &[]).as_f64();
                     if (quoteOrderQtyNew.is_some()) {

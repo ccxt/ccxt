@@ -1005,9 +1005,9 @@ if _try_result.is_err() {
         let mut marketId: Option<String> = (match message.get("pair") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut symbol: Value = self.safe_symbol(marketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-        let mut rawTrade: Value = (match message.get("trade") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut rawTrade: Option<crate::value::Dict> = message.get("trade").cloned().unwrap_or_default().into_opt_dict();
         let mut subHash: String = format!("{}{}", "trades:", symbol);
-        if (rawTrade != Value::Null) && !(__ch.has_subscription(subHash.as_str())) {
+        if (rawTrade.is_some()) && !(__ch.has_subscription(subHash.as_str())) {
             return;
         }
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -1016,7 +1016,7 @@ if _try_result.is_err() {
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade]) }).as_array().cloned().unwrap_or_default();
+        let mut rawTrades: Vec<Value> = (match message.get("trades") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![rawTrade.map_or(Value::Null, Value::Dict)]) }).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_466: bool = true;

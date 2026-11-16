@@ -706,10 +706,10 @@ impl Hollaex {
         //       }
         //
         let mut channel: Option<String> = (match message.get("topic") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
-        let mut dataDict: Value = (match message.get("data") { Some(__v) if matches!(__v, Value::Dict(_)) => __v.clone(), _ => Value::Null });
+        let mut dataDict: Option<crate::value::Dict> = message.get("data").cloned().unwrap_or_default().into_opt_dict();
         let mut rawOrders: crate::value::List = (match message.get("data") { Some(__v) if matches!(__v, Value::Arr(_)) => __v.clone(), _ => Value::from(vec![]) }).into_list();
-        if (dataDict != Value::Null) {
-            rawOrders = std::sync::Arc::new(vec![dataDict]);
+        if (dataDict.is_some()) {
+            rawOrders = std::sync::Arc::new(vec![dataDict.map_or(Value::Null, Value::Dict)]);
         }
         // usually the first message is an empty array
         if (Value::Int(rawOrders.len() as i64).as_f64() == Some(0.0)) {

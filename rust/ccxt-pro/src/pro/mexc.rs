@@ -1579,9 +1579,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             stored = Some(ArrayCache::new(Value::from(limit)));
             CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
-        let mut d: Value = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("publicAggreDeals".into())]), &[]);
-        let mut trades: Value = self.safe_list2(d.clone(), Value::Str("deals".into()), Value::Str("dealsList".into()), &[Value::from(vec![d.clone()])]);
-        if (d == Value::Null) {
+        let mut d: Option<crate::value::Dict> = self.safe_dict_n(message.clone(), Value::from(vec![Value::Str("d".into()), Value::Str("publicAggreDeals".into())]), &[]).into_opt_dict();
+        let mut trades: Value = self.safe_list2(&d, Value::Str("deals".into()), Value::Str("dealsList".into()), &[Value::from(vec![d.clone().map_or(Value::Null, Value::Dict)])]);
+        if (d.is_none()) {
             trades = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Arr(_)) => __v, _ => Value::from(vec![]) });
         }
         {

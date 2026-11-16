@@ -3158,11 +3158,11 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_92: bool = true;
             while { if !__for_first_92 { i += 1; } __for_first_92 = false; i < (codes.len() as i64) } {
-            let mut code: Value = codes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut total: Option<String> = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str().map(str::to_owned);
-            let mut free: Option<String> = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str().map(str::to_owned);
-            let mut used: Option<String> = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str().map(str::to_owned);
-            let mut debt: Option<String> = self.safe_string(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]).as_str().map(str::to_owned);
+            let mut code: Option<&str> = codes.get(i as usize).and_then(Value::as_str);
+            let mut total: Option<String> = self.safe_string(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("total".into()), &[]).as_str().map(str::to_owned);
+            let mut free: Option<String> = self.safe_string(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("free".into()), &[]).as_str().map(str::to_owned);
+            let mut used: Option<String> = self.safe_string(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("used".into()), &[]).as_str().map(str::to_owned);
+            let mut debt: Option<String> = self.safe_string(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("debt".into()), &[]).as_str().map(str::to_owned);
             if (total.is_none()) && (free.is_some()) && (used.is_some()) {
                 total = crate::precise::Precise::stringAdd(&free, &used).as_str().map(str::to_owned);
             }
@@ -3172,21 +3172,21 @@ pub trait ExchangeBase:
             if (used.is_none()) && (total.is_some()) && (free.is_some()) {
                 used = crate::precise::Precise::stringSub(&total, &free).as_str().map(str::to_owned);
             }
-            freeBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(free.map(Value::from).unwrap_or(Value::Null), &[]));
-            usedBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(used.map(Value::from).unwrap_or(Value::Null), &[]));
-            totalBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(total.map(Value::from).unwrap_or(Value::Null), &[]));
+            freeBalance.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(free.map(Value::from).unwrap_or(Value::Null), &[]));
+            usedBalance.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(used.map(Value::from).unwrap_or(Value::Null), &[]));
+            totalBalance.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(total.map(Value::from).unwrap_or(Value::Null), &[]));
             let mut entry: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("free".to_string(), freeBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
-                    m.insert("used".to_string(), usedBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
-                    m.insert("total".to_string(), totalBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                    m.insert("free".to_string(), freeBalance.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                    m.insert("used".to_string(), usedBalance.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                    m.insert("total".to_string(), totalBalance.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
                 m
             });
             if (debt.is_some()) {
-                debtBalance.insert(crate::runtime::stringify_param(&code), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
-                entry.insert("debt".into(), debtBalance.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                debtBalance.insert(code.as_deref().unwrap_or("null").to_string(), self.parse_number(debt.map(Value::from).unwrap_or(Value::Null), &[]));
+                entry.insert("debt".into(), debtBalance.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
             }
-            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&code), self.extend(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
+            if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert(code.as_deref().unwrap_or("null").to_string(), self.extend(balances.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::Map(entry)])); }
         }
         }
         if let Value::Dict(__d) = &mut balance { std::sync::Arc::make_mut(__d).insert("free".into(), Value::Map(freeBalance)); }

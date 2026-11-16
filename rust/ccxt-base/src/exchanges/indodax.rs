@@ -1828,8 +1828,8 @@ impl Indodax {
                                 let mut i: i64 = 0;
                 let mut __for_first_842: bool = true;
                 while { if !__for_first_842 { i += 1; } __for_first_842 = false; i < (withdrawKeys.len() as i64) } {
-                let mut key: Value = withdrawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                transactions = self.array_concat(Value::Arr(transactions), withdraw.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
+                let mut key: Option<&str> = withdrawKeys.get(i as usize).and_then(Value::as_str);
+                transactions = self.array_concat(Value::Arr(transactions), withdraw.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
             }
             }
             let mut depositKeys: Vec<Value> = Value::Array(deposit.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
@@ -1837,8 +1837,8 @@ impl Indodax {
                                 let mut i: i64 = 0;
                 let mut __for_first_843: bool = true;
                 while { if !__for_first_843 { i += 1; } __for_first_843 = false; i < (depositKeys.len() as i64) } {
-                let mut key: Value = depositKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-                transactions = self.array_concat(Value::Arr(transactions), deposit.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
+                let mut key: Option<&str> = depositKeys.get(i as usize).and_then(Value::as_str);
+                transactions = self.array_concat(Value::Arr(transactions), deposit.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null)).into_list();
             }
             }
         }  else {

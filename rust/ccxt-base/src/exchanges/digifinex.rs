@@ -6108,9 +6108,9 @@ impl Digifinex {
                     m
                 });
                 if (networkId.is_some()) {
-                    let mut networkCode: Value = Value::from(self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]));
-                    if (networkCode != Value::Null) {
-                        add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &networkCode, Value::Map({
+                    let mut networkCode: Option<String> = self.network_id_to_code(&[networkId.map(Value::from).unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null)]);
+                    if (networkCode.is_some()) {
+                        add_element_to_object(get_value_mut(&mut depositWithdrawFee, &Value::Str("networks".into())), &Value::from(networkCode.as_deref()), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("withdraw".to_string(), Value::Map(withdrawResult.clone()));
         m.insert("deposit".to_string(), Value::Map(depositResult.clone()));

@@ -4453,11 +4453,11 @@ impl Extended {
         //         "status": "OK"
         //     }
         //
-        let mut orderId: Value = (if (clientOrderId.is_none()) { id } else { Value::Null });
+        let mut orderId: Option<String> = (if (clientOrderId.is_none()) { id.as_str().map(str::to_owned) } else { None });
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
-        m.insert("id".to_string(), orderId);
+        m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("clientOrderId".to_string(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -5049,7 +5049,7 @@ impl Extended {
 
     pub fn get_extended_decimal_to_base16(&self, value: &str) -> Value {
         let mut value: Value = value.into();
-        let mut decimalString: Value = value;
+        let mut decimalString: Option<String> = value.as_str().map(str::to_owned);
         let mut hexChars: crate::value::List = std::sync::Arc::new(vec![Value::Str("0".into()), Value::Str("1".into()), Value::Str("2".into()), Value::Str("3".into()), Value::Str("4".into()), Value::Str("5".into()), Value::Str("6".into()), Value::Str("7".into()), Value::Str("8".into()), Value::Str("9".into()), Value::Str("a".into()), Value::Str("b".into()),
             Value::Str("c".into()), Value::Str("d".into()), Value::Str("e".into()), Value::Str("f".into())]);
         let mut result: String = "".to_string();
@@ -5057,7 +5057,7 @@ impl Extended {
             let mut remainder: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMod(&decimalString, &Value::Str("16".into())));
             let mut hexChar: String = self.safe_string(&hexChars, Value::from(remainder), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             result = format!("{}{}", hexChar, result);
-            decimalString = crate::precise::Precise::stringDivPrec(&decimalString, &Value::Str("16".into()), &Value::Int(0));
+            decimalString = crate::precise::Precise::stringDivPrec(&decimalString, &Value::Str("16".into()), &Value::Int(0)).as_str().map(str::to_owned);
         }
         if (result == "") {
             return Value::Str("0".into());

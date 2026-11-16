@@ -7662,7 +7662,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                     if (order != Value::Null) {
                         // accumulate order fees
                         let mut fees: Option<crate::value::List> = self.safe_list_k(order.clone(), "fees", &[]).into_opt_list();
-                        let mut fee: Value = self.safe_dict_k(order.clone(), "fee", &[]);
+                        let mut fee: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "fee", &[]).into_opt_dict();
                         if (fees.is_some()) && !(self.is_empty(fees.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
                             let mut insertNewFeeCurrency: bool = true;
                             {
@@ -7686,18 +7686,18 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                             if insertNewFeeCurrency {
                                 crate::runtime::append_to_object_array(&mut order, &Value::Str("fees".into()), tradeFee.clone());
                             }
-                        }  else if (fee != Value::Null) {
-                            if (self.safe_string_k(fee.clone(), "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
-                                let mut feeCost: Value = self.sum(&[fee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
+                        }  else if (fee.is_some()) {
+                            if (self.safe_string_k(&fee, "currency", &[]).as_str() == self.safe_string_k(tradeFee.clone(), "currency", &[]).as_str()) {
+                                let mut feeCost: Value = self.sum(&[crate::value::KeyRead::key_read(&&fee, "cost"), tradeFee.as_map().and_then(|__m| __m.get("cost")).cloned().unwrap_or(Value::Null)]);
                                 let mut feeCostString: Value = Value::from(self.currency_to_precision(tradeFee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null), feeCost, &[]));
                                 if (feeCostString == Value::Null) {
                                     feeCostString = Value::Str("0".into());
                                 }
                                 add_element_to_object(get_value_mut(&mut order, &Value::Str("fee".into())), &Value::Str("cost".into()), (match &feeCostString { Value::Str(__parse_s) => __parse_s.trim().parse::<f64>().map(Value::Float).unwrap_or(Value::Null), Value::Float(__parse_f) => Value::Float(*__parse_f), Value::Int(__parse_n) => Value::Float(*__parse_n as f64), _ => Value::Null }));
-                            }  else if (fee.as_map().and_then(|__m| __m.get("currency")).cloned().unwrap_or(Value::Null) == Value::Null) {
+                            }  else if (crate::value::KeyRead::key_read(&&fee, "currency") == Value::Null) {
                                 add_element_to_object(&mut order, &Value::Str("fee".into()), tradeFee.clone());
                             }  else {
-                                add_element_to_object(&mut order, &Value::Str("fees".into()), Value::from(vec![fee, tradeFee.clone()]));
+                                add_element_to_object(&mut order, &Value::Str("fees".into()), Value::from(vec![fee.map_or(Value::Null, Value::Dict), tradeFee.clone()]));
                                 add_element_to_object(&mut order, &Value::Str("fee".into()), Value::Null);
                             }
                         }  else {

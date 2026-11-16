@@ -2214,12 +2214,12 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_1155: bool = true;
             while { if !__for_first_1155 { i += 1; } __for_first_1155 = false; i < (currencyKeys.len() as i64) } {
-            let mut code: Value = currencyKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: Value = crate::value::KeyRead::read(&&currenciesData, &code);
+            let mut code: Option<String> = currencyKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut currency: Value = crate::value::KeyRead::read(&&currenciesData, &Value::from(code.as_deref()));
             if (currency == Value::Null) {
                 continue;
             }
-            if (codes != Value::Null) && !self.in_array(code.clone(), codes.clone()) {
+            if (codes != Value::Null) && !self.in_array(&code, codes.clone()) {
                 continue;
             }
             // Find corresponding fee data for this currency
@@ -2231,7 +2231,7 @@ impl Whitebit {
                 while { if !__for_first_1154 { j += 1; } __for_first_1154 = false; j < (feeKeys.len() as i64) } {
                 let mut feeKey: Option<&str> = feeKeys.get(j as usize).and_then(Value::as_str);
                 let mut fee: Option<crate::value::Dict> = self.safe_dict(&feesData, Value::from(feeKey.as_deref()), &[]).into_opt_dict();
-                if ((fee.is_some()) && (fee.is_some())) && (self.safe_string_k(&fee, "ticker", &[]).as_str() == code.as_str()) {
+                if ((fee.is_some()) && (fee.is_some())) && ((code.as_deref() == self.safe_string_k(&fee, "ticker", &[]).as_str())) {
                     feeData = fee.clone();
                     break;
                 }
@@ -2314,7 +2314,7 @@ impl Whitebit {
             if (currencyNetworks.is_some()) {
                 limits.insert("networks".into(), currencyNetworks.map_or(Value::Null, Value::Dict));
             }
-            result.insert(crate::runtime::stringify_param(&code), Value::Map({
+            result.insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), currency);
         m.insert("limits".to_string(), Value::Map(limits));
@@ -4923,10 +4923,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         "total": 300                                                                                             // total number of  transactions, use this for calculating ‘limit’ and ‘offset'
         //     }
         //
-        let mut records: Value = self.safe_list_k(&response, "records", &[Value::from(vec![])]);
+        let mut records: crate::value::List = self.safe_list_k(&response, "records", &[Value::from(vec![])]).into_list();
         let mut recordsList: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (records != Value::Null) {
-            recordsList = records.into_list();
+        if (true) {
+            recordsList = records;
         }
         return self.parse_transactions(&recordsList, currency.as_ref(), &[since, limit]);
         Value::Null
