@@ -5344,10 +5344,10 @@ If the underlying exchange does not provide historical orders, the CCXT library 
 
 Some decentralized exchanges provide scheduled swap orders separately from their regular order API. The following methods cover that DCA lifecycle where the exchange supports it:
 
-- `createDCAOrder(params)` – creates a scheduled order from exchange-specific schedule and funding parameters
-- `fetchDCAOrders(since, limit, params)` and `fetchDCAOrder(id, params)` – retrieve DCA order history
-- `cancelDCAOrder(id, params)` – initiates cancellation
-- `confirmCancelDCAOrder(id, params)` – completes cancellation when the venue requires a second step
+- `createDcaOrder(params)` – creates a scheduled order from exchange-specific schedule and funding parameters
+- `fetchDcaOrders(since, limit, params)` and `fetchDcaOrder(id, params)` – retrieve DCA order history
+- `cancelDcaOrder(id, params)` – initiates cancellation
+- `confirmCancelDcaOrder(id, params)` – completes cancellation when the venue requires a second step
 
 DCA order parameters and returned data are exchange-specific. Common order identifiers, owner, token mints, and status are normalized where available, while the original response is retained in `info`. On-chain venues may return an unsigned transaction; the caller must review, sign, and submit it with its wallet. CCXT does not hold wallet keys or automatically sign or broadcast those transactions.
 

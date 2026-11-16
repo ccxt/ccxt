@@ -1,4 +1,4 @@
-﻿import Exchange from './abstract/raydium.js';
+import Exchange from './abstract/raydium.js';
 import { ArgumentsRequired, BadRequest, BadSymbol, ExchangeError, InvalidOrder, NotSupported } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { DECIMAL_PLACES } from './base/functions/number.js';
@@ -3073,13 +3073,13 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#fetchTVL
+     * @name raydium#fetchTvl
      * @description fetches Raydium total value locked and 24-hour volume
      * @see https://docs.raydium.io/api-reference/api-v3/overview.md
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} total value locked and 24-hour volume
      */
-    async fetchTVL (params: Dict = {}): Promise<Dict> {
+    async fetchTvl (params: Dict = {}): Promise<Dict> {
         const response = await this.apiV3PublicGetMainInfo (params);
         //
         //     {
@@ -3533,14 +3533,14 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#fetchMyIDOPositions
+     * @name raydium#fetchMyIdoPositions
      * @description fetches IDO participation for a wallet
      * @see https://docs.raydium.io/api-reference/owner-api-v1/overview.md
      * @param {string} walletAddress wallet public key
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object[]} a list of the wallet's IDO positions
      */
-    async fetchMyIDOPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+    async fetchMyIdoPositions (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.ownerPublicGetMainIdoOwner (this.extend ({ 'owner': walletAddress }, params));
         //
         //     {
@@ -4074,14 +4074,14 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#fetchCLMMLimitOrders
+     * @name raydium#fetchClmmLimitOrders
      * @description fetches active indexed Raydium CLMM limit orders for a wallet
      * @see https://docs.raydium.io/api-reference/temp-api-v1/overview.md
      * @param {string} walletAddress wallet public key
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object[]} active indexed limit orders
      */
-    async fetchCLMMLimitOrders (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+    async fetchClmmLimitOrders (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderOrderList (this.extend ({ 'wallet': walletAddress }, params));
         //
         //     {
@@ -4097,7 +4097,7 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#fetchCLMMLimitOrder
+     * @name raydium#fetchClmmLimitOrder
      * @description fetches one indexed Raydium CLMM limit order from active or historical wallet records
      * @see https://docs.raydium.io/api-reference/temp-api-v1/overview.md
      * @param {string} orderId limit-order PDA or id
@@ -4105,27 +4105,27 @@ export default class raydium extends Exchange {
      * @param {object} [params] history pagination parameters, including nextPageId
      * @returns {object} normalized indexed limit order
      */
-    async fetchCLMMLimitOrder (orderId: string, walletAddress: string, params: Dict = {}): Promise<Dict> {
-        const active = await this.fetchCLMMLimitOrders (walletAddress, params);
+    async fetchClmmLimitOrder (orderId: string, walletAddress: string, params: Dict = {}): Promise<Dict> {
+        const active = await this.fetchClmmLimitOrders (walletAddress, params);
         for (let i = 0; i < active.length; i++) {
             const parsed = this.parseCLMMLimitOrder (active[i]);
             if (parsed['id'] === orderId) {
                 return parsed;
             }
         }
-        const history = await this.fetchCLMMLimitOrderHistory (walletAddress, params);
+        const history = await this.fetchClmmLimitOrderHistory (walletAddress, params);
         for (let i = 0; i < history.length; i++) {
             const parsed = this.parseCLMMLimitOrder (history[i], true);
             if (parsed['id'] === orderId) {
                 return parsed;
             }
         }
-        throw new ExchangeError (this.id + ' fetchCLMMLimitOrder() could not find order ' + orderId + ' in the requested active and history pages');
+        throw new ExchangeError (this.id + ' fetchClmmLimitOrder() could not find order ' + orderId + ' in the requested active and history pages');
     }
 
     /**
      * @method
-     * @name raydium#fetchCLMMLimitOrderHistory
+     * @name raydium#fetchClmmLimitOrderHistory
      * @description fetches historical indexed Raydium CLMM limit orders for a wallet
      * @see https://docs.raydium.io/api-reference/temp-api-v1/overview.md
      * @param {string} walletAddress wallet public key
@@ -4133,7 +4133,7 @@ export default class raydium extends Exchange {
      * @param {string} [params.nextPageId] opaque cursor for the next page
      * @returns {object[]} historical indexed limit orders
      */
-    async fetchCLMMLimitOrderHistory (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
+    async fetchClmmLimitOrderHistory (walletAddress: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderHistoryOrderListByUser (this.extend ({ 'wallet': walletAddress }, params));
         //
         //     {
@@ -4149,7 +4149,7 @@ export default class raydium extends Exchange {
 
     /**
      * @method
-     * @name raydium#fetchCLMMLimitOrderEvents
+     * @name raydium#fetchClmmLimitOrderEvents
      * @description fetches indexed events for one or more Raydium CLMM limit-order accounts
      * @see https://docs.raydium.io/api-reference/temp-api-v1/overview.md
      * @param {string} pda limit-order PDA or comma-separated PDAs
@@ -4157,7 +4157,7 @@ export default class raydium extends Exchange {
      * @param {string} [params.nextPageId] opaque cursor for the next page
      * @returns {object[]} indexed limit-order events
      */
-    async fetchCLMMLimitOrderEvents (pda: string, params: Dict = {}): Promise<Dict[]> {
+    async fetchClmmLimitOrderEvents (pda: string, params: Dict = {}): Promise<Dict[]> {
         const response = await this.tempPublicGetLimitOrderHistoryEventListByPda (this.extend ({ 'pda': pda }, params));
         //
         //     {
@@ -4254,7 +4254,7 @@ export default class raydium extends Exchange {
      * @param {object} currency currency structure
      * @returns {int} the token mint decimals
      */
-    mintDecimals (currency: CurrencyInterface): Int {
+    mintDecimals (currency: Dict): Int {
         const info = this.safeDict (currency, 'info');
         const decimals = this.safeInteger (info, 'decimals');
         if (decimals !== undefined) {

@@ -1,0 +1,53 @@
+{
+    "exchange": "jupiter",
+    "asyncOnly": true,
+    "skipKeys": [],
+    "outputType": "json",
+    "options": {},
+    "methods": {
+        "fetchEvent": [
+            {
+                "description": "fetch event by id",
+                "method": "fetchEvent",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034",
+                "input": [
+                    "POLY-1273034"
+                ]
+            }
+        ],
+        "fetchEvents": [
+            {
+                "description": "fetch events by id",
+                "method": "fetchEvents",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034?includeMarkets=true",
+                "input": [
+                    {
+                        "eventId": "POLY-1273034"
+                    }
+                ]
+            }
+        ],
+        "fetchEventMarkets": [
+            {
+                "description": "fetch markets by event id",
+                "method": "fetchEventMarkets",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034/markets",
+                "input": [
+                    "POLY-1273034"
+                ]
+            }
+        ],
+        "fetchMarkets": [
+            {
+                "description": "fetch markets by event id",
+                "method": "fetchMarkets",
+                "url": "https://api.jup.ag/prediction/v1/events/POLY-1273034?includeMarkets=true",
+                "input": [
+                    {
+                        "eventId": "POLY-1273034"
+                    }
+                ]
+            }
+        ]
+    }
+}

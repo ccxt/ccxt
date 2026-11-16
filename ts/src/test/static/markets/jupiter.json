@@ -1,0 +1,299 @@
+{
+    "JUP/SOL": {
+        "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN/So11111111111111111111111111111111111111112",
+        "lowercaseId": null,
+        "symbol": "JUP/SOL",
+        "base": "JUP",
+        "quote": "SOL",
+        "settle": null,
+        "baseId": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+        "quoteId": "So11111111111111111111111111111111111111112",
+        "settleId": null,
+        "type": "spot",
+        "spot": true,
+        "margin": false,
+        "swap": false,
+        "future": false,
+        "option": false,
+        "index": false,
+        "active": true,
+        "contract": false,
+        "linear": null,
+        "inverse": null,
+        "subType": null,
+        "taker": null,
+        "maker": null,
+        "contractSize": null,
+        "expiry": null,
+        "expiryDatetime": null,
+        "strike": null,
+        "optionType": null,
+        "precision": {
+            "amount": 6,
+            "price": null
+        },
+        "limits": {
+            "leverage": {
+                "min": null,
+                "max": null
+            },
+            "amount": {
+                "min": null,
+                "max": null
+            },
+            "price": {
+                "min": null,
+                "max": null
+            },
+            "cost": {
+                "min": null,
+                "max": null
+            }
+        },
+        "marginModes": {
+            "cross": null,
+            "isolated": null
+        },
+        "created": null,
+        "info": {
+            "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN/So11111111111111111111111111111111111111112",
+            "baseCurrency": {
+                "info": {
+                    "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+                    "name": "Jupiter",
+                    "symbol": "JUP",
+                    "icon": "https://static.datapi.jup.ag/token-icons/12254fdd34fa9a0ad62075bd3872df61e28584f9519fe00c744b71b514d4c3d7.webp",
+                    "decimals": 6,
+                    "twitter": "https://twitter.com/JupiterExchange",
+                    "website": "https://jup.ag",
+                    "dev": "JUPhop9E8ZfdJ5FNHhxQt4uAih822Vs4QpqsWcewFbq",
+                    "circSupply": 3319369204.37,
+                    "totalSupply": 6861485683.848232,
+                    "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    "holderCount": 836754,
+                    "fdv": 1835141244.4101443,
+                    "mcap": 887783143.9193321,
+                    "usdPrice": 0.26745537759118576,
+                    "priceBlockId": 468840196,
+                    "liquidity": 5610126.894030164,
+                    "stats5m": {
+                        "priceChange": 0.5022845918644466,
+                        "holderChange": -0.0004780354654511818,
+                        "liquidityChange": 0.04182518961178103,
+                        "volumeChange": -46.56226268393196,
+                        "buyVolume": 17751.832342063957,
+                        "sellVolume": 18077.311599592646,
+                        "buyOrganicVolume": 85.94573110504857,
+                        "sellOrganicVolume": 117.6198354430793,
+                        "numBuys": 269,
+                        "numSells": 255,
+                        "numTraders": 144,
+                        "numOrganicBuyers": 6,
+                        "numNetBuyers": 20
+                    },
+                    "stats1h": {
+                        "priceChange": 3.3715411546446568,
+                        "holderChange": -0.0007170514842965725,
+                        "liquidityChange": 2.15179640872176,
+                        "volumeChange": 118.16812500834264,
+                        "buyVolume": 325404.93039370957,
+                        "sellVolume": 254595.25918518598,
+                        "buyOrganicVolume": 3853.625606782675,
+                        "sellOrganicVolume": 33407.61482918181,
+                        "numBuys": 5589,
+                        "numSells": 5098,
+                        "numTraders": 1219,
+                        "numOrganicBuyers": 19,
+                        "numNetBuyers": 134
+                    },
+                    "stats6h": {
+                        "priceChange": 0.7443376385835606,
+                        "holderChange": -0.002390131624548564,
+                        "liquidityChange": -6.778021551968842,
+                        "volumeChange": -36.65466067309353,
+                        "buyVolume": 1644207.413940127,
+                        "sellVolume": 1752342.0086971715,
+                        "buyOrganicVolume": 49718.92392390483,
+                        "sellOrganicVolume": 124099.41613475645,
+                        "numBuys": 20972,
+                        "numSells": 21230,
+                        "numTraders": 4894,
+                        "numOrganicBuyers": 64,
+                        "numNetBuyers": 756
+                    },
+                    "stats24h": {
+                        "priceChange": 5.363537704901793,
+                        "holderChange": -0.0032266507007209775,
+                        "liquidityChange": 0.15607258529252546,
+                        "volumeChange": 134.9788820399737,
+                        "buyVolume": 6713852.239344666,
+                        "sellVolume": 6763171.988551244,
+                        "buyOrganicVolume": 406586.8692998838,
+                        "sellOrganicVolume": 578629.1318741951,
+                        "numBuys": 80735,
+                        "numSells": 77130,
+                        "numTraders": 18108,
+                        "numOrganicBuyers": 214,
+                        "numNetBuyers": 2389
+                    },
+                    "firstPool": {
+                        "id": "2pspvjWWaf3dNgt3jsgSzFCNvMGPb7t8FrEYvLGjvcCe",
+                        "createdAt": "2024-01-29T17:33:29Z"
+                    },
+                    "audit": {
+                        "mintAuthorityDisabled": true,
+                        "freezeAuthorityDisabled": true,
+                        "topHoldersPercentage": 15.36339626059317,
+                        "devMints": 1
+                    },
+                    "organicScore": 97.50170748638226,
+                    "organicScoreLabel": "high",
+                    "isVerified": true,
+                    "tags": [
+                        "moonshot-verified",
+                        "strict",
+                        "verified",
+                        "defi",
+                        "birdeye-trending",
+                        "community"
+                    ],
+                    "createdAt": "2024-06-07T10:56:42.584Z",
+                    "updatedAt": "2026-11-13T07:18:56.904691223Z"
+                },
+                "id": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+                "code": "JUP",
+                "name": "Jupiter",
+                "active": true,
+                "type": "token",
+                "precision": 6,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "networks": {}
+            },
+            "quoteCurrency": {
+                "info": {
+                    "id": "So11111111111111111111111111111111111111112",
+                    "name": "Wrapped SOL",
+                    "symbol": "SOL",
+                    "icon": "https://static.datapi.jup.ag/token-icons/79a96c7b893fd899512411dd07a8adf6f9e26dd135989f51d46ddb50f0b8bb6c.webp",
+                    "decimals": 9,
+                    "circSupply": 589983693.0786384,
+                    "totalSupply": 636639246.9984534,
+                    "tokenProgram": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    "holderCount": 3820662,
+                    "fdv": 51134142289.62445,
+                    "mcap": 47386821112.07402,
+                    "usdPrice": 80.31886587373504,
+                    "priceBlockId": 468840230,
+                    "liquidity": 813903225.5490365,
+                    "stats5m": {
+                        "priceChange": -0.04964404761273485,
+                        "liquidityChange": 0.06715751669424415,
+                        "volumeChange": 8.25431677152172,
+                        "buyVolume": 4520638.8726921845,
+                        "sellVolume": 5255492.487817347,
+                        "buyOrganicVolume": 95924.28385322237,
+                        "sellOrganicVolume": 79936.80580955326,
+                        "numBuys": 36639,
+                        "numSells": 50858,
+                        "numTraders": 22608,
+                        "numOrganicBuyers": 249,
+                        "numNetBuyers": 3047
+                    },
+                    "stats1h": {
+                        "priceChange": 1.6539153512074154,
+                        "liquidityChange": 0.38923873176908214,
+                        "volumeChange": 1.388982214604725,
+                        "buyVolume": 53155395.46564066,
+                        "sellVolume": 51282352.02956316,
+                        "buyOrganicVolume": 1291587.8831976335,
+                        "sellOrganicVolume": 1338031.4848164632,
+                        "numBuys": 502688,
+                        "numSells": 687783,
+                        "numTraders": 140702,
+                        "numOrganicBuyers": 763,
+                        "numNetBuyers": 18534
+                    },
+                    "stats6h": {
+                        "priceChange": -1.3401903513688762,
+                        "liquidityChange": -0.8528390400317399,
+                        "volumeChange": 16.933629045837424,
+                        "buyVolume": 348476536.23952794,
+                        "sellVolume": 343763019.69103354,
+                        "buyOrganicVolume": 7574929.716486633,
+                        "sellOrganicVolume": 7074742.086243315,
+                        "numBuys": 3237217,
+                        "numSells": 4527913,
+                        "numTraders": 355163,
+                        "numOrganicBuyers": 2929,
+                        "numNetBuyers": 66475
+                    },
+                    "stats24h": {
+                        "priceChange": -2.8876559839006117,
+                        "liquidityChange": -1.128430943517103,
+                        "volumeChange": 1.1127119866688995,
+                        "buyVolume": 1254372968.768798,
+                        "sellVolume": 1256636085.4771538,
+                        "buyOrganicVolume": 19716557.766470082,
+                        "sellOrganicVolume": 20790060.222413976,
+                        "numBuys": 13160379,
+                        "numSells": 18435035,
+                        "numTraders": 910976,
+                        "numOrganicBuyers": 7754,
+                        "numNetBuyers": 122901
+                    },
+                    "firstPool": {
+                        "id": "58oQChx4yWmvKdwLLZzBi4ChoCc2fqCUWBkwMihLYQo2",
+                        "createdAt": "2021-03-29T10:05:48Z"
+                    },
+                    "apy": {
+                        "jupEarn": 3.88330456106869
+                    },
+                    "audit": {
+                        "mintAuthorityDisabled": true,
+                        "freezeAuthorityDisabled": true,
+                        "topHoldersPercentage": 0.5787244405990802,
+                        "devMints": 1
+                    },
+                    "organicScore": 99.01368369042038,
+                    "organicScoreLabel": "high",
+                    "isVerified": true,
+                    "tags": [
+                        "major",
+                        "community",
+                        "moonshot-verified",
+                        "strict",
+                        "verified"
+                    ],
+                    "createdAt": "2024-06-05T08:55:25.527Z",
+                    "updatedAt": "2026-11-13T07:19:00.417387846Z"
+                },
+                "id": "So11111111111111111111111111111111111111112",
+                "code": "SOL",
+                "name": "Wrapped SOL",
+                "active": true,
+                "type": "token",
+                "precision": 9,
+                "limits": {
+                    "amount": {
+                        "min": null,
+                        "max": null
+                    },
+                    "withdraw": {
+                        "min": null,
+                        "max": null
+                    }
+                },
+                "networks": {}
+            }
+        }
+    }
+}

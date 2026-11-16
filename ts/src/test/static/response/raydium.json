@@ -4549,10 +4549,10 @@
                 }
             }
         ],
-        "fetchTVL": [
+        "fetchTvl": [
             {
-                "description": "fetchTVL protocol totals",
-                "method": "fetchTVL",
+                "description": "fetchTvl protocol totals",
+                "method": "fetchTvl",
                 "input": [],
                 "httpResponse": {
                     "id": "de0e82ec-89dd-44d6-9795-cee9e6e0b133",
@@ -4999,10 +4999,10 @@
                 "parsedResponse": []
             }
         ],
-        "fetchMyIDOPositions": [
+        "fetchMyIdoPositions": [
             {
-                "description": "fetchMyIDOPositions for a wallet without IDO positions",
-                "method": "fetchMyIDOPositions",
+                "description": "fetchMyIdoPositions for a wallet without IDO positions",
+                "method": "fetchMyIdoPositions",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
                 ],
@@ -6746,10 +6746,10 @@
                 ]
             }
         ],
-        "fetchCLMMLimitOrders": [
+        "fetchClmmLimitOrders": [
             {
-                "description": "fetchCLMMLimitOrders for a wallet without limit orders",
-                "method": "fetchCLMMLimitOrders",
+                "description": "fetchClmmLimitOrders for a wallet without limit orders",
+                "method": "fetchClmmLimitOrders",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
                 ],
@@ -6763,10 +6763,10 @@
                 "parsedResponse": []
             }
         ],
-        "fetchCLMMLimitOrderHistory": [
+        "fetchClmmLimitOrderHistory": [
             {
-                "description": "fetchCLMMLimitOrderHistory for a wallet without limit orders",
-                "method": "fetchCLMMLimitOrderHistory",
+                "description": "fetchClmmLimitOrderHistory for a wallet without limit orders",
+                "method": "fetchClmmLimitOrderHistory",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
                 ],
@@ -6780,10 +6780,10 @@
                 "parsedResponse": []
             }
         ],
-        "fetchCLMMLimitOrderEvents": [
+        "fetchClmmLimitOrderEvents": [
             {
-                "description": "fetchCLMMLimitOrderEvents for a pda without events",
-                "method": "fetchCLMMLimitOrderEvents",
+                "description": "fetchClmmLimitOrderEvents for a pda without events",
+                "method": "fetchClmmLimitOrderEvents",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
                 ],

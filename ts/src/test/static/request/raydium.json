@@ -260,10 +260,10 @@
                 "output": null
             }
         ],
-        "fetchTVL": [
+        "fetchTvl": [
             {
-                "description": "fetchTVL protocol totals",
-                "method": "fetchTVL",
+                "description": "fetchTvl protocol totals",
+                "method": "fetchTvl",
                 "url": "https://api-v3.raydium.io/main/info",
                 "input": [],
                 "output": null
@@ -345,10 +345,10 @@
                 "output": null
             }
         ],
-        "fetchMyIDOPositions": [
+        "fetchMyIdoPositions": [
             {
-                "description": "fetchMyIDOPositions IDO participation",
-                "method": "fetchMyIDOPositions",
+                "description": "fetchMyIdoPositions IDO participation",
+                "method": "fetchMyIdoPositions",
                 "url": "https://owner-v1.raydium.io/main/ido/9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
@@ -430,10 +430,10 @@
                 "output": null
             }
         ],
-        "fetchCLMMLimitOrders": [
+        "fetchClmmLimitOrders": [
             {
-                "description": "fetchCLMMLimitOrders active limit orders",
-                "method": "fetchCLMMLimitOrders",
+                "description": "fetchClmmLimitOrders active limit orders",
+                "method": "fetchClmmLimitOrders",
                 "url": "https://temp-api-v1.raydium.io/limit-order/order/list?wallet=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
@@ -441,10 +441,10 @@
                 "output": null
             }
         ],
-        "fetchCLMMLimitOrderHistory": [
+        "fetchClmmLimitOrderHistory": [
             {
-                "description": "fetchCLMMLimitOrderHistory historical limit orders",
-                "method": "fetchCLMMLimitOrderHistory",
+                "description": "fetchClmmLimitOrderHistory historical limit orders",
+                "method": "fetchClmmLimitOrderHistory",
                 "url": "https://temp-api-v1.raydium.io/limit-order/history/order/list-by-user?wallet=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"
@@ -452,10 +452,10 @@
                 "output": null
             }
         ],
-        "fetchCLMMLimitOrderEvents": [
+        "fetchClmmLimitOrderEvents": [
             {
-                "description": "fetchCLMMLimitOrderEvents events by pda",
-                "method": "fetchCLMMLimitOrderEvents",
+                "description": "fetchClmmLimitOrderEvents events by pda",
+                "method": "fetchClmmLimitOrderEvents",
                 "url": "https://temp-api-v1.raydium.io/limit-order/history/event/list-by-pda?pda=9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5",
                 "input": [
                     "9W9mRpvdMCuZ1FTpKVsGAEjMdvqn5N6NDEaYJ1pz2fs5"

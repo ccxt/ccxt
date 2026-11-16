@@ -994,9 +994,9 @@ export default class jupiter extends Exchange {
             const yesPrice = this.safeNumber (pricing, 'buyYesPriceUsd');
             const noPrice = this.safeNumber (pricing, 'buyNoPriceUsd');
             const marketVolume = this.safeNumber (pricing, 'volume');
-            const status = this.safeString (rawMarket, 'status');
-            const active = (status === undefined) ? undefined : (status === 'open');
-            const end = this.parseJupiterTimestamp (this.safeInteger (rawMarket, 'closeTime'));
+            const marketStatus = this.safeString (rawMarket, 'status');
+            const active = (marketStatus === undefined) ? undefined : (marketStatus === 'open');
+            const marketEnd = this.parseJupiterTimestamp (this.safeInteger (rawMarket, 'closeTime'));
             const rawOutcomeLabels = this.safeList (rawMarket, 'outcomes', [ 'Yes', 'No' ]);
             let yesLabel = 'Yes';
             let noLabel = 'No';
@@ -1031,8 +1031,8 @@ export default class jupiter extends Exchange {
             const rawMarketMetaData = this.safeDict (rawMarket, 'metadata', {});
             const marketTitleDefault = this.safeString (rawMarketMetaData, 'title');
             let marketClosed = undefined;
-            if (status !== undefined) {
-                marketClosed = (status === 'closed');
+            if (marketStatus !== undefined) {
+                marketClosed = (marketStatus === 'closed');
             }
             const rawMarketResult = this.safeString (rawMarket, 'result');
             let marketResolved = false;
@@ -1064,10 +1064,10 @@ export default class jupiter extends Exchange {
                 'contract': false,
                 'linear': false,
                 'inverse': false,
-                'expiry': end,
-                'expiryDatetime': this.iso8601 (end),
+                'expiry': marketEnd,
+                'expiryDatetime': this.iso8601 (marketEnd),
                 'precision': { 'amount': 0.000001, 'price': 0.000001 },
-                'limits': { 'amount': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined } },
+                'limits': { 'amount': { 'min': undefined, 'max': undefined }, 'cost': { 'min': undefined, 'max': undefined }},
                 'percentage': false,
                 'tierBased': false,
                 'marketType': 'binary',
@@ -1081,8 +1081,8 @@ export default class jupiter extends Exchange {
                 'resolved': marketResolved,
                 'volume': marketVolumeResponse,
                 'liquidity': this.safeNumber (rawMarket, 'liquidityUsd'),
-                'end': end,
-                'endDatetime': this.iso8601 (end),
+                'end': marketEnd,
+                'endDatetime': this.iso8601 (marketEnd),
             });
         }
         let end = this.parseJupiterTimestamp (this.safeInteger (raw, 'closeTime'));

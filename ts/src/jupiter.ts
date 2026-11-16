@@ -28,12 +28,12 @@ export default class jupiter extends Exchange {
                 'option': false,
                 'addLiquidity': true,
                 'borrowCurrency': true,
-                'cancelDCAOrder': true,
+                'cancelDcaOrder': true,
                 'cancelOrder': false,
                 'claimPoolFees': true,
                 'collectFees': true,
                 'createConvertTrade': true,
-                'createDCAOrder': true,
+                'createDcaOrder': true,
                 'createOrder': false,
                 'createPool': true,
                 'depositCollateral': true,
@@ -43,11 +43,11 @@ export default class jupiter extends Exchange {
                 'fetchClosedOrders': false,
                 'fetchConvertQuote': true,
                 'fetchCurrencies': 'emulated',
-                'fetchDCAOrder': true,
-                'fetchDCAOrders': true,
+                'fetchDcaOrder': true,
+                'fetchDcaOrders': true,
                 'fetchLiquidity': true,
                 'fetchLiquidityPools': true,
-                'fetchMarkets': 'emulated',
+                'fetchMarkets': false,
                 'fetchMyTrades': false,
                 'fetchOHLCV': false,
                 'fetchOpenOrders': false,
@@ -870,7 +870,7 @@ export default class jupiter extends Exchange {
 
     /**
      * @method
-     * @name jupiter#fetchMarkets
+     * @name jupiter#fetchMarketsEmulated
      * @description creates a synthetic market for a selected pair of Solana tokens
      * @see https://developers.jup.ag/docs/api-reference/tokens/search
      * @param {object} params extra parameters specific to the endpoint
@@ -878,16 +878,16 @@ export default class jupiter extends Exchange {
      * @param {string} params.quote quote token symbol or mint address; use a mint address to disambiguate duplicate symbols
      * @returns {object[]} a synthetic [market structure](https://docs.ccxt.com/#/?id=market-structure)
      */
-    override async fetchMarkets (params: Dict = {}): Promise<Market[]> {
+    async fetchMarketsEmulated (params: Dict = {}): Promise<Market[]> {
         const baseCode = this.safeString (params, 'base');
         const quoteCode = this.safeString (params, 'quote');
         if ((baseCode === undefined) || (quoteCode === undefined)) {
-            throw new ArgumentsRequired (this.id + ' fetchMarkets() requires params.base and params.quote');
+            throw new ArgumentsRequired (this.id + ' fetchMarketsEmulated() requires params.base and params.quote');
         }
         const baseCurrency = await this.lookupJupiterCurrency (baseCode);
         const quoteCurrency = await this.lookupJupiterCurrency (quoteCode);
         if (baseCurrency['id'] === quoteCurrency['id']) {
-            throw new BadSymbol (this.id + ' fetchMarkets() base and quote must be different tokens');
+            throw new BadSymbol (this.id + ' fetchMarketsEmulated() base and quote must be different tokens');
         }
         return [ this.parseMarket ({
             'id': baseCurrency['id'] + '/' + quoteCurrency['id'],
@@ -1060,7 +1060,7 @@ export default class jupiter extends Exchange {
 
     /**
      * @method
-     * @name jupiter#createDCAOrder
+     * @name jupiter#createDcaOrder
      * @description creates a trigger dca order using a caller-signed deposit transaction
      * @see https://developers.jup.ag/docs/trigger/dca
      * @param {object} params dca order parameters required by the trigger api
@@ -1071,14 +1071,14 @@ export default class jupiter extends Exchange {
      * @param {string} params.outputMint output token mint
      * @returns {object} created dca order id and deposit transaction signature
      */
-    override async createDCAOrder (params: Dict = {}): Promise<Dict> {
+    override async createDcaOrder (params: Dict = {}): Promise<Dict> {
         const response = await this.triggerPrivatePostOrdersDca (params);
-        return this.parseDCAOrder (response);
+        return this.parseDcaOrder (response);
     }
 
     /**
      * @method
-     * @name jupiter#fetchDCAOrders
+     * @name jupiter#fetchDcaOrders
      * @description fetches trigger dca order history
      * @see https://developers.jup.ag/docs/trigger/dca-history
      * @param {int} [since] unsupported by Jupiter; use params.offset
@@ -1087,7 +1087,7 @@ export default class jupiter extends Exchange {
      * @param {string} [params.state] 'active' or 'past'
      * @returns {object[]} dca order history entries
      */
-    override async fetchDCAOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+    override async fetchDcaOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
         const request = this.omit (params, [ 'since', 'limit' ]);
         if (limit !== undefined) {
             request['limit'] = limit;
@@ -1096,23 +1096,23 @@ export default class jupiter extends Exchange {
         const orders = (Array.isArray (response)) ? response : this.safeList (response, 'orders', []);
         const result: Dict[] = [];
         for (let i = 0; i < orders.length; i++) {
-            result.push (this.parseDCAOrder (orders[i]));
+            result.push (this.parseDcaOrder (orders[i]));
         }
         return result;
     }
 
     /**
      * @method
-     * @name jupiter#fetchDCAOrder
+     * @name jupiter#fetchDcaOrder
      * @description fetches one trigger dca order by id
      * @see https://developers.jup.ag/docs/trigger/dca-history
      * @param {string} id dca order id
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} dca order details
      */
-    override async fetchDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+    override async fetchDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
         const response = await this.triggerPrivateGetOrdersHistoryDcaId (this.extend ({ 'id': id }, params));
-        return this.parseDCAOrder (response);
+        return this.parseDcaOrder (response);
     }
 
     /**
@@ -1120,7 +1120,7 @@ export default class jupiter extends Exchange {
      * @param {object} order raw Jupiter Trigger DCA order
      * @returns {object} normalized DCA order fields with the original response in info
      */
-    parseDCAOrder (order: Dict): Dict {
+    parseDcaOrder (order: Dict): Dict {
         const data = this.safeDict (order, 'data', this.safeDict (order, 'order', order));
         const info = this.safeDict (order, 'info', order);
         return this.extend (data, {
@@ -1135,20 +1135,20 @@ export default class jupiter extends Exchange {
 
     /**
      * @method
-     * @name jupiter#cancelDCAOrder
+     * @name jupiter#cancelDcaOrder
      * @description starts cancellation of a dca order and returns its unsigned withdrawal transaction
      * @see https://developers.jup.ag/docs/trigger/dca-cancel
      * @param {string} id dca order id
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} unsigned withdrawal transaction and cancellation request id
      */
-    override async cancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+    override async cancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
         return await this.triggerPrivatePostOrdersDcaCancelId (this.extend ({ 'id': id }, params));
     }
 
     /**
      * @method
-     * @name jupiter#confirmCancelDCAOrder
+     * @name jupiter#confirmCancelDcaOrder
      * @description confirms dca cancellation with a caller-signed withdrawal transaction
      * @see https://developers.jup.ag/docs/trigger/dca-cancel
      * @param {string} id dca order id
@@ -1157,7 +1157,7 @@ export default class jupiter extends Exchange {
      * @param {string} params.cancelRequestId cancellation request id
      * @returns {object} cancellation confirmation and transaction signature
      */
-    override async confirmCancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
+    override async confirmCancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
         return await this.triggerPrivatePostOrdersDcaConfirmCancelId (this.extend ({ 'id': id }, params));
     }
 

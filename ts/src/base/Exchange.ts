@@ -2836,7 +2836,7 @@ export class BaseExchange {
                 'cancelOrdersWs': undefined,
                 'closeAllPositions': undefined,
                 'closePosition': undefined,
-                'cancelDCAOrder': undefined,
+                'cancelDcaOrder': undefined,
                 'claimPoolFees': undefined,
                 'collectFees': undefined,
                 'createPool': undefined,
@@ -2860,8 +2860,8 @@ export class BaseExchange {
                 'createMarketSellOrderWithCost': undefined,
                 'createMarketSellOrderWithCostWs': undefined,
                 'createOrder': undefined,
-                'createDCAOrder': undefined,
-                'confirmCancelDCAOrder': undefined,
+                'createDcaOrder': undefined,
+                'confirmCancelDcaOrder': undefined,
                 'depositCollateral': undefined,
                 'depositStake': undefined,
                 'createOrderWs': undefined,
@@ -2916,8 +2916,8 @@ export class BaseExchange {
                 'fetchCrossBorrowRate': undefined,
                 'fetchCrossBorrowRates': undefined,
                 'fetchCurrencies': 'emulated',
-                'fetchDCAOrder': undefined,
-                'fetchDCAOrders': undefined,
+                'fetchDcaOrder': undefined,
+                'fetchDcaOrders': undefined,
                 'fetchCurrenciesWs': 'emulated',
                 'fetchDeposit': undefined,
                 'fetchDepositAddress': undefined,
@@ -9627,62 +9627,62 @@ export default class Exchange extends BaseExchange {
 
     /**
      * @method
-     * @name exchange#createDCAOrder
+     * @name exchange#createDcaOrder
      * @description creates a dollar-cost averaging order
      * @param {object} params exchange-specific DCA schedule and funding parameters
      * @returns {object} the created DCA order
      */
-    async createDCAOrder (params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' createDCAOrder() is not supported yet');
+    async createDcaOrder (params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' createDcaOrder() is not supported yet');
     }
 
     /**
      * @method
-     * @name exchange#fetchDCAOrders
+     * @name exchange#fetchDcaOrders
      * @description fetches the user's dollar-cost averaging orders
      * @param {int} [since] timestamp in milliseconds of the earliest order
      * @param {int} [limit] maximum number of orders
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object[]} a list of DCA orders
      */
-    async fetchDCAOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
-        throw new NotSupported (this.id + ' fetchDCAOrders() is not supported yet');
+    async fetchDcaOrders (since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Dict[]> {
+        throw new NotSupported (this.id + ' fetchDcaOrders() is not supported yet');
     }
 
     /**
      * @method
-     * @name exchange#fetchDCAOrder
+     * @name exchange#fetchDcaOrder
      * @description fetches one dollar-cost averaging order by id
      * @param {string} id DCA order id
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} DCA order details
      */
-    async fetchDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' fetchDCAOrder() is not supported yet');
+    async fetchDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' fetchDcaOrder() is not supported yet');
     }
 
     /**
      * @method
-     * @name exchange#cancelDCAOrder
+     * @name exchange#cancelDcaOrder
      * @description initiates cancellation of a dollar-cost averaging order
      * @param {string} id DCA order id
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} cancellation result, which may contain a transaction to sign
      */
-    async cancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' cancelDCAOrder() is not supported yet');
+    async cancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' cancelDcaOrder() is not supported yet');
     }
 
     /**
      * @method
-     * @name exchange#confirmCancelDCAOrder
+     * @name exchange#confirmCancelDcaOrder
      * @description confirms DCA order cancellation after completing any required signing step
      * @param {string} id DCA order id
      * @param {object} params exchange-specific cancellation confirmation fields
      * @returns {object} cancellation confirmation
      */
-    async confirmCancelDCAOrder (id: string, params: Dict = {}): Promise<Dict> {
-        throw new NotSupported (this.id + ' confirmCancelDCAOrder() is not supported yet');
+    async confirmCancelDcaOrder (id: string, params: Dict = {}): Promise<Dict> {
+        throw new NotSupported (this.id + ' confirmCancelDcaOrder() is not supported yet');
     }
 
     /**
