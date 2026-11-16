@@ -3617,13 +3617,15 @@ export default class okx extends Exchange {
         for (let i = 0; i < orders.length; i++) {
             const rawOrder = this.safeDict (orders, i);
             const marketId = this.safeString (rawOrder, 'symbol');
-            if (marketId === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrders() requires a symbol for each order');
-            }
             const type = this.safeString (rawOrder, 'type', '');
             const side = this.safeString (rawOrder, 'side');
-            if (side === undefined) {
-                throw new ArgumentsRequired (this.id + ' requires a side argument');
+            if ((marketId === undefined) || (side === undefined)) {
+                // a missing side is the createOrderRequest () error
+                let reason = ' requires a side argument';
+                if (marketId === undefined) {
+                    reason = ' createOrders() requires a symbol for each order';
+                }
+                throw new ArgumentsRequired (this.id + reason);
             }
             const amount = this.safeNumber (rawOrder, 'amount');
             const price = this.safeNumber (rawOrder, 'price');
@@ -9171,8 +9173,7 @@ export default class okx extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeList (response, 'data', []) as List;
-        return this.parseOptionChain (result, undefined, 'instId');
+        return this.parseOptionChain (this.safeList (response, 'data', []) as List, undefined, 'instId');
     }
 
     override parseOption (chain: Dict, currency: Currency = undefined, market: Market = undefined): Option {
@@ -9431,8 +9432,7 @@ export default class okx extends Exchange {
         //         "msg": ""
         //     }
         //
-        const rows = this.safeList (response, 'data', []) as List;
-        return this.parseConversions (rows, code, 'baseCcy', 'quoteCcy', since, limit);
+        return this.parseConversions (this.safeList (response, 'data', []) as List, code, 'baseCcy', 'quoteCcy', since, limit);
     }
 
     override parseConversion (conversion: Dict, fromCurrency: Currency = undefined, toCurrency: Currency = undefined): Conversion {
