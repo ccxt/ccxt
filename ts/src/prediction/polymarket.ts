@@ -440,7 +440,7 @@ export default class polymarket extends Exchange {
                 }
             } else {
                 const optionMaxPages = this.safeInteger (this.options, 'maxSearchPages', 5);
-                const maxSearchPages = this.safeInteger (params, 'maxSearchPages', optionMaxPages);
+                const maxSearchPages = this.parseToInt (this.safeInteger (params, 'maxSearchPages', optionMaxPages));
                 if (maxSearchPages < totalPages) {
                     totalPages = maxSearchPages;
                 }
@@ -2863,8 +2863,8 @@ export default class polymarket extends Exchange {
     signHash (hash: string, privateKey: string): Dict {
         const signature = ecdsa (hash.slice (-64), privateKey.slice (-64), secp256k1, undefined);
         // assign before padStart so the PHP str_pad regex matches (it only handles a bare identifier)
-        const rRaw = signature['r'];
-        const sRaw = signature['s'];
+        const rRaw = this.safeString (signature, 'r', '');
+        const sRaw = this.safeString (signature, 's', '');
         const r = rRaw.padStart (64, '0');
         const s = sRaw.padStart (64, '0');
         return {

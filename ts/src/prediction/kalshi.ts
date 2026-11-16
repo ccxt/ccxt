@@ -2420,7 +2420,7 @@ export default class kalshi extends Exchange {
             let cursor: Str = undefined;
             for (let page = 0; page < maxPages; page++) {
                 let reqLimit = pageLimit;
-                if (hasLimit && (limitValue !== undefined)) {
+                if (hasLimit) {
                     const collectedSoFar = rawEvents.length;
                     const remaining = this.parseToInt (limitValue - collectedSoFar);
                     if (remaining < reqLimit) {
