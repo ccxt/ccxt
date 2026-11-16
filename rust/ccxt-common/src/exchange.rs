@@ -223,9 +223,9 @@ impl<T> TypedById<T> {
 /// without one, so an unbound Exchange still compiles and runs.
 pub trait DerivedExchange {
     /// The parent core of a subclass; each default below delegates to it, or returns Null without one.
-    fn derived_parent(&self) -> Option<&impl DerivedExchange> { None::<&std::convert::Infallible> }
+    fn derived_parent(&self) -> Option<&impl crate::exchange_generated::ExchangeBase> { None::<&BaseCore> }
     /// The same parent for the `&mut self` slots (sign, handle_errors).
-    fn derived_parent_mut(&mut self) -> Option<&mut impl DerivedExchange> { None::<&mut std::convert::Infallible> }
+    fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange_generated::ExchangeBase> { None::<&mut BaseCore> }
     // ── parsers (the dominant override surface) ──────────────────────────
     fn parse_ticker(&self, ticker: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ticker(ticker, market)) }
     fn parse_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_trade(trade, market)) }
@@ -262,7 +262,10 @@ pub trait DerivedExchange {
     fn parse_market_leverage_tiers(&self, info: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_market_leverage_tiers(info, market)) }
     fn parse_deposit_withdraw_fee(&self, fee: impl Into<Value>, currency: Option<&crate::types::Currency>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_deposit_withdraw_fee(fee, currency)) }
     fn create_expired_option_market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.create_expired_option_market(symbol)) }
-    fn market(&self, symbol: Value) -> Value { self.derived_parent().map_or(Value::Null, |p| p.market(symbol)) }
+    /// Typed like `ExchangeBase::market`, whose dispatch hands the call here unchanged; the default is the parent's, else the base lookup.
+    fn market(&self, symbol: &str) -> Result<crate::types::Market> where Self: crate::exchange_generated::ExchangeBase {
+        match self.derived_parent() { Some(p) => DerivedExchange::market(p, symbol), None => crate::exchange_generated::ExchangeBase::market_non_virtual(self, symbol) }
+    }
     // ── prediction-tier parsers (overridden by prediction venues) ────────
     fn parse_prediction_trade(&self, trade: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_prediction_trade(trade, market)) }
     fn parse_prediction_order(&self, order: impl Into<Value>, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_prediction_order(order, market)) }
@@ -2276,8 +2279,6 @@ impl std::ops::DerefMut for BaseCore {
 }
 impl DerivedExchange for BaseCore {}
 
-/// The parent type of a core without a parent: uninhabited, so no default ever reaches it.
-impl DerivedExchange for std::convert::Infallible {}
 impl crate::exchange_generated::ExchangeBase for BaseCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>
