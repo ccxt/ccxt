@@ -20468,3 +20468,156 @@ export function installJavaR77j2ConditionalLocals (transpiler) {
         return accumulatorCastWrite (printer, node, printed, { cast: `(${type})` });
     };
 }
+
+// ===== 77j6. base safeDict*/safeList* locals whose default argument is a proven Map / List =====
+// BaseExchange.safeDict*/safeList* (declared Object) return a Map/List element of the source or the
+// default argument untouched. Section "Object locals that only ever hold a Map/List" proves nullish /
+// literal defaults only; here the default may also be `this.createSafeDictionary ()` (hand-written base
+// returns a fresh HashMap) or an identifier whose printed Java is already Map<String, Object> /
+// List<..> (a typed local or parameter) or a parameter annotated `Dict` / `T[]` in TS. The local then
+// prints `java.util.Map<String, Object> x = (java.util.Map<String, Object>) this.safeDict(..)` (or the
+// List form), every later write must be proven the same box, and the type is published so its uses go native.
+const J6_READER_FAMILIES = {
+    map: { accessors: SAFE_DICT_ACCESSORS, type: 'java.util.Map<String, Object>', cast: '(java.util.Map<String, Object>)' },
+    list: { accessors: new Map ([ [ 'safeList', 2 ], [ 'safeList2', 3 ], [ 'safeListN', 2 ] ]), type: 'java.util.List<Object>', cast: '(java.util.List<Object>)' },
+};
+
+function j6TsShapeIs (printer, node, family) {
+    const checker = printer.getChecker ();
+    const type = checker.getTypeAtLocation (node);
+    if (type === undefined || (type.flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) !== 0) {
+        return false;
+    }
+    const parts = (type.isUnionType () ? ts.typeParts (type) : [ type ]).filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0) {
+        return false;
+    }
+    return parts.every ((t) => family === 'list'
+        ? checker.isArrayType (t)
+        : !checker.isArrayType (t) && !checker.isTupleType (t) && checker.getIndexTypeOfType (t, ts.IndexKind.String) !== undefined);
+}
+
+// the default argument prints a Java value of the family's box (or null) on every path
+function j6DefaultIsFamily (printer, node, family) {
+    const value = unwrapParens (node);
+    if (value === undefined || isNullishInitializer (value)) {
+        return true;
+    }
+    if (family === 'map' && isThisCall (value) && value.expression.name.text === 'createSafeDictionary'
+        && resolvesToBaseOrStrippedAccessor (printer, value, 'createSafeDictionary')) {
+        return true; // BaseExchange.createSafeDictionary returns a fresh HashMap<String, Object>
+    }
+    if (!ts.isIdentifier (value) || value.text === 'undefined') {
+        return false;
+    }
+    const declared = String (printer.javaDeclaredTypeOf (value) ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '');
+    if (family === 'map' ? declared === 'Map<String,Object>' : /^List<\w+>$/.test (declared)) {
+        return printer.printNode (value, 0) === value.text;
+    }
+    // an unwritten parameter whose TS annotation is a string-keyed dict / an array (printed Object)
+    const declaration = printer.getChecker ().getSymbolAtLocation (value)?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !ts.isParameterDeclaration (declaration) || declaration.type === undefined
+        || declaration.initializer !== undefined || declaration.dotDotDotToken !== undefined || printer.javaParameterIsWritten (declaration)) {
+        return false;
+    }
+    return j6TsShapeIs (printer, declaration.name, family) && printer.printNode (value, 0) === value.text;
+}
+
+// { family, cast } when the value is a base reader of the family with a proven default, else undefined
+function j6ReaderValue (printer, node, family) {
+    const value = unwrapParens (node);
+    if (value === undefined || !isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const defaultAt = J6_READER_FAMILIES[family].accessors.get (name);
+    if (defaultAt === undefined || value.arguments.length !== defaultAt + 1
+        || !resolvesToBaseOrStrippedAccessor (printer, value, name) || !j6DefaultIsFamily (printer, value.arguments[defaultAt], family)) {
+        return undefined;
+    }
+    return { cast: true };
+}
+
+function j6ReaderLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    for (const family of [ 'map', 'list' ]) {
+        if (j6ReaderValue (printer, declaration.initializer, family) === undefined) {
+            continue;
+        }
+        const type = J6_READER_FAMILIES[family].type;
+        const scope = enclosingFunction (declaration);
+        const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+        const name = String (declaration.name.text);
+        if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+            || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, type)) {
+            return undefined;
+        }
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        const writeOk = (right) => j6ReaderValue (printer, right, family) !== undefined
+            || (family === 'map' ? javaMapLocalValue (printer, right, declaration) : javaListLocalValue (printer, right, declaration)) !== undefined;
+        const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, { noCastAssertions: true, writeOnly: true, writeOk });
+        return ok ? { family, type } : undefined;
+    }
+    return undefined;
+}
+
+export function installJ6ReaderLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._j6ReaderLocalsPatched) {
+        return;
+    }
+    printer._j6ReaderLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let info;
+        try {
+            info = j6ReaderLocal (printer, declaration);
+        } catch (e) {
+            info = undefined;
+        }
+        if (info === undefined) {
+            return printed;
+        }
+        typed.set (declaration, info);
+        const cast = J6_READER_FAMILIES[info.family].cast;
+        const rest = printed.slice (at + marker.length);
+        const head = marker.replace (/Object (\S+) = $/, `${info.type} $1 = `) + (rest.startsWith (cast) ? '' : cast + ' ');
+        return printed.slice (0, at) + head + rest;
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration)?.type);
+    // later writes from an Object-declared reader take the same checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let cast;
+        try {
+            const declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+            const info = declaration === undefined ? undefined : typed.get (declaration);
+            if (info !== undefined) {
+                const other = info.family === 'map' ? javaMapLocalValue (printer, node.right, declaration) : javaListLocalValue (printer, node.right, declaration);
+                cast = j6ReaderValue (printer, node.right, info.family) !== undefined || other?.cast === true ? J6_READER_FAMILIES[info.family].cast : undefined;
+            }
+        } catch (e) {
+            cast = undefined;
+        }
+        return cast === undefined ? printed : accumulatorCastWrite (printer, node, printed, { cast });
+    };
+}
