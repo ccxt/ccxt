@@ -2049,9 +2049,8 @@ func (this *Aster) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances], opt
 			panic(r.Err)
 		}
 	}
-	var typeVar any = nil
-	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params, typeVar)
-	if (typeVar == nil) || (typeMarketType == nil) {
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchBalance", nil, params)
+	if typeMarketType == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchBalance() requires a market type"))
 	}
 
@@ -2515,9 +2514,8 @@ func (this *Aster) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 		}
 	}
 	var messageHash string = "orders"
-	var typeVar any = nil
-	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params, typeVar)
-	if (typeVar == nil) || (typeMarketType == nil) {
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
+	if typeMarketType == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchOrders() requires a market type"))
 	}
 
@@ -2593,9 +2591,8 @@ func (this *Aster) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 		}
 	}
 	var messageHash string = "myTrades"
-	var typeVar any = nil
-	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params, typeVar)
-	if (typeVar == nil) || (typeMarketType == nil) {
+	typeMarketType, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
+	if typeMarketType == nil {
 		panic(ccxt.ArgumentsRequired(this.Id + " watchMyTrades() requires a market type"))
 	}
 
@@ -2677,9 +2674,9 @@ func (this *Aster) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes187132 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes187132, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes187132)
+							retRes186832 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes186832, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes186832)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

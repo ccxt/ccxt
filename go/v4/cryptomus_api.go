@@ -12,11 +12,6 @@ func (this *Cryptomus) PublicGetV2UserApiExchangeMarkets(args ...any) <-chan End
 	return Fetch2Result[map[string]any](this, "v2/user-api/exchange/markets", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
-// PublicGetV2UserApiExchangeMarketPrice returns a channel that yields a JSON object.
-func (this *Cryptomus) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v2/user-api/exchange/market/price", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
-}
-
 // PublicGetV2UserApiExchangeMarketsPrice returns a channel that yields a JSON object.
 func (this *Cryptomus) PublicGetV2UserApiExchangeMarketsPrice(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v2/user-api/exchange/markets/price", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
@@ -30,11 +25,6 @@ func (this *Cryptomus) PublicGetV1ExchangeMarketAssets(args ...any) <-chan Endpo
 // PublicGetV1ExchangeMarketOrderBookCurrencyPair returns a channel that yields a JSON object.
 func (this *Cryptomus) PublicGetV1ExchangeMarketOrderBookCurrencyPair(args ...any) <-chan EndpointResult[map[string]any] {
 	return Fetch2Result[map[string]any](this, "v1/exchange/market/order-book/{currencyPair}", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
-}
-
-// PublicGetV1ExchangeMarketTickers returns a channel that yields a JSON object.
-func (this *Cryptomus) PublicGetV1ExchangeMarketTickers(args ...any) <-chan EndpointResult[map[string]any] {
-	return Fetch2Result[map[string]any](this, "v1/exchange/market/tickers", []string{"public"}, "GET", GetArg(args, 0, nil), map[string]any{"cost": float64(1)})
 }
 
 // PublicGetV1ExchangeMarketTradesCurrencyPair returns a channel that yields a JSON object.
