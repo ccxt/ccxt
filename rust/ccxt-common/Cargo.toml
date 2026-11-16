@@ -32,7 +32,6 @@ k256 = { version = "0.13", features = ["ecdsa"] }
 rsa = { version = "0.9", features = ["sha2"] }
 base64 = "0.22"
 url = "2"
-rust_decimal = { version = "1", features = ["serde-str"] }
 num-bigint = "0.4"
 num-traits = "0.2"
 rand = "0.8"

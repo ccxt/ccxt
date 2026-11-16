@@ -4,30 +4,69 @@
 // representations to avoid floating-point rounding issues, and all inputs
 // / outputs are Strings (just like the TypeScript version).
 
-use rust_decimal::Decimal;
-use rust_decimal::prelude::*;
-use std::str::FromStr;
+use num_bigint::BigInt;
+use num_traits::{Signed, Zero};
 
-/// Parse a string to a `Decimal`, returning `None` on failure.
-fn parse(s: &str) -> Option<Decimal> {
-    Decimal::from_str(s).ok()
+/// Strict decimal syntax for `string_div` / `string_to_precision`: optional
+/// leading sign, digits with one optional `.`, `_` separators after a digit,
+/// and an optional `e`/`E` exponent of at most 28. Returns `(integer, decimals)`.
+fn decimal_parse(s: &str) -> Option<(BigInt, i32)> {
+    fn mantissa_ok(t: &str) -> bool {
+        let body = t.strip_prefix(['+', '-']).unwrap_or(t);
+        let (mut digit, mut point) = (false, false);
+        for c in body.bytes() {
+            match c {
+                b'0'..=b'9' => digit = true,
+                b'.' if !point => point = true,
+                b'_' if digit => {}
+                _ => return false,
+            }
+        }
+        digit
+    }
+    if mantissa_ok(s) {
+        return precise_parse_big(&s.replace('_', ""));
+    }
+    let epos = s.find(['e', 'E'])?;
+    let (base, exp) = (&s[..epos], &s[epos + 1..]);
+    if !mantissa_ok(base) {
+        return None;
+    }
+    let (negative_exp, digits) = match exp.strip_prefix('-') {
+        Some(rest) => (true, rest),
+        None => (false, exp),
+    };
+    let e: u32 = digits.parse().ok()?;
+    if e > 28 {
+        return None;
+    }
+    let (integer, decimals) = precise_parse_big(&base.replace('_', ""))?;
+    Some((integer, if negative_exp { decimals + e as i32 } else { decimals - e as i32 }))
 }
 
-/// Format a `Decimal` back to a string without trailing zeros.
-fn fmt(d: Decimal) -> String {
-    let s = d.to_string();
-    // Remove trailing zeros after decimal point (but keep at least one digit)
-    let out = if s.contains('.') {
-        s.trim_end_matches('0').trim_end_matches('.').to_owned()
+/// `(|a| * 10^shift) / |b|` as a numerator/denominator pair, `shift` may be negative.
+fn scaled_ratio(a: &BigInt, b: &BigInt, shift: i32) -> (BigInt, BigInt) {
+    if shift >= 0 {
+        (a.abs() * big_pow10(shift), b.abs())
     } else {
-        s
-    };
-    // Normalise negative zero ("-0") → "0".
-    if out.bytes().all(|b| matches!(b, b'-' | b'0' | b'.')) {
-        "0".to_string()
-    } else {
-        out
+        (a.abs(), b.abs() * big_pow10(-shift))
     }
+}
+
+/// `num / den` rounded half to even (both non-negative).
+fn div_half_even(num: &BigInt, den: &BigInt) -> BigInt {
+    let (q, r) = (num / den, num % den);
+    let twice: BigInt = r * 2u8;
+    if twice > *den || (twice == *den && !(&q % 2u8).is_zero()) { q + 1u8 } else { q }
+}
+
+/// Fixed-point rendering of `integer / 10^decimals` with exactly `decimals` places.
+fn fixed_to_string(negative: bool, integer: &BigInt, decimals: u32) -> String {
+    let k = decimals as usize;
+    let digits = format!("{:0>width$}", integer.to_string(), width = k + 1);
+    let (whole, frac) = digits.split_at(digits.len() - k);
+    let sign = if negative { "-" } else { "" };
+    if k == 0 { format!("{sign}{whole}") } else { format!("{sign}{whole}.{frac}") }
 }
 
 // ── public API ────────────────────────────────────────────────────────────────
@@ -56,10 +95,7 @@ fn big_align(
 }
 
 pub fn string_add(a: &str, b: &str) -> Option<String> {
-    // Arbitrary precision, not `Decimal`: `rust_decimal` holds only 28
-    // significant digits, so 30-digit operands failed to parse and the sum
-    // came back as `None`. CCXT's `Precise` is BigInt-backed, so the result
-    // must not depend on rust_decimal's range.
+    // Arbitrary precision, like CCXT's BigInt-backed `Precise`.
     let (ai, bi, dec) = big_align(precise_parse_big(a)?, precise_parse_big(b)?);
     Some(bigint_to_precise_string(&(ai + bi), dec))
 }
@@ -70,31 +106,42 @@ pub fn string_sub(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_mul(a: &str, b: &str) -> Option<String> {
-    // Fast path: rust_decimal. Its `*` PANICS on overflow ("Multiplication
-    // overflowed"), so use `checked_mul` and fall back to the arbitrary-
-    // precision BigInt path (like `string_div_prec`) when the 96-bit mantissa
-    // can't hold the product — e.g. nado's parse_position multiplying large
-    // contract sizes by price. CCXT's `Precise` is arbitrary-precision, so the
-    // result must not depend on rust_decimal's range.
     string_mul_big(a, b)
 }
 
 /// Arbitrary-precision `a * b`: product integer is `a_int * b_int`, with the
-/// decimal counts summed. Used when the i128/decimal fast path overflows.
+/// decimal counts summed.
 fn string_mul_big(a: &str, b: &str) -> Option<String> {
     let (a_int, a_dec) = precise_parse_big(a)?;
     let (b_int, b_dec) = precise_parse_big(b)?;
     Some(bigint_to_precise_string(&(a_int * b_int), a_dec + b_dec))
 }
 
+/// `a / b` rounded half to even at the largest scale (at most 28) whose
+/// integer stays below 2^96, then trailing zeros trimmed.
 pub fn string_div(a: &str, b: &str) -> Option<String> {
-    let divisor = parse(b)?;
-    if divisor.is_zero() { return None; }
-    Some(fmt(parse(a)? / divisor))
+    let (ai, ad) = decimal_parse(a)?;
+    let (bi, bd) = decimal_parse(b)?;
+    if bi.is_zero() { return None; }
+    let limit = BigInt::from(1u8) << 96usize;
+    let mut scale = 28;
+    while scale > 0 {
+        let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+        if num / den < limit { break; }
+        scale -= 1;
+    }
+    let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+    let mut q = div_half_even(&num, &den);
+    if q >= limit && scale > 0 {
+        scale -= 1;
+        let (num, den) = scaled_ratio(&ai, &bi, bd - ad + scale);
+        q = div_half_even(&num, &den);
+    }
+    let negative = ai.is_negative() != bi.is_negative();
+    Some(bigint_to_precise_string(&if negative { -q } else { q }, scale))
 }
 
 pub fn string_mod(a: &str, b: &str) -> Option<String> {
-    use num_traits::Zero;
     // Mirrors TS `mod()`: rationalize both sides onto a common scale, then
     // take the remainder of the scaled integers.
     let (ai, ad) = precise_parse_big(a)?;
@@ -108,11 +155,7 @@ pub fn string_mod(a: &str, b: &str) -> Option<String> {
 }
 
 pub fn string_eq(a: &str, b: &str) -> Option<bool> {
-    // NOT via `Decimal`: `rust_decimal` caps at 28 decimal places, so an
-    // extreme scale like `1e-200` (or its 200-digit expansion) fails to parse
-    // outright and equality silently came back false. Mirror TS `equals()`
-    // instead — reduce both and compare (integer, decimals) — which needs no
-    // rescaling and so has no magnitude limit beyond the digit count itself.
+    // Mirrors TS `equals()`: reduce both and compare (integer, decimals).
     let (ia, da) = precise_parse(a)?;
     let (ib, db) = precise_parse(b)?;
     let (ia, da) = precise_reduce(ia, da);
@@ -143,7 +186,6 @@ pub fn string_le(a: &str, b: &str) -> Option<bool> {
 }
 
 pub fn string_abs(a: &str) -> Option<String> {
-    use num_traits::Signed;
     let (i, d) = precise_parse_big(a)?;
     Some(bigint_to_precise_string(&i.abs(), d))
 }
@@ -154,40 +196,27 @@ pub fn string_neg(a: &str) -> Option<String> {
 }
 
 /// Round to `decimals` decimal places using the specified rounding mode.
-/// mode 0 = TRUNCATE, mode 2 = ROUND (half-up), mode 3 = ROUND_UP, mode 4 = ROUND_DOWN
+/// mode 0 = truncate (keeps a `-` on a negative input truncated to zero),
+/// 3 = ceiling, 4 = floor, any other = round half to even.
 pub fn string_to_precision(a: &str, decimals: u32, mode: u8) -> Option<String> {
-    let d = parse(a)?;
-    let rounded = match mode {
-        0 => d.trunc_with_scale(decimals),
-        3 => {
-            // ROUND_UP (away from zero)
-            let scale = Decimal::from(10u64.pow(decimals));
-            (d * scale).ceil() / scale
-        }
-        4 => {
-            // ROUND_DOWN (toward zero)
-            let scale = Decimal::from(10u64.pow(decimals));
-            (d * scale).floor() / scale
-        }
-        _ => d.round_dp(decimals), // ROUND half-up
+    let (integer, d) = decimal_parse(a)?;
+    let (num, den) = scaled_ratio(&integer, &BigInt::from(1u8), decimals as i32 - d);
+    let num = if integer.is_negative() { -num } else { num };
+    let (q, r) = (&num / &den, &num % &den);
+    let (negative, magnitude) = match mode {
+        0 => (integer.is_negative(), q.abs()),
+        3 => { let v = if r.is_positive() { q + 1u8 } else { q }; (v.is_negative(), v.abs()) }
+        4 => { let v = if r.is_negative() { q - 1u8 } else { q }; (v.is_negative(), v.abs()) }
+        _ => { let v = div_half_even(&num.abs(), &den); (integer.is_negative() && !v.is_zero(), v) }
     };
-    let s = format!("{:.prec$}", rounded, prec = decimals as usize);
-    Some(s)
-}
-
-/// Parses the number of significant digits in a decimal string.
-pub fn precise_from_string(s: &str) -> Option<Decimal> {
-    parse(s)
+    Some(fixed_to_string(negative, &magnitude, decimals))
 }
 
 // ── precision-aware division ────────────────────────────────────────────────
 //
-// `string_div` above uses `rust_decimal` (fixed ~28-digit precision, rounds).
-// The TS `Precise.stringDiv (a, b, precision)` uses arbitrary-precision
-// big-integer math and *truncates* the result to exactly `precision`
-// decimal places. `string_div_prec` ports that algorithm with `i128`
-// (sufficient for the realistic value range; falls back to `string_div`
-// on overflow).
+// The TS `Precise.stringDiv (a, b, precision)` *truncates* the result to
+// exactly `precision` decimal places; `string_div_prec` ports it with an
+// `i128` fast path and a BigInt fallback.
 
 /// Parses a decimal string into `(integer, decimals)` exactly like the
 /// TS `Precise` constructor (handles scientific `e` notation).
@@ -330,8 +359,6 @@ fn precise_parse_big(s: &str) -> Option<(num_bigint::BigInt, i32)> {
 /// Mirrors the TS BigInt algorithm exactly; used when the i128 fast path
 /// in [`string_div_prec`] would overflow.
 pub fn string_div_prec_big(a: &str, b: &str, precision: i64) -> Option<String> {
-    use num_bigint::BigInt;
-    use num_traits::Zero;
     let (a_int, a_dec) = precise_parse_big(a)?;
     let (b_int, b_dec) = precise_parse_big(b)?;
     if b_int.is_zero() {
@@ -372,10 +399,7 @@ fn bigint_to_precise_string(integer: &num_bigint::BigInt, decimals: i32) -> Stri
     let bytes = abs.as_bytes();
     let start = abs.len() as i32 - 1;
     if start == 0 && abs == "0" {
-        // TS `reduceDigits()` zeroes the scale for a bare "0", so `0 * 1e-6`
-        // renders as "0" and not "0.000000". The i128 `precise_reduce` already
-        // did this; the BigInt path did not, and only showed up once the
-        // Decimal fast path stopped masking it.
+        // TS `reduceDigits()` zeroes the scale for a bare "0": `0 * 1e-6` is "0".
         decimals = 0;
     }
     if start > 0 {

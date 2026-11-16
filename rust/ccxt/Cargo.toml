@@ -138,7 +138,7 @@ ccxt-base = { path = "../ccxt-base", version = "4.5.92", features = ["engine"] }
 # The generated typed wrappers (`src/exchanges/*_typed.rs`, `typed.rs`, emitted
 # by build/generateRustWrappers.ts) reference exactly one external crate
 # directly: `#[async_trait::async_trait]` on the `TypedExchange` trait. Every
-# other external type (tokio, serde_json, Decimal, IndexMap, chrono, …) is
+# other external type (tokio, serde_json, IndexMap, chrono, …) is
 # reached through the `ccxt_base::*` re-exports above, so it is not
 # re-declared here.
 async-trait = "0.1"
