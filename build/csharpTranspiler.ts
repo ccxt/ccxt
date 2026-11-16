@@ -4836,156 +4836,92 @@ class NewTranspiler {
         return content;
     }
 
-    // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` where `x` IS declared
-    // `string`/`string?` in the same method: the cast names the box the value already is, so
-    // it is dropped. The ast printer (csharpStringReceiverType) drops it at print time for
-    // the locals it and the classifier type; a `typeCoreArgs`-narrowed core parameter and a
-    // copy retyped by retypeCoreArgCopies only become visible in the printed text, so those
-    // receivers are unboxed here, after both. A name with any other binding in the method
-    // (a declaration of another type, a lambda/foreach/catch/for variable) stays cast.
-    retypeStringReceiverCasts (content: string): string {
-        if (!content.includes ('((string)')) {
-            return content;
-        }
-        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
-        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
-        const lines = content.split ('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
-            }
-            const candidates = new Set<string> ();
-            for (const param of this.splitCsharpParams (sig[2])) {
-                const declaredString = /^(string\??)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
-                if (declaredString !== null) {
-                    candidates.add (declaredString[2]);
-                }
-            }
-            const blocked = new Set<string> ();
-            for (let j = bodyStart + 1; j < bodyEnd; j++) {
-                const declaration = declRe.exec (lines[j]);
-                if (declaration === null) {
-                    continue;
-                }
-                if (declaration[1] === 'string' || declaration[1] === 'string?') {
-                    candidates.add (declaration[2]);
-                } else {
-                    blocked.add (declaration[2]);
-                }
-            }
-            const body = lines.slice (bodyStart + 1, bodyEnd);
-            const text = body.join ('\n');
-            let rewritten = text;
-            for (const name of candidates) {
-                if (blocked.has (name)) {
-                    continue; // another binding of the name exists in this method
-                }
-                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
-                    continue; // a lambda parameter of the same name would shadow it
-                }
-                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
-                    continue; // a loop/catch variable of the same name would shadow it
-                }
-                rewritten = rewritten.replace (new RegExp ('\\(\\(string\\)' + name + '\\)\\.(Split|ToUpper|ToLower|Replace|Trim|Length)\\b', 'g'), name + '.$1');
-            }
-            if (rewritten !== text) {
-                const rewrittenBody = rewritten.split ('\n');
-                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
-                i = bodyStart + rewrittenBody.length;
-            }
-        }
-        return lines.join ('\n');
-    }
-
-    // `((IDictionary<string, object>)x)` around a parameter or local whose emitted declaration is
-    // `Dictionary<string, object>` / `IDictionary<string, object>`: an identity or implicit upcast,
-    // so the receiver's own member does the same work. Names also bound otherwise are skipped.
-    retypeDictReceiverCasts (content: string): string {
-        if (!content.includes ('((IDictionary<string,object>)') && !content.includes ('((IDictionary<string, object>)')) {
-            return content;
-        }
-        const dictType = /^I?Dictionary<string, ?object>\??$/;
-        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
-        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>\??|IList<[^>]*>\??|Dictionary<[^>]*>\??|IDictionary<[^>]*>\??|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??|[A-Z][\w.<>, ?\[\]]*?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[=;]/;
-        const lines = content.split ('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
-            }
-            const candidates = new Set<string> ();
-            const blocked = new Set<string> ();
-            for (const param of this.splitCsharpParams (sig[2])) {
-                const declared = /^(?:ref\s+|out\s+|params\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*=.*)?$/.exec (param.trim ());
-                if (declared !== null) {
-                    (dictType.test (declared[1]) ? candidates : blocked).add (declared[2]);
-                }
-            }
-            for (let j = bodyStart + 1; j < bodyEnd; j++) {
-                const declaration = declRe.exec (lines[j]);
-                if (declaration === null) {
-                    continue;
-                }
-                (dictType.test (declaration[1]) ? candidates : blocked).add (declaration[2]);
-            }
-            if (candidates.size === 0) {
-                continue;
-            }
-            const body = lines.slice (bodyStart + 1, bodyEnd);
-            const text = body.join ('\n');
-            let rewritten = text;
-            for (const name of candidates) {
-                if (blocked.has (name)) {
-                    continue; // another binding of the name exists in this method
-                }
-                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
-                    continue; // a lambda parameter of the same name would shadow it
-                }
-                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
-                    continue; // a loop/catch variable of the same name would shadow it
-                }
-                const typedParam = new RegExp ('[(,]\\s*([\\w.<>?\\[\\]]+(?:, ?[\\w.<>?]+>)?)\\s+' + name + '\\s*[,)]', 'g');
-                if ([...text.matchAll (typedParam)].some ((m) => !dictType.test (m[1]))) {
-                    continue; // a lambda or local-function parameter of another type would shadow it
-                }
-                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string, ?object>\\)' + name + '\\)(?=[.[])', 'g'), name);
-            }
-            if (rewritten !== text) {
-                const rewrittenBody = rewritten.split ('\n');
-                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
-                i = bodyStart + rewrittenBody.length;
-            }
-        }
-        return lines.join ('\n');
-    }
-
-    // The two post-print passes that drop a cast proven by the EMITTED declaration text (string and
-    // dictionary receivers), behind one entry point so the pass chains stay a single call
+    // Drop a receiver cast proven by the EMITTED declaration text, after the printer and retypeCoreArgCopies:
+    // `((string)x).Split/.ToUpper/...` where `x` is declared `string`/`string?` in the method, and
+    // `((IDictionary<string, object>)x)` where `x` is declared `Dictionary`/`IDictionary<string, object>`.
+    // A name with any other binding in the method (another declaration, a lambda/foreach/catch/for variable) stays cast.
     retypePrintedReceiverCasts (content: string): string {
-        return this.retypeStringReceiverCasts (this.retypeDictReceiverCasts (content));
+        const dictType = /^I?Dictionary<string, ?object>\??$/;
+        content = this.retypeReceiverCasts (content, content.includes ('((IDictionary<string,object>)') || content.includes ('((IDictionary<string, object>)'), {
+            type: dictType,
+            declRe: /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>\??|IList<[^>]*>\??|Dictionary<[^>]*>\??|IDictionary<[^>]*>\??|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??|[A-Z][\w.<>, ?\[\]]*?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[=;]/,
+            paramRe: /^(?:ref\s+|out\s+|params\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*=.*)?$/,
+            shadowed: (text: string, name: string) => [ ...text.matchAll (new RegExp ('[(,]\\s*([\\w.<>?\\[\\]]+(?:, ?[\\w.<>?]+>)?)\\s+' + name + '\\s*[,)]', 'g')) ].some ((m) => !dictType.test (m[1])),
+            cast: (name: string) => new RegExp ('\\(\\(IDictionary<string, ?object>\\)' + name + '\\)(?=[.[])', 'g'),
+            replacement: (name: string) => name,
+        });
+        return this.retypeReceiverCasts (content, content.includes ('((string)'), {
+            type: /^string\??$/,
+            declRe: /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/,
+            paramRe: /^(string\??)\s+([A-Za-z_][A-Za-z0-9_]*)/,
+            shadowed: () => false,
+            cast: (name: string) => new RegExp ('\\(\\(string\\)' + name + '\\)\\.(Split|ToUpper|ToLower|Replace|Trim|Length)\\b', 'g'),
+            replacement: (name: string) => name + '.$1',
+        });
+    }
+
+    // one row of retypePrintedReceiverCasts: per public method, names declared with `row.type` (params whose type
+    // fails it are blocked only when `row.paramRe` captures any type) lose the `row.cast` around them
+    retypeReceiverCasts (content: string, present: boolean, row: any): string {
+        if (!present) {
+            return content;
+        }
+        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
+            }
+            const candidates = new Set<string> ();
+            const blocked = new Set<string> ();
+            for (const param of this.splitCsharpParams (sig[2])) {
+                const declared = row.paramRe.exec (param.trim ());
+                if (declared !== null) {
+                    (row.type.test (declared[1]) ? candidates : blocked).add (declared[2]);
+                }
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const declaration = row.declRe.exec (lines[j]);
+                if (declaration !== null) {
+                    (row.type.test (declaration[1]) ? candidates : blocked).add (declaration[2]);
+                }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd);
+            const text = body.join ('\n');
+            let rewritten = text;
+            for (const name of candidates) {
+                if (blocked.has (name)) {
+                    continue; // another binding of the name exists in this method
+                }
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
+                    continue; // a lambda parameter of the same name would shadow it
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
+                    continue; // a loop/catch variable of the same name would shadow it
+                }
+                if (!row.shadowed (text, name)) {
+                    rewritten = rewritten.replace (row.cast (name), row.replacement (name));
+                }
+            }
+            if (rewritten !== text) {
+                const rewrittenBody = rewritten.split ('\n');
+                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
+                i = bodyStart + rewrittenBody.length;
+            }
+        }
+        return lines.join ('\n');
     }
 
     // drop `((string)x)` when the enclosing method declares `x` as `string`/`string?`: the printer wraps
