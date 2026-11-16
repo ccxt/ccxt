@@ -1404,12 +1404,11 @@ export default class luno extends Exchange {
         // by default without entry number or limit number, return most recent entry
         const entryValue = (entry === undefined) ? -1 : entry;
         const limitValue = (limit === undefined) ? 1 : limit;
-        const since: Int = undefined;
         const request: Dict = {
             'min_row': entryValue,
             'max_row': this.sum (entryValue, limitValue),
         };
-        return await this.fetchLedger (code, since, limitValue, this.extend (request, params));
+        return await this.fetchLedger (code, undefined, limitValue, this.extend (request, params));
     }
 
     /**

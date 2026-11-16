@@ -1946,7 +1946,7 @@ export default class upbit extends Exchange {
         if (numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
             const lastTrade = this.safeDict (trades, numTrades - 1, {});
-            lastTradeTimestamp = lastTrade['timestamp'];
+            lastTradeTimestamp = this.safeInteger (lastTrade, 'timestamp');
             let getFeesFromTrades = false;
             if (feeCost === undefined) {
                 getFeesFromTrades = true;
@@ -2477,8 +2477,7 @@ export default class upbit extends Exchange {
             const token = jwt (request, this.encode (this.secret), sha256);
             headers['Authorization'] = 'Bearer ' + token;
         }
-        const requestHeaders = (apiName === 'private') ? headers : undefined;
-        return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
+        return { 'url': url, 'method': method, 'body': requestBody, 'headers': (apiName === 'private') ? headers : undefined };
     }
 
     override handleErrors (code: int, reason: string, url: string, method: string, headers: Dict, body: string, response: any, requestHeaders: NullableDict, requestBody: Str) {
