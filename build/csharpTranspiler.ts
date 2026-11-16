@@ -5849,35 +5849,17 @@ class NewTranspiler {
             return content;
         }
         const membership = new Set (names);
-        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
-        const sigs: { at: number, name: string }[] = [];
-        let signature;
-        while ((signature = sigRe.exec (content)) !== null) {
-            sigs.push ({ at: signature.index, name: signature[1] });
-        }
-        const enclosingName = (at: number) => {
-            let found = '';
-            for (const sig of sigs) {
-                if (sig.at >= at) {
-                    break;
-                }
-                found = sig.name;
-            }
-            return found;
+        const sigs = [ ...content.matchAll (/^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm) ];
+        // the signature of the method enclosing `at`, and where the next one starts
+        const enclosing = (at: number) => {
+            const next = sigs.findIndex ((sig) => sig.index >= at);
+            const sig = sigs[((next === -1) ? sigs.length : next) - 1];
+            return { name: (sig === undefined) ? '' : sig[1], start: (sig === undefined) ? 0 : sig.index, end: (next === -1) ? content.length : sigs[next].index };
         };
         // does the method enclosing `at` declare `name` with a dict type?  (a local, a parameter,
         // or a value an earlier pass already asserted to the concrete spelling)
         const dictTypedInMethod = (at: number, name: string) => {
-            let start = 0;
-            let end = content.length;
-            for (const sig of sigs) {
-                if (sig.at < at) {
-                    start = sig.at;
-                } else {
-                    end = sig.at;
-                    break;
-                }
-            }
+            const { start, end } = enclosing (at);
             for (const line of content.substring (start, end).split ('\n')) {
                 const trimmed = line.trim ();
                 if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) {
@@ -5889,14 +5871,8 @@ class NewTranspiler {
             }
             return false;
         };
-        const declarations: { index: number, text: string, param: string }[] = [];
-        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
-        let decl;
-        while ((decl = declRe.exec (content)) !== null) {
-            if (membership.has (decl[4])) {
-                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
-            }
-        }
+        const declarations = [ ...content.matchAll (/^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm) ]
+            .filter ((decl) => membership.has (decl[4])).map ((decl) => ({ index: decl.index, text: decl[0], param: decl[5] }));
         const edits: { start: number, end: number, text: string }[] = [];
         for (const declaration of declarations) {
             const name = declaration.text.match (/handle\w+/)![0];
@@ -5940,7 +5916,7 @@ class NewTranspiler {
                 if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
                     continue;
                 }
-                const chain = membership.has (enclosingName (call.index));
+                const chain = membership.has (enclosing (call.index).name);
                 if (iface && (!/^[A-Za-z_]\w*$/.test (arg) || (!chain && !dictTypedInMethod (call.index, arg)))) {
                     clear = false;
                     break;
