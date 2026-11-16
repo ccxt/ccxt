@@ -2356,13 +2356,12 @@ impl Gemini {
 }
 
     pub async fn fetch_ticker_v1_and_v2(&mut self, symbol: &str, optional_args: &[Value]) -> Value {
-        let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol.as_str().unwrap_or_default(), &[params.clone()]).await.into_dict();
-        let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol.as_str().unwrap_or_default(), &[params]).await.into_dict();
+        let mut tickerPromiseA: crate::value::Dict = self.fetch_ticker_v1(symbol, &[params.clone()]).await.into_dict();
+        let mut tickerPromiseB: crate::value::Dict = self.fetch_ticker_v2(symbol, &[params]).await.into_dict();
         let tickerAtickerBVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tickerPromiseA), Value::Dict(tickerPromiseB)])).await.as_array().cloned().unwrap_or_default();
         let mut tickerA: Value = tickerAtickerBVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut tickerB: crate::value::Dict = tickerAtickerBVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();

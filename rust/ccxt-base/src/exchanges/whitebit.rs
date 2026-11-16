@@ -3702,20 +3702,20 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // It refuses an end past its own clock, which may be behind this one, so an end within a
             // timeframe of now is left out, and the latest candles it then returns cover the range
             let mut duration: i64 = self.parse_timeframe(timeframe.clone());
-            let mut endTime: Value = Value::Null;
+            let mut endTime: Option<i64> = None;
             if (until.is_some()) {
-                endTime = self.sum(&[Value::from(self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None })))), Value::from(duration)]);
+                endTime = (if let Some(__m0) = self.parse_to_int(Value::from((if let Some(__l) = until { Some((__l as f64) / 1000.0) } else { None }))) { Some((__m0 + duration)) } else { None });
             }
             if (since != Value::Null) {
                 let mut start: Option<i64> = self.parse_to_int((match ((since).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
                 request.insert("start".into(), Value::from(start));
-                let mut rangeEnd: Value = Value::from((if let (Some(__m0), Some(__m1)) = (start, ((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None }));
-                if (endTime == Value::Null) || (rangeEnd.as_f64().unwrap_or(f64::NAN) < endTime.as_f64().unwrap_or(f64::NAN)) {
+                let mut rangeEnd: Option<i64> = (if let (Some(__m0), Some(__m1)) = (start, ((if let Some(__r) = cappedLimit { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None });
+                if (endTime.is_none()) || ((rangeEnd.is_some() && endTime.is_some() && rangeEnd < endTime)) {
                     endTime = rangeEnd;
                 }
             }
-            if (endTime != Value::Null) && (self.sum(&[endTime.clone(), Value::from(duration)]).as_f64().unwrap_or(f64::NAN) < Value::Int(self.seconds()).as_f64().unwrap_or(f64::NAN)) {
-                request.insert("end".into(), endTime);
+            if (endTime.is_some()) && (Value::from((if let Some(__m0) = endTime { Some((__m0 + duration)) } else { None })).as_f64().unwrap_or(f64::NAN) < Value::Int(self.seconds()).as_f64().unwrap_or(f64::NAN)) {
+                request.insert("end".into(), Value::from(endTime));
             }
         }
         if (since != Value::Null) || (until.is_some()) || (limit != Value::Null) {

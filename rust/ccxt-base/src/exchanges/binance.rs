@@ -11709,8 +11709,6 @@ impl Binance {
     pub async fn edit_spot_order(&mut self, id: &str, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut id: Value = id.into();
         let mut symbol: Value = symbol.into();
-        let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -11723,7 +11721,7 @@ impl Binance {
         if !(market).spot {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " editSpotOrder() does not support ").into()), self.safe_string_k(&market, "type", &[Value::Str("".into())])).into()), " orders")));
         }
-        let mut payload: crate::value::Dict = self.edit_spot_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
+        let mut payload: crate::value::Dict = self.edit_spot_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var, side, amount, &[price, params]).into_dict();
         let mut response: crate::value::Dict = self.private_post_order_cancel_replace(&[Value::Dict(payload)]).await.into_dict();
         //
         // spot
@@ -20388,7 +20386,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (code.as_str() == Some("BUSD")) {
             let mut msInDay: i64 = 86400000;
             let mut now: i64 = self.milliseconds();
@@ -20400,22 +20398,22 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             request.insert("startTime".into(), Value::Int((now - msInDay)));
             request.insert("endTime".into(), Value::from(now));
             let __ws_arg_226 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_226]).await;
+            response = self.sapi_get_asset_convert_transfer_query_by_page(&[__ws_arg_226]).await.into_opt_dict();
         }  else {
             request.insert("orderId".into(), id.clone());
             let __ws_arg_227 = self.extend(Value::Map(request), &[params]);
-            response = self.sapi_get_convert_order_status(&[__ws_arg_227]).await;
+            response = self.sapi_get_convert_order_status(&[__ws_arg_227]).await.into_opt_dict();
         }
-        let mut data: Value = response.clone();
+        let mut data: Option<crate::value::Dict> = response.clone();
         if (code.as_str() == Some("BUSD")) {
-            let mut rows: crate::value::List = self.safe_list_k(response, "rows", &[Value::from(vec![])]).into_list();
+            let mut rows: crate::value::List = self.safe_list_k(&response, "rows", &[Value::from(vec![])]).into_list();
             data = self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
-        let mut fromCurrencyId: Option<String> = self.safe_string2_opt(data.clone(), Value::Str("deductedAsset".into()), Value::Str("fromAsset".into()), &[]);
-        let mut toCurrencyId: Option<String> = self.safe_string2_opt(data.clone(), Value::Str("targetAsset".into()), Value::Str("toAsset".into()), &[]);
+        let mut fromCurrencyId: Option<String> = self.safe_string2_opt(&data, Value::Str("deductedAsset".into()), Value::Str("fromAsset".into()), &[]);
+        let mut toCurrencyId: Option<String> = self.safe_string2_opt(&data, Value::Str("targetAsset".into()), Value::Str("toAsset".into()), &[]);
         let mut fromCurrency: Option<crate::types::Currency> = None;
         let mut toCurrency: Option<crate::types::Currency> = None;
         if (fromCurrencyId.is_some()) {
@@ -20424,10 +20422,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (toCurrencyId.is_some()) {
             toCurrency = Some(self.currency(toCurrencyId.map(Value::from).unwrap_or(Value::Null)));
         }
-        if (data == Value::Null) {
+        if (data.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseConversion() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, data, fromCurrency.as_ref(), toCurrency.as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &data, fromCurrency.as_ref(), toCurrency.as_ref());
         Value::Null
         }).await?))
     }

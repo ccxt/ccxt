@@ -1603,7 +1603,7 @@ impl Nado {
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsExpiration, Value::Str("createOrder".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
+        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
         let mut requestId: Option<i64> = self.safe_integer_k(&paramsRecvWindow, "id", &[]).as_i64();
         let mut spotLeverage: Option<bool> = self.safe_bool2(Value::from(&paramsRecvWindow), Value::Str("spotLeverage".into()), Value::Str("spot_leverage".into()), &[]).as_bool();
         let mut sender: Option<String> = self.create_subaccount((self.walletAddress.clone()).as_str(), &[subaccount.map(Value::from).unwrap_or(Value::Null)]);
@@ -1842,7 +1842,7 @@ impl Nado {
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsExpiration, Value::Str("editOrder".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut cancelNonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
+        let mut cancelNonce: Option<String> = self.create_order_nonce(recvWindow);
         let mut orderNonce: Option<String> = crate::precise::Precise::stringAdd(&cancelNonce, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut rawAppendix: Option<String> = self.safe_string_k_opt(&paramsRecvWindow, "appendix", &[]);
         let mut appendix: Value = rawAppendix.clone().map(Value::from).unwrap_or(Value::Null);
@@ -2031,7 +2031,7 @@ impl Nado {
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubaccount, Value::Str("cancelAllOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
+        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
@@ -2164,7 +2164,7 @@ impl Nado {
         let recvWindowparamsRecvWindowVariable: Vec<Value> = self.handle_option_integer_and_params(&paramsSubaccount, Value::Str("cancelOrders".into()), Value::Str("recvWindow".into()), &[Value::Int(5000)]).as_array().cloned().unwrap_or_default();
         let mut recvWindow: Option<i64> = recvWindowparamsRecvWindowVariable.get(0).and_then(Value::as_i64);
         let mut paramsRecvWindow: crate::value::Dict = recvWindowparamsRecvWindowVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut nonce: Option<String> = self.create_order_nonce(Value::from(recvWindow));
+        let mut nonce: Option<String> = self.create_order_nonce(recvWindow);
         let mut tx: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("sender".to_string(), sender.map(Value::from).unwrap_or(Value::Null));
@@ -4130,9 +4130,10 @@ impl Nado {
     Value::Null
 }
 
-    pub fn create_order_nonce(&self, mut recvWindow: Value) -> Option<String> {
-        let mut expires: Value = self.sum(&[Value::Int(self.milliseconds()), recvWindow]);
-        let mut highBits: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(expires)), &Value::Str("1048576".into())).as_str().map(str::to_owned);
+    pub fn create_order_nonce(&self, recvWindow: Option<i64>) -> Option<String> {
+        let mut recvWindow: Value = recvWindow.into();
+        let mut expires: Option<i64> = (if let Some(__m1) = recvWindow.as_i64() { Some(((self.milliseconds()) + __m1)) } else { None });
+        let mut highBits: Option<String> = crate::precise::Precise::stringMul(&Value::from(self.number_to_string(Value::from(expires))), &Value::Str("1048576".into())).as_str().map(str::to_owned);
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected

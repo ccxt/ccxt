@@ -1320,8 +1320,8 @@ impl crate::exchange::DerivedExchange for Okx {
                 type_var = "fiat".to_string();
             }
             let mut idParts: Value = Value::Array(networkId.split("-").map(Value::from).collect());
-            let mut parts: Value = self.array_slice(idParts, Value::Int(1), &[]);
-            let mut chainPart: String = parts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default();
+            let mut parts: crate::value::List = self.array_slice(idParts, Value::Int(1), &[]).into_list();
+            let mut chainPart: String = parts.iter().map(Value::to_string).collect::<Vec<String>>().join("-");
             let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(chainPart), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
@@ -1597,8 +1597,8 @@ impl crate::exchange::DerivedExchange for Okx {
         let mut chain: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
         if (chain.is_some()) {
             let mut chainParts: Value = Value::Array(if let Some(__s) = chain.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
-            let mut networkParts: Value = self.array_slice(chainParts, Value::Int(1), &[]);
-            let mut networkId: String = networkParts.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("-")).unwrap_or_default();
+            let mut networkParts: crate::value::List = self.array_slice(chainParts, Value::Int(1), &[]).into_list();
+            let mut networkId: String = networkParts.iter().map(Value::to_string).collect::<Vec<String>>().join("-");
             network = self.network_id_to_code(&[Value::from(networkId), code.clone().map(Value::from).unwrap_or(Value::Null)]);
         }
         let mut amount: Option<f64> = self.safe_number_k(transaction.clone(), "amt", &[]).as_f64();

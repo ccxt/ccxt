@@ -8003,20 +8003,20 @@ impl Bingx {
         //        "type": 1
         //    }
         //
-        let mut responseData: Value = response.clone();
+        let mut responseData: Option<crate::value::Dict> = response.clone().into_opt_dict();
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
             let __ws_arg_61 = self.safe_dict_k(response.clone(), "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
             responseData = self.extend(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("type".to_string(), Value::from(type_var));
-                m
-            }), &[__ws_arg_61]);
+    let mut m = indexmap::IndexMap::new();
+        m.insert("amount".to_string(), amountString.map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), Value::from(type_var));
+    m
+}), &[__ws_arg_61]).into_opt_dict();
         }
-        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, responseData, Some(&market)).as_map().cloned().unwrap_or_default();
+        let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &responseData, Some(&market)).as_map().cloned().unwrap_or_default();
         result.insert("info".into(), response);
         return Value::Map(result);
         Value::Null
@@ -9016,8 +9016,8 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
             while { if !__for_first_328 { i += 1; } __for_first_328 = false; i < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = get_value(&sortedParams, &key);
+            let mut key: Option<&str> = rawKeys.get(i as usize).and_then(Value::as_str);
+            let mut value: Value = get_value(&sortedParams, key.as_deref());
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: Value = Value::Null;
                 {
@@ -9045,9 +9045,9 @@ impl Bingx {
                 value = adjustedValue.clone();
             }
             if (i == 0) {
-                result = Some(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value));
+                result = Some(format!("{}{}", Value::Str(format!("{}{}", key.as_deref().unwrap_or("null"), "=").into()), value));
             }  else {
-                result = Some(format!("{}{}", result.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value)));
+                result = Some(format!("{}{}", result.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key.as_deref().unwrap_or("null")).into()), "=").into()), value)));
             }
         }
         }

@@ -928,7 +928,7 @@ impl Krakenfutures {
         if (marketId.is_some()) {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut symbol: String = (market).symbol.clone();
-            let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, Value::from(symbol.as_str())]);
+            let mut messageHash: Option<String> = self.get_message_hash("trade", &[Value::Null, Value::from(symbol.as_str())]);
             // safeValue, not safeList: the values are ArrayCache instances, and
             // the typed accessor casts them to a plain list in c#, which throws
             let mut tradesArray: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -1556,7 +1556,7 @@ impl Krakenfutures {
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
-            let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
+            let mut messageHash: Option<String> = self.get_message_hash("ticker", &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(Value::Dict(ticker), messageHash.as_deref());
         }
 }
@@ -1587,7 +1587,7 @@ impl Krakenfutures {
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
-            let mut messageHash: Option<String> = self.get_message_hash(Value::Str("bidask".into()), &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
+            let mut messageHash: Option<String> = self.get_message_hash("bidask", &[Value::Null, symbol.map(Value::from).unwrap_or(Value::Null)]);
             client.resolve(Value::Dict(ticker), messageHash.as_deref());
         }
 }
@@ -1711,7 +1711,7 @@ impl Krakenfutures {
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::Null, Value::from(symbol.as_deref())]);
         let mut subscription: crate::value::Dict = self.safe_dict(__ch.subscriptions.clone(), Value::from(messageHash.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1754,7 +1754,7 @@ impl Krakenfutures {
         //
         let mut marketId: Option<String> = (match __pro_message.get("product_id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::Null, Value::from(symbol.as_deref())]);
         let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&symbol);
         let mut side: Option<String> = (match __pro_message.get("side").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut price: Option<f64> = (match __pro_message.get("price") { Some(Value::Float(__f)) => Some(*__f), Some(Value::Int(__n)) => Some(*__n as f64), Some(Value::Str(__s)) if !__s.is_empty() => __s.parse::<f64>().ok(), _ => None });
@@ -2209,7 +2209,6 @@ impl Krakenfutures {
 }
 
     pub async fn watch_multi_helper(&mut self, unifiedName: &str, channelName: &str, optional_args: &[Value]) -> Value {
-        let mut unifiedName: Value = unifiedName.into();
         let mut channelName: Value = channelName.into();
         let mut symbols = get_arg(optional_args, 0, Value::Null);
         let mut subscriptionArgs = get_arg(optional_args, 1, Value::Null);
@@ -2229,7 +2228,7 @@ impl Krakenfutures {
                         let mut i: i64 = 0;
             let mut __for_first_446: bool = true;
             while { if !__for_first_446 { i += 1; } __for_first_446 = false; i < (symbolsNormalized.len() as i64) } {
-            let mut messageHash: Value = self.get_message_hash(unifiedName.clone(), &[Value::Null, Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
+            let mut messageHash: Value = self.get_message_hash(unifiedName, &[Value::Null, Value::from(self.symbol(symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)))]).map(Value::from).unwrap_or(Value::Null);
             std::sync::Arc::make_mut(&mut messageHashes).push(messageHash.clone());
             let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             if !(self.subscription_exists_for_hash(url.as_deref().unwrap_or_default(), messageHash).as_bool() == Some(true)) {
@@ -2264,22 +2263,23 @@ impl Krakenfutures {
     Value::Null
 }
 
-    pub fn get_message_hash(&self, mut unifiedElementName: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn get_message_hash(&self, unifiedElementName: &str, optional_args: &[Value]) -> Option<String> {
+        let mut unifiedElementName: Value = unifiedElementName.into();
         let mut subChannelName = get_arg(optional_args, 0, Value::Null);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
         let mut withSymbol: bool = symbol != Value::Null;
-        let mut messageHash: Value = unifiedElementName;
+        let mut messageHash: String = unifiedElementName.as_str().unwrap_or_default().to_string();
         if !withSymbol {
-            messageHash = Value::Str(format!("{}{}", messageHash, "s").into());
+            messageHash.push_str("s");
         }  else {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", ":", symbol).into())).into());
+            messageHash.push_str(&format!("{}{}", ":", symbol));
         }
         if (subChannelName != Value::Null) {
-            messageHash = Value::Str(format!("{}{}", messageHash, Value::Str(format!("{}{}", "#", subChannelName).into())).into());
+            messageHash.push_str(&format!("{}{}", "#", subChannelName));
         }
-        return messageHash.as_str().map(str::to_owned);
+        return Some(messageHash);
 }
 
     pub fn handle_error_message(&self, mut client: Value, mut message: Value) -> Value {

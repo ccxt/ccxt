@@ -3241,10 +3241,10 @@ impl Paradex {
         //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
         // }
         //
-        let mut token: Value = self.safe_string_k(&response, "jwt_token", &[]);
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".into(), token.clone()); }
+        let mut token: Option<String> = self.safe_string_k_opt(&response, "jwt_token", &[]);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("authToken".into(), token.clone().map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expires".into(), Value::from(expires)); }
-        return token;
+        return token.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

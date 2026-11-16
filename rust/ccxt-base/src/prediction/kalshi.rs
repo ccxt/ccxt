@@ -122,8 +122,8 @@ impl crate::exchange::DerivedExchange for Kalshi {
             let mut eventParts: Value = Value::Array(if let Some(__s) = eventTicker.as_deref() { __s.split("-").map(Value::from).collect() } else { Vec::new() });
             let mut eventPartsLength: i64 = eventParts.len() as i64;
             if eventPartsLength > 1 {
-                let mut seriesParts: Value = self.array_slice(eventParts, Value::Int(0), &[Value::Int((eventPartsLength - 1))]);
-                seriesTicker = Value::str(seriesParts.as_array().cloned().unwrap_or_default().iter().filter_map(Value::as_str).collect::<Vec<_>>().join("-"));
+                let mut seriesParts: crate::value::List = self.array_slice(eventParts, Value::Int(0), &[Value::Int((eventPartsLength - 1))]).into_list();
+                seriesTicker = Value::Str(seriesParts.iter().map(Value::to_string).collect::<Vec<String>>().join("-").into());
             }
         }
         // market symbol (no outcome suffix)

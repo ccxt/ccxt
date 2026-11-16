@@ -3384,9 +3384,8 @@ impl Derive {
 }
 
     pub fn sign_order(&self, mut order: Value, privateKey: &str) -> Option<String> {
-        let mut privateKey: Value = privateKey.into();
         let mut hashOrder: Option<String> = self.hash_order_message(order);
-        return self.sign_hash(hashOrder.as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default());
+        return self.sign_hash(hashOrder.as_deref().unwrap_or_default(), privateKey);
 }
 
 /*
@@ -3430,9 +3429,7 @@ impl Derive {
 }
 
     pub fn sign_message(&self, message: &str, privateKey: &str) -> Option<String> {
-        let mut message: Value = message.into();
-        let mut privateKey: Value = privateKey.into();
-        return self.sign_hash(self.hash_message(message.as_str().unwrap_or_default()).as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default());
+        return self.sign_hash(self.hash_message(message).as_deref().unwrap_or_default(), privateKey);
 }
 
     pub fn parse_units(&self, mut num: Value, optional_args: &[Value]) -> Option<String> {

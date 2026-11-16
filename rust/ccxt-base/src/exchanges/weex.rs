@@ -3714,8 +3714,6 @@ impl Weex {
  */
     pub async fn create_spot_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol: Value = symbol.into();
-        let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3725,7 +3723,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
+        let mut request: crate::value::Dict = self.create_spot_order_request(symbol.as_str(), type_var, side, amount, &[price, params]).into_dict();
         let mut response: Option<crate::value::Dict> = None;
         response = self.private_post_api_v3_order(&[Value::Dict(request)]).await.into_opt_dict();
         //
@@ -3819,8 +3817,6 @@ impl Weex {
  */
     pub async fn create_contract_order(&mut self, symbol: &str, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
         let mut symbol: Value = symbol.into();
-        let mut type_var: Value = type_var.into();
-        let mut side: Value = side.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3830,7 +3826,7 @@ impl Weex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount, &[price, params]).into_dict();
+        let mut request: crate::value::Dict = self.create_contract_order_request(symbol.as_str(), type_var, side, amount, &[price, params]).into_dict();
         let mut triggerPrice: Option<String> = self.safe_string_k_opt(&request, "triggerPrice", &[]);
         let mut sandboxMode: bool = self.safe_bool_k(self.options.clone(), "sandboxMode", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut response: Option<crate::value::Dict> = None;

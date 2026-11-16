@@ -1900,9 +1900,8 @@ impl Lighter {
 }
 
     pub fn sign_l1_and_prepare_tx_info(&self, mut txInfo: Value, mut message: Value, privateKey: &str) -> Option<String> {
-        let mut privateKey: Value = privateKey.into();
         let mut hashMessage: Option<String> = self.hash_message(message.as_str().unwrap_or_default());
-        let mut signature: Option<String> = self.sign_hash(hashMessage.as_deref().unwrap_or_default(), privateKey.as_str().unwrap_or_default());
+        let mut signature: Option<String> = self.sign_hash(hashMessage.as_deref().unwrap_or_default(), privateKey);
         let __ws_arg_4 = self.parse_json_value(txInfo);
         let mut decTxInfo: crate::value::Dict = self.extend(Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4729,7 +4728,6 @@ if _try_result.is_err() {
     }
 
     pub async fn sign_and_cancel_all_orders(&mut self, method: &str, symbol: Option<&str>, optional_args: &[Value]) -> Value {
-        let mut method: Value = method.into();
         let mut symbol: Value = symbol.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4738,10 +4736,10 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let apiKeyIndexparamsApiKeyIndexVariable: Vec<Value> = self.handle_api_key_index(params, method.as_str().unwrap_or_default(), "apiKeyIndex", "api_key_index", &[]).as_array().cloned().unwrap_or_default();
+        let apiKeyIndexparamsApiKeyIndexVariable: Vec<Value> = self.handle_api_key_index(params, method, "apiKeyIndex", "api_key_index", &[]).as_array().cloned().unwrap_or_default();
         let mut apiKeyIndex: Option<i64> = apiKeyIndexparamsApiKeyIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsApiKeyIndex: crate::value::Dict = apiKeyIndexparamsApiKeyIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(&paramsApiKeyIndex, method.as_str().unwrap_or_default(), "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
+        let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(&paramsApiKeyIndex, method, "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));

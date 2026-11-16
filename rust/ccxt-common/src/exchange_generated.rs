@@ -2489,12 +2489,12 @@ pub trait ExchangeBase:
                         let mut i: i64 = 0;
             let mut __for_first_84: bool = true;
             while { if !__for_first_84 { i += 1; } __for_first_84 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut featureBlock: Value = get_value(&featuresObj, &key);
-            if !self.in_array(key.clone(), Value::from(vec![Value::Str("sandbox".into())])) && (featureBlock != Value::Null) {
+            let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            let mut featureBlock: Value = get_value(&featuresObj, key.as_deref());
+            if !self.in_array(Value::from(key.as_deref()), Value::from(vec![Value::Str("sandbox".into())])) && (featureBlock != Value::Null) {
                 // default "symbolRequired" to false to all methods (except `createOrder`)
                 if !(in_op(&featureBlock, &Value::Str("symbolRequired".into()))) {
-                    add_element_to_object(&mut featureBlock, &Value::Str("symbolRequired".into()), Value::Bool(self.in_array(key, Value::from(vec![Value::Str("createOrder".into()), Value::Str("createOrders".into()), Value::Str("fetchOHLCV".into())]))));
+                    add_element_to_object(&mut featureBlock, &Value::Str("symbolRequired".into()), Value::Bool(self.in_array(Value::from(key.as_deref()), Value::from(vec![Value::Str("createOrder".into()), Value::Str("createOrders".into()), Value::Str("fetchOHLCV".into())]))));
                 }
             }
         }

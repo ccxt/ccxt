@@ -964,33 +964,33 @@ impl Bitflyer {
             let mut spot: bool = (!(swap) && !(future));
             let mut type_var: String = "spot".to_string();
             let mut settle: Option<String> = None;
-            let mut baseId: Value = Value::Null;
-            let mut quoteId: Value = Value::Null;
+            let mut baseId: Option<String> = None;
+            let mut quoteId: Option<String> = None;
             let mut expiry: Option<i64> = None;
             if spot {
-                baseId = self.safe_string(&currencies, Value::Int(0), &[]);
-                quoteId = self.safe_string(&currencies, Value::Int(1), &[]);
+                baseId = self.safe_string_opt(&currencies, Value::Int(0), &[]);
+                quoteId = self.safe_string_opt(&currencies, Value::Int(1), &[]);
             }  else if swap {
                 type_var = "swap".to_string();
-                baseId = self.safe_string(&currencies, Value::Int(1), &[]);
-                quoteId = self.safe_string(&currencies, Value::Int(2), &[]);
+                baseId = self.safe_string_opt(&currencies, Value::Int(1), &[]);
+                quoteId = self.safe_string_opt(&currencies, Value::Int(2), &[]);
             }  else if future {
                 let mut alias: Option<String> = self.safe_string_k_opt(&market, "alias", &[]);
                 if (alias.is_none()) {
                     // no alias:
                     // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                     // TODO this will break if there are products with 4 chars
-                    baseId = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    quoteId = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+                    baseId = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(0).take(3).collect::<String>()) } else { None });
+                    quoteId = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(3).take(3).collect::<String>()) } else { None });
                     // last 9 chars are expiry date
-                    let mut expiryDate: Value = id.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 9).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    expiry = self.parse_expiry_date(expiryDate.as_str().unwrap_or_default()).as_i64();
+                    let mut expiryDate: Option<String> = (if let Some(__s) = id.as_deref() { Some(__s.chars().skip(__s.chars().count().saturating_sub(9)).collect::<String>()) } else { None });
+                    expiry = self.parse_expiry_date(expiryDate.as_deref().unwrap_or_default()).as_i64();
                 }  else {
                     let mut splitAlias: crate::value::List = Value::Array(if let Some(__s) = alias.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
                     let mut currencyIds: Option<String> = self.safe_string_opt(&splitAlias, Value::Int(0), &[]);
-                    baseId = currencyIds.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = (__l - 3).max(0); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    quoteId = currencyIds.as_deref().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = (__l - 3).max(0); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                    let mut splitId: crate::value::List = Value::Array(id.as_deref().zip(currencyIds.as_deref()).map(|(__s, __d)| __s.split(__d).map(Value::from).collect()).unwrap_or_default()).into_list();
+                    baseId = (if let Some(__s) = currencyIds.as_deref() { Some(({ let (__l, __b, __e) = (__s.chars().count() as i64, 0, -3); let (__i, __j) = ((if __b < 0 { __l + __b } else { __b }).clamp(0, __l), (if __e < 0 { __l + __e } else { __e }).clamp(0, __l)); __s.chars().skip(__i as usize).take((__j - __i).max(0) as usize).collect::<String>() })) } else { None });
+                    quoteId = (if let Some(__s) = currencyIds.as_deref() { Some(__s.chars().skip(__s.chars().count().saturating_sub(3)).collect::<String>()) } else { None });
+                    let mut splitId: crate::value::List = Value::Array(if let (Some(__s), Some(__d)) = (id.as_deref(), currencyIds.as_deref()) { __s.split(__d).map(Value::from).collect() } else { Vec::new() }).into_list();
                     let mut expiryDate: Option<String> = self.safe_string_opt(&splitId, Value::Int(1), &[]);
                     if (expiryDate.is_none()) {
                         continue;
@@ -1002,8 +1002,8 @@ impl Bitflyer {
                 }
                 type_var = "future".to_string();
             }
-            let mut base: Option<String> = self.safe_currency_code(baseId.clone(), None);
-            let mut quote: Option<String> = self.safe_currency_code(quoteId.clone(), None);
+            let mut base: Option<String> = self.safe_currency_code(Value::from(baseId.as_deref()), None);
+            let mut quote: Option<String> = self.safe_currency_code(Value::from(quoteId.as_deref()), None);
             if (base.is_none()) || (quote.is_none()) {
                 continue;
             }
@@ -1027,8 +1027,8 @@ impl Bitflyer {
                     m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
                     m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
+                    m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
+                    m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
                     m.insert("settleId".to_string(), Value::Null);
                     m.insert("type".to_string(), Value::from(type_var));
                     m.insert("spot".to_string(), Value::Bool(spot));

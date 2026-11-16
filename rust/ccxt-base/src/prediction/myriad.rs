@@ -2017,7 +2017,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  */
     pub fn sign_clob_order(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
-        let mut networkId: Value = networkId.into();
         let mut orderStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
@@ -2068,7 +2067,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("Order".to_string(), Value::Arr(orderStruct));
     m
-}), message, networkId.as_str().unwrap_or_default());
+}), message, networkId);
 }
 
 /*
@@ -2080,7 +2079,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  */
     pub fn sign_cancel_all(&self, message: impl Into<crate::Value>, networkId: &str) -> Option<String> {
         let mut message: Value = message.into();
-        let mut networkId: Value = networkId.into();
         let mut cancelStruct: crate::value::List = std::sync::Arc::new(vec![Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("name".to_string(), Value::Str("trader".into()));
@@ -2101,7 +2099,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     let mut m = indexmap::IndexMap::new();
         m.insert("CancelAll".to_string(), Value::Arr(cancelStruct));
     m
-}), message, networkId.as_str().unwrap_or_default());
+}), message, networkId);
 }
 
 /*

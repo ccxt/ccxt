@@ -2732,16 +2732,16 @@ impl Predictfun {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut token: Value = self.safe_string_k(&data, "token", &[]);
-        if (token == Value::Null) {
+        let mut token: Option<String> = self.safe_string_k_opt(&data, "token", &[]);
+        if (token.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() did not return a token")));
         }
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtToken".into(), token.clone()); }
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtToken".into(), token.clone().map(Value::from).unwrap_or(Value::Null)); }
         // measured from before the round trip, so the cached window closes a little early rather
         // than a little late
         let mut tokenExpiresIn: i64 = self.safe_integer_k(self.options.clone(), "tokenExpiresIn", &[Value::Int(86400000)]).as_i64().unwrap_or(86400000);
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("jwtTokenExpiresAt".into(), Value::Int((now + tokenExpiresIn))); }
-        return token;
+        return token.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

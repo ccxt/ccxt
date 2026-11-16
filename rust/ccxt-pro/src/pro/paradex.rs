@@ -540,8 +540,6 @@ impl Paradex {
  * @returns {boolean} true once every channel is unsubscribed
  */
     pub async fn unsubscribe_channels(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, optional_args: &[Value]) -> Value {
-        let mut url: Value = url.into();
-        let mut topic: Value = topic.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -551,11 +549,11 @@ impl Paradex {
             let mut __for_first_584: bool = true;
             while { if !__for_first_584 { i += 1; } __for_first_584 = false; i < (channels.len() as i64) } {
             let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
+                self.unsubscribe_channel_at(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
              #[allow(unreachable_code)] { Value::Null }})).await;
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 // a channel the server refuses (not subscribed) does not stop the others, its error is thrown once they are sent
-                self.unsubscribe_channels_from(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int((i + 1)), &[params.clone()]).await;
+                self.unsubscribe_channels_from(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int((i + 1)), &[params.clone()]).await;
                 panic!("{}", e);
             }
         }
@@ -580,8 +578,6 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @returns {int} the number of channels refused
  */
     pub async fn unsubscribe_channels_from(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, mut start: Value, optional_args: &[Value]) -> Value {
-        let mut url: Value = url.into();
-        let mut topic: Value = topic.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -593,7 +589,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_585 { i += 1; } __for_first_585 = false; i < (channels.len() as i64) } {
             if (i as f64) >= start.as_f64().unwrap_or(f64::NAN) {
                 let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
-                    self.unsubscribe_channel_at(url.as_str().unwrap_or_default(), topic.as_str().unwrap_or_default(), channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
+                    self.unsubscribe_channel_at(url, topic, channels.clone(), subMessageHashes.clone(), symbols.clone(), Value::Int(i), &[params.clone()]).await;
                  #[allow(unreachable_code)] { Value::Null }})).await;
 if _try_result.is_err() {
                     refused = (refused + 1);
@@ -621,7 +617,6 @@ if _try_result.is_err() {
  * @returns {boolean} true once unsubscribed
  */
     pub async fn unsubscribe_channel_at(&mut self, url: &str, topic: &str, mut channels: Value, mut subMessageHashes: Value, mut symbols: Value, mut index: Value, optional_args: &[Value]) -> Value {
-        let mut url: Value = url.into();
         let mut topic: Value = topic.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -647,7 +642,7 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.unsubscribe_request(channel.clone()).into_dict();
-        return self.send_unsubscribe(url.as_str().unwrap_or_default(), Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &request, Value::Map(subscription), &[params]).await;
+        return self.send_unsubscribe(url, Value::Str(format!("{}{}", "unsubscribe:", channel).into()), &request, Value::Map(subscription), &[params]).await;
 
     Value::Null
 }

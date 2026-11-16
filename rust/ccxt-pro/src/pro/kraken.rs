@@ -1639,9 +1639,9 @@ impl Kraken {
                                 let mut i: i64 = 0;
                 let mut __for_first_420: bool = true;
                 while { if !__for_first_420 { i += 1; } __for_first_420 = false; i < (keys.len() as i64) } {
-                let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                let mut bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&orderbook), &key));
-                let mut deltas: crate::value::List = self.safe_list(&first, key, &[Value::from(vec![])]).into_list();
+                let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+                let mut bookside: crate::pro::order_book::Side = crate::pro::order_book::Side::of(get_value(&Value::from(&orderbook), key.as_deref()));
+                let mut deltas: crate::value::List = self.safe_list(&first, Value::from(key.as_deref()), &[Value::from(vec![])]).into_list();
                 let mut deltasLength: i64 = deltas.len() as i64;
                 if deltasLength > 0 {
                     self.custom_handle_deltas(bookside, Value::Arr(deltas));

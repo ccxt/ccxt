@@ -1971,15 +1971,15 @@ impl Sxbet {
                 end = self.parse_to_int(Value::from(idsLength));
             }
             let mut orderItems: Vec<Value> = Vec::new();
-            let mut chunkIds: Value = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]);
-            let mut chunkIdsLength: i64 = get_array_length(&chunkIds).as_i64().unwrap_or_default();
+            let mut chunkIds: crate::value::List = self.array_slice(ids.clone(), Value::from(start), &[Value::from(end)]).into_list();
+            let mut chunkIdsLength: i64 = chunkIds.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1507: bool = true;
                 while { if !__for_first_1507 { i += 1; } __for_first_1507 = false; i < chunkIdsLength } {
                 orderItems.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
-                        m.insert("orderId".to_string(), get_value(&chunkIds, &Value::Int(i)));
+                        m.insert("orderId".to_string(), chunkIds.get(i as usize).cloned().unwrap_or(Value::Null));
                     m
                 }));
             }
@@ -3395,13 +3395,12 @@ impl Sxbet {
 }
 
     pub async fn subscribe_sxbet_channel(&mut self, messageHash: &str, channel: &str) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut channel: Value = channel.into();
         let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         // finish the connect handshake first so the subscribe frame follows the connect reply
         self.connect_sxbet_centrifugo(url.as_deref()).await;
         let mut requestId: i64 = self.request_id(url.as_deref());
-        self.register_sxbet_ws_request((requestId as f64), messageHash.as_str().unwrap_or_default(), channel.as_str().unwrap_or_default());
+        self.register_sxbet_ws_request((requestId as f64), messageHash, channel.as_str().unwrap_or_default());
         let mut subscribeMsg: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("subscribe".to_string(), Value::Map({
@@ -3412,7 +3411,7 @@ impl Sxbet {
                 m.insert("id".to_string(), Value::from(requestId));
             m
         });
-        return self.watch(url.as_deref(), &messageHash, Value::Map(subscribeMsg), &channel, Value::Null).await;
+        return self.watch(url.as_deref(), messageHash, Value::Map(subscribeMsg), &channel, Value::Null).await;
 
     Value::Null
 }

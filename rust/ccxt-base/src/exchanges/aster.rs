@@ -906,15 +906,15 @@ impl crate::exchange::DerivedExchange for Aster {
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             let mut zeroAddress: String = self.safe_string_k(self.options.clone(), "zeroAddress", &[Value::Str("0x0000000000000000000000000000000000000000".into())]).as_str().unwrap_or("0x0000000000000000000000000000000000000000").to_string();
             let mut v3ChainId: i64 = self.safe_integer_k(self.options.clone(), "v3ChainId", &[Value::Int(1666)]).as_i64().unwrap_or(1666);
-            let mut walletAddress: Value = self.safe_string_k(self.options.clone(), "cachedWalletAddress", &[]);
+            let mut walletAddress: Option<String> = self.safe_string_k_opt(self.options.clone(), "cachedWalletAddress", &[]);
             let mut privateKeyHash: String = self.hash(self.encode(self.privateKey.clone()), Value::Str("keccak".into()), &[Value::Str("hex".into())]);
             let mut cachedPrivateKeyHash: Option<String> = self.safe_string_k_opt(self.options.clone(), "privateKeyHashForCachedWalletAddress", &[]);
-            if (walletAddress == Value::Null) || (cachedPrivateKeyHash.as_deref() != Some(privateKeyHash.as_str())) {
-                walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]);
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".into(), walletAddress.clone()); }
+            if (walletAddress.is_none()) || (cachedPrivateKeyHash.as_deref() != Some(privateKeyHash.as_str())) {
+                walletAddress = self.eth_get_address_from_private_key(self.privateKey.clone(), &[]).as_str().map(str::to_owned);
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("cachedWalletAddress".into(), walletAddress.clone().map(Value::from).unwrap_or(Value::Null)); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("privateKeyHashForCachedWalletAddress".into(), Value::from(privateKeyHash)); }
             }
-            let mut signerAddress: Option<String> = self.safe_string_k_opt(self.options.clone(), "signerAddress", &[walletAddress.clone()]); // default to user's wallet
+            let mut signerAddress: Option<String> = self.safe_string_k_opt(self.options.clone(), "signerAddress", &[walletAddress.clone().map(Value::from).unwrap_or(Value::Null)]); // default to user's wallet
             if (signerAddress.is_none()) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires signerAddress in options when use v3 api")));
             }
@@ -941,7 +941,7 @@ impl crate::exchange::DerivedExchange for Aster {
             let mut finalParams: Value = self.extend(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("nonce".to_string(), Value::Str(format!("{}", nonce).into()));
-                    m.insert("user".to_string(), walletAddress);
+                    m.insert("user".to_string(), walletAddress.map(Value::from).unwrap_or(Value::Null));
                     m.insert("signer".to_string(), signerAddress.map(Value::from).unwrap_or(Value::Null));
                 m
             }), &[params]);

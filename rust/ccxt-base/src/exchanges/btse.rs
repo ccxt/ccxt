@@ -3593,14 +3593,14 @@ impl Btse {
         }
         // the normal futures endpoint responds with a single order dict, keep a
         // one element array guard in case a gateway wraps it
-        let mut order: Value = response.clone();
+        let mut order: Option<crate::value::Dict> = response.clone().into_opt_dict();
         if (matches!(&response, Value::Arr(_))) {
             order = self.safe_dict(response, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, order, Some(&market));
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &order, Some(&market));
 
     Value::Null
 }

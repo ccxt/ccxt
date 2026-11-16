@@ -330,14 +330,13 @@ impl Lighter {
 }
 
     pub async fn subscribe_private(&mut self, messageHash: &str, optional_args: &[Value]) -> Value {
-        let mut messageHash: Value = messageHash.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         self.parent.pre_load_lighter_library(&[]).await;
         { let __be_tmp = self.parent.create_auth(&[params.clone()]).map(Value::from).unwrap_or(Value::Null); if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("auth".into(), __be_tmp); } }
-        return self.subscribe_public(messageHash.as_str().unwrap_or_default(), &[params]).await;
+        return self.subscribe_public(messageHash, &[params]).await;
 
     Value::Null
 }
