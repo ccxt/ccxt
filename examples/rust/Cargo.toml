@@ -14,7 +14,6 @@ ccxt-pro = { path = "../../rust/ccxt-pro", optional = true, default-features = f
 ccxt-prediction = { path = "../../rust/ccxt-prediction", default-features = false, features = ["kalshi", "polymarket"] }
 tokio = { version = "1", features = ["full"] }
 futures = "0.3"
-async-trait = "0.1"
 mimalloc = { version = "0.1", default-features = false, optional = true }
 
 [features]

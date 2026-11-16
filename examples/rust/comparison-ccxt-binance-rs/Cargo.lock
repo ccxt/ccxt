@@ -97,17 +97,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "async-trait"
-version = "0.1.92"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "82f6aeea286b8eb4dd3431a1be1b59d290ace00f5bfd8e2a159bc2a05e2c1667"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.3",
-]
-
-[[package]]
 name = "atomic-waker"
 version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -273,7 +262,6 @@ dependencies = [
 name = "ccxt"
 version = "4.5.85"
 dependencies = [
- "async-trait",
  "ccxt-base",
 ]
 
@@ -281,7 +269,6 @@ dependencies = [
 name = "ccxt-base"
 version = "4.5.85"
 dependencies = [
- "async-trait",
  "base64 0.22.1",
  "chrono",
  "ed25519-dalek",
@@ -314,7 +301,6 @@ dependencies = [
 name = "ccxt-pro"
 version = "4.5.85"
 dependencies = [
- "async-trait",
  "ccxt-base",
  "futures",
  "indexmap",
