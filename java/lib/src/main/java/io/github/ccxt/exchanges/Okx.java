@@ -3921,6 +3921,7 @@ public class Okx extends OkxApi
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -3942,7 +3943,7 @@ public class Okx extends OkxApi
             Map<String, Object> paramsPaginate = paginateparamsPaginateVariable.second();
             if (Boolean.TRUE.equals(paginate))
             {
-                return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100L)).join();
+                return (this.fetchPaginatedCallDynamic("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 400L, true)).join();
             }
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = new HashMap<String, Object>() {{
@@ -3956,7 +3957,13 @@ public class Okx extends OkxApi
             {
                 request.put("limit", limit);
             }
-            Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate))).join();
+            Long until = this.safeInteger(paramsPaginate, "until");
+            if (!java.util.Objects.equals(until, null))
+            {
+                request.put("after", until);
+            }
+            Map<String, Object> paramsUntil = (((!java.util.Objects.equals(until, null)))) ? this.omit(paramsPaginate, "until") : paramsPaginate;
+            Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil))).join();
             //
             //     {
             //         "code":"0",

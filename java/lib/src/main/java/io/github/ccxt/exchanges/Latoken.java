@@ -1041,6 +1041,18 @@ public class Latoken extends LatokenApi
         }
         String last = this.safeString(ticker, "lastPrice");
         Long timestamp = (Long) this.safeIntegerOmitZero(ticker, "updateTimestamp", (Long) null); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        String bidVolume = this.safeString(ticker, "bestBidQuantity");
+        if ((!java.util.Objects.equals(bidVolume, null)) && Precise.stringLt(bidVolume, "0"))
+        {
+            bidVolume = null;
+        }
+        String askVolume = this.safeString(ticker, "bestAskQuantity");
+        if ((!java.util.Objects.equals(askVolume, null)) && Precise.stringLt(askVolume, "0"))
+        {
+            askVolume = null;
+        }
         HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
         mapLiteral3.put("symbol", symbol);
         mapLiteral3.put("timestamp", timestamp);
@@ -1048,9 +1060,9 @@ public class Latoken extends LatokenApi
         mapLiteral3.put("low", null);
         mapLiteral3.put("high", null);
         mapLiteral3.put("bid", this.safeString(ticker, "bestBid"));
-        mapLiteral3.put("bidVolume", this.safeString(ticker, "bestBidQuantity"));
+        mapLiteral3.put("bidVolume", bidVolume);
         mapLiteral3.put("ask", this.safeString(ticker, "bestAsk"));
-        mapLiteral3.put("askVolume", this.safeString(ticker, "bestAskQuantity"));
+        mapLiteral3.put("askVolume", askVolume);
         mapLiteral3.put("vwap", null);
         mapLiteral3.put("open", null);
         mapLiteral3.put("close", last);

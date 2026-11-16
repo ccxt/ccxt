@@ -7609,7 +7609,7 @@ public class Bingx extends BingxApi
             put( "symbol", symbol );
             put( "maker", Bingx.this.safeNumber(fee, "makerCommissionRate", (Object) null) );
             put( "taker", Bingx.this.safeNumber(fee, "takerCommissionRate", (Object) null) );
-            put( "percentage", false );
+            put( "percentage", true );
             put( "tierBased", false );
         }};
     }

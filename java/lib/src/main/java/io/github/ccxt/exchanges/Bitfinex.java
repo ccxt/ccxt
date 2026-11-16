@@ -628,13 +628,9 @@ public class Bitfinex extends BitfinexApi
                 put( "trading", new HashMap<String, Object>() {{
                     put( "feeSide", "get" );
                     put( "percentage", true );
-                    put( "tierBased", true );
-                    put( "maker", Bitfinex.this.parseNumber("0.001") );
-                    put( "taker", Bitfinex.this.parseNumber("0.002") );
-                    put( "tiers", new HashMap<String, Object>() {{
-                        put( "taker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0.002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0.0018"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0.0016"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0.0014"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0.0012"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0.001"))))) );
-                        put( "maker", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("0"), Bitfinex.this.parseNumber("0.001"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("500000"), Bitfinex.this.parseNumber("0.0008"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("1000000"), Bitfinex.this.parseNumber("0.0006"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("2500000"), Bitfinex.this.parseNumber("0.0004"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("5000000"), Bitfinex.this.parseNumber("0.0002"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("7500000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("10000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("15000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("20000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("25000000"), Bitfinex.this.parseNumber("0"))), new ArrayList<Object>(Arrays.asList(Bitfinex.this.parseNumber("30000000"), Bitfinex.this.parseNumber("0"))))) );
-                    }} );
+                    put( "tierBased", false );
+                    put( "maker", Bitfinex.this.parseNumber("0") );
+                    put( "taker", Bitfinex.this.parseNumber("0") );
                 }} );
                 put( "funding", new HashMap<String, Object>() {{
                     put( "withdraw", new HashMap<String, Object>() {{}} );
@@ -1002,6 +998,8 @@ public class Bitfinex extends BitfinexApi
                 j39v3.put("contract", !Boolean.TRUE.equals(spot));
                 j39v3.put("linear", ((Boolean.TRUE.equals(swap))) ? true : null);
                 j39v3.put("inverse", ((Boolean.TRUE.equals(swap))) ? false : null);
+                j39v3.put("maker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "maker", (Object) null));
+                j39v3.put("taker", this.safeNumber((this.fees == null ? null : ((Map<?, ?>)this.fees).get("trading")), "taker", (Object) null));
                 j39v3.put("contractSize", ((Boolean.TRUE.equals(swap))) ? this.parseNumber("1") : null);
                 j39v3.put("expiry", null);
                 j39v3.put("expiryDatetime", null);
