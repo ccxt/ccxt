@@ -497,23 +497,21 @@ public partial class BaseExchange
         return crc;
     }
 
+    // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
+    private static readonly uint[] m_checksumTable = Enumerable.Range(0, 256).Select(i =>
+    {
+        var tableEntry = (uint)i;
+        for (var j = 0; j < 8; ++j)
+        {
+            tableEntry = ((tableEntry & 1) != 0)
+                ? (0xEDB88320 ^ (tableEntry >> 1))
+                : (tableEntry >> 1);
+        }
+        return tableEntry;
+    }).ToArray();
+
     public static Int64 CalculateCrc32(string data, bool signed, int? bound = null)
     {
-        // https://gist.github.com/martin31821/6a4736521043233bf7cdc05aa785149d
-        var s_generator = 0xEDB88320;
-        var m_checksumTable = Enumerable.Range(0, 256).Select(i =>
-        {
-            var tableEntry = (uint)i;
-            for (var j = 0; j < 8; ++j)
-            {
-                tableEntry = ((tableEntry & 1) != 0)
-                    ? (s_generator ^ (tableEntry >> 1))
-                    : (tableEntry >> 1);
-            }
-            return tableEntry;
-        }).ToArray();
-
-
         var arrayOfBytes = Encoding.ASCII.GetBytes(data);
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
