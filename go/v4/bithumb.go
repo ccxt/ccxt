@@ -1584,11 +1584,11 @@ func (this *Bithumb) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 			if r1.Err != nil {
 				panic(r1.Err)
 			}
-			var retRes132823 []any = r1.Value
-			if retRes132823 == nil {
+			var retRes133323 []any = r1.Value
+			if retRes133323 == nil {
 				ch <- AsyncResult[[]OHLCV]{Value: nil}
 			} else {
-				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes132823)}
+				ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes133323)}
 			}
 			return nil
 		}
