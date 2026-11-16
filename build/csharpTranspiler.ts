@@ -7673,39 +7673,14 @@ export function csharpDeclaredReceiverHelperCalls (content: string): string {
     if (!/\b(inOp|getArrayLength|getIndexOf)\(/.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = csharpMethodSignatures (masked);
-    if (signatures.length === 0) {
-        return content;
-    }
-    const regions = signatures.map ((start, n) => {
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = csharpRegionDeclarations (masked, start, end);
-        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
-    });
     let keys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
-    let changed = false;
-    const out = lines.map ((line, i) => {
-        if (!/\b(inOp|getArrayLength|getIndexOf)\(/.test (masked[i])) {
-            return line;
-        }
-        let region = undefined;
-        for (const r of regions) {
-            if ((r.start < i) && (i < r.end)) region = r;
-        }
-        if (region === undefined) {
-            return line;
+    return csharpLinePass (content, false, (region, line, masked, i) => {
+        if (!/\b(inOp|getArrayLength|getIndexOf)\(/.test (masked)) {
+            return undefined;
         }
         const typeOf = (name) => (/^[A-Za-z_]\w*$/.test (name) ? csharpHelperReceiverType (region, name, i, region.params) : undefined);
-        const rewritten = declaredReceiverRewriteLine (line, masked[i], typeOf, (name) => csharpInOpReceiverType (region, name, i), () => `inOpKey${keys++}`);
-        if (rewritten === undefined) {
-            return line;
-        }
-        changed = true;
-        return rewritten;
+        return declaredReceiverRewriteLine (line, masked, typeOf, (name) => csharpInOpReceiverType (region, name, i), () => `inOpKey${keys++}`);
     });
-    return changed ? out.join ('\n') : content;
 }
 
 // hand-written `public ccxt.pro.ArrayCache <name>;` fields (cs/ccxt/base/Exchange.Options.cs)
@@ -7949,43 +7924,34 @@ export function csharpNativeArithmetic (content: string): string {
     if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = csharpMethodSignatures (masked);
-    const regions = signatures.map ((start, n) => {
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = csharpRegionDeclarations (masked, start, end);
-        // names bound by any other syntax (for/foreach/out/lambda/pattern/tuple) keep the helper
-        const bound = new Set<string> ();
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const n of b[1].split (',')) bound.add (n.trim ().split (/\s+/).pop ());
-            }
-        }
-        return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked, bound };
-    });
-    let changed = false;
-    const out = lines.map ((line, i) => {
-        if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (masked[i]) || line.includes ('\u0001') || /['@$]/.test (line)) {
-            return line;
-        }
-        const region = regions.filter ((r) => r.start < i && i < r.end)[0];
-        if (region === undefined) {
-            return line;
+    return csharpLinePass (content, false, (region, line, masked, i) => {
+        // bound on the region's first line, before any line of it is rewritten
+        region.bound = region.bound ?? arithmeticBoundNames (region.lines, region.start, region.end);
+        if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (masked) || line.includes ('\u0001') || /['@$]/.test (line)) {
+            return undefined;
         }
         const typeOfName = (name: string) => region.bound.has (name) ? undefined : csharpHelperReceiverType (region, name, i, region.params)?.type;
         // string literals become opaque placeholders, a trailing line comment is kept aside
-        const comment = masked[i].indexOf ('//');
+        const comment = masked.indexOf ('//');
         const code = (comment < 0) ? line : line.slice (0, comment);
         const strings = [];
         const opaque = code.replace (/"(?:[^"\\]|\\.)*"/g, (s) => '\u0001' + (strings.push (s) - 1) + '\u0001');
         const rewritten = arithmeticTwinRewrite (opaque, typeOfName, new Map ()).replace (/\u0001(\d+)\u0001/g, (_, n) => strings[Number (n)]) + ((comment < 0) ? '' : line.slice (comment));
-        if (rewritten !== line) changed = true;
-        return rewritten;
+        return (rewritten === line) ? undefined : rewritten;
     });
-    return changed ? out.join ('\n') : content;
+}
+
+// names bound by any other syntax (for/foreach/out/lambda/pattern/tuple) in [start, end): they keep the helper
+function arithmeticBoundNames (masked: string[], start: number, end: number): Set<string> {
+    const bound = new Set<string> ();
+    for (let i = start + 1; i < end; i++) {
+        for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
+        for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
+        for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+            for (const n of b[1].split (',')) bound.add (n.trim ().split (/\s+/).pop ());
+        }
+    }
+    return bound;
 }
 
 // `isGreaterThan(a, b)` & co with an `Int64?` / `long?` name: the helper answers true for (value, null),
@@ -8665,19 +8631,12 @@ export function csharpCounterAndGuardedMath (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     const set = (i: number, next: string) => {
         if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
     };
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const params = csharpHelperSignatureParams (masked, start);
-        const declarations = () => {
-            const out = csharpRegionDeclarations (masked, start, end);
-            return out;
-        };
+    for (const { start, end, params } of csharpRegions (masked)) {
+        const declarations = () => csharpRegionDeclarations (masked, start, end);
         const occurrences = (name: string) => {
             const re = new RegExp ('(?<![\\w.])' + name + '(?![\\w])');
             const at = [];
@@ -8726,16 +8685,8 @@ export function csharpCounterAndGuardedMath (content: string): string {
             set (i, lines[i].replace (site[0], '(-' + name + ')'));
         }
         // (3) arithmetic on guarded nullable / this.sum / int x int operands
-        const decls = declarations ();
-        const bound = new Set<string> ();
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const x of b[1].split (',')) bound.add (x.trim ().split (/\s+/).pop ());
-            }
-        }
-        const region = { start, end, params, declarations: decls, lines: masked, bound };
+        const bound = arithmeticBoundNames (masked, start, end);
+        const region = { start, end, params, declarations: declarations (), lines: masked, bound };
         for (let i = start + 1; i < end; i++) {
             if (!/(?<![A-Za-z0-9_.])(subtract|multiply|divide)\(/.test (masked[i]) || /['@$\u0001]/.test (lines[i])) continue;
             const typeOfName = (name: string) => bound.has (name) ? undefined : csharpHelperReceiverType (region, name, i, params)?.type;
