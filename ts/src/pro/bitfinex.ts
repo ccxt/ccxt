@@ -726,13 +726,13 @@ export default class bitfinex extends bitfinexRest {
             if (isRaw) {
                 const deltas: any[][] = this.safeList (message, 1, []);
                 for (let i = 0; i < deltas.length; i++) {
-                    const delta = deltas[i];
-                    const delta2 = this.safeNumber (delta, 2);
+                    const rawDelta = deltas[i];
+                    const delta2 = this.safeNumber (rawDelta, 2);
                     const size = (delta2 !== undefined && delta2 < 0) ? -delta2 : delta2;
                     const side = (delta2 !== undefined && delta2 < 0) ? 'asks' : 'bids';
                     const bookside = orderbook[side];
-                    const idString = this.safeString (delta, 0);
-                    const price = this.safeFloat (delta, 1);
+                    const idString = this.safeString (rawDelta, 0);
+                    const price = this.safeFloat (rawDelta, 1);
                     bookside.storeArray ([ price, size, idString ]);
                 }
             } else {

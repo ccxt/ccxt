@@ -616,8 +616,8 @@ export default class mexc extends mexcRest {
         const messageHash = 'candles:' + symbolValue + ':' + timeframe;
         let ohlcv: any = undefined;
         if (this.safeBool (market, 'spot', false)) {
-            const channel = 'spot@public.kline.v3.api.pb@' + this.safeString (market, 'id', '') + '@' + timeframeId;
-            ohlcv = await this.watchSpotPublic (channel, messageHash, params);
+            const spotChannel = 'spot@public.kline.v3.api.pb@' + this.safeString (market, 'id', '') + '@' + timeframeId;
+            ohlcv = await this.watchSpotPublic (spotChannel, messageHash, params);
         } else {
             const channel = 'sub.kline';
             const requestParams: Dict = {
@@ -814,8 +814,8 @@ export default class mexc extends mexcRest {
         let orderbook: any = undefined;
         if (this.safeBool (market, 'spot', false)) {
             const [ frequency, paramsFrequency ] = this.handleOptionStringAndParams (params, 'watchOrderBook', 'frequency', '100ms');
-            const channel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString (market, 'id', '');
-            orderbook = await this.watchSpotPublic (channel, messageHash, paramsFrequency);
+            const spotChannel = 'spot@public.aggre.depth.v3.api.pb@' + frequency + '@' + this.safeString (market, 'id', '');
+            orderbook = await this.watchSpotPublic (spotChannel, messageHash, paramsFrequency);
         } else {
             const channel = 'sub.depth';
             const requestParams: Dict = {
@@ -1033,8 +1033,8 @@ export default class mexc extends mexcRest {
         const messageHash = 'trades:' + symbolValue;
         let trades: any = undefined;
         if (this.safeBool (market, 'spot', false)) {
-            const channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
-            trades = await this.watchSpotPublic (channel, messageHash, params);
+            const spotChannel = 'spot@public.aggre.deals.v3.api.pb@100ms@' + this.safeString (market, 'id', '');
+            trades = await this.watchSpotPublic (spotChannel, messageHash, params);
         } else {
             const channel = 'sub.deal';
             const requestParams: Dict = {
