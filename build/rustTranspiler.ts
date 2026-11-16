@@ -8551,83 +8551,6 @@ export class RustTranspilerBuilder {
         return out;
     }
 
-    splitAddElementBorrowConflicts(content: string): string {
-        const pattern = /\badd_element_to_object\(/;
-        let i = 0;
-        let out = '';
-        while (i < content.length) {
-            const rest = content.slice(i);
-            const m = rest.match(pattern);
-            if (!m || m.index === undefined) { out += rest; break; }
-            const absStart = i + m.index;
-            out += rest.slice(0, m.index);
-            const callStart = absStart + m[0].length;
-            // brace-balance
-            let depth = 1;
-            let j = callStart;
-            let inStr = false;
-            let escape = false;
-            while (j < content.length && depth > 0) {
-                const c = content[j];
-                if (escape) { escape = false; j++; continue; }
-                if (c === '\\' && inStr) { escape = true; j++; continue; }
-                if (c === '"') { inStr = !inStr; j++; continue; }
-                if (!inStr) {
-                    if (c === '(') depth++;
-                    else if (c === ')') depth--;
-                }
-                if (depth === 0) break;
-                j++;
-            }
-            if (depth !== 0) { out += content.slice(absStart); break; }
-            const inside = content.slice(callStart, j);
-            const args = this.splitArgs(inside) ?? [];
-            if (args.length !== 3) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            // Extract the mutably-borrowed name from arg[0]
-            const mutMatch = args[0].match(/&mut\s+([a-zA-Z_][a-zA-Z0-9_]*)\b/);
-            if (!mutMatch) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const name = mutMatch[1];
-            const expr = args[2];
-            // `&mut self.<field>` mutably borrows `*self`, so the value
-            // arg conflicts if it touches `self` at all (e.g.
-            // `add_element_to_object(&mut self.options, K, self.milliseconds())`).
-            // For a `&mut <local>` the narrower clone/borrow check applies.
-            const conflicts = name === 'self'
-                ? /\bself\b/.test(expr)
-                : new RegExp(`\\b${name}\\.clone\\(\\)|&\\s*${name}\\b`).test(expr);
-            const exprTrim = expr.trim();
-            // If 3rd arg is just a bare identifier, clone it so subsequent
-            // uses of that identifier keep it alive.
-            const isBareIdent = /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(exprTrim) &&
-                exprTrim !== 'self' && exprTrim !== 'true' && exprTrim !== 'false';
-            if (!conflicts && !isBareIdent) {
-                out += content.slice(absStart, j + 1);
-                i = j + 1;
-                continue;
-            }
-            const trailing = content[j + 1] === ';' ? ';' : '';
-            if (conflicts) {
-                out += `{ let __be_tmp = ${exprTrim}; add_element_to_object(${args[0]}, ${args[1]}, __be_tmp); }${trailing}`;
-            } else {
-                // Just clone the bare identifier in place.
-                out += `add_element_to_object(${args[0]}, ${args[1]}, ${exprTrim}.clone())${trailing}`;
-            }
-            i = j + 1 + trailing.length;
-        }
-        return out;
-    }
-
-
-
-
     rewriteSelfFieldMutCloneCast(content: string): string {
         return content.replace(
             /get_value_mut\(\s*&mut\s+self\.([a-zA-Z_][a-zA-Z0-9_]*)\.clone\(\)\s*,/g,
@@ -10053,7 +9976,6 @@ ${arms.join('\n')}
         // (now `get_value(&precise, ...) = X`) is rewritten to set_value.
         content = this.rewriteGetValueAssignments(content);
         content = this.stripMutSelfFieldClones(content);
-        content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.writeBackIndexedMutations(content);
         content = this.rewriteInlineFieldAppends(content);
@@ -11128,12 +11050,8 @@ impl std::ops::DerefMut for ${coreName} {
 
         // Clone bare identifier args in `ternary(...)` calls.
 
-        // Fix borrow conflicts: `add_element_to_object(&mut X, KEY, EXPR)`
-        // where EXPR refers to `X` either via `.clone()`, `&X`, or
-        // `value` that came from `X`. Splits into a temp + add. Done
-        // via paren-balanced walker so KEY/EXPR can contain nested calls.
+        // `add_element_to_object(&mut X, K, v)` reading X binds v first in the printer (ral-67f).
         basePart = this.stripMutSelfFieldClones(basePart);
-        basePart = this.splitAddElementBorrowConflicts(basePart);
 
         // Same pattern but using get_value_mut(&mut X, ...) as the LHS.
         // Paren-balanced walker (the old regex couldn't handle nested parens).
@@ -11160,7 +11078,6 @@ impl std::ops::DerefMut for ${coreName} {
             // throwaway clone (so the outcome cache stayed empty). Re-run the
             // self-field mut-clone cleanup now that they are `&mut self`.
             basePart = this.stripMutSelfFieldClones(basePart);
-            basePart = this.splitAddElementBorrowConflicts(basePart);
             basePart = this.rewriteSelfFieldMutCloneCast(basePart);
             // The prediction base has `self.fetch(url, &[…, self.json(x)])` and
             // `self.send_evm_transaction(url, self.parse_to_int(id), …)` shapes
@@ -11549,7 +11466,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
-                content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
                 // Async propagation — mark fns async when their body
                 // contains `.await`.
@@ -11954,7 +11870,6 @@ impl std::ops::DerefMut for ${coreName} {
                 content = this.rewriteValueFieldAccess(content);
                 content = this.rewriteGetValueAssignments(content);
                 content = this.stripMutSelfFieldClones(content);
-                content = this.splitAddElementBorrowConflicts(content);
                 content = this.rewriteSelfFieldMutCloneCast(content);
                 content = this.markMethodsAsyncIfBodyAwaits(content);
                 // `assert (cond, msg)` → `assert!(cond, "msg")` → strip
@@ -12286,7 +12201,6 @@ impl std::ops::DerefMut for ${coreName} {
             /in_op\(&get_value\(&exchange, &Value::Str\("markets"\.to_string\(\)\)\), &(\w+)(?:\.clone\(\))?\)/g,
             'crate::tests_support::shared::market_exists(&exchange, &$1)',
         );
-        content = this.splitAddElementBorrowConflicts(content);
         content = this.rewriteSelfFieldMutCloneCast(content);
         content = this.markMethodsAsyncIfBodyAwaits(content);
         // Belt + braces: mark a fn async if its body holds `.await`.
@@ -12656,7 +12570,6 @@ impl std::ops::DerefMut for ${coreName} {
             content = this.rewriteValueFieldAccess(content);
             content = this.rewriteGetValueAssignments(content);
             content = this.stripMutSelfFieldClones(content);
-            content = this.splitAddElementBorrowConflicts(content);
             content = this.rewriteSelfFieldMutCloneCast(content);
             content = this.appendValueNullToVoidEnds(content);
             // Strip `mut` from struct field declarations — Rust fields
