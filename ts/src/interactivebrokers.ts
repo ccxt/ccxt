@@ -1273,6 +1273,19 @@ export default class interactivebrokers extends Exchange {
         return parts.join ('.'); // 'BRK B' -> 'BRK.B', as in parseMarket
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#beforeClose
+     * @description stops the client portal gateway keep-alive and session-regain loops when close () is called, otherwise the scheduled tickles keep the event loop alive after close ()
+     * @ignore
+     * @returns {undefined}
+     */
+    override beforeClose (): any {
+        this.options['gatewayKeepAlive'] = false;
+        this.options['autoRegainSession'] = 0;
+        return undefined;
+    }
+
     override async loadMarkets (reload = false, params: Dict = {}) {
         await this.authenticate ();
         return await super.loadMarkets (reload, params);
@@ -1630,7 +1643,8 @@ export default class interactivebrokers extends Exchange {
                 symbols.push (targetSymbols[i]);
             }
         }
-        if (symbols.length === 0) {
+        const symbolsLength = symbols.length;
+        if (symbolsLength === 0) {
             return [];
         }
         const request: Dict = {
@@ -1665,7 +1679,18 @@ export default class interactivebrokers extends Exchange {
                 }
             }
         }
-        const detailMarkets = await this.fetchSecWithDetails (entries);
+        const details = await this.fetchSecWithDetails (entries);
+        // generic tickers (e.g. SOL, XRP, ADA, XLM) are queried by bare symbol, so trsrv/futures can return
+        // unrelated contracts listed on other venues (e.g. EUREX), only the crypto futures venues are kept
+        const allowedVenues = [ 'CME', 'CFE', 'COINDERIV' ];
+        const detailMarkets = [];
+        for (let i = 0; i < details.length; i++) {
+            const detail = details[i];
+            const venue = this.safeString (detail, 'listingExchange');
+            if (this.inArray (venue, allowedVenues)) {
+                detailMarkets.push (detail);
+            }
+        }
         const markets = this.parseMarkets (detailMarkets);
         const withSwaps = this.inArray ('swap', types);
         const withFutures = this.inArray ('future', types);
@@ -2947,7 +2972,8 @@ export default class interactivebrokers extends Exchange {
         }
         request['cOID'] = clientOrderId;
         const query = this.omit (params, [ 'triggerPrice', 'stopPrice', 'trailingAmount', 'trailingPercent', 'clientOrderId', 'cOID', 'timeInForce', 'tif', 'cost', 'cashQty' ]);
-        return this.extend (request, query);
+        const orderTicket: Dict = this.extend (request, query); // typed local, so the go transpiler returns a dict
+        return orderTicket;
     }
 
     /**
@@ -3948,6 +3974,10 @@ export default class interactivebrokers extends Exchange {
         if ((this.secret === undefined) || (this.secret === '')) {
             throw new AuthenticationError (this.id + ' requires "secret" credential (the encrypted oauth access token secret), or set options["useGateway"] to use the client portal gateway');
         }
+        const consumerKey = this.safeString (this.options, 'consumer_key');
+        if ((consumerKey === undefined) || (consumerKey === '')) {
+            throw new AuthenticationError (this.id + ' requires options["consumer_key"] (the oauth consumer key), or set options["useGateway"] to use the client portal gateway');
+        }
         return true;
     }
 
@@ -4044,7 +4074,34 @@ export default class interactivebrokers extends Exchange {
         return { 'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders };
     }
 
+    /**
+     * @method
+     * @name interactivebrokers#ibkrIsAuthRequest
+     * @description tells whether the endpoint is used by signIn () itself, so it must not trigger authenticate ()
+     * @ignore
+     * @param {string} path the endpoint path
+     * @returns {boolean} true for the session/authentication endpoints
+     */
+    ibkrIsAuthRequest (path: string): boolean {
+        const authPaths = [
+            'v1/api/oauth/live_session_token',
+            'v1/api/oauth/request_token',
+            'v1/api/oauth/access_token',
+            'v1/api/iserver/auth/status',
+            'v1/api/iserver/auth/ssodh/init',
+            'v1/api/iserver/accounts',
+            'v1/api/tickle',
+            'v1/api/logout',
+        ];
+        return this.inArray (path, authPaths);
+    }
+
     override async request (path: string, api: string[] = [ 'public' ], method: any = 'GET', params: Dict = {}, config: Dict = {}) {
+        // every non-auth call renews an expired live session token (or re-checks the gateway session) first,
+        // so methods that do not call authenticate () themselves never send a stale token
+        if (!this.ibkrIsAuthRequest (path) && !this.safeBool (this.options, 'signInInProgress', false)) {
+            await this.authenticate ();
+        }
         // right after a new brokerage session is opened, IBKR may still reject trading endpoints with
         // {"error":"Please query /accounts first"} even though iserver/accounts was already called,
         // so iserver/accounts is queried again and the request is retried

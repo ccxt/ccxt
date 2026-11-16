@@ -73,7 +73,7 @@ abstract class Exchange extends _Exchange {
         return this.request ('v1/api/iserver/secdef/info', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 
-    webapiGetV1ApiTrsrvSecdef (params = {}): Promise<List> {
+    webapiGetV1ApiTrsrvSecdef (params = {}): Promise<Dict> {
         return this.request ('v1/api/trsrv/secdef', [ 'webapi' ], 'GET', params, { 'cost': 1 });
     }
 

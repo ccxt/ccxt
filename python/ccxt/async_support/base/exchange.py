@@ -135,6 +135,8 @@ class BaseExchange(SyncExchange):
     async def close(self, clean_instance_data=False):
         # set before the first await, a lazy open() during close() would leak a session
         self.closed_by_user = True
+        # a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        self.before_close()
         # ##### language-specific cleanup of WS & REST resources #####
         # [WS]
         await self.close_ws_clients()

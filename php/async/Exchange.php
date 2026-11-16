@@ -122,6 +122,8 @@ class BaseExchange extends \ccxt\BaseExchange {
     }
 
     public function close($cleanInstanceData = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        $this->before_close();
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         $this->close_ws_clients();
@@ -835,6 +837,12 @@ class BaseExchange extends \ccxt\BaseExchange {
         $this->ohlcvs = $this->create_safe_dictionary(true);
         $this->myTrades = null;
         $this->positions = null;
+    }
+
+    public function before_close(): mixed {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
     }
 
     public function safe_bool_n(mixed $dictionaryOrList, array $keys, ?bool $defaultValue = null) {

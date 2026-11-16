@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
+	"math/big"
 	"net/url"
 	"sort"
 	"strings"
@@ -283,7 +284,7 @@ func (e *BaseExchange) Decode(data any) string {
 // }
 
 func (e *BaseExchange) IntToBase16(number any) string {
-	switch v := number.(type) {
+	switch v := derefScalar(number).(type) {
 	case int:
 		return fmt.Sprintf("%x", int64(v))
 	case int64:
@@ -292,6 +293,12 @@ func (e *BaseExchange) IntToBase16(number any) string {
 		return fmt.Sprintf("%x", uint64(v))
 	case uint64:
 		return fmt.Sprintf("%x", v)
+	case *big.Int, big.Int, string:
+		// big integers: ConvertToBigInt / ModPow return decimal strings, values above 2^64 do not fit the int branches
+		if bigValue := parseStarknetBigInt(v); bigValue != nil {
+			return bigValue.Text(16)
+		}
+		return ""
 	default:
 		return "" // return empty string for unsupported types
 	}

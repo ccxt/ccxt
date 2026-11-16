@@ -1755,6 +1755,10 @@
             }
         }
     },
+    "interactivebrokers": {
+        "skip": "loadMarkets requires an authenticated session: a logged-in local client portal gateway (options.useGateway) or oauth 1.0a credentials with the PEM keys, neither is available in ci",
+        "skipWs": "the websocket requires the same authenticated session as the REST API (local client portal gateway or oauth 1.0a), not available in ci"
+    },
     "independentreserve": {
         "skipWs": "timeouts",
         "skipMethods": {

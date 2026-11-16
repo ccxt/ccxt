@@ -1653,6 +1653,8 @@ public class BaseExchange {
         try {
             pem = java.nio.file.Files.readString(java.nio.file.Path.of(String.valueOf(path)), StandardCharsets.UTF_8);
         } catch (java.io.IOException e) {
+        //     pem = this.readFile(path); // goes through the file whitelist like every other port
+        // } catch (IllegalArgumentException e) {
             throw new ExchangeError(this.id + " readDhParam() could not read the DH_param file: " + path);
         }
         byte[] der = java.util.Base64.getDecoder().decode(pem.replaceAll("-----[^-]+-----|\\s", ""));
@@ -4332,6 +4334,8 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     public java.util.concurrent.CompletableFuture<Object> close(boolean cleanInstanceData) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose();
         closeWsClients().join();
         // [WS]
         if (cleanInstanceData) {
@@ -4870,6 +4874,13 @@ public Map<String, Object> describe()
         this.ohlcvs = this.createSafeDictionary(true);
         this.myTrades = null;
         this.positions = null;
+    }
+
+    public Object beforeClose()
+    {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
     }
 
     public Object safeBoolN(Object dictionaryOrList, Object keys, Object defaultValue)

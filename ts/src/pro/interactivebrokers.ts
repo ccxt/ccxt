@@ -276,7 +276,8 @@ export default class interactivebrokers extends interactivebrokersRest {
             }
         }
         // the connection is open, the callers get the client from ibkrConnect ()
-        await client.send ('umd+' + marketId + '+{}');
+        const emptyArgs = '{}'; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        await client.send ('umd+' + marketId + '+' + emptyArgs);
         return undefined;
     }
 
@@ -359,14 +360,19 @@ export default class interactivebrokers extends interactivebrokersRest {
         for (let i = 0; i < marketSymbols.length; i++) {
             messageHashes.push (topic + '::' + marketSymbols[i]);
         }
-        const future = this.watchMultiple (url, messageHashes);
+        // the futures are created before the raw sends, so no update can be missed in between,
+        // reusableFuture (), not watchMultiple () - the connection is already open (ibkrConnect), and go's watch* yields a channel
+        const futures = [];
+        for (let i = 0; i < messageHashes.length; i++) {
+            futures.push (client.reusableFuture (messageHashes[i]));
+        }
         for (let i = 0; i < marketSymbols.length; i++) {
             const market = this.market (marketSymbols[i]);
             const [ request, query ] = this.ibkrMarketDataRequest (market['id'], params);
             const subscription: Dict = this.extend ({ 'conid': market['id'], 'symbol': market['symbol'] }, query);
             await this.ibkrSubscribe (client, messageHashes[i], request, subscription);
         }
-        const ticker = await future;
+        const ticker = await this.watchMultiple (url, messageHashes);
         return ticker;
     }
 
@@ -503,7 +509,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const messageHash = 'ohlcv::' + unifiedSymbol + '::' + timeframe;
-        const future = this.watch (url, messageHash);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        const future = client.reusableFuture (messageHash);
         // the last price stream, it builds the current candles
         const [ marketDataRequest, query ] = this.ibkrMarketDataRequest (market['id'], params);
         await this.ibkrSubscribe (client, messageHash, marketDataRequest, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe });
@@ -528,7 +535,8 @@ export default class interactivebrokers extends interactivebrokersRest {
                 'source': this.safeString (options, 'source', 'trades'),
                 // no 'format', the bars carry the "t" timestamp only with the default format
             };
-            const request = 'smh+' + market['id'] + '+' + this.json (this.extend (historyRequest, query));
+            // keysort: the dict key order is not preserved in every language (java HashMap), the raw frame must be identical
+            const request = 'smh+' + market['id'] + '+' + this.json (this.keysort (this.extend (historyRequest, query)));
             await this.ibkrSubscribe (client, historyHash, request, { 'conid': market['id'], 'symbol': unifiedSymbol, 'timeframe': timeframe, 'duration': duration });
         }
         const ohlcv = await future;
@@ -771,7 +779,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         const messageHash = 'orderbook::' + unifiedSymbol;
-        const future = this.watch (url, messageHash);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        const future = client.reusableFuture (messageHash);
         let request = 'sbd+' + accountId + '+' + market['id'];
         if (bookExchange !== undefined) {
             request = request + '+' + bookExchange;
@@ -833,15 +842,17 @@ export default class interactivebrokers extends interactivebrokersRest {
         if (subscription === undefined) {
             return; // unsubscribed
         }
-        // the ladder state, indexed by row
+        // the ladder state, indexed by row, the 'r' prefix keeps the keys strings (php turns numeric string keys into
+        // integer keys, which are renumbered when the dict is copied)
         const ladder = this.safeDict (subscription, 'ladder', {});
         const data = this.safeList (message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            const rowId = this.safeString (entry, 'row');
-            if (rowId === undefined) {
+            const rowNumber = this.safeString (entry, 'row');
+            if (rowNumber === undefined) {
                 continue;
             }
+            const rowId = 'r' + rowNumber;
             let price = this.safeString (entry, 'price');
             if (price === undefined) {
                 const previousRow = this.safeDict (ladder, rowId, {});
@@ -885,7 +896,9 @@ export default class interactivebrokers extends interactivebrokersRest {
             }
         }
         // the placeholder ladder sent right after subscribing has no sizes, it is not emitted
-        const isEmpty = (bids.length === 0) && (asks.length === 0);
+        const bidsLength = bids.length;
+        const asksLength = asks.length;
+        const isEmpty = (bidsLength === 0) && (asksLength === 0);
         const emitted = this.safeBool (subscription, 'emitted', false);
         if (isEmpty && !emitted) {
             client.subscriptions[messageHash] = subscription;
@@ -896,7 +909,7 @@ export default class interactivebrokers extends interactivebrokersRest {
         if (!emitted) {
             const options = this.safeDict (this.options, 'watchOrderBook', {});
             const skipFirstItem = this.safeBool (options, 'skipFirstItem', true);
-            const isTopOfBookOnly = (bids.length <= 1) && (asks.length <= 1);
+            const isTopOfBookOnly = (bidsLength <= 1) && (asksLength <= 1);
             if (skipFirstItem && isTopOfBookOnly) {
                 const now = this.milliseconds ();
                 const firstFilled = this.safeInteger (subscription, 'firstFilled', now);
@@ -966,13 +979,18 @@ export default class interactivebrokers extends interactivebrokersRest {
                 }
             }
         }
-        const future = this.watch (url, messageHash);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        const future = client.reusableFuture (messageHash);
         const filters = this.safeList (params, 'filters');
-        const requestParams: Dict = {};
+        // an empty dict is json-encoded as [] in php, so the empty arguments are sent as a literal
+        let requestArgs = '{}';
         if (filters !== undefined) {
-            requestParams['filters'] = filters;
+            const requestParams: Dict = {
+                'filters': filters,
+            };
+            requestArgs = this.json (requestParams);
         }
-        await this.ibkrSubscribe (client, 'sor', 'sor+' + this.json (requestParams), { 'rawOrders': rawOrders });
+        await this.ibkrSubscribe (client, 'sor', 'sor+' + requestArgs, { 'rawOrders': rawOrders });
         const orders = await future;
         let resultLimit = limit;
         if (this.newUpdates) {
@@ -994,7 +1012,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         this.cleanUnsubscription (client, 'orders', 'unsubscribe::orders', true);
-        return await this.ibkrUnsubscribe (client, [ 'sor' ], 'uor+{}', { 'topic': 'orders' });
+        const emptyArgs = '{}'; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        return await this.ibkrUnsubscribe (client, [ 'sor' ], 'uor+' + emptyArgs, { 'topic': 'orders' });
     }
 
     handleOrders (client: Client, message: Dict) {
@@ -1021,7 +1040,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         //     }
         //
         const args = this.safeList (message, 'args', []);
-        if (args.length === 0) {
+        const argsLength = args.length;
+        if (argsLength === 0) {
             return;
         }
         if (this.orders === undefined) {
@@ -1084,7 +1104,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         }
         const url = await this.ibkrConnect ();
         const client = this.client (url);
-        const future = this.watch (url, messageHash);
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        const future = client.reusableFuture (messageHash);
         const options = this.safeDict (this.options, 'watchMyTrades', {});
         const realtimeUpdatesOnly = this.safeBool (params, 'realtimeUpdatesOnly', this.safeBool (options, 'realtimeUpdatesOnly', true));
         // the server handles realtimeUpdatesOnly=true unreliably, sometimes it replays the executions of the last days anyway,
@@ -1146,7 +1167,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         //     }
         //
         const args = this.safeList (message, 'args', []);
-        if (args.length === 0) {
+        const argsLength = args.length;
+        if (argsLength === 0) {
             return;
         }
         if (this.myTrades === undefined) {
@@ -1191,7 +1213,8 @@ export default class interactivebrokers extends interactivebrokersRest {
             symbols[tradeSymbol] = true;
         }
         const keys = Object.keys (symbols);
-        if (keys.length === 0) {
+        const keysLength = keys.length;
+        if (keysLength === 0) {
             return;
         }
         client.resolve (trades, 'myTrades');
@@ -1229,8 +1252,10 @@ export default class interactivebrokers extends interactivebrokersRest {
                 this.balance = snapshotBalance;
             }
         }
-        const future = this.watch (url, messageHash);
-        await this.ibkrSubscribe (client, subscribeHash, 'sld+' + accountId + '+{}', { 'accountId': accountId });
+        // reusableFuture (), not watch () - the connection is already open (ibkrConnect), and go's watch () yields a channel
+        const future = client.reusableFuture (messageHash);
+        const emptyArgs = '{}'; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        await this.ibkrSubscribe (client, subscribeHash, 'sld+' + accountId + '+' + emptyArgs, { 'accountId': accountId });
         const balance = await future;
         return balance;
     }
@@ -1249,7 +1274,8 @@ export default class interactivebrokers extends interactivebrokersRest {
         const url = await this.ibkrConnect ();
         const client = this.client (url);
         this.balance = {};
-        return await this.ibkrUnsubscribe (client, [ 'balance', 'sld::' + accountId ], 'uld+' + accountId + '+{}', query);
+        const emptyArgs = '{}'; // a separate literal, the php transpiler turns '+{}' into '+array()'
+        return await this.ibkrUnsubscribe (client, [ 'balance', 'sld::' + accountId ], 'uld+' + accountId + '+' + emptyArgs, query);
     }
 
     handleBalance (client: Client, message: Dict) {

@@ -226,8 +226,15 @@ function setupWsMockTransport (exchange: any, url: string) {
     client.connection = {
         'readyState': 1, // WebSocket.OPEN, keeps isOpen () happy
         'send': (message: any, options: any = undefined, callback: any = undefined) => {
-            // record the outgoing frame so the test can assert it
-            client.mockSentMessages.push (JSON.parse (message));
+            // record the outgoing frame so the test can assert it,
+            // non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+            let parsed = message;
+            try {
+                parsed = JSON.parse (message);
+            } catch (e) {
+                parsed = message;
+            }
+            client.mockSentMessages.push (parsed);
             if (callback !== undefined) {
                 callback ();
             }

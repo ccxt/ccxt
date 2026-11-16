@@ -785,6 +785,8 @@ public partial class BaseExchange
 
     public async Task Close(bool cleanInstanceCache = false)
     {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose();
         // ##### language-specific cleanup of WS & REST resources #####
         // [WS]
         var tasks = new List<Task>();

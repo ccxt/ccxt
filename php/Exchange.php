@@ -1259,6 +1259,18 @@ class BaseExchange {
     }
 
     public static function int_to_base16($integer) {
+        // BN::toString(16) pads to an even length, strip it to match number.toString(16)
+        if ($integer instanceof BN) {
+            $hex = ltrim($integer->toString(16), '0'); // e.g. mod_pow results, 2048-bit values do not fit an int
+            return ($hex === '') ? '0' : $hex;
+        }
+        if (is_string($integer) && !is_numeric($integer)) {
+            return dechex($integer); // keeps the previous TypeError for non-numeric input
+        }
+        if (is_string($integer) && (strlen(ltrim($integer, '-')) > 18)) {
+            $hex = ltrim((new BN($integer, 10))->toString(16), '0'); // decimal strings above PHP_INT_MAX
+            return ($hex === '') ? '0' : $hex;
+        }
         return dechex($integer);
     }
 
@@ -1430,6 +1442,7 @@ class BaseExchange {
     }
 
 
+
     public function ensure_whitelisted_file(string $filePath) {
         // resolve parent dir (which exists) + filename
         $dir = realpath(dirname($filePath));
@@ -1447,7 +1460,7 @@ class BaseExchange {
     }
 
     public function read_file(string $filePath) {
-        $this->ensure_whitelisted_file($filePath);
+        $this->ensure_whitelisted_file($filePath, true);
         if (!file_exists($filePath)) {
             throw new \Exception("File not found: $filePath");
         }
@@ -3091,6 +3104,8 @@ class BaseExchange {
     }
 
     public function close($cleanInstanceData = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        $this->before_close();
         // ##### language-specific cleanup of WS & REST resources #####
         // [REST]
         if ($this->curl !== null) {
@@ -3592,6 +3607,12 @@ class BaseExchange {
         $this->ohlcvs = $this->create_safe_dictionary(true);
         $this->myTrades = null;
         $this->positions = null;
+    }
+
+    public function before_close(): mixed {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return null;
     }
 
     public function safe_bool_n(mixed $dictionaryOrList, array $keys, ?bool $defaultValue = null) {

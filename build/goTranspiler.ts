@@ -4464,7 +4464,7 @@ function goProvenReturnFamilies (): any[] {
         { 'names': [ 'Describe' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': [ 'Extend', 'DeepExtend' ] },
         { 'names': lists, 'type': '[]any', 'paramWrap': 'this.ToArray', 'calls': lists.concat ([ 'ArraySlice', 'ToArray', 'SortBy', 'SortBy2', 'ArrayConcat' ]) },
         { 'names': maps, 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': maps.concat (calleeOnly, [ 'Extend', 'DeepExtend', 'IndexBy' ]) },
-        { 'names': [ 'CreateOrderRequest' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': builders, 'receivers': 'Deepcoin|Hashkey' },
+        { 'names': [ 'CreateOrderRequest' ], 'type': 'map[string]any', 'paramWrap': 'MapTyped', 'calls': builders, 'receivers': 'Deepcoin|Hashkey|Interactivebrokers' },
     ];
 }
 
@@ -4825,6 +4825,11 @@ function overwriteFileAndFolder (path: string, content: string) {
         console.error ('[layout] ' + path + ' oneline-before=' + before + ' after=' + after + ' same=' + (laid === content));
     }
     content = path.endsWith ('.go') ? goGofmtLayout (content, goCompositeKeyAligner ()) : content;
+    if (path.endsWith ('.go')) {
+        // a `future` local holding client.reusableFuture () is a *Future, but its await is printed as a
+        // channel receive when the awaited value is returned as is (e.g. a balance or an order book)
+        content = content.replace (/(\br\d+) := <-future\.\(<-chan ccxt\.AsyncResult\[any\]\)/g, '$1 := <-future.(*ccxt.Future).Await()');
+    }
     overwriteFile (path, content);
 }
 

@@ -851,8 +851,16 @@ public partial class BaseExchange
             var jsonMessage = (message is string) ? ((string)message) : Exchange.Json(message);
             if (this.isMock)
             {
-                // static ws tests: record the outgoing frame so the test can assert it
-                this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                // static ws tests: record the outgoing frame so the test can assert it,
+                // non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+                try
+                {
+                    this.mockSentMessages.Add(JsonHelper.Deserialize(jsonMessage));
+                }
+                catch (Newtonsoft.Json.JsonReaderException)
+                {
+                    this.mockSentMessages.Add(jsonMessage);
+                }
                 return;
             }
             if (this.verbose)

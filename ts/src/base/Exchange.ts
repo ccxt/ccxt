@@ -2004,6 +2004,8 @@ export class BaseExchange {
     }
 
     async close (cleanInstanceCache = false) {
+        // a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        this.beforeClose ();
         // [WS]
         await this.sleep (0); // allow other futures to run
         const allClients = (this.clients !== undefined) ? this.clients : {};
@@ -3270,6 +3272,12 @@ export class BaseExchange {
         this.ohlcvs = this.createSafeDictionary (true);
         this.myTrades = undefined;
         this.positions = undefined;
+    }
+
+    beforeClose (): any {
+        // called first by close (), a derived exchange overrides it to stop its own background loops
+        // (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return undefined;
     }
 
     safeBoolN (dictionaryOrList: any, keys: NullableIndexType[], defaultValue: boolean): boolean;

@@ -308,8 +308,12 @@ class FakeWsConnection:
         self.sent_messages = []
 
     async def send_str(self, message):
-        # record the outgoing frame so the test can assert it
-        self.sent_messages.append(json.loads(message))
+        # record the outgoing frame so the test can assert it,
+        # non-json text frames (e.g. interactivebrokers 'sbd+...') are kept as the raw string
+        try:
+            self.sent_messages.append(json.loads(message))
+        except ValueError:
+            self.sent_messages.append(message)
         return None
 
     async def close(self, code=1000):

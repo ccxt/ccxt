@@ -500,6 +500,10 @@ class BaseExchange(object):
             return
         raise ValueError(f'invalid file path: {file_path}, allowed extensions are: {", ".join(allowed_extensions)}')
 
+    def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:
             return
@@ -2257,6 +2261,8 @@ class BaseExchange(object):
         return int(''.join([str(random.randint(0, 9)) for _ in range(size)]))
 
     def close(self, clean_instance_data=False):
+        # a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests)
+        self.before_close()
         # ##### language-specific cleanup of REST resources #####
         # [REST]
         if clean_instance_data:
@@ -3194,6 +3200,11 @@ class BaseExchange(object):
         self.ohlcvs = self.create_safe_dictionary(True)
         self.myTrades = None
         self.positions = None
+
+    def before_close(self) -> object:
+        # called first by close (), a derived exchange overrides it to stop its own background loops
+        # (e.g. scheduled keep-alive requests that would otherwise keep the event loop alive)
+        return None
 
     def safe_bool_n(self, dictionaryOrList: object, keys: list[NullableIndexType], defaultValue: Bool = None):
         """

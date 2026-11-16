@@ -2413,6 +2413,13 @@ func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any
 }
 
 func (this *BaseExchange) Close(cleanInstanceData ...any) []error {
+	// a derived exchange stops its own background loops here (e.g. scheduled keep-alive requests);
+	// dispatched through Itf so the derived override runs, not the BaseExchange no-op
+	if derived, ok := this.Itf.(interface{ BeforeClose() any }); ok {
+		derived.BeforeClose()
+	} else {
+		this.BeforeClose()
+	}
 	// ##### language-specific cleanup of WS & REST resources #####
 	// [WS]
 	// every registered client is closed and the registry is cleared
