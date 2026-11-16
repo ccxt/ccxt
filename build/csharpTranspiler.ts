@@ -9404,6 +9404,26 @@ export function csharpNativeEmissionSelfTest (): string[] {
             'f (o) { let n = 0; n += 1; n = this.safeInteger (o, "x"); return n > 0; }', 'object n = 0;');
         check ('counter += double keeps object',
             'f (o) { let n = 0; n += 1.5; return n > 0; }', 'object n = 0;');
+        // 77c2: conditional initialisers whose arms both have a proven C# type
+        const omitHost = 'omit (o, k) { return o; }\n extend (a, b) { return a; }\n safeString (o, k, d = undefined): string { return d; }\n';
+        check ('77c2 c ? this.omit (params, k) : params -> IDictionary',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const u = this.safeString (params, "until"); const p = (u !== undefined) ? this.omit (params, [ "until" ]) : params; return this.extend ({}, p); }',
+            'IDictionary<string, object> p = ((IDictionary<string, object>)(((u != null)) ? this.omit(parameters, new List<object>() {"until"}) : parameters));');
+        check ('77c2 omit ternary on a written params keeps object',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { params = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : params; return p; }',
+            'object p = ');
+        check ('77c2 omit ternary over another local keeps object',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const q = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : q; return p; }',
+            'object p = ');
+        check ('77c2 c ? "lit" : <string parameter> -> string?',
+            'async fetchTicker (symbol: string, params = {}) { const s = (symbol === undefined) ? "BTC/USDT" : symbol; return s; }',
+            'string? s = ((symbol == null)) ? "BTC/USDT" : symbol;');
+        check ('77c2 c ? this.omit (<Dictionary local>, k) : <same local> -> Dictionary',
+            omitHost + ' f (o) { const d = this.extend (o, {}); const p = (o !== undefined) ? this.omit (d, "x") : d; return p; }',
+            'Dictionary<string, object> p = ((o != null)) ? this.omit(d, "x") : d;');
+        check ('77c2 c ? "lit" : <untyped parameter> keeps object',
+            'f (x) { const s = (x === undefined) ? "BTC/USDT" : x; return s; }',
+            'object s = ');
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
