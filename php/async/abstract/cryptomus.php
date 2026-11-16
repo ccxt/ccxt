@@ -16,12 +16,6 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function public_get_v2_user_api_exchange_market_price($params = array()) {
-        return $this->request('v2/user-api/exchange/market/price', array('public'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function public_get_v2_user_api_exchange_markets_price($params = array()) {
         return $this->request('v2/user-api/exchange/markets/price', array('public'), 'GET', $params, array("cost" => 1));
     }
@@ -36,12 +30,6 @@ abstract class cryptomus extends \ccxt\async\Exchange {
      */
     public function public_get_v1_exchange_market_order_book_currencypair($params = array()) {
         return $this->request('v1/exchange/market/order-book/{currencyPair}', array('public'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function public_get_v1_exchange_market_tickers($params = array()) {
-        return $this->request('v1/exchange/market/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -202,12 +190,6 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
-    public function publicGetV2UserApiExchangeMarketPrice($params = array()) {
-        return $this->request('v2/user-api/exchange/market/price', array('public'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
     public function publicGetV2UserApiExchangeMarketsPrice($params = array()) {
         return $this->request('v2/user-api/exchange/markets/price', array('public'), 'GET', $params, array("cost" => 1));
     }
@@ -222,12 +204,6 @@ abstract class cryptomus extends \ccxt\async\Exchange {
      */
     public function publicGetV1ExchangeMarketOrderBookCurrencyPair($params = array()) {
         return $this->request('v1/exchange/market/order-book/{currencyPair}', array('public'), 'GET', $params, array("cost" => 1));
-    }
-    /**
-     * @return \React\Promise\PromiseInterface<array<string, mixed>>
-     */
-    public function publicGetV1ExchangeMarketTickers($params = array()) {
-        return $this->request('v1/exchange/market/tickers', array('public'), 'GET', $params, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

@@ -8660,7 +8660,19 @@ public partial class binance : Exchange
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, null, marketType);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? filled = this.safeStringN(order, new List<object>() {"executedQty", "filledQty", "actualQty"}, "0"); // actualQty: algo orders
-        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"}); // order of the keys matters here
+        Int64? timestamp = this.safeInteger2(order, "time", "createTime"); // order of the keys matters here
+        if ((timestamp == null))
+        {
+            // spot conditional orders (STOP_LOSS, TAKE_PROFIT, trailing) report workingTime as -1 until they are triggered
+            Int64? workingTime = this.safeInteger(order, "workingTime");
+            if (((workingTime != null)) && ((workingTime > 0)))
+            {
+                timestamp = workingTime;
+            } else
+            {
+                timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "updateTime", "createdAt"});
+            }
+        }
         Int64? lastTradeTimestamp = null;
         if (((order != null && ((IDictionary<string, object>)order).ContainsKey("transactTime"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("updateTime"))) || ((order != null && ((IDictionary<string, object>)order).ContainsKey("updatedAt"))))
         {

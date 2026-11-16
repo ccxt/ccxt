@@ -1126,7 +1126,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         let mut result: Option<String> = self.safe_string_lower_k_opt(raw.clone(), "result", &[]);
         let mut resolved: bool = (status.as_deref() == Some("settled")) || ((result.is_some()) && (result.as_deref() != Some("")));
-        let mut endDate: Option<String> = self.safe_string_k_opt(raw.clone(), "expiration_time", &[]);
+        let mut endDate: Option<String> = self.safe_string2_opt(raw.clone(), Value::Str("latest_expiration_time".into()), Value::Str("expiration_time".into()), &[]);
         let mut volume: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("volume_fp".into()), Value::Str("volume".into()), &[]);
         let mut liquidity: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("liquidity_dollars".into()), Value::Str("liquidity".into()), &[]);
         let mut openInt: Option<f64> = self.safe_number2_opt(raw.clone(), Value::Str("open_interest_fp".into()), Value::Str("open_interest".into()), &[]);

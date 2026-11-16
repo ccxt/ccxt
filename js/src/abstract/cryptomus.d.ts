@@ -2,11 +2,9 @@ import { Dict } from '../base/types.js';
 import { Exchange as _Exchange } from '../base/Exchange.js';
 declare abstract class Exchange extends _Exchange {
     publicGetV2UserApiExchangeMarkets(params?: {}): Promise<Dict>;
-    publicGetV2UserApiExchangeMarketPrice(params?: {}): Promise<Dict>;
     publicGetV2UserApiExchangeMarketsPrice(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketAssets(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketOrderBookCurrencyPair(params?: {}): Promise<Dict>;
-    publicGetV1ExchangeMarketTickers(params?: {}): Promise<Dict>;
     publicGetV1ExchangeMarketTradesCurrencyPair(params?: {}): Promise<Dict>;
     privateGetV2UserApiExchangeOrders(params?: {}): Promise<Dict>;
     privateGetV2UserApiExchangeOrdersHistory(params?: {}): Promise<Dict>;

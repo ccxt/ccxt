@@ -1155,7 +1155,12 @@ impl LighterCore {
                 m.insert("account_index".to_string(), self.parse_to_int(accountIndex.clone()));
             m
         });
-        let mut token: Value = self.lighter_create_auth_token(self.safe_value_k(cachedAuth, "signer", &[]), Value::Map(request));
+        let mut signer: Value = self.safe_value_k(cachedAuth, "signer", &[]);
+        if (signer == Value::Null) {
+            self.check_required_credentials(&[]);
+            panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), Value::Str(" could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt".into()))));
+        }
+        let mut token: Value = self.lighter_create_auth_token(signer, Value::Map(request));
         self.set_auth_entry(accountIndex, apiKeyIndex, Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deadline".to_string(), deadline);
