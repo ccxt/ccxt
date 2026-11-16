@@ -685,8 +685,13 @@ create a trade order
 | params.trailingTriggerPrice | <code>float</code> | No | *swap only* the price to activate a trailing order at |
 | params.takeProfit | <code>object</code> | No | *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered |
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
+| params.takeProfit.price | <code>float</code> | No | *swap only* limit price of the attached take profit order, omit for a market take profit |
+| params.takeProfit.triggerPriceType | <code>string</code> | No | *swap only* 'mark' or 'last' |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
+| params.stopLoss.price | <code>float</code> | No | *swap only* limit price of the attached stop loss order, omit for a market stop loss |
+| params.stopLoss.triggerPriceType | <code>string</code> | No | *swap only* 'mark' or 'last' |
+| params.triggerPriceType | <code>string</code> | No | *swap only* 'mark' or 'last', the price that trigger, stop loss and take profit prices are compared against |
 | params.test | <code>boolean</code> | No | *linear swap only* whether to use the test endpoint or not, default is false |
 | params.positionSide | <code>string</code> | No | *contracts only* "BOTH" for one way mode, "LONG" for buy side of hedged mode, "SHORT" for sell side of hedged mode |
 | params.hedged | <code>boolean</code> | No | *swap only* whether the order is in hedged mode or one way mode |
@@ -1195,13 +1200,18 @@ Either adds or reduces margin in an isolated position in order to set the margin
 **Kind**: instance method of [<code>bingx</code>](#bingx)  
 **Returns**: <code>object</code> - A [margin structure](https://docs.ccxt.com/?id=margin-structure)
 
-**See**: https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin  
+**See**
+
+- https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+- https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
+
 
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market to set margin in |
 | amount | <code>float</code> | Yes | the amount to set the margin to |
 | params | <code>object</code> | No | parameters specific to the exchange API endpoint |
+| params.positionSide | <code>string</code> | No | "LONG" or "SHORT", required for Coin-M |
 
 
 ```javascript
@@ -1283,7 +1293,7 @@ fetch all trades made by the user
 | limit | <code>int</code> | No | the maximum number of trades structures to retrieve |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.until | <code>int</code> | No | timestamp in ms for the ending date filter, default is undefined |
-| params.trandingUnit | <code>string</code> | Yes | COIN (directly represent assets such as BTC and ETH) or CONT (represents the number of contract sheets) |
+| params.tradingUnit | <code>string</code> | No | COIN (default, base currency amount) or CONT (number of contract sheets) |
 | params.orderId | <code>string</code> | Yes | the order id required for inverse swap |
 
 

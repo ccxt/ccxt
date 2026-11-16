@@ -691,11 +691,17 @@ class revolutx extends Exchange {
         if ($since !== null) {
             $request['since'] = $since;
         }
+        $defaultLimit = 1000; // default max limit if not specified
+        $limitValue = ($limit !== null) ? $limit : $defaultLimit;
+        $duration = $this->parse_timeframe($timeframe) * 1000;
         $until = $this->safe_integer_2($params, 'until', 'until');
         if ($until !== null) {
             $request['until'] = $until;
-        } else {
-            $request['until'] = $this->milliseconds();
+        }
+        if ($since !== null && $until === null) {
+            $request['until'] = $this->sum($since, $limitValue * $duration);
+        } elseif ($since === null && $until !== null) {
+            $request['since'] = $until - $limitValue * $duration;
         }
         $region = $this->safe_string_2($params, 'region', 'region', $this->options['region']);
         if ($region !== null) {

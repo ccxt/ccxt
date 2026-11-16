@@ -109,13 +109,6 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetOpenorders",parameters);
     }
 
-    /// <summary>Calls the privateGetRecentorders endpoint.</summary>
-    /// <returns>a JSON object</returns>
-    public async Task<Dictionary<string, object>> privateGetRecentorders (object parameters = null)
-    {
-        return await this.callAsync<Dictionary<string, object>> ("privateGetRecentorders",parameters);
-    }
-
     /// <summary>Calls the privateGetFills endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetFills (object parameters = null)

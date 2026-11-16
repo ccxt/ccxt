@@ -2,7 +2,7 @@
 <?php
 include './ccxt.php';
 
-$id = 'aax';
+$id = 'binance';
 $exchange_class = '\\ccxt\\pro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,

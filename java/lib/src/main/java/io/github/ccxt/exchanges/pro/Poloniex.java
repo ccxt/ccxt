@@ -1704,7 +1704,7 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
         } else if (java.util.Objects.equals(type, null))
         {
             this.handleOrderRequest(client, message);
-        } else
+        } else if (!java.util.Objects.equals(method, null))
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
             Integer dataLength = ((List<?>)data).size();

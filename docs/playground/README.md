@@ -4,12 +4,13 @@ An online IDE that runs [CCXT](https://github.com/ccxt/ccxt) against **live publ
 exchange endpoints** in multiple languages, with an AI assistant that writes the
 code for you.
 
-- **Languages:** TypeScript, Python, PHP, **Go**, **C#** and **Java** all run
-  in the playground. The AI assistant writes code for all six.
+- **Languages:** TypeScript, Python, PHP, **Go**, **C#**, **Java** and **Rust**
+  all run in the playground. The AI assistant writes code for all seven.
   - TypeScript runs natively on Node (`--experimental-transform-types`, no tsc) — so
     `enum`/`namespace`/parameter properties work, but types are erased, not checked.
-  - Go (~2–3s/run), C# (~3–4s/run) and Java (~1s/run) compile each run, but only
-    the user's file recompiles against a pre-resolved ccxt, so they stay fast.
+  - Go (~2–3s/run), C# (~3–4s/run), Java (~1s/run) and Rust (~1s/run) compile
+    each run, but only the user's file recompiles against a pre-resolved ccxt, so
+    they stay fast.
 - **Editor:** Monaco (the VS Code editor) with syntax highlighting per language,
   and **CCXT IntelliSense for TypeScript** — `exchange.` autocompletes every unified
   method with signatures and JSDoc. This uses Monaco's built-in TypeScript
@@ -20,7 +21,7 @@ code for you.
 - **Execution:** a backend executor spawns the real interpreter for each language
   using a pinned CCXT install, so you get real responses from real exchanges.
 - **AI assistant:** streamed from the chat-completions endpoint in
-  `PLAYGROUND_AI_URL`; every code answer covers all six languages at once — the
+  `PLAYGROUND_AI_URL`; every code answer covers all seven languages at once — the
   sidebar shows **only** the language tab you have selected (Insert ready as soon
   as that block finishes streaming). One Insert files that tab immediately; the
   other languages fill their editor buffers silently in the background. The
@@ -53,7 +54,7 @@ PLAYGROUND_AI_URL=http://<host>:<port>/v1/chat/completions docker compose up --b
 # → http://localhost:3000
 ```
 
-The image bundles every runtime (Node, Python, PHP, Go, .NET) with CCXT
+The image bundles every runtime (Node, Python, PHP, Go, .NET, JDK, Rust) with CCXT
 pre-installed and the Go/C# build caches **warmed at build time**, so first runs
 are fast. Pass `--build-arg PLAYGROUND_DISABLED=go` (and/or `csharp`) to keep a
 compiled language **install-only** — an escape hatch for a small host where
@@ -128,7 +129,7 @@ Fumadocs site at `/`. (Publishing a host port doesn't work on a Docker
 container's fixed internal IP, and the container still has no route *out* except
 via the egress proxy.)
 
-**All six runnable languages (TypeScript/Python/PHP/Go/C#/Java) run in production.**
+**All seven runnable languages (TypeScript/Python/PHP/Go/C#/Java/Rust) run in production.**
 The Go warm build (~5 GB peak) happens on the GitHub-hosted build runner, not on
 the docs box; the run container's 3 GB cap covers warm `go run`s plus concurrent
 Java JVMs (`-Xmx512m` each). On a small box, add `PLAYGROUND_DISABLED=go,java`
@@ -160,11 +161,18 @@ installs the nightly-restart cron automatically.
   precompiled `Playground` proxy helper in `runtime/java/classes`. Needs JDK 21+
   and Maven at provision time (Docker resolves the jars in a throwaway build
   stage, so Maven never ships in the image).
+- **Rust** → `runtime/rust` cargo project depending on the `ccxt`, `ccxt-pro` and
+  `ccxt-prediction` crates (+ `tokio`, `serde_json`, `futures`), built once,
+  plus `externs.json` naming the exact rlib of each crate and every directory
+  holding dependency rlibs (`target/debug/deps`, or one dir per crate under
+  cargo ≥ 1.100's build-dir layout). Needs a Rust toolchain (rustup) and ~6 GB of RAM at provision time;
+  Docker builds it in a throwaway stage so cargo and its registry never ship.
+  Only a curated set of venues is compiled in — see **How Rust runs**.
 
 Python and PHP fall back to the surrounding monorepo's CCXT (`../../python` via
-`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go, C# and Java show a "run
+`PYTHONPATH`, `../../ccxt.php`) if not provisioned. Go, C#, Java and Rust show a "run
 setup-runtimes" message until provisioned (no fallback — they need the warm
-cache/restore/resolved jars to be fast).
+cache/restore/resolved jars/prebuilt crates to be fast).
 
 ## Sandboxing & safety
 
@@ -212,6 +220,68 @@ exchanges via `Playground.proxy(new Binance())` — a tiny helper precompiled
 into `runtime/java/classes` that sets `httpsProxy` + `wssProxy` from the env
 (no-op outside the playground).
 
+## How Rust runs
+
+Rust runs server-side like Go/C#/Java (`lib/runners/rust.ts`), but a run never
+invokes cargo. We looked at how the existing online Rust playgrounds do it:
+
+- **play.rust-lang.org** bakes ~2,500 popular crates into one prebuilt
+  `target/` per channel, then runs plain `cargo build`/`cargo run` in a **fresh
+  container per request** (no network, 512 MB). Per-request containers aren't an
+  option here, and `cargo` takes an exclusive lock on its target dir, so sharing
+  one prebuilt `target/` would serialize every run (like the C# queue).
+- **Compiler Explorer (godbolt)** prebuilds each library once per compiler and
+  invokes **`rustc` directly** with `--extern name=<lib>.rlib -L dependency=<deps>`.
+- In-browser toolchains (rustc compiled to WASM) can't build tokio/reqwest/rustls
+  and can't open the raw sockets an exchange client needs, so they don't apply.
+
+The playground follows Compiler Explorer. `setup-runtimes.sh` cargo-builds a
+project depending on ccxt once and records, from cargo's JSON artifact messages,
+the exact rlib of each crate a snippet may use (`ccxt`, `ccxt_pro`,
+`ccxt_prediction`, `tokio`, `serde_json`, `futures`) plus build-script native
+search paths, in `runtime/rust/externs.json`. (The dependency dirs are recorded
+from those messages too, never hard-coded: since 1.100, cargo no longer collects
+rlibs in `target/debug/deps` but gives each crate its own `build/<pkg>/<hash>/out`.) A run writes `main.rs` to its own
+temp dir and calls the **toolchain's real `rustc`** (pinned in `externs.json`:
+the rlibs only link with the exact compiler that built them, and the rustup proxy
+would need `RUSTUP_HOME` in the scrubbed env) with one `--extern` per crate. This
+gives:
+
+- **~1s builds** — only the user's single-file crate compiles; the rest is a link;
+- **parallel runs** — rustc writes only to the run's dir, no cargo lock;
+- **an import allowlist for free** — only crates passed via `--extern` exist, so
+  `use reqwest::…` fails with rustc's own "unresolved import".
+
+Three ccxt-rust specifics the runner handles:
+
+- **Curated venues.** ccxt-base puts every venue in one crate; a single rustc over
+  all ~100 venues peaks past 14 GB even unoptimized (it OOMed a 15 GB builder). The
+  runtime therefore compiles a curated set (`CCXT_RUST_VENUES`, default: binance,
+  bybit, okx, coinbase, kraken, kucoin, bitget, gate, htx, mexc, bitfinex,
+  hyperliquid, deribit, … — 26 venues, ~4 min and ~6 GB at 2 jobs) and
+  `CCXT_RUST_PREDICTION` (polymarket, kalshi, limitless, myriad, hyperliquid).
+  `CCXT_RUST_VENUES=all` builds everything on a big enough builder. A snippet that
+  names a venue that isn't compiled in gets a message listing what is. The ccxt
+  crates build at opt-level 0 (as ccxt's CI builds them); third-party deps
+  (serde_json, tokio, rustls/ring) at opt-level 2.
+- **Panic noise.** ccxt-rust signals exchange errors by panicking inside a
+  `catch_unwind` and returning `Err`, so the default panic hook prints every
+  *handled* error too. The runner appends a hidden module to `main.rs` (after
+  the user's code, so line numbers hold) whose static constructor (`.init_array`
+  on Linux, `__mod_init_func` on macOS) installs
+  a hook that drops panics raised inside the ccxt crates and keeps the default
+  output for everything else, so the user's own `unwrap()` panics still show. If
+  a ccxt panic is ever *not* caught (exit 101), the runner prints the dropped
+  message.
+- **WebSocket proxy.** REST goes through reqwest, which honors `HTTPS_PROXY`.
+  ccxt-pro's WebSocket dialer only uses the exchange's own `ws_proxy`, so
+  `watch_*` snippets call
+  `exchange.set_ws_proxy(&std::env::var("HTTPS_PROXY").unwrap_or_default())`
+  (an empty value means no proxy, so the snippet works unchanged elsewhere).
+
+Worker threads get `RUST_MIN_STACK=64 MiB`: the generated exchange code nests
+deeply and tokio's workers otherwise use std's 2 MB default.
+
 ## Layout
 
 ```
@@ -223,7 +293,7 @@ components/             Toolbar, Editor (Monaco), OutputPanel, AssistantPanel
 lib/
   languages.ts          language metadata
   examples.ts           starter snippets per (example, language)
-  runners/              sandbox + ts/python/php runners + dispatcher
+  runners/              sandbox + per-language runners (ts/python/php/go/csharp/java/rust) + dispatcher
   ai/assistant.ts       endpoint config + system prompt
 scripts/setup-runtimes.sh
 ```

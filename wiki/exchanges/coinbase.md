@@ -72,7 +72,6 @@ through an env var or json config, literal backslash-n sequences instead of real
 signature - pass the PEM exactly as issued.
 
 
-
 ```javascript
 coinbase.coinbase ()
 ```

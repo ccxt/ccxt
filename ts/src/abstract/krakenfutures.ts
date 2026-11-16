@@ -65,10 +65,6 @@ abstract class Exchange extends _Exchange {
         return this.request ('openorders', [ 'private' ], 'GET', params, { 'cost': 1 });
     }
 
-    privateGetRecentorders (params = {}): Promise<Dict> {
-        return this.request ('recentorders', [ 'private' ], 'GET', params, { 'cost': 1 });
-    }
-
     privateGetFills (params = {}): Promise<Dict> {
         return this.request ('fills', [ 'private' ], 'GET', params, { 'cost': 1 });
     }

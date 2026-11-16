@@ -616,7 +616,16 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         int positionsLength = (positions?.Count ?? 0);
         for (int i = 0; i < positionsLength; i++)
         {
-            ccxt.pro.BaseCache.appendTo(this.positions, (positions != null && i < positions.Count ? positions[i] : null));
+            IDictionary<string, object> position = ((IDictionary<string, object>)(positions != null && i < positions.Count ? positions[i] : null));
+            if (((position != null && position.ContainsKey("side") ? position["side"] : null) == null))
+            {
+                // flat (direction: zero) position, the cache is keyed by side so reset both sides
+                position["side"] = "long";
+                object shortPosition = this.clone(position);
+                ((IDictionary<string,object>)shortPosition)["side"] = "short";
+                ccxt.pro.BaseCache.appendTo(this.positions, shortPosition);
+            }
+            ccxt.pro.BaseCache.appendTo(this.positions, position);
         }
         client.resolve(this.positions, channel);
     }

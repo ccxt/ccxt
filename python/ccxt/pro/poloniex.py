@@ -1328,7 +1328,7 @@ class poloniex(ccxt.async_support.poloniex):
             self.handle_authenticate(client, message)
         elif type is None:
             self.handle_order_request(client, message)
-        else:
+        elif method is not None:
             data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:

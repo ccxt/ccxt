@@ -395,8 +395,11 @@ public partial class extended : Exchange
                 } },
             } },
             { "fees", new Dictionary<string, object>() {
-                { "taker", this.parseNumber("0.002") },
-                { "maker", this.parseNumber("0.002") },
+                { "taker", this.parseNumber("0.00025") },
+                { "maker", this.parseNumber("0") },
+                { "rwa", new Dictionary<string, object>() {
+                    { "taker", this.parseNumber("0.0001") },
+                } },
             } },
             { "requiredCredentials", new Dictionary<string, object>() {
                 { "apiKey", true },
@@ -520,6 +523,7 @@ public partial class extended : Exchange
      * @name extended#fetchMarkets
      * @description retrieves data on all markets for extended
      * @see https://api.docs.extended.exchange/#get-markets
+     * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -702,6 +706,8 @@ public partial class extended : Exchange
         double? minAmount = this.safeNumber(tradingConfig, "minOrderSize");
         double? maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
         Int64? created = this.safeInteger(market, "createdAt");
+        string? category = this.safeStringLower(market, "category");
+        object takerFees = (category == "rwa") ? this.safeDict(this.fees, "rwa", new Dictionary<string, object>() {}) : this.fees;
         string? settleId = null;
         string? settle = null;
         string symbol = ((bs + "/") + quote);
@@ -745,7 +751,7 @@ public partial class extended : Exchange
             { "contract", !isSpot },
             { "linear", linear },
             { "inverse", inverse },
-            { "taker", this.safeNumber(this.fees, "taker") },
+            { "taker", this.safeNumber(takerFees, "taker") },
             { "maker", this.safeNumber(this.fees, "maker") },
             { "contractSize", contractSize },
             { "expiry", null },
@@ -2752,7 +2758,7 @@ public partial class extended : Exchange
         Int64? lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         string? side = this.safeStringLower(position, "side");
-        string? margin = this.safeString(position, "margin");
+        double? margin = this.safeNumber(position, "margin");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", this.safeString(position, "id") },
@@ -2764,24 +2770,24 @@ public partial class extended : Exchange
             { "initialMarginPercentage", null },
             { "maintenanceMargin", null },
             { "maintenanceMarginPercentage", null },
-            { "entryPrice", this.safeString(position, "openPrice") },
-            { "notional", this.safeString(position, "value") },
-            { "leverage", this.safeString(position, "leverage") },
-            { "unrealizedPnl", this.safeString(position, "unrealisedPnl") },
-            { "realizedPnl", this.safeString(position, "realisedPnl") },
-            { "contracts", this.safeString(position, "size") },
-            { "contractSize", this.safeString(marketResolved, "contractSize") },
+            { "entryPrice", this.safeNumber(position, "openPrice") },
+            { "notional", this.safeNumber(position, "value") },
+            { "leverage", this.safeNumber(position, "leverage") },
+            { "unrealizedPnl", this.safeNumber(position, "unrealisedPnl") },
+            { "realizedPnl", this.safeNumber(position, "realisedPnl") },
+            { "contracts", this.safeNumber(position, "size") },
+            { "contractSize", this.safeNumber(marketResolved, "contractSize") },
             { "marginRatio", null },
-            { "liquidationPrice", this.safeString(position, "liquidationPrice") },
-            { "markPrice", this.safeString(position, "markPrice") },
-            { "lastPrice", this.safeString(position, "exitPrice") },
+            { "liquidationPrice", this.safeNumber(position, "liquidationPrice") },
+            { "markPrice", this.safeNumber(position, "markPrice") },
+            { "lastPrice", this.safeNumber(position, "exitPrice") },
             { "collateral", margin },
             { "marginMode", null },
             { "side", side },
             { "percentage", null },
             { "hedged", null },
-            { "stopLossPrice", this.safeString(position, "slTriggerPrice") },
-            { "takeProfitPrice", this.safeString(position, "tpTriggerPrice") },
+            { "stopLossPrice", this.safeNumber(position, "slTriggerPrice") },
+            { "takeProfitPrice", this.safeNumber(position, "tpTriggerPrice") },
         });
     }
 

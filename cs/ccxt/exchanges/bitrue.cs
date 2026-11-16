@@ -1069,6 +1069,8 @@ public partial class bitrue : Exchange
         List<object> filters = this.safeList(market, "filters", new List<object>() {});
         Dictionary<string, object> filtersByType = this.indexBy(filters, "filterType");
         string? status = this.safeString(market, "status");
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        bool active = (status == "TRADING") || (status == "1");
         IDictionary<string, object> priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new Dictionary<string, object>() {});
         IDictionary<string, object> amountFilter = this.safeDict(filtersByType, "LOT_SIZE", new Dictionary<string, object>() {});
         string? defaultPricePrecision = this.safeString(market, "pricePrecision");
@@ -1103,7 +1105,7 @@ public partial class bitrue : Exchange
             { "swap", isContract },
             { "future", false },
             { "option", false },
-            { "active", (status == "TRADING") },
+            { "active", active },
             { "contract", isContract },
             { "linear", isLinear },
             { "inverse", isInverse },

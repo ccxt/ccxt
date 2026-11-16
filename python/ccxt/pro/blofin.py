@@ -283,7 +283,7 @@ class blofin(ccxt.async_support.blofin):
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if symbols is None:
-            raise NotSupported(self.id + ' watchTickers() requires a list of symbols')
+            raise ArgumentsRequired(self.id + ' watchTickers() requires a list of symbols')
         ticker = await self.watch_multiple_wrapper(True, 'tickers', 'watchTickers', symbols, params)
         if self.newUpdates:
             tickers = {}

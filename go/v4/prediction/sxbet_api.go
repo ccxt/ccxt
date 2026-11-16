@@ -15,7 +15,7 @@ func (this *Sxbet) SxbetPublicGetMetadataObv3(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "metadata/obv3", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "metadata/obv3", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetOrderbookV3Snapshot returns a channel that yields a JSON object.
@@ -24,7 +24,7 @@ func (this *Sxbet) SxbetPublicGetOrderbookV3Snapshot(args ...any) <-chan ccxt.En
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orderbook-v3/snapshot", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orderbook-v3/snapshot", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetTradesV3Public returns a channel that yields a JSON object.
@@ -33,7 +33,7 @@ func (this *Sxbet) SxbetPublicGetTradesV3Public(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "trades-v3/public", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "trades-v3/public", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetMarketsActive returns a channel that yields a JSON object.
@@ -42,7 +42,7 @@ func (this *Sxbet) SxbetPublicGetMarketsActive(args ...any) <-chan ccxt.Endpoint
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "markets/active", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "markets/active", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetMarketsFind returns a channel that yields a JSON object or a JSON array.
@@ -51,7 +51,7 @@ func (this *Sxbet) SxbetPublicGetMarketsFind(args ...any) <-chan ccxt.AsyncResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("markets/find", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("markets/find", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetMarketsPopular returns a channel that yields a JSON object or a JSON array.
@@ -60,7 +60,7 @@ func (this *Sxbet) SxbetPublicGetMarketsPopular(args ...any) <-chan ccxt.AsyncRe
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("markets/popular", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("markets/popular", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetTradesConsolidated returns a channel that yields a JSON object or a JSON array.
@@ -69,7 +69,7 @@ func (this *Sxbet) SxbetPublicGetTradesConsolidated(args ...any) <-chan ccxt.Asy
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("trades/consolidated", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("trades/consolidated", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetTradesOrders returns a channel that yields a JSON object or a JSON array.
@@ -78,7 +78,7 @@ func (this *Sxbet) SxbetPublicGetTradesOrders(args ...any) <-chan ccxt.AsyncResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("trades/orders", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("trades/orders", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetTradesPortfolioRefunds returns a channel that yields a JSON object or a JSON array.
@@ -87,7 +87,7 @@ func (this *Sxbet) SxbetPublicGetTradesPortfolioRefunds(args ...any) <-chan ccxt
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("trades/portfolio/refunds", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("trades/portfolio/refunds", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetFixtureActive returns a channel that yields a JSON object or a JSON array.
@@ -96,7 +96,7 @@ func (this *Sxbet) SxbetPublicGetFixtureActive(args ...any) <-chan ccxt.AsyncRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("fixture/active", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("fixture/active", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetFixtureStatus returns a channel that yields a JSON object or a JSON array.
@@ -105,7 +105,7 @@ func (this *Sxbet) SxbetPublicGetFixtureStatus(args ...any) <-chan ccxt.AsyncRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("fixture/status", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("fixture/status", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetSports returns a channel that yields a JSON object or a JSON array.
@@ -114,7 +114,7 @@ func (this *Sxbet) SxbetPublicGetSports(args ...any) <-chan ccxt.AsyncResult[any
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("sports", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("sports", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetLeagues returns a channel that yields a JSON object or a JSON array.
@@ -123,7 +123,7 @@ func (this *Sxbet) SxbetPublicGetLeagues(args ...any) <-chan ccxt.AsyncResult[an
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("leagues", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("leagues", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetLeaguesActive returns a channel that yields a JSON object or a JSON array.
@@ -132,7 +132,7 @@ func (this *Sxbet) SxbetPublicGetLeaguesActive(args ...any) <-chan ccxt.AsyncRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("leagues/active", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("leagues/active", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetTeams returns a channel that yields a JSON object or a JSON array.
@@ -141,7 +141,7 @@ func (this *Sxbet) SxbetPublicGetTeams(args ...any) <-chan ccxt.AsyncResult[any]
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("teams", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("teams", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPublicGetLiveScores returns a channel that yields a JSON object or a JSON array.
@@ -150,7 +150,7 @@ func (this *Sxbet) SxbetPublicGetLiveScores(args ...any) <-chan ccxt.AsyncResult
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("live-scores", []string{"sxbet", "public"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("live-scores", []string{"sxbet", "public"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetUserRealtimeTokenV3ApiKey returns a channel that yields a JSON object.
@@ -159,7 +159,7 @@ func (this *Sxbet) SxbetPrivateGetUserRealtimeTokenV3ApiKey(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "user/realtime-token-v3/api-key", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "user/realtime-token-v3/api-key", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetUserProxy returns a channel that yields a JSON object.
@@ -168,7 +168,7 @@ func (this *Sxbet) SxbetPrivateGetUserProxy(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "user/proxy", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "user/proxy", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetUserBalanceV3 returns a channel that yields a JSON object.
@@ -177,7 +177,7 @@ func (this *Sxbet) SxbetPrivateGetUserBalanceV3(args ...any) <-chan ccxt.Endpoin
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "user/balance-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "user/balance-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetUserTransferToProxyPending returns a channel that yields a JSON object or a JSON array.
@@ -186,7 +186,7 @@ func (this *Sxbet) SxbetPrivateGetUserTransferToProxyPending(args ...any) <-chan
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("user/transfer-to-proxy/pending", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("user/transfer-to-proxy/pending", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetUserTransferToProxyStatus returns a channel that yields a JSON object or a JSON array.
@@ -195,7 +195,7 @@ func (this *Sxbet) SxbetPrivateGetUserTransferToProxyStatus(args ...any) <-chan 
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("user/transfer-to-proxy/status", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("user/transfer-to-proxy/status", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetOrdersV3 returns a channel that yields a JSON object.
@@ -204,7 +204,7 @@ func (this *Sxbet) SxbetPrivateGetOrdersV3(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetOrdersV3OrderId returns a channel that yields a JSON object.
@@ -213,7 +213,7 @@ func (this *Sxbet) SxbetPrivateGetOrdersV3OrderId(args ...any) <-chan ccxt.Endpo
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/{orderId}", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/{orderId}", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetOrdersV3OddsBest returns a channel that yields a JSON object.
@@ -222,7 +222,7 @@ func (this *Sxbet) SxbetPrivateGetOrdersV3OddsBest(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/odds/best", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/odds/best", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetTradesV3 returns a channel that yields a JSON object.
@@ -231,7 +231,7 @@ func (this *Sxbet) SxbetPrivateGetTradesV3(args ...any) <-chan ccxt.EndpointResu
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "trades-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "trades-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetFillsV3 returns a channel that yields a JSON object.
@@ -240,7 +240,7 @@ func (this *Sxbet) SxbetPrivateGetFillsV3(args ...any) <-chan ccxt.EndpointResul
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "fills-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "fills-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateGetPositionsV3 returns a channel that yields a JSON object.
@@ -249,7 +249,7 @@ func (this *Sxbet) SxbetPrivateGetPositionsV3(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "positions-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "positions-v3", []string{"sxbet", "private"}, "GET", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateDeleteOrdersV3 returns a channel that yields a JSON object.
@@ -258,7 +258,7 @@ func (this *Sxbet) SxbetPrivateDeleteOrdersV3(args ...any) <-chan ccxt.EndpointR
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateDeleteOrdersV3Event returns a channel that yields a JSON object.
@@ -267,7 +267,7 @@ func (this *Sxbet) SxbetPrivateDeleteOrdersV3Event(args ...any) <-chan ccxt.Endp
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/event", []string{"sxbet", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/event", []string{"sxbet", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivateDeleteOrdersV3All returns a channel that yields a JSON object.
@@ -276,7 +276,7 @@ func (this *Sxbet) SxbetPrivateDeleteOrdersV3All(args ...any) <-chan ccxt.Endpoi
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/all", []string{"sxbet", "private"}, "DELETE", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3/all", []string{"sxbet", "private"}, "DELETE", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivatePostOrdersV3 returns a channel that yields a JSON object.
@@ -285,7 +285,7 @@ func (this *Sxbet) SxbetPrivatePostOrdersV3(args ...any) <-chan ccxt.EndpointRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "orders-v3", []string{"sxbet", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivatePostUserDeployProxy returns a channel that yields a JSON object or a JSON array.
@@ -294,7 +294,7 @@ func (this *Sxbet) SxbetPrivatePostUserDeployProxy(args ...any) <-chan ccxt.Asyn
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("user/deploy-proxy", []string{"sxbet", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("user/deploy-proxy", []string{"sxbet", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivatePostUserTransferToProxy returns a channel that yields a JSON object.
@@ -303,7 +303,7 @@ func (this *Sxbet) SxbetPrivatePostUserTransferToProxy(args ...any) <-chan ccxt.
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return ccxt.Fetch2Result[map[string]any](this, "user/transfer-to-proxy", []string{"sxbet", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return ccxt.Fetch2Result[map[string]any](this, "user/transfer-to-proxy", []string{"sxbet", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }
 
 // SxbetPrivatePostHeartbeatV3 returns a channel that yields a JSON object or a JSON array.
@@ -312,5 +312,5 @@ func (this *Sxbet) SxbetPrivatePostHeartbeatV3(args ...any) <-chan ccxt.AsyncRes
 	if len(args) > 0 {
 		params = args[0]
 	}
-	return this.Fetch2Async("heartbeat/v3", []string{"sxbet", "private"}, "POST", params, map[string]any{}, nil, map[string]any{"cost": float64(1)})
+	return this.Fetch2Async("heartbeat/v3", []string{"sxbet", "private"}, "POST", params, map[string]any{"cost": float64(1)})
 }

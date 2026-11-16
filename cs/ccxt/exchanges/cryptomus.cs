@@ -70,7 +70,7 @@ public partial class cryptomus : Exchange
                 { "fetchConvertTradeHistory", false },
                 { "fetchCrossBorrowRate", false },
                 { "fetchCrossBorrowRates", false },
-                { "fetchCurrencies", true },
+                { "fetchCurrencies", false },
                 { "fetchDepositAddress", false },
                 { "fetchDeposits", false },
                 { "fetchDepositsWithdrawals", false },
@@ -111,7 +111,7 @@ public partial class cryptomus : Exchange
                 { "fetchOption", false },
                 { "fetchOptionChain", false },
                 { "fetchOrder", true },
-                { "fetchOrderBook", true },
+                { "fetchOrderBook", false },
                 { "fetchOrders", false },
                 { "fetchOrderTrades", false },
                 { "fetchPosition", false },
@@ -124,10 +124,10 @@ public partial class cryptomus : Exchange
                 { "fetchPremiumIndexOHLCV", false },
                 { "fetchSettlementHistory", false },
                 { "fetchStatus", false },
-                { "fetchTicker", false },
-                { "fetchTickers", true },
+                { "fetchTicker", true },
+                { "fetchTickers", false },
                 { "fetchTime", false },
-                { "fetchTrades", true },
+                { "fetchTrades", false },
                 { "fetchTradingFee", false },
                 { "fetchTradingFees", true },
                 { "fetchTransactions", false },
@@ -164,9 +164,6 @@ public partial class cryptomus : Exchange
                         { "v2/user-api/exchange/markets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
-                        { "v2/user-api/exchange/market/price", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                        } },
                         { "v2/user-api/exchange/markets/price", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -174,9 +171,6 @@ public partial class cryptomus : Exchange
                             { "cost", 1 },
                         } },
                         { "v1/exchange/market/order-book/{currencyPair}", new Dictionary<string, object>() {
-                            { "cost", 1 },
-                        } },
-                        { "v1/exchange/market/tickers", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/exchange/market/trades/{currencyPair}", new Dictionary<string, object>() {
@@ -321,7 +315,9 @@ public partial class cryptomus : Exchange
                     { "Insufficient funds.", typeof(InsufficientFunds) },
                     { "Minimum amount 15 USDT", typeof(InvalidOrder) },
                 } },
-                { "broad", new Dictionary<string, object>() {} },
+                { "broad", new Dictionary<string, object>() {
+                    { "Market ", typeof(BadSymbol) },
+                } },
             } },
             { "precisionMode", TICK_SIZE },
             { "requiredCredentials", new Dictionary<string, object>() {
@@ -336,7 +332,7 @@ public partial class cryptomus : Exchange
      * @method
      * @name cryptomus#fetchMarkets
      * @description retrieves data on all markets for the exchange
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
+     * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
@@ -542,51 +538,42 @@ public partial class cryptomus : Exchange
 
     /**
      * @method
-     * @name cryptomus#fetchTickers
-     * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
-     * @see https://doc.cryptomus.com/personal/market-cap/tickers
-     * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+     * @name cryptomus#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Tickers> FetchTickers(IList<object> symbols = null, object parameters = null)
+    public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols));
-        Dictionary<string, object> response = await this.publicGetV1ExchangeMarketTickers(parameters);
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
+            { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
+        };
+        Dictionary<string, object> response = await this.publicGetV2UserApiExchangeMarketsPrice(this.extend(request, parameters));
         //
         //     {
-        //         "data": [
-        //         {
-        //             "currency_pair": "MATIC_USDT",
-        //             "last_price": "0.342",
-        //             "base_volume": "1676.84092771",
-        //             "quote_volume": "573.48033609043"
-        //         },
-        //         ...
+        //         "price": "78450.4"
         //     }
         //
-        List<object> data = this.safeList(response, "data");
-        return ccxt.BaseExchange.ToTickers(this.parseTickers(data, symbolsNormalized));
+        return this.parseTicker(response, market);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
     {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        string? marketId = this.safeString(ticker, "currency_pair");
-        Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
-        string? last = this.safeString(ticker, "last_price");
+        Dictionary<string, object> marketResolved = this.safeMarket(null, market);
+        string? last = this.safeString(ticker, "price");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
             { "timestamp", null },
@@ -605,8 +592,8 @@ public partial class cryptomus : Exchange
             { "change", null },
             { "percentage", null },
             { "average", null },
-            { "baseVolume", this.safeString(ticker, "base_volume") },
-            { "quoteVolume", this.safeString(ticker, "quote_volume") },
+            { "baseVolume", null },
+            { "quoteVolume", null },
             { "info", ticker },
         }, marketResolved);
     }
@@ -1372,6 +1359,7 @@ public partial class cryptomus : Exchange
         {
             string feedback = ((this.id + " ") + (body));
             this.throwExactlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("exact") ? this.exceptions["exact"] : null), codeError, feedback);
+            this.throwBroadlyMatchedException((this.exceptions != null && this.exceptions.ContainsKey("broad") ? this.exceptions["broad"] : null), message, feedback);
             throw new ExchangeError (feedback) ;
         } else if ((message != null))
         {

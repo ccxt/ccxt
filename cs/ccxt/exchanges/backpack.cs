@@ -1933,9 +1933,10 @@ public partial class backpack : Exchange
         {
             await this.loadMarkets();
         }
+        int maxLimit = 2000;
         Dictionary<string, object> market = this.market(symbol);
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        int duration = this.parseTimeframe(timeframeVar);
+        Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
         Dictionary<string, object> dataRequest = this.stockDataRequest("fetchOHLCV", parameters, market);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", this.safeString(dataRequest, "symbol") },
@@ -1950,32 +1951,30 @@ public partial class backpack : Exchange
         }
         int defaultLimit = 100;
         object limitResolved = limit;
-        if (((since == null)) && ((limit == null)))
+        if (!(limitResolved == null))
         {
-            limitResolved = defaultLimit;
+            limitResolved = mathMin(limitResolved, maxLimit);
         }
-        Int64? windowLimit = ((limit == null)) ? defaultLimit : limit;
-        object startTime = null;
-        if ((since == null))
+        object windowLimit = ((limitResolved == null)) ? defaultLimit : limitResolved;
+        Int64 now = this.milliseconds();
+        object startTime = since;
+        object untilValue = until;
+        if ((startTime == null))
         {
-            Int64? endTime = this.seconds();
-            if (!(until == null) && !(until == 0))
+            if ((untilValue == null))
             {
-                endTime = this.parseToInt(((double?)until / 1000));
+                untilValue = now;
             }
-            startTime = (endTime - ((windowLimit * duration)));
-        } else
-        {
-            startTime = this.parseToInt(((double?)since / 1000)); // convert milliseconds to seconds
+            startTime = ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? (hx4x.GetType() == typeof(Int64) ? (object)((Int64)hx4x - (Int64)hx4y) : hx4x.GetType() == typeof(double) ? (object)((double)hx4x - Convert.ToDouble(hx4y)) : null) : null))(untilValue, (((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration)));
         }
-        request["startTime"] = startTime;
-        if ((until == null))
+        request["startTime"] = this.parseToInt(divide(startTime, 1000));
+        // set until value
+        if ((untilValue == null))
         {
-            Int64 currentMs = this.seconds(); // default to current time in seconds
-            object windowEnd = this.sum(startTime, (windowLimit * duration));
-            object minTimestamp = mathMin(currentMs, windowEnd);
-            request["endTime"] = this.parseToInt(minTimestamp); // default to current time in seconds if until is not specified
+            object windowEnd = this.sum(startTime, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(windowLimit, duration));
+            untilValue = mathMin(now, windowEnd);
         }
+        request["endTime"] = this.parseToInt(divide(untilValue, 1000));
         string? price = this.safeString(paramsUntil, "price");
         object paramsOmitted = ((price != null)) ? this.omit(paramsUntil, "price") : paramsUntil;
         if ((price != null))
@@ -3829,8 +3828,8 @@ public partial class backpack : Exchange
         string? marketId = this.safeString(position, "symbol");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market);
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
-        string? entryPrice = this.safeString(position, "entryPrice");
-        string? markPrice = this.safeString(position, "markPrice");
+        double? entryPrice = this.safeNumber(position, "entryPrice");
+        double? markPrice = this.safeNumber(position, "markPrice");
         string? netCost = this.safeString(position, "netCost");
         bool? hedged = false;
         string? side = "long";
@@ -3843,9 +3842,9 @@ public partial class backpack : Exchange
             hedged = null;
             side = null;
         }
-        string? unrealizedPnl = this.safeString(position, "pnlUnrealized");
-        string? realizedPnl = this.safeString(position, "pnlRealized");
-        string? liquidationPrice = this.safeString(position, "estLiquidationPrice");
+        double? unrealizedPnl = this.safeNumber(position, "pnlUnrealized");
+        double? realizedPnl = this.safeNumber(position, "pnlRealized");
+        double? liquidationPrice = this.safeNumber(position, "estLiquidationPrice");
         return this.safePosition(new Dictionary<string, object>() {
             { "info", position },
             { "id", id },
@@ -3855,18 +3854,18 @@ public partial class backpack : Exchange
             { "lastUpdateTimestamp", null },
             { "hedged", hedged },
             { "side", side },
-            { "contracts", this.safeString(position, "netExposureQuantity") },
+            { "contracts", this.safeNumber(position, "netExposureQuantity") },
             { "contractSize", null },
             { "entryPrice", entryPrice },
             { "markPrice", markPrice },
             { "lastPrice", null },
-            { "notional", Precise.stringAbs(netCost) },
+            { "notional", this.parseNumber(Precise.stringAbs(netCost)) },
             { "leverage", null },
             { "collateral", null },
             { "initialMargin", null },
-            { "initialMarginPercentage", this.safeString(position, "imf") },
+            { "initialMarginPercentage", this.safeNumber(position, "imf") },
             { "maintenanceMargin", null },
-            { "maintenanceMarginPercentage", this.safeString(position, "mmf") },
+            { "maintenanceMarginPercentage", this.safeNumber(position, "mmf") },
             { "realizedPnl", realizedPnl },
             { "unrealizedPnl", unrealizedPnl },
             { "liquidationPrice", liquidationPrice },

@@ -75,7 +75,7 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
 function toHex(str) {
     var result = '';
     for (var i = 0; i < str.length; i++) {
-        result += str.charCodeAt(i).toString(16);
+        result += str.charCodeAt(i).toString(16).padStart(2, '0');
     }
     return result;
 }

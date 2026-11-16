@@ -1811,21 +1811,25 @@ class binance(ccxt.async_support.binance):
         interval = self.safe_string(kline, 'i')
         # use a reverse lookup in a static map instead
         unifiedTimeframe = self.find_timeframe(interval)
-        parsed = [
-            self.safe_integer(kline, 't'),
-            self.safe_float(kline, 'o'),
-            self.safe_float(kline, 'h'),
-            self.safe_float(kline, 'l'),
-            self.safe_float(kline, 'c'),
-            self.safe_float(kline, 'v'),
-        ]
         # resolve the market from the transport url — an ambiguous id like
         # BTCUSDT maps to both the spot and the linear swap market
         isSpot = self.is_spot_url(client)
         marketType = 'contract'
         if isSpot:
             marketType = 'spot'
-        symbol = self.safe_symbol(marketId, None, None, marketType)
+        market = self.safe_market(marketId, None, None, marketType)
+        symbol = market['symbol']
+        # coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        inverse = self.safe_bool(market, 'inverse')
+        volumeKey = 'q' if (inverse is True) else 'v'
+        parsed = [
+            self.safe_integer(kline, 't'),
+            self.safe_float(kline, 'o'),
+            self.safe_float(kline, 'h'),
+            self.safe_float(kline, 'l'),
+            self.safe_float(kline, 'c'),
+            self.safe_float(kline, volumeKey),
+        ]
         messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe
         self.ohlcvs[symbol] = self.safe_dict(self.ohlcvs, symbol, {})
         stored = self.safe_value(self.safe_dict(self.ohlcvs, symbol), unifiedTimeframe)
@@ -2054,7 +2058,10 @@ class binance(ccxt.async_support.binance):
         :param boolean [params.stock]: set to True to use the stocks price stream
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        stock, paramsStock = self.handle_option_bool_and_params(params, 'watchTickers', 'stock', False)
+        # a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        # option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        methodName, paramsMethodName = self.handle_param_string(params, 'callerMethodName', 'watchTickers')
+        stock, paramsStock = self.handle_option_bool_and_params(paramsMethodName, methodName, 'stock', False)
         symbolsNormalized = symbols
         if stock:
             if symbols is None:
@@ -2064,7 +2071,7 @@ class binance(ccxt.async_support.binance):
             if self.newUpdates:
                 return stockResult
             return self.filter_by_array(self.tickers, 'symbol', symbolsNormalized)
-        channelName, paramsName = self.handle_option_string_and_params(paramsStock, 'watchTickers', 'name', 'miniTicker')
+        channelName, paramsName = self.handle_option_string_and_params(paramsStock, methodName, 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         newTickers = await self.watch_multi_ticker_helper('watchTickers', channelName, symbolsNormalized, paramsName)
@@ -2089,7 +2096,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        channelName, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'ticker')
+        # same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        channelName, paramsName = self.handle_option_string_and_params(params, 'watchTickers', 'name', 'miniTicker')
         if channelName == 'bookTicker':
             raise BadRequest(self.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead')
         return await self.watch_multi_ticker_helper('unWatchTickers', channelName, symbols, paramsName, True)
@@ -2154,7 +2162,8 @@ class binance(ccxt.async_support.binance):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
-        return self.un_watch_tickers([symbol], params)
+        # read the channel under watchTicker's options, the stream watchTicker subscribed
+        return self.un_watch_tickers([symbol], self.extend(params, {'callerMethodName': 'watchTicker'}))
 
     async def watch_bids_asks(self, symbols: Strings = None, params: dict = {}) -> Tickers:
         """
@@ -4371,7 +4380,7 @@ class binance(ccxt.async_support.binance):
             'amount': self.safe_string(order, 'q'),
             'cost': self.safe_string(order, 'Z'),
             'average': self.safe_string(order, 'ap'),
-            'filled': self.safe_string(order, 'z'),
+            'filled': self.safe_string_2(order, 'z', 'aq'),  # aq: ALGO_UPDATE executed quantity
             'remaining': None,
             'status': status,
             'fee': fee,
@@ -4727,9 +4736,17 @@ class binance(ccxt.async_support.binance):
             return
         if self.positions is None:
             self.positions = {}
-        if type in self.positions:
-            return
         fetchPositionsSnapshot = self.handle_option('watchPositions', 'fetchPositionsSnapshot', False)
+        if type in self.positions:
+            # a fresh client has no snapshot future yet, which means the
+            # connection was re-established after a disconnect: positions
+            # closed while disconnected never arrive as stream deltas, so
+            # the cached positions are stale and must be reloaded
+            messageHash = type + ':fetchPositionsSnapshot'
+            if (fetchPositionsSnapshot is True) and (not(messageHash in client.futures)):
+                del self.positions[type]
+            else:
+                return
         if fetchPositionsSnapshot is True:
             messageHash = type + ':fetchPositionsSnapshot'
             if not (messageHash in client.futures):
@@ -4745,6 +4762,12 @@ class binance(ccxt.async_support.binance):
         if isPortfolioMargin:
             params['portfolioMargin'] = True
         positions = await self.fetch_positions(None, params)
+        # the client may have been replaced by a reconnect while the
+        # snapshot was in flight: a stale snapshot must not overwrite
+        # the fresh one loaded for the new client
+        currentClient = self.safe_value(self.clients, client.url)
+        if currentClient != client:
+            return
         self.positions[type] = ArrayCacheBySymbolBySide()
         cache = self.positions[type]
         for i in range(0, len(positions)):

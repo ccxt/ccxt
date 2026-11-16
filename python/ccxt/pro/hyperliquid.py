@@ -1506,6 +1506,14 @@ class hyperliquid(ccxt.async_support.hyperliquid):
                 # and data keeps flowing; rejecting all pending futures here would poison the
                 # whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return True
+            if ret_msg.find('Already unsubscribed') >= 0:
+                # the requested state is already reached, so the unWatch call resolves through the
+                # regular unsubscription handler, the subscription is echoed only inside the text
+                subscriptionStart = ret_msg.find('{')
+                subscription = self.parse_json(ret_msg[subscriptionStart:])
+                if subscription is not None:
+                    self.handle_unsubscription(client, subscription)
+                    return True
             error = ExchangeError(self.id + ' ' + ret_msg)
             client.reject(error)
             return True
@@ -1705,25 +1713,28 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         method = self.safe_string(data, 'method')
         if method == 'unsubscribe':
             subscription = self.safe_dict(data, 'subscription', {})
-            type = self.safe_string(subscription, 'type')
-            if type == 'l2Book':
-                self.handle_order_book_unsubscription(client, subscription)
-            elif type == 'trades':
-                self.handle_trades_unsubscription(client, subscription)
-            elif type == 'candle':
-                self.handle_ohlcv_unsubscription(client, subscription)
-            elif type == 'orderUpdates':
-                self.handle_order_unsubscription(client, subscription)
-            elif type == 'userFills':
-                self.handle_my_trades_unsubscription(client, subscription)
-            elif type == 'clearinghouseState':
-                self.handle_positions_unsubscription(client, subscription)
-            elif type == 'spotState':
-                self.handle_spot_balance_unsubscription(client, subscription)
-            elif (type == 'activeAssetCtx') or (type == 'activeSpotAssetCtx'):
-                self.handle_ticker_unsubscription(client, subscription)
-            elif type == 'allMids':
-                self.handle_tickers_unsubscription(client, subscription)
+            self.handle_unsubscription(client, subscription)
+
+    def handle_unsubscription(self, client: Client, subscription: dict):
+        type = self.safe_string(subscription, 'type')
+        if type == 'l2Book':
+            self.handle_order_book_unsubscription(client, subscription)
+        elif type == 'trades':
+            self.handle_trades_unsubscription(client, subscription)
+        elif type == 'candle':
+            self.handle_ohlcv_unsubscription(client, subscription)
+        elif type == 'orderUpdates':
+            self.handle_order_unsubscription(client, subscription)
+        elif type == 'userFills':
+            self.handle_my_trades_unsubscription(client, subscription)
+        elif type == 'clearinghouseState':
+            self.handle_positions_unsubscription(client, subscription)
+        elif type == 'spotState':
+            self.handle_spot_balance_unsubscription(client, subscription)
+        elif (type == 'activeAssetCtx') or (type == 'activeSpotAssetCtx'):
+            self.handle_ticker_unsubscription(client, subscription)
+        elif type == 'allMids':
+            self.handle_tickers_unsubscription(client, subscription)
 
     def handle_message(self, client: Client, message: dict):
         #

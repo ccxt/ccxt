@@ -8,11 +8,14 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 
 
+import com.fasterxml.jackson.core.util.DefaultIndenter;
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
+import com.fasterxml.jackson.core.util.Separators;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -30,13 +33,16 @@ import io.github.ccxt.Version;
 
 class PrettyPrinter {
 
-    private static final Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
+    // "key": value spacing and one array element per line
+    private static final ObjectWriter writer = new ObjectMapper()
+            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+            .writer(new DefaultPrettyPrinter(Separators.createDefaultInstance()
+                    .withObjectFieldValueSpacing(Separators.Spacing.AFTER))
+                    .withArrayIndenter(DefaultIndenter.SYSTEM_LINEFEED_INSTANCE));
 
     static void prettyPrintData(Object data) {
         try {
-            String json = gson.toJson(data);
+            String json = writer.writeValueAsString(data);
             System.out.println(json);
         } catch (Exception e) {
             e.printStackTrace();

@@ -798,12 +798,12 @@ public class Coinmate extends CoinmateApi
             put( "ask", Coinmate.this.safeNumber(ticker, "ask", (Object) null) );
             put( "vwap", null );
             put( "askVolume", null );
-            put( "open", null );
+            put( "open", Coinmate.this.safeNumber(ticker, "open", (Object) null) );
             put( "close", last );
             put( "last", last );
             put( "previousClose", null );
             put( "change", null );
-            put( "percentage", null );
+            put( "percentage", Coinmate.this.safeNumber(ticker, "change", (Object) null) );
             put( "average", null );
             put( "baseVolume", Coinmate.this.safeNumber(ticker, "amount", (Object) null) );
             put( "quoteVolume", null );

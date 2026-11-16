@@ -20,12 +20,6 @@ const numWorkers = 8;(async () => {
     // make an array of all exchanges
     const exchanges = ccxt.exchanges
 
-        // filter coinmarketcap and theocean
-        // coinmarketcap isn't really an exchange
-        // theocean requires web3 dependencies to be installed
-
-        .filter (id => ![ 'coinmarketcap', 'theocean' ].includes (id))
-
         // instantiate each exchange and save it to the exchanges list
 
         .map (id => new ccxt[id] ())

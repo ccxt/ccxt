@@ -824,6 +824,9 @@ impl BithumbCore {
         m.insert("30m".to_string(), Value::Int(30));
         m.insert("1h".to_string(), Value::Int(60));
         m.insert("4h".to_string(), Value::Int(240));
+        m.insert("1d".to_string(), Value::Str("days".into()));
+        m.insert("1w".to_string(), Value::Str("weeks".into()));
+        m.insert("1M".to_string(), Value::Str("months".into()));
     m
 }));
         m.insert("options".to_string(), Value::Map({
@@ -1911,6 +1914,8 @@ impl BithumbCore {
  * @param {int} [limit] the maximum amount of candles to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+ * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+ * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
  */
     pub async fn fetch_ohlcv(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
@@ -1924,10 +1929,10 @@ impl BithumbCore {
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
+        let generationparamsGenerationVariable: Vec<Value> = self.handle_option_integer_and_params(params.clone(), Value::Str("fetchOHLCV".into()), Value::Str("generation".into()), &[Value::Int(2)]).as_array().cloned().unwrap_or_default();
         let mut generation: Value = generationparamsGenerationVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsGeneration: Value = generationparamsGenerationVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut market: Value = self.market(symbol);
+        let mut market: Value = self.market(symbol.clone());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1935,18 +1940,47 @@ impl BithumbCore {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
         if (generation.as_f64() == Some(2.0)) {
+            let paginateparamsPaginateVariable: Vec<Value> = self.handle_option_and_params(params, Value::Str("fetchOHLCV".into()), Value::Str("paginate".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
+            let mut paginate: Value = paginateparamsPaginateVariable.get(0).cloned().unwrap_or(Value::Null);
+            let mut paramsPaginate: Value = paginateparamsPaginateVariable.get(1).cloned().unwrap_or(Value::Null);
+            if paginate.as_bool() == Some(true) {
+                return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate, Value::Int(200)]).await;
+            }
+            let mut until: Value = self.safe_integer_k(paramsGeneration.clone(), "until", &[]);
+            let mut requestParams: Value = self.omit(paramsGeneration.clone(), Value::from(vec![Value::Str("until".into()), Value::Str("paginate".into())]), &[]);
             request.insert("market".into(), self.get_gen2_market_id(market.clone()).map(Value::from).unwrap_or(Value::Null));
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            let mut count: Value = Value::Int(200);
             if (limit != Value::Null) {
-                request.insert("count".into(), limit.clone());
+                count = crate::runtime::Math::min(&limit, &Value::Int(200));
+            }
+            if (limit != Value::Null) || (since != Value::Null) || (until != Value::Null) {
+                request.insert("count".into(), count.clone());
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            let mut to: Value = Value::Null;
+            if (until != Value::Null) {
+                to = self.sum(&[until, Value::Int(1000)]); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if (since != Value::Null) {
+                let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
+                let mut sinceEnd: Value = self.sum(&[since.clone(), (match (&(duration), &(count)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]);
+                if (to == Value::Null) || (sinceEnd.as_f64().unwrap_or(f64::NAN) < to.as_f64().unwrap_or(f64::NAN)) {
+                    to = sinceEnd;
+                }
+            }
+            if (to != Value::Null) {
+                request.insert("to".into(), self.ymdhms(self.sum(&[to, Value::Int(32400000)]), &[Value::Str(" ".into())]));
             }
             if (timeframe.as_str() == Some("1d")) {
-                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_9 = self.extend(Value::Map(request.clone()), &[requestParams.clone()]);
                 response = self.public_get_v1_candles_days(&[__ws_arg_9]).await;
             }  else if (timeframe.as_str() == Some("1w")) {
-                let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_10 = self.extend(Value::Map(request.clone()), &[requestParams.clone()]);
                 response = self.public_get_v1_candles_weeks(&[__ws_arg_10]).await;
             }  else if (timeframe.as_str() == Some("1M")) {
-                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_11 = self.extend(Value::Map(request.clone()), &[requestParams.clone()]);
                 response = self.public_get_v1_candles_months(&[__ws_arg_11]).await;
             }  else {
                 let mut timeframeInteger: Value = self.safe_integer(self.timeframes.clone(), timeframe.clone(), &[]);
@@ -1954,7 +1988,7 @@ impl BithumbCore {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() unsupported timeframe ".into())).into()), timeframe)));
                 }
                 request.insert("unit".into(), timeframeInteger);
-                let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[paramsGeneration.clone()]);
+                let __ws_arg_12 = self.extend(Value::Map(request.clone()), &[requestParams]);
                 response = self.public_get_v1_candles_minutes_unit(&[__ws_arg_12]).await;
             }
             //

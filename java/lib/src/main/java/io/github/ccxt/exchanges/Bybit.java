@@ -3854,7 +3854,22 @@ public class Bybit extends BybitApi
             //     }
             //
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
-            List<Object> tickerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            Object tickerList = this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
+            if (java.util.Objects.equals(category, "spot"))
+            {
+                // bybit.id lists spot tickers for pairs that are not in its spot instruments; such a ticker would
+                // resolve to the only market with the same id, a contract (BTCUSD -> BTC/USD:BTC), so it is skipped
+                List<Object> spotTickers = new ArrayList<Object>(Arrays.asList());
+                for (var i = 0; i < ((List<?>)tickerList).size(); i++)
+                {
+                    Map<String, Object> tickerMarket = this.safeMarket(this.safeString((tickerList == null || i < 0 || i >= ((List<?>)tickerList).size() ? null : ((List<?>)tickerList).get(i)), "symbol"), (Map<String, Object>) null, (String) null, "spot");
+                    if (!Boolean.TRUE.equals(this.safeBool(tickerMarket, "contract", false)))
+                    {
+                        ((List<Object>)spotTickers).add((tickerList == null || i < 0 || i >= ((List<?>)tickerList).size() ? null : ((List<?>)tickerList).get(i)));
+                    }
+                }
+                tickerList = spotTickers;
+            }
             return this.parseTickers(tickerList, ((List<String>) (switch ((Object) (parsedSymbols)) { case null -> (List<String>) null; case List<?> hx4J40v5 -> (List<String>) hx4J40v5; case Object hx4J40v5 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v5.getClass().getName()); })), new HashMap<String, Object>() {{}});
         }).thenApply(Tickers::new);
 

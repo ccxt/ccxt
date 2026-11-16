@@ -181,6 +181,9 @@ class Exchange extends _Exchange {
     publicGetPublicDeltaHedgeCurrencies(params = {}) {
         return this.request('public/delta-hedge-currencies', ['public'], 'GET', params, { 'cost': 1 });
     }
+    publicGetPublicCorporateActions(params = {}) {
+        return this.request('public/corporate-actions', ['public'], 'GET', params, { 'cost': 1 });
+    }
     publicGetRubikStatTradingDataSupportCoin(params = {}) {
         return this.request('rubik/stat/trading-data/support-coin', ['public'], 'GET', params, { 'cost': 4 });
     }

@@ -1857,29 +1857,32 @@ class coinbaseinternational extends Exchange {
         //
         $instrumentName = $this->safe_string($position, 'instrument_name');
         $marketResolved = $this->safe_market($instrumentName, $market);
-        $side = $this->safe_string($position, 'direction');
-        if ($side === 'buy') {
+        $direction = $this->safe_string($position, 'direction');
+        $side = null;
+        if ($direction === 'buy') {
             $side = 'long';
-        } elseif ($side === 'sell') {
+        } elseif ($direction === 'sell') {
             $side = 'short';
         }
-        $notional = $this->safe_string($position, 'size_currency');
         $initialMargin = $this->safe_string($position, 'initial_margin');
         $maintenanceMargin = $this->safe_string($position, 'maintenance_margin');
-        $contracts = $this->safe_number($position, 'size');
-        if ($this->is_native_deribit_credentials()) {
-            $size = $this->safe_string($position, 'size');
-            if (!$this->safe_bool($marketResolved, 'option', false)) {
-                $notional = $size;
-                if ($this->safe_bool($marketResolved, 'linear', false)) {
-                    $size = $this->safe_string($position, 'size_currency');
-                }
-            } else {
-                $notional = Precise::string_mul($size, $this->safe_string($position, 'mark_price'));
-            }
-            $contractsString = $this->safe_string($position, 'contracts', Precise::string_div($size, $this->safe_string($marketResolved, 'contractSize')));
-            $contracts = $this->parse_number(Precise::string_abs($contractsString));
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        $size = $this->safe_string($position, 'size');
+        $amount = $size;  // `contract_size` converts between `amount` and `contracts`
+        $notional = null;
+        if ($this->safe_bool($marketResolved, 'option', false)) {
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            $notional = Precise::string_mul($size, $this->safe_string($position, 'mark_price'));
+        } elseif ($this->safe_bool($marketResolved, 'linear', false)) {
+            $amount = $this->safe_string($position, 'size_currency'); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            $notional = $size;
+        } else {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            $notional = $this->safe_string($position, 'size_currency');
         }
+        $contractsString = Precise::string_div($amount, $this->safe_string($marketResolved, 'contractSize'));
         return $this->safe_position(array(
             'info' => $position,
             'id' => null,
@@ -1890,7 +1893,7 @@ class coinbaseinternational extends Exchange {
             'collateral' => null,
             'unrealizedPnl' => $this->safe_number($position, 'floating_profit_loss'),
             'side' => $side,
-            'contracts' => $contracts,
+            'contracts' => $this->parse_number(Precise::string_abs($contractsString)),
             'contractSize' => $this->safe_number($marketResolved, 'contractSize'),
             'timestamp' => null,
             'datetime' => null,

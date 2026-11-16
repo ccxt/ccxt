@@ -1,0 +1,69 @@
+// Native regression test for https://github.com/ccxt/ccxt/issues/31080
+// (not transpiled to other languages): binanceusdm watchPositions must reload
+// the REST positions snapshot after a WebSocket reconnect, otherwise a
+// position closed while disconnected stays in the cache forever, because
+// ACCOUNT_UPDATE deltas only carry positions that changed.
+// Run: node --import tsx --test ts/src/pro/test/custom/test.watchPositionsReconnect.binance.ts
+import assert from 'node:assert/strict';
+import { test } from 'node:test';
+import { setTimeout as sleep } from 'node:timers/promises';
+import { WebSocketServer } from 'ws';
+import binanceusdm from '../../binanceusdm.js';
+
+test ('watchPositions reloads the snapshot after a reconnect', async () => {
+    const wss = new WebSocketServer ({ 'host': '127.0.0.1', 'port': 0 });
+    const sockets: any[] = [];
+    wss.on ('connection', (socket) => sockets.push (socket));
+    await new Promise<void> ((resolve) => wss.on ('listening', resolve));
+    const port = (wss.address () as any).port;
+    const watchdog = setTimeout (() => { throw new Error ('reconnect test timed out'); }, 30000);
+    let restAmt = '0.5';
+    let snapshots = 0;
+    const market = (id: string, base: string) => ({ 'id': id, 'symbol': base + '/USDT:USDT', 'base': base, 'quote': 'USDT', 'settle': 'USDT', 'baseId': base, 'quoteId': 'USDT', 'settleId': 'USDT', 'type': 'swap', 'spot': false, 'swap': true, 'contract': true, 'linear': true, 'inverse': false, 'contractSize': 1, 'active': true, 'precision': { 'amount': 0.001, 'price': 0.01 }, 'limits': {}, 'info': {} });
+    const exchange: any = new binanceusdm ({ 'apiKey': 'k', 'secret': 's' });
+    exchange.urls['api']['ws']['linear'] = 'ws://127.0.0.1:' + port + '/ws';
+    exchange.setMarkets ([ market ('BTCUSDT', 'BTC'), market ('ETHUSDT', 'ETH') ]);
+    await exchange.loadHttpProxyAgent ();
+    // pre-seed a fresh listenKey: authenticate() then skips its REST fetch
+    // and, importantly, the 20-minute keepAlive delay timer it schedules,
+    // which would otherwise keep the test process alive after cleanup
+    exchange.options['linear'] = { 'listenKey': 'LK', 'lastAuthenticatedTime': exchange.milliseconds () };
+    exchange.fetch = async (url: string) => {
+        if (url.indexOf ('positionRisk') !== -1) {
+            snapshots++;
+            return [{ 'symbol': 'BTCUSDT', 'positionAmt': restAmt, 'entryPrice': '60000', 'markPrice': '60000', 'unRealizedProfit': '0', 'liquidationPrice': '0', 'leverage': '10', 'marginType': 'cross', 'isolatedMargin': '0', 'positionSide': 'BOTH', 'notional': '0', 'updateTime': 1 }];
+        }
+        return [];
+    };
+    const ethUpdate = () => JSON.stringify ({ 'e': 'ACCOUNT_UPDATE', 'E': 1, 'T': 1, 'a': { 'm': 'ORDER', 'B': [], 'P': [{ 's': 'ETHUSDT', 'pa': '0', 'ep': '0', 'cr': '0', 'up': '0', 'mt': 'cross', 'iw': '0', 'ps': 'BOTH' }] } });
+    exchange.newUpdates = false;
+    try {
+        const first = await exchange.watchPositions ();
+        assert.equal (first.length, 1, 'first snapshot holds the open BTC position');
+        assert.equal (first[0]['symbol'], 'BTC/USDT:USDT');
+        assert.equal (first[0]['contracts'], 0.5);
+        assert.equal (snapshots, 1);
+        const w1 = exchange.watchPositions ().catch (() => {}); // opens WS #1
+        await sleep (300);
+        sockets[0].close (1001, 'going away');
+        await w1;
+        await sleep (200);
+        restAmt = '0'; // BTC position closed while disconnected
+        const resnapshot = await exchange.watchPositions ();
+        assert.equal (snapshots, 2, 'the snapshot is reloaded after the reconnect');
+        assert.equal (resnapshot.find ((p: any) => p['symbol'] === 'BTC/USDT:USDT'), undefined, 'closed BTC position is gone from the reloaded snapshot');
+        const w3 = exchange.watchPositions (); // subscribes, opens WS #2
+        await sleep (300);
+        sockets[1].send (ethUpdate ());
+        const positions = await w3;
+        assert.equal (positions.find ((p: any) => p['symbol'] === 'BTC/USDT:USDT'), undefined, 'closed BTC position must not linger in the stream cache');
+        assert.notEqual (positions.find ((p: any) => p['symbol'] === 'ETH/USDT:USDT'), undefined, 'the stream update still lands in the cache');
+    } finally {
+        clearTimeout (watchdog);
+        await exchange.close ();
+        for (const socket of sockets) {
+            socket.terminate ();
+        }
+        await new Promise<void> ((resolve) => wss.close (() => resolve ()));
+    }
+});

@@ -2952,11 +2952,7 @@ public class BaseExchange {
     }
 
     private String bytesToHex(byte[] bytes) {
-        StringBuilder sb = new StringBuilder(bytes.length * 2);
-        for (byte b : bytes) {
-            sb.append(String.format("%02x", b));
-        }
-        return sb.toString();
+        return java.util.HexFormat.of().formatHex(bytes);
     }
 
     // EIP-712 typed-data encoder. Returns the pre-digest bytes
@@ -3199,9 +3195,7 @@ public class BaseExchange {
     }
 
     private static byte[] keccak256(byte[] input) {
-        org.bouncycastle.jcajce.provider.digest.Keccak.Digest256 k = new org.bouncycastle.jcajce.provider.digest.Keccak.Digest256();
-        k.update(input, 0, input.length);
-        return k.digest();
+        return Crypto.keccakDigest(input);
     }
 
     public Object packb(Object data) {
@@ -6438,14 +6432,14 @@ public Map<String, Object> describe()
             put( "quoteId", null );
             put( "settleId", null );
             put( "type", null );
-            put( "spot", null );
+            put( "spot", false );
             put( "margin", null );
-            put( "swap", null );
-            put( "future", null );
-            put( "option", null );
+            put( "swap", false );
+            put( "future", false );
+            put( "option", false );
             put( "index", null );
             put( "active", null );
-            put( "contract", null );
+            put( "contract", false );
             put( "linear", null );
             put( "inverse", null );
             put( "subType", null );

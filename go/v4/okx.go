@@ -369,6 +369,9 @@ func (this *Okx) Describe() map[string]any {
 					"public/delta-hedge-currencies": map[string]any{
 						"cost": 1,
 					},
+					"public/corporate-actions": map[string]any{
+						"cost": 1,
+					},
 					"rubik/stat/trading-data/support-coin": map[string]any{
 						"cost": 4,
 					},
@@ -3825,11 +3828,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260219 []any = r1.Value
-		if retRes260219 == nil {
+		var retRes260319 []any = r1.Value
+		if retRes260319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes260219)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes260319)}
 		}
 		return nil
 	}
@@ -3984,11 +3987,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271519 []any = r1.Value
-		if retRes271519 == nil {
+		var retRes271619 []any = r1.Value
+		if retRes271619 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes271519)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes271619)}
 		}
 		return nil
 	}
@@ -4135,6 +4138,7 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */
@@ -4167,15 +4171,15 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate, 100)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 400)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes282719 []any = r1.Value
-		if retRes282719 == nil {
+		var retRes282919 []any = r1.Value
+		if retRes282919 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes282719)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes282919)}
 		}
 		return nil
 	}
@@ -4189,8 +4193,18 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 	if limit != nil {
 		request["limit"] = limit
 	}
+	var until *int64 = this.SafeInteger(paramsPaginate, "until")
+	if until != nil {
+		request["after"] = until
+	}
+	var paramsUntil map[string]any = func() map[string]any {
+		if until != nil {
+			return this.OmitDict(paramsPaginate, "until")
+		}
+		return paramsPaginate
+	}()
 
-	r2 := <-this.PublicGetPublicFundingRateHistory(this.Extend(request, paramsPaginate))
+	r2 := <-this.PublicGetPublicFundingRateHistory(this.Extend(request, paramsUntil))
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
@@ -6448,11 +6462,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes467719 []any = r1.Value
-		if retRes467719 == nil {
+		var retRes468419 []any = r1.Value
+		if retRes468419 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes467719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes468419)}
 		}
 		return nil
 	}
@@ -6870,11 +6884,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes503319 []any = r1.Value
-		if retRes503319 == nil {
+		var retRes504019 []any = r1.Value
+		if retRes504019 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes503319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes504019)}
 		}
 		return nil
 	}
@@ -7093,11 +7107,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes521319 []any = r1.Value
-		if retRes521319 == nil {
+		var retRes522019 []any = r1.Value
+		if retRes522019 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes521319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes522019)}
 		}
 		return nil
 	}
@@ -7194,11 +7208,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes528815 []any = TradesToList(r.Value)
-	if retRes528815 == nil {
+	var retRes529515 []any = TradesToList(r.Value)
+	if retRes529515 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes528815)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes529515)}
 	}
 	return nil
 }
@@ -7249,11 +7263,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes531319 []any = r1.Value
-		if retRes531319 == nil {
+		var retRes532019 []any = r1.Value
+		if retRes532019 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes531319)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes532019)}
 		}
 		return nil
 	}
@@ -7822,11 +7836,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes577319 []any = r1.Value
-		if retRes577319 == nil {
+		var retRes578019 []any = r1.Value
+		if retRes578019 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes577319)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes578019)}
 		}
 		return nil
 	}
@@ -7986,11 +8000,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes588419 []any = r1.Value
-		if retRes588419 == nil {
+		var retRes589119 []any = r1.Value
+		if retRes589119 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes588419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes589119)}
 		}
 		return nil
 	}
@@ -8613,11 +8627,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes640215 []any = PositionsToList(r.Value)
-	if retRes640215 == nil {
+	var retRes640915 []any = PositionsToList(r.Value)
+	if retRes640915 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes640215)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes640915)}
 	}
 	return nil
 }
@@ -13446,6 +13460,7 @@ func (this *Okx) FetchOHLCV(symbol string, options ...FetchOHLCVOptions) ([]OHLC
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {int} [params.until] timestamp in ms of the latest funding rate
  * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
  * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
  */

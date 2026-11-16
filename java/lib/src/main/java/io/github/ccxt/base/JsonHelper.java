@@ -6,6 +6,11 @@ import com.fasterxml.jackson.core.type.TypeReference;
 public class JsonHelper {
     private static final ObjectMapper mapper = new ObjectMapper();
 
+    /** Shared default-configured mapper; callers needing other features keep their own. */
+    public static ObjectMapper mapper() {
+        return mapper;
+    }
+
     public static Object deserialize(String json) {
         if (json == null) {
             return null;

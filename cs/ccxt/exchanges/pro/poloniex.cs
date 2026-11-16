@@ -1598,7 +1598,7 @@ public partial class poloniex : ccxt.poloniex
         } else if ((type == null))
         {
             this.handleOrderRequest(client, message);
-        } else
+        } else if ((method != null))
         {
             List<object> data = this.safeList(message, "data", new List<object>() {});
             int dataLength = data.Count;

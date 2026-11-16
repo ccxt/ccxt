@@ -4596,7 +4596,7 @@ public class Poloniex extends PoloniexApi
         mapLiteral10.put("info", position);
         mapLiteral10.put("id", null);
         mapLiteral10.put("symbol", marketResolved.get("symbol"));
-        mapLiteral10.put("notional", notional);
+        mapLiteral10.put("notional", this.parseNumber(notional));
         mapLiteral10.put("marginMode", marginMode);
         mapLiteral10.put("liquidationPrice", this.safeNumber(position, "liqPx", (Object) null));
         mapLiteral10.put("entryPrice", this.safeNumber(position, "openAvgPx", (Object) null));
@@ -4615,7 +4615,7 @@ public class Poloniex extends PoloniexApi
         mapLiteral10.put("maintenanceMarginPercentage", null);
         mapLiteral10.put("collateral", this.parseNumber(collateral));
         mapLiteral10.put("positionMargin", this.parseNumber(positionMargin));
-        mapLiteral10.put("initialMargin", initialMargin);
+        mapLiteral10.put("initialMargin", this.parseNumber(initialMargin));
         mapLiteral10.put("initialMarginPercentage", null);
         mapLiteral10.put("leverage", this.safeInteger(position, "lever"));
         mapLiteral10.put("marginRatio", this.safeNumber(position, "mgnRatio", (Object) null));

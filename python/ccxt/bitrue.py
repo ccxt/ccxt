@@ -974,6 +974,8 @@ class bitrue(Exchange, ImplicitAPI):
         filters = self.safe_list(market, 'filters', [])
         filtersByType = self.index_by(filters, 'filterType')
         status = self.safe_string(market, 'status')
+        # spot markets say TRADING, futures contracts 1 (0 when offline)
+        active = (status == 'TRADING') or (status == '1')
         priceFilter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
         amountFilter = self.safe_dict(filtersByType, 'LOT_SIZE', {})
         defaultPricePrecision = self.safe_string(market, 'pricePrecision')
@@ -1004,7 +1006,7 @@ class bitrue(Exchange, ImplicitAPI):
             'swap': isContract,
             'future': False,
             'option': False,
-            'active': (status == 'TRADING'),
+            'active': active,
             'contract': isContract,
             'linear': isLinear,
             'inverse': isInverse,

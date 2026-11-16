@@ -1127,6 +1127,8 @@ public class Bitrue extends BitrueApi
         List<Object> filters = (List<Object>) this.safeList(market, "filters", new ArrayList<Object>(Arrays.asList()));
         Map<String,Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString(market, "status");
+        // spot markets say TRADING, futures contracts 1 (0 when offline)
+        Boolean active = (java.util.Objects.equals(status, "TRADING")) || (java.util.Objects.equals(status, "1"));
         Map<String, Object> priceFilter = (Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new HashMap<String, Object>() {{}});
         Map<String, Object> amountFilter = (Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new HashMap<String, Object>() {{}});
         String defaultPricePrecision = this.safeString(market, "pricePrecision");
@@ -1161,7 +1163,7 @@ public class Bitrue extends BitrueApi
         mapLiteral2.put("swap", isContract);
         mapLiteral2.put("future", false);
         mapLiteral2.put("option", false);
-        mapLiteral2.put("active", (java.util.Objects.equals(status, "TRADING")));
+        mapLiteral2.put("active", active);
         mapLiteral2.put("contract", isContract);
         mapLiteral2.put("linear", isLinear);
         mapLiteral2.put("inverse", isInverse);

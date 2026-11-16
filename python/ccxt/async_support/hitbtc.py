@@ -2634,7 +2634,7 @@ class hitbtc(Exchange, ImplicitAPI):
         response = await self.privatePostWalletTransfer(self.extend(request, params))
         #
         #     [
-        #         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        #         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         #     ]
         #
         return self.parse_transfer(response, currency)
@@ -2805,18 +2805,18 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 1000)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         market = None
         request = {
             # all arguments are optional
             # 'symbols': Comma separated list of symbol codes,
             # 'sort': 'DESC' or 'ASC'
             # 'from': 'Datetime or Number',
-            # 'until': 'Datetime or Number',
+            # 'till': 'Datetime or Number',
             # 'limit': 100,
             # 'offset': 0,
         }
-        requestUntil, paramsUntil = self.handle_until_option('until', request, paramsPaginate)
+        requestUntil, paramsUntil = self.handle_until_option('till', request, paramsPaginate)
         if symbol is not None:
             market = self.market(symbol)
             requestUntil['symbols'] = market['id']

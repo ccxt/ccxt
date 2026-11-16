@@ -838,6 +838,14 @@ class latoken(Exchange, ImplicitAPI):
                 marketResolved = self.market(symbol)
         last = self.safe_string(ticker, 'lastPrice')
         timestamp = self.safe_integer_omit_zero(ticker, 'updateTimestamp')  # sometimes latoken provided '0' ts from /ticker endpoint
+        # during venue incidents a deleted level leaks a signed aggregate into the
+        # best sizes - the quoted prices stay usable, so only negatives are dropped
+        bidVolume = self.safe_string(ticker, 'bestBidQuantity')
+        if (bidVolume is not None) and Precise.string_lt(bidVolume, '0'):
+            bidVolume = None
+        askVolume = self.safe_string(ticker, 'bestAskQuantity')
+        if (askVolume is not None) and Precise.string_lt(askVolume, '0'):
+            askVolume = None
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -845,9 +853,9 @@ class latoken(Exchange, ImplicitAPI):
             'low': None,
             'high': None,
             'bid': self.safe_string(ticker, 'bestBid'),
-            'bidVolume': self.safe_string(ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': self.safe_string(ticker, 'bestAsk'),
-            'askVolume': self.safe_string(ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': None,
             'open': None,
             'close': last,

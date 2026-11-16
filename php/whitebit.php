@@ -452,6 +452,7 @@ class whitebit extends Exchange {
                     'limit must be less than or equal to' => '\\ccxt\\BadRequest',
                     'The Price should be less than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be less than or equal to 1.277"]},"message":"Validation failed"}
                     'The Price should be greater than or equal to' => '\\ccxt\\InvalidOrder', // {"code":250,"errors":{"price":["The Price should be greater than or equal to 0.0029"]},"message":"Validation failed"}
+                    'Price must be a multiple of' => '\\ccxt\\InvalidOrder', // {"code":1,"errors":{"price":["Price must be a multiple of 0.00001."]},"message":"Validation failed"}
                     'This action is unauthorized' => '\\ccxt\\PermissionDenied', // {"code":2,"message":"This action is unauthorized. Enable your key in API settings"}
                     'Given amount is less than min amount' => '\\ccxt\\InvalidOrder', // {"code":0,"message":"Validation failed","errors":{"amount":["Given amount is less than min amount 200000"],"total":["Total is less than 5.05"]}}
                     'Min amount step' => '\\ccxt\\InvalidOrder', // {"code":32,"errors":{"amount":["Min amount step = 0.01"]},"message":"Validation failed"}
@@ -490,10 +491,14 @@ class whitebit extends Exchange {
         //          "takerFee": "0.1",         // Default taker fee ratio
         //          "minAmount": "0.001",      // Minimal amount of stock to trade
         //          "minTotal": "0.001",       // Minimal amount of money to trade
+        //          "maxTotal": "1000000000",  // Maximum total(amount * price) of money to trade
         //          "tradesEnabled": true,     // Is trading enabled
         //          "isCollateral": true,      // Is margin trading enabled
         //          "type": "spot",            // Market type. Possible values: "spot", "futures"
-        //          "maxTotal": "1000000000"   // Maximum total(amount * price) of money to trade
+        //          "isTradFiFutures": false,  // Indicates whether the market is a traditional-finance (TradFi) futures market
+        //          "delistedAt": 1786752000,  // Announced delisting date as a Unix timestamp in seconds
+        //          "tickSize": "0.01",        // Minimal price step a limit order price must be a multiple of
+        //          "stepSize": "0.001"        // Minimal quantity step an order amount must be a multiple of
         //        },
         //        {
         //          ...
@@ -525,7 +530,6 @@ class whitebit extends Exchange {
         $swap = ($typeId === 'futures') || ($typeId === 'tradfiFutures');
         $margin = $isCollateral && !$swap;
         $contract = false;
-        $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'stockPrec')));
         $linear = null;
         $inverse = null;
         if ($swap) {
@@ -571,8 +575,8 @@ class whitebit extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $amountPrecision,
-                'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'moneyPrec'))),
+                'amount' => $this->safe_number($market, 'stepSize'),
+                'price' => $this->safe_number($market, 'tickSize'),
             ),
             'limits' => array(
                 'leverage' => array(
@@ -1883,6 +1887,7 @@ class whitebit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
@@ -1895,14 +1900,33 @@ class whitebit extends Exchange {
         );
         $cappedLimit = (($limit === null) || ($limit > 1440)) ? 1440 : $limit;
         $limitResolved = ($since !== null) ? $cappedLimit : $limit;
-        if ($since !== null) {
-            $start = $this->parse_to_int($since / 1000);
-            $request['start'] = $start;
+        $until = $this->safe_integer($params, 'until');
+        $paramsOmitted = $this->omit($params, 'until');
+        if (($since !== null) || ($until !== null)) {
+            // the exchange ignores a start alone: it returns the last candles that closed by the end.
+            // It refuses an end past its own clock, which may be behind this one, so an end within a
+            // timeframe of now is left out, and the latest candles it then returns cover the range
+            $duration = $this->parse_timeframe($timeframe);
+            $endTime = null;
+            if ($until !== null) {
+                $endTime = $this->sum($this->parse_to_int($until / 1000), $duration);
+            }
+            if ($since !== null) {
+                $start = $this->parse_to_int($since / 1000);
+                $request['start'] = $start;
+                $rangeEnd = $this->sum($start, $duration * $cappedLimit);
+                if (($endTime === null) || ($rangeEnd < $endTime)) {
+                    $endTime = $rangeEnd;
+                }
+            }
+            if (($endTime !== null) && ($this->sum($endTime, $duration) < $this->seconds())) {
+                $request['end'] = $endTime;
+            }
         }
-        if (($since !== null) || ($limit !== null)) {
+        if (($since !== null) || ($until !== null) || ($limit !== null)) {
             $request['limit'] = $cappedLimit;
         }
-        $response = $this->v1PublicGetKline($this->extend($request, $params));
+        $response = $this->v1PublicGetKline($this->extend($request, $paramsOmitted));
         //
         //     {
         //         "success":true,
@@ -4201,7 +4225,7 @@ class whitebit extends Exchange {
         $maxLimit = 100;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, $maxLimit);
+            return $this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, $maxLimit);
         }
         if ($this->markets === null) {
             $this->load_markets();
@@ -4213,7 +4237,7 @@ class whitebit extends Exchange {
         if ($since !== null) {
             $request['startDate'] = (int) round($since / 1000);
         }
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until_timestamp', $request, $paramsPaginate, 0.001);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('endDate', $request, $paramsPaginate, 0.001);
         if ($limit !== null) {
             $requestUntil['limit'] = $limit;
         }

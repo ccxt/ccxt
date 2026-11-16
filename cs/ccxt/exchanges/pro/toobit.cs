@@ -19,6 +19,7 @@ public partial class toobit : ccxt.toobit
                 { "watchOrderBook", true },
                 { "watchOrderBookForSymbols", true },
                 { "watchOrders", true },
+                { "watchPositions", true },
                 { "watchTicker", true },
                 { "watchTickers", true },
                 { "watchTrades", true },

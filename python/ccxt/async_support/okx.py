@@ -282,6 +282,7 @@ class okx(Exchange, ImplicitAPI):
                         'public/vip-interest-rate-loan-quota': {'cost': 10},  # not documented
                         'public/mm-instrument-types': {'cost': 4},
                         'public/delta-hedge-currencies': {'cost': 1},
+                        'public/corporate-actions': {'cost': 1},
                         # rubik
                         'rubik/stat/trading-data/support-coin': {'cost': 4},
                         'rubik/stat/contracts/open-interest-history': {'cost': 2},
@@ -2751,6 +2752,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest funding rate to fetch
         :param int [limit]: the maximum amount of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>` to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
@@ -2760,7 +2762,7 @@ class okx(Exchange, ImplicitAPI):
             await self.load_markets()
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400)
         market = self.market(symbol)
         request = {
             'instId': market['id'],
@@ -2769,7 +2771,11 @@ class okx(Exchange, ImplicitAPI):
             request['before'] = max(since - 1, 0)
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetPublicFundingRateHistory(self.extend(request, paramsPaginate))
+        until = self.safe_integer(paramsPaginate, 'until')
+        if until is not None:
+            request['after'] = until
+        paramsUntil = self.omit(paramsPaginate, 'until') if (until is not None) else paramsPaginate
+        response = await self.publicGetPublicFundingRateHistory(self.extend(request, paramsUntil))
         #
         #     {
         #         "code":"0",

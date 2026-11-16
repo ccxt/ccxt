@@ -1219,19 +1219,19 @@
                     "symbol": "BTC/USDC:USDC",
                     "entryPrice": 81334.4,
                     "markPrice": 81373.08,
-                    "notional": 0.001,
+                    "notional": 81.37308,
                     "collateral": null,
                     "unrealizedPnl": 0.03868,
                     "side": "long",
-                    "contracts": 81.37308,
+                    "contracts": 10,
                     "contractSize": 0.0001,
                     "timestamp": null,
                     "datetime": null,
                     "hedged": null,
                     "maintenanceMargin": 1.084974373,
-                    "maintenanceMarginPercentage": 1084.974373,
+                    "maintenanceMarginPercentage": 0.01333333300152827,
                     "initialMargin": 1.6274616,
-                    "initialMarginPercentage": 1627.4616,
+                    "initialMarginPercentage": 0.02,
                     "leverage": 50,
                     "liquidationPrice": null,
                     "marginRatio": null,
@@ -1415,24 +1415,319 @@
                         "symbol": "BTC/USDC:USDC",
                         "entryPrice": 81334.4,
                         "markPrice": 81418.71,
-                        "notional": 0.001,
+                        "notional": 81.41871,
                         "collateral": null,
                         "unrealizedPnl": 0.08431,
                         "side": "long",
-                        "contracts": 81.41871,
+                        "contracts": 10,
                         "contractSize": 0.0001,
                         "timestamp": null,
                         "datetime": null,
                         "hedged": null,
                         "maintenanceMargin": 1.085582773,
-                        "maintenanceMarginPercentage": 1085.582773,
+                        "maintenanceMarginPercentage": 0.013333333001714225,
                         "initialMargin": 1.6283742,
-                        "initialMarginPercentage": 1628.3742,
+                        "initialMarginPercentage": 0.02,
                         "leverage": 50,
                         "liquidationPrice": null,
                         "marginRatio": null,
                         "marginMode": null,
                         "percentage": 5.17,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap fetch positions coinbase route",
+                "method": "fetchPositions",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ],
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "size": -100,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 0.000016385,
+                            "initial_margin": 0.000024578,
+                            "open_orders_margin": 0,
+                            "direction": "sell",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 0,
+                            "delta": -0.001228906,
+                            "average_price": 81500,
+                            "floating_profit_loss": 0.000001914,
+                            "realized_profit_loss": 0,
+                            "total_profit_loss": 0.000001914,
+                            "realized_funding": 0,
+                            "size_currency": -0.001228906,
+                            "estimated_liquidation_price": null
+                        }
+                    ],
+                    "usIn": 1792486762722757,
+                    "usOut": 1792486762858118,
+                    "usDiff": 135361,
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": -100,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 0.000016385,
+                            "initial_margin": 0.000024578,
+                            "open_orders_margin": 0,
+                            "direction": "sell",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 0,
+                            "delta": -0.001228906,
+                            "average_price": 81500,
+                            "floating_profit_loss": 0.000001914,
+                            "realized_profit_loss": 0,
+                            "total_profit_loss": 0.000001914,
+                            "realized_funding": 0,
+                            "size_currency": -0.001228906,
+                            "estimated_liquidation_price": null
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:BTC",
+                        "entryPrice": 81500,
+                        "markPrice": 81373.08,
+                        "notional": 0.001228906,
+                        "collateral": null,
+                        "unrealizedPnl": 0.000001914,
+                        "side": "short",
+                        "contracts": 10,
+                        "contractSize": 10,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": 0.000016385,
+                        "maintenanceMarginPercentage": 0.013332996990819477,
+                        "initialMargin": 0.000024578,
+                        "initialMarginPercentage": 0.019999902352173395,
+                        "leverage": 50,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": 7.78,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "inverse swap fetch positions deribit route",
+                "options": { "route": "deribit", "routeBackend": true },
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "BTC/USD:BTC"
+                    ],
+                    {
+                        "route": "deribit"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "size": -100,
+                            "kind": "future",
+                            "user_id": 477236,
+                            "maintenance_margin": 0.000016385,
+                            "initial_margin": 0.000024578,
+                            "open_orders_margin": 0,
+                            "direction": "sell",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 0,
+                            "delta": -0.001228906,
+                            "average_price": 81500,
+                            "floating_profit_loss": 0.000001914,
+                            "realized_profit_loss": 0,
+                            "total_profit_loss": 0.000001914,
+                            "realized_funding": 0,
+                            "size_currency": -0.001228906,
+                            "estimated_liquidation_price": null
+                        }
+                    ],
+                    "usIn": 1791111321516101,
+                    "usOut": 1791111321617432,
+                    "usDiff": 101331,
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": -100,
+                            "kind": "future",
+                            "user_id": 477236,
+                            "maintenance_margin": 0.000016385,
+                            "initial_margin": 0.000024578,
+                            "open_orders_margin": 0,
+                            "direction": "sell",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 0,
+                            "delta": -0.001228906,
+                            "average_price": 81500,
+                            "floating_profit_loss": 0.000001914,
+                            "realized_profit_loss": 0,
+                            "total_profit_loss": 0.000001914,
+                            "realized_funding": 0,
+                            "size_currency": -0.001228906,
+                            "estimated_liquidation_price": null
+                        },
+                        "id": null,
+                        "symbol": "BTC/USD:BTC",
+                        "entryPrice": 81500,
+                        "markPrice": 81373.08,
+                        "notional": 0.001228906,
+                        "collateral": null,
+                        "unrealizedPnl": 0.000001914,
+                        "side": "short",
+                        "contracts": 10,
+                        "contractSize": 10,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": 0.000016385,
+                        "maintenanceMarginPercentage": 0.013332996990819477,
+                        "initialMargin": 0.000024578,
+                        "initialMarginPercentage": 0.019999902352173395,
+                        "leverage": 50,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": 7.78,
+                        "positionMargin": null
+                    }
+                ]
+            },
+            {
+                "description": "linear swap fetch positions coinbase route (zero/flat direction)",
+                "method": "fetchPositions",
+                "options": {
+                    "route": "coinbase",
+                    "routeBackend": false,
+                    "v2AccessToken": "token",
+                    "v2TokenExpires": 99999999999999
+                },
+                "input": [
+                    [
+                        "BTC/USDC:USDC"
+                    ],
+                    {
+                        "route": "coinbase"
+                    }
+                ],
+                "httpResponse": {
+                    "jsonrpc": "2.0",
+                    "result": [
+                        {
+                            "size": 0,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 0,
+                            "initial_margin": 0,
+                            "open_orders_margin": 0,
+                            "direction": "zero",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 15389224.100632468,
+                            "delta": 0,
+                            "average_price": 0,
+                            "floating_profit_loss": 0,
+                            "realized_profit_loss": -0.000066848,
+                            "total_profit_loss": 0,
+                            "realized_funding": 0,
+                            "size_currency": 0,
+                            "estimated_liquidation_price": null
+                        }
+                    ],
+                    "usIn": 1792486762722757,
+                    "usOut": 1792486762858118,
+                    "usDiff": 135361,
+                    "testnet": false
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "size": 0,
+                            "kind": "future",
+                            "user_id": 645310,
+                            "maintenance_margin": 0,
+                            "initial_margin": 0,
+                            "open_orders_margin": 0,
+                            "direction": "zero",
+                            "index_price": 81345.09,
+                            "instrument_name": "BTC_USDC-PERPETUAL",
+                            "settlement_price": 81464.34,
+                            "mark_price": 81373.08,
+                            "leverage": 50,
+                            "interest_value": 15389224.100632468,
+                            "delta": 0,
+                            "average_price": 0,
+                            "floating_profit_loss": 0,
+                            "realized_profit_loss": -0.000066848,
+                            "total_profit_loss": 0,
+                            "realized_funding": 0,
+                            "size_currency": 0,
+                            "estimated_liquidation_price": null
+                        },
+                        "id": null,
+                        "symbol": "BTC/USDC:USDC",
+                        "entryPrice": 0,
+                        "markPrice": 81373.08,
+                        "notional": 0,
+                        "collateral": null,
+                        "unrealizedPnl": 0,
+                        "side": null,
+                        "contracts": 0,
+                        "contractSize": 0.0001,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": 0,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 0,
+                        "initialMarginPercentage": null,
+                        "leverage": 50,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": null,
                         "positionMargin": null
                     }
                 ]

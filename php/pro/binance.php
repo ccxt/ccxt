@@ -2042,14 +2042,6 @@ class binance extends \ccxt\async\binance {
         $interval = $this->safe_string($kline, 'i');
         // use a reverse lookup in a static map instead
         $unifiedTimeframe = $this->find_timeframe($interval);
-        $parsed = array(
-            $this->safe_integer($kline, 't'),
-            $this->safe_float($kline, 'o'),
-            $this->safe_float($kline, 'h'),
-            $this->safe_float($kline, 'l'),
-            $this->safe_float($kline, 'c'),
-            $this->safe_float($kline, 'v'),
-        );
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         $isSpot = $this->is_spot_url($client);
@@ -2057,7 +2049,19 @@ class binance extends \ccxt\async\binance {
         if ($isSpot) {
             $marketType = 'spot';
         }
-        $symbol = $this->safe_symbol($marketId, null, null, $marketType);
+        $market = $this->safe_market($marketId, null, null, $marketType);
+        $symbol = $market['symbol'];
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        $inverse = $this->safe_bool($market, 'inverse');
+        $volumeKey = ($inverse === true) ? 'q' : 'v';
+        $parsed = array(
+            $this->safe_integer($kline, 't'),
+            $this->safe_float($kline, 'o'),
+            $this->safe_float($kline, 'h'),
+            $this->safe_float($kline, 'l'),
+            $this->safe_float($kline, 'c'),
+            $this->safe_float($kline, $volumeKey),
+        );
         $messageHash = 'ohlcv::' . $symbol . '::' . $unifiedTimeframe;
         $this->ohlcvs[$symbol] = $this->safe_dict($this->ohlcvs, $symbol, array());
         $stored = $this->safe_value($this->safe_dict($this->ohlcvs, $symbol), $unifiedTimeframe);
@@ -2331,7 +2335,10 @@ class binance extends \ccxt\async\binance {
          * @param {boolean} [$params->stock] set to true to use the stocks price stream
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        list($stock, $paramsStock) = $this->handle_option_bool_and_params($params, 'watchTickers', 'stock', false);
+        // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        // option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        list($methodName, $paramsMethodName) = $this->handle_param_string($params, 'callerMethodName', 'watchTickers');
+        list($stock, $paramsStock) = $this->handle_option_bool_and_params($paramsMethodName, $methodName, 'stock', false);
         $symbolsNormalized = $symbols;
         if ($stock) {
             if ($symbols === null) {
@@ -2344,7 +2351,7 @@ class binance extends \ccxt\async\binance {
             }
             return $this->filter_by_array($this->tickers, 'symbol', $symbolsNormalized);
         }
-        list($channelName, $paramsName) = $this->handle_option_string_and_params($paramsStock, 'watchTickers', 'name', 'miniTicker');
+        list($channelName, $paramsName) = $this->handle_option_string_and_params($paramsStock, $methodName, 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2376,7 +2383,8 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        list($channelName, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'ticker');
+        // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        list($channelName, $paramsName) = $this->handle_option_string_and_params($params, 'watchTickers', 'name', 'miniTicker');
         if ($channelName === 'bookTicker') {
             throw new BadRequest($this->id . ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2455,7 +2463,8 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
-        return $this->un_watch_tickers(array( $symbol ), $params);
+        // read the channel under watchTicker's options, the stream watchTicker subscribed
+        return $this->un_watch_tickers(array( $symbol ), $this->extend($params, array( 'callerMethodName' => 'watchTicker' )));
     }
 
     public function watch_bids_asks(?array $symbols = null, $params = array()): PromiseInterface {
@@ -4983,7 +4992,7 @@ class binance extends \ccxt\async\binance {
             'amount' => $this->safe_string($order, 'q'),
             'cost' => $this->safe_string($order, 'Z'),
             'average' => $this->safe_string($order, 'ap'),
-            'filled' => $this->safe_string($order, 'z'),
+            'filled' => $this->safe_string_2($order, 'z', 'aq'), // aq: ALGO_UPDATE executed quantity
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
@@ -5371,10 +5380,19 @@ class binance extends \ccxt\async\binance {
         if ($this->positions === null) {
             $this->positions = array();
         }
-        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
-            return;
-        }
         $fetchPositionsSnapshot = $this->handle_option('watchPositions', 'fetchPositionsSnapshot', false);
+        if (is_array($this->positions) && array_key_exists($type ?? '', $this->positions)) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            $messageHash = $type . ':fetchPositionsSnapshot';
+            if (($fetchPositionsSnapshot === true) && (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)))) {
+                unset($this->positions[$type]);
+            } else {
+                return;
+            }
+        }
         if ($fetchPositionsSnapshot === true) {
             $messageHash = $type . ':fetchPositionsSnapshot';
             if (!(is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures))) {
@@ -5398,6 +5416,13 @@ class binance extends \ccxt\async\binance {
             $params['portfolioMargin'] = true;
         }
         $positions = Async\await($this->fetch_positions(null, $params));
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        $currentClient = $this->safe_value($this->clients, $client->url);
+        if ($currentClient !== $client) {
+            return;
+        }
         $this->positions[$type] = new ArrayCacheBySymbolBySide();
         $cache = $this->positions[$type];
         for ($i = 0; $i < count($positions); $i++) {

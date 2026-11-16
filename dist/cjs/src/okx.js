@@ -257,6 +257,7 @@ class okx extends okx$1["default"] {
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 }, // not documented
                         'public/mm-instrument-types': { 'cost': 4 },
                         'public/delta-hedge-currencies': { 'cost': 1 },
+                        'public/corporate-actions': { 'cost': 1 },
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 },
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 },
@@ -2806,6 +2807,7 @@ class okx extends okx$1["default"] {
      * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
      * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {int} [params.until] timestamp in ms of the latest funding rate
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure}
      */
@@ -2818,7 +2820,7 @@ class okx extends okx$1["default"] {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate, 100);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 400);
         }
         const market = this.market(symbol);
         const request = {
@@ -2830,7 +2832,12 @@ class okx extends okx$1["default"] {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsPaginate));
+        const until = this.safeInteger(paramsPaginate, 'until');
+        if (until !== undefined) {
+            request['after'] = until;
+        }
+        const paramsUntil = (until !== undefined) ? this.omit(paramsPaginate, 'until') : paramsPaginate;
+        const response = await this.publicGetPublicFundingRateHistory(this.extend(request, paramsUntil));
         //
         //     {
         //         "code":"0",

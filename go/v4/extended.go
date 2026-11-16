@@ -406,8 +406,11 @@ func (this *Extended) Describe() map[string]any {
 			},
 		},
 		"fees": map[string]any{
-			"taker": this.ParseNumber("0.002"),
-			"maker": this.ParseNumber("0.002"),
+			"taker": this.ParseNumber("0.00025"),
+			"maker": this.ParseNumber("0"),
+			"rwa": map[string]any{
+				"taker": this.ParseNumber("0.0001"),
+			},
 		},
 		"requiredCredentials": map[string]any{
 			"apiKey":     true,
@@ -539,6 +542,7 @@ func (this *Extended) IndexByStringifiedNumericId(input any) any {
  * @name extended#fetchMarkets
  * @description retrieves data on all markets for extended
  * @see https://api.docs.extended.exchange/#get-markets
+ * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -730,6 +734,13 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 	var minAmount *float64 = this.SafeNumber(tradingConfig, "minOrderSize")
 	var maxCost *float64 = this.SafeNumber(tradingConfig, "maxLimitOrderValue")
 	var created *int64 = this.SafeInteger(market, "createdAt")
+	var category *string = this.SafeStringLower(market, "category")
+	var takerFees any = func() any {
+		if category != nil && *category == "rwa" {
+			return this.SafeDict(this.Fees, "rwa", map[string]any{})
+		}
+		return this.Fees
+	}()
 	var settleId *string = nil
 	var settle *string = nil
 	var symbol string = *base + "/" + *quote
@@ -771,7 +782,7 @@ func (this *Extended) ParseMarket(market any) map[string]any {
 		"contract":       !isSpot,
 		"linear":         linear,
 		"inverse":        inverse,
-		"taker":          this.SafeNumber(this.Fees, "taker"),
+		"taker":          this.SafeNumber(takerFees, "taker"),
 		"maker":          this.SafeNumber(this.Fees, "maker"),
 		"contractSize":   contractSize,
 		"expiry":         nil,
@@ -1302,11 +1313,11 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes100019 []any = r1.Value
-		if retRes100019 == nil {
+		var retRes100619 []any = r1.Value
+		if retRes100619 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes100019)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes100619)}
 		}
 		return nil
 	}
@@ -1410,11 +1421,11 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes106919 []any = r1.Value
-		if retRes106919 == nil {
+		var retRes107519 []any = r1.Value
+		if retRes107519 == nil {
 			ch <- AsyncResult[[]FundingHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes106919)}
+			ch <- AsyncResult[[]FundingHistory]{Value: FundingHistoriesFromList(retRes107519)}
 		}
 		return nil
 	}
@@ -1769,11 +1780,11 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes133219 []any = r1.Value
-		if retRes133219 == nil {
+		var retRes133819 []any = r1.Value
+		if retRes133819 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes133219)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes133819)}
 		}
 		return nil
 	}
@@ -2207,11 +2218,11 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes163619 []any = r1.Value
-		if retRes163619 == nil {
+		var retRes164219 []any = r1.Value
+		if retRes164219 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes163619)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes164219)}
 		}
 		return nil
 	}
@@ -2349,11 +2360,11 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes172819 []any = r1.Value
-		if retRes172819 == nil {
+		var retRes173419 []any = r1.Value
+		if retRes173419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes172819)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes173419)}
 		}
 		return nil
 	}
@@ -2447,11 +2458,11 @@ func (this *Extended) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes178915 []any = TransactionsToList(r.Value)
-	if retRes178915 == nil {
+	var retRes179515 []any = TransactionsToList(r.Value)
+	if retRes179515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes178915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes179515)}
 	}
 	return nil
 }
@@ -2491,11 +2502,11 @@ func (this *Extended) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes180515 []any = TransactionsToList(r.Value)
-	if retRes180515 == nil {
+	var retRes181115 []any = TransactionsToList(r.Value)
+	if retRes181115 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes180515)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes181115)}
 	}
 	return nil
 }
@@ -2638,11 +2649,11 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes189419 []any = r1.Value
-		if retRes189419 == nil {
+		var retRes190019 []any = r1.Value
+		if retRes190019 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes189419)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes190019)}
 		}
 		return nil
 	}
@@ -3332,11 +3343,11 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes237819 []any = r1.Value
-		if retRes237819 == nil {
+		var retRes238419 []any = r1.Value
+		if retRes238419 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes237819)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes238419)}
 		}
 		return nil
 	}
@@ -3430,7 +3441,7 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position 
 	var lastUpdateTimestamp *int64 = this.SafeInteger2(position, "updatedAt", "updatedTime")
 	lastUpdateTimestamp = this.SafeInteger(position, "closedTime", lastUpdateTimestamp)
 	var side *string = this.SafeStringLower(position, "side")
-	var margin *string = this.SafeString(position, "margin")
+	var margin *float64 = this.SafeNumber(position, "margin")
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          this.SafeString(position, "id"),
@@ -3442,24 +3453,24 @@ func (this *Extended) ParsePosition(position any, optionalArgs ...any) Position 
 		"initialMarginPercentage":     nil,
 		"maintenanceMargin":           nil,
 		"maintenanceMarginPercentage": nil,
-		"entryPrice":                  this.SafeString(position, "openPrice"),
-		"notional":                    this.SafeString(position, "value"),
-		"leverage":                    this.SafeString(position, "leverage"),
-		"unrealizedPnl":               this.SafeString(position, "unrealisedPnl"),
-		"realizedPnl":                 this.SafeString(position, "realisedPnl"),
-		"contracts":                   this.SafeString(position, "size"),
-		"contractSize":                this.SafeString(marketResolved, "contractSize"),
+		"entryPrice":                  this.SafeNumber(position, "openPrice"),
+		"notional":                    this.SafeNumber(position, "value"),
+		"leverage":                    this.SafeNumber(position, "leverage"),
+		"unrealizedPnl":               this.SafeNumber(position, "unrealisedPnl"),
+		"realizedPnl":                 this.SafeNumber(position, "realisedPnl"),
+		"contracts":                   this.SafeNumber(position, "size"),
+		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"marginRatio":                 nil,
-		"liquidationPrice":            this.SafeString(position, "liquidationPrice"),
-		"markPrice":                   this.SafeString(position, "markPrice"),
-		"lastPrice":                   this.SafeString(position, "exitPrice"),
+		"liquidationPrice":            this.SafeNumber(position, "liquidationPrice"),
+		"markPrice":                   this.SafeNumber(position, "markPrice"),
+		"lastPrice":                   this.SafeNumber(position, "exitPrice"),
 		"collateral":                  margin,
 		"marginMode":                  nil,
 		"side":                        side,
 		"percentage":                  nil,
 		"hedged":                      nil,
-		"stopLossPrice":               this.SafeString(position, "slTriggerPrice"),
-		"takeProfitPrice":             this.SafeString(position, "tpTriggerPrice"),
+		"stopLossPrice":               this.SafeNumber(position, "slTriggerPrice"),
+		"takeProfitPrice":             this.SafeNumber(position, "tpTriggerPrice"),
 	})
 }
 func (this *Extended) GetExtendedStarkAmount(amount any, resolution *int64, optionalArgs ...any) any {
@@ -4501,11 +4512,11 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes322319 []any = r1.Value
-		if retRes322319 == nil {
+		var retRes322919 []any = r1.Value
+		if retRes322919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322319)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes322919)}
 		}
 		return nil
 	}
@@ -4919,6 +4930,7 @@ func (this *Extended) Init(userConfig map[string]any) {
  * @name extended#fetchMarkets
  * @description retrieves data on all markets for extended
  * @see https://api.docs.extended.exchange/#get-markets
+ * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */

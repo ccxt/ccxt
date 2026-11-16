@@ -1983,14 +1983,6 @@ export default class binance extends binanceRest {
         const interval = this.safeString (kline, 'i');
         // use a reverse lookup in a static map instead
         const unifiedTimeframe = this.findTimeframe (interval);
-        const parsed = [
-            this.safeInteger (kline, 't'),
-            this.safeFloat (kline, 'o'),
-            this.safeFloat (kline, 'h'),
-            this.safeFloat (kline, 'l'),
-            this.safeFloat (kline, 'c'),
-            this.safeFloat (kline, 'v'),
-        ];
         // resolve the market from the transport url — an ambiguous id like
         // BTCUSDT maps to both the spot and the linear swap market
         const isSpot = this.isSpotUrl (client);
@@ -1998,7 +1990,19 @@ export default class binance extends binanceRest {
         if (isSpot) {
             marketType = 'spot';
         }
-        const symbol = this.safeSymbol (marketId, undefined, undefined, marketType);
+        const market = this.safeMarket (marketId, undefined, undefined, marketType);
+        const symbol = market['symbol'];
+        // coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
+        const inverse = this.safeBool (market, 'inverse');
+        const volumeKey = (inverse === true) ? 'q' : 'v';
+        const parsed = [
+            this.safeInteger (kline, 't'),
+            this.safeFloat (kline, 'o'),
+            this.safeFloat (kline, 'h'),
+            this.safeFloat (kline, 'l'),
+            this.safeFloat (kline, 'c'),
+            this.safeFloat (kline, volumeKey),
+        ];
         const messageHash = 'ohlcv::' + symbol + '::' + unifiedTimeframe;
         this.ohlcvs[symbol] = this.safeDict (this.ohlcvs, symbol, {});
         let stored = this.safeValue (this.safeDict (this.ohlcvs, symbol), unifiedTimeframe);
@@ -2250,7 +2254,10 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async watchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<Tickers> {
-        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (params, 'watchTickers', 'stock', false);
+        // a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+        // option lookup would consume callerMethodName, so it is resolved once for both lookups below
+        const [ methodName, paramsMethodName ] = this.handleParamString (params, 'callerMethodName', 'watchTickers');
+        const [ stock, paramsStock ] = this.handleOptionBoolAndParams (paramsMethodName, methodName, 'stock', false);
         let symbolsNormalized: Strings = symbols;
         if (stock) {
             if (symbols === undefined) {
@@ -2263,7 +2270,7 @@ export default class binance extends binanceRest {
             }
             return this.filterByArray (this.tickers, 'symbol', symbolsNormalized);
         }
-        const [ channelName, paramsName ] = this.handleOptionStringAndParams (paramsStock, 'watchTickers', 'name', 'miniTicker');
+        const [ channelName, paramsName ] = this.handleOptionStringAndParams (paramsStock, methodName, 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2291,7 +2298,8 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override async unWatchTickers (symbols: Strings = undefined, params: Dict = {}): Promise<any> {
-        const [ channelName, paramsName ] = this.handleOptionStringAndParams (params, 'watchTickers', 'name', 'ticker');
+        // same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
+        const [ channelName, paramsName ] = this.handleOptionStringAndParams (params, 'watchTickers', 'name', 'miniTicker');
         if (channelName === 'bookTicker') {
             throw new BadRequest (this.id + ' deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead');
         }
@@ -2362,7 +2370,8 @@ export default class binance extends binanceRest {
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
     override unWatchTicker (symbol: string, params = {}): Promise<any> {
-        return this.unWatchTickers ([ symbol ], params);
+        // read the channel under watchTicker's options, the stream watchTicker subscribed
+        return this.unWatchTickers ([ symbol ], this.extend (params, { 'callerMethodName': 'watchTicker' }));
     }
 
     /**
@@ -4811,7 +4820,7 @@ export default class binance extends binanceRest {
             'amount': this.safeString (order, 'q'),
             'cost': this.safeString (order, 'Z'),
             'average': this.safeString (order, 'ap'),
-            'filled': this.safeString (order, 'z'),
+            'filled': this.safeString2 (order, 'z', 'aq'), // aq: ALGO_UPDATE executed quantity
             'remaining': undefined,
             'status': status,
             'fee': fee,
@@ -5197,10 +5206,19 @@ export default class binance extends binanceRest {
         if (this.positions === undefined) {
             this.positions = {};
         }
-        if (type in this.positions) {
-            return;
-        }
         const fetchPositionsSnapshot = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', false);
+        if (type in this.positions) {
+            // a fresh client has no snapshot future yet, which means the
+            // connection was re-established after a disconnect: positions
+            // closed while disconnected never arrive as stream deltas, so
+            // the cached positions are stale and must be reloaded
+            const messageHash = type + ':fetchPositionsSnapshot';
+            if ((fetchPositionsSnapshot === true) && (!(messageHash in client.futures))) {
+                delete this.positions[type];
+            } else {
+                return;
+            }
+        }
         if (fetchPositionsSnapshot === true) {
             const messageHash = type + ':fetchPositionsSnapshot';
             if (!(messageHash in client.futures)) {
@@ -5220,6 +5238,13 @@ export default class binance extends binanceRest {
             params['portfolioMargin'] = true;
         }
         const positions = await this.fetchPositions (undefined, params);
+        // the client may have been replaced by a reconnect while the
+        // snapshot was in flight: a stale snapshot must not overwrite
+        // the fresh one loaded for the new client
+        const currentClient = this.safeValue (this.clients, client.url);
+        if (currentClient !== client) {
+            return;
+        }
         this.positions[type] = new ArrayCacheBySymbolBySide ();
         const cache = this.positions[type];
         for (let i = 0; i < positions.length; i++) {

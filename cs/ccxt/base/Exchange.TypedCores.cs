@@ -4278,14 +4278,7 @@ public partial class BaseExchange
         {
             result["type"] = null;
         }
-        if (typed.spot != null)
-        {
-            result["spot"] = typed.spot;
-        }
-        else
-        {
-            result["spot"] = null;
-        }
+        result["spot"] = typed.spot;
         if (typed.margin != null)
         {
             result["margin"] = typed.margin;
@@ -4294,38 +4287,10 @@ public partial class BaseExchange
         {
             result["margin"] = null;
         }
-        if (typed.swap != null)
-        {
-            result["swap"] = typed.swap;
-        }
-        else
-        {
-            result["swap"] = null;
-        }
-        if (typed.future != null)
-        {
-            result["future"] = typed.future;
-        }
-        else
-        {
-            result["future"] = null;
-        }
-        if (typed.option != null)
-        {
-            result["option"] = typed.option;
-        }
-        else
-        {
-            result["option"] = null;
-        }
-        if (typed.contract != null)
-        {
-            result["contract"] = typed.contract;
-        }
-        else
-        {
-            result["contract"] = null;
-        }
+        result["swap"] = typed.swap;
+        result["future"] = typed.future;
+        result["option"] = typed.option;
+        result["contract"] = typed.contract;
         if (typed.settle != null)
         {
             result["settle"] = typed.settle;
@@ -5688,6 +5653,10 @@ public partial class BaseExchange
         if (typed.exitPrice != null)
         {
             result["exitPrice"] = typed.exitPrice;
+        }
+        if (typed.positionMargin != null)
+        {
+            result["positionMargin"] = typed.positionMargin;
         }
         return result;
     }
