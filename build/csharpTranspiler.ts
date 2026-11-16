@@ -3135,7 +3135,7 @@ class NewTranspiler {
     wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
         let out = line;
         for (const name of names) {
-            const typedType = this.typedCoreType (this.camelName (name), predictionTier);
+            const typedType = this.typedCoreType (this.pascalName (name, true), predictionTier);
             if (typedType === '') {
                 continue;
             }
@@ -3239,7 +3239,7 @@ class NewTranspiler {
         const declRe = /^(\s*)Dictionary<string, object> (\w+) = ccxt\.BaseExchange\.FromOHLCVDict\((await this\.(\w+)\(.*\))\);$/;
         for (let j = bodyStart + 1; j < bodyEnd; j++) {
             const decl = lines[j] === null ? null : declRe.exec (lines[j]);
-            if (decl === null || this.typedCoreType (this.camelName (decl[4]), predictionTier) !== OHLCV_DICT_TYPE) {
+            if (decl === null || this.typedCoreType (this.pascalName (decl[4], true), predictionTier) !== OHLCV_DICT_TYPE) {
                 continue;
             }
             const name = decl[2];
@@ -3280,7 +3280,7 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, modifier, printedName ] = sig;
-            const methodName = this.camelName (printedName);
+            const methodName = this.pascalName (printedName, true);
             const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
             const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
             const isTyped = typedType !== '';
@@ -3312,7 +3312,7 @@ class NewTranspiler {
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 const calledCore = typedCallRe.exec (expr);
-                const calledType = calledCore ? this.typedCoreType (this.camelName (calledCore[1]), predictionTier) : '';
+                const calledType = calledCore ? this.typedCoreType (this.pascalName (calledCore[1], true), predictionTier) : '';
                 // the return already carries the core's own dictionary type
                 if (isTyped && (csharpReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
                     tailOk[j] = true;
@@ -3473,7 +3473,7 @@ class NewTranspiler {
             return false;
         }
         const venue = (call[2] === 'base') ? '' : this.currentVenue;
-        const declared = (call[1] !== undefined) ? this.typedCoreType (this.camelName (call[3]), predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
+        const declared = (call[1] !== undefined) ? this.typedCoreType (this.pascalName (call[3], true), predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
         return declared === targetType;
     }
 
@@ -3487,13 +3487,9 @@ class NewTranspiler {
         return unchanged.some ((prefix) => expr.startsWith (prefix));
     }
 
-    pascalName (name: string): string {
-        return name.charAt (0).toUpperCase () + name.slice (1);
-    }
-
-    // the TS (table) name of a printed method name: typed cores print PascalCase
-    camelName (name: string): string {
-        return name.charAt (0).toLowerCase () + name.slice (1);
+    // the printed (PascalCase) name, or with `camel` the TS (table) name of a printed method name
+    pascalName (name: string, camel = false): string {
+        return (camel ? name.charAt (0).toLowerCase () : name.charAt (0).toUpperCase ()) + name.slice (1);
     }
 
     // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
