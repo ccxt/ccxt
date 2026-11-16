@@ -1390,8 +1390,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             ),
             'nonce' => $id,
         );
-        $message = $this->deep_extend($request, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes));
     }
 
     public function un_watch_public_multiple(string $topic, array $symbols, array $messageHashes, array $subMessageHashes, array $topics, $params = array(), array $subExtend = array()) {
@@ -1416,8 +1415,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             'subMessageHashes' => $subMessageHashes,
             'messageHashes' => $messageHashes,
         );
-        $message = $this->deep_extend($request, $params);
-        return Async\await($this->watch_multiple($url, $messageHashes, $message, $messageHashes, $this->extend($subscription, $subExtend)));
+        return Async\await($this->watch_multiple($url, $messageHashes, $this->deep_extend($request, $params), $messageHashes, $this->extend($subscription, $subExtend)));
     }
 
     public function watch_private_request(float $nonce, $params = array()) {

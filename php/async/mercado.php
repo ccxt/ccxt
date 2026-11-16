@@ -623,8 +623,7 @@ class mercado extends Exchange {
                 }
                 $amountString = $this->number_to_string($amount);
                 $priceString = $this->number_to_string($price);
-                $cost = $this->parse_to_numeric(Precise::string_mul($amountString, $priceString));
-                $request['cost'] = $this->price_to_precision($market['symbol'], $cost);
+                $request['cost'] = $this->price_to_precision($market['symbol'], $this->parse_to_numeric(Precise::string_mul($amountString, $priceString)));
                 $response = Async\await($this->privatePostPlaceMarketBuyOrder($this->extend($request, $params)));
             } else {
                 $request['quantity'] = $this->amount_to_precision($market['symbol'], $amount);

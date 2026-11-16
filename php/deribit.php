@@ -1780,25 +1780,25 @@ class deribit extends Exchange {
         $futureFee = array();
         $optionFee = array();
         for ($i = 0; $i < count($fees); $i++) {
-            $fee = $fees[$i];
-            $instrumentType = $this->safe_string($fee, 'instrument_type');
+            $feeEntry = $fees[$i];
+            $instrumentType = $this->safe_string($feeEntry, 'instrument_type');
             if ($instrumentType === 'future') {
                 $futureFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             } elseif ($instrumentType === 'perpetual') {
                 $perpetualFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             } elseif ($instrumentType === 'option') {
                 $optionFee = array(
-                    'info' => $fee,
-                    'maker' => $this->safe_number($fee, 'maker_fee'),
-                    'taker' => $this->safe_number($fee, 'taker_fee'),
+                    'info' => $feeEntry,
+                    'maker' => $this->safe_number($feeEntry, 'maker_fee'),
+                    'taker' => $this->safe_number($feeEntry, 'taker_fee'),
                 );
             }
         }

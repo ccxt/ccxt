@@ -817,7 +817,7 @@ class derive extends Exchange {
     private function do_get_markets_paginated(array $request, $params = array()) {
         /**
          * @ignore
-         * fetches every $page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
+         * fetches every page of public/get_all_instruments for the given filter and parses the instruments; v3 paginates the endpoint, options alone exceed 5000 entries
          * @param {array} $request the base $request with the instrument_type filter
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of raw instrument entries
@@ -826,9 +826,8 @@ class derive extends Exchange {
         list($maxPages, $paramsMaxPages) = $this->handle_option_integer_and_params($params, 'getMarketsPaginated', 'maxMarketPages', 25);
         list($pageSize, $paramsOmitted) = $this->handle_option_integer_and_params($paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for ($i = 0; $i < $maxPages; $i++) {
-            $page = $i + 1;
             $requestExtension = array(
-                'page' => $page,
+                'page' => $i + 1,
                 'page_size' => $pageSize,
             );
             $requestExtended = $this->extend($this->extend($request, $requestExtension), $paramsOmitted); // nested because the csharp base defines extend with two arguments only

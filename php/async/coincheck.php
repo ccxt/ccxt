@@ -582,8 +582,8 @@ class coincheck extends Exchange {
         $priceString = $this->safe_string($trade, 'rate');
         $marketId = $this->safe_string($trade, 'pair');
         $marketResolved = $this->safe_market($marketId, $market, '_');
-        $baseId = $marketResolved['baseId'];
-        $quoteId = $marketResolved['quoteId'];
+        $baseId = $this->safe_string($marketResolved, 'baseId');
+        $quoteId = $this->safe_string($marketResolved, 'quoteId');
         $symbol = $marketResolved['symbol'];
         $takerOrMaker = null;
         $amountString = null;

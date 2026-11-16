@@ -1953,7 +1953,7 @@ class dydx extends Exchange {
         $account = $this->fetch_dydx_account();
         $usd = $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000'));
         $payload = null;
-        $signingPayload = null;
+        $signingPayload = array();
         if ($fromAccount === 'main') {
             // deposit to subaccount
             if ($toSubaccountId === null) {

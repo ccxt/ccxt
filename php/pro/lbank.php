@@ -716,21 +716,20 @@ class lbank extends \ccxt\async\lbank {
         $key = Async\await($this->authenticate($params));
         $url = $this->urls['api']['ws'];
         $messageHash = null;
-        $pair = 'all';
         $symbolResolved = ($symbol === null) ? null : $this->symbol($symbol);
+        $message = array(
+            'action' => 'subscribe',
+            'subscribe' => 'orderUpdate',
+            'subscribeKey' => $key,
+            'pair' => 'all',
+        );
         if ($symbol === null) {
             $messageHash = 'orders:all';
         } else {
             $market = $this->market($symbol);
             $messageHash = 'orders:' . $market['symbol'];
-            $pair = $market['id'];
+            $message['pair'] = $market['id'];
         }
-        $message = array(
-            'action' => 'subscribe',
-            'subscribe' => 'orderUpdate',
-            'subscribeKey' => $key,
-            'pair' => $pair,
-        );
         $request = $this->deep_extend($message, $params);
         $orders = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
         return $this->filter_by_symbol_since_limit($orders, $symbolResolved, $since, $limit, true);

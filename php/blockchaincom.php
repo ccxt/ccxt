@@ -655,7 +655,7 @@ class blockchaincom extends Exchange {
             'orderQty' => $this->amount_to_precision($symbol, $amount),
             'clOrdId' => $clientOrderId,
         );
-        $triggerPrice = $this->safe_value_n($paramsOmitted, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
+        $triggerPrice = $this->safe_string_n($paramsOmitted, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         $paramsOmitted2 = $this->omit($paramsOmitted, array( 'triggerPrice', 'stopPx', 'stopPrice' ));
         if ($uppercaseOrderType === 'STOP' || $uppercaseOrderType === 'STOPLIMIT') {
             if ($triggerPrice === null) {

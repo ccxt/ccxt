@@ -2352,7 +2352,7 @@ class krakenfutures extends Exchange {
                     $executions[] = $item;
                 }
                 // Final order (after placement / editing / execution / canceling)
-                $orderTrigger = $this->safe_value($item, 'orderTrigger');
+                $orderTrigger = $this->safe_dict($item, 'orderTrigger');
                 if ($details === null) {
                     $details = $this->safe_value_2($item, 'new', 'order', $orderTrigger);
                     if ($details !== null) {

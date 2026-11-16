@@ -998,7 +998,7 @@ class deribit extends \ccxt\async\deribit {
                 throw new ArgumentsRequired($this->id . ' watchMultipleWrapper() symbolsArray is required');
             }
             $market = null;
-            $currentDescriptor = null;
+            $currentDescriptor = '';
             if ($isOHLCV) {
                 $currentPair = $this->safe_list($symbolsArray, $i, array());
                 $market = $this->market($this->safe_string($currentPair, 0));

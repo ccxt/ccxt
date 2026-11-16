@@ -354,9 +354,10 @@ class delta extends Exchange {
         $optionParts = explode('-', $symbol);
         $symbolBase = explode('/', $symbol);
         $hasSlash = mb_strpos($symbol, '/') > -1;
-        $partSource = $hasSlash ? $symbolBase : $optionParts;
-        $baseIndex = $hasSlash ? 0 : 1;
-        $base = $this->safe_string($partSource, $baseIndex, '');
+        $base = $this->safe_string($optionParts, 1, '');
+        if ($hasSlash) {
+            $base = $this->safe_string($symbolBase, 0, '');
+        }
         $optionType = $this->safe_string($optionParts, $hasSlash ? 3 : 0, '');
         $rawExpiry = $this->safe_string($optionParts, $hasSlash ? 1 : 3, '');
         $expiry = mb_substr($rawExpiry, 4) . mb_substr($rawExpiry, 2, 4 - 2) . mb_substr($rawExpiry, 0, 2 - 0);

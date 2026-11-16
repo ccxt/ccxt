@@ -404,8 +404,7 @@ class blofin extends \ccxt\async\blofin {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols, null, false);
-        $symbolsList = $symbolsNormalized;
+        $symbolsList = $this->market_symbols($symbols, null, false);
         $firstMarket = $this->market($symbolsList[0]);
         $channel = 'tickers';
         list($marketType, $paramsMarketType) = $this->handle_market_type_and_params('watchBidsAsks', $firstMarket, $params);
@@ -431,7 +430,7 @@ class blofin extends \ccxt\async\blofin {
             }
             return $tickers;
         }
-        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsNormalized);
+        return $this->filter_by_array($this->bidsasks, 'symbol', $symbolsList);
     }
 
     public function handle_bid_ask(Client $client, array $message) {
@@ -683,7 +682,10 @@ class blofin extends \ccxt\async\blofin {
          * @return {array[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
          */
         $params['callerMethodName'] = 'watchOrders';
-        $symbolsArray = ($symbol !== null) ? array( $symbol ) : array();
+        $symbolsArray = array();
+        if ($symbol !== null) {
+            $symbolsArray[] = $symbol;
+        }
         return Async\await($this->watch_orders_for_symbols($symbolsArray, $since, $limit, $params));
     }
 
@@ -961,10 +963,9 @@ class blofin extends \ccxt\async\blofin {
             $market = $this->market($this->safe_string($symbols, $i));
             $channel = $channelName;
             if ($isOHLCV) {
-                $tfArray = $symbolsArray[$i];
-                $tf = $tfArray[1];
+                $tf = $this->safe_string($this->safe_list($symbolsArray, $i), 1);
                 $interval = $this->safe_string($this->timeframes, $tf, $tf);
-                $channel .= $interval;
+                $channel = $channel . $interval;
             }
             $topic = array(
                 'channel' => $channel,

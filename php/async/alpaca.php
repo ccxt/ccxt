@@ -1100,8 +1100,7 @@ class alpaca extends Exchange {
         $parts = explode('-', $uuid);
         $random_id = implode('', $parts);
         $defaultClientId = $this->implode_params($clientOrderIdprefix, array( 'id' => $random_id ));
-        $clientOrderId = $this->safe_string($params, 'clientOrderId', $defaultClientId);
-        return $clientOrderId;
+        return $this->safe_string($params, 'clientOrderId', $defaultClientId);
     }
 
     public function create_market_order_with_cost(string $symbol, string $side, float $cost, $params = array()): PromiseInterface {
@@ -1868,11 +1867,9 @@ class alpaca extends Exchange {
             Async\await($this->load_markets());
         }
         $currency = $this->currency($code);
-        $addressValue = $address;
         $tagSuffix = $this->safe_string($params, 'tag', '');
-        if ($tagSuffix !== '') {
-            $addressValue = $address . ':' . $tagSuffix;
-        }
+        $taggedAddress = $address . ':' . $tagSuffix;
+        $addressValue = ($tagSuffix !== '') ? $taggedAddress : $address;
         $request = array(
             'asset' => $currency['id'],
             'address' => $addressValue,

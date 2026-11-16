@@ -1087,11 +1087,11 @@ class bullish extends Exchange {
             $this->load_markets();
         }
         $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        $paramsExtended = $params;
+        $orderIdParams = array();
         if ($clientOrderId === null) {
-            $paramsExtended = $this->extend(array( 'orderId' => $id ), $params);
+            $orderIdParams['orderId'] = $id;
         }
-        return $this->fetch_my_trades($symbol, $since, $limit, $paramsExtended);
+        return $this->fetch_my_trades($symbol, $since, $limit, $this->extend($orderIdParams, $params));
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {

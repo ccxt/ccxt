@@ -3718,10 +3718,8 @@ class woofipro extends Exchange {
             $auth = '';
             $ts = (string) $this->nonce();
             $url .= $pathWithParams;
-            $apiKey = $this->apiKey;
-            if (mb_strpos($this->apiKey, 'ed25519:') === false) {
-                $apiKey = 'ed25519:' . $this->apiKey;
-            }
+            $hasKeyPrefix = mb_strpos($this->apiKey, 'ed25519:') !== false;
+            $apiKey = ($hasKeyPrefix) ? $this->apiKey : ('ed25519:' . $this->apiKey);
             $authHeaders = array(
                 'orderly-account-id' => $this->accountId,
                 'orderly-key' => $apiKey,

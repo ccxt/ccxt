@@ -1080,11 +1080,10 @@ class whitebit extends Exchange {
         if ($this->markets === null) {
             throw new ExchangeError($this->id . ' markets not loaded');
         }
-        $markets = $this->markets;
-        $marketIds = is_array($markets) ? array_keys($markets) : array();
+        $marketIds = is_array($this->markets) ? array_keys($this->markets) : array();
         for ($i = 0; $i < count($marketIds); $i++) {
             $marketId = $marketIds[$i];
-            $market = $this->safe_value($markets, $marketId);
+            $market = $this->safe_dict($this->markets, $marketId);
             $marketSymbol = $this->safe_string($market, 'symbol');
             if (($market === null) || ($market === null) || ($marketSymbol === null) || ($marketSymbol === '')) {
                 continue; // Skip invalid markets silently
@@ -3157,7 +3156,7 @@ class whitebit extends Exchange {
             $request['memo'] = $tag;
         }
         if ($this->is_fiat($code)) {
-            $provider = $this->safe_value($paramsWithdrawTag, 'provider');
+            $provider = $this->safe_string($paramsWithdrawTag, 'provider');
             if ($provider === null) {
                 throw new ArgumentsRequired($this->id . ' withdraw() requires a provider when the ticker is fiat');
             }
@@ -4314,11 +4313,7 @@ class whitebit extends Exchange {
         if ($isPrivate) {
             $requestBody = $privateBody;
         }
-        $requestHeaders = $publicHeaders;
-        if ($isPrivate) {
-            $requestHeaders = $privateHeaders;
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => ($isPrivate) ? $privateHeaders : $publicHeaders );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

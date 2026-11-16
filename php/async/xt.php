@@ -5272,7 +5272,7 @@ class xt extends Exchange {
     }
 
     public function parse_trading_fee(array $fee, ?array $market = null): array {
-        $symbol = ($market !== null) ? $market['symbol'] : null;
+        $symbol = $this->safe_string($market, 'symbol');
         return array(
             'info' => $fee,
             'symbol' => $symbol,

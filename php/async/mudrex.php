@@ -1251,7 +1251,7 @@ class mudrex extends Exchange {
         }
         $market = $this->market($symbol);
         $positionId = $this->safe_string($params, 'position_id');
-        $amount = $this->safe_value($params, 'amount');
+        $amount = $this->safe_string($params, 'amount');
         if ($positionId === null) {
             $positions = Async\await($this->fetch_positions(array( $symbol ), $params));
             $candidates = $this->filter_by($positions, 'symbol', $market['symbol']);

@@ -1855,7 +1855,7 @@ class bitstamp extends Exchange {
         if ($this->markets === null) {
             $this->load_markets();
         }
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;
@@ -1885,7 +1885,7 @@ class bitstamp extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
         $request = array();
         if ($clientOrderId !== null) {
             $request['client_order_id'] = $clientOrderId;

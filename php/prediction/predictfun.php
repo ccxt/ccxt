@@ -3959,8 +3959,6 @@ class predictfun extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $existingHeaders = array();
-        $headersValue = $existingHeaders;
         $authHeaders = array();
         if (($apiKey !== null) && (!$sandboxMode)) {
             // the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -4003,7 +4001,7 @@ class predictfun extends Exchange {
             $authHeaders['Content-Type'] = 'application/json';
             $bodyValue = $this->json($params);
         }
-        $headersExtended = $this->extend($headersValue, $authHeaders);
+        $headersExtended = $this->extend(array(), $authHeaders);
         return array( 'url' => $url, 'method' => $method, 'body' => $bodyValue, 'headers' => $headersExtended );
     }
 }

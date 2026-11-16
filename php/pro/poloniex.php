@@ -192,10 +192,8 @@ class poloniex extends \ccxt\async\poloniex {
             $marketIds = $this->market_ids($symbols);
         }
         $symbolsSuffix = ($symbols === null) ? '' : implode(',', $symbols);
-        $symbolsHash = null;
-        if ($this->is_empty($symbols)) {
-            $symbolsHash = $messageHash;
-        } else {
+        $symbolsHash = $messageHash;
+        if (!$this->is_empty($symbols)) {
             $symbolsHash = $messageHash . '::' . $symbolsSuffix;
         }
         if ($name !== 'balances') {

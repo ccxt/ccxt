@@ -166,13 +166,13 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbolValue = $this->safe_string($market, 'symbol', '');
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
         $messageHash = 'ohlcv:' . $symbolValue;
-        $request = array(
+        $subscribe = array(
             'action' => 'subscribe',
             'channel' => 'prices',
             'symbol' => $market['id'],
             'granularity' => $this->parse_number($interval),
         );
-        $request = $this->deep_extend($request, $params);
+        $request = $this->deep_extend($subscribe, $params);
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $ohlcv = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
         $limitResolved = $limit;
@@ -248,12 +248,12 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $messageHash = 'ticker:' . $symbolValue;
-        $request = array(
+        $subscribe = array(
             'action' => 'subscribe',
             'channel' => 'ticker',
             'symbol' => $market['id'],
         );
-        $request = $this->deep_extend($request, $params);
+        $request = $this->deep_extend($subscribe, $params);
         return Async\await($this->watch($url, $messageHash, $request, $messageHash));
     }
 
@@ -364,12 +364,12 @@ class blockchaincom extends \ccxt\async\blockchaincom {
         $symbolValue = $this->safe_string($market, 'symbol', '');
         $url = $this->safe_string($this->urls['api'], 'ws', '');
         $messageHash = 'trades:' . $symbolValue;
-        $request = array(
+        $subscribe = array(
             'action' => 'subscribe',
             'channel' => 'trades',
             'symbol' => $market['id'],
         );
-        $request = $this->deep_extend($request, $params);
+        $request = $this->deep_extend($subscribe, $params);
         $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash, $request));
         return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
     }

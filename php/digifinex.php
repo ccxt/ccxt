@@ -1183,13 +1183,11 @@ class digifinex extends Exchange {
         //
         $date = $this->safe_integer($response, 'date');
         $tickers = $this->safe_list($response, 'ticker', array());
-        $data = $this->safe_dict($response, 'data', array());
         $firstTicker = $this->safe_dict($tickers, 0, array());
-        $result = $data;
         if (!$this->safe_bool($market, 'swap', false)) {
-            $result = $this->extend(array( 'date' => $date ), $firstTicker);
+            return $this->parse_ticker($this->extend(array( 'date' => $date ), $firstTicker), $market);
         }
-        return $this->parse_ticker($result, $market);
+        return $this->parse_ticker($this->safe_dict($response, 'data', array()), $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
@@ -1907,11 +1905,9 @@ class digifinex extends Exchange {
             $quantity = null;
             list($createMarketBuyOrderRequiresPrice, $paramsRequiresPrice) = $this->handle_option_bool_and_params($paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', true);
             $isMarketBuy = $isMarketOrder && ($side === 'buy');
-            $keysToOmit = null;
+            $keysToOmit = array( 'postOnly' );
             if ($isMarketBuy) {
-                $keysToOmit = array( 'cost', 'postOnly' );
-            } else {
-                $keysToOmit = array( 'postOnly' );
+                $keysToOmit[] = 'cost';
             }
             $paramsRequest = $this->omit($paramsRequiresPrice, $keysToOmit);
             if ($isMarketBuy) {

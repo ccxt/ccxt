@@ -551,8 +551,8 @@ class lbank extends Exchange {
             $this->fetch_swap_markets($params),
         );
         $resolvedMarkets = Async\await(Promise\all($marketsPromises));
-        $spotMarkets = $this->safe_value($resolvedMarkets, 0);
-        $swapMarkets = $this->safe_value($resolvedMarkets, 1);
+        $spotMarkets = $this->safe_list($resolvedMarkets, 0, array());
+        $swapMarkets = $this->safe_list($resolvedMarkets, 1, array());
         return $this->array_concat($spotMarkets, $swapMarkets);
     }
 

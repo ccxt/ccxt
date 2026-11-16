@@ -2029,7 +2029,7 @@ class upbit extends Exchange {
         if ($numTrades > 0) {
             // the timestamp in fetchOrder trades is missing
             $lastTrade = $this->safe_dict($trades, $numTrades - 1, array());
-            $lastTradeTimestamp = $lastTrade['timestamp'];
+            $lastTradeTimestamp = $this->safe_integer($lastTrade, 'timestamp');
             $getFeesFromTrades = false;
             if ($feeCost === null) {
                 $getFeesFromTrades = true;
@@ -2591,8 +2591,7 @@ class upbit extends Exchange {
             $token = $this->jwt($request, $this->encode($this->secret), 'sha256');
             $headers['Authorization'] = 'Bearer ' . $token;
         }
-        $requestHeaders = ($apiName === 'private') ? $headers : null;
-        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => ($apiName === 'private') ? $headers : null );
     }
 
     public function handle_errors(int $code, string $reason, string $url, string $method, array $headers, string $body, mixed $response, ?array $requestHeaders, ?string $requestBody) {

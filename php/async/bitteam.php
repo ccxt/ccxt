@@ -2548,13 +2548,11 @@ class bitteam extends Exchange {
         if ($code !== 200) {
             if ($code === 404) {
                 if ((mb_strpos($url, '/ccxt/order/') !== false) && ($method === 'GET')) {
-                    $parts = explode('/order/', $url);
-                    $orderId = $this->safe_string($parts, 1, '');
+                    $orderId = $this->safe_string(explode('/order/', $url), 1, '');
                     throw new OrderNotFound($this->id . ' order ' . $orderId . ' not found');
                 }
                 if (mb_strpos($url, '/cmc/orderbook/') !== false) {
-                    $parts = explode('/cmc/orderbook/', $url);
-                    $symbolId = $this->safe_string($parts, 1, '');
+                    $symbolId = $this->safe_string(explode('/cmc/orderbook/', $url), 1, '');
                     throw new BadSymbol($this->id . ' symbolId ' . $symbolId . ' not found');
                 }
             }

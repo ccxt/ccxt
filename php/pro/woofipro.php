@@ -675,13 +675,12 @@ class woofipro extends \ccxt\async\woofipro {
         $authenticated = $this->safe_value($client->subscriptions, $messageHash);
         if ($authenticated === null) {
             $ts = (string) $this->nonce();
-            $auth = $ts;
             $secret = $this->secret;
             if (mb_strpos($this->secret, 'ed25519:') !== false) {
                 $parts = explode('ed25519:', $this->secret);
                 $secret = $parts[1];
             }
-            $signature = $this->eddsa($this->encode($auth), $this->base58_to_binary($secret), 'ed25519');
+            $signature = $this->eddsa($this->encode($ts), $this->base58_to_binary($secret), 'ed25519');
             $request = array(
                 'event' => $event,
                 'params' => array(

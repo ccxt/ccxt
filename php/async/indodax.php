@@ -1023,8 +1023,8 @@ class indodax extends Exchange {
         $response = Async\await($this->privatePostOrderHistory($this->extend($request, $params)));
         $historyResult = $this->safe_dict($response, 'return', array());
         $orders = $this->parse_orders($historyResult['orders'], $market);
-        $orders = $this->filter_by($orders, 'status', 'closed');
-        return $this->filter_by_symbol_since_limit($orders, $symbol, $since, $limit);
+        $closedOrders = $this->filter_by($orders, 'status', 'closed');
+        return $this->filter_by_symbol_since_limit($closedOrders, $symbol, $since, $limit);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {

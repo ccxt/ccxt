@@ -1662,10 +1662,7 @@ class cex extends Exchange {
         }
         $currency = $this->currency($code);
         $fromMain = ($fromAccount === '');
-        $targetAccount = $fromAccount;
-        if ($fromMain) {
-            $targetAccount = $toAccount;
-        }
+        $targetAccount = ($fromMain) ? $toAccount : $fromAccount;
         $guid = $this->safe_string($params, 'guid', $this->uuid());
         $request = array(
             'currency' => $currency['id'],

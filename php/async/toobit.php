@@ -2846,9 +2846,8 @@ class toobit extends Exchange {
         // }
         //
         $result = array();
-        $entry = $response;
-        $marketResolved = $this->safe_market($this->safe_string($entry, 'symbol'), $market);
-        $fee = $this->parse_trading_fee($entry, $marketResolved);
+        $marketResolved = $this->safe_market($this->safe_string($response, 'symbol'), $market);
+        $fee = $this->parse_trading_fee($response, $marketResolved);
         $result[$marketResolved['symbol']] = $fee;
         return $result;
     }

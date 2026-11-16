@@ -388,16 +388,14 @@ class foxbit extends Exchange {
             $networkCode = $this->network_id_to_code($networkId, $code);
             $networkWithdrawInfo = $this->safe_dict($network, 'withdraw_info');
             $networkDepositInfo = $this->safe_dict($network, 'deposit_info');
-            $isWithdrawEnabled = $this->safe_string($networkWithdrawInfo, 'status') === 'ENABLED';
-            $isDepositEnabled = $this->safe_string($networkDepositInfo, 'status') === 'ENABLED';
             if ($networkCode !== null) {
                 $parsedNetworks[$networkCode] = array(
                     'info' => $rawCurrency,
                     'id' => $networkId,
                     'network' => $networkCode,
                     'name' => $this->safe_string($network, 'name'),
-                    'deposit' => $isDepositEnabled,
-                    'withdraw' => $isWithdrawEnabled,
+                    'deposit' => ($this->safe_string($networkDepositInfo, 'status') === 'ENABLED'),
+                    'withdraw' => ($this->safe_string($networkWithdrawInfo, 'status') === 'ENABLED'),
                     'active' => true,
                     'precision' => null,
                     'fee' => $this->safe_number($networkWithdrawInfo, 'fee'),
