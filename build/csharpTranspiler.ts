@@ -8118,264 +8118,216 @@ function selfTestTranspiler (): any {
 // snippet checks for the C# native-emission passes (`csharpTranspiler.ts --self-test`)
 export function csharpNativeEmissionSelfTest (): string[] {
     const problems: string[] = [];
-    {
-        const { assert, console } = selfTestSink (problems, 'csharp native emission self test native add');
-        const transpiler = selfTestTranspiler ();
-        let failures = 0;
-        const check = (name: string, body: string, expected: string, forbidden?: string) => {
-            const src = 'type Int = number; class Test {\n safeInteger (o, k, d = undefined): Int { return d; }\n seconds (): Int { return 1; }\n' + body + '\n}';
-            const out: string = transpiler.transpileCSharp (src).content;
-            const ok = out.includes (expected) && (forbidden === undefined || !out.includes (forbidden));
-            console.log ((ok ? 'ok   ' : 'FAIL ') + name);
-            if (!ok) { failures++; console.log (out); }
-        };
-        check ('int local + int literal -> Int64 operator',
-            'f (xs) { for (let i = 0; i < xs.length; i++) { const v = [ i + 1 ]; xs.push (v); } }', '(i + 1L)', 'add(i, 1)');
-        check ('Int64? non-null default + Int64?(guarded)',
-            'f (o) { const a = this.safeInteger (o, "a", 5); const b = this.safeInteger (o, "b"); if (b !== undefined) { return a + b; } return 0; }', '(a + b)', 'add(a, b)');
-        check ('Int64? unguarded keeps helper',
-            'f (o) { const a = this.safeInteger (o, "a", 5); const b = this.safeInteger (o, "b"); return a + b; }', 'add(a, b)');
-        check ('seconds() + safeInteger with default',
-            'f (o) { return this.seconds () + this.safeInteger (o, "x", 60); }', '(this.seconds() + this.safeInteger(o, "x", 60))');
-        check ('Int64? guarded + double keeps helper',
-            'f (o) { const b = this.safeInteger (o, "b"); const d = 1.5; if (b !== undefined) { return b + d; } return 0; }', 'add(b, d)');
-        check ('Int64? rebound keeps helper',
-            'f (o) { const a = this.safeInteger (o, "a", 5); let b = this.safeInteger (o, "b"); if (b !== undefined) { b = this.safeInteger (o, "c"); return a + b; } return 0; }', 'add(a, b)');
-        check ('int + guarded Int64? right',
-            'f (o, xs) { const b = this.safeInteger (o, "b"); if (b === undefined) { return 0; } return xs.length + b; }', '(getArrayLength(xs) + b)', 'add(');
-        check ('int + int local keeps helper',
-            'f (xs) { for (let i = 0; i < xs.length; i++) { const j = xs.length; xs.push (i + j); } }', 'add(i, j)');
+    // `FAIL <name>` per failed row plus a failure count
+    const counted = (label: string, run: (body: string) => string, rows: string[][]) => {
+        const failed = rows.filter (([ name, body, expected, forbidden ]) => {
+            const out = run (body);
+            return !out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden));
+        });
+        problems.push (...failed.map (([ name ]) => `${label}: ${('FAIL ' + name).slice (0, 300)}`));
+        if (failed.length) { problems.push (`${label}: ${failed.length} case(s) failed`); }
+    };
+    const nativeAdd = selfTestTranspiler ();
+    counted ('csharp native emission self test native add', (body) => nativeAdd.transpileCSharp ('type Int = number; class Test {\n safeInteger (o, k, d = undefined): Int { return d; }\n seconds (): Int { return 1; }\n' + body + '\n}').content, [
+        [ 'int local + int literal -> Int64 operator',
+            'f (xs) { for (let i = 0; i < xs.length; i++) { const v = [ i + 1 ]; xs.push (v); } }', '(i + 1L)', 'add(i, 1)' ],
+        [ 'Int64? non-null default + Int64?(guarded)',
+            'f (o) { const a = this.safeInteger (o, "a", 5); const b = this.safeInteger (o, "b"); if (b !== undefined) { return a + b; } return 0; }', '(a + b)', 'add(a, b)' ],
+        [ 'Int64? unguarded keeps helper',
+            'f (o) { const a = this.safeInteger (o, "a", 5); const b = this.safeInteger (o, "b"); return a + b; }', 'add(a, b)' ],
+        [ 'seconds() + safeInteger with default',
+            'f (o) { return this.seconds () + this.safeInteger (o, "x", 60); }', '(this.seconds() + this.safeInteger(o, "x", 60))' ],
+        [ 'Int64? guarded + double keeps helper',
+            'f (o) { const b = this.safeInteger (o, "b"); const d = 1.5; if (b !== undefined) { return b + d; } return 0; }', 'add(b, d)' ],
+        [ 'Int64? rebound keeps helper',
+            'f (o) { const a = this.safeInteger (o, "a", 5); let b = this.safeInteger (o, "b"); if (b !== undefined) { b = this.safeInteger (o, "c"); return a + b; } return 0; }', 'add(a, b)' ],
+        [ 'int + guarded Int64? right',
+            'f (o, xs) { const b = this.safeInteger (o, "b"); if (b === undefined) { return 0; } return xs.length + b; }', '(getArrayLength(xs) + b)', 'add(' ],
+        [ 'int + int local keeps helper',
+            'f (xs) { for (let i = 0; i < xs.length; i++) { const j = xs.length; xs.push (i + j); } }', 'add(i, j)' ],
         // integer-literal counters print Int64, so the compare/equality/add passes fire
-        check ('counter += 1 with compare + equality',
-            'f (o) { let retry = 0; const m = this.safeInteger (o, "m", 10); while (retry < m) { retry += 1; if (retry === m) { return 1; } } return 0; }', 'Int64 retry = 0;', 'object retry');
-        check ('counter n = n + 1 read by numberToString',
-            'numberToString (x): string { return x; }\n f (o) { let calls = 0; while (calls < 3) { calls = calls + 1; const s = "c" + this.numberToString (calls); } }', 'Int64 calls = 0;');
-        check ('counter returned keeps object',
-            'f (o) { let n = 0; n += 1; return n; }', 'object n = 0;');
-        check ('counter vs double literal keeps object',
-            'f (o) { let n = 0; n += 1; return n === 1.5; }', 'object n = 0;');
-        check ('counter -= keeps object',
-            'f (o) { let n = 0; n += 1; n -= 1; return n > 0; }', 'object n = 0;');
-        check ('counter rebound from safeInteger keeps object',
-            'f (o) { let n = 0; n += 1; n = this.safeInteger (o, "x"); return n > 0; }', 'object n = 0;');
-        check ('counter += double keeps object',
-            'f (o) { let n = 0; n += 1.5; return n > 0; }', 'object n = 0;');
-        if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
-    }
-    {
-        const { assert, console } = selfTestSink (problems, 'arithmetic twins');
-        let failures = 0;
-        const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-        const check = (name: string, body: string, expected: string) => {
-            const out = csharpNativeArithmetic (wrap (body));
-            const ok = out.includes (expected);
-            console.log ((ok ? 'ok   ' : 'FAIL ') + name);
-            if (!ok) { failures++; console.log (out); }
-        };
-        check ('int * Int64? -> lifted *', '        int duration = this.parseTimeframe(tf);\n        Int64? n = limit;\n        return subtract(since, multiply(duration, n));', 'subtract(since, (duration * n))');
-        check ('Int64? * int literal', '        Int64? n = limit;\n        object p = multiply(n, 2);', 'object p = (n * 2);');
-        check ('nested twin result * literal', '        int duration = 60;\n        int maxLimit = 300;\n        Int64 d = multiply(multiply(duration, maxLimit), 1000);', 'Int64 d = (multiply(duration, maxLimit) * 1000);');
-        check ('int * int stays (Int32 overflow vs Int64 twin)', '        int a = 60;\n        int b = 300;\n        object d = multiply(a, b);', 'multiply(a, b)');
-        check ('int * int literal widens', '        int a = 60;\n        object d = multiply(a, 1000);', 'object d = (a * 1000L);');
-        check ('object operand stays', '        object a = 60;\n        Int64 b = 3;\n        object d = multiply(a, b);', 'multiply(a, b)');
-        check ('Int64? subtract stays (helper NRE on null)', '        Int64? a = limit;\n        object d = subtract(a, 1);', 'subtract(a, 1)');
-        check ('Int64 - int', '        Int64 now = this.milliseconds();\n        int d = 5;\n        object x = subtract(now, d);', 'object x = (now - d);');
-        check ('double multiply stays (Int64 re-box)', '        double a = 1.5;\n        double b = 2.0;\n        object x = multiply(a, b);', 'multiply(a, b)');
-        check ('Int64 / Int64 -> double division', '        Int64 a = 5;\n        Int64 b = 2;\n        object x = divide(a, b);', 'object x = ((double)a / b);');
-        check ('Int64? / int -> lifted double division', '        Int64? a = limit;\n        object x = divide(a, 1000);', 'object x = ((double?)a / 1000);');
-        check ('double? / Int64 stays (object overload)', '        double? a = null;\n        Int64 b = 2;\n        object x = divide(a, b);', 'divide(a, b)');
-        check ('lambda-bound name stays', '        Int64 a = 5;\n        Func<object, object> g = (a) => multiply(a, 2);', 'multiply(a, 2)');
-        check ('string literal argument untouched', '        Int64 a = 5;\n        object x = add(multiply(a, 2), \"s, t\");', 'add((a * 2), \"s, t\")');
-        check ('bare operator operand is wrapped', '        Int64 a = 5;\n        int b = 2;\n        object x = divide(a - b, 1000);', 'object x = ((double)(a - b) / 1000);');
-        check ('test tier untouched', '', 'public virtual object f');
-        const tests = csharpNativeArithmetic ('namespace Tests;\npublic partial class t\n{\n    public void f()\n    {\n        Int64 a = 1;\n        object x = multiply(a, 2);\n    }\n}\n');
-        if (!tests.includes ('multiply(a, 2)')) { failures++; console.log ('FAIL tests namespace'); } else { console.log ('ok   tests namespace keeps helper'); }
-        if (failures) { problems.push (`arithmetic twins: ${failures} case(s) failed`); }
-    }
-    {
-        const { assert, console } = selfTestSink (problems, 'csharp native emission self test native equality');
-
-        const wrap = (body: string, extra = '') => [
-            'namespace ccxt;',
-            'public partial class test : Exchange',
-            '{',
-            '    public virtual object parseX(IDictionary<string, object> market, object response, List<object> rows)',
-            '    {',
-            ...body.split ('\n').map ((l) => '        ' + l),
-            '    }',
-            extra,
-            '}',
-        ].join ('\n');
-        const run = (body: string, extra = '') => nativeDeclaredHelperCalls (wrap (body, extra));
-        const has = (body: string, expected: string, extra = '') => {
-            const out = run (body, extra);
-            assert.ok (out.includes (expected), `expected ${expected}\n${out}`);
-        };
-        const keeps = (body: string, extra = '') => {
-            const out = run (body, extra);
-            assert.ok (out.includes ('isEqual(') || out.includes ('(((object)(') || out.includes ('static (c34x, c34y) =>'), `expected the helper to stay\n${out}`); // exact inline forms
-        };
-
-        // positives
-        has ('if (isEqual(getValue(response, "a"), null)) { }', '((getValue(response, "a") == null))');
-        has ('if (!isEqual(getValue(response, "a"), null)) { }', '(!(getValue(response, "a") == null))');
-        has ('if (isEqual(getValue(response, "spot"), true)) { }', '((getValue(response, "spot") is true))');
-        has ('if (isEqual(getValue(response, "kind"), "lit")) { }', '((getValue(response, "kind") is "lit"))');
-        has ('if (isEqual("lit", getValue(response, "kind"))) { }', '((getValue(response, "kind") is "lit"))');
-        has ('if (isEqual(this.safeValue(response, "fees"), null)) { }', '((this.safeValue(response, "fees") == null))');
-        has ('if (isEqual(this.safeBool(response, "x"), true)) { }', '((this.safeBool(response, "x") == true))');
-        has ('if (isEqual(this.safeString(response, "x"), "lit")) { }', '((this.safeString(response, "x") == "lit"))');
-        has ('if (isEqual(this.safeNumber(response, "x"), null)) { }', '((this.safeNumber(response, "x") == null))');
-        has ('if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) { }',
-            '(((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true))');
-        has ('if (isEqual((rows != null && 1 < rows.Count ? rows[1] : null), "")) { }', '(((rows != null && 1 < rows.Count ? rows[1] : null) is ""))');
-        has ('if (isEqual(this.apiKey, "")) { }', '((this.apiKey == ""))');
-        has ('if (isEqual(this.handleErrorMessage(null, response), true)) { }', '((this.handleErrorMessage(null, response) == true))',
-            '    public virtual bool? handleErrorMessage(WebSocketClient client, object message) { return null; }');
-
-        // negatives: numeric-looking strings, numbers, untyped operands, value types vs null, shadowed fields, mixed signatures
-        keeps ('if (isEqual(getValue(response, "a"), "1")) { }');
-        keeps ('if (isEqual(getValue(response, "a"), "NaN")) { }');
-        keeps ('if (isEqual(getValue(response, "a"), 0)) { }');
-        keeps ('if (isEqual(this.safeValue(response, "a"), "1.0")) { }');
-        keeps ('if (isEqual(this.safeInteger(response, "a"), 1)) { }');
-        keeps ('if (isEqual(this.rateLimit, -1)) { }');
-        keeps ('if (isEqual(this.unknownThing(response), null)) { }');
-        keeps ('if (isEqual(this.safeBool(response, "x"), "lit")) { }');
-        keeps ('if (isEqual(this.apiKey, "")) { }', '    public string apiKey = "";');
-        keeps ('if (isEqual(this.handleErrorMessage(null, response), true)) { }',
-            '    public virtual bool? handleErrorMessage(WebSocketClient client, object message) { return null; }\n    public virtual object handleErrorMessage(object message) { return null; }');
-        keeps ('if (isEqual((other != null && other.ContainsKey("k") ? other["k"] : null), true)) { }');
-        keeps ('if (isEqual(getValue(response, "a"), getValue(response, "b"))) { }');
-        // the test tier: `this` is the harness, not an Exchange
-        {
-            const out = nativeDeclaredHelperCalls (wrap ('if (isEqual(this.safeValue(response, "a"), null)) { }').replace ('namespace ccxt;', 'namespace Tests;'));
+        [ 'counter += 1 with compare + equality',
+            'f (o) { let retry = 0; const m = this.safeInteger (o, "m", 10); while (retry < m) { retry += 1; if (retry === m) { return 1; } } return 0; }', 'Int64 retry = 0;', 'object retry' ],
+        [ 'counter n = n + 1 read by numberToString',
+            'numberToString (x): string { return x; }\n f (o) { let calls = 0; while (calls < 3) { calls = calls + 1; const s = "c" + this.numberToString (calls); } }', 'Int64 calls = 0;' ],
+        [ 'counter returned keeps object',
+            'f (o) { let n = 0; n += 1; return n; }', 'object n = 0;' ],
+        [ 'counter vs double literal keeps object',
+            'f (o) { let n = 0; n += 1; return n === 1.5; }', 'object n = 0;' ],
+        [ 'counter -= keeps object',
+            'f (o) { let n = 0; n += 1; n -= 1; return n > 0; }', 'object n = 0;' ],
+        [ 'counter rebound from safeInteger keeps object',
+            'f (o) { let n = 0; n += 1; n = this.safeInteger (o, "x"); return n > 0; }', 'object n = 0;' ],
+        [ 'counter += double keeps object',
+            'f (o) { let n = 0; n += 1.5; return n > 0; }', 'object n = 0;' ],
+    ]);
+    // a `namespace Tests;` body is the whole file
+    counted ('arithmetic twins', (body) => csharpNativeArithmetic (body.startsWith ('namespace Tests;') ? body : 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n'), [
+        [ 'int * Int64? -> lifted *', '        int duration = this.parseTimeframe(tf);\n        Int64? n = limit;\n        return subtract(since, multiply(duration, n));', 'subtract(since, (duration * n))' ],
+        [ 'Int64? * int literal', '        Int64? n = limit;\n        object p = multiply(n, 2);', 'object p = (n * 2);' ],
+        [ 'nested twin result * literal', '        int duration = 60;\n        int maxLimit = 300;\n        Int64 d = multiply(multiply(duration, maxLimit), 1000);', 'Int64 d = (multiply(duration, maxLimit) * 1000);' ],
+        [ 'int * int stays (Int32 overflow vs Int64 twin)', '        int a = 60;\n        int b = 300;\n        object d = multiply(a, b);', 'multiply(a, b)' ],
+        [ 'int * int literal widens', '        int a = 60;\n        object d = multiply(a, 1000);', 'object d = (a * 1000L);' ],
+        [ 'object operand stays', '        object a = 60;\n        Int64 b = 3;\n        object d = multiply(a, b);', 'multiply(a, b)' ],
+        [ 'Int64? subtract stays (helper NRE on null)', '        Int64? a = limit;\n        object d = subtract(a, 1);', 'subtract(a, 1)' ],
+        [ 'Int64 - int', '        Int64 now = this.milliseconds();\n        int d = 5;\n        object x = subtract(now, d);', 'object x = (now - d);' ],
+        [ 'double multiply stays (Int64 re-box)', '        double a = 1.5;\n        double b = 2.0;\n        object x = multiply(a, b);', 'multiply(a, b)' ],
+        [ 'Int64 / Int64 -> double division', '        Int64 a = 5;\n        Int64 b = 2;\n        object x = divide(a, b);', 'object x = ((double)a / b);' ],
+        [ 'Int64? / int -> lifted double division', '        Int64? a = limit;\n        object x = divide(a, 1000);', 'object x = ((double?)a / 1000);' ],
+        [ 'double? / Int64 stays (object overload)', '        double? a = null;\n        Int64 b = 2;\n        object x = divide(a, b);', 'divide(a, b)' ],
+        [ 'lambda-bound name stays', '        Int64 a = 5;\n        Func<object, object> g = (a) => multiply(a, 2);', 'multiply(a, 2)' ],
+        [ 'string literal argument untouched', '        Int64 a = 5;\n        object x = add(multiply(a, 2), \"s, t\");', 'add((a * 2), \"s, t\")' ],
+        [ 'bare operator operand is wrapped', '        Int64 a = 5;\n        int b = 2;\n        object x = divide(a - b, 1000);', 'object x = ((double)(a - b) / 1000);' ],
+        [ 'test tier untouched', '', 'public virtual object f' ],
+        [ 'tests namespace', 'namespace Tests;\npublic partial class t\n{\n    public void f()\n    {\n        Int64 a = 1;\n        object x = multiply(a, 2);\n    }\n}\n', 'multiply(a, 2)' ],
+    ]);
+    // [ body, expected (undefined: the helper stays), extra member ]: nativeDeclaredHelperCalls inside a one-method class
+    const hasOrKeeps = (label: string, signature: string, stays: (out: string) => boolean, rows: string[][], tests = false) => {
+        const { assert } = selfTestSink (problems, label);
+        const wrap = (body: string, extra?: string) => [ 'namespace ccxt;', 'public partial class test : Exchange', '{', '    public virtual object ' + signature, '    {',
+            ...body.split ('\n').map ((l) => '        ' + l), '    }', ...((extra === undefined) ? [] : [ extra ]), '}' ].join ('\n');
+        for (const [ body, expected, extra ] of rows) {
+            const out = nativeDeclaredHelperCalls (wrap (body, extra ?? (tests ? '' : undefined)));
+            if (expected !== undefined) assert.ok (out.includes (expected), `expected ${expected}\n${out}`);
+            else assert.ok (stays (out), `expected the helper to stay\n${out}`);
+        }
+        if (tests) {
+            // the test tier: `this` is the harness, not an Exchange
+            const out = nativeDeclaredHelperCalls (wrap ('if (isEqual(this.safeValue(response, "a"), null)) { }', '').replace ('namespace ccxt;', 'namespace Tests;'));
             assert.ok (out.includes ('isEqual('), out);
         }
-    }
-    {
-        const { assert, console } = selfTestSink (problems, 'nullable comparisons');
-
-        const wrap = (body: string) => [
-            'namespace ccxt;',
-            'public partial class test : Exchange',
-            '{',
-            '    public virtual object fetchX(Int64? since = null, Int64? limit = null, object parameters = null)',
-            '    {',
-            ...body.split ('\n').map ((l) => '        ' + l),
-            '    }',
-            '}',
-        ].join ('\n');
-        const has = (body: string, expected: string) => {
-            const out = nativeDeclaredHelperCalls (wrap (body));
-            assert.ok (out.includes (expected), `expected ${expected}\n${out}`);
-        };
-        const keeps = (body: string) => {
-            const out = nativeDeclaredHelperCalls (wrap (body));
-            assert.ok (/is(Less|Greater)Than|c32Gt\(/.test (out), `expected the helper to stay\n${out}`);
-        };
-
-        // positives
-        has ('if (isLessThan(limit, 26)) { }', '((limit == null || limit < 26))');
-        has ('Int64 allowed = 5;\nif (isLessThan(since, allowed)) { }', '((since == null || since < allowed))');
-        has ('Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isGreaterThanOrEqual(a, b)) { }', '((b == null || a >= b))');
-        has ('Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isLessThan(a, b)) { }', '((b != null && (a == null || a < b)))');
-        has ('Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isGreaterThan(a, b)) { }', '((a != null && (b == null || a > b)))');
-        has ('if (isLessThanOrEqual(limit, 100)) { }', '((limit == null || limit <= 100))');
-        has ('if (isGreaterThan(100, limit)) { }', '((limit == null || 100 > limit))');
-        has ('if (isGreaterThanOrEqual(5, limit)) { }', '((limit == null || 5 >= limit))');
-        has ('if (isLessThan(5, limit)) { }', '((5 < limit))');
-
-        // negatives: doubles, object, expressions, rebinding with another type
-        has ('double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }', '((!(x >= 0)))');
-        keeps ('object x = this.safeValue(parameters, "x");\nif (isLessThan(x, limit)) { }');
-        keeps ('if (isLessThan(this.safeInteger(parameters, \"a\"), limit)) { }');
-        keeps ('if (isLessThan(limit, 1.5)) { }');
-        keeps ('if (true)\n{\n    Int64? x = 1;\n}\nelse\n{\n    object x = 2;\n    if (isLessThan(x, 3)) { }\n}');
-        keeps ('uint big = 4000000000;\nif (isLessThan(limit, big)) { }');
-    }
-    {
+    };
+    // positives, then negatives: numeric-looking strings, numbers, untyped operands, value types vs null, shadowed fields, mixed signatures
+    hasOrKeeps ('csharp native emission self test native equality', 'parseX(IDictionary<string, object> market, object response, List<object> rows)',
+        (out) => out.includes ('isEqual(') || out.includes ('(((object)(') || out.includes ('static (c34x, c34y) =>'), [ // exact inline forms
+        [ 'if (isEqual(getValue(response, "a"), null)) { }', '((getValue(response, "a") == null))' ],
+        [ 'if (!isEqual(getValue(response, "a"), null)) { }', '(!(getValue(response, "a") == null))' ],
+        [ 'if (isEqual(getValue(response, "spot"), true)) { }', '((getValue(response, "spot") is true))' ],
+        [ 'if (isEqual(getValue(response, "kind"), "lit")) { }', '((getValue(response, "kind") is "lit"))' ],
+        [ 'if (isEqual("lit", getValue(response, "kind"))) { }', '((getValue(response, "kind") is "lit"))' ],
+        [ 'if (isEqual(this.safeValue(response, "fees"), null)) { }', '((this.safeValue(response, "fees") == null))' ],
+        [ 'if (isEqual(this.safeBool(response, "x"), true)) { }', '((this.safeBool(response, "x") == true))' ],
+        [ 'if (isEqual(this.safeString(response, "x"), "lit")) { }', '((this.safeString(response, "x") == "lit"))' ],
+        [ 'if (isEqual(this.safeNumber(response, "x"), null)) { }', '((this.safeNumber(response, "x") == null))' ],
+        [ 'if (isEqual((market != null && market.ContainsKey("linear") ? market["linear"] : null), true)) { }',
+            '(((market != null && market.ContainsKey("linear") ? market["linear"] : null) is true))' ],
+        [ 'if (isEqual((rows != null && 1 < rows.Count ? rows[1] : null), "")) { }', '(((rows != null && 1 < rows.Count ? rows[1] : null) is ""))' ],
+        [ 'if (isEqual(this.apiKey, "")) { }', '((this.apiKey == ""))' ],
+        [ 'if (isEqual(this.handleErrorMessage(null, response), true)) { }', '((this.handleErrorMessage(null, response) == true))',
+            '    public virtual bool? handleErrorMessage(WebSocketClient client, object message) { return null; }' ],
+        [ 'if (isEqual(getValue(response, "a"), "1")) { }', undefined ],
+        [ 'if (isEqual(getValue(response, "a"), "NaN")) { }', undefined ],
+        [ 'if (isEqual(getValue(response, "a"), 0)) { }', undefined ],
+        [ 'if (isEqual(this.safeValue(response, "a"), "1.0")) { }', undefined ],
+        [ 'if (isEqual(this.safeInteger(response, "a"), 1)) { }', undefined ],
+        [ 'if (isEqual(this.rateLimit, -1)) { }', undefined ],
+        [ 'if (isEqual(this.unknownThing(response), null)) { }', undefined ],
+        [ 'if (isEqual(this.safeBool(response, "x"), "lit")) { }', undefined ],
+        [ 'if (isEqual(this.apiKey, "")) { }', undefined, '    public string apiKey = "";' ],
+        [ 'if (isEqual(this.handleErrorMessage(null, response), true)) { }', undefined,
+            '    public virtual bool? handleErrorMessage(WebSocketClient client, object message) { return null; }\n    public virtual object handleErrorMessage(object message) { return null; }' ],
+        [ 'if (isEqual((other != null && other.ContainsKey("k") ? other["k"] : null), true)) { }', undefined ],
+        [ 'if (isEqual(getValue(response, "a"), getValue(response, "b"))) { }', undefined ],
+    ], true);
+    // positives, then negatives: doubles, object, expressions, rebinding with another type
+    hasOrKeeps ('nullable comparisons', 'fetchX(Int64? since = null, Int64? limit = null, object parameters = null)', (out) => /is(Less|Greater)Than|c32Gt\(/.test (out), [
+        [ 'if (isLessThan(limit, 26)) { }', '((limit == null || limit < 26))' ],
+        [ 'Int64 allowed = 5;\nif (isLessThan(since, allowed)) { }', '((since == null || since < allowed))' ],
+        [ 'Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isGreaterThanOrEqual(a, b)) { }', '((b == null || a >= b))' ],
+        [ 'Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isLessThan(a, b)) { }', '((b != null && (a == null || a < b)))' ],
+        [ 'Int64? a = this.safeInteger(parameters, "a");\nInt64? b = this.safeInteger(parameters, "b");\nif (isGreaterThan(a, b)) { }', '((a != null && (b == null || a > b)))' ],
+        [ 'if (isLessThanOrEqual(limit, 100)) { }', '((limit == null || limit <= 100))' ],
+        [ 'if (isGreaterThan(100, limit)) { }', '((limit == null || 100 > limit))' ],
+        [ 'if (isGreaterThanOrEqual(5, limit)) { }', '((limit == null || 5 >= limit))' ],
+        [ 'if (isLessThan(5, limit)) { }', '((5 < limit))' ],
+        [ 'double? x = this.safeNumber(parameters, "x");\nif (isLessThan(x, 0)) { }', '((!(x >= 0)))' ],
+        [ 'object x = this.safeValue(parameters, "x");\nif (isLessThan(x, limit)) { }', undefined ],
+        [ 'if (isLessThan(this.safeInteger(parameters, \"a\"), limit)) { }', undefined ],
+        [ 'if (isLessThan(limit, 1.5)) { }', undefined ],
+        [ 'if (true)\n{\n    Int64? x = 1;\n}\nelse\n{\n    object x = 2;\n    if (isLessThan(x, 3)) { }\n}', undefined ],
+        [ 'uint big = 4000000000;\nif (isLessThan(limit, big)) { }', undefined ],
+    ]);
+    const exchangeWrap = (signature: string) => (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(' + signature + ')\n    {\n' + body + '\n    }\n}\n';
+    const transpiled = (prefix: string) => {
+        const transpiler = selfTestTranspiler ();
+        return (body: string) => transpiler.transpileCSharp (prefix + body + '\n}').content;
+    };
+    const groups: [string, () => (body: string) => string, number | undefined, [string, string, string, string?][]][] = [
         // a safeDict* local rewritten through the 2-argument dict-receiver omit stays IDictionary
-        const transpiler = selfTestTranspiler ();
-        const check = snippetChecker (problems, 'omit-rewritten safeDict local', (body) => transpiler.transpileCSharp ('type Dict = any; class Test {\n safeDict (o, k, d = undefined): Dict { return d; }\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}').content, undefined, 600);
-        check ('omit(self, keys) keeps IDictionary',
-            'f (raw) { let p = this.safeDict (raw, "params", {}); p["s"] = 1; p = this.omit (p, [ "a" ]); return this.safeString (p, "b"); }',
-            'IDictionary<string, object> p = this.safeDict(', 'object p = ');
-        check ('omit(self, key) in a branch keeps IDictionary',
-            'f (raw, h) { let p = this.safeDict (raw, "k", {}); if (h) { p = this.omit (p, h); } return p; }',
-            'IDictionary<string, object> p = this.safeDict(');
-        check ('3-argument omit stays object',
-            'f (raw, h) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, h, "x"); return p; }', 'object p = this.safeDict(');
-        check ('omit of another receiver stays object',
-            'f (raw, o) { let p = this.safeDict (raw, "k", {}); p = this.omit (o, "x"); return p; }', 'object p = this.safeDict(');
-        check ('null write after omit: a reference local holds null',
-            'f (raw) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = undefined; return p; }', 'IDictionary<string, object> p = this.safeDict(');
-        check ('list write stays object',
-            'f (raw, xs) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = [ xs ]; return p; }', 'object p = this.safeDict(');
-    }
-    {
+        [ 'omit-rewritten safeDict local', () => transpiled ('type Dict = any; class Test {\n safeDict (o, k, d = undefined): Dict { return d; }\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n'), 600, [
+            [ 'omit(self, keys) keeps IDictionary',
+                'f (raw) { let p = this.safeDict (raw, "params", {}); p["s"] = 1; p = this.omit (p, [ "a" ]); return this.safeString (p, "b"); }',
+                'IDictionary<string, object> p = this.safeDict(', 'object p = ' ],
+            [ 'omit(self, key) in a branch keeps IDictionary',
+                'f (raw, h) { let p = this.safeDict (raw, "k", {}); if (h) { p = this.omit (p, h); } return p; }',
+                'IDictionary<string, object> p = this.safeDict(' ],
+            [ '3-argument omit stays object',
+                'f (raw, h) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, h, "x"); return p; }', 'object p = this.safeDict(' ],
+            [ 'omit of another receiver stays object',
+                'f (raw, o) { let p = this.safeDict (raw, "k", {}); p = this.omit (o, "x"); return p; }', 'object p = this.safeDict(' ],
+            [ 'null write after omit: a reference local holds null',
+                'f (raw) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = undefined; return p; }', 'IDictionary<string, object> p = this.safeDict(' ],
+            [ 'list write stays object',
+                'f (raw, xs) { let p = this.safeDict (raw, "k", {}); p = this.omit (p, "x"); p = [ xs ]; return p; }', 'object p = this.safeDict(' ],
+        ] ],
         // `const x = this.omit (params, …)` on the trailing `params = {}` parameter
-        const transpiler = selfTestTranspiler ();
-        const check = snippetChecker (problems, 'omit(params) local', (body) => transpiler.transpileCSharp ('type Dict = any; class Test {\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}').content, undefined, 600);
-        check ('omit(params, key) -> IDictionary',
-            'fetchX (symbol: string, params: Dict = {}) { const query = this.omit (params, \'a\'); return this.safeString (query, \'b\'); }',
-            'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "a"));');
-        check ('omit(params, list) -> IDictionary',
-            'fetchX (params: Dict = {}) { const query = this.omit (params, [ \'a\', \'b\' ]); return query; }',
-            'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>()');
-        check ('sign keeps object (implicit-API list bodies)',
-            'sign (path, api = \'public\', method = \'GET\', params: Dict = {}) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
-        check ('rebound params keeps object',
-            'fetchX (params: Dict = {}) { params = this.extend ({}, params); const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
-        check ('params without default keeps object',
-            'fetchX (params: Dict) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(');
-        check ('later list write keeps object',
-            'fetchX (xs, params: Dict = {}) { let query = this.omit (params, \'a\'); query = [ xs ]; return query; }', 'object query = this.omit(');
-    }
-    {
+        [ 'omit(params) local', () => transpiled ('type Dict = any; class Test {\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n'), 600, [
+            [ 'omit(params, key) -> IDictionary',
+                'fetchX (symbol: string, params: Dict = {}) { const query = this.omit (params, \'a\'); return this.safeString (query, \'b\'); }',
+                'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "a"));' ],
+            [ 'omit(params, list) -> IDictionary',
+                'fetchX (params: Dict = {}) { const query = this.omit (params, [ \'a\', \'b\' ]); return query; }',
+                'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, new List<object>()' ],
+            [ 'sign keeps object (implicit-API list bodies)',
+                'sign (path, api = \'public\', method = \'GET\', params: Dict = {}) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(' ],
+            [ 'rebound params keeps object',
+                'fetchX (params: Dict = {}) { params = this.extend ({}, params); const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(' ],
+            [ 'params without default keeps object',
+                'fetchX (params: Dict) { const query = this.omit (params, \'a\'); return query; }', 'object query = this.omit(' ],
+            [ 'later list write keeps object',
+                'fetchX (xs, params: Dict = {}) { let query = this.omit (params, \'a\'); query = [ xs ]; return query; }', 'object query = this.omit(' ],
+        ] ],
         // getValue(list, <Int64 local>) on a declared list
-        const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, object parameters = null)\n    {\n' + body + '\n    }\n}\n';
-        const check = snippetChecker (problems, 'Int64 list index', (body) => nativeDeclaredHelperCalls (wrap (body)));
-        check ('List<object> x Int64 local', '        List<object> data = this.safeList(parameters, "d", new List<object>() {});\n        int n = data.Count;\n        for (Int64 i = 0; i < n; i++)\n        {\n            Int64 index = ((n - i) - 1);\n            object row = getValue(data, index);\n        }',
-            'object row = (data != null && index < data.Count ? data[(int)index] : null);');
-        check ('IList<object> x for-counter', '        IList<object> data = this.safeList(parameters, "d");\n        for (Int64 i = 0; i < 3; i++)\n        {\n            object row = getValue(data, i);\n        }',
-            'object row = (data != null && i < data.Count ? data[(int)i] : null);');
-        check ('object receiver keeps helper', '        object data = this.safeValue(parameters, "d");\n        Int64 index = 1;\n        object row = getValue(data, index);', 'object row = getValue(data, index);');
-        check ('Int64? index', '        List<object> data = new List<object>() {};\n        Int64? index = 1;\n        object row = getValue(data, index);', 'object row = (data != null && index != null && index < data.Count ? data[(int)index] : null);');
-        check ('index rebound with another type keeps helper', '        List<object> data = new List<object>() {};\n        if (true)\n        {\n            Int64 index = 1;\n            object row = getValue(data, index);\n        } else\n        {\n            object index = 2;\n        }', 'object row = getValue(data, index);');
-    }
-    // native `+` on a left operand proven a non-null string
-    {
-        const transpiler = selfTestTranspiler ();
-        const check = snippetChecker (problems, 'csharp native emission self test native concat', (body) => transpiler.transpileCSharp ('class Test {\n safeString (o, k, d = undefined): string { return d; }\n implodeParams (p, o): string { return p; }\n' + body + '\n}').content);
-        check ('literal-initialized accumulator += element', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s += \',\'; s += xs[i]; } return s + \'!\'; }', 'return (s + "!")', 'add(s, ",")');
-        check ('+= conditional right keeps its parentheses', 'f (o, side) { let s = \'\'; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = s + ((', '(s + (isEqual');
-        check ('object-printed += conditional right', 'f (o, side, xs) { let s = \'\'; s += xs[0]; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = (s + ((isEqual(side, "sell")) ? "A" : "B"));', 'add(s, (');
-        check ('safeString with literal default + literal', 'f (o) { const a = this.safeString (o, \'a\', \'x\'); return a + \':\'; }', '(a + ":")', 'add(a');
-        check ('literal accumulator self-concat writes', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = s + \'&\'; } return s; }', '(s + "&")', 'add(s');
-        check ('safeString without default keeps helper', 'f (o) { const a = this.safeString (o, \'a\'); const b = o[\'b\']; return a + b; }', 'add(a, b)');
-        check ('later unknown write keeps helper', 'f (o) { let s = \'\'; s = o[\'x\']; return s + \':\'; }', 'add(s, ":")');
-        check ('object left + object right keeps helper', 'f (o) { let s = \'\'; const b = o[\'b\']; s = s + b; return s + b; }', 'return add(s, b)');
-        check ('object-printed left + string? local right', 'f (o, xs) { let s = \'\'; const v = this.safeString (o, \'v\'); s = s + xs[0]; return s + v; }', '(s + v)');
-        check ('loop write of unknown box keeps helper', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = xs[i]; } return s + \':\'; }', 'add(s, ":")');
-        check ('closure write keeps helper', 'f (o) { let s = \'\'; const g = () => { s = o[\'x\']; }; g (); return s + \':\'; }', 'add(s, ":")');
-    }
-    // annotated exchange-local returns / string params
-    {
-        const transpiler = selfTestTranspiler ();
-        const check = snippetChecker (problems, 'typed signatures', (body) => transpiler.transpileCSharp ('type Str = string | undefined; type Dict = any; class Test {\n' + body + '\n}').content);
-        check ('sbe row builder returns Dictionary', 'parseSbeTrade (frameHex: string, a: number, b: number): Dict { if (a < 8) { return undefined; } return { \'id\': frameHex }; }', 'public virtual Dictionary<string, object> parseSbeTrade(');
-        check ('string return gets boundary cast', 'fixCommaNumber (numberStr: Str): Str { const s = numberStr; return s; }', 'public virtual string? fixCommaNumber(');
-        check ('caller local takes the return type', 'hashMessage (m: string): string { return m; }\n g (m) { const h = this.hashMessage (m); return h; }', 'string? h = this.hashMessage(m);');
-        check ('unannotated parameter keeps object', 'parseOrderStatus (status) { return status; }', 'parseOrderStatus(object status)');
-    }
-    // typed-expression comparisons
-    {
-        const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since0, Int64? since = null, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-        const check = snippetChecker (problems, 'csharp native emission self test', (body) => nativeDeclaredHelperCalls (wrap (body)));
-        check ('Int64 compound > Int64', '        Int64 a = this.milliseconds();\n        Int64 b = 5;\n        bool x = isGreaterThan((a - b), b);', 'bool x = ((a - b) > b);');
-        check ('nullable compound keeps helper', '        Int64 a = this.milliseconds();\n        Int64? b = limit;\n        bool x = isGreaterThan((a - b), 1);', 'bool x = ((a - b) > 1);'); // null left is false in both
-        check ('object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', 'bool x = isLessThan(this.milliseconds(), a);'); // an object operand keeps the helper
+        [ 'Int64 list index', () => (body) => nativeDeclaredHelperCalls (exchangeWrap ('object since, object parameters = null') (body)), undefined, [
+            [ 'List<object> x Int64 local', '        List<object> data = this.safeList(parameters, "d", new List<object>() {});\n        int n = data.Count;\n        for (Int64 i = 0; i < n; i++)\n        {\n            Int64 index = ((n - i) - 1);\n            object row = getValue(data, index);\n        }',
+                'object row = (data != null && index < data.Count ? data[(int)index] : null);' ],
+            [ 'IList<object> x for-counter', '        IList<object> data = this.safeList(parameters, "d");\n        for (Int64 i = 0; i < 3; i++)\n        {\n            object row = getValue(data, i);\n        }',
+                'object row = (data != null && i < data.Count ? data[(int)i] : null);' ],
+            [ 'object receiver keeps helper', '        object data = this.safeValue(parameters, "d");\n        Int64 index = 1;\n        object row = getValue(data, index);', 'object row = getValue(data, index);' ],
+            [ 'Int64? index', '        List<object> data = new List<object>() {};\n        Int64? index = 1;\n        object row = getValue(data, index);', 'object row = (data != null && index != null && index < data.Count ? data[(int)index] : null);' ],
+            [ 'index rebound with another type keeps helper', '        List<object> data = new List<object>() {};\n        if (true)\n        {\n            Int64 index = 1;\n            object row = getValue(data, index);\n        } else\n        {\n            object index = 2;\n        }', 'object row = getValue(data, index);' ],
+        ] ],
+        // native `+` on a left operand proven a non-null string
+        [ 'csharp native emission self test native concat', () => transpiled ('class Test {\n safeString (o, k, d = undefined): string { return d; }\n implodeParams (p, o): string { return p; }\n'), undefined, [
+            [ 'literal-initialized accumulator += element', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s += \',\'; s += xs[i]; } return s + \'!\'; }', 'return (s + "!")', 'add(s, ",")' ],
+            [ '+= conditional right keeps its parentheses', 'f (o, side) { let s = \'\'; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = s + ((', '(s + (isEqual' ],
+            [ 'object-printed += conditional right', 'f (o, side, xs) { let s = \'\'; s += xs[0]; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = (s + ((isEqual(side, "sell")) ? "A" : "B"));', 'add(s, (' ],
+            [ 'safeString with literal default + literal', 'f (o) { const a = this.safeString (o, \'a\', \'x\'); return a + \':\'; }', '(a + ":")', 'add(a' ],
+            [ 'literal accumulator self-concat writes', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = s + \'&\'; } return s; }', '(s + "&")', 'add(s' ],
+            [ 'safeString without default keeps helper', 'f (o) { const a = this.safeString (o, \'a\'); const b = o[\'b\']; return a + b; }', 'add(a, b)' ],
+            [ 'later unknown write keeps helper', 'f (o) { let s = \'\'; s = o[\'x\']; return s + \':\'; }', 'add(s, ":")' ],
+            [ 'object left + object right keeps helper', 'f (o) { let s = \'\'; const b = o[\'b\']; s = s + b; return s + b; }', 'return add(s, b)' ],
+            [ 'object-printed left + string? local right', 'f (o, xs) { let s = \'\'; const v = this.safeString (o, \'v\'); s = s + xs[0]; return s + v; }', '(s + v)' ],
+            [ 'loop write of unknown box keeps helper', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s = xs[i]; } return s + \':\'; }', 'add(s, ":")' ],
+            [ 'closure write keeps helper', 'f (o) { let s = \'\'; const g = () => { s = o[\'x\']; }; g (); return s + \':\'; }', 'add(s, ":")' ],
+        ] ],
+        // annotated exchange-local returns / string params
+        [ 'typed signatures', () => transpiled ('type Str = string | undefined; type Dict = any; class Test {\n'), undefined, [
+            [ 'sbe row builder returns Dictionary', 'parseSbeTrade (frameHex: string, a: number, b: number): Dict { if (a < 8) { return undefined; } return { \'id\': frameHex }; }', 'public virtual Dictionary<string, object> parseSbeTrade(' ],
+            [ 'string return gets boundary cast', 'fixCommaNumber (numberStr: Str): Str { const s = numberStr; return s; }', 'public virtual string? fixCommaNumber(' ],
+            [ 'caller local takes the return type', 'hashMessage (m: string): string { return m; }\n g (m) { const h = this.hashMessage (m); return h; }', 'string? h = this.hashMessage(m);' ],
+            [ 'unannotated parameter keeps object', 'parseOrderStatus (status) { return status; }', 'parseOrderStatus(object status)' ],
+        ] ],
+        // typed-expression comparisons
+        [ 'csharp native emission self test', () => (body) => nativeDeclaredHelperCalls (exchangeWrap ('object since0, Int64? since = null, Int64? limit = null') (body)), undefined, [
+            [ 'Int64 compound > Int64', '        Int64 a = this.milliseconds();\n        Int64 b = 5;\n        bool x = isGreaterThan((a - b), b);', 'bool x = ((a - b) > b);' ],
+            [ 'nullable compound keeps helper', '        Int64 a = this.milliseconds();\n        Int64? b = limit;\n        bool x = isGreaterThan((a - b), 1);', 'bool x = ((a - b) > 1);' ], // null left is false in both
+            [ 'object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', 'bool x = isLessThan(this.milliseconds(), a);' ], // an object operand keeps the helper
+        ] ],
+    ];
+    for (const [ label, runner, tail, rows ] of groups) {
+        const check = snippetChecker (problems, label, runner (), undefined, tail);
+        for (const [ name, body, expected, forbidden ] of rows) check (name, body, expected, forbidden);
     }
     problems.push (...declaredGetValueSelfTest ());
     problems.push (...objectNumericLocalRetypeSelfTest ());
@@ -8826,29 +8778,26 @@ function pureKeyInOpSelfTest (): string[] {
     const problems: string[] = [];
     const wrap = (sig: string, body: string) => [ 'namespace ccxt;', 'public partial class test : Exchange', '{',
         `    public virtual object ${sig}`, '    {', ...body.split ('\n').map ((l) => '        ' + l), '    }', '}' ].join ('\n');
-    const check = (name: string, sig: string, body: string, expected: string) => {
-        const out = csharpPureKeyInOp (wrap (sig, body));
-        if (!out.includes (expected)) problems.push (`pure key in op self: ${name}\n${out}`);
-    };
-    check ('declared dict + getValue key', 'f(object v)', 'IDictionary<string, object> d = this.safeDict(v, "a", new Dictionary<string, object>() {});\nif (inOp(d, getValue(v, "id"))) { }',
-        '(d != null && getValue(v, "id") is string inOpKey0 && d.ContainsKey(inOpKey0))');
-    check ('base field + guarded read key', 'f(Dictionary<string, object> m)', 'if (inOp(this.orderbooks, (m.ContainsKey("s") ? m["s"] : null))) { }',
-        '(this.orderbooks != null && (m.ContainsKey("s") ? m["s"] : null) is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))');
-    check ('string? haystack, element needle', 'f(string? topic, List<object> keys)', 'for (int i = 0; i < keys.Count; i++) { if (getIndexOf(topic, keys[i]) >= 0) { } }',
-        '(topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1)');
     // negatives: object receiver, call-bearing key, identifier key (other pass)
-    check ('object receiver keeps helper', 'f(object d, object v)', 'if (inOp(d, getValue(v, "id"))) { }', 'inOp(d, getValue(v, "id"))');
-    check ('side-effecting key keeps helper', 'f(IDictionary<string, object> d)', 'if (inOp(d, this.k())) { }', 'inOp(d, this.k())');
-    check ('identifier key left to the declared pass', 'f(IDictionary<string, object> d, object k)', 'if (inOp(d, k)) { }', 'inOp(d, k)');
-    const check04 = (name: string, sig: string, body: string, expected: string) => {
-        const out = csharpDeclaredReceiverHelperCalls (wrap (sig, body));
-        if (!out.includes (expected)) problems.push (`pure key in op self: ${name}\n${out}`);
-    };
-    check04 ('string? haystack, string-concat needle', 'f(string? msg, string? ch)', 'if ((ch != null) && (getIndexOf(msg, ((\"[\" + ch) + \"]\")) >= 0)) { }',
-        '((msg?.IndexOf(((\"[\" + ch) + \"]\"), StringComparison.Ordinal) ?? -1) >= 0)');
-    check04 ('concat of two identifiers keeps helper', 'f(string? msg, string? a, string? b)', 'if (getIndexOf(msg, (a + b)) >= 0) { }', 'getIndexOf(msg, (a + b))');
-    check04 ('call in needle keeps helper', 'f(string? msg, string? a)', 'if (getIndexOf(msg, (\"[\" + this.g(a))) >= 0) { }', 'getIndexOf(msg, (\"[\" + this.g(a)))');
-    check ('object haystack keeps helper', 'f(object topic, List<object> keys)', 'if (getIndexOf(topic, keys[0]) >= 0) { }', 'getIndexOf(topic, keys[0])');
+    const rows: [string, (content: string) => string, string, string, string][] = [
+        [ 'declared dict + getValue key', csharpPureKeyInOp, 'f(object v)', 'IDictionary<string, object> d = this.safeDict(v, "a", new Dictionary<string, object>() {});\nif (inOp(d, getValue(v, "id"))) { }',
+            '(d != null && getValue(v, "id") is string inOpKey0 && d.ContainsKey(inOpKey0))' ],
+        [ 'base field + guarded read key', csharpPureKeyInOp, 'f(Dictionary<string, object> m)', 'if (inOp(this.orderbooks, (m.ContainsKey("s") ? m["s"] : null))) { }',
+            '(this.orderbooks != null && (m.ContainsKey("s") ? m["s"] : null) is string inOpKey0 && this.orderbooks.ContainsKey(inOpKey0))' ],
+        [ 'string? haystack, element needle', csharpPureKeyInOp, 'f(string? topic, List<object> keys)', 'for (int i = 0; i < keys.Count; i++) { if (getIndexOf(topic, keys[i]) >= 0) { } }',
+            '(topic?.IndexOf((string)keys[i], StringComparison.Ordinal) ?? -1)' ],
+        [ 'object receiver keeps helper', csharpPureKeyInOp, 'f(object d, object v)', 'if (inOp(d, getValue(v, "id"))) { }', 'inOp(d, getValue(v, "id"))' ],
+        [ 'side-effecting key keeps helper', csharpPureKeyInOp, 'f(IDictionary<string, object> d)', 'if (inOp(d, this.k())) { }', 'inOp(d, this.k())' ],
+        [ 'identifier key left to the declared pass', csharpPureKeyInOp, 'f(IDictionary<string, object> d, object k)', 'if (inOp(d, k)) { }', 'inOp(d, k)' ],
+        [ 'string? haystack, string-concat needle', csharpDeclaredReceiverHelperCalls, 'f(string? msg, string? ch)', 'if ((ch != null) && (getIndexOf(msg, ((\"[\" + ch) + \"]\")) >= 0)) { }',
+            '((msg?.IndexOf(((\"[\" + ch) + \"]\"), StringComparison.Ordinal) ?? -1) >= 0)' ],
+        [ 'concat of two identifiers keeps helper', csharpDeclaredReceiverHelperCalls, 'f(string? msg, string? a, string? b)', 'if (getIndexOf(msg, (a + b)) >= 0) { }', 'getIndexOf(msg, (a + b))' ],
+        [ 'call in needle keeps helper', csharpDeclaredReceiverHelperCalls, 'f(string? msg, string? a)', 'if (getIndexOf(msg, (\"[\" + this.g(a))) >= 0) { }', 'getIndexOf(msg, (\"[\" + this.g(a)))' ],
+        [ 'object haystack keeps helper', csharpPureKeyInOp, 'f(object topic, List<object> keys)', 'if (getIndexOf(topic, keys[0]) >= 0) { }', 'getIndexOf(topic, keys[0])' ],
+    ];
+    for (const [ name, pass, sig, body, expected ] of rows) {
+        snippetChecker (problems, 'pure key in op self', (b) => pass (wrap (sig, b))) (name, body, expected);
+    }
     return problems;
 }
 
