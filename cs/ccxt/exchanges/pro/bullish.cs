@@ -139,7 +139,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchTrades(string symbol, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -224,7 +224,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<ccxt.Ticker> WatchTicker(string symbol, object parameters = null)
+    public async override Task<ccxt.Ticker> WatchTicker(string symbol, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -314,7 +314,7 @@ public partial class bullish : ccxt.bullish
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.pro.IOrderBook> WatchOrderBook(string symbol, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -415,7 +415,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Order>> WatchOrders(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -434,7 +434,7 @@ public partial class bullish : ccxt.bullish
             { "topic", "orders" },
         };
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
@@ -548,7 +548,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Trade>> WatchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -567,7 +567,7 @@ public partial class bullish : ccxt.bullish
             { "topic", "trades" },
         };
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
@@ -671,7 +671,7 @@ public partial class bullish : ccxt.bullish
      * @param {string} [params.tradingAccountId] the trading account id to fetch entries for
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<ccxt.Balances> WatchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> WatchBalance(IDictionary<string, object> parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if ((this.markets == null))
@@ -683,7 +683,7 @@ public partial class bullish : ccxt.bullish
         };
         string messageHash = "balance";
         string? tradingAccountId = this.safeString(parameters, "tradingAccountId");
-        object paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
+        IDictionary<string, object> paramsOmitted = ((tradingAccountId != null)) ? this.omit(parameters, "tradingAccountId") : parameters;
         if ((tradingAccountId != null))
         {
             request["tradingAccountId"] = tradingAccountId;
