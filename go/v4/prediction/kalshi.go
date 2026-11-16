@@ -830,7 +830,7 @@ func (this *Kalshi) ParseMarket(raw any) map[string]any {
 	// resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
 	var result *string = this.SafeStringLower(raw, "result")
 	var resolved bool = (status != nil && *status == "settled") || ((result != nil) && (result == nil || *result != ""))
-	var endDate *string = this.SafeString(raw, "expiration_time")
+	var endDate *string = this.SafeString2(raw, "latest_expiration_time", "expiration_time")
 	var volume *float64 = this.SafeNumber2(raw, "volume_fp", "volume")
 	var liquidity *float64 = this.SafeNumber2(raw, "liquidity_dollars", "liquidity")
 	var openInt *float64 = this.SafeNumber2(raw, "open_interest_fp", "open_interest")
