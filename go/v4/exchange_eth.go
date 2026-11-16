@@ -14,7 +14,6 @@ import (
 	"github.com/ethereum/go-ethereum/common/hexutil"
 	"github.com/ethereum/go-ethereum/common/math"
 	"github.com/ethereum/go-ethereum/signer/core/apitypes"
-	"github.com/vmihailenco/msgpack/v5"
 	"golang.org/x/crypto/sha3"
 
 	"github.com/elliottech/lighter-go/client"
@@ -538,11 +537,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 	converted := ConvertInt64ToBigInt(dataObj)
 
 	if this.Id != "hyperliquid" {
-		p, err := msgpack.Marshal(converted)
-		if err != nil {
-			panic(err)
-		}
-		return p
+		return msgpackEncode(converted)
 	}
 
 	typeA := SafeString(converted, "type", "").(string)
@@ -556,12 +551,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(orderMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(orderMsg)
 	case "cancel":
 		var cancelMsg CancelMessage
 
@@ -570,12 +560,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(cancelMsg)
-
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(cancelMsg)
 	case "withdraw3":
 		var withdrawMsg WithdrawMessage
 
@@ -584,11 +569,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(withdrawMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(withdrawMsg)
 	case "batchModify":
 		var editMsg EditOrderMessage
 
@@ -597,11 +578,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(editMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(editMsg)
 	case "subAccountTransfer":
 		var subAccountTransferMsg SubAccountTransferMessage
 
@@ -610,11 +587,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(subAccountTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(subAccountTransferMsg)
 	case "createSubAccount":
 		var createSubAccountMsg CreateSubAccountMessage
 
@@ -623,11 +596,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(createSubAccountMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(createSubAccountMsg)
 	case "updateLeverage":
 		var leverageMsg UpdateLeverageMessage
 
@@ -636,11 +605,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(leverageMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(leverageMsg)
 	case "updateIsolatedMargin":
 		var isolatedMarginMsg UpdateIsolatedMarginMessage
 
@@ -649,11 +614,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(isolatedMarginMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(isolatedMarginMsg)
 	case "vaultTransfer":
 		var vaultTransferMsg VaultTransferMessage
 
@@ -662,11 +623,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(vaultTransferMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(vaultTransferMsg)
 	case "reserveRequestWeight":
 		var reserveRequestWeightMsg ReserveRequestWeightMessage
 
@@ -675,11 +632,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(reserveRequestWeightMsg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(reserveRequestWeightMsg)
 	case "setReferrer":
 		var msg SetReferrerMessage
 
@@ -688,11 +641,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "agentSetAbstraction":
 		var msg AgentSetAbstractionMessage
 
@@ -701,11 +650,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "twapOrder":
 		var msg TwapOrderMessage
 
@@ -714,11 +659,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "twapCancel":
 		var msg TwapCancelMessage
 
@@ -727,11 +668,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "scheduleCancel":
 		var msg ScheduleCancelMessage
 
@@ -740,11 +677,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "createVault":
 		var msg CreateVaultMessage
 
@@ -753,11 +686,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "subAccountSpotTransfer":
 		var msg SubAccountSpotTransferMessage
 
@@ -766,11 +695,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	case "cancelByCloid":
 		var msg CancelByCloidMessage
 
@@ -779,11 +704,7 @@ func (this *BaseExchange) Packb(data any) []uint8 {
 			panic(err)
 		}
 
-		packed, err := msgpack.Marshal(msg)
-		if err != nil {
-			panic(err)
-		}
-		return packed
+		return msgpackEncode(msg)
 	}
 	return nil
 }
