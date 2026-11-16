@@ -8120,7 +8120,7 @@ async function runMain () {
             [ '', goFloatComparisonsWiredCheck, true ], [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, true ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
             goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, true ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, true ], [ '', goArithHelpersWiredCheck ],
             [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, true ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, true ], goInlineIsEqualWiredCheck, [ '', goInOpHelperCheck ], goCaseAffixWiredCheck,
-            [ '', goStdlibStringHelpersCheck ], goParseNativeWiredCheck, [ 'go nullable str param self: ', goNullableStrParamSelfTest, true ], goTypedIsEqualWiredCheck,
+            [ '', goStdlibStringHelpersCheck ], goParseNativeWiredCheck, [ 'go nullable str param self: ', goNullableStrParamSelfTest, true ], [ 'go markets-by-id write: ', goTypedIsEqualWiredCheck ],
             goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest,
             goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, true ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, true ], [ '', goAnyObjectKeysLengthSelfTest ],
             [ 'gofmt layout ', goGofmtLayoutSelfTest ], [ 'w8-', w8ClientFuturesSelfTest ], goIsEqualBoolMethodCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
@@ -12995,17 +12995,13 @@ function goWrittenThrough (src: string): string {
 }
 
 // the typed operand comparison pass must run in both write paths (overwriteFileAndFolder and the base chain)
-function goTypedIsEqualWiredCheck (): string[] {
+function goTypedIsEqualWiredCheck (ok: SelfTestOk): void {
     const body = 'func (this *X) F(p any) any {\n\tvar a *string = this.SafeString(p, "a")\n\tvar b *string = this.SafeString(p, "b")\n\tif IsEqual(a, b) {\n\t\treturn nil\n\t}\n\treturn a\n}\n';
     const out = goWrittenThrough (goSelfTestHead (false) + body);
-    if (!out.includes ('if a == b || (a != nil && b != nil && *a == *b) {')) {
-        return [ 'go markets-by-id write: not wired into overwriteFileAndFolder: ' + out ];
-    }
-    const base = goBaseNativePasses (goSelfTestHead (false) + body);
-    if (!base.includes ('if a == b ||')) {
-        return [ 'go markets-by-id write: not wired into the base-methods chain: ' + base ];
-    }
-    return [];
+    const wired = out.includes ('if a == b || (a != nil && b != nil && *a == *b) {');
+    ok (wired, 'not wired into overwriteFileAndFolder: ' + out);
+    const base = wired ? goBaseNativePasses (goSelfTestHead (false) + body) : 'if a == b ||';
+    ok (base.includes ('if a == b ||'), 'not wired into the base-methods chain: ' + base);
 }
 
 function goInlineIsEqualWiredCheck (): string[] {
