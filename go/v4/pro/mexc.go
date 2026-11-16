@@ -761,9 +761,9 @@ func (this *Mexc) watchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], symbol 
 	var messageHash string = "candles:" + *symbolValue + ":" + timeframe
 	var ohlcv any = nil
 	if *this.SafeBool(market, "spot", false) {
-		var channel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
+		var spotChannel *string = ccxt.SafeStringPtr(ccxt.Add("spot@public.kline.v3.api.pb@"+*this.SafeString(market, "id", "")+"@", timeframeId))
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -986,9 +986,9 @@ func (this *Mexc) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var orderbook any = nil
 	if *this.SafeBool(market, "spot", false) {
 		frequency, paramsFrequency := this.HandleOptionStringAndParams(params, "watchOrderBook", "frequency", "100ms")
-		var channel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
+		var spotChannel string = "spot@public.aggre.depth.v3.api.pb@" + *frequency + "@" + *this.SafeString(market, "id", "")
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, paramsFrequency)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, paramsFrequency)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
@@ -1249,9 +1249,9 @@ func (this *Mexc) watchTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], symbol
 	var messageHash string = "trades:" + *symbolValue
 	var trades any = nil
 	if *this.SafeBool(market, "spot", false) {
-		var channel string = "spot@public.aggre.deals.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
+		var spotChannel string = "spot@public.aggre.deals.v3.api.pb@100ms@" + *this.SafeString(market, "id", "")
 
-		r1 := <-this.WatchSpotPublicAsync(channel, messageHash, params)
+		r1 := <-this.WatchSpotPublicAsync(spotChannel, messageHash, params)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

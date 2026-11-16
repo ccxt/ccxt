@@ -2695,7 +2695,7 @@ func (this *BaseExchange) SafeOrder(order any, optionalArgs ...any) Order {
 		// we parse trades as strings here!
 		// i don't think this is needed anymore
 		// (this as any).number = String;
-		var firstTrade any = this.SafeValue(rawTrades, 0)
+		var firstTrade any = this.SafeDict(rawTrades, 0)
 		// parse trades if they haven't already been parsed
 		var tradesAreParsed bool = ((firstTrade != nil) && (InOp(firstTrade, "info")) && (InOp(firstTrade, "id")))
 		if !tradesAreParsed {
@@ -5262,7 +5262,7 @@ func (this *BaseExchange) BuildOHLCVC(trades any, optionalArgs ...any) any {
 			ohlcvs = append(ohlcvs, []any{openingTime, price, price, price, price, trade["amount"], 1})
 		} else {
 			// still processing the same timeframe -> update opening trade
-			var prevCandle any = this.SafeValue(ohlcvs, candle)
+			var prevCandle []any = SafeListTyped(ohlcvs, candle)
 			var prevHigh any = this.SafeValue(prevCandle, i_high)
 			var prevLow any = this.SafeValue(prevCandle, i_low)
 			AddElementToObject(GetValue(ohlcvs, candle), i_high, mathMax(func() any {

@@ -4679,30 +4679,38 @@ func (this *Polymarket) watchTickerBody(ch chan ccxt.AsyncResult[ccxt.Prediction
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
 	var bestBid any = nil
-	var bestBidVolume any = nil
+	var bestBidVolume *float64 = nil
 	var bidsLength int = 0
 	if bids != nil {
 		bidsLength = ccxt.GetArrayLength(bids)
 	}
 	if (bids != nil) && (bidsLength > 0) {
-		bestBid = ccxt.GetValue(ccxt.GetValue(bids, 0), 0)
-		bestBidVolume = ccxt.GetValue(ccxt.GetValue(bids, 0), 1)
+		if derefPtr := this.SafeNumber(ccxt.GetValue(bids, 0), 0); derefPtr != nil {
+			bestBid = *derefPtr
+		} else {
+			bestBid = nil
+		}
+		bestBidVolume = this.SafeNumber(ccxt.GetValue(bids, 0), 1)
 	}
 	var bestAsk any = nil
-	var bestAskVolume any = nil
+	var bestAskVolume *float64 = nil
 	var asksLength int = 0
 	if asks != nil {
 		asksLength = ccxt.GetArrayLength(asks)
 	}
 	if (asks != nil) && (asksLength > 0) {
-		bestAsk = ccxt.GetValue(ccxt.GetValue(asks, 0), 0)
-		bestAskVolume = ccxt.GetValue(ccxt.GetValue(asks, 0), 1)
+		if derefPtr := this.SafeNumber(ccxt.GetValue(asks, 0), 0); derefPtr != nil {
+			bestAsk = *derefPtr
+		} else {
+			bestAsk = nil
+		}
+		bestAskVolume = this.SafeNumber(ccxt.GetValue(asks, 0), 1)
 	}
 	var mid any = nil
-	if (!ccxt.IsEqual(bestBid, nil)) && (!ccxt.IsEqual(bestAsk, nil)) {
+	if (bestBid != nil) && (bestAsk != nil) {
 		var sum *string = ccxt.Precise.StringAdd(this.NumberToString(bestBid), this.NumberToString(bestAsk))
 		mid = this.ParseNumber(ccxt.Precise.StringDiv(sum, "2"))
-	} else if !ccxt.IsEqual(bestBid, nil) {
+	} else if bestBid != nil {
 		mid = bestBid
 	} else {
 		mid = bestAsk

@@ -5146,7 +5146,6 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info any = order
 	var newOrder map[string]any = this.SafeDict2Map(order, "newOrderResponse", "orderOpenResponse")
 	var orderData any = func() any {
 		if newOrder != nil {
@@ -5234,7 +5233,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	return this.SafeOrder(map[string]any{
-		"info":                info,
+		"info":                order,
 		"id":                  this.SafeStringN(orderData, []any{"orderId", "i", "mainOrderId"}),
 		"clientOrderId":       this.SafeStringN(orderData, []any{"clientOrderID", "clientOrderId", "origClientOrderId", "c"}),
 		"symbol":              this.SafeSymbol(marketId, marketResolved, "-", marketType),
@@ -6550,11 +6549,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes553019 []any = r1.Value
-		if retRes553019 == nil {
+		var retRes552919 []any = r1.Value
+		if retRes552919 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes553019)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes552919)}
 		}
 		return nil
 	}
@@ -8700,7 +8699,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	url += "/" + version + "/" + pathValue
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var paramsSorted map[string]any = this.Keysort(this.Extend(this.Omit(params, this.ExtractParams(pathValue)), map[string]any{
 		"timestamp": this.Nonce(),
@@ -8743,13 +8742,11 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResult,
-		"headers": headersResult,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bingx) Nonce() int64 {

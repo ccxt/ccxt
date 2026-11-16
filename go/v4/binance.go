@@ -14291,8 +14291,8 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var linearFees map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
 		var feeTiers any = this.SafeValue(this.SafeValue(this.SafeValue(this.Fees, "linear"), "trading"), "tiers")
-		var maker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
-		var taker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
+		var maker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
+		var taker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
 			var market any = GetValue(markets, symbol)
@@ -14328,8 +14328,8 @@ func (this *Binance) fetchTradingFeesBody(ch chan AsyncResult[map[string]Trading
 		var inverseFees map[string]any = map[string]any{}
 		var feeTier *int64 = this.SafeInteger(response, "feeTier")
 		var feeTiers any = this.SafeValue(this.SafeValue(this.SafeValue(this.Fees, "inverse"), "trading"), "tiers")
-		var maker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
-		var taker any = this.SafeValue(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
+		var maker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "maker"), feeTier), 1)
+		var taker *float64 = this.SafeNumber(this.SafeValue(this.SafeValue(feeTiers, "taker"), feeTier), 1)
 		for i := 0; i < len(symbols); i++ {
 			var symbol string = symbols[i]
 			var market any = GetValue(markets, symbol)

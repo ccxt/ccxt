@@ -4320,7 +4320,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	if *this.SafeBool(market, "option", false) {
 		var optionMarketId *string = this.SafeString(market, "id")
 		for i := 0; i < len(response); i++ {
-			var entry any = GetValue(response, i)
+			var entry any = this.SafeDict(response, i)
 			var entryName *string = this.SafeString(entry, "name")
 			if entryName == optionMarketId || (entryName != nil && optionMarketId != nil && *entryName == *optionMarketId) {
 				ticker = entry
@@ -4330,7 +4330,7 @@ func (this *Gate) fetchTickerBody(ch chan AsyncResult[Ticker], symbol string, op
 	} else {
 		ticker = this.SafeDict(response, 0)
 	}
-	if IsEqual(ticker, nil) {
+	if ticker == nil {
 		panic(NullResponse(this.Id + " fetchTicker() returned empty response"))
 	}
 

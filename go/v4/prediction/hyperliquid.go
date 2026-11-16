@@ -335,7 +335,7 @@ func (this *Hyperliquid) BuildOutcomeParentSymbol(desc map[string]any, outcomeId
 				var thresholdsLength int = len(thresholds)
 				var index int64 = this.ParseToInt(indexStr)
 				if thresholdsLength > 0 {
-					var bucketLabel any = nil
+					var bucketLabel any = ""
 					if index <= 0 {
 						bucketLabel = ccxt.Add("BELOW_", func() any {
 							if 0 >= 0 && 0 < len(thresholds) {

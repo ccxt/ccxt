@@ -1799,10 +1799,12 @@ func (this *Coinbase) ParseTrade(trade any, optionalArgs ...any) Trade {
 		priceString = v3Price
 	}
 	if (priceString != nil) && (amountString != nil) {
-		cost = Precise.StringMul(priceString, amountString)
+		var baseCost *string = Precise.StringMul(priceString, amountString)
 		var contractSize *string = this.SafeString(marketResolved, "contractSize")
 		if contractSize != nil {
-			cost = Precise.StringMul(cost, contractSize)
+			cost = Precise.StringMul(baseCost, contractSize)
+		} else {
+			cost = baseCost
 		}
 	} else {
 		cost = costString
@@ -1891,12 +1893,12 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		retRes139819Recv, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
-		var retRes139819 []any = retRes139819Recv
-		if retRes139819 == nil {
+		retRes140019Recv, _ := MarketInterfacesToList(r1.Value), r1.Value != nil
+		var retRes140019 []any = retRes140019Recv
+		if retRes140019 == nil {
 			ch <- AsyncResult[[]MarketInterface]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes139819)}
+			ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes140019)}
 		}
 		return nil
 	}
@@ -1905,12 +1907,12 @@ func (this *Coinbase) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	retRes140015Recv, _ := MarketInterfacesToList(r2.Value), r2.Value != nil
-	var retRes140015 []any = retRes140015Recv
-	if retRes140015 == nil {
+	retRes140215Recv, _ := MarketInterfacesToList(r2.Value), r2.Value != nil
+	var retRes140215 []any = retRes140215Recv
+	if retRes140215 == nil {
 		ch <- AsyncResult[[]MarketInterface]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes140015)}
+		ch <- AsyncResult[[]MarketInterface]{Value: MarketInterfacesFromList(retRes140215)}
 	}
 	return nil
 }
@@ -3294,26 +3296,26 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 	var totalUsdBalance *string = this.SafeString(totalUsdBalanceData, "value")
 	var futuresBuyingPower *string = this.SafeString(futuresBuyingPowerData, "value")
 	if (totalUsdBalance != nil) || (futuresBuyingPower != nil) {
-		var total any = func() any {
+		var usdTotal any = func() any {
 			if totalUsdBalance != nil {
 				return totalUsdBalance
 			}
 			return futuresBuyingPower
 		}()
-		var free any = func() any {
+		var usdFree any = func() any {
 			if futuresBuyingPower != nil {
 				return futuresBuyingPower
 			}
-			return total
+			return usdTotal
 		}()
-		var used *string = Precise.StringSub(total, free)
+		var usdUsed *string = Precise.StringSub(usdTotal, usdFree)
 		var balanceResult map[string]any = map[string]any{
 			"info": response,
 		}
 		balanceResult["USD"] = map[string]any{
-			"free":  free,
-			"used":  used,
-			"total": total,
+			"free":  usdFree,
+			"used":  usdUsed,
+			"total": usdTotal,
 		}
 		return this.SafeBalance(balanceResult).(map[string]any)
 	}
@@ -3355,21 +3357,21 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 			if (available != nil) && (hold != nil) {
 				var currencyId *string = this.SafeString(available, "currency")
 				var code *string = this.SafeCurrencyCode(currencyId)
-				var used *string = this.SafeString(hold, "value")
-				var free *string = this.SafeString(available, "value")
-				var total *string = Precise.StringAdd(used, free)
+				var v3Used *string = this.SafeString(hold, "value")
+				var v3Free *string = this.SafeString(available, "value")
+				var v3Total *string = Precise.StringAdd(v3Used, v3Free)
 				var account any = this.SafeDict(result, code)
 				if IsEqual(account, nil) {
 					account = this.Extend(this.Account(), map[string]any{
-						"free":  free,
-						"used":  used,
-						"total": total,
+						"free":  v3Free,
+						"used":  v3Used,
+						"total": v3Total,
 					})
 				} else {
 					account = this.Extend(account, map[string]any{
-						"free":  Precise.StringAdd(this.SafeString(account, "free"), free),
-						"used":  Precise.StringAdd(this.SafeString(account, "used"), used),
-						"total": Precise.StringAdd(this.SafeString(account, "total"), total),
+						"free":  Precise.StringAdd(this.SafeString(account, "free"), v3Free),
+						"used":  Precise.StringAdd(this.SafeString(account, "used"), v3Used),
+						"total": Precise.StringAdd(this.SafeString(account, "total"), v3Total),
 					})
 				}
 				if code != nil {
@@ -3587,11 +3589,11 @@ func (this *Coinbase) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes269419 []any = r1.Value
-		if retRes269419 == nil {
+		var retRes269619 []any = r1.Value
+		if retRes269619 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes269419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes269619)}
 		}
 		return nil
 	}
@@ -4895,11 +4897,11 @@ func (this *Coinbase) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes374119 []any = r1.Value
-		if retRes374119 == nil {
+		var retRes374319 []any = r1.Value
+		if retRes374319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes374119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes374319)}
 		}
 		return nil
 	}
@@ -5142,11 +5144,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes390719 []any = r1.Value
-		if retRes390719 == nil {
+		var retRes390919 []any = r1.Value
+		if retRes390919 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390719)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390919)}
 		}
 		return nil
 	}
@@ -5155,11 +5157,11 @@ func (this *Coinbase) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optional
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes390915 []any = OrdersToList(r2.Value)
-	if retRes390915 == nil {
+	var retRes391115 []any = OrdersToList(r2.Value)
+	if retRes391115 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes390915)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes391115)}
 	}
 	return nil
 }
@@ -5207,11 +5209,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes393119 []any = r1.Value
-		if retRes393119 == nil {
+		var retRes393319 []any = r1.Value
+		if retRes393319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393119)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393319)}
 		}
 		return nil
 	}
@@ -5220,11 +5222,11 @@ func (this *Coinbase) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 	if r2.Err != nil {
 		panic(r2.Err)
 	}
-	var retRes393315 []any = OrdersToList(r2.Value)
-	if retRes393315 == nil {
+	var retRes393515 []any = OrdersToList(r2.Value)
+	if retRes393515 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393315)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes393515)}
 	}
 	return nil
 }
@@ -5261,11 +5263,11 @@ func (this *Coinbase) fetchCanceledOrdersBody(ch chan AsyncResult[[]Order], opti
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes394815 []any = OrdersToList(r.Value)
-	if retRes394815 == nil {
+	var retRes395015 []any = OrdersToList(r.Value)
+	if retRes395015 == nil {
 		ch <- AsyncResult[[]Order]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes394815)}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes395015)}
 	}
 	return nil
 }
@@ -5321,11 +5323,11 @@ func (this *Coinbase) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes397819 []any = r1.Value
-		if retRes397819 == nil {
+		var retRes398019 []any = r1.Value
+		if retRes398019 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes397819)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes398019)}
 		}
 		return nil
 	}
@@ -5548,11 +5550,11 @@ func (this *Coinbase) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes413519 []any = r1.Value
-		if retRes413519 == nil {
+		var retRes413719 []any = r1.Value
+		if retRes413719 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes413519)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes413719)}
 		}
 		return nil
 	}

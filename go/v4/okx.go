@@ -3167,16 +3167,15 @@ func (this *Okx) fetchCurrenciesBody(ch chan AsyncResult[map[string]any], option
 	return nil
 }
 func (this *Okx) ParseCurrency(currency any) map[string]any {
-	var chains any = currency
 	// currencies are grouped by chain entries, so there is at least one entry
-	var firstChain map[string]any = SafeMapTyped(chains, 0)
+	var firstChain map[string]any = SafeMapTyped(currency, 0)
 	var currencyId *string = this.SafeString(firstChain, "ccy")
 	var code *string = this.SafeCurrencyCode(currencyId)
 	var networks map[string]any = map[string]any{}
 	var typeVar string = "crypto"
-	var chainsLength int = GetArrayLength(chains)
+	var chainsLength int = GetArrayLength(currency)
 	for j := 0; j < chainsLength; j++ {
-		var chain map[string]any = SafeMapTyped(chains, j)
+		var chain map[string]any = SafeMapTyped(currency, j)
 		// allow empty string for rare fiat-currencies, e.g. TRY
 		var networkId *string = this.SafeString(chain, "chain", "") // USDT-BEP20, USDT-Avalance-C, etc
 		if networkId != nil && *networkId == "" {
@@ -3207,7 +3206,7 @@ func (this *Okx) ParseCurrency(currency any) map[string]any {
 		}
 	}
 	return this.SafeCurrencyStructure(map[string]any{
-		"info":      chains,
+		"info":      currency,
 		"code":      code,
 		"id":        currencyId,
 		"name":      this.SafeString(firstChain, "name"),
@@ -3828,11 +3827,11 @@ func (this *Okx) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, optio
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes260319 []any = r1.Value
-		if retRes260319 == nil {
+		var retRes260219 []any = r1.Value
+		if retRes260219 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes260319)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes260219)}
 		}
 		return nil
 	}
@@ -3987,11 +3986,11 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes271619 []any = r1.Value
-		if retRes271619 == nil {
+		var retRes271519 []any = r1.Value
+		if retRes271519 == nil {
 			ch <- AsyncResult[[]OHLCV]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes271619)}
+			ch <- AsyncResult[[]OHLCV]{Value: OHLCVsFromList(retRes271519)}
 		}
 		return nil
 	}
@@ -4174,11 +4173,11 @@ func (this *Okx) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateHi
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes282819 []any = r1.Value
-		if retRes282819 == nil {
+		var retRes282719 []any = r1.Value
+		if retRes282719 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes282819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes282719)}
 		}
 		return nil
 	}
@@ -6451,11 +6450,11 @@ func (this *Okx) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArgs 
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes467819 []any = r1.Value
-		if retRes467819 == nil {
+		var retRes467719 []any = r1.Value
+		if retRes467719 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes467819)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes467719)}
 		}
 		return nil
 	}
@@ -6873,11 +6872,11 @@ func (this *Okx) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes503419 []any = r1.Value
-		if retRes503419 == nil {
+		var retRes503319 []any = r1.Value
+		if retRes503319 == nil {
 			ch <- AsyncResult[[]Order]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes503419)}
+			ch <- AsyncResult[[]Order]{Value: OrdersFromList(retRes503319)}
 		}
 		return nil
 	}
@@ -7096,11 +7095,11 @@ func (this *Okx) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs ..
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes521419 []any = r1.Value
-		if retRes521419 == nil {
+		var retRes521319 []any = r1.Value
+		if retRes521319 == nil {
 			ch <- AsyncResult[[]Trade]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes521419)}
+			ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes521319)}
 		}
 		return nil
 	}
@@ -7197,11 +7196,11 @@ func (this *Okx) fetchOrderTradesBody(ch chan AsyncResult[[]Trade], id string, o
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes528915 []any = TradesToList(r.Value)
-	if retRes528915 == nil {
+	var retRes528815 []any = TradesToList(r.Value)
+	if retRes528815 == nil {
 		ch <- AsyncResult[[]Trade]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes528915)}
+		ch <- AsyncResult[[]Trade]{Value: TradesFromList(retRes528815)}
 	}
 	return nil
 }
@@ -7252,11 +7251,11 @@ func (this *Okx) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optionalArg
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes531419 []any = r1.Value
-		if retRes531419 == nil {
+		var retRes531319 []any = r1.Value
+		if retRes531319 == nil {
 			ch <- AsyncResult[[]LedgerEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes531419)}
+			ch <- AsyncResult[[]LedgerEntry]{Value: LedgerEntriesFromList(retRes531319)}
 		}
 		return nil
 	}
@@ -7825,11 +7824,11 @@ func (this *Okx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes577419 []any = r1.Value
-		if retRes577419 == nil {
+		var retRes577319 []any = r1.Value
+		if retRes577319 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes577419)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes577319)}
 		}
 		return nil
 	}
@@ -7989,11 +7988,11 @@ func (this *Okx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes588519 []any = r1.Value
-		if retRes588519 == nil {
+		var retRes588419 []any = r1.Value
+		if retRes588419 == nil {
 			ch <- AsyncResult[[]Transaction]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes588519)}
+			ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes588419)}
 		}
 		return nil
 	}
@@ -8616,11 +8615,11 @@ func (this *Okx) fetchPositionsForSymbolBody(ch chan AsyncResult[[]Position], sy
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes640315 []any = PositionsToList(r.Value)
-	if retRes640315 == nil {
+	var retRes640215 []any = PositionsToList(r.Value)
+	if retRes640215 == nil {
 		ch <- AsyncResult[[]Position]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes640315)}
+		ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes640215)}
 	}
 	return nil
 }

@@ -2445,11 +2445,11 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 			request["endTime"] = *until + 1 // mexc's endTime is not inclusive, so we add 1 ms to avoid missing the last candle in the results
 		}
 
-		r2 := <-this.SpotPublicGetKlines(this.Extend(request, paramsUntil))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.SpotPublicGetKlines(this.Extend(request, paramsUntil))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r2.Raw
+		var response []any = responseRecv.Value
 		//
 		//     [
 		//       [
@@ -2482,28 +2482,28 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		}
 		var priceType string = *this.SafeString(paramsUntil, "price", "default")
 		var paramsOmitted any = this.Omit(paramsUntil, "price")
-		var response any = nil
+		var swapResponse map[string]any = nil
 		if priceType == "default" {
 
-			r3 := <-this.ContractPublicGetKlineSymbol(this.Extend(request, paramsOmitted))
+			r2 := <-this.ContractPublicGetKlineSymbol(this.Extend(request, paramsOmitted))
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			swapResponse = r2.Value
+		} else if priceType == "index" {
+
+			r3 := <-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, paramsOmitted))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
-		} else if priceType == "index" {
+			swapResponse = r3.Value
+		} else if priceType == "mark" {
 
-			r4 := <-this.ContractPublicGetKlineIndexPriceSymbol(this.Extend(request, paramsOmitted))
+			r4 := <-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, paramsOmitted))
 			if r4.Err != nil {
 				panic(r4.Err)
 			}
-			response = r4.Raw
-		} else if priceType == "mark" {
-
-			r5 := <-this.ContractPublicGetKlineFairPriceSymbol(this.Extend(request, paramsOmitted))
-			if r5.Err != nil {
-				panic(r5.Err)
-			}
-			response = r5.Raw
+			swapResponse = r4.Value
 		} else {
 			panic(NotSupported(this.Id + " fetchOHLCV() not support this price type, [default, index, mark]"))
 		}
@@ -2522,7 +2522,7 @@ func (this *Mexc) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		//         }
 		//     }
 		//
-		var data map[string]any = SafeMapTyped(response, "data")
+		var data map[string]any = SafeMapTyped(swapResponse, "data")
 		candles = this.ConvertTradingViewToOHLCV(data, "time", "open", "high", "low", "close", "vol")
 	}
 
@@ -3719,24 +3719,24 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		if limit != nil {
 			request["limit"] = limit
 		}
-		var response any = nil
+		var spotResponse []any = nil
 		if marginMode != nil {
 			if marginMode == nil || *marginMode != "isolated" {
 				panic(BadRequest(this.Id + " fetchOrders() does not support marginMode " + *marginMode + " for spot-margin trading"))
 			}
 
-			r1 := <-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner))
-			if r1.Err != nil {
-				panic(r1.Err)
+			spotResponseRecv := <-this.SpotPrivateGetMarginAllOrders(this.Extend(request, queryInner))
+			if spotResponseRecv.Err != nil {
+				panic(spotResponseRecv.Err)
 			}
-			response = r1.Raw
+			spotResponse = spotResponseRecv.Value
 		} else {
 
-			r2 := <-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner))
-			if r2.Err != nil {
-				panic(r2.Err)
+			spotResponseRecv := <-this.SpotPrivateGetAllOrders(this.Extend(request, queryInner))
+			if spotResponseRecv.Err != nil {
+				panic(spotResponseRecv.Err)
 			}
-			response = r2.Raw
+			spotResponse = spotResponseRecv.Value
 		}
 
 		//
@@ -3787,7 +3787,7 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		//         }
 		//     ]
 		//
-		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(response, market, since, limit))}
+		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(spotResponse, market, since, limit))}
 		return nil
 	} else {
 		if since != nil {
@@ -3823,11 +3823,11 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		var ordersOfTrigger any = []any{}
 		if method == "contractPrivateGetOrderListHistoryOrders" {
 
-			r3 := <-this.ContractPrivateGetOrderListHistoryOrders(this.Extend(request, query))
-			if r3.Err != nil {
-				panic(r3.Err)
+			r1 := <-this.ContractPrivateGetOrderListHistoryOrders(this.Extend(request, query))
+			if r1.Err != nil {
+				panic(r1.Err)
 			}
-			response := r3.Raw
+			response := r1.Raw
 			//
 			//     {
 			//         "success": true,
@@ -3866,11 +3866,11 @@ func (this *Mexc) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ...
 		} else {
 			// the Planorder endpoints work not only for stop-market orders, but also for stop-limit orders that were supposed to have a separate endpoint
 
-			r4 := <-this.ContractPrivateGetPlanorderListOrders(this.Extend(request, query))
-			if r4.Err != nil {
-				panic(r4.Err)
+			r2 := <-this.ContractPrivateGetPlanorderListOrders(this.Extend(request, query))
+			if r2.Err != nil {
+				panic(r2.Err)
 			}
-			response := r4.Raw
+			response := r2.Raw
 			//
 			//     {
 			//         "success": true,
@@ -4528,11 +4528,11 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		}
 		request["symbol"] = this.SafeString(market, "id")
 
-		r2 := <-this.SpotPrivateDeleteOpenOrders(this.Extend(request, paramsMarketType))
-		if r2.Err != nil {
-			panic(r2.Err)
+		responseRecv := <-this.SpotPrivateDeleteOpenOrders(this.Extend(request, paramsMarketType))
+		if responseRecv.Err != nil {
+			panic(responseRecv.Err)
 		}
-		response := r2.Raw
+		var response []any = responseRecv.Value
 
 		//
 		// spot
@@ -4558,21 +4558,21 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		// the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
 		var method string = *this.SafeString(this.Options, "cancelAllOrders", "contractPrivatePostOrderCancelAll")
 		method = *this.SafeString(paramsMarketType, "method", method)
-		var response any = map[string]any{}
+		var swapResponse any = map[string]any{}
 		if method == "contractPrivatePostOrderCancelAll" {
 
-			r3 := <-this.ContractPrivatePostOrderCancelAll(this.Extend(request, paramsMarketType))
+			r2 := <-this.ContractPrivatePostOrderCancelAll(this.Extend(request, paramsMarketType))
+			if r2.Err != nil {
+				panic(r2.Err)
+			}
+			swapResponse = r2.Raw
+		} else if method == "contractPrivatePostPlanorderCancelAll" {
+
+			r3 := <-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, paramsMarketType))
 			if r3.Err != nil {
 				panic(r3.Err)
 			}
-			response = r3.Raw
-		} else if method == "contractPrivatePostPlanorderCancelAll" {
-
-			r4 := <-this.ContractPrivatePostPlanorderCancelAll(this.Extend(request, paramsMarketType))
-			if r4.Err != nil {
-				panic(r4.Err)
-			}
-			response = r4.Raw
+			swapResponse = r3.Raw
 		}
 		//
 		//     {
@@ -4580,7 +4580,7 @@ func (this *Mexc) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 		//         "code": "0"
 		//     }
 		//
-		var data []any = SafeListTypedDefault(response, "data", []any{})
+		var data []any = SafeListTypedDefault(swapResponse, "data", []any{})
 
 		ch <- AsyncResult[[]Order]{Value: OrdersFromList(this.ParseOrders(data, market))}
 		return nil
@@ -8288,18 +8288,18 @@ func (this *Mexc) Sign(path string, optionalArgs ...any) map[string]any {
 		} else {
 			this.CheckRequiredCredentials()
 			var timestamp string = strconv.FormatInt(this.Nonce(), 10)
-			var auth string = ""
+			var payload string = ""
 			if method == "POST" {
-				auth = this.Json(paramsOmitted)
-				requestBody = SafeStringPtr(auth)
+				payload = this.Json(paramsOmitted)
+				requestBody = SafeStringPtr(payload)
 			} else {
 				var paramsSorted map[string]any = this.Keysort(paramsOmitted)
 				if len(paramsSorted) > 0 {
-					auth += this.Urlencode(paramsSorted)
-					url += "?" + auth
+					payload = this.Urlencode(paramsSorted)
+					url += "?" + payload
 				}
 			}
-			auth = this.ApiKey + timestamp + auth
+			var auth string = this.ApiKey + timestamp + payload
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256)
 			requestHeaders = map[string]any{
 				"ApiKey":       this.ApiKey,

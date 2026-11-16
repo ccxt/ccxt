@@ -5432,11 +5432,7 @@ func (this *Hyperliquid) setMarginModeBody(ch chan AsyncResult[map[string]any], 
 	if vaultAddressPtr != nil {
 		vaultAddress = *vaultAddressPtr
 	}
-	if vaultAddress != nil {
-		if StartsWith(vaultAddress, "0x") {
-			vaultAddress = Replace(vaultAddress, "0x", "")
-		}
-	}
+	vaultAddress = this.FormatVaultAddress(vaultAddress)
 	var signature any = this.SignL1Action(updateAction, nonce, vaultAddress)
 	var request map[string]any = map[string]any{
 		"action":    updateAction,
@@ -7048,12 +7044,11 @@ func (this *Hyperliquid) Sign(path string, optionalArgs ...any) map[string]any {
 	}
 	var url string = this.ImplodeHostname(apiUrl) + "/" + path
 	var isPost bool = (method == "POST")
-	var postHeaders map[string]any = map[string]any{
-		"Content-Type": "application/json",
-	}
 	var requestHeaders map[string]any = nil
 	if isPost {
-		requestHeaders = postHeaders
+		requestHeaders = map[string]any{
+			"Content-Type": "application/json",
+		}
 	}
 	var requestBody *string = nil
 	if isPost {

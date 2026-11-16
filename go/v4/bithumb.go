@@ -551,8 +551,14 @@ func (this *Bithumb) GetGen2MarketId(market any) any {
 	if (marketId != nil) && (strings.Index(*marketId, "-") >= 0) {
 		return marketId
 	}
-	var quoteId *string = this.SafeString2(market, "quoteId", "quote", "")
-	var baseId *string = this.SafeString2(market, "baseId", "base", "")
+	var quoteId *string = this.SafeString(market, "quoteId")
+	if quoteId == nil {
+		quoteId = this.SafeString(market, "quote", "")
+	}
+	var baseId *string = this.SafeString(market, "baseId")
+	if baseId == nil {
+		baseId = this.SafeString(market, "base", "")
+	}
 	return *quoteId + "-" + *baseId
 }
 
@@ -696,7 +702,6 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 		var results []any = ListTyped(r1.Value)
 		for i := 0; i < len(quotes); i++ {
 			var quote string = quotes[i]
-			var quoteId any = quote
 			var response map[string]any = SafeMapTyped(results, i)
 			var data map[string]any = SafeMapTyped(response, "data")
 			var extension map[string]any = this.SafeDictMap(quoteCurrencies, quote, map[string]any{})
@@ -731,7 +736,7 @@ func (this *Bithumb) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					"quote":          quote,
 					"settle":         nil,
 					"baseId":         currencyId,
-					"quoteId":        quoteId,
+					"quoteId":        quote,
 					"settleId":       nil,
 					"type":           "spot",
 					"spot":           true,
@@ -2445,9 +2450,8 @@ func (this *Bithumb) fetchOrderBody(ch chan AsyncResult[Order], id string, optio
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires a symbol argument"))
 		}
-		var marketDefined any = market
-		var base *string = this.SafeString(marketDefined, "base")
-		var quote *string = this.SafeString(marketDefined, "quote")
+		var base *string = this.SafeString(market, "base")
+		var quote *string = this.SafeString(market, "quote")
 		if (base == nil) || (quote == nil) {
 			panic(ArgumentsRequired(this.Id + " fetchOrder() requires a market with defined base and quote"))
 		}
@@ -3098,7 +3102,7 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "cancelOrder", "generation", 2)
-	var market any = nil
+	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
@@ -3141,9 +3145,8 @@ func (this *Bithumb) cancelOrderBody(ch chan AsyncResult[Order], id string, opti
 		if symbol == nil {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a symbol argument"))
 		}
-		var marketDefined any = market
-		var base *string = this.SafeString(marketDefined, "base")
-		var quote *string = this.SafeString(marketDefined, "quote")
+		var base *string = this.SafeString(market, "base")
+		var quote *string = this.SafeString(market, "quote")
 		if (base == nil) || (quote == nil) {
 			panic(ArgumentsRequired(this.Id + " cancelOrder() requires a market with defined base and quote"))
 		}
@@ -4214,13 +4217,11 @@ func (this *Bithumb) Sign(path string, optionalArgs ...any) map[string]any {
 			}
 		}
 	}
-	var headersResult map[string]any = requestHeaders
-	var bodyResult *string = requestBody
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResult,
-		"headers": headersResult,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bithumb) HandleErrors(code int64, reason string, url string, method string, headers any, body string, response any, requestHeaders any, requestBody any) any {

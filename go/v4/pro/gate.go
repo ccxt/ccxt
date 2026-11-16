@@ -1862,7 +1862,11 @@ func (this *Gate) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opti
 	var market map[string]any = nil
 	if symbol != nil {
 		market = this.Market(symbol)
-		marketId = market["id"]
+		if derefPtr := this.SafeString(market, "id"); derefPtr != nil {
+			marketId = *derefPtr
+		} else {
+			marketId = nil
+		}
 	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	subType, paramsSubType := this.HandleSubTypeAndParams("watchMyTrades", market, paramsMarketType)

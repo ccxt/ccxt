@@ -2044,9 +2044,9 @@ func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
 	var timestamp *int64 = this.SafeIntegerN(position, []any{"updatedTime", "uTime", "cTime", "createdTime"})
 	var percentageDecimal *string = this.SafeString2(position, "unrealizedPLR", "profitRate")
 	var percentage *string = ccxt.Precise.StringMul(percentageDecimal, "100")
-	var contractSize any = nil
+	var contractSize *float64 = nil
 	if market != nil {
-		contractSize = market["contractSize"]
+		contractSize = this.SafeNumber(market, "contractSize")
 	}
 	return ccxt.PositionToMap(this.SafePosition(map[string]any{
 		"info":                        position,

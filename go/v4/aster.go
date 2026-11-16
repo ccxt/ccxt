@@ -3106,7 +3106,6 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info any = order
 	var positionSide *string = this.SafeString(order, "positionSide")
 	var defaultType string = "spot"
 	if positionSide != nil {
@@ -3121,7 +3120,7 @@ func (this *Aster) ParseOrder(order any, optionalArgs ...any) Order {
 	var stopPriceString *string = this.SafeString(order, "stopPrice")
 	var triggerPrice *float64 = this.ParseNumber(this.OmitZero(stopPriceString))
 	return this.SafeOrder(map[string]any{
-		"info":                info,
+		"info":                order,
 		"id":                  this.SafeString(order, "orderId"),
 		"clientOrderId":       this.SafeString(order, "clientOrderId"),
 		"symbol":              this.SafeSymbol(marketId, marketResolved),
@@ -5092,11 +5091,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r.Err != nil {
 			panic(r.Err)
 		}
-		var retRes381619 []any = PositionsToList(r.Value)
-		if retRes381619 == nil {
+		var retRes381519 []any = PositionsToList(r.Value)
+		if retRes381519 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381619)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381519)}
 		}
 		return nil
 	} else if defaultMethod != nil && *defaultMethod == "account" {
@@ -5105,11 +5104,11 @@ func (this *Aster) fetchPositionsBody(ch chan AsyncResult[[]Position], optionalA
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes381819 []any = PositionsToList(r1.Value)
-		if retRes381819 == nil {
+		var retRes381719 []any = PositionsToList(r1.Value)
+		if retRes381719 == nil {
 			ch <- AsyncResult[[]Position]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381819)}
+			ch <- AsyncResult[[]Position]{Value: PositionsFromList(retRes381719)}
 		}
 		return nil
 	} else {

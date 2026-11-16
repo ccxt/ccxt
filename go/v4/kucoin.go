@@ -2189,7 +2189,7 @@ func (this *Kucoin) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], opt
 	defer ReturnPanicError(ch)
 	var params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
-	var fetchTickersFees any = nil
+	var fetchTickersFees any = true
 	var paramsRequest any = nil
 	fetchTickersFees, paramsRequest = this.HandleOptionBoolAndParams(params, "fetchMarkets", "fetchTickersFees", true)
 	var uta any = false

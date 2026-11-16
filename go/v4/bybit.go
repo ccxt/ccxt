@@ -5634,7 +5634,7 @@ func (this *Bybit) createMarketSellOrderWithCostBody(ch chan AsyncResult[Order],
 	}
 	typesRecv, _ := r1.Value, r1.Value != nil
 	var types []any = typesRecv
-	var enableUnifiedAccount *bool = SafeBoolPtr(types[1])
+	var enableUnifiedAccount *bool = this.SafeBool(types, 1, false)
 	if enableUnifiedAccount == nil || *enableUnifiedAccount != true {
 		panic(NotSupported(this.Id + " createMarketSellOrderWithCost() supports UTA accounts only"))
 	}
@@ -5717,7 +5717,7 @@ func (this *Bybit) createOrderBody(ch chan AsyncResult[Order], symbol string, ty
 	}
 	partsRecv, _ := r1.Value, r1.Value != nil
 	var parts []any = partsRecv
-	var enableUnifiedAccount *bool = SafeBoolPtr(parts[1])
+	var enableUnifiedAccount *bool = this.SafeBool(parts, 1, false)
 	var isTrailingOrder bool = (this.SafeString2(params, "trailingAmount", "trailingStop") != nil)
 	var isStopLossOrder bool = (this.SafeString(params, "stopLossPrice") != nil)
 	var isTakeProfitOrder bool = (this.SafeString(params, "takeProfitPrice") != nil)
@@ -6120,7 +6120,7 @@ func (this *Bybit) createOrdersBody(ch chan AsyncResult[[]Order], orders []any, 
 	}
 	accountsRecv, _ := r1.Value, r1.Value != nil
 	var accounts []any = accountsRecv
-	var isUta *bool = SafeBoolPtr(accounts[1])
+	var isUta *bool = this.SafeBool(accounts, 1, false)
 	var ordersRequests []any = []any{}
 	var orderSymbols []any = []any{}
 	for i := 0; i < len(orders); i++ {
@@ -6625,7 +6625,7 @@ func (this *Bybit) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, 
 	}
 	typesRecv, _ := r1.Value, r1.Value != nil
 	var types []any = typesRecv
-	var enableUnifiedAccount *bool = SafeBoolPtr(types[1])
+	var enableUnifiedAccount *bool = this.SafeBool(types, 1, false)
 	if enableUnifiedAccount == nil || *enableUnifiedAccount != true {
 		panic(NotSupported(this.Id + " cancelOrders() supports UTA accounts only"))
 	}
@@ -6793,7 +6793,7 @@ func (this *Bybit) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], orde
 	}
 	typesRecv, _ := r1.Value, r1.Value != nil
 	var types []any = typesRecv
-	var enableUnifiedAccount *bool = SafeBoolPtr(types[1])
+	var enableUnifiedAccount *bool = this.SafeBool(types, 1, false)
 	if enableUnifiedAccount == nil || *enableUnifiedAccount != true {
 		panic(NotSupported(this.Id + " cancelOrdersForSymbols() supports UTA accounts only"))
 	}
@@ -8919,7 +8919,7 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	}
 	accountsRecv, _ := r.Value, r.Value != nil
 	var accounts []any = accountsRecv
-	var isUta *bool = SafeBoolPtr(accounts[1])
+	var isUta *bool = this.SafeBool(accounts, 1, false)
 	accountTypeOption, paramsAccountType := this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
 	var defaultAccountType string = func() string {
 		if isUta != nil && *isUta == true {

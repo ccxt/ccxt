@@ -131,11 +131,11 @@ func (this *PredictionExchange) ApplyEventFetchParams(events any, optionalArgs .
 	if (eventId != nil) || (slug != nil) {
 		var filtered []any = []any{}
 		for i := 0; i < GetArrayLength(result); i++ {
-			var event any = this.SafeValue(result, i)
+			var event map[string]any = SafeMapTyped(result, i)
 			var idMatch bool = (eventId != nil) && (this.SafeString(event, "id") == eventId || (this.SafeString(event, "id") != nil && eventId != nil && *this.SafeString(event, "id") == *eventId))
 			var slugMatch bool = (slug != nil) && (this.SafeString(event, "slug") == slug || (this.SafeString(event, "slug") != nil && slug != nil && *this.SafeString(event, "slug") == *slug))
 			if idMatch || slugMatch {
-				filtered = append(filtered, event)
+				filtered = append(filtered, this.SafeValue(result, i))
 			}
 		}
 		result = filtered
@@ -194,11 +194,11 @@ func (this *PredictionExchange) FilterEventsByStatus(events any, optionalArgs ..
 	var wantActive bool = (status != nil && *status == "active")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
-		var event any = this.SafeValue(events, i)
+		var event map[string]any = SafeMapTyped(events, i)
 		var isActive *bool = this.SafeBool(event, "active")
 		// keep events whose status is unknown (already filtered server-side, no `active` field)
 		if (isActive == nil) || (isActive != nil && *isActive == wantActive) {
-			result = append(result, event)
+			result = append(result, this.SafeValue(events, i))
 		}
 	}
 	return result
@@ -219,7 +219,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 	var checkDescription bool = (searchIn != nil && *searchIn == "description") || (searchIn != nil && *searchIn == "both")
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
-		var event any = this.SafeValue(events, i)
+		var event map[string]any = SafeMapTyped(events, i)
 		var title *string = this.SafeStringLower(event, "title", "")
 		var description *string = this.SafeStringLower(event, "description", "")
 		var matched bool = false
@@ -241,7 +241,7 @@ func (this *PredictionExchange) FilterEventsBySearchIn(events any, queries any, 
 			}
 		}
 		if matched {
-			result = append(result, event)
+			result = append(result, this.SafeValue(events, i))
 		}
 	}
 	return result
@@ -293,7 +293,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 	}
 	var result []any = []any{}
 	for i := 0; i < GetArrayLength(events); i++ {
-		var event any = this.SafeValue(events, i)
+		var event map[string]any = SafeMapTyped(events, i)
 		var eventTags []any = SafeListTyped(event, "tags")
 		var matched bool = false
 		for ti := 0; ti < len(eventTags); ti++ {
@@ -318,7 +318,7 @@ func (this *PredictionExchange) FilterEventsByTags(events any, optionalArgs ...a
 			}
 		}
 		if matched {
-			result = append(result, event)
+			result = append(result, this.SafeValue(events, i))
 		}
 	}
 	return result

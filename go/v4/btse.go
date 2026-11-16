@@ -4928,14 +4928,14 @@ func (this *Btse) HandleErrors(code int64, reason string, url string, method str
 		var row map[string]any = SafeMapTyped(rows, i)
 		var status *string = this.SafeString(row, "status")
 		if status != nil {
-			var message *string = this.SafeString(row, "message")
-			var embedded any = this.ParseJson(message)
+			var rowMessage *string = this.SafeString(row, "message")
+			var embedded any = this.ParseJson(rowMessage)
 			if embedded != nil {
-				message = this.SafeString(embedded, "default_msg", message)
+				rowMessage = this.SafeString(embedded, "default_msg", rowMessage)
 			}
 			var feedback string = this.Id + " " + body
 			this.ThrowExactlyMatchedException(this.Exceptions["exact"], status, feedback)
-			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], message, feedback)
+			this.ThrowBroadlyMatchedException(this.Exceptions["broad"], rowMessage, feedback)
 		}
 	}
 	return nil

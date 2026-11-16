@@ -1036,8 +1036,8 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 		if isRaw {
 			var deltas []any = ccxt.SafeListTyped(message, 1)
 			for i := 0; i < len(deltas); i++ {
-				var delta any = deltas[i]
-				var delta2 *float64 = this.SafeNumber(delta, 2)
+				var rawDelta any = deltas[i]
+				var delta2 *float64 = this.SafeNumber(rawDelta, 2)
 				var size any = func() any {
 					if (delta2 != nil) && (!(*delta2 >= 0)) {
 						return (-*delta2)
@@ -1051,8 +1051,8 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 					return "bids"
 				}()
 				var bookside any = ccxt.GetValue(orderbook, side)
-				var idString *string = this.SafeString(delta, 0)
-				var price *float64 = this.SafeFloat(delta, 1)
+				var idString *string = this.SafeString(rawDelta, 0)
+				var price *float64 = this.SafeFloat(rawDelta, 1)
 				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, idString})
 			}
 		} else {

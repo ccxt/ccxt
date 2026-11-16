@@ -2155,10 +2155,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 	var topic string = *this.SafeString(message, "topic", "")
 	var spot bool = (topic == "ticketInfo")
 	var executionFast bool = (topic == "execution.fast")
-	var data any = this.SafeList(message, "data", []any{})
-	if !ccxt.IsArray(data) {
-		data = this.SafeList(data, "result", []any{})
-	}
+	var data []any = ccxt.SafeListTyped(message, "data")
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2181,7 +2178,7 @@ func (this *Bybit) HandleMyTrades(client any, message map[string]any) {
 	} else {
 		execTypes = execTypeOption
 	}
-	for i := 0; i < ccxt.GetArrayLength(data); i++ {
+	for i := 0; i < len(data); i++ {
 		var rawTrade map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		var parsed any = nil
 		if spot && !executionFast {
@@ -2945,16 +2942,10 @@ func (this *Bybit) HandleOrder(client any, message map[string]any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders ccxt.WsArrayCache = this.Orders
-	var rawOrders any = this.SafeList(message, "data", []any{})
-	var first map[string]any = ccxt.SafeMapTyped(rawOrders, 0)
-	var category *string = this.SafeString(first, "category")
-	var isSpot bool = (category != nil && *category == "spot")
-	if !isSpot {
-		rawOrders = this.SafeValue(rawOrders, "result", rawOrders)
-	}
+	var rawOrders []any = ccxt.SafeListTyped(message, "data")
 	var symbols map[string]any = map[string]any{}
-	for i := 0; i < ccxt.GetArrayLength(rawOrders); i++ {
-		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(ccxt.GetValue(rawOrders, i)))
+	for i := 0; i < len(rawOrders); i++ {
+		var parsed map[string]any = ccxt.OrderToMap(this.ParseOrder(rawOrders[i]))
 		// if (isSpot) {
 		//     parsed = this.parseWsSpotOrder (rawOrders[i])
 		// } else {

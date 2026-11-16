@@ -4037,19 +4037,19 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 		this.CheckRequiredCredentials()
 		var recvWindow *int64 = this.SafeInteger(this.Options, "recvWindow", 5000)
 		if (typeVar == "spot") || (typeVar == "open") {
-			var query string = this.Urlencode(this.Extend(map[string]any{
+			var unsignedQuery string = this.Urlencode(this.Extend(map[string]any{
 				"timestamp":  this.Nonce(),
 				"recvWindow": recvWindow,
 			}, paramsOmitted))
-			var signature string = this.Hmac(this.Encode(query), this.Encode(this.Secret), sha256)
-			query += "&" + "signature=" + signature
+			var signature string = this.Hmac(this.Encode(unsignedQuery), this.Encode(this.Secret), sha256)
+			var signedQuery string = unsignedQuery + "&" + "signature=" + signature
 			if (method == "GET") || (method == "DELETE") {
-				url += "?" + query
+				url += "?" + signedQuery
 				requestHeaders = map[string]any{
 					"X-MBX-APIKEY": this.ApiKey,
 				}
 			} else {
-				requestBody = query
+				requestBody = signedQuery
 				requestHeaders = map[string]any{
 					"X-MBX-APIKEY": this.ApiKey,
 					"Content-Type": "application/x-www-form-urlencoded",
@@ -4076,7 +4076,7 @@ func (this *Bitrue) Sign(path string, optionalArgs ...any) map[string]any {
 				}
 				url += "?" + this.Urlencode(paramsOmitted)
 			} else {
-				var query any = this.Extend(map[string]any{
+				var query map[string]any = this.Extend(map[string]any{
 					"recvWindow": recvWindow,
 				}, paramsOmitted)
 				requestBody = this.Json(query)
