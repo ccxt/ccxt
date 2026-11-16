@@ -1,17 +1,8 @@
 #!/usr/bin/env tsx
 /**
- * Typed transpiled Java cores. Retypes every `CompletableFuture<Object> <unified>(...)` the
- * transpiler emits (BaseExchange / Exchange / PredictionExchange tiers and every core under
- * exchanges/, exchanges/pro/, exchanges/prediction/) to `CompletableFuture<T>` using the
- * return-type table generateJavaWrappers.ts derives from ts/src/base/Exchange.ts, and puts
- * the typed construction on the core's own `supplyAsync` tail.
- *
- * The unified types are views over the raw payload (`Ticker extends TypedMap extends
- * AbstractMap<String,Object>`, `OHLCV extends TypedList`), so a typed result IS the dict the
- * transpiled consumers (Helpers.GetValue / safe* / extend / filterBy / json) already handle:
- * no internal call site changes and no inverse conversion layer.
- *
- * Java generics are invariant: a name is retyped on every tier at once or nothing compiles.
+ * Retypes every transpiled `CompletableFuture<Object> <unified>(...)` core to `CompletableFuture<T>`
+ * (types from generateJavaWrappers.ts) on every tier at once (Java generics are invariant); the
+ * unified types are views over the raw dict, so transpiled consumers need no change.
  */
 
 import * as fs from 'fs';

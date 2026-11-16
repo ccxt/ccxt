@@ -61,33 +61,31 @@ if (platform === 'win32') {
     }
 }
 
-function csharpBalancedBraceEnd (content: string, openAt: number): number {
-    let depth = 0
-    let inString = false
-    let quote = ''
-    for (let i = openAt; i < content.length; i++) {
-        const c = content[i]
-        if (inString) {
-            if (c === '\\') {
-                i += 1
-            } else if (c === quote) {
-                inString = false
+// the index where the bracket group opened at `from` closes, walking by `step` (-1 walks back from a
+// closer); characters in `quotes` start a literal skipped up to its matching quote; -1 when unbalanced
+function csharpMatchingClose (text: string, from: number, opens = '(', closes = ')', quotes = '', step = 1): number {
+    let depth = 0;
+    let quote = '';
+    for (let i = from; (step > 0) ? (i < text.length) : (i >= 0); i += step) {
+        const ch = text[i];
+        if (quote !== '') {
+            if (ch === '\\') {
+                i += step;
+            } else if (ch === quote) {
+                quote = '';
             }
-            continue
-        }
-        if (c === '"' || c === "'") {
-            inString = true
-            quote = c
-        } else if (c === '{') {
-            depth += 1
-        } else if (c === '}') {
-            depth -= 1
+        } else if (quotes.includes (ch)) {
+            quote = ch;
+        } else if (opens.includes (ch)) {
+            depth++;
+        } else if (closes.includes (ch)) {
+            depth--;
             if (depth === 0) {
-                return i
+                return i;
             }
         }
     }
-    return -1
+    return -1;
 }
 
 function csharpArgumentCount (args: string): number {
@@ -255,10 +253,6 @@ function csharpCounterRegion (masked: string[], start: number, end: number) {
         for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
         for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
             if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
-        }
-        for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
-        for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-            for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
         }
     }
     return region;
@@ -709,15 +703,8 @@ function csharpHelperOperatorEdits (original: string, masked: string, takeType, 
 
 // the index of the `)` closing the call whose `(` sits at `open`
 function csharpHelperCallEnd (line: string, open: number): number | undefined {
-    let depth = 0;
-    for (let i = open; i < line.length; i++) {
-        if (line[i] === '(') depth++;
-        if (line[i] === ')') {
-            depth--;
-            if (depth === 0) return i;
-        }
-    }
-    return undefined;
+    const close = csharpMatchingClose (line, open);
+    return (close === -1) ? undefined : close;
 }
 
 // the index of the first comma at the argument level between `open` and `close`
@@ -850,7 +837,7 @@ export function nativeWsCacheCalls (content: string): string {
         let m
         while ((m = call.exec (line)) !== null) {
             const argsAt = m.index + m[0].length
-            const argsEnd = csharpBalancedBraceEnd (line, argsAt - 1)
+            const argsEnd = csharpMatchingClose (line, argsAt - 1, '{', '}', '"\'')
             if (argsEnd < 0 || line[argsEnd + 1] !== ')') {
                 continue
             }
@@ -2158,24 +2145,6 @@ function csharpBookLimitReturnsSelf (): boolean {
     return csharpRuntimeBookDecls.has ('limit')
 }
 
-// index of the `)` closing the `(` at `open`, skipping string literals; -1 when unbalanced
-function csharpBalancedParenEnd (text: string, open: number): number {
-    let depth = 0
-    let inString = false
-    for (let i = open; i < text.length; i++) {
-        const ch = text[i]
-        if (inString) {
-            if (ch === '\\') { i++ } else if (ch === '"') { inString = false }
-        } else if (ch === '"') {
-            inString = true
-        } else if (ch === '(') {
-            depth++
-        } else if (ch === ')' && --depth === 0) {
-            return i
-        }
-    }
-    return -1
-}
 
 // `From<T>(T value) { return value; }` declared in the runtime: the typed core's `T` is handed back as is
 function csharpHelperIsIdentity (helper: string, type: string): boolean {
@@ -2213,7 +2182,7 @@ function csharpDeclaredOperandType (value: string, content: string, methodLines:
         return (bound.length === 1) ? bound[0] : ''
     }
     const call = /^this\.([A-Za-z_]\w*)\(/.exec (value)
-    if ((call === null) || (csharpBalancedParenEnd (value, call[0].length - 1) !== value.length - 1)) {
+    if ((call === null) || (csharpMatchingClose (value, call[0].length - 1, '(', ')', '"') !== value.length - 1)) {
         return ''
     }
     if ((csharpOwnDeclsCache === undefined) || (csharpOwnDeclsCache.content !== content)) {
@@ -2835,12 +2804,13 @@ class NewTranspiler {
         return csharpType;
     }
 
-    // locates the terminating `;` of a `return <expr>;` statement starting at line `start`,
-    // tolerating multi-line expressions by only stopping on a `;` outside brackets/strings
-    collectReturnStatement (lines: string[], start: number): number[] {
+    // [line, column, expression] of the terminating `;` of a `return <expr>;` statement starting at line
+    // `start`, tolerating multi-line expressions by only stopping on a `;` outside brackets/strings
+    collectReturnStatement (lines: string[], start: number): [ number, number, string ] {
         let depth = 0;
         let inString = false;
-        for (let i = start; i < lines.length; i++) {
+        let [ lastLine, semi ] = [ start, lines[start].length ];
+        scan: for (let i = start; i < lines.length; i++) {
             const line = lines[i];
             for (let j = 0; j < line.length; j++) {
                 const ch = line[j];
@@ -2853,10 +2823,13 @@ class NewTranspiler {
                 if (ch === '/' && line[j + 1] === '/') { break; }
                 if (ch === '(' || ch === '[' || ch === '{') { depth++; continue; }
                 if (ch === ')' || ch === ']' || ch === '}') { depth--; continue; }
-                if (ch === ';' && depth <= 0) { return [ i, j ]; }
+                if (ch === ';' && depth <= 0) { [ lastLine, semi ] = [ i, j ]; break scan; }
             }
         }
-        return [ start, lines[start].length ];
+        const at = lines[start].indexOf ('return ') + 7;
+        const head = lines[start].substring (at);
+        const expr = (lastLine === start) ? head.substring (0, semi - at) : [ head ].concat (lines.slice (start + 1, lastLine), [ lines[lastLine].substring (0, semi) ]).join (' ');
+        return [ lastLine, semi, expr.trim () ];
     }
 
     // the reverse helper for a typed core's shape: `List<Order>` -> `FromOrderList`, or ''
@@ -2907,7 +2880,7 @@ class NewTranspiler {
                     break;
                 }
                 const before = out.substring (0, at);
-                const close = this.matchingParen (out, at + needle.length - 1);
+                const close = csharpMatchingClose (out, at + needle.length - 1, '(', ')', '"');
                 if (close === -1) {
                     // a call spanning several lines is left alone rather than mangled;
                     // the runtime FromTyped dispatcher still de-types it if it is awaited reflectively
@@ -3057,11 +3030,7 @@ class NewTranspiler {
                 if (!lines[j].trim ().startsWith ('return ')) {
                     continue;
                 }
-                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
-                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
-                const middle = lines.slice (j + 1, lastLine);
-                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
-                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                const [ lastLine, semi, expr ] = this.collectReturnStatement (lines, j);
                 const calledCore = typedCallRe.exec (expr);
                 const calledType = calledCore ? this.typedCoreType (this.pascalName (calledCore[1], true), predictionTier) : '';
                 // the return already carries the core's own dictionary type
@@ -3107,10 +3076,10 @@ class NewTranspiler {
                     continue;
                 }
                 // a consuming call whose argument list spans several lines has to be joined
-                // first, or matchingParen gives up and the boxed struct escapes untouched
+                // first, or the paren walker gives up and the boxed struct escapes untouched
                 // (binance watchTicker -> `object tickers = await this.WatchTickers(` + 3 lines)
                 let end = j;
-                if (this.matchingParen (lines[j], lines[j].indexOf ('await this.')) === -1) {
+                if (csharpMatchingClose (lines[j], lines[j].indexOf ('await this.'), '(', ')', '"') === -1) {
                     const [ last ] = this.collectReturnStatement (lines, j);
                     if (last > j && last < bodyEnd) {
                         end = last;
@@ -3172,11 +3141,7 @@ class NewTranspiler {
                 if (!lines[j].trim ().startsWith ('return ')) {
                     continue;
                 }
-                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
-                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
-                const middle = lines.slice (j + 1, lastLine);
-                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
-                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                const [ lastLine, semi, expr ] = this.collectReturnStatement (lines, j);
                 if (this.syncCoreReturnIsAlreadyTyped (expr)
                         || csharpReturnIsAlreadyTyped (expr, SYNC_TYPED_CORES[methodName], content, lines.slice (i, bodyEnd + 1), this.isPrediction)
                         || this.callReturnsDeclaredType (expr, SYNC_TYPED_CORES[methodName], this.isPrediction)) {
@@ -3256,7 +3221,7 @@ class NewTranspiler {
         while (match !== null) {
             if (pascals.has (match[1])) {
                 const open = match.index + match[0].length - 1;
-                const close = this.matchingParen (content, open);
+                const close = csharpMatchingClose (content, open, '(', ')', '"');
                 if (close !== -1) {
                     out += content.slice (last, match.index);
                     out += 'detypeForComparison(' + content.slice (match.index, close + 1) + ')';
@@ -3278,7 +3243,7 @@ class NewTranspiler {
         let match = callRe.exec (content);
         while (match !== null) {
             const open = match.index + match[0].length - 1;
-            const close = this.matchingParen (content, open);
+            const close = csharpMatchingClose (content, open, '(', ')', '"');
             if (close !== -1) {
                 out += content.slice (last, match.index) + 'toDict(' + content.slice (match.index, close + 1) + ')';
                 last = close + 1;
@@ -4698,23 +4663,6 @@ class NewTranspiler {
         return out;
     }
 
-    // index of the `(` matching the `)` at `close` (the input is masked, so no literal can hide a
-    // paren), or -1 when the group is unbalanced
-    matchingParenBackwards (masked: string, close: number): number {
-        let depth = 0;
-        for (let i = close; i >= 0; i--) {
-            const ch = masked[i];
-            if (ch === ')') {
-                depth++;
-            } else if (ch === '(') {
-                depth--;
-                if (depth === 0) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
 
     // the [from, to) range(s) to delete for the cast at `at` (index of the `((string)` in the
     // masked line), or null when the operand's static type is not provably `string`. The first
@@ -4757,7 +4705,7 @@ class NewTranspiler {
         const prevWord = /([A-Za-z_][A-Za-z0-9_]*)\s*$/.exec (masked.substring (0, at));
         let callParen = /[A-Za-z0-9_\]]/.test (before);
         if (!callParen && (before === ')')) {
-            const group = this.matchingParenBackwards (masked, at - 1);
+            const group = csharpMatchingClose (masked, at - 1, ')', '(', '', -1);
             const beforeGroup = (group > 0) ? masked[group - 1] : '';
             callParen = /[A-Za-z0-9_\]]/.test (beforeGroup);
         }
@@ -4769,7 +4717,7 @@ class NewTranspiler {
         }
         // the wrapper `((string)X)`: the `(` at `at` must close exactly at `term`, which is the
         // invariant that makes the removal a balanced-pair delete
-        if ((masked[term] !== ')') || (this.matchingParen (masked, at) !== term)) {
+        if ((masked[term] !== ')') || (csharpMatchingClose (masked, at, '(', ')', '"') !== term)) {
             return null;
         }
         return [ [ at, at + 9 ], [ term, term + 1 ] ];
@@ -4839,7 +4787,7 @@ class NewTranspiler {
                     // `head` = index of the call's own `(` inside `rest`
                     const head = (callee !== undefined) ? callee.length - 1 : (STATIC_PRODUCER.exec (rest) as RegExpExecArray)[0].length - 1;
                     const open = at + 9 + head;
-                    const close = this.matchingParen (content, open);
+                    const close = csharpMatchingClose (content, open, '(', ')', '"');
                     if (close !== -1 && content[close + 1] === ')') {
                         end = close + 2;
                     }
@@ -4852,7 +4800,7 @@ class NewTranspiler {
             }
             // the outer `(` at `at` must close exactly at the cast's own `)` — the invariant
             // that makes the removal a balanced-pair delete (`((string)X)` -> `X`)
-            if (this.matchingParen (content, at) !== end - 1) {
+            if (csharpMatchingClose (content, at, '(', ')', '"') !== end - 1) {
                 out += content.substring (i, at + 9);
                 i = at + 9;
                 continue;
@@ -5007,21 +4955,6 @@ class NewTranspiler {
         return undefined;
     }
 
-    csharpMatching (text: string, open: number): number {
-        let depth = 0;
-        for (let i = open; i < text.length; i++) {
-            const ch = text[i];
-            if ((ch === '(') || (ch === '[') || (ch === '{')) {
-                depth++;
-            } else if ((ch === ')') || (ch === ']') || (ch === '}')) {
-                depth--;
-                if (depth === 0) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
 
     // receivers of this method body: `lists` holds the names whose only C# declaration here is a
     // list type, `nonNull` the subset whose every write is a non-null producer. Parameters,
@@ -5046,7 +4979,7 @@ class NewTranspiler {
         const signature = maskedLines.slice (0, signatureEnd + 1).join (' ');
         const open = signature.indexOf ('(');
         if (open >= 0) {
-            const close = this.csharpMatching (signature, open);
+            const close = csharpMatchingClose (signature, open, '([{', ')]}');
             if (close > 0) {
                 for (const arg of this.splitCsharpParams (signature.substring (open + 1, close))) {
                     const param = CSHARP_TYPED_BINDING.exec (arg);
@@ -5128,7 +5061,7 @@ class NewTranspiler {
         const safe = /\bthis\.(?:safeList[2N]?|safeValue[2N]?)\s*\(/.exec (text);
         if (safe !== null) {
             const open = text.indexOf ('(', safe.index);
-            const close = this.csharpMatching (text, open);
+            const close = csharpMatchingClose (text, open, '([{', ')]}');
             if (close < 0) {
                 return false;
             }
@@ -5392,7 +5325,7 @@ class NewTranspiler {
                     continue;
                 }
                 const open = call.index + call[0].length - 1;
-                const close = this.matchingParen (content, open);
+                const close = csharpMatchingClose (content, open, '(', ')', '"');
                 if (close === -1) {
                     if (iface) {
                         clear = false;
@@ -5439,32 +5372,6 @@ class NewTranspiler {
             content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
         }
         return content;
-    }
-    // index of the `)` closing the `(` at `open`, skipping string literals and comments
-    matchingParen (text: string, open: number): number {
-        let depth = 0;
-        for (let i = open; i < text.length; i++) {
-            const ch = text[i];
-            if (ch === '"') {
-                i++;
-                while (i < text.length && text[i] !== '"') {
-                    if (text[i] === '\\') {
-                        i++;
-                    }
-                    i++;
-                }
-                continue;
-            }
-            if (ch === '(') {
-                depth++;
-            } else if (ch === ')') {
-                depth--;
-                if (depth === 0) {
-                    return i;
-                }
-            }
-        }
-        return -1;
     }
 
     // top-level comma split of a C# parameter/argument list
@@ -5550,7 +5457,7 @@ class NewTranspiler {
                 addType (methodTypes, method[2], method[1].trim ());
                 scope = { params: new Map<string, Set<string>> (), locals: new Map<string, Set<string>> () };
                 if (open >= 0) {
-                    const close = this.matchingParen (line, open);
+                    const close = csharpMatchingClose (line, open, '(', ')', '"');
                     if (close > open) {
                         for (const parts of paramTypes (line.substring (open + 1, close))) {
                             const type = parts.slice (0, parts.length - 1).join (' ')
@@ -5607,7 +5514,7 @@ class NewTranspiler {
                 return new Set<string> ([ ...(params ?? []), ...(locals ?? []) ]);
             };
             let text = operand.trim ();
-            while (text.startsWith ('(') && this.matchingParen (text, 0) === text.length - 1) {
+            while (text.startsWith ('(') && csharpMatchingClose (text, 0, '(', ')', '"') === text.length - 1) {
                 text = text.substring (1, text.length - 1).trim ();
             }
             const memberCall = /^(?:this|base)\.(\w+)\s*\(/.exec (text);
@@ -5627,7 +5534,7 @@ class NewTranspiler {
             const declaration = /^(\s*object\s+[A-Za-z_]\w*\s*=\s*)\(\(object\)/.exec (line);
             if (declaration !== null) {
                 const open = declaration[1].length;
-                const close = this.matchingParen (line, open);
+                const close = csharpMatchingClose (line, open, '(', ')', '"');
                 if (close > 0 && line.substring (close + 1).trim () === ';') {
                     return declaration[1] + line.substring (open + 9, close) + ';';
                 }
@@ -5636,7 +5543,7 @@ class NewTranspiler {
             let out = line;
             for (let k = sites.length - 1; k >= 0; k--) {
                 const at = sites[k];
-                const close = this.matchingParen (out, at);
+                const close = csharpMatchingClose (out, at, '(', ')', '"');
                 if (close < 0) {
                     continue;
                 }
