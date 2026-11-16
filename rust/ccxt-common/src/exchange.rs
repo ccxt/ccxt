@@ -223,9 +223,9 @@ impl<T> TypedById<T> {
 /// without one, so an unbound Exchange still compiles and runs.
 pub trait DerivedExchange {
     /// The parent core of a subclass; each default below delegates to it, or returns Null without one.
-    fn derived_parent(&self) -> Option<&dyn DerivedExchange> { None }
+    fn derived_parent(&self) -> Option<&impl DerivedExchange> { None::<&std::convert::Infallible> }
     /// The same parent for the `&mut self` slots (sign, handle_errors).
-    fn derived_parent_mut(&mut self) -> Option<&mut dyn DerivedExchange> { None }
+    fn derived_parent_mut(&mut self) -> Option<&mut impl DerivedExchange> { None::<&mut std::convert::Infallible> }
     // ── parsers (the dominant override surface) ──────────────────────────
     fn parse_ticker(&self, ticker: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_ticker(ticker, market)) }
     fn parse_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { self.derived_parent().map_or(Value::Null, |p| p.parse_trade(trade, market)) }
@@ -2275,6 +2275,9 @@ impl std::ops::DerefMut for BaseCore {
     fn deref_mut(&mut self) -> &mut Exchange { &mut self.exchange }
 }
 impl DerivedExchange for BaseCore {}
+
+/// The parent type of a core without a parent: uninhabited, so no default ever reaches it.
+impl DerivedExchange for std::convert::Infallible {}
 impl crate::exchange_generated::ExchangeBase for BaseCore {
     fn call_dynamic<'a>(&'a mut self, method: &'a str, args: Vec<Value>)
         -> std::pin::Pin<Box<dyn std::future::Future<Output = Value> + Send + 'a>>

@@ -10311,10 +10311,10 @@ ${arms.join('\n')}
         const traitSigs = this.traitMethodSignatures();
         const inherentSigs = new Map(sigs.map(s => [s.name, s]));
         const out: string[] = [`impl crate::exchange::DerivedExchange for ${coreName} {`];
-        // The trait defaults reach the parent through these accessors.
+        // The trait defaults reach the parent through these accessors (`impl Trait`, not `dyn`: the trait has generic methods).
         const accessors = [
-            `    fn derived_parent(&self) -> Option<&dyn crate::exchange::DerivedExchange> { Some(&self.parent) }`,
-            `    fn derived_parent_mut(&mut self) -> Option<&mut dyn crate::exchange::DerivedExchange> { Some(&mut self.parent) }`,
+            `    fn derived_parent(&self) -> Option<&impl crate::exchange::DerivedExchange> { Some(&self.parent) }`,
+            `    fn derived_parent_mut(&mut self) -> Option<&mut impl crate::exchange::DerivedExchange> { Some(&mut self.parent) }`,
         ];
         const pushParentAccessors = () => { if (!out.includes(accessors[0])) out.push(...accessors); };
         for (const [name, args] of Object.entries(traitSigs)) {
