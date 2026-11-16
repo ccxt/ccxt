@@ -10515,7 +10515,7 @@ class binance(Exchange, ImplicitAPI):
         request = {}
         paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
         if paginate:
-            return await self.fetch_paginated_call_deterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate)
+            return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000)
         defaultType = self.safe_string_2(self.options, 'fetchFundingRateHistory', 'defaultType', 'swap')
         type = self.safe_string(paramsPaginate, 'type', defaultType)
         market = None
