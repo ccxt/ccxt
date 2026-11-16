@@ -891,19 +891,18 @@ class apex extends apex$1["default"] {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
-            const request = {
-                'type': 'login',
-                'topics': ['ws_zk_accounts_v3'],
-                'httpMethod': http_method,
-                'requestPath': request_path,
-                'apiKey': this.apiKey,
-                'passphrase': this.password,
-                'timestamp': timestamp,
-                'signature': signature,
-            };
             const message = {
                 'op': 'login',
-                'args': [JSON.stringify(request)],
+                'args': [JSON.stringify({
+                        'type': 'login',
+                        'topics': ['ws_zk_accounts_v3'],
+                        'httpMethod': http_method,
+                        'requestPath': request_path,
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'signature': signature,
+                    })],
             };
             this.watch(url, messageHash, message, messageHash);
         }

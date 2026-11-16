@@ -382,7 +382,7 @@ export default class hollaex extends hollaexRest {
         const stored = this.orders;
         const marketIds = {};
         for (let i = 0; i < rawOrders.length; i++) {
-            const order = this.safeValue(rawOrders, i);
+            const order = this.safeDict(rawOrders, i, {});
             const parsed = this.parseOrder(order);
             stored.append(parsed);
             const symbol = this.safeString(order, 'symbol');

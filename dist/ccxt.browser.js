@@ -308487,10 +308487,9 @@ class coinbaseexchange extends _abstract_coinbaseexchange_js__rspack_import_0/* 
         for(let i = 0; i < marketIds.length; i++){
             const marketId = marketIds[i];
             const entry = this.safeList(response, marketId, []);
-            const first = this.safeList(entry, 0, []);
             const market = this.safeMarket(marketId, undefined, delimiter);
             const symbol = market['symbol'];
-            result[symbol] = this.parseTicker(first, market);
+            result[symbol] = this.parseTicker(this.safeList(entry, 0, []), market);
         }
         return this.filterByArrayTickers(result, 'symbol', symbolsNormalized);
     }
@@ -317606,8 +317605,7 @@ class coinone extends _abstract_coinone_js__rspack_import_0/* ["default"] */.A {
             }, params));
             const payload = this.stringToBase64(json);
             requestBody = payload;
-            const secret = this.secret.toUpperCase();
-            const signature = this.hmac(this.encode(payload), this.encode(secret), _noble_hashes_sha2_js__rspack_import_4/* .sha512 */.Zf);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret.toUpperCase()), _noble_hashes_sha2_js__rspack_import_4/* .sha512 */.Zf);
             requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,
@@ -384890,7 +384888,7 @@ class hollaex extends _abstract_hollaex_js__rspack_import_0/* ["default"] */.A {
         const keys = Object.keys(tickers);
         for(let i = 0; i < keys.length; i++){
             const key = keys[i];
-            const ticker = this.safeValue(tickers, key);
+            const ticker = this.safeDict(tickers, key, {});
             const marketId = this.safeString(ticker, 'symbol', key);
             const market = this.safeMarket(marketId, undefined, '-');
             const symbol = market['symbol'];
@@ -455508,8 +455506,7 @@ class ndax extends _abstract_ndax_js__rspack_import_0/* ["default"] */.A {
         //         }
         //     ]
         //
-        const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(this.parseTickers(response), 'symbol', symbolsNormalized);
     }
     /**
      * @method
@@ -523616,22 +523613,21 @@ class apex extends _apex_js__rspack_import_0/* ["default"] */.A {
         const authenticated = this.safeValue(client.subscriptions, messageHash);
         if (authenticated === undefined) {
             // auth sign
-            const request = {
-                'type': 'login',
-                'topics': [
-                    'ws_zk_accounts_v3'
-                ],
-                'httpMethod': http_method,
-                'requestPath': request_path,
-                'apiKey': this.apiKey,
-                'passphrase': this.password,
-                'timestamp': timestamp,
-                'signature': signature
-            };
             const message = {
                 'op': 'login',
                 'args': [
-                    JSON.stringify(request)
+                    JSON.stringify({
+                        'type': 'login',
+                        'topics': [
+                            'ws_zk_accounts_v3'
+                        ],
+                        'httpMethod': http_method,
+                        'requestPath': request_path,
+                        'apiKey': this.apiKey,
+                        'passphrase': this.password,
+                        'timestamp': timestamp,
+                        'signature': signature
+                    })
                 ]
             };
             this.watch(url, messageHash, message, messageHash);
@@ -568299,7 +568295,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         const storesForSymbols = {};
         for(let i = 0; i < trades.length; i++){
-            const rawTrade = this.safeValue(trades, i);
+            const rawTrade = this.safeDict(trades, i, {});
             const marketId = this.safeString(rawTrade, 'symbol', '').toLowerCase();
             const market = this.safeMarket(marketId);
             const symbol = this.safeString(market, 'symbol', '');
@@ -568412,8 +568408,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for(let i = 0; i < changesLength; i++){
-            const index = changesLength - i - 1;
-            const parsed = this.parseOHLCV(this.safeValue(changes, index), market);
+            const parsed = this.parseOHLCV(this.safeValue(changes, changesLength - i - 1), market);
             stored.append(parsed);
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -568983,7 +568978,7 @@ class gemini extends _gemini_js__rspack_import_0/* ["default"] */.A {
             const collectedEventsOfTrades = [];
             const eventsLength = events.length;
             for(let i = 0; i < events.length; i++){
-                const event = this.safeValue(events, i);
+                const event = this.safeDict(events, i, {});
                 const eventType = this.safeString(event, 'type');
                 const side = this.safeString(event, 'side');
                 const isOrderBook = eventType === 'change' && side !== undefined && this.inArray(side, [
@@ -572977,7 +572972,7 @@ class hollaex extends _hollaex_js__rspack_import_0/* ["default"] */.A {
         const stored = this.orders;
         const marketIds = {};
         for(let i = 0; i < rawOrders.length; i++){
-            const order = this.safeValue(rawOrders, i);
+            const order = this.safeDict(rawOrders, i, {});
             const parsed = this.parseOrder(order);
             stored.append(parsed);
             const symbol = this.safeString(order, 'symbol');
@@ -595690,7 +595685,7 @@ class ndax extends _ndax_js__rspack_import_0/* ["default"] */.A {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = id === undefined ? undefined : this.safeDict(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {

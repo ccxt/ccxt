@@ -556,7 +556,7 @@ export default class ndax extends ndaxRest {
         //
         const subscriptionsById = this.indexBy(client.subscriptions, 'id');
         const id = this.safeInteger(message, 'i');
-        const subscription = (id === undefined) ? undefined : this.safeDict(subscriptionsById, id);
+        const subscription = this.safeDict(subscriptionsById, id);
         if (subscription !== undefined) {
             const method = this.safeValue(subscription, 'method');
             if (method !== undefined) {

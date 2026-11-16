@@ -1322,8 +1322,7 @@ class coinone extends coinone$1["default"] {
             }, params));
             const payload = this.stringToBase64(json);
             requestBody = payload;
-            const secret = this.secret.toUpperCase();
-            const signature = this.hmac(this.encode(payload), this.encode(secret), sha2_js.sha512);
+            const signature = this.hmac(this.encode(payload), this.encode(this.secret.toUpperCase()), sha2_js.sha512);
             requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

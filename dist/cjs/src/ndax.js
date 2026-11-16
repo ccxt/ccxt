@@ -879,8 +879,7 @@ class ndax extends ndax$1["default"] {
         //         }
         //     ]
         //
-        const tickers = this.parseTickers(response);
-        return this.filterByArrayTickers(tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers(this.parseTickers(response), 'symbol', symbolsNormalized);
     }
     /**
      * @method
