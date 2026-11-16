@@ -2601,6 +2601,9 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     || safeDictLocalType (printer, node, name) !== undefined;
             }
             if (javaType === 'String') {
+                if (name === 'parse8601') {
+                    return false;
+                }
                 if (JAVA_STRING_RETURN_METHODS.has (name)
                     || JAVA_STRING_RETURN_METHODS_CAST.has (name)) {
                     return true;
@@ -2897,6 +2900,9 @@ function typeIsPossiblyNumeric (type) {
         return true;
     }
     if (flags & ts.TypeFlags.Union) {
+        return ts.typeParts (type).some ((member) => typeIsPossiblyNumeric (member));
+    }
+    if (flags & ts.TypeFlags.Intersection) {
         return ts.typeParts (type).some ((member) => typeIsPossiblyNumeric (member));
     }
     return false;
@@ -4622,6 +4628,29 @@ function collectionWriteIsSameBox (printer, node, javaType) {
 
 // reject the narrowing when any use needs the local to stay `Object` (or a receiver cast
 // the narrowed type cannot satisfy).
+// receiver methods whose printed Java takes Object and is valid on either narrowed type:
+//   indexOf -> Helpers.getIndexOf(x, arg)   slice -> Helpers.slice(...)
+//   split   -> Helpers.split(x, arg)        concat -> Helpers.concat(...)
+//   toString-> String.valueOf(x)            toFixed -> toFixed(x, arg)
+const COLLECTION_SAFE_ANY_RECEIVER = new Set ([
+    'indexOf', 'slice', 'split', 'concat', 'toString', 'toFixed',
+]);
+
+// receiver methods printed as `((java.util.List<Object>) x).…` / `x.contains(…)` /
+// `Collections.reverse((java.util.List<Object>) x)` — valid on a List<Object> receiver,
+// broken on a Map. `.join` is NOT here (prints a List<String> cast — a javac ERROR on
+// List<Object>).
+const COLLECTION_SAFE_LIST_RECEIVER = new Set ([
+    'push', 'pop', 'shift', 'reverse', 'includes',
+]);
+
+function collectionReceiverIsSafe (method, javaType) {
+    if (COLLECTION_SAFE_ANY_RECEIVER.has (method)) {
+        return true;
+    }
+    return javaType === JAVA_ARRAY_TYPE && COLLECTION_SAFE_LIST_RECEIVER.has (method);
+}
+
 function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info = undefined) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
@@ -4642,6 +4671,13 @@ function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, i
         if (ts.isPropertyAccessExpression (parent)) {
             if (parent.name === n) {
                 continue; // `obj.<name>` is a member read of another object
+            }
+            if (parent.expression === n && parent.parent !== undefined
+                && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+                const method = String (parent.name.text);
+                if (!collectionReceiverIsSafe (method, javaType)) {
+                    return false;
+                }
             }
             // other reads (`x.foo`, `x[k]`) print Object-taking helpers, `.length`
             // prints Helpers.getArrayLength(x)
@@ -12194,11 +12230,17 @@ function nativeJavaLongMultiplyMember (lines, from, to) {
             const args = call.spans.map (([ x, y ]) => line.slice (x, y).trim ());
             const kinds = args.map ((x) => longMultiplyKind (state.ctx, x, state.nonNull));
             if (kinds.includes (undefined)) continue;
+            // an all-int product widens its int local so the value is computed in long
+            const allInt = !kinds.includes ('long');
             const printed = args.map ((x, k) => {
                 const e = longLimitStrip (x);
                 if (kinds[k] === 'intlit') return e + 'L';
+                if (allInt && k === 0 && kinds[1] === 'int') {
+                    return /^[A-Za-z_]\w*$/.test (e) && state.ctx.declType (e) === 'int' ? `((long) ${e})` : undefined;
+                }
                 return x;
             });
+            if (printed.includes (undefined)) continue;
             line = line.slice (0, start) + `(${printed[0]} * ${printed[1]})` + line.slice (call.close + 1);
         }
         if (line !== lines[j]) { lines[j] = line; changed = true; }
@@ -14579,6 +14621,8 @@ function javaSplitTopLevel (t, op) {
 }
 
 // the single Java type every declaration of `name` in the member carries (undefined when unsure)
+const JAVA_EQUAL_NOT_TYPES = new Set ([ 'return', 'new', 'else', 'case', 'throw', 'instanceof', 'final' ]);
+
 function javaEqualDeclaredType (lines, from, to, name, cache) {
     if (cache.has (name)) return cache.get (name);
     const decl = new RegExp (`(?<![\\w.$])([A-Za-z_][\\w.]*(?:<[^()=;]*?>)?)\\s+${name}\\b(?!\\s*\\()`, 'g');
@@ -14588,6 +14632,7 @@ function javaEqualDeclaredType (lines, from, to, name, cache) {
         const line = longMultiplyMask (lines[i]);
         if (lambda.test (line)) { types.add ('?'); break; }
         for (const m of line.matchAll (decl)) {
+            if (JAVA_EQUAL_NOT_TYPES.has (m[1])) continue;
             types.add (m[1]);
         }
     }
@@ -14984,6 +15029,14 @@ function javaArithMemberCtx (lines, from, to) {
     const guardHolds = (name, g, j) => {
         const ws = writes (name);
         if (ws === undefined || ws.some ((w) => w.line >= g) || lines.slice (g, j + 1).some ((l) => /->/.test (l))) return false;
+        if (ws.length > 1) {
+            for (let k = g - 1; k > from; k--) {
+                if (!/^\s*(?:for|while|do)\b/.test (lines[k]) || javaLineIndent (lines[k]) >= javaLineIndent (lines[g])) continue;
+                let open = true;
+                for (let x = k + 2; x < g; x++) if (lines[x].trim () !== '' && javaLineIndent (lines[x]) <= javaLineIndent (lines[k])) { open = false; break; }
+                if (open) return false;
+            }
+        }
         return true;
     };
     const guardCache = new Map ();
@@ -17126,6 +17179,10 @@ function sumLongLocalsMember (lines, from, to) {
         if (boxes.includes (undefined) || boxes.some ((b) => b !== 'Long' && b !== 'null')) continue;
         if (javaSingleBox (ctx, `${d[3]})`) !== 'Long') continue;
         lines[i] = `${iden}Long ${name} = (Long) ${d[3]});${d[4] ?? ''}`;
+        for (const [ j, v ] of writeLines) {
+            if (j === i || !/^this\.sum\(/.test (v)) continue;
+            lines[j] = lines[j].replace (new RegExp (`(?<![\\w$.])${name} = (?=this\\.sum\\()`), `${name} = (Long) `);
+        }
         changed = true;
     }
     return changed;
@@ -17630,6 +17687,21 @@ function x21MapReturn (printer, method, expression, depth) {
     const source = javaFreshMapUnwrap (value.arguments[0]);
     if (source === undefined || !ts.isIdentifier (source)) {
         return false;
+    }
+    const parameter = method.parameters.find ((p) => ts.isIdentifier (p.name) && p.name.text === source.text);
+    if (parameter !== undefined) {
+        if (parameter.dotDotDotToken !== undefined || parameterIsWritten (parameter)
+            || x21ConstLocal (method, source.text) !== undefined) {
+            return false;
+        }
+        let type;
+        try {
+            type = parameter.initializer !== undefined
+                ? printer.javaOptionalParameterType?.(parameter) : printer.javaNativeParameterType?.(parameter);
+        } catch (e) {
+            return false;
+        }
+        return String (type ?? '').replace (/\s+/g, '').replace (/^java\.util\./, '') === 'Map<String,Object>';
     }
     const local = x21ConstLocal (method, source.text);
     if (local === undefined) {
