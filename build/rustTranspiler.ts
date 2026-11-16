@@ -300,7 +300,7 @@ class Proof {
         if (depth > 2) return false;
         if (t.startsWith('Value::Map(')) return true;
         if (t.startsWith('Value::Null')) return true;
-        const callee = t.match(/^self\.([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
+        const callee = t.match(/^(?:self\.|<Self as crate::exchange::DerivedExchange>::)([A-Za-z_][A-Za-z0-9_]*)[ \t]*\(/);
         if (callee === null) return false;
         const name = callee[1];
         if (BUILDERS.has(name) || PARSERS.has(name)) return true;
@@ -5351,7 +5351,7 @@ export class RustTranspilerBuilder {
                 'fetchOpenOrder', 'fetchClosedOrder', 'fetchCanceledOrders', 'fetchCanceledAndClosedOrders', 'fetchOrderTrades', 'cancelOrders', 'createOrders', 'editOrders', 'createLimitOrder', 'createMarketOrder', 'createLimitBuyOrder', 'createLimitSellOrder', 'createMarketBuyOrder', 'createMarketSellOrder', 'createMarketOrderWithCost', 'createMarketBuyOrderWithCost', 'createMarketSellOrderWithCost', 'createPostOnlyOrder', 'createReduceOnlyOrder', 'createStopOrder', 'createStopLimitOrder', 'createStopMarketOrder', 'createStopLossOrder', 'createTakeProfitOrder', 'createTriggerOrder', 'createTrailingAmountOrder', 'createTrailingPercentOrder', 'createOrderWithTakeProfitAndStopLoss', 'createTwapOrder',
                 'fetchAccounts', 'fetchCrossBorrowRates', 'fetchIsolatedBorrowRates', 'fetchFundingIntervals', 'createDepositAddress', 'setMargin', 'fetchLongShortRatio', 'fetchLongShortRatioHistory', 'fetchMarginAdjustmentHistory', 'fetchDepositAddressesByNetwork', 'fetchOpenInterests', 'repayCrossMargin', 'repayIsolatedMargin', 'borrowCrossMargin', 'borrowIsolatedMargin', 'borrowMargin', 'repayMargin', 'fetchSpotOHLCV', 'fetchContractOHLCV', 'fetchBorrowInterest', 'fetchLedgerEntry', 'fetchPartialBalance', 'fetchFreeBalance', 'fetchUsedBalance', 'fetchTotalBalance', 'fetchDepositWithdrawFee', 'fetchCrossBorrowRate', 'fetchIsolatedBorrowRate', 'fetchSpotTickers', 'fetchContractTickers', 'fetchOrderBooks', 'createConvertTrade', 'fetchConvertTrade', 'fetchConvertTradeHistory', 'fetchPositionMode', 'fetchADLRank', 'fetchPositionsADLRank', 'fetchPositionADLRank', 'createSpotOrders', 'createContractOrders', 'cancelSpotOrder', 'cancelContractOrder', 'cancelAllSpotOrders', 'cancelAllContractOrders', 'cancelOrdersForSymbols', 'fetchAllGreeks', 'fetchConvertQuote', 'fetchContractDepositAddress', 'fetchConvertCurrencies', 'fetchFundingInterval', 'fetchMarkOHLCV', 'fetchIndexOHLCV', 'fetchPremiumIndexOHLCV', 'fetchTransfer', 'fetchPositionHistory', 'fetchPositionsRisk', 'fetchPositionsForSymbol', 'fetchL3OrderBook', 'editLimitBuyOrder', 'editLimitSellOrder', 'editLimitOrder', 'editOrderWithClientOrderId', 'fetchOrderWithClientOrderId', 'fetchOrderStatus', 'fetchUnifiedOrder', 'cancelOrderWithClientOrderId', 'cancelOrdersWithClientOrderIds', 'cancelUnifiedOrder', 'createOrdersWs', 'cancelOrdersWs', 'withdrawWs', 'createLimitOrderWs', 'createMarketOrderWs', 'createLimitBuyOrderWs', 'createLimitSellOrderWs', 'createMarketBuyOrderWs', 'createMarketSellOrderWs', 'createMarketOrderWithCostWs', 'createPostOnlyOrderWs', 'createReduceOnlyOrderWs', 'createStopOrderWs', 'createStopLimitOrderWs', 'createStopMarketOrderWs', 'createStopLossOrderWs', 'createTakeProfitOrderWs', 'createTriggerOrderWs', 'createTrailingAmountOrderWs', 'createTrailingPercentOrderWs', 'createOrderWithTakeProfitAndStopLossWs'],
                 // base methods that ask the derived exchange first, and those printed with an `X_non_virtual` body
-                virtualDispatch: this.traitMethodSignatures(), nonVirtualShims: [ ...this.superShimmedVirtualMethods() ],
+                virtualDispatch: this.traitMethodSignatures(), nonVirtualShims: [ ...this.superShimmedVirtualMethods() ], lentSlots: [ ...this.lentTraitSlots() ],
                 errorClassesWithSubclasses: [ ...this.errorClassesWithSubclassesSet() ] },
         };
     }
@@ -6562,7 +6562,8 @@ export class RustTranspilerBuilder {
         for (let li = 0; li < lines.length; li++) {
             const line = lines[li];
             // Find outer `self.<X>(` where X looks WS-mut-ish.
-            const m = line.match(/^(\s*)(.*?)(self\.\w+\()/);
+            // (a lifted trait override is called through its trait path, receiver first)
+            const m = line.match(/^(\s*)(.*?)(self\.\w+\(|<Self as crate::exchange::DerivedExchange>::\w+\(self, )/);
             if (!m || !mutMethods.test(line)) { out.push(line); continue; }
             // Walk to balanced close-paren of the outer call. If the
             // line itself isn't balanced, accumulate subsequent lines
@@ -6602,7 +6603,7 @@ export class RustTranspilerBuilder {
             // the outer `&mut self` call.
             const hoists: { start: number; end: number; tmp: string }[] = [];
             // Pattern 1: `self.<method>(…)`.
-            const subRe = /\bself\.(\w+)\(/g;
+            const subRe = /\bself\.(\w+)\(|<Self as crate::exchange::DerivedExchange>::(\w+)\(/g;
             let subMatch: RegExpExecArray | null;
             while ((subMatch = subRe.exec(args)) !== null) {
                 const s = subMatch.index;
@@ -9879,6 +9880,25 @@ export class RustTranspilerBuilder {
         return new Set([ 'market' ]);
     }
 
+    /** Trait slots whose first parameter the hand-written `DerivedExchange` declares `impl Into<Value>`. */
+    lentTraitSlots(): Set<string> {
+        if (this._lentTraitSlots === null) {
+            const src = fs.existsSync(`${RUST_CORE}/exchange.rs`) ? fs.readFileSync(`${RUST_CORE}/exchange.rs`, 'utf8') : '';
+            const at = src.indexOf('pub trait DerivedExchange {');
+            const body = at < 0 ? '' : src.slice(at, src.indexOf('\n}\n', at));
+            this._lentTraitSlots = new Set([...body.matchAll(/^\s*fn (\w+)\(&(?:mut )?self, \w+: impl Into<Value>/gm)].map(m => m[1]));
+        }
+        return this._lentTraitSlots;
+    }
+
+    private _lentTraitSlots: Set<string> | null = null;
+
+    /** Parameter list of the trait slot `name` as an impl prints it (a lent first slot takes `impl Into`). */
+    traitSlotParams(name: string, args: string[]): string {
+        const text = rustDispatch.slotParams(args);
+        return this.lentTraitSlots().has(name) && args.length > 0 ? text.replace(/^(\w+): crate::Value/, '$1: impl Into<crate::Value>') : text;
+    }
+
     /**
      * Trait method signatures — keyed by snake-case name, value is the
      * list of arg names (matching the trait declaration in exchange.rs).
@@ -10355,7 +10375,7 @@ ${arms.join('\n')}
                 if (parentCore) pushParentAccessors();
                 continue;
             }
-            const traitParams = rustDispatch.slotParams(args);
+            const traitParams = this.traitSlotParams(name, args);
             // Forwarding call: align inherent param shape (some methods
             // have `(value: Value, optional_args: &[Value])` for variadic
             // TS defaults). Map trait args 0..N onto inherent params:
@@ -11022,16 +11042,20 @@ impl std::ops::DerefMut for ${coreName} {
                 // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
                 // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
                 {
-                    const liftClasses = new Set<string>([ 'same' ]);
+                    const liftClasses = new Set<string>([ 'same', 'param-differs' ]);
                     const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
                     const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
                         if (fact.isAsync) return 'async';
                         if (fact.isMut && !this.mutReceiverTraitMethods().has(sig.name)) return 'mut-cast';
                         if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
                         if (sig.ret !== 'value') return 'typed-return';
-                        const slotTypes = rustDispatch.slotParams(slots).split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
+                        const types = (text: string) => text.split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
+                        const slotTypes = types(rustDispatch.slotParams(slots));
                         if (slotTypes.length !== sig.params.length) return 'arity';
-                        return sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i]) ? 'same' : 'param-differs';
+                        if (sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i])) return 'same';
+                        // a lent first slot is generic in the trait as in the inherent: the item moves unchanged
+                        const lentTypes = types(this.traitSlotParams(sig.name, slots));
+                        return sig.params.every((p: any, i: number) => norm(p.type) === lentTypes[i]) ? 'param-differs' : 'other';
                     };
                     const implHead = rustContent.match(/\nimpl crate::exchange::DerivedExchange for (\w+) \{\n/);
                     const facts = this.receiverFacts(rustContent);
