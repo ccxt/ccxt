@@ -280,7 +280,8 @@ function csharpCounterRegion (masked: string[], start: number, end: number) {
 
 // one region per method of a masked file (start = signature line, end = next signature), with params and
 // declarations, plus `for` counters and bound names when `counters`
-function csharpRegions (masked: string[], counters = false): any[] {
+type CsharpRegion = { start: number, end: number, params: { [name: string]: string }, declarations: { line: number, name: string, type: string, value: string }[], lines: string[], [field: string]: any };
+function csharpRegions (masked: string[], counters = false): CsharpRegion[] {
     const signatures = csharpMethodSignatures (masked);
     return signatures.map ((start, n) => {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : masked.length;
@@ -350,7 +351,7 @@ const CSHARP_WS_CLIENT_MAPS: { [name: string]: string } = { 'subscriptions': 'ID
 
 // `client.subscriptions|futures` where `client` is a `WebSocketClient` parameter or a local bound once
 // by `var client = this.client(...)` (never null) and never rebound in the method
-function csharpInOpReceiverType (region, name: string, line: number): { type: string, kind: string, value: string } | undefined {
+function csharpInOpReceiverType (region: CsharpRegion, name: string, line: number): { type: string, kind: string, value: string } | undefined {
     if (name.startsWith ('this.')) {
         const type = CSHARP_INOP_DICT_FIELDS[name.slice (5)];
         return (type === undefined) ? undefined : { type, kind: 'field', value: '' };
@@ -372,7 +373,7 @@ function csharpInOpReceiverType (region, name: string, line: number): { type: st
     return { type: CSHARP_WS_CLIENT_MAPS[member[2]], kind: 'field', value: '' };
 }
 
-function csharpHelperReceiverType (region, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
+function csharpHelperReceiverType (region: CsharpRegion, name: string, line: number, params: { [name: string]: string }): { type: string, kind: string, value: string } | undefined {
     if (name.startsWith ('this.')) {
         return CSHARP_WS_CACHE_DICT_FIELDS.includes (name.slice (5)) ? { type: 'IDictionary<string, object>', kind: 'field', value: '' } : undefined;
     }
@@ -400,7 +401,7 @@ function csharpHelperReceiverType (region, name: string, line: number, params: {
 
 // inOp operands only: the one declaration of `name` whose block is still open at `line`, for a
 // method that rebinds the name with other types in sibling blocks (nested rebinding is CS0136)
-function csharpInOpScopedLocal (region, name: string, line: number): { type: string, kind: string, value: string, nonNull: boolean } | undefined {
+function csharpInOpScopedLocal (region: CsharpRegion, name: string, line: number): { type: string, kind: string, value: string, nonNull: boolean } | undefined {
     if (!/^[A-Za-z_]\w*$/.test (name) || (region.params[name] !== undefined)) {
         return undefined;
     }
@@ -419,7 +420,7 @@ function csharpInOpScopedLocal (region, name: string, line: number): { type: str
 
 // whether the value a local holds at `line` can be null: only a freshly constructed initializer
 // that nothing has reassigned is provably non-null
-function csharpHelperLocalIsNonNull (region, name: string, line: number, value: string): boolean {
+function csharpHelperLocalIsNonNull (region: CsharpRegion, name: string, line: number, value: string): boolean {
     if (!/^new\b/.test (value)) {
         return false;
     }
@@ -429,14 +430,14 @@ function csharpHelperLocalIsNonNull (region, name: string, line: number, value: 
 
 // each helper call `re` matches on the masked line: `visit (start, end, argument)`, or for `pair` calls
 // of exactly two arguments `visit (start, end, leftMask, rightMask, rightText, leftText)`
-function csharpHelperCalls (original: string, masked: string, re: RegExp, pair: boolean, visit: (start: number, end: number, name: string, keyMask?: string, keyText?: string, leftText?: string) => void) {
+function csharpHelperCalls (original: string, masked: string, re: RegExp, pair: boolean, visit: (start: number, end: number, name: string, keyMask: string, keyText: string, leftText: string) => void) {
     let match;
     while ((match = re.exec (masked)) !== null) {
         const open = match.index + match[0].length - 1;
         const close = csharpHelperCallEnd (masked, open);
         if (close === undefined) continue;
         if (!pair) {
-            visit (match.index, close + 1, masked.substring (open + 1, close).trim ());
+            visit (match.index, close + 1, masked.substring (open + 1, close).trim (), '', '', '');
             continue;
         }
         const comma = csharpHelperTopLevelComma (masked, open, close);
@@ -630,7 +631,7 @@ function csharpNativeOperatorText (helper: string, left, right, leftText: string
 
 // `var x = V[N];` / `var x = ((IList<object>) V)[N];` with `V` declared `IList<object>`: the one
 // binding of `x` in the method, so its static type is `object` (the list's element type)
-function csharpVarObjectElementLocal (region, name: string, line: number): { type: string, kind: string, value: string } | undefined {
+function csharpVarObjectElementLocal (region: CsharpRegion, name: string, line: number): { type: string, kind: string, value: string } | undefined {
     if (!/^[A-Za-z_]\w*$/.test (name) || (region.params[name] !== undefined) || region.declarations.some ((d) => d.name === name)) {
         return undefined;
     }
@@ -654,7 +655,7 @@ function csharpVarObjectElementLocal (region, name: string, line: number): { typ
 }
 
 // `var V = [await ]this.m(...);` where the file declares `m` only as returning `List<object>`
-function csharpVarListOfObjectCall (region, name: string, line: number): boolean {
+function csharpVarListOfObjectCall (region: CsharpRegion, name: string, line: number): boolean {
     const call = new RegExp ('^[ ]*var[ ]+' + name + '[ ]*=[ ]*(?:await[ ]+)?this\\.([A-Za-z_]\\w*)\\(');
     const m = region.lines.slice (region.start + 1, line).map ((l) => call.exec (l)).find ((x) => x !== null);
     if (m === undefined) return false;
@@ -721,7 +722,7 @@ function csharpHelperOperatorEdits (original: string, masked: string, takeType, 
         const left = csharpOperatorOperand (leftMask, leftText, takeType);
         const right = csharpOperatorOperand (rightMask, rightText, takeType);
         if ((left === undefined) || (right === undefined)) return;
-        const helper = /^\w+/.exec (masked.substring (start))[0];
+        const helper = masked.substring (start).split (/\W/)[0];
         const text = csharpNativeOperatorText (helper, left, right, leftText, rightText, objectNull) ?? csharpNullableIntegerComparisonText (helper, left, right, leftText, rightText);
         if (text !== undefined) {
             edits.push ({ start, end, text });
@@ -7662,7 +7663,7 @@ function csharpDeclaredIntMinMaxTruth (content: string): string {
 }
 
 // one name of the method: its single declared C# type at `line`, written nowhere else by ref/out
-function methodNameType (region, name: string, line: number): string | undefined {
+function methodNameType (region: CsharpRegion, name: string, line: number): string | undefined {
     if (!/^[A-Za-z_]\w*$/.test (name)) return undefined;
     const t = csharpHelperReceiverType (region, name, line, region.params);
     if (t === undefined) return undefined;
@@ -7675,7 +7676,7 @@ function methodNameType (region, name: string, line: number): string | undefined
 
 // `isTrue((m.ContainsKey("spot") ? m["spot"] : null))` on a market row local: the key holds a bool or
 // nothing on every row writer (MARKET_ROW_BOOL_KEYS), so `(x as bool?) == true` equals isTrue's answer
-function marketBoolRead (region, arg: string, line: number): string | undefined {
+function marketBoolRead (region: CsharpRegion, arg: string, line: number): string | undefined {
     // `((m.ContainsKey("k") ? m["k"] : null))`: drop source parentheses that wrap the whole read
     while (arg.startsWith ('((') && arg.endsWith ('))') && NATIVE_MARKET_KEY_READ_RE.test (arg.slice (1, -1))) arg = arg.slice (1, -1);
     const m = NATIVE_MARKET_KEY_READ_RE.exec (arg);
@@ -7692,7 +7693,7 @@ function marketBoolRead (region, arg: string, line: number): string | undefined 
     return `((${arg} as bool?) == true)`;
 }
 
-function declaredIntMinMaxTruthLine (region, original: string, masked: string, line: number): string | undefined {
+function declaredIntMinMaxTruthLine (region: CsharpRegion, original: string, masked: string, line: number): string | undefined {
     const edits = [];
     const call = /(?<![\w.])(mathMin|mathMax|isTrue)\(/g;
     let m;
@@ -7732,7 +7733,7 @@ function declaredIntMinMaxTruthLine (region, original: string, masked: string, l
 // both names `int` or both `Int64`: Math.Min/Max returns the same value in the same box as the
 // helper's original operand. A dominated-non-null `Int64?` meets an `int` name/literal only as a
 // request field value (`request["k"] = ...` / `{ "k", ... }`): urlencode/json print Int32/Int64 alike
-function declaredIntMinMax (region, original: string, masked: string, line: number, name: string, a: string, b: string): string | undefined {
+function declaredIntMinMax (region: CsharpRegion, original: string, masked: string, line: number, name: string, a: string, b: string): string | undefined {
     const literal = (x) => /^[0-9]{1,9}$/.test (x);
     const ta = literal (a) ? 'int' : methodNameType (region, a, line);
     const tb = literal (b) ? 'int' : methodNameType (region, b, line);
@@ -7842,7 +7843,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         [ 'tests namespace', 'namespace Tests;\npublic partial class t\n{\n    public void f()\n    {\n        Int64 a = 1;\n        object x = multiply(a, 2);\n    }\n}\n', 'multiply(a, 2)' ],
     ]);
     // [ body, expected (undefined: the helper stays), extra member ]: nativeDeclaredHelperCalls inside a one-method class
-    const hasOrKeeps = (label: string, signature: string, stays: (out: string) => boolean, rows: string[][], tests = false) => {
+    const hasOrKeeps = (label: string, signature: string, stays: (out: string) => boolean, rows: [string, string | undefined, string?][], tests = false) => {
         const { assert } = selfTestSink (problems, label);
         const wrap = (body: string, extra?: string) => [ 'namespace ccxt;', 'public partial class test : Exchange', '{', '    public virtual object ' + signature, '    {',
             ...body.split ('\n').map ((l) => '        ' + l), '    }', ...((extra === undefined) ? [] : [ extra ]), '}' ].join ('\n');
@@ -8341,7 +8342,7 @@ export function counterAndGuardedMathSelfTest (): string[] {
 
 // a name's C# type at `line`: one declared type, a parameter, or a `for (int name = ...)` counter
 // nothing else binds; names written by ref/out keep the helper
-function declaredNameType (region, name: string, line: number): string | undefined {
+function declaredNameType (region: CsharpRegion, name: string, line: number): string | undefined {
     if (!/^[A-Za-z_]\w*$/.test (name) || region.bound.has (name)) return undefined;
     const sink = new RegExp ('\\b(?:ref|out)[ ]+' + name + '\\b');
     for (let k = region.start + 1; k < region.end; k++) {
@@ -8531,7 +8532,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         return (parts.length > 1) ? parts : undefined;
     };
     // the printed C# type of an operand: 'string', 'int', 'bool', 'bool?' (undefined when unproven)
-    const typeOf = (region, line: number, text: string, depth = 0): string | undefined => {
+    const typeOf = (region: CsharpRegion, line: number, text: string, depth = 0): string | undefined => {
         const t = text.trim ();
         const m = csharpHelperMaskLine (t);
         if ((t.length === 0) || (depth > 8)) return undefined;
@@ -8633,7 +8634,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         return undefined;
     };
     const nonNullMemo = new Map<string, boolean> ();
-    const nonNullStringLocal = (region, name: string, depth: number): boolean => {
+    const nonNullStringLocal = (region: CsharpRegion, name: string, depth: number): boolean => {
         const key = region.start + ':' + name;
         if (nonNullMemo.has (key)) return nonNullMemo.get (key);
         nonNullMemo.set (key, false); // a cycle reads unproven
@@ -8651,7 +8652,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         return ok;
     };
     // the block of `line` opened at or after `from` is still open at `to` (brace depth never closes it)
-    const openThrough = (region, from: number, to: number): boolean => {
+    const openThrough = (region: CsharpRegion, from: number, to: number): boolean => {
         let depth = 0;
         for (let k = from + 1; k < to; k++) {
             for (const ch of region.lines[k]) {
@@ -8665,7 +8666,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
     // `name != null` dominates `line`: an enclosing `if ((name != null))` block, or an earlier
     // `if ((name == null)) { throw|return }` in an enclosing block; no write of `name` in between
     // a loop back edge can carry a later write to the read: every later write stores a non-null string
-    const laterWritesNonNull = (region, name: string, line: number, depth: number): boolean => {
+    const laterWritesNonNull = (region: CsharpRegion, name: string, line: number, depth: number): boolean => {
         for (let k = line + 1; k < region.end; k++) {
             if (!writesName (region.lines[k], name)) continue;
             const m = new RegExp ('^[ ]*' + name + '[ ]*=[ ]*(.*);[ ]*$').exec (region.lines[k]);
@@ -8675,7 +8676,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         }
         return true;
     };
-    const nullGuarded = (region, name: string, line: number, depth = 0): boolean => {
+    const nullGuarded = (region: CsharpRegion, name: string, line: number, depth = 0): boolean => {
         if ((depth > 6) || !laterWritesNonNull (region, name, line, depth)) return false;
         for (let k = line - 1; k > region.start; k--) {
             const l = region.lines[k].trim ();
@@ -8688,7 +8689,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
     };
     // the write of an `object` local that reaches `line`: a plain statement in a block still open at
     // `line` with no write of the name between, whose value is a non-null string
-    const nonNullStringAt = (region, name: string, line: number, depth: number): boolean => {
+    const nonNullStringAt = (region: CsharpRegion, name: string, line: number, depth: number): boolean => {
         if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6) || !laterWritesNonNull (region, name, line, depth)) return false;
         for (let k = line - 1; k > region.start; k--) {
             const l = region.lines[k];
@@ -8703,7 +8704,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         return false;
     };
     // a string local written once, by its declaration, with a non-null string value
-    const singleWriteNonNull = (region, name: string, depth: number): boolean => {
+    const singleWriteNonNull = (region: CsharpRegion, name: string, depth: number): boolean => {
         if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6)) return false;
         const decls = region.declarations.filter ((x) => x.name === name);
         let writes = 0;
@@ -8712,7 +8713,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         return nonNullString (region, decls[0].line, lines[decls[0].line].replace (/^[^=]*=[ ]*/, '').replace (/;[ ]*(?:\/\/.*)?$/, ''), '\u0000', depth + 1);
     };
     // handleOptionStringAndParams(2) answers its default for a missing option and throws on a non-string
-    const optionTupleNonNull = (region, name: string, depth: number): boolean => {
+    const optionTupleNonNull = (region: CsharpRegion, name: string, depth: number): boolean => {
         if (region.bound.has (name) || (region.params[name] !== undefined) || (depth > 6)) return false;
         const writeLines = [];
         for (let k = region.start + 1; k < region.end; k++) if (writesName (region.lines[k], name)) writeLines.push (k);
@@ -8729,7 +8730,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         args.push (text.substring (from + 1, m.length - 1));
         return (args.length === ((call[1] === 'handleOptionStringAndParams') ? 4 : 5)) && nonNullString (region, decls[0].line, args[args.length - 1], '\u0000', depth + 1);
     };
-    const nonNullString = (region, line: number, text: string, self: string, depth: number): boolean => {
+    const nonNullString = (region: CsharpRegion, line: number, text: string, self: string, depth: number): boolean => {
         const t = text.trim ();
         const m = csharpHelperMaskLine (t);
         if (depth > 8) return false;
@@ -8789,7 +8790,7 @@ export function csharpStringAddEqualityTruth (content: string): string {
         if ((call !== null) && (csharpHelperCallEnd (m, call[0].length - 1) === m.length - 1)) return s;
         return '(' + s + ')';
     };
-    const rewrite = (region, line: number, text: string): string | undefined => {
+    const rewrite = (region: CsharpRegion, line: number, text: string): string | undefined => {
         const m = csharpHelperMaskLine (text);
         const calls = [ ...m.matchAll (/(?<![A-Za-z0-9_.])(add|isEqual|isTrue)\(/g) ].reverse ();
         for (const c of calls) {
@@ -8915,7 +8916,7 @@ export function stringAddEqualityTruthSelfTest (): string[] {
 
 // the per-line driver of the two-argument helper passes: each top-level `helper(a, b)` call on a method body line
 // (not overlapping an earlier rewrite on that line) goes to `emit`, which answers its replacement or undefined
-function csharpTwoArgCallPass (content: string, helper: string, emit: (region: any, line: number, call: { start: number, close: number, masked: string, a: string, b: string, aText: string, bText: string }) => string | undefined): string {
+function csharpTwoArgCallPass (content: string, helper: string, emit: (region: CsharpRegion, line: number, call: { start: number, close: number, masked: string, a: string, b: string, aText: string, bText: string }) => string | undefined): string {
     if (!new RegExp ('\\b' + helper + '\\(').test (content) || /^namespace Tests;/m.test (content)) {
         return content;
     }
@@ -8944,7 +8945,7 @@ function csharpTwoArgCallPass (content: string, helper: string, emit: (region: a
 
 // the types of every typed binding of `name` in the method (declarations, loop headers, lambdas, params);
 // a generic type with a space is captured from its last segment (`object>`) unless `pair` reads `<string, object>`
-function csharpTypedBindings (region, name: string, pair = false): Set<string> {
+function csharpTypedBindings (region: CsharpRegion, name: string, pair = false): Set<string> {
     const typed = new RegExp ('([A-Za-z_][\\w<>?.\\[\\]]*' + (pair ? '(?:, object>)?' : '') + ')[ ]+' + name + '\\b(?=[ ]*(?:=[^=]|;|\\)|,|in\\b))', 'g');
     const seen = new Set<string> ();
     for (let k = region.start; k < region.end; k++) {
@@ -8956,7 +8957,7 @@ function csharpTypedBindings (region, name: string, pair = false): Set<string> {
 }
 
 // a lambda parameter (or, with `refOut`, a ref/out sink) rebinds `name` somewhere in the method
-function csharpRebinds (region, name: string, refOut = true): boolean {
+function csharpRebinds (region: CsharpRegion, name: string, refOut = true): boolean {
     const lambda = new RegExp ('\\((?:[ ]*[A-Za-z_]\\w*[ ]*,)*[ ]*' + name + '[ ]*(?:,[ ]*[A-Za-z_]\\w*[ ]*)*\\)[ ]*=>');
     const sink = new RegExp ('\\b(?:ref|out)[ ]+' + name + '\\b');
     return region.lines.slice (region.start, region.end).some ((l) => lambda.test (l) || (refOut && sink.test (l)));
@@ -9298,7 +9299,7 @@ export function csharpNonNullIntCompare (content: string): string {
 }
 
 // any write of `name` in the region other than its declaration line
-function isWrittenAfterDeclaration (region, name: string, declLine: number): boolean {
+function isWrittenAfterDeclaration (region: CsharpRegion, name: string, declLine: number): boolean {
     const write = new RegExp ('(?<![\\w.])' + name + '[ ]*(?:=[^=>]|\\+=|-=|\\*=|/=|\\?\\?=|\\+\\+|--)|(?:\\+\\+|--)' + name + '\\b|\\b(?:ref|out)[ ]+' + name + '\\b');
     for (let k = region.start + 1; k < region.end; k++) {
         if ((k !== declLine) && write.test (region.lines[k])) return true;
@@ -9308,7 +9309,7 @@ function isWrittenAfterDeclaration (region, name: string, declLine: number): boo
 
 // an `Int64?` local that can never hold null: bound once, never written, from safeInteger(o, k, <int>) /
 // safeInteger2(o, k1, k2, <int>), or `(N ± <int>)` / `((N == null)) ? <int> : N` over such a local
-function isNonNullInt64Local (region, name: string, depth = 0): boolean {
+function isNonNullInt64Local (region: CsharpRegion, name: string, depth = 0): boolean {
     if ((depth > 4) || !/^[A-Za-z_]\w*$/.test (name) || region.bound.has (name) || (region.params[name] !== undefined)) return false;
     const all = region.declarations.filter ((d) => d.name === name);
     if ((all.length !== 1) || ![ 'Int64?', 'long?' ].includes (all[0].type) || isWrittenAfterDeclaration (region, name, all[0].line)) return false;
@@ -9328,7 +9329,7 @@ function isNonNullInt64Local (region, name: string, depth = 0): boolean {
     return (defaulted !== null) && (defaulted[1] === defaulted[2]) && (region.declarations.some ((d) => (d.name === defaulted[1]) && (d.line < all[0].line)) || (region.params[defaulted[1]] !== undefined));
 }
 
-function nonNullIntNameType (region, name: string, line: number): string | undefined {
+function nonNullIntNameType (region: CsharpRegion, name: string, line: number): string | undefined {
     if (!/^[A-Za-z_]\w*$/.test (name)) return undefined;
     if (region.forInt64.has (name) && !region.forInt.has (name) && !region.bound.has (name)
         && !region.declarations.some ((d) => d.name === name) && (region.params[name] === undefined)) {
@@ -9339,7 +9340,7 @@ function nonNullIntNameType (region, name: string, line: number): string | undef
     return ((type === 'Int64?') && isNonNullInt64Local (region, name)) ? 'Int64' : type;
 }
 
-function nonNullIntCompareLine (region, original: string, masked: string, line: number, statusCode: string | undefined): string | undefined {
+function nonNullIntCompareLine (region: CsharpRegion, original: string, masked: string, line: number, statusCode: string | undefined): string | undefined {
     if (/['@$]/.test (original)) return undefined;
     const atom = (x: string) => ((/^[A-Za-z_][\w.]*$/.test (x) || /^-?[\d.]+$/.test (x) || (csharpStripParens (x) !== x.trim ())) ? x : '(' + x + ')');
     const tokens = { isGreaterThan: '>', isGreaterThanOrEqual: '>=', isLessThan: '<', isLessThanOrEqual: '<=' };
@@ -9541,7 +9542,7 @@ export function csharpArithmeticNullableCompare (content: string): string {
     return csharpLinePass (content, true, arithmeticCompareLine);
 }
 
-function arithmeticCompareLine (region, original: string, masked: string, line: number): string | undefined {
+function arithmeticCompareLine (region: CsharpRegion, original: string, masked: string, line: number): string | undefined {
     if (/['@$]/.test (original)) return undefined;
     const edits = [];
     const call = /(?<![\w.])(isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/g;
@@ -10013,7 +10014,7 @@ function emittedOperandType (arg: string, typeOfName: (name: string) => string |
     if (/^this\.(milliseconds|seconds|nonce)\(\)$/.test (bare)) return 'Int64';
     const call = /^((?:this\.)?[A-Za-z_][\w.]*)\(/.exec (bare);
     if ((call !== null) && (csharpClosingParen (bare, call[0].length - 1) === bare.length - 1)) {
-        const fixed: { [name: string]: string } = {
+        const fixed: { [name: string]: string | undefined } = {
             'this.parseToInt': 'Int64?', 'this.parseTimeframe': 'int', 'this.safeInteger': 'Int64?', 'this.safeInteger2': 'Int64?',
             'this.safeIntegerN': 'Int64?', 'this.safeTimestamp': 'Int64?', 'this.safeNumber': 'double?', 'this.parseNumber': 'double?',
             'getValue': 'object', 'this.safeValue': 'object', 'this.safeValue2': 'object', 'parseFloat': 'object', 'mathMin': 'object',
