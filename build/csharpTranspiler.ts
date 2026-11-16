@@ -3831,12 +3831,12 @@ class NewTranspiler {
         return reads > 0;
     }
 
-    // index of the `//` comment start outside string/char literals, or -1
-    coreArgShadowCommentAt (line: string): number {
+    // index of the `//` comment start outside `quotes` (string/char) literals, or -1
+    coreArgShadowCommentAt (line: string, quotes = '"\''): number {
         let i = 0;
         while (i < line.length) {
             const ch = line[i];
-            if (ch === '"' || ch === '\'') {
+            if (quotes.includes (ch)) {
                 i = this.coreArgShadowSkipLiteral (line, i);
                 continue;
             }
@@ -4172,33 +4172,7 @@ class NewTranspiler {
         if (!/^\s*object \w+ = \w+;/m.test (content)) {
             return content;
         }
-        const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            const [ , indent, , , returnType, , plist ] = sig;
-            const types: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const parts = param.split ('=')[0].trim ().split (/\s+/);
-                if (parts.length >= 2) {
-                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-                }
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
-            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+        return this.csharpPublicMethodBodies (content, (bodyLines, returnType, types) => {
             let changed = false;
             for (let k = 0; k < bodyLines.length; k++) {
                 const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
@@ -4235,14 +4209,8 @@ class NewTranspiler {
                     }
                 }
             }
-            if (changed) {
-                for (let k = 0; k < bodyLines.length; k++) {
-                    lines[bodyStart + 1 + k] = bodyLines[k];
-                }
-            }
-            i = bodyEnd;
-        }
-        return lines.join ('\n');
+            return changed;
+        });
     }
 
     // Order matters: retypeCoreArgCopies gives a narrowed parameter's copy the parameter's type, and
@@ -4509,36 +4477,9 @@ class NewTranspiler {
             return content;
         }
         const names = [ 'timeframe', 'timeframeVar' ];
-        const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            const [ , indent, , , , , plist ] = sig;
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
-            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+        return this.csharpPublicMethodBodies (content, (bodyLines, returnType, declared) => {
             if (!bodyLines.some ((line) => line.includes ('(string)timeframe'))) {
-                i = bodyEnd;
-                continue;
-            }
-            const declared: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const parts = param.split ('=')[0].trim ().split (/\s+/);
-                if (parts.length >= 2) {
-                    declared[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-                }
+                return false;
             }
             for (const line of bodyLines) {
                 for (const name of names) {
@@ -4569,6 +4510,41 @@ class NewTranspiler {
                     bodyLines[k] = line;
                 }
             }
+            return changed;
+        });
+    }
+
+    // `visit` each `public virtual|override` method body (its lines, return type, parameter name -> type); a
+    // visit answering true had rewritten `bodyLines`, which are written back
+    csharpPublicMethodBodies (content: string, visit: (bodyLines: string[], returnType: string, types: Record<string, string>) => boolean): string {
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , returnType, , plist ] = sig;
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+            const types: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const parts = param.split ('=')[0].trim ().split (/\s+/);
+                if (parts.length >= 2) {
+                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+                }
+            }
+            const changed = visit (bodyLines, returnType, types);
             if (changed) {
                 for (let k = 0; k < bodyLines.length; k++) {
                     lines[bodyStart + 1 + k] = bodyLines[k];
@@ -4997,7 +4973,7 @@ class NewTranspiler {
     // rounds), only in the code part of the line: double-quoted literals and `//` comments
     // are copied through untouched.
     dropStringCastsOnLine (line: string, names: string[]): string {
-        const commentAt = this.csharpCommentIndex (line);
+        const commentAt = this.coreArgShadowCommentAt (line, '"');
         const code = (commentAt === -1) ? line : line.substring (0, commentAt);
         const tail = (commentAt === -1) ? '' : line.substring (commentAt);
         let out = '';
@@ -5009,7 +4985,7 @@ class NewTranspiler {
                 break;
             }
             out += this.dropStringCasts (code.substring (i, quote), names);
-            const close = this.csharpLiteralEnd (code, quote);
+            const close = this.coreArgShadowSkipLiteral (code, quote);
             out += code.substring (quote, close);
             i = close;
         }
@@ -5155,7 +5131,7 @@ class NewTranspiler {
                                   stringProducer: (name: string) => boolean, fields: Set<string>): string {
         let out = line;
         for (let round = 0; round < 6; round++) {
-            const commentAt = this.csharpCommentIndex (out);
+            const commentAt = this.coreArgShadowCommentAt (out, '"');
             const masked = this.maskCsharpLiterals ((commentAt === -1) ? out : out.substring (0, commentAt));
             const removals: number[][][] = [];
             let from = 0;
@@ -5291,40 +5267,6 @@ class NewTranspiler {
 
     isCsharpMethodSignature (line: string): boolean {
         return /^    (?:public|private|protected|internal)\b.*\)\s*$/.test (line);
-    }
-
-    // index of the `"` closing the literal opened at `open` (both indices exclusive of the
-    // closing quote position; returns line.length when unterminated)
-    csharpLiteralEnd (line: string, open: number): number {
-        let i = open + 1;
-        while (i < line.length) {
-            if (line[i] === '\\') {
-                i += 2;
-                continue;
-            }
-            if (line[i] === '"') {
-                return i + 1;
-            }
-            i++;
-        }
-        return line.length;
-    }
-
-    // index of the `//` that starts a comment outside a string literal, or -1
-    csharpCommentIndex (line: string): number {
-        let i = 0;
-        while (i < line.length) {
-            const ch = line[i];
-            if (ch === '"') {
-                i = this.csharpLiteralEnd (line, i);
-                continue;
-            }
-            if (ch === '/' && line[i + 1] === '/') {
-                return i;
-            }
-            i++;
-        }
-        return -1;
     }
 
     // drop `((string)X)` when X is provably the non-nullable `string` the cast targets: a string literal,
