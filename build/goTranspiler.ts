@@ -106,7 +106,7 @@ const GO_UNIFIED_STRING_PARAMS: { [method: string]: number[] } = {
 };
 // required int params whose public typed wrapper already takes int64: body and Async print `int64`
 // required boolean params that print `bool` on the base, every override and go/v4/exchange_interface.go
-// ===== RF-go-6-B: hand-written map[string]any BaseExchange fields (go/v4/exchange.go) the printer writes natively =====
+// hand-written map[string]any BaseExchange fields (go/v4/exchange.go) the printer writes natively
 const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
     'balance': {
         'type': 'map[string]any',
@@ -117,7 +117,6 @@ const RF_GO_6_B_NATIVE_STORE_FIELDS: { [tsName: string]: any } = {
         'userPathMethods': '^(?:setBalanceCache|cleanWsData)$',
     },
 };
-// ===== end RF-go-6-B =====
 
 const GO_UNIFIED_BOOL_PARAMS: { [method: string]: number[] } = {
     'setSandboxMode': [ 0 ], 'enableDemoTrading': [ 0 ], 'setPositionMode': [ 0 ],
@@ -394,9 +393,14 @@ function goParamNilCompareText (fn: string, isEqualFn: string): string {
         if (new RegExp ('(^|[\\s(])(?:var\\s+)?' + name + '\\s*(?::=|=)\\s*(?:ccxt\\.)?GetArg\\w*\\(').test (body)) {
             continue;
         }
-        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
+        fn = goWrapNilCompares (fn, name, isEqualFn);
     }
     return fn;
+}
+
+// every native `name == nil` / `name != nil` in fn goes back through the deref-aware helper
+function goWrapNilCompares (fn: string, name: string, isEqualFn: string): string {
+    return fn.replace (new RegExp ('(?<![.\\w*"])' + name + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
 }
 
 // whole-file form of goParamNilCompareText (same function blocks the DerefScalar pass walks)
@@ -528,30 +532,28 @@ function goBoxedPointerNames (fn: string): Set<string> {
     return boxed;
 }
 
-// the boxed-pointer locals of one block keep the deref-aware comparison
-function goBoxedPointerNilCompareText (fn: string, isEqualFn: string): string {
-    const boxed = goBoxedPointerNames (fn);
-    for (const name of boxed) {
-        const escaped = name.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
-        fn = fn.replace (new RegExp ('(?<![.\\w*"])' + escaped + ' (==|!=) nil\\b', 'g'), ((_m: string, op: string) => (op === '==') ? isEqualFn + name + ', nil)' : '!' + isEqualFn + name + ', nil)') as any);
-    }
-    return fn;
-}
-
-// whole-file form: each block's rewrite is spliced back at its own offset, so a block whose
+// each func block's rewrite is spliced back at its own offset, so a block whose
 // text occurs twice cannot be rewritten in the wrong place.
-export function goBoxedPointerNilCompares (content: string, isEqualFn: string): string {
+function goRewriteFuncBlocks (content: string, rewrite: (block: string) => string): string {
     const ranges = goFuncBlockRanges (content);
     for (let i = ranges.length - 1; i >= 0; i--) {
-        const start = ranges[i].start;
-        const end = ranges[i].end;
-        const block = content.slice (start, end);
-        const rewritten = goBoxedPointerNilCompareText (block, isEqualFn);
+        const block = content.slice (ranges[i].start, ranges[i].end);
+        const rewritten = rewrite (block);
         if (rewritten !== block) {
-            content = content.slice (0, start) + rewritten + content.slice (end);
+            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
         }
     }
     return content;
+}
+
+// the boxed-pointer locals of each block keep the deref-aware comparison
+export function goBoxedPointerNilCompares (content: string, isEqualFn: string): string {
+    return goRewriteFuncBlocks (content, (block) => {
+        for (const name of goBoxedPointerNames (block)) {
+            block = goWrapNilCompares (block, name, isEqualFn);
+        }
+        return block;
+    });
 }
 
 // Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the
@@ -896,15 +898,7 @@ export function goCollapseDuplicateNilCompares (text: string, isEqualFn: string)
 }
 
 export function goAnyLocalNativeNilCompares (content: string, isEqualFn: string): string {
-    const ranges = goFuncBlockRanges (content);
-    for (let i = ranges.length - 1; i >= 0; i--) {
-        const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = goCollapseDuplicateNilCompares (goAnyLocalNilCompareText (block, isEqualFn.replace (/^ccxt\./, '')), isEqualFn);
-        if (rewritten !== block) {
-            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
-        }
-    }
-    return content;
+    return goRewriteFuncBlocks (content, (block) => goCollapseDuplicateNilCompares (goAnyLocalNilCompareText (block, isEqualFn.replace (/^ccxt\./, '')), isEqualFn));
 }
 
 function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
@@ -1005,7 +999,6 @@ function goStringCmpSafeWrite (rhs: string, ident: (name: string) => boolean, bo
     if (/^[A-Za-z_]\w*\[\"[^\"\\\n]*\"\]$/.test (text)) {
         return true;
     }
-    // ===== end RF-go-6-A =====
     const call = /^((?:this\.)?\w+)\(/.exec (text);
     const args = call ? goCallArgsSpanningText (text, call[0].length - 1) : undefined;
     if ((call === null) || (args === undefined)) {
@@ -1099,15 +1092,7 @@ function goStringLiteralCompareText (fn: string, isEqualFn: string): string {
 }
 
 export function goStringLiteralNativeCompares (content: string, isEqualFn: string): string {
-    const ranges = goFuncBlockRanges (content);
-    for (let i = ranges.length - 1; i >= 0; i--) {
-        const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = goStringLiteralCompareText (block, isEqualFn);
-        if (rewritten !== block) {
-            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
-        }
-    }
-    return content;
+    return goRewriteFuncBlocks (content, (block) => goStringLiteralCompareText (block, isEqualFn));
 }
 
 // SafeBool* with a literal bool default never returns nil (exchange_safe.go falls back to it),
@@ -1787,11 +1772,6 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
 // every write of a map local is a map producer owned by this call or its caller (never a this.* map)
 const GO_INOP_READ_INIT = /^(?:(?:ccxt\.)?map\[string\]any\{|(?:ccxt\.)?GetArgMap\(optionalArgs, \d+, (?:map\[string\]any\{\}|nil)\)$|this\.(?:Extend|DeepExtend|IndexBy)\(|(?:ccxt\.)?MapTyped\(this\.Omit\(\w+, |nil$)/;
 
-// the map result of a pair bind is read-only here when nothing else can write it: no go/Spawn/unawaited Async in the function
-function goInOpPairParams (maskedFunc: string, name: string): boolean {
-    return goTypedMaplistTupleMap (maskedFunc, name) && !(/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc));
-}
-
 // InOp only reads, and a Go read of a nil map answers ok=false like the helper, so the receiver
 // needs a static map[string]any that no other goroutine can write: no go/Spawn/unawaited Async here
 function goInOpReadReceiver (maskedFunc: string, decl: any, name: string, declOf: (name: string) => any): boolean {
@@ -1836,8 +1816,9 @@ function goNativeInOp (lines: string[], masked: string[], k: number, maskedFunc:
             continue;
         }
         const [ , name, key ] = call;
-        // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result)
-        const pairParams = goInOpPairParams (maskedFunc, name);
+        // the params result of `a, p := this.Handle*AndParams(..)` is a map[string]any local (the pair twin's second result),
+        // read-only when nothing else can write it: no go/Spawn/unawaited Async in the func
+        const pairParams = goTypedMaplistTupleMap (maskedFunc, name) && !(/\bgo\s+\w|\bSpawn\(|\bDelay\(/.test (maskedFunc) || /^(?![^\n]*<-)[^\n]*\w+Async\(/m.test (maskedFunc));
         if (!pairParams && ((typeAt (name, k) !== 'map[string]any') || !goInOpReadReceiver (maskedFunc, declOf (name), name, declOf))) {
             continue;
         }
@@ -1935,13 +1916,6 @@ function goMapWritePlainValueExpr (maskedValue: string): boolean {
 // The setters (exchange_orderbook.go) take the *int64/*string a Safe*/Parse8601/Iso8601 call answers and are
 // a no-op on a nil pointer, like the helper's deref-then-skip. A nil interface receiver would panic where the
 // helper is a no-op, so the receiver must be a type assertion `x.(ccxt.OrderBookInterface)` (panics, never nil).
-const GO_ORDERBOOK_SETTERS: { [key: string]: [ string, RegExp ] } = {
-    'timestamp': [ 'SetTimestamp', /^(?:this\.(?:Parse8601|SafeInteger|SafeInteger2|SafeIntegerN)\()/ ],
-    'nonce': [ 'SetNonce', /^(?:this\.(?:SafeInteger|SafeInteger2|SafeIntegerN)\()/ ],
-    'datetime': [ 'SetDatetime', /^(?:this\.Iso8601\()/ ],
-    'symbol': [ 'SetSymbol', /^(?:this\.SafeSymbol\()/ ],
-};
-// ===== RF-go-6-D =====
 const GO_ORDERBOOK_PRINTER = {
     'classes': [ 'OrderBook', 'WsOrderBook', 'IndexedOrderBook', 'CountedOrderBook' ],
     'constructors': [ 'orderBook', 'indexedOrderBook', 'countedOrderBook' ],
@@ -1958,8 +1932,6 @@ const GO_ORDERBOOK_PRINTER = {
         'symbol': { 'method': 'SetSymbol', 'value': '^this\\.SafeSymbol\\(', 'type': '*string' },
     },
 };
-// ===== RF-go-6-D (end) =====
-const GO_ORDERBOOK_SETTER_TYPES: { [key: string]: string } = { 'timestamp': '*int64', 'nonce': '*int64', 'datetime': '*string', 'symbol': '*string' };
 
 // A nil interface answers the helper with a no-op but panics on a method call. An earlier method call on the same
 // receiver (GetAsks/GetBids/Reset/GetCache/Limit) in a block that still encloses line k, with no write to the local in
@@ -2025,10 +1997,10 @@ function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, 
     if (!/^(?:ccxt\.)?OrderBookInterface$/.test (typeAt (name, k) ?? '') || !goOrderBookReceiverDereferenced (lines, masked, k, name, indent.length)) {
         return false;
     }
-    const [ setter, producer ] = GO_ORDERBOOK_SETTERS[field];
+    const { method: setter, value: producer, type } = GO_ORDERBOOK_PRINTER.setters[field];
     const valueMasked = masked[k].substring (masked[k].length - value.length - 1, masked[k].length - 1);
-    const typedLocal = /^\w+$/.test (value) && (typeAt (value, k) === GO_ORDERBOOK_SETTER_TYPES[field]);
-    const call = producer.test (value) && (goMapWriteGroupEnd (valueMasked, value.indexOf ('(')) === value.length);
+    const typedLocal = /^\w+$/.test (value) && (typeAt (value, k) === type);
+    const call = new RegExp (producer).test (value) && (goMapWriteGroupEnd (valueMasked, value.indexOf ('(')) === value.length);
     if (!typedLocal && !call) {
         return false;
     }
@@ -2846,49 +2818,25 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
 // `expr` + the typed send. `direct` (a typed twin, or a struct carrier whose `<T>FromMap` builder coerces the box
 // itself via RowDict in exchange_struct_returns.go) sends the box as is.
 export function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
+    const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
     if (direct) {
-        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr) + '}';
+        return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + swExpr + '}';
     }
     const box = v + 'Box';
-    const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
-    if (want === 'bool') {
-        const lines = [
-            'var ' + v + ' bool',
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case bool:', '\t' + v + ' = ' + box,
-            'case []any:', '\t' + v + ' = len(' + box + ') > 0',
-            'case map[string]any:', '\t' + v + ' = true',
-            'case nil:',
-            'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not bool"))',
-            '}',
-            'ch <- ' + q + 'AsyncResult[bool]{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    if (want === '*string') {
-        const lines = [
-            'var ' + v + ' *string',
-            'switch ' + box + ' := ' + swExpr + '.(type) {',
-            'case *string:', '\t' + v + ' = ' + box,
-            'case string:', '\t' + v + ' = &' + box,
-            'default:', '\t_ = ' + box,
-            '}',
-            'ch <- ' + q + 'AsyncResult[*string]{Value: ' + v + '}',
-        ];
-        return lines.map ((l, i) => ((i === 0) ? '' : ind) + l).join ('\n');
-    }
-    // a map[string]any coercion has no `case *sync.Map:` arm. No *sync.Map producer is
-    // left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
-    const conv = (want === '[]any')
-        ? [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ]
-        : [];
+    // extra coercion arms after `case <want>:`. A map[string]any coercion has no `case *sync.Map:` arm: no *sync.Map
+    // producer is left in the Go runtime (go/v4 has no `sync.Map{` / `&sync.Map`), so the arm is unreachable by type
+    const conv: { [want: string]: string[] } = {
+        'bool': [ 'case []any:', '\t' + v + ' = len(' + box + ') > 0', 'case map[string]any:', '\t' + v + ' = true' ],
+        '[]any': [ 'case ' + q + 'IArrayCache:', '\t' + v + ' = ' + box + '.ToArray()' ],
+    };
+    const tail = (want === '*string')
+        ? [ 'case string:', '\t' + v + ' = &' + box, 'default:', '\t_ = ' + box ]
+        : [ ...(conv[want] ?? []), 'case nil:', 'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))' ];
     const lines = [
         'var ' + v + ' ' + want,
         'switch ' + box + ' := ' + swExpr + '.(type) {',  // struct fields are concrete
         'case ' + want + ':', '\t' + v + ' = ' + box,
-        ...conv,
-        'case nil:',
-        'default:', '\tpanic(' + q + 'ExchangeError("resolved value is not ' + want + '"))',
+        ...tail,
         '}',
         'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + v + '}',
     ];
