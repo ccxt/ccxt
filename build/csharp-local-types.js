@@ -3904,8 +3904,7 @@ function arrayCacheHashmapReadType (initializer) {
 // element writer must store an ArrayCache-family box or a dict, and the map itself must stay a
 // dict; agreement names ccxt.pro.ArrayCache or IDictionary behind a cast (2-argument form only).
 const CSHARP_LOCAL_WS_CACHE_MEMBERS = [
-    'trades', 'ohlcvs', 'positions', 'liquidations', 'myLiquidations',
-    'orders', 'myTrades', 'triggerOrders',
+    'trades', 'ohlcvs', 'positions', 'liquidations',
 ];
 
 function thisMemberAccess (node, member) {
@@ -3922,9 +3921,6 @@ function thisMemberElementAccess (node, member) {
 // `getValue (this.<member>, k)`) stores a value whose box is whatever the map holds — it
 // adds no information about the element box either way
 function wsCacheMapRead (node, member) {
-    if (thisMemberElementAccess (node, member)) {
-        return true;
-    }
     if (node?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -3961,9 +3957,6 @@ function wsCacheCtorSetType (ctors) {
     }
     if (names.length === 1 && ARRAY_CACHE_ALL_CTORS.includes (names[0])) {
         return 'ccxt.pro.' + names[0];
-    }
-    if (names.every ((name) => ARRAY_CACHE_ALL_CTORS.includes (name))) {
-        return 'ccxt.pro.BaseCache';
     }
     return undefined;
 }
@@ -4002,22 +3995,6 @@ function wsCacheWriteBoxTypes (csharp, node, member, depth) {
     }
     if (wsCacheMapRead (node, member)) {
         return new Set (); // a read-back of the same map adds no information
-    }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
-        const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const name = callee.name?.text;
-            if (name === 'createSafeDictionary' || name === 'safeDict') {
-                return new Set ([ 'dict' ]);
-            }
-        }
-        return undefined;
-    }
-    if (node.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        return wsCacheWriteBoxTypes (csharp, node.expression, member, depth);
-    }
-    if (node.kind === ts.SyntaxKind.AsExpression || node.kind === ts.SyntaxKind.TypeAssertionExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
-        return wsCacheWriteBoxTypes (csharp, node.expression, member, depth);
     }
     if (node.kind === ts.SyntaxKind.ConditionalExpression) {
         // `(c) ? undefined : this.safeValue (this.<member>, k)` — both arms must fit the box
@@ -4190,9 +4167,6 @@ const wsCacheBucketBoxes = new WeakMap ();
 // a read of the same SLOT (`this.<member>[k1][k2]`, `this.safeValue (this.<member>[k1], k2)`) --
 // neutral: it stores back whatever the slot already holds
 function wsCacheBucketSlotRead (node, member) {
-    if (node?.kind === ts.SyntaxKind.ElementAccessExpression && thisMemberElementAccess (node.expression, member)) {
-        return true;
-    }
     if (node?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -4217,10 +4191,6 @@ function wsCacheBucketWriteBoxTypes (csharp, node, member, depth) {
     }
     if (wsCacheBucketSlotRead (node, member)) {
         return new Set (); // a read-back of the same slot adds no information
-    }
-    if (node.kind === ts.SyntaxKind.ParenthesizedExpression || node.kind === ts.SyntaxKind.AsExpression
-            || node.kind === ts.SyntaxKind.TypeAssertionExpression || node.kind === ts.SyntaxKind.NonNullExpression) {
-        return wsCacheBucketWriteBoxTypes (csharp, node.expression, member, depth);
     }
     if (node.kind === ts.SyntaxKind.ConditionalExpression) {
         // `(c) ? undefined : this.safeValue (this.<member>[k1], k2)` -- both arms must fit the box
@@ -4292,14 +4262,6 @@ function wsCacheBucketDictWrite (csharp, node, member) {
     const own = wsCacheWriteBoxTypes (csharp, node, member, 0);
     if (own !== undefined) {
         return own.size === 0 || (own.size === 1 && own.has ('dict'));
-    }
-    if (node?.kind === ts.SyntaxKind.CallExpression) {
-        const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword
-                && (callee.name?.text === 'safeValue' || callee.name?.text === 'safeDict')) {
-            const fallback = node.arguments?.[node.arguments.length - 1];
-            return fallback?.kind === ts.SyntaxKind.ObjectLiteralExpression;
-        }
     }
     return false;
 }
@@ -4498,7 +4460,7 @@ export const CSHARP_LOCAL_CAST_CALL_TYPES = {
     // sites need no cast here)
 };
 
-// ===== B-23: `object x = this.parse<X>(...)` — the box the callee's TS return type names =====
+// ===== `object x = this.parse<X>(...)` — the box the callee's TS return type names =====
 //
 // A parse helper is declared per venue (or once in the base) and its C# signature stays
 // `object`, while its TS return type IS the structure / Dict / List box the callers consume.
@@ -4610,10 +4572,7 @@ function parseReturnExpressionProves (csharp, expression, mapped, depth) {
     if (expression === undefined || depth > 4) {
         return false;
     }
-    let node = expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (expression);
     switch (node?.kind) {
     case ts.SyntaxKind.AsExpression:
     case ts.SyntaxKind.TypeAssertionExpression: {
@@ -4625,15 +4584,8 @@ function parseReturnExpressionProves (csharp, expression, mapped, depth) {
         }
         return parseReturnExpressionProves (csharp, node.expression, mapped, depth + 1);
     }
-    case ts.SyntaxKind.NullKeyword:
-        return true; // a null box unboxes to null under the reference cast
     case ts.SyntaxKind.ObjectLiteralExpression:
         return parseBoxCompatible (mapped, 'Dictionary<string, object>');
-    case ts.SyntaxKind.ArrayLiteralExpression:
-        return parseBoxCompatible (mapped, 'List<object>');
-    case ts.SyntaxKind.ConditionalExpression:
-        return parseReturnExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
-            && parseReturnExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
     case ts.SyntaxKind.Identifier:
         return parseBoxCompatible (mapped, identifierType (csharp, node));
     case ts.SyntaxKind.CallExpression:
@@ -4664,7 +4616,7 @@ function parseReturnDeclarationProves (csharp, declaration, mapped) {
     return proved;
 }
 
-// ===== D-23: scalar return annotations (`: Str` / `: string` / `: number` / `: Int` / `: Bool`) =====
+// ===== scalar return annotations (`: Str` / `: string` / `: number` / `: Int` / `: Bool`) =====
 //
 // The same two proofs as the collection arm above, for the SCALAR box the batch-C annotation
 // names: the checker's return type of the declaration the call binds maps to string? / Int64? /
@@ -4741,9 +4693,6 @@ function parseScalarBoxCompatible (mapped, other) {
     if (mapped === 'string?') {
         return other === 'string' || other === 'string?';
     }
-    if (mapped === 'bool?') {
-        return other === 'bool' || other === 'bool?';
-    }
     if (mapped === 'Int64?') {
         return other === 'Int64' || other === 'Int64?';
     }
@@ -4757,18 +4706,10 @@ function parseScalarExpressionProves (csharp, expression, mapped, depth) {
     if (expression === undefined || depth > 4) {
         return false;
     }
-    let node = expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (expression);
     switch (node?.kind) {
-    case ts.SyntaxKind.NullKeyword:
-        return true; // a null box unboxes to null under the reference cast
     case ts.SyntaxKind.Identifier:
         return (node.text === 'undefined') || parseScalarBoxCompatible (mapped, identifierType (csharp, node));
-    case ts.SyntaxKind.StringLiteral:
-    case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
-        return mapped === 'string?';
     case ts.SyntaxKind.TrueKeyword:
     case ts.SyntaxKind.FalseKeyword:
         return mapped === 'bool?';
@@ -4780,9 +4721,6 @@ function parseScalarExpressionProves (csharp, expression, mapped, depth) {
         }
         return parseScalarExpressionProves (csharp, node.expression, mapped, depth + 1);
     }
-    case ts.SyntaxKind.ConditionalExpression:
-        return parseScalarExpressionProves (csharp, node.whenTrue, mapped, depth + 1)
-            && parseScalarExpressionProves (csharp, node.whenFalse, mapped, depth + 1);
     case ts.SyntaxKind.CallExpression:
         return parseScalarBoxCompatible (mapped, callReturnType (csharp, node));
     case ts.SyntaxKind.BinaryExpression:
@@ -4900,7 +4838,7 @@ function callResultCastType (csharp, initializer) {
         return sameFile;
     }
     // `this.parse<X>(...)`: the checker's return type names the box when every declaration of
-    // the name proves it (B-23, see parseReturnCastType). Last, so a name-keyed family entry
+    // the name proves it (see parseReturnCastType). Last, so a name-keyed family entry
     // above keeps its own spelling.
     return parseReturnCastType (csharp, initializer, methodName);
 }
@@ -4909,7 +4847,7 @@ function callResultCastType (csharp, initializer) {
 // -> IList<object> (`this.toArray (objects)` / the `results` list), the 3-argument default and
 // `true` -> indexBy's Dictionary. Never List<object>: toArray can hand back a non-List IList.
 const FILTER_BY_ARRAY_BOX_METHODS = new Set ([
-    'filterByArray', 'filterByArrayPositions', 'filterByArrayTickers', 'filterByArrayADLRanks',
+    'filterByArray',
 ]);
 
 function filterByArrayBoxType (initializer) {
@@ -4932,9 +4870,6 @@ function filterByArrayBoxType (initializer) {
     }
     if (args[3].kind === ts.SyntaxKind.FalseKeyword) {
         return 'IList<object>';
-    }
-    if (args[3].kind === ts.SyntaxKind.TrueKeyword) {
-        return 'Dictionary<string, object>';
     }
     return undefined;
 }
@@ -4960,11 +4895,6 @@ function typedRequestIdCall (initializer) {
 // concrete type. The proof is per definition, so the receiving local carries the exact cast
 // back, the same shape as the getMessageHash family above.
 
-// `this.safeOutcome (<one key>)` / `await this.loadOutcome (...)`: every path of the two
-// accessors boxes a row of this.outcomes / this.outcomes_by_id (IDictionary writers only)
-// or a fresh Dictionary literal — the 2-arg safeOutcome passthrough is the caller's box.
-const OUTCOME_ROW_TYPE = 'IDictionary<string, object>';
-
 function outcomeCacheCallCastType (initializer) {
     // `await this.loadOutcome (...)` unwraps the same row
     const call = (initializer?.kind === ts.SyntaxKind.AwaitExpression) ? initializer.expression : initializer;
@@ -4974,13 +4904,6 @@ function outcomeCacheCallCastType (initializer) {
     const callee = call.expression;
     if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
-    }
-    const methodName = callee.name?.text;
-    if (methodName === 'safeOutcome') {
-        return (call.arguments?.length === 1) ? OUTCOME_ROW_TYPE : undefined;
-    }
-    if (methodName === 'loadOutcome') {
-        return OUTCOME_ROW_TYPE;
     }
     return undefined;
 }
@@ -5073,8 +4996,6 @@ function requestIdExpressionBoxType (method, expression, depth) {
         return undefined;
     }
     switch (expression.kind) {
-    case ts.SyntaxKind.ParenthesizedExpression:
-        return requestIdExpressionBoxType (method, expression.expression, depth);
     case ts.SyntaxKind.AsExpression:
     case ts.SyntaxKind.TypeAssertionExpression:
         // `<x> as string` prints `((string)x)`: a string box, or null in, null out
@@ -5127,9 +5048,6 @@ function requestIdSumBoxesInt64 (method, expression, depth) {
 function requestIdIntBoxOperand (method, expression, depth) {
     if (expression === undefined || depth > 4) {
         return false;
-    }
-    if (expression.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        return requestIdIntBoxOperand (method, expression.expression, depth);
     }
     if (expression.kind === ts.SyntaxKind.CallExpression) {
         const callee = expression.expression;
@@ -5222,23 +5140,8 @@ function numericReturnExpressionProves (csharp, expression, mapped) {
     if (node === undefined) {
         return false;
     }
-    if (node.kind === ts.SyntaxKind.NullKeyword) {
-        return true; // the nullable spelling keeps a null path nameable
-    }
     if (node.kind === ts.SyntaxKind.Identifier && node.text === 'undefined') {
         return true;
-    }
-    if (node.kind === ts.SyntaxKind.NumericLiteral) {
-        return true;
-    }
-    if (node.kind === ts.SyntaxKind.CallExpression) {
-        const callee = node.expression;
-        if (callee?.kind === ts.SyntaxKind.PropertyAccessExpression && callee.expression?.kind === ts.SyntaxKind.ThisKeyword) {
-            const name = callee.name?.text;
-            if (name === 'parseNumber' || name === 'safeNumber' || name === 'safeFloat') {
-                return true;
-            }
-        }
     }
     return typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (node) === mapped;
 }
@@ -5270,52 +5173,13 @@ function sameFileNumericDeclarationType (csharp, declaration, mapped) {
     }
 }
 
-// the mapped type of a `this.<name>(...)` call whose same-file declaration proves it, or
-// undefined (an inherited call in a file that does not declare the method keeps `object`)
-function sameFileNumericReturnType (csharp, call, name) {
-    const mapped = CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS[name];
-    if (mapped === undefined) {
-        return undefined;
-    }
-    const declaration = boundCollectionDeclaration (csharp, call, name);
-    return (declaration?.name?.text === name) ? sameFileNumericDeclarationType (csharp, declaration, mapped) : undefined;
-}
-
 // ===== this.safeValue (recv, 'key') with a same-file dict / list twin =====
 //
-// `const x = this.safeValue (response, 'data')` boxes whatever the wire sent: the call is
-// `object` by contract (Exchange.SafeMethods.cs), so the printer can name nothing by itself.
-// The declaration can name the box when the SAME FILE proves the key's shape:
-//
-//   - another mention of the same (receiver identifier, literal key) pair is extracted with
-//     this.safeDict* / this.safeList* — the exchange's own claim that this key holds a dict
-//     (a list) — and
-//   - the pair carries NO mention of the other shape anywhere in the same file: no twin of
-//     the other kind and no `{}` / `[]` literal default of the other kind. A pair with both
-//     (bitget's response['data'] is a dict on the ticker endpoints and a list on the
-//     candlestick ones) names nothing and every one of its sites keeps `object`; a site whose
-//     own default literal is the other shape is the same reject, so no site can disagree with
-//     the pair verdict, and
-//   - no use of the local treats it as the other shape: a dict candidate iterated (for-of /
-//     for-in), read with `.length` / a list-only member or a numeric element read; a list
-//     candidate read with a string key or handed to a keyed safe* helper. The compile-level
-//     half of this is already csharpLocalIsSafeToRetype's job; this is the runtime half the
-//     compiler cannot see (`foreach (var v in dict)` over an IDictionary compiles and walks
-//     KeyValuePairs).
-//
-// The box is the value the JSON decoder produced: Dictionary<string, object> for a JSON
-// object and List<object> for a JSON array (Exchange.cs#callAsync -> NarrowResponse; the
-// implicit-API wrappers hand that same box out as Task<Dictionary<string, object>>), and a
-// null value stays null through the reference cast — exactly the boxes the safeDict* /
-// safeList* declarations already name (retypeSafeCollectionHelpers). The declaration takes
-// the exact cast back, the spelling the printer cannot print by itself:
-// `IDictionary<string, object> data = ((IDictionary<string, object>)this.safeValue (response, "data"));`
-//
-// Only an IDENTIFIER receiver qualifies: a `this.<member>` receiver is module state whose
-// shape a caller's option override can change, so its pair is never evidence (stays `object`).
-//
-// A safeValue site names its box only when its twin pair carries exactly one shape and the
-// use-shape veto passes; everything else stays object.
+// `const x = this.safeValue (response, 'data')` is `object` by contract; the declaration names
+// the box when the SAME FILE extracts the same (receiver identifier, literal key) pair with
+// this.safeDict* / this.safeList* and never with the other shape (no twin, no `{}` / `[]`
+// default of the other kind). The box is the JSON decoder's Dictionary<string, object> /
+// List<object>, taken with the exact cast back. A `this.<member>` receiver never qualifies.
 const SAFE_VALUE_TWIN_PAIR_CACHE = new WeakMap ();
 
 const SAFE_VALUE_TWIN_DICT_CALLS = [ 'safeDict', 'safeDict2', 'safeDictN' ];
@@ -5552,13 +5416,6 @@ function callReturnType (csharp, initializer) {
     // instance helper in C# (implicit `this.`), so its return type applies. Names that are
     // not proven instance helpers stay out of the table.
     if (callee?.kind === ts.SyntaxKind.Identifier) {
-        // bare `getValue (this.orderbooks, symbol)` — element access on the orderbook map
-        if (callee.text === 'getValue') {
-            const read = orderbookMapReadType (initializer);
-            if (read !== undefined) {
-                return read;
-            }
-        }
         return CSHARP_LOCAL_BARE_RETURN_TYPES[callee.text];
     }
     if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
@@ -5597,10 +5454,6 @@ function callReturnType (csharp, initializer) {
         }
         // a per-definition numeric helper: same-file proof, no cast (the definition's
         // own signature carries the type, see CSHARP_LOCAL_SAME_FILE_NUMERIC_RETURNS)
-        const sameFileNumeric = sameFileNumericReturnType (csharp, initializer, methodName);
-        if (sameFileNumeric !== undefined) {
-            return sameFileNumeric;
-        }
         // `this.safeIntegerProduct2 (obj, k1, k2, mult)` / `safeIntegerProductN (obj, keys, mult)`:
         // the hand-written ARITY overloads (Exchange.SafeMethods.cs) are exactly Int64? — they
         // forward to the object overload with a null `defaultValue`, its only non-Int64 box. A
@@ -5608,9 +5461,6 @@ function callReturnType (csharp, initializer) {
         // the caller's box, so only the defaultless arity is named here.
         if (methodName === 'safeIntegerProduct2') {
             return (initializer.arguments?.length === 4) ? 'Int64?' : undefined;
-        }
-        if (methodName === 'safeIntegerProductN') {
-            return (initializer.arguments?.length === 3) ? 'Int64?' : undefined;
         }
         const localType = CSHARP_LOCAL_THIS_RETURN_TYPES[methodName];
         if (localType !== undefined) {
@@ -5729,8 +5579,6 @@ function isProvablyStringOperand (csharp, node) {
     case ts.SyntaxKind.StringLiteral:
     case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
         return true;
-    case ts.SyntaxKind.ParenthesizedExpression:
-        return isProvablyStringOperand (csharp, node.expression);
     case ts.SyntaxKind.AsExpression:
         return node.type?.kind === ts.SyntaxKind.StringKeyword;
     case ts.SyntaxKind.BinaryExpression:
@@ -5990,10 +5838,8 @@ export function csharpTypeOfValue (csharp, node, context) {
 // hand-written base (string ones spelled nullable, since a settable property can hold null).
 // Arms only (conditionalArmType): any other read keeps `object`, so no declaration moves.
 const CSHARP_LOCAL_THIS_ARM_MEMBER_TYPES = {
-    'hostname': 'string?',
     'userAgent': 'string?',
     'privateKey': 'string?',
-    'secret': 'string?',
     'ids': 'List<object>',
     'tokenBucket': 'Dictionary<string, object>',
 };
@@ -6028,10 +5874,7 @@ function conditionalArmType (csharp, node, context) {
     if (omitZeroStringProducer (csharp, node, context)) {
         return 'string?';
     }
-    let arm = node;
-    while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        arm = arm.expression;
-    }
+    let arm = stripParens (node);
     // the `this.<member>` rule applies to every tier: a read of a base property with a concrete
     // C# declared type has that static type at the arm, prediction tier included
     const memberType = thisMemberArmType (arm);
@@ -6600,10 +6443,7 @@ function resolveLocalReadType (csharp, context, identifier) {
 // for `undefined`, which is a null literal rather than a read — the same split the
 // Identifier case of csharpTypeOfValue makes.
 function copyReadLocalType (csharp, declaration, context) {
-    let node = declaration.initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    let node = stripParens (declaration.initializer);
     if (node?.kind !== ts.SyntaxKind.Identifier || node.text === 'undefined') {
         return undefined;
     }
@@ -6691,8 +6531,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             // `[x, y] = f()` prints element reads into untyped slots; accepted when the
             // assignment is an audited request builder whose element is cast back (see below)
             if (parent.parent?.kind === ts.SyntaxKind.BinaryExpression && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-                if (!destructuredWriteIsCastable (csharp, scope, index, declaration, n, parent.parent, csharpType, context)
-                        && !destructuredIsUTAEnabledBoolProof (csharp, scope, declaration, n, parent.parent, csharpType)) {
+                if (!destructuredWriteIsCastable (csharp, scope, index, declaration, n, parent.parent, csharpType, context)) {
                     return false;
                 }
             }
@@ -6747,12 +6586,7 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                         // other arm has to be storable in it (selfTernaryWriteType)
                         const selfTernaryType = selfTernaryWriteType (csharp, context, declaration, parent.right);
                         const selfTernaryString = (csharpType === 'string?') && safeStringFamilyLocal (declaration) && (selfTernaryStringWriteType (csharp, context, declaration, parent.right) === 'string');
-                        // `x = (x === undefined) ? <default> : x` — the self arm has no C# type
-                        // while this declaration is being classified; scoped to the
-                        // safeDict*/safeList* family (see safeCollectionFamilyLocal).
-                        const selfTernaryCollection = (written === undefined) && safeCollectionFamilyLocal (declaration.initializer)
-                            && assignable (csharpType, selfTernaryCollectionWriteType (csharp, context, declaration, parent.right));
-                        const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString || selfTernaryCollection;
+                        const selfTernary = ((selfTernaryType !== undefined) && assignable (csharpType, selfTernaryType)) || selfTernaryString;
                         if (!selfConcat && !selfStringWrite && !nonNullWrite && !selfOmit && !selfTernary && !assignable (csharpType, selfRead)) {
                             return false;
                         }
