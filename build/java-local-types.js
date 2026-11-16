@@ -12366,6 +12366,9 @@ function nullScalarWriteType (printer, node) {
     if (ts.isConditionalExpression (value)) {
         // arms that are each String (or null) keep the Java conditional String
         const arms = [ value.whenTrue, value.whenFalse ].map ((arm) => nullScalarWriteType (printer, arm));
+        if ([ value.whenTrue, value.whenFalse ].some ((arm) => NULL_SEED_R84_WRITES.has (arm))) {
+            NULL_SEED_R84_WRITES.add (node); // r84-j4: an arm typed by an r84 write
+        }
         if (arms.every ((t) => t === JAVA_DATAFLOW_STRING || t === 'null') && arms.includes (JAVA_DATAFLOW_STRING)) {
             return JAVA_DATAFLOW_STRING;
         }
@@ -12404,6 +12407,120 @@ function nullScalarWriteType (printer, node) {
             return container ?? core;
         }
     }
+    const r84 = nullSeedWriteType (printer, value);
+    if (r84 !== undefined) {
+        NULL_SEED_R84_WRITES.add (node);
+    }
+    return r84;
+}
+
+// r84-j4: null-seed writes typed from the TS AST and checker that section 24's first pass declined.
+// Each answers the box the printed write statically has, so the write needs no cast.
+const NULL_SEED_STRING_RECEIVER_METHODS = new Set ([ 'toLowerCase', 'toUpperCase', 'trim' ]);
+const NULL_SEED_BASE_STRING_PRODUCERS = new Set ([ 'ethChecksumAddress' ]); // public String in BaseExchange.java
+const NULL_SEED_SCALARS = new Set ([ JAVA_DATAFLOW_STRING, 'Long', 'Double', 'Boolean' ]);
+const NULL_SEED_R84_WRITES = new WeakSet ();
+
+// a seed typed through an r84 write must gain a native use, read off the AST: a String passed to a
+// fixed `String` core parameter (the checkcast drops); a seed only handed to Object slots stays Object
+function nullSeedHasNativeUse (printer, declaration, type) {
+    const scope = enclosingFunction (declaration);
+    const symbol = printer.getChecker ().getSymbolAtLocation (declaration.name);
+    for (const n of (identifierIndex (scope).get (String (declaration.name.text)) ?? [])) {
+        if (n === declaration.name || printer.getChecker ().getSymbolAtLocation (n) !== symbol) {
+            continue;
+        }
+        const host = unwrapParensUp (n);
+        const parent = host.parent;
+        if (type === JAVA_DATAFLOW_STRING && parent !== undefined && ts.isCallExpression (parent)) {
+            const at = parent.arguments.indexOf (host);
+            const types = at === -1 || typeof printer.javaNativeCallParameterTypes !== 'function' ? [] : printer.javaNativeCallParameterTypes (parent);
+            if (types[at] === 'String') {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function nullSeedCheckerIs (printer, node, test) {
+    try {
+        const checker = printer.getChecker ();
+        const type = checker.getTypeAtLocation (node);
+        const parts = type?.isUnionType () ? ts.typeParts (type) : [ type ];
+        return parts.length > 0 && parts.every ((t) => t !== undefined && test (checker, t));
+    } catch (e) {
+        return false;
+    }
+}
+
+function nullSeedResolvedInBase (printer, call) {
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (call)?.declaration?.resolve ();
+        return declaration !== undefined && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName);
+    } catch (e) {
+        return false;
+    }
+}
+
+// a String slice the printer prints natively (substring): asked of the printer's own deciders with the
+// tightest line budget, so the real print (any indentation) takes the native form too
+function nullSeedNativeStringSlice (printer, value) {
+    const receiver = value.expression.expression;
+    const args = value.arguments;
+    if (args.length < 1 || args.length > 2 || !nullSeedCheckerIs (printer, receiver, (c, t) => (t.flags & ts.TypeFlags.StringLike) !== 0)) {
+        return false;
+    }
+    try {
+        const name = printer.printNode (receiver, 0);
+        const parsed = args.map ((a) => printer.printNode (a, 0).trimStart ());
+        const native = printer.nativeSliceCallIfProvable?.(value, name)
+            ?? printer.javaTypedStringSliceCall?.(value, name, parsed[0], parsed[1], 64);
+        return typeof native === 'string';
+    } catch (e) {
+        return false;
+    }
+}
+
+function nullSeedWriteType (printer, value) {
+    if (value.kind === ts.SyntaxKind.AwaitExpression) {
+        // `(this.m (..)).join()` of a core declared CompletableFuture<String/Long/..>: that box, no cast
+        const t = awaitedCoreCallType (value) ?? awaitedThisCallType (value);
+        return NULL_SEED_SCALARS.has (t) ? t : undefined;
+    }
+    if (ts.isPropertyAccessExpression (value) && value.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        // a base field BaseExchange.java declares `public String` (section 21's table)
+        const javaType = JAVA_BASE_FIELD_TYPES[String (value.name.text)];
+        if (javaType !== JAVA_DATAFLOW_STRING) {
+            return undefined;
+        }
+        const decls = printer.getChecker ().getSymbolAtLocation (value.name)?.declarations?.map ((h) => h.resolve ()) ?? [];
+        return decls.length > 0 && decls.every ((d) => BASE_SOURCE_FILE.test (d.getSourceFile ().fileName) && ts.isPropertyDeclaration (d))
+            ? javaType : undefined;
+    }
+    if (!ts.isCallExpression (value) || !ts.isPropertyAccessExpression (value.expression)) {
+        return undefined;
+    }
+    const name = String (value.expression.name.text);
+    const receiver = value.expression.expression;
+    if (receiver.kind === ts.SyntaxKind.ThisKeyword) {
+        return NULL_SEED_BASE_STRING_PRODUCERS.has (name) && nullSeedResolvedInBase (printer, value) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    if (receiver.kind === ts.SyntaxKind.SuperKeyword) {
+        return undefined;
+    }
+    // `s.toLowerCase ()` prints `((String)s).toLowerCase()`, `xs.join (sep)` prints `String.join(..)`
+    if (NULL_SEED_STRING_RECEIVER_METHODS.has (name) && value.arguments.length === 0
+        && nullSeedCheckerIs (printer, receiver, (c, t) => (t.flags & ts.TypeFlags.StringLike) !== 0)) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    if (name === 'join' && value.arguments.length === 1
+        && nullSeedCheckerIs (printer, receiver, (c, t) => c.isArrayType (t))) {
+        return JAVA_DATAFLOW_STRING;
+    }
+    if (name === 'slice' && nullSeedNativeStringSlice (printer, value)) {
+        return JAVA_DATAFLOW_STRING;
+    }
     return undefined;
 }
 
@@ -12423,6 +12540,7 @@ function nullScalarLocalType (printer, declaration) {
     }
     const sourceName = String (declaration.name.text);
     let type;
+    let r84Write = false;
     for (const n of (identifierIndex (scope).get (sourceName) ?? [])) {
         if (n === declaration.name || dataflowNotAUse (n) || checker.getSymbolAtLocation (n) !== symbol) {
             continue;
@@ -12442,10 +12560,15 @@ function nullScalarLocalType (printer, declaration) {
             if (written === undefined || (written !== 'null' && type !== undefined && written !== type)) {
                 return undefined;
             }
+            r84Write = r84Write || NULL_SEED_R84_WRITES.has (parent.right);
             type = (written === 'null') ? type : written;
         }
     }
     if (type === undefined || literalTypeTokenShadowed (scope, type)) {
+        return undefined;
+    }
+    // r84-j4: a type an r84 write decided needs a native use
+    if (r84Write && !nullSeedHasNativeUse (printer, declaration, type)) {
         return undefined;
     }
     const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
@@ -12494,6 +12617,24 @@ export function installJavaNullScalarLocalTypes (transpiler) {
         }
         retyped.set (declaration, type);
         return printed.slice (0, at) + `${iden}${type} ${printedName} = null` + printed.slice (at + marker.length);
+    };
+    // r84-j4: a String-retyped seed reads as a printed String (javaProvableString), the same answer the
+    // expression resolver gives every other `String x = ..` declaration, so core-argument checkcasts drop
+    const upstreamResolver = printer.javaExpressionTypeResolver;
+    printer.javaExpressionTypeResolver = function (node) {
+        const target = unwrapParens (node);
+        if (target !== undefined && ts.isIdentifier (target)) {
+            try {
+                const declaration = printer.getChecker ().getSymbolAtLocation (target)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && retyped.get (declaration) === JAVA_DATAFLOW_STRING
+                    && String (declaration.name?.text) === String (target.text)) {
+                    return 'String';
+                }
+            } catch (e) {
+                // fall through to the upstream answer
+            }
+        }
+        return typeof upstreamResolver === 'function' ? upstreamResolver (node) : undefined;
     };
     // this section retypes after the declared-local observer: publish so core-argument conversions see it
     publishJavaDeclaredLocalTypes (printer, (declaration) => retyped.get (declaration));

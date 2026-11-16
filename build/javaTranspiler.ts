@@ -5821,7 +5821,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -9850,6 +9850,35 @@ function javaR84j2MapConditionalLocalsSelfTest (): string[] {
         for (const name of [ 'b', 'c' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' (no native use / unproven any arm) must stay Object`);
         }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r84-j4: null seeds written from native String producers (literal-bound slice, toLowerCase, join) print
+// String when a use hands them to a fixed String core parameter; the same writes with only Object-slot
+// uses keep Object
+function javaR84j4NullSeedSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j4seed${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        'export default class zzr84j4seed extends Exchange {',
+        "    ids (id: string, flag: boolean) { let baseId = undefined; if (flag) { baseId = id.slice (0, 3); } else { baseId = id.toLowerCase (); } const base = this.safeCurrencyCode (baseId); return { 'base': base }; }",
+        "    joined (parts: string[]) { let quoteId = undefined; quoteId = parts.join ('-'); return this.safeCurrencyCode (quoteId); }",
+        "    slot (id: string) { let k = undefined; k = id.toLowerCase (); return { 'k': k }; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String baseId = null/.test(out) || !/safeCurrencyCode\(baseId[,)]/.test(out)) problems.push("'baseId' (slice / toLowerCase writes, String core argument) must print String with no argument cast");
+        if (!/String quoteId = null/.test(out)) problems.push("'quoteId' (join write, String core argument) must print String");
+        if (!/\bObject k = null/.test(out)) problems.push("'k' (only an Object-slot use) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
