@@ -80,7 +80,7 @@ public final class Crypto {
         return Base64ToBase64Url(b64, true);
     }
 
-    private static final ObjectMapper M = new ObjectMapper();
+    private static final ObjectMapper M = JsonHelper.mapper();
     private static String json(Object o) {
         if (o == null) return null;
         if (o instanceof Throwable t) {
