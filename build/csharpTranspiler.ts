@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12673,5 +12673,29 @@ export function copyLocalSnippetChecks77c5 (): string[] {
     check ('dict copy with an omit write', 'f (o) { const d = {}; let q = d; if (o) { q = this.omit (d, "x"); } return this.safeString (q, "a"); }', 'Dictionary<string, object> q = d;');
     check ('core Int64? parameter copy', 'async fetchOHLCV (symbol: string, timeframe = "1m", since: Int = undefined, limit: Int = undefined, params = {}) { const start = since; return start; }', 'Int64? start = since;');
     check ('omit of an object receiver keeps object', 'f (o) { let q = o; if (o) { q = this.omit (o, "x"); } return this.safeString (q, "a"); }', 'object q = o;');
+    return problems;
+}
+
+// 77c7: `this.<base helper / venue builder>(...)` locals typed from the callee's own C# signature
+// (build/csharp-local-types.js, block "77c7"); each case fails on the parent, each keep holds there
+export function helperReturnLocalsSnippetChecks (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const print = (body: string) => (transpiler as any).transpileCSharp ('type Dict = any; class Test {\n binaryLength (b) { return 0; }\n packb (d) { return d; }\n randomBytes (n) { return \'\'; }\n hash (a, b, c) { return a; }\n' + body + '\n}').content as string;
+    const cases: [string, string, string][] = [
+        [ 'binaryLength -> int', 'f (m) { const n = this.binaryLength (m); return this.hash (m, n, 1); }', 'int n = this.binaryLength(m);' ],
+        [ 'packb -> byte[]', 'f (a) { const d = this.packb (a); return this.hash (d, 1, 1); }', 'byte[] d = this.packb(a);' ],
+        [ 'randomBytes -> string', 'f () { const n = this.randomBytes (16); return this.hash (n, 1, 1); }', 'string n = this.randomBytes(16);' ],
+        [ 'per-declaration Sig builder', 'signUserSignedAction (t: Dict, m: Dict): Dict { const signature = { \'r\': 1 }; return signature; }\n buildSendAssetSig (m: Dict): Dict { return this.signUserSignedAction ({}, m); }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }', 'Dictionary<string, object> sig = this.buildSendAssetSig(p);' ],
+    ];
+    for (const [ name, body, expected ] of cases) {
+        const out = print (body);
+        if (!out.includes (expected)) problems.push (`77c7 helper-return locals: ${name}: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    }
+    // a Sig builder whose return path is not a proven dict keeps object, and so does its caller
+    const kept = print ('buildSendAssetSig (m: Dict): Dict { return m; }\n g (p) { const sig = this.buildSendAssetSig (p); return this.hash (sig, 1, 1); }');
+    if (!kept.includes ('object sig = this.buildSendAssetSig(p);')) problems.push (`77c7 helper-return locals: unproven builder retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

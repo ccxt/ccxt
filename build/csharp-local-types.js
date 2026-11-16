@@ -19154,3 +19154,49 @@ csharpParameterCallSitesProve = function (csharp, parameter, target) {
         c5ParameterProofDepth--;
     }
 };
+
+// ===== 77c7: results of base helpers and venue builders that still printed `object` locals =====
+// (a) hand-written base helpers whose C# signature is already concrete (no ts/src or generated
+// declaration of the same name exists; cs/ccxt/base is the only declaring tree), so the printed
+// call `this.<name>(...)` IS that static type and the local needs no cast:
+//   Exchange.cs        `public int binaryLength (object)` (getArrayLength), `public string randomBytes (object)`
+//                      (Convert.ToBase64String, never null)
+//   Exchange.Encode.cs `public byte[] packb (object)` (MiniMessagePacker.Pack)
+//   Exchange.ETH.cs    `public byte[] ethAbiEncode (object, object)`
+//   Exchange.Lighter.cs `public string lighterCreateAuthToken (object, object)`
+//   Exchange.Misc.cs   `public string implodeParams (object, object)` (a non-null string join)
+// csharpLocalIsSafeToRetype still decides every local; a vetoing use keeps `object`. Left out on
+// purpose: binaryToBase16 and paradex unsubscribeRequest, whose typed locals are call arguments
+// that would retype the callee's parameters (the parameter lane's decision, not this one's).
+const CSHARP_77C7_HANDWRITTEN_RETURNS = {
+    'binaryLength': 'int',
+    'randomBytes': 'string',
+    'packb': 'byte[]',
+    'ethAbiEncode': 'byte[]',
+    'lighterCreateAuthToken': 'string',
+    'implodeParams': 'string',
+};
+for (const [ name, type ] of Object.entries (CSHARP_77C7_HANDWRITTEN_RETURNS)) {
+    if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+    }
+}
+// (b) venue request / signature builders proven per DECLARATION (methodReturnsProveCollection):
+// hyperliquid (rest and prediction) signUserSignedAction returns its `Dictionary<string, object> signature` local and every
+// build*Sig returns that call. A declaration whose return paths do not all prove the box keeps
+// its `object` signature, and so do its call sites (both read the same proof).
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
+    'signUserSignedAction': 'Dictionary<string, object>',
+    'buildApproveBuilderFeeSig': 'Dictionary<string, object>',
+    'buildUserAbstractionSig': 'Dictionary<string, object>',
+    'buildUserDexAbstractionSig': 'Dictionary<string, object>',
+    'buildUsdClassSendSig': 'Dictionary<string, object>',
+    'buildSendAssetSig': 'Dictionary<string, object>',
+});
+// (c) `this.<member>` reads of hand-written Exchange.Options.cs properties declared with a
+// concrete collection type, hidden by no generated class: the read's static type is the
+// declaration (`public Dictionary<string, object> features`, `networkAliases`).
+Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, {
+    'features': 'Dictionary<string, object>',
+    'networkAliases': 'Dictionary<string, object>',
+});
