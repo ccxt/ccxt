@@ -168,6 +168,10 @@ impl Book {
     pub fn book_field(&self, k: &str) -> Value { self.0.book_field(k) }
     /// `book['nonce'|'timestamp'|..] = v`: the shared-store write.
     pub fn set_book_meta(&mut self, k: &str, v: Value) { self.0.set_book_meta(k, v) }
+    /// ral-66c: `const m = book.cache`: a copy of the delta buffer (a later `book.cache = []` leaves it as it was).
+    pub fn cache_items(&self) -> crate::value::List { crate::value::cache_entries_as_value(&self.0.book_field("cache")).unwrap_or_default().into_list() }
+    /// ral-66c: `book.cache.push(v)`: append to the shared delta buffer (the store the boxed handle appends to).
+    pub fn cache_push(&mut self, v: Value) { crate::value::try_book_cache_push(&self.0.book_field("cache"), &v); }
 }
 
 impl From<Book> for Value { fn from(b: Book) -> Value { b.0 } }
@@ -230,6 +234,28 @@ mod side_tests {
         none.store(Value::Int(1), Value::Int(1));
         assert_eq!(Value::from(none), Value::Null);
     }
+
+    // ral-66c: the typed cache reads and appends exactly as the boxed handle route, and the copy keeps its items
+    // after `book.cache = []` (the JS array semantics); no book reads `[]` and ignores a push.
+    #[test]
+    fn typed_cache_matches_the_boxed_handle() {
+        let mut book = new_book(BOOK_PLAIN, Value::Map(crate::value::HashMap::new()), Value::Null);
+        book.cache_push(Value::Int(1));
+        let mut boxed = Value::from(&book);
+        crate::runtime::append_to_object_array(&mut boxed, &Value::Str("cache".into()), Value::Int(2));
+        let items = book.cache_items();
+        assert_eq!(items.as_ref(), &vec![Value::Int(1), Value::Int(2)]);
+        assert_eq!(crate::runtime::get_array_length(&book.book_field("cache")), Value::Int(2));
+        book.set_book_meta("cache", Value::from(Vec::<Value>::new()));
+        assert_eq!(items.len(), 2);
+        assert_eq!(book.cache_items().len(), 0);
+        let mut slot: Option<Book> = Some(book);
+        slot.cache_push(Value::Int(3));
+        assert_eq!(slot.cache_items().as_ref(), &vec![Value::Int(3)]);
+        let mut none: Option<Book> = None;
+        none.cache_push(Value::Int(4));
+        assert_eq!(none.cache_items().len(), 0);
+    }
 }
 
 /// The book operations on an optional book slot; an absent book ignores them and reads `Null`, as a
@@ -241,6 +267,10 @@ pub trait BookSlot {
     fn reset0(&mut self);
     fn book_field(&self, k: &str) -> Value;
     fn set_book_meta(&mut self, k: &str, v: Value);
+    /// ral-66c: the delta buffer copy (`[]` for no book).
+    fn cache_items(&self) -> crate::value::List;
+    /// ral-66c: append to the delta buffer (no book ignores it).
+    fn cache_push(&mut self, v: Value);
 }
 
 impl BookSlot for Option<Book> {
@@ -249,6 +279,8 @@ impl BookSlot for Option<Book> {
     fn reset0(&mut self) { if let Some(b) = self { b.reset0() } }
     fn book_field(&self, k: &str) -> Value { self.as_ref().map_or(Value::Null, |b| b.book_field(k)) }
     fn set_book_meta(&mut self, k: &str, v: Value) { if let Some(b) = self { b.set_book_meta(k, v) } }
+    fn cache_items(&self) -> crate::value::List { self.as_ref().map_or_else(|| std::sync::Arc::new(Vec::new()), |b| b.cache_items()) }
+    fn cache_push(&mut self, v: Value) { if let Some(b) = self { b.cache_push(v) } }
 }
 
 /// The order books keyed by symbol (`Exchange::orderbooks`). Entries are only ever written from a
