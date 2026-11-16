@@ -1965,7 +1965,7 @@ export default class dydx extends Exchange {
         const account = await this.fetchDydxAccount ();
         const usd = this.parseToInt (Precise.stringMul (this.numberToString (amount), '1000000'));
         let payload: NullableDict = undefined;
-        let signingPayload: NullableDict = undefined;
+        let signingPayload: Dict = {};
         if (fromAccount === 'main') {
             // deposit to subaccount
             if (toSubaccountId === undefined) {

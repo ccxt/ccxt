@@ -941,7 +941,7 @@ export default class deribit extends deribitRest {
                 throw new ArgumentsRequired (this.id + ' watchMultipleWrapper() symbolsArray is required');
             }
             let market: Market = undefined;
-            let currentDescriptor: Str = undefined;
+            let currentDescriptor: Str = '';
             if (isOHLCV) {
                 const currentPair = this.safeList (symbolsArray, i, []);
                 market = this.market (this.safeString (currentPair, 0));

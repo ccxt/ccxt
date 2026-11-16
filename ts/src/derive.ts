@@ -792,9 +792,8 @@ export default class derive extends Exchange {
         const [ maxPages, paramsMaxPages ] = this.handleOptionIntegerAndParams (params, 'getMarketsPaginated', 'maxMarketPages', 25);
         const [ pageSize, paramsOmitted ] = this.handleOptionIntegerAndParams (paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000);
         for (let i = 0; i < maxPages; i++) {
-            const page = i + 1;
             const requestExtension: Dict = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize,
             };
             const requestExtended = this.extend (this.extend (request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
