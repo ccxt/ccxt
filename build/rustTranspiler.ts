@@ -10991,6 +10991,42 @@ impl std::ops::DerefMut for ${coreName} {
                 rustContent = rustBool2LocalOptionBool(rustContent);
                 rustContent = rustStr2LocalOptionString(rustContent);
                 rustContent = rustStrNLocalOptionString(rustContent);
+                // A trait override whose forwarder class is in `liftClasses` is printed once, inside the trait impl:
+                // the whole inherent item (signature line to its matching `}`) replaces its forwarder item.
+                {
+                    const liftClasses = new Set<string>([ 'same' ]);
+                    const norm = (t: string) => t.replace(/^crate::Value$/, 'Value');
+                    const forwarderClass = (sig: any, fact: { isAsync: boolean, isMut: boolean }, slots: string[]): string => {
+                        if (fact.isAsync) return 'async';
+                        if (fact.isMut) return 'mut-cast';
+                        if (sig.params.some((p: any) => p.type === '&[Value]')) return 'slice-args';
+                        if (sig.ret !== 'value') return 'typed-return';
+                        const slotTypes = rustDispatch.slotParams(slots).split(', ').filter((s: string) => s.length > 0).map((s: string) => norm(s.slice(s.indexOf(': ') + 2)));
+                        if (slotTypes.length !== sig.params.length) return 'arity';
+                        return sig.params.every((p: any, i: number) => norm(p.type) === slotTypes[i]) ? 'same' : 'param-differs';
+                    };
+                    const implHead = rustContent.match(/\nimpl crate::exchange::DerivedExchange for (\w+) \{\n/);
+                    const facts = this.receiverFacts(rustContent);
+                    const traitSigs = this.traitMethodSignatures();
+                    for (const sig of (implHead ? result.rustSignatures ?? [] : [])) {
+                        const fact = facts.get(sig.name);
+                        const slots = traitSigs[sig.name];
+                        if (fact === undefined || slots === undefined || !liftClasses.has(forwarderClass(sig, fact, slots))) continue;
+                        const fwdOpen = `\n    fn ${sig.name}(&self`;
+                        const implAt = rustContent.indexOf(implHead![0]);
+                        const fwdAt = rustContent.indexOf(fwdOpen, implAt);
+                        const fwdBrace = rustContent.indexOf('{\n', fwdAt);
+                        const inhAt = rustContent.indexOf(`\n    pub fn ${sig.name}(&self`);
+                        if (fwdAt < 0 || inhAt < 0 || !rustContent.startsWith(`        // Forward to the inherent method on ${implHead![1]}.`, fwdBrace + 2)) continue;
+                        const inhBrace = rustContent.indexOf('{\n', inhAt);
+                        const inhEnd = this.findMatchingBrace(rustContent, inhBrace) + 1;
+                        const item = '\n    ' + rustContent.slice(inhAt + '\n    pub '.length, inhEnd);
+                        const fwdEnd = this.findMatchingBrace(rustContent, fwdBrace) + 1;
+                        // the inherent item sits after the trait impl, so cut it first
+                        rustContent = rustContent.slice(0, inhAt) + rustContent.slice(inhEnd);
+                        rustContent = rustContent.slice(0, fwdAt) + item + rustContent.slice(fwdEnd);
+                    }
+                }
             } catch (e: any) {
                 const detail = (e && (e.stack || e.message)) ? (e.stack || e.message) : String(e);
                 throw new Error(

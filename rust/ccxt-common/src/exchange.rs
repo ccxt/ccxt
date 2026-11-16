@@ -2095,6 +2095,11 @@ pub trait ExchangeRuntime: crate::exchange_generated::ExchangeBase {
     fn super_load_markets(&mut self, reload: Value, params: Value) -> impl ::std::future::Future<Output = Value> + Send { async move {
         crate::types::IntoRaw::into_raw(<Self as ExchangeRuntime>::load_markets(self, reload.is_truthy(), params).await)
     } }
+    // `self.X(..)` for the trait slots with no ExchangeBase method, so an override printed only in the trait impl stays callable.
+    fn parse_deposit(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_deposit(self, tx, currency) }
+    fn parse_withdrawal(&self, tx: Value, currency: Option<&crate::types::Currency>) -> Value { DerivedExchange::parse_withdrawal(self, tx, currency) }
+    fn parse_bid_ask(&self, bidask: Value, price_key: Value, amount_key: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_bid_ask(self, bidask, price_key, amount_key, market) }
+    fn parse_my_trade(&self, trade: Value, market: Option<&crate::types::Market>) -> Value { DerivedExchange::parse_my_trade(self, trade, market) }
 }
 
 impl<T: crate::exchange_generated::ExchangeBase> ExchangeRuntime for T {}
