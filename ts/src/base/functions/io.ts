@@ -66,30 +66,18 @@ export function getTempDir(): string | undefined {
 }
 
 /**
- * Check if the file path is permitted, so users are ensured there is no access possible to other files:
- * - .ccxtfile (ccxt cache files) can be read and written, but only inside the system temporary directory
- * - .wasm and .pem (user-supplied libraries and keys, e.g. the ibkr oauth keys) can be read from any location, but never written
- * @param filePath File path to check
- * @param isWrite true when the file is about to be written
- * @returns the resolved (absolute, without ".." segments) file path
+ * Check if file path is ccxt-cache file, so users are ensured there is no access possible to other files
+ * @param path File path to check
  */
-function ensureWhitelistedFile (filePath: string, isWrite = false) {
+function ensureWhitelistedFile(filePath: string) {
     if (pathSyncModule === null) {
-        throw new Error ('path module is not available');
+        throw new Error('path module is not available');
     }
-    const resolvedInputFilePath = pathSyncModule.resolve (filePath);
-    const readOnlyExtensions = [ '.wasm', '.pem' ];
-    if (resolvedInputFilePath.endsWith ('.ccxtfile')) {
-        const tempDir = getTempDir ();
-        if ((tempDir !== undefined) && resolvedInputFilePath.startsWith (tempDir)) {
-            return resolvedInputFilePath;
-        }
-        throw new Error ('File path is not permitted: ' + filePath + ', .ccxtfile files are only allowed inside the temporary directory');
+    const sanitizedFilePath = pathSyncModule.resolve(filePath);
+    if ((sanitizedFilePath.startsWith(filePath) && sanitizedFilePath.endsWith('.ccxtfile')) || sanitizedFilePath.endsWith('.wasm')) {
+        return;
     }
-    if (!isWrite && readOnlyExtensions.some ((ext) => resolvedInputFilePath.endsWith (ext))) {
-        return resolvedInputFilePath;
-    }
-    throw new Error ('File path is not permitted: ' + filePath + ', allowed are .ccxtfile (inside the temporary directory) and read-only ' + readOnlyExtensions.join (', '));
+    throw new Error('invalid file path: ' + filePath);
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -106,12 +94,12 @@ export function readFile (path: string, encoding: BufferEncoding | null = 'utf8'
         // Sync module not initialized yet
         return undefined;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    ensureWhitelistedFile (path);
     try {
         if (encoding === null) {
-            return fsSyncModule.readFileSync (normalizedPath);
+            return fsSyncModule.readFileSync (path);
         }
-        return fsSyncModule.readFileSync (normalizedPath, encoding);
+        return fsSyncModule.readFileSync (path, encoding);
     } catch (e) {
         return undefined;
     }
@@ -129,9 +117,9 @@ export function writeFile (path: string, data: string, encoding: BufferEncoding 
     if (!isNode || fsSyncModule === null) {
         return false;
     }
-    const normalizedPath = ensureWhitelistedFile (path, true);
+    ensureWhitelistedFile (path);
     try {
-        fsSyncModule.writeFileSync (normalizedPath, data, encoding);
+        fsSyncModule.writeFileSync (path, data, encoding);
         return true;
     } catch (e) {
         // Silent fail
@@ -151,9 +139,9 @@ export function existsFile (path: string): boolean {
         // Sync module not initialized yet
         return false;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    ensureWhitelistedFile (path);
     try {
-        fsSyncModule.accessSync (normalizedPath);
+        fsSyncModule.accessSync (path);
         return true;
     } catch (e) {
         return false;
