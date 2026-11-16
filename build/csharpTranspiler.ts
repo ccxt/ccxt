@@ -3065,7 +3065,7 @@ class NewTranspiler {
     wrapTypedCoreConsumers (line: string, names: string[], predictionTier: boolean, skipReturn: boolean): string {
         let out = line;
         for (const name of names) {
-            const typedType = this.typedCoreType (this.camelName (name), predictionTier);
+            const typedType = this.typedCoreType (this.pascalName (name, true), predictionTier);
             if (typedType === '') {
                 continue;
             }
@@ -3169,7 +3169,7 @@ class NewTranspiler {
         const declRe = /^(\s*)Dictionary<string, object> (\w+) = ccxt\.BaseExchange\.FromOHLCVDict\((await this\.(\w+)\(.*\))\);$/;
         for (let j = bodyStart + 1; j < bodyEnd; j++) {
             const decl = lines[j] === null ? null : declRe.exec (lines[j]);
-            if (decl === null || this.typedCoreType (this.camelName (decl[4]), predictionTier) !== OHLCV_DICT_TYPE) {
+            if (decl === null || this.typedCoreType (this.pascalName (decl[4], true), predictionTier) !== OHLCV_DICT_TYPE) {
                 continue;
             }
             const name = decl[2];
@@ -3197,11 +3197,8 @@ class NewTranspiler {
             return content;
         }
         const lines = content.split ('\n');
-        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
-        // consume typed cores into `object` locals and need the From* funnel like anyone else
-        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
-        // another typed core into an `object` local (okx FetchDepositAddress reads
-        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        // void `Task` and concrete `Task<...>` bodies are visited too: they can consume typed cores
+        // into `object` locals and need the From* funnel like anyone else
         const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ?]+>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
@@ -3210,7 +3207,7 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, modifier, printedName ] = sig;
-            const methodName = this.camelName (printedName);
+            const methodName = this.pascalName (printedName, true);
             const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
             const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
             const isTyped = typedType !== '';
@@ -3242,7 +3239,7 @@ class NewTranspiler {
                 const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
                 const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
                 const calledCore = typedCallRe.exec (expr);
-                const calledType = calledCore ? this.typedCoreType (this.camelName (calledCore[1]), predictionTier) : '';
+                const calledType = calledCore ? this.typedCoreType (this.pascalName (calledCore[1], true), predictionTier) : '';
                 // the return already carries the core's own dictionary type
                 if (isTyped && (csharpReturnIsAlreadyTyped (expr, typedType, content, lines.slice (i, bodyEnd + 1), predictionTier) || this.callReturnsDeclaredType (expr, typedType, predictionTier))) {
                     tailOk[j] = true;
@@ -3264,25 +3261,14 @@ class NewTranspiler {
                     j = lastLine;
                     continue;
                 }
-                // RF-cs-2-d: the wrapper is unnecessary where the return operand's declared type is
+                // the wrapper is unnecessary where the return operand's declared type is
                 // already the helper's own (see csharpNativeCoreConversion)
                 const nativeConversion = isTyped
                     ? csharpNativeCoreConversion (wrapper, expr, content, lines.slice (i, bodyEnd + 1))
                     : (csharpHelperIsIdentity (wrapper, calledType) ? expr.trim () : '');
-                if (nativeConversion !== '') {
-                    const nativePad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
-                    const nativeTrailing = lines[lastLine].substring (semi + 1);
-                    lines[j] = `${nativePad}return ${nativeConversion};${nativeTrailing}`;
-                    for (let k = j + 1; k <= lastLine; k++) {
-                        lines[k] = null as any;
-                    }
-                    tailOk[j] = true;
-                    j = lastLine;
-                    continue;
-                }
                 const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
                 const trailing = lines[lastLine].substring (semi + 1);
-                lines[j] = `${pad}return ${wrapper}(${expr});${trailing}`;
+                lines[j] = `${pad}return ${(nativeConversion !== '') ? nativeConversion : `${wrapper}(${expr})`};${trailing}`;
                 for (let k = j + 1; k <= lastLine; k++) {
                     lines[k] = null as any;
                 }
@@ -3403,7 +3389,7 @@ class NewTranspiler {
             return false;
         }
         const venue = (call[2] === 'base') ? '' : this.currentVenue;
-        const declared = (call[1] !== undefined) ? this.typedCoreType (this.camelName (call[3]), predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
+        const declared = (call[1] !== undefined) ? this.typedCoreType (this.pascalName (call[3], true), predictionTier, venue) : (CSHARP_COLLECTION_RETURN_METHODS as Record<string, string>)[call[3]];
         return declared === targetType;
     }
 
@@ -3417,13 +3403,9 @@ class NewTranspiler {
         return unchanged.some ((prefix) => expr.startsWith (prefix));
     }
 
-    pascalName (name: string): string {
-        return name.charAt (0).toUpperCase () + name.slice (1);
-    }
-
-    // the TS (table) name of a printed method name: typed cores print PascalCase
-    camelName (name: string): string {
-        return name.charAt (0).toLowerCase () + name.slice (1);
+    // the printed (PascalCase) name, or with `camel` the TS (table) name of a printed method name
+    pascalName (name: string, camel = false): string {
+        return (camel ? name.charAt (0).toLowerCase () : name.charAt (0).toUpperCase ()) + name.slice (1);
     }
 
     // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
@@ -3761,12 +3743,12 @@ class NewTranspiler {
         return reads > 0;
     }
 
-    // index of the `//` comment start outside string/char literals, or -1
-    coreArgShadowCommentAt (line: string): number {
+    // index of the `//` comment start outside `quotes` (string/char) literals, or -1
+    coreArgShadowCommentAt (line: string, quotes = '"\''): number {
         let i = 0;
         while (i < line.length) {
             const ch = line[i];
-            if (ch === '"' || ch === '\'') {
+            if (quotes.includes (ch)) {
                 i = this.coreArgShadowSkipLiteral (line, i);
                 continue;
             }
@@ -4102,33 +4084,7 @@ class NewTranspiler {
         if (!/^\s*object \w+ = \w+;/m.test (content)) {
             return content;
         }
-        const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            const [ , indent, , , returnType, , plist ] = sig;
-            const types: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const parts = param.split ('=')[0].trim ().split (/\s+/);
-                if (parts.length >= 2) {
-                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-                }
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
-            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+        return this.csharpPublicMethodBodies (content, (bodyLines, returnType, types) => {
             let changed = false;
             for (let k = 0; k < bodyLines.length; k++) {
                 const decl = /^(\s*)object (\w+) = (\w+);\s*$/.exec (bodyLines[k]);
@@ -4165,14 +4121,8 @@ class NewTranspiler {
                     }
                 }
             }
-            if (changed) {
-                for (let k = 0; k < bodyLines.length; k++) {
-                    lines[bodyStart + 1 + k] = bodyLines[k];
-                }
-            }
-            i = bodyEnd;
-        }
-        return lines.join ('\n');
+            return changed;
+        });
     }
 
     // Order matters: retypeCoreArgCopies gives a narrowed parameter's copy the parameter's type, and
@@ -4439,36 +4389,9 @@ class NewTranspiler {
             return content;
         }
         const names = [ 'timeframe', 'timeframeVar' ];
-        const lines = content.split ('\n');
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            const [ , indent, , , , , plist ] = sig;
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
-            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+        return this.csharpPublicMethodBodies (content, (bodyLines, returnType, declared) => {
             if (!bodyLines.some ((line) => line.includes ('(string)timeframe'))) {
-                i = bodyEnd;
-                continue;
-            }
-            const declared: Record<string, string> = {};
-            for (const param of this.splitCsharpParams (plist)) {
-                const parts = param.split ('=')[0].trim ().split (/\s+/);
-                if (parts.length >= 2) {
-                    declared[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
-                }
+                return false;
             }
             for (const line of bodyLines) {
                 for (const name of names) {
@@ -4499,6 +4422,41 @@ class NewTranspiler {
                     bodyLines[k] = line;
                 }
             }
+            return changed;
+        });
+    }
+
+    // `visit` each `public virtual|override` method body (its lines, return type, parameter name -> type); a
+    // visit answering true had rewritten `bodyLines`, which are written back
+    csharpPublicMethodBodies (content: string, visit: (bodyLines: string[], returnType: string, types: Record<string, string>) => boolean): string {
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            const [ , indent, , , returnType, , plist ] = sig;
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const bodyLines = lines.slice (bodyStart + 1, bodyEnd);
+            const types: Record<string, string> = {};
+            for (const param of this.splitCsharpParams (plist)) {
+                const parts = param.split ('=')[0].trim ().split (/\s+/);
+                if (parts.length >= 2) {
+                    types[parts[parts.length - 1]] = parts.slice (0, -1).join (' ');
+                }
+            }
+            const changed = visit (bodyLines, returnType, types);
             if (changed) {
                 for (let k = 0; k < bodyLines.length; k++) {
                     lines[bodyStart + 1 + k] = bodyLines[k];
@@ -4766,156 +4724,92 @@ class NewTranspiler {
         return content;
     }
 
-    // `((string)x).Split/.ToUpper/.ToLower/.Replace/.Trim/.Length` where `x` IS declared
-    // `string`/`string?` in the same method: the cast names the box the value already is, so
-    // it is dropped. The ast printer (csharpStringReceiverType) drops it at print time for
-    // the locals it and the classifier type; a `typeCoreArgs`-narrowed core parameter and a
-    // copy retyped by retypeCoreArgCopies only become visible in the printed text, so those
-    // receivers are unboxed here, after both. A name with any other binding in the method
-    // (a declaration of another type, a lambda/foreach/catch/for variable) stays cast.
-    retypeStringReceiverCasts (content: string): string {
-        if (!content.includes ('((string)')) {
-            return content;
-        }
-        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
-        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/;
-        const lines = content.split ('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
-            }
-            const candidates = new Set<string> ();
-            for (const param of this.splitCsharpParams (sig[2])) {
-                const declaredString = /^(string\??)\s+([A-Za-z_][A-Za-z0-9_]*)/.exec (param.trim ());
-                if (declaredString !== null) {
-                    candidates.add (declaredString[2]);
-                }
-            }
-            const blocked = new Set<string> ();
-            for (let j = bodyStart + 1; j < bodyEnd; j++) {
-                const declaration = declRe.exec (lines[j]);
-                if (declaration === null) {
-                    continue;
-                }
-                if (declaration[1] === 'string' || declaration[1] === 'string?') {
-                    candidates.add (declaration[2]);
-                } else {
-                    blocked.add (declaration[2]);
-                }
-            }
-            const body = lines.slice (bodyStart + 1, bodyEnd);
-            const text = body.join ('\n');
-            let rewritten = text;
-            for (const name of candidates) {
-                if (blocked.has (name)) {
-                    continue; // another binding of the name exists in this method
-                }
-                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
-                    continue; // a lambda parameter of the same name would shadow it
-                }
-                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
-                    continue; // a loop/catch variable of the same name would shadow it
-                }
-                rewritten = rewritten.replace (new RegExp ('\\(\\(string\\)' + name + '\\)\\.(Split|ToUpper|ToLower|Replace|Trim|Length)\\b', 'g'), name + '.$1');
-            }
-            if (rewritten !== text) {
-                const rewrittenBody = rewritten.split ('\n');
-                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
-                i = bodyStart + rewrittenBody.length;
-            }
-        }
-        return lines.join ('\n');
-    }
-
-    // `((IDictionary<string, object>)x)` around a parameter or local whose emitted declaration is
-    // `Dictionary<string, object>` / `IDictionary<string, object>`: an identity or implicit upcast,
-    // so the receiver's own member does the same work. Names also bound otherwise are skipped.
-    retypeDictReceiverCasts (content: string): string {
-        if (!content.includes ('((IDictionary<string,object>)') && !content.includes ('((IDictionary<string, object>)')) {
-            return content;
-        }
-        const dictType = /^I?Dictionary<string, ?object>\??$/;
-        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
-        const declRe = /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>\??|IList<[^>]*>\??|Dictionary<[^>]*>\??|IDictionary<[^>]*>\??|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??|[A-Z][\w.<>, ?\[\]]*?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[=;]/;
-        const lines = content.split ('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (sig === null) {
-                continue;
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
-            }
-            const candidates = new Set<string> ();
-            const blocked = new Set<string> ();
-            for (const param of this.splitCsharpParams (sig[2])) {
-                const declared = /^(?:ref\s+|out\s+|params\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*=.*)?$/.exec (param.trim ());
-                if (declared !== null) {
-                    (dictType.test (declared[1]) ? candidates : blocked).add (declared[2]);
-                }
-            }
-            for (let j = bodyStart + 1; j < bodyEnd; j++) {
-                const declaration = declRe.exec (lines[j]);
-                if (declaration === null) {
-                    continue;
-                }
-                (dictType.test (declaration[1]) ? candidates : blocked).add (declaration[2]);
-            }
-            if (candidates.size === 0) {
-                continue;
-            }
-            const body = lines.slice (bodyStart + 1, bodyEnd);
-            const text = body.join ('\n');
-            let rewritten = text;
-            for (const name of candidates) {
-                if (blocked.has (name)) {
-                    continue; // another binding of the name exists in this method
-                }
-                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
-                    continue; // a lambda parameter of the same name would shadow it
-                }
-                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
-                    continue; // a loop/catch variable of the same name would shadow it
-                }
-                const typedParam = new RegExp ('[(,]\\s*([\\w.<>?\\[\\]]+(?:, ?[\\w.<>?]+>)?)\\s+' + name + '\\s*[,)]', 'g');
-                if ([...text.matchAll (typedParam)].some ((m) => !dictType.test (m[1]))) {
-                    continue; // a lambda or local-function parameter of another type would shadow it
-                }
-                rewritten = rewritten.replace (new RegExp ('\\(\\(IDictionary<string, ?object>\\)' + name + '\\)(?=[.[])', 'g'), name);
-            }
-            if (rewritten !== text) {
-                const rewrittenBody = rewritten.split ('\n');
-                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
-                i = bodyStart + rewrittenBody.length;
-            }
-        }
-        return lines.join ('\n');
-    }
-
-    // The two post-print passes that drop a cast proven by the EMITTED declaration text (string and
-    // dictionary receivers), behind one entry point so the pass chains stay a single call
+    // Drop a receiver cast proven by the EMITTED declaration text, after the printer and retypeCoreArgCopies:
+    // `((string)x).Split/.ToUpper/...` where `x` is declared `string`/`string?` in the method, and
+    // `((IDictionary<string, object>)x)` where `x` is declared `Dictionary`/`IDictionary<string, object>`.
+    // A name with any other binding in the method (another declaration, a lambda/foreach/catch/for variable) stays cast.
     retypePrintedReceiverCasts (content: string): string {
-        return this.retypeStringReceiverCasts (this.retypeDictReceiverCasts (content));
+        const dictType = /^I?Dictionary<string, ?object>\??$/;
+        content = this.retypeReceiverCasts (content, content.includes ('((IDictionary<string,object>)') || content.includes ('((IDictionary<string, object>)'), {
+            type: dictType,
+            declRe: /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>\??|IList<[^>]*>\??|Dictionary<[^>]*>\??|IDictionary<[^>]*>\??|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??|[A-Z][\w.<>, ?\[\]]*?)\s+([A-Za-z_][A-Za-z0-9_]*)\s*[=;]/,
+            paramRe: /^(?:ref\s+|out\s+|params\s+)?(.+?)\s+([A-Za-z_][A-Za-z0-9_]*)(?:\s*=.*)?$/,
+            shadowed: (text: string, name: string) => [ ...text.matchAll (new RegExp ('[(,]\\s*([\\w.<>?\\[\\]]+(?:, ?[\\w.<>?]+>)?)\\s+' + name + '\\s*[,)]', 'g')) ].some ((m) => !dictType.test (m[1])),
+            cast: (name: string) => new RegExp ('\\(\\(IDictionary<string, ?object>\\)' + name + '\\)(?=[.[])', 'g'),
+            replacement: (name: string) => name,
+        });
+        return this.retypeReceiverCasts (content, content.includes ('((string)'), {
+            type: /^string\??$/,
+            declRe: /^\s*(object|string\??|bool\??|Int64\??|double\??|int\??|long\??|var|byte\[\]|List<[^>]*>|IList<[^>]*>|Dictionary<[^>]*>|IDictionary<[^>]*>|ccxt\.[\w.<>?]+|Future\??|WebSocketClient\??)\s+([A-Za-z_][A-Za-z0-9_]*)\s*=/,
+            paramRe: /^(string\??)\s+([A-Za-z_][A-Za-z0-9_]*)/,
+            shadowed: () => false,
+            cast: (name: string) => new RegExp ('\\(\\(string\\)' + name + '\\)\\.(Split|ToUpper|ToLower|Replace|Trim|Length)\\b', 'g'),
+            replacement: (name: string) => name + '.$1',
+        });
+    }
+
+    // one row of retypePrintedReceiverCasts: per public method, names declared with `row.type` (params whose type
+    // fails it are blocked only when `row.paramRe` captures any type) lose the `row.cast` around them
+    retypeReceiverCasts (content: string, present: boolean, row: any): string {
+        if (!present) {
+            return content;
+        }
+        const sigRe = /^(\s*)public\s+(?:async\s+|virtual\s+|override\s+)+[\w<>., ?]+\s+\w+\s*\((.*)\)\s*$/;
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (sig === null) {
+                continue;
+            }
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === sig[1] + '}') { bodyEnd = j; break; }
+            }
+            const candidates = new Set<string> ();
+            const blocked = new Set<string> ();
+            for (const param of this.splitCsharpParams (sig[2])) {
+                const declared = row.paramRe.exec (param.trim ());
+                if (declared !== null) {
+                    (row.type.test (declared[1]) ? candidates : blocked).add (declared[2]);
+                }
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const declaration = row.declRe.exec (lines[j]);
+                if (declaration !== null) {
+                    (row.type.test (declaration[1]) ? candidates : blocked).add (declaration[2]);
+                }
+            }
+            const body = lines.slice (bodyStart + 1, bodyEnd);
+            const text = body.join ('\n');
+            let rewritten = text;
+            for (const name of candidates) {
+                if (blocked.has (name)) {
+                    continue; // another binding of the name exists in this method
+                }
+                if (new RegExp ('\\b' + name + '\\b\\s*=>').test (text)) {
+                    continue; // a lambda parameter of the same name would shadow it
+                }
+                if (new RegExp ('(?:\\bforeach|\\bcatch|\\bfor|\\busing|\\bfixed)\\s*\\([^)]*\\b' + name + '\\b').test (text)) {
+                    continue; // a loop/catch variable of the same name would shadow it
+                }
+                if (!row.shadowed (text, name)) {
+                    rewritten = rewritten.replace (row.cast (name), row.replacement (name));
+                }
+            }
+            if (rewritten !== text) {
+                const rewrittenBody = rewritten.split ('\n');
+                lines.splice (bodyStart + 1, body.length, ...rewrittenBody);
+                i = bodyStart + rewrittenBody.length;
+            }
+        }
+        return lines.join ('\n');
     }
 
     // drop `((string)x)` when the enclosing method declares `x` as `string`/`string?`: the printer wraps
@@ -4991,7 +4885,7 @@ class NewTranspiler {
     // rounds), only in the code part of the line: double-quoted literals and `//` comments
     // are copied through untouched.
     dropStringCastsOnLine (line: string, names: string[]): string {
-        const commentAt = this.csharpCommentIndex (line);
+        const commentAt = this.coreArgShadowCommentAt (line, '"');
         const code = (commentAt === -1) ? line : line.substring (0, commentAt);
         const tail = (commentAt === -1) ? '' : line.substring (commentAt);
         let out = '';
@@ -5003,7 +4897,7 @@ class NewTranspiler {
                 break;
             }
             out += this.dropStringCasts (code.substring (i, quote), names);
-            const close = this.csharpLiteralEnd (code, quote);
+            const close = this.coreArgShadowSkipLiteral (code, quote);
             out += code.substring (quote, close);
             i = close;
         }
@@ -5149,7 +5043,7 @@ class NewTranspiler {
                                   stringProducer: (name: string) => boolean, fields: Set<string>): string {
         let out = line;
         for (let round = 0; round < 6; round++) {
-            const commentAt = this.csharpCommentIndex (out);
+            const commentAt = this.coreArgShadowCommentAt (out, '"');
             const masked = this.maskCsharpLiterals ((commentAt === -1) ? out : out.substring (0, commentAt));
             const removals: number[][][] = [];
             let from = 0;
@@ -5285,40 +5179,6 @@ class NewTranspiler {
 
     isCsharpMethodSignature (line: string): boolean {
         return /^    (?:public|private|protected|internal)\b.*\)\s*$/.test (line);
-    }
-
-    // index of the `"` closing the literal opened at `open` (both indices exclusive of the
-    // closing quote position; returns line.length when unterminated)
-    csharpLiteralEnd (line: string, open: number): number {
-        let i = open + 1;
-        while (i < line.length) {
-            if (line[i] === '\\') {
-                i += 2;
-                continue;
-            }
-            if (line[i] === '"') {
-                return i + 1;
-            }
-            i++;
-        }
-        return line.length;
-    }
-
-    // index of the `//` that starts a comment outside a string literal, or -1
-    csharpCommentIndex (line: string): number {
-        let i = 0;
-        while (i < line.length) {
-            const ch = line[i];
-            if (ch === '"') {
-                i = this.csharpLiteralEnd (line, i);
-                continue;
-            }
-            if (ch === '/' && line[i + 1] === '/') {
-                return i;
-            }
-            i++;
-        }
-        return -1;
     }
 
     // drop `((string)X)` when X is provably the non-nullable `string` the cast targets: a string literal,
@@ -5744,54 +5604,34 @@ class NewTranspiler {
         if (names.size === 0) {
             return region;
         }
-        const masked = this.maskCsharpLiterals (region);
-        let out = '';
-        let cursor = 0;
-        let match: RegExpExecArray | null;
-        CSHARP_IDENTITY_LIST_CAST.lastIndex = 0;
-        while ((match = CSHARP_IDENTITY_LIST_CAST.exec (region)) !== null) {
-            const at = match.index;
-            if (masked[at] !== region[at]) {
-                continue; // inside a literal or a comment
-            }
-            if ((at > 0) && /[\w.]/.test (region[at - 1])) {
-                continue; // tail of a longer name
-            }
-            if (!names.has (match[1])) {
-                continue;
-            }
-            out += region.substring (cursor, at) + match[1] + match[2];
-            cursor = at + match[0].length;
-        }
-        if (cursor === 0) {
-            return region;
-        }
-        out += region.substring (cursor);
-        return out;
+        // a match that is the tail of a longer name stays
+        return this.csharpReplaceUnmasked (region, CSHARP_IDENTITY_LIST_CAST, (match, at) => (((at > 0) && /[\w.]/.test (region[at - 1])) || !names.has (match[1])) ? undefined : match[1] + match[2]);
     }
 
     // `((IList<object>)(x as ccxt.pro.OrderBook).cache).Add(v)` — `cache` is declared
     // `IList<object>` on the hand-written ws cache (cs/ccxt/ws/OrderBook.cs), so the cast
     // (and the printer's doubly-cast spelling of it) is an identity conversion on the member read.
     csharpOrderbookCacheCasts (content: string): string {
-        const masked = this.maskCsharpLiterals (content);
+        return this.csharpReplaceUnmasked (content, CSHARP_ORDERBOOK_CACHE_CAST, (match) => '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(');
+    }
+
+    // replace each match of the global `re` outside literals and comments by `replace` (undefined keeps it);
+    // `text` itself when nothing was replaced
+    csharpReplaceUnmasked (text: string, re: RegExp, replace: (match: RegExpExecArray, at: number) => string | undefined): string {
+        const masked = this.maskCsharpLiterals (text);
         let out = '';
         let cursor = 0;
         let match: RegExpExecArray | null;
-        CSHARP_ORDERBOOK_CACHE_CAST.lastIndex = 0;
-        while ((match = CSHARP_ORDERBOOK_CACHE_CAST.exec (content)) !== null) {
+        re.lastIndex = 0;
+        while ((match = re.exec (text)) !== null) {
             const at = match.index;
-            if (masked[at] !== content[at]) {
-                continue; // inside a literal or a comment
+            const next = (masked[at] === text[at]) ? replace (match, at) : undefined;
+            if (next !== undefined) {
+                out += text.substring (cursor, at) + next;
+                cursor = at + match[0].length;
             }
-            out += content.substring (cursor, at) + '(' + match[1] + ' as ccxt.pro.OrderBook).cache.Add(';
-            cursor = at + match[0].length;
         }
-        if (cursor === 0) {
-            return content;
-        }
-        out += content.substring (cursor);
-        return out;
+        return (cursor === 0) ? text : out + text.substring (cursor);
     }
 
     // the static C# type of a destructuring holder (`var <name> = <initializer>`) — the return
@@ -5939,35 +5779,17 @@ class NewTranspiler {
             return content;
         }
         const membership = new Set (names);
-        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
-        const sigs: { at: number, name: string }[] = [];
-        let signature;
-        while ((signature = sigRe.exec (content)) !== null) {
-            sigs.push ({ at: signature.index, name: signature[1] });
-        }
-        const enclosingName = (at: number) => {
-            let found = '';
-            for (const sig of sigs) {
-                if (sig.at >= at) {
-                    break;
-                }
-                found = sig.name;
-            }
-            return found;
+        const sigs = [ ...content.matchAll (/^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm) ];
+        // the signature of the method enclosing `at`, and where the next one starts
+        const enclosing = (at: number) => {
+            const next = sigs.findIndex ((sig) => sig.index >= at);
+            const sig = sigs[((next === -1) ? sigs.length : next) - 1];
+            return { name: (sig === undefined) ? '' : sig[1], start: (sig === undefined) ? 0 : sig.index, end: (next === -1) ? content.length : sigs[next].index };
         };
         // does the method enclosing `at` declare `name` with a dict type?  (a local, a parameter,
         // or a value an earlier pass already asserted to the concrete spelling)
         const dictTypedInMethod = (at: number, name: string) => {
-            let start = 0;
-            let end = content.length;
-            for (const sig of sigs) {
-                if (sig.at < at) {
-                    start = sig.at;
-                } else {
-                    end = sig.at;
-                    break;
-                }
-            }
+            const { start, end } = enclosing (at);
             for (const line of content.substring (start, end).split ('\n')) {
                 const trimmed = line.trim ();
                 if (trimmed.startsWith ('//') || trimmed.startsWith ('*')) {
@@ -5979,14 +5801,8 @@ class NewTranspiler {
             }
             return false;
         };
-        const declarations: { index: number, text: string, param: string }[] = [];
-        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
-        let decl;
-        while ((decl = declRe.exec (content)) !== null) {
-            if (membership.has (decl[4])) {
-                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
-            }
-        }
+        const declarations = [ ...content.matchAll (/^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm) ]
+            .filter ((decl) => membership.has (decl[4])).map ((decl) => ({ index: decl.index, text: decl[0], param: decl[5] }));
         const edits: { start: number, end: number, text: string }[] = [];
         for (const declaration of declarations) {
             const name = declaration.text.match (/handle\w+/)![0];
@@ -6030,7 +5846,7 @@ class NewTranspiler {
                 if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
                     continue;
                 }
-                const chain = membership.has (enclosingName (call.index));
+                const chain = membership.has (enclosing (call.index).name);
                 if (iface && (!/^[A-Za-z_]\w*$/.test (arg) || (!chain && !dictTypedInMethod (call.index, arg)))) {
                     clear = false;
                     break;
@@ -6152,13 +5968,10 @@ class NewTranspiler {
         };
         const methodDecl = /^\s*(?:public|protected|private|internal)\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+|sealed\s+)*([\w<>,?\[\]. ]+?)\s+(\w+)\s*\(/;
         const localDecl = /^\s+([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*=\s*[^=]/;
-        const varDecl = /^\s+var\s+(\w+)\s*=\s*[^=]/;
+        const varDecl = /^\s+(var)\s+(\w+)\s*=\s*[^=]/;
         const fieldDecl = /^\s*(?:private|protected|public|internal)\s+(?:static\s+|readonly\s+|new\s+)*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*[;=]/;
         const foreachDecl = /foreach\s*\(\s*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s+in\s/;
         const forDecl = /for\s*\(\s*([\w<>,?\[\].]+)\s+(\w+)\s*=/;
-        const declPrefix = /(?:^|\s)(\([^()]*\)|[A-Za-z_][\w<>?\[\].]*)\s+(\w+)\s*(?:=|;|\)|,)/g;
-        const lambdaArrow = /\(([^()]*)\)\s*=>/g;
-        const lambdaBare = /(?:^|[^\w>.,])(\w+)\s*=>/g;
         const spaceSplit = /\s+/;
         const methodTypes = new Map<string, Set<string>> ();
         const fieldTypes = new Map<string, Set<string>> ();
@@ -6170,15 +5983,14 @@ class NewTranspiler {
             map.set (name, set);
         };
         const safeType = (types: Set<string> | undefined): string | undefined => {
-            if (types === undefined || types.size === 0) {
+            if (types === undefined || Array.from (types).some ((type) => type === 'var' || valueNullable.has (type))) {
                 return undefined;
             }
-            for (const type of types) {
-                if (type === 'var' || valueNullable.has (type)) {
-                    return undefined;
-                }
-            }
             return Array.from (types)[0];
+        };
+        const methodType = (name: string): string | undefined => {
+            const own = methodTypes.get (name);
+            return own !== undefined ? safeType (own) : baseReturnTypes[name];
         };
         const paramTypes = (plist: string): string[][] => this.splitCsharpParams (plist)
             .map ((param: string) => param.split ('=')[0].trim ().split (spaceSplit).filter ((p: string) => p !== ''))
@@ -6212,9 +6024,7 @@ class NewTranspiler {
                         }
                     }
                 }
-                for (let k = i; k <= j && k < lines.length; k++) {
-                    scopes[k] = scope;
-                }
+                scopes.fill (scope, i, j + 1);
             } else if (indent <= 4) {
                 const trimmed = line.trim ();
                 if (trimmed !== '' && '{})]'.indexOf (trimmed[0]) < 0
@@ -6228,32 +6038,21 @@ class NewTranspiler {
             }
             if (scope !== undefined && method === null) {
                 scopes[i] = scope;
-                const local = localDecl.exec (line);
-                if (local !== null) {
-                    addType (scope.locals, local[2], local[1]);
-                }
-                const variable = varDecl.exec (line);
-                if (variable !== null) {
-                    addType (scope.locals, variable[1], 'var');
-                }
-                const each = foreachDecl.exec (line);
-                if (each !== null) {
-                    addType (scope.locals, each[2], each[1]);
-                }
-                const loop = forDecl.exec (line);
-                if (loop !== null) {
-                    addType (scope.locals, loop[2], loop[1]);
+                for (const decl of [ localDecl, varDecl, foreachDecl, forDecl ]) {
+                    const match = decl.exec (line);
+                    if (match !== null) {
+                        addType (scope.locals, match[2], match[1]);
+                    }
                 }
             }
             // comment text ("* @param {string} tag ... payment id") is not code: it must neither
             // declare a type for the audit nor poison a name
             const codeOnly = line.trimStart ();
             const skipLine = codeOnly.startsWith ('*') || codeOnly.startsWith ('//') || codeOnly.startsWith ('/*');
-            declPrefix.lastIndex = 0;
-            let prefix = skipLine ? null : declPrefix.exec (line);
-            while (prefix !== null) {
-                const kind = prefix[1];
-                const name = prefix[2];
+            if (skipLine) {
+                continue;
+            }
+            for (const [ , kind, name ] of line.matchAll (/(?:^|\s)(\([^()]*\)|[A-Za-z_][\w<>?\[\].]*)\s+(\w+)\s*(?:=|;|\)|,)/g)) {
                 if (!keywords.has (name) && !keywords.has (kind)) {
                     if (scalars.has (kind) || /^[A-Z][\w<>,?\[\]]*$/.test (kind)) {
                         if (scope !== undefined && method === null) {
@@ -6264,21 +6063,14 @@ class NewTranspiler {
                         unparsedNames.add (name);
                     }
                 }
-                prefix = declPrefix.exec (line);
             }
-            lambdaArrow.lastIndex = 0;
-            let lambda = skipLine ? null : lambdaArrow.exec (line);
-            while (lambda !== null) {
+            for (const lambda of line.matchAll (/\(([^()]*)\)\s*=>/g)) {
                 for (const parts of paramTypes (lambda[1])) {
                     lambdaNames.add (parts[parts.length - 1]);
                 }
-                lambda = lambdaArrow.exec (line);
             }
-            lambdaBare.lastIndex = 0;
-            lambda = skipLine ? null : lambdaBare.exec (line);
-            while (lambda !== null) {
+            for (const lambda of line.matchAll (/(?:^|[^\w>.,])(\w+)\s*=>/g)) {
                 lambdaNames.add (lambda[1]);
-                lambda = lambdaBare.exec (line);
             }
         }
         // ---- receiver -> static type, or undefined when the file cannot prove it
@@ -6287,19 +6079,12 @@ class NewTranspiler {
                 if (lineScope === undefined) {
                     return undefined;
                 }
-                const types = new Set<string> ();
                 const params = lineScope.params.get (name);
                 const locals = lineScope.locals.get (name);
                 if (params === undefined && locals === undefined) {
                     return undefined;
                 }
-                for (const type of params ?? []) {
-                    types.add (type);
-                }
-                for (const type of locals ?? []) {
-                    types.add (type);
-                }
-                return types;
+                return new Set<string> ([ ...(params ?? []), ...(locals ?? []) ]);
             };
             let text = operand.trim ();
             while (text.startsWith ('(') && this.matchingParen (text, 0) === text.length - 1) {
@@ -6314,17 +6099,12 @@ class NewTranspiler {
             }
             const memberCall = /^(?:this|base)\.(\w+)\s*\(/.exec (text);
             if (memberCall !== null) {
-                const own = methodTypes.get (memberCall[1]);
-                return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[memberCall[1]];
+                return methodType (memberCall[1]);
             }
             const bareCall = /^(\w+)\s*\(/.exec (text);
             if (bareCall !== null) {
                 const name = bareCall[1];
-                if (scopeHas (name) === undefined && !fieldTypes.has (name)) {
-                    const own = methodTypes.get (name);
-                    return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[name];
-                }
-                return undefined;
+                return (scopeHas (name) === undefined && !fieldTypes.has (name)) ? methodType (name) : undefined;
             }
             const identifier = /^([\w.]+)$/.exec (text);
             if (identifier !== null) {
@@ -6341,7 +6121,6 @@ class NewTranspiler {
             return undefined;
         };
         // ---- rewrite
-        const sites: number[] = [];
         const output = lines.map ((line: string, index: number) => {
             const declaration = /^(\s*object\s+[A-Za-z_]\w*\s*=\s*)\(\(object\)/.exec (line);
             if (declaration !== null) {
@@ -6351,10 +6130,7 @@ class NewTranspiler {
                     return declaration[1] + line.substring (open + 9, close) + ';';
                 }
             }
-            sites.length = 0;
-            for (const at of this.objectBoxSites (line)) {
-                sites.push (at);
-            }
+            const sites = this.objectBoxSites (line);
             let out = line;
             for (let k = sites.length - 1; k >= 0; k--) {
                 const at = sites[k];
@@ -6368,10 +6144,9 @@ class NewTranspiler {
                 if (/\(\([\w<>,?\[\]. ]+\)$/.test (before) || !after.startsWith ('.ToString()')) {
                     continue;
                 }
-                if (receiverType (operand, scopes[index]) === undefined) {
-                    continue;
+                if (receiverType (operand, scopes[index]) !== undefined) {
+                    out = before + operand + after;
                 }
-                out = before + operand + after;
             }
             return out;
         });
@@ -6557,35 +6332,11 @@ class NewTranspiler {
     // cut a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any) out of
     // `body`, returning the remaining body and the removed method text (for relocation)
     stripCSharpMethod (body: string, name: string): { body: string, method: string } {
-        const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
-        const m = sigRe.exec (body);
-        if (!m) {
+        const found = findCSharpMethodSpan (body, name);
+        if (!found) {
             return { 'body': body, 'method': '' };
         }
-        let start = m.index; // the '\n' just before the signature line
-        const before = body.substring (0, start);
-        const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
-        if (docMatch) {
-            start = docMatch.index as number;
-        }
-        // brace-match the method body
-        let depth = 0;
-        let end = body.indexOf ('{', m.index + m[0].length - 1);
-        for (; end < body.length; end++) {
-            const c = body[end];
-            if (c === '{') {
-                depth++;
-            } else if (c === '}') {
-                depth--;
-                if (depth === 0) {
-                    end++;
-                    break;
-                }
-            }
-        }
-        const method = body.substring (start, end);
-        const newBody = body.substring (0, start) + body.substring (end);
-        return { 'body': newBody, 'method': method };
+        return { 'body': body.substring (0, found.start) + body.substring (found.end), 'method': found.method };
     }
 
     // retype the generated safeDict/safeList family in Exchange.BaseMethods.cs (see
