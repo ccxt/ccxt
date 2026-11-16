@@ -9657,10 +9657,7 @@ function describeOwnLiteralMethodCall (sourceFile, expression) {
     if (statements.length !== 1 || statements[0].kind !== ts.SyntaxKind.ReturnStatement) {
         return undefined;
     }
-    let node = statements[0].expression;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (statements[0].expression);
     return (node?.kind === ts.SyntaxKind.ObjectLiteralExpression) ? node : undefined;
 }
 
@@ -9672,18 +9669,12 @@ function ownDescribeLiteral (sourceFile) {
     const visit = (node) => {
         if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.text === 'describe') {
             const returned = node.body?.statements?.find ((statement) => statement.kind === ts.SyntaxKind.ReturnStatement);
-            let expression = returned?.expression;
-            while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-                expression = expression.expression;
-            }
+            let expression = stripParens (returned?.expression);
             // `return this.deepExtend (super.describe (), {...})` — the literal is the last argument
             if (expression?.kind === ts.SyntaxKind.CallExpression
                 && expression.expression?.kind === ts.SyntaxKind.PropertyAccessExpression
                 && expression.expression.name?.text === 'deepExtend' && expression.arguments?.length >= 2) {
-                expression = expression.arguments[expression.arguments.length - 1];
-                while (expression?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-                    expression = expression.expression;
-                }
+                expression = stripParens (expression.arguments[expression.arguments.length - 1]);
             }
             if (expression?.kind === ts.SyntaxKind.ObjectLiteralExpression) {
                 literal = expression;
@@ -9723,10 +9714,7 @@ function describeLiteralProperty (literal, key) {
 // the box a describe() literal value prints as, or undefined when the printer does not print
 // it as one of these (a call, an identifier, a spread, ...)
 function describeLiteralKind (value) {
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (value);
     switch (node?.kind) {
     case ts.SyntaxKind.StringLiteral:
     case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
@@ -9735,17 +9723,6 @@ function describeLiteralKind (value) {
         return 'dictionary';
     case ts.SyntaxKind.ArrayLiteralExpression:
         return 'list';
-    case ts.SyntaxKind.TrueKeyword:
-    case ts.SyntaxKind.FalseKeyword:
-        return 'bool';
-    case ts.SyntaxKind.NumericLiteral:
-        return 'number';
-    case ts.SyntaxKind.PrefixUnaryExpression:
-        return node.operand?.kind === ts.SyntaxKind.NumericLiteral ? 'number' : undefined;
-    case ts.SyntaxKind.NullKeyword:
-        return 'null';
-    case ts.SyntaxKind.Identifier:
-        return node.text === 'undefined' ? 'null' : undefined;
     }
     return undefined;
 }
@@ -9942,16 +9919,10 @@ function arraySliceCallIsProvenList (csharp, initializer) {
 const OPTIONS_LITERAL_DEFAULT_CAST_KINDS = {
     // this.handleOption (method, key, <literal>)
     'cancelOrders/method': 'string',
-    'createOrder/method': 'string',
     'createOrder/quoteOrderQty': 'bool',
-    'createOrder/warnOnSTPForInverse': 'bool',
-    'fetchBalance/method': 'string',
     'fetchMarkets/loadAllOptions': 'bool',
-    'fetchMarkets/loadExpiredOptions': 'bool',
-    'fetchMarkets/method': 'string',
     'fetchMarkets/usePrivateInstrumentsInfo': 'bool',
     'fetchOrderBook/precision': 'string',
-    'fetchOrdersByStates/method': 'string',
     'postActionRequest/builderFee': 'bool',
     'setMarginMode/throwMarginModeAlreadySet': 'bool',
     'transfer/fillResponseFromRequest': 'bool',
@@ -9961,28 +9932,7 @@ const OPTIONS_LITERAL_DEFAULT_CAST_KINDS = {
     'watchPosition/fetchPositionSnapshot': 'bool',
     'watchPositions/awaitPositionsSnapshot': 'bool',
     'watchPositions/fetchPositionsSnapshot': 'bool',
-    // this.safeValue (this.options, key, <literal>)
-    'code': 'string',
-    'fetchMarketsMethod': 'string',
-    'fetchTickerMethod': 'string',
 };
-
-// ast-transpiler's printAsExpression casts only `as any` -> `((object)x)`, `as string` ->
-// `((string)x)` and `as any[]` -> `(IList<object>)(x)`; every other asserted type prints the
-// bare operand (ts/src/binance.ts#createOrder's `… as Bool` emits the plain call)
-function optionsLiteralAsPrintsBare (node) {
-    const type = node.type;
-    if (type === undefined) {
-        return false;
-    }
-    if (type.kind === ts.SyntaxKind.AnyKeyword || type.kind === ts.SyntaxKind.StringKeyword) {
-        return false;
-    }
-    if (type.kind === ts.SyntaxKind.ArrayType && type.elementType?.kind === ts.SyntaxKind.AnyKeyword) {
-        return false;
-    }
-    return true;
-}
 
 // the option key path a `this.handleOption (method, key, default)` /
 // `this.safeValue (this.options, key, default)` call reads, or undefined for every other shape
@@ -9990,7 +9940,7 @@ function optionsLiteralAsPrintsBare (node) {
 function optionsLiteralDefaultParts (initializer) {
     let node = initializer;
     while (node?.kind === ts.SyntaxKind.ParenthesizedExpression
-            || (node?.kind === ts.SyntaxKind.AsExpression && optionsLiteralAsPrintsBare (node))) {
+            || (node?.kind === ts.SyntaxKind.AsExpression && asExpressionPrintsBare (node))) {
         node = node.expression;
     }
     if (node?.kind !== ts.SyntaxKind.CallExpression) {
@@ -10071,17 +10021,11 @@ function omitCallReceiver (node) {
     return args[0];
 }
 
-// does the receiver bind one of the dict-receiver overloads of Exchange.Functions.cs?
-// A local this module (or the printer) declares `Dictionary<string, object>` or
-// `IDictionary<string, object>` — both overload families hand back the fresh outDict — an
-// object literal, or a hand-written base call whose signature already returns one of the two
-// (extend/deepExtend, plus the Dictionary / IDictionary entries of the return tables). An
-// `object` receiver stays out: the IList<object> pass-through is reachable for it (table note).
+// does the receiver bind one of the dict-receiver overloads of Exchange.Functions.cs (a declared
+// Dictionary / IDictionary local, an object literal, a base call returning one)? An `object`
+// receiver stays out: the IList<object> pass-through is reachable for it (table note).
 function omitReceiverIsDictionary (csharp, receiver) {
-    let node = receiver;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (receiver);
     if (node === undefined) {
         return false;
     }
@@ -10114,10 +10058,7 @@ function omitReceiverIsDictionary (csharp, receiver) {
 // IDictionary<string, object> receiver is ever the pass-through branch). The call's own C#
 // type is therefore the declaration — no cast.
 function omitDictionaryProducer (csharp, node, context) {
-    let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        initializer = initializer.expression;
-    }
+    const initializer = stripParens (node);
     const receiver = omitCallReceiver (initializer);
     return (receiver !== undefined) && omitReceiverIsDictionary (csharp, receiver);
 }
@@ -10128,18 +10069,12 @@ function omitDictionaryProducer (csharp, node, context) {
 // fresh outDict back for a Dictionary receiver (same proof as omitDictionaryProducer), so this
 // write contributes that same type.
 function selfOmitWriteType (csharp, context, declaration, value) {
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (value);
     const receiver = omitCallReceiver (node);
     if (receiver === undefined) {
         return undefined;
     }
-    let read = receiver;
-    while (read?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        read = read.expression;
-    }
+    const read = stripParens (receiver);
     return isSelfRead (csharp, read, declaration) ? 'Dictionary<string, object>' : undefined;
 }
 
@@ -10156,10 +10091,7 @@ function selfTernaryWriteType (csharp, context, declaration, value) {
     if (declaration?.kind !== ts.SyntaxKind.VariableDeclaration) {
         return undefined; // a parameter's C# signature is retyped after printing (typeCoreArgs)
     }
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (value);
     if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
         return undefined;
     }
@@ -10171,42 +10103,6 @@ function selfTernaryWriteType (csharp, context, declaration, value) {
     return conditionalArmType (csharp, selfTrue ? node.whenFalse : node.whenTrue, context);
 }
 
-// `c ? parseInt (v) : null` / `null : parseInt (v)`: the arms' own C# types are `object` (the
-// hand-written `public static object parseInt (object a)` in Exchange.TranspileHelpers.cs) and
-// null, so the conditional has no nameable C# type — but its BOX is exact on every path, so the
-// declaration names `Int64?` behind one boundary cast on the whole expression
-// (`((Int64?)(...))`), the same shape the other cast-carrying producers emit. Exact because
-// parseInt has a single value path: `parsedValue = (Convert.ToInt64 (Math.Floor
-// (Convert.ToDouble (a))))` — an Int64 box — inside a try, and null when the conversion throws;
-// no Int32 / double / string return path exists (read off the hand-written body, not the TS
-// annotation). EVERY arm must be null-ish or a parseInt call: any other arm can hold an
-// arbitrary box, and naming it would make the cast the deliverable's own risk.
-function parseIntTernaryCastType (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
-    if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
-        return undefined;
-    }
-    let sawParseInt = false;
-    for (const raw of [ node.whenTrue, node.whenFalse ]) {
-        let arm = raw;
-        while (arm?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-            arm = arm.expression;
-        }
-        if (arm?.kind === ts.SyntaxKind.NullKeyword || (arm?.kind === ts.SyntaxKind.Identifier && arm.text === 'undefined')) {
-            continue;
-        }
-        if (arm?.kind === ts.SyntaxKind.CallExpression && arm.expression?.kind === ts.SyntaxKind.Identifier && arm.expression.text === 'parseInt') {
-            sawParseInt = true;
-            continue;
-        }
-        return undefined;
-    }
-    return sawParseInt ? 'Int64?' : undefined;
-}
-
 // the safeDict*/safeList* typed-local family (their CSHARP_LOCAL_THIS_RETURN_TYPES entries): the
 // six names whose generated C# return is the collection interface. Kept as its own table so the
 // self-ternary write proof below is scoped to this family and moves no other family's verdict.
@@ -10214,10 +10110,7 @@ const CSHARP_SAFE_COLLECTION_METHODS_TYPED = new Set ([ 'safeDict', 'safeDict2',
 
 // `object x = this.safeDict*/safeList* (…)` — the family's declaration shape.
 function safeCollectionFamilyLocal (initializer) {
-    let node = initializer;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (initializer);
     if (node?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -10232,10 +10125,7 @@ function safeCollectionFamilyLocal (initializer) {
 // from the arms, so the self arm's candidate type IS the write's type whenever the other arm
 // converts to it (assignable()'s one-way edges: a `{}` literal, a declared Dictionary local, ...).
 function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
-    let node = value;
-    while (node?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        node = node.expression;
-    }
+    const node = stripParens (value);
     if (node?.kind !== ts.SyntaxKind.ConditionalExpression) {
         return undefined;
     }
@@ -10259,10 +10149,7 @@ function selfTernaryCollectionWriteType (csharp, context, declaration, value) {
 // producer with no proven C# type (fromEp / fromEv / safeValue2 / ...) keeps the call
 // unprovable exactly as before.
 function omitZeroStringProducer (csharp, node, context) {
-    let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        initializer = initializer.expression;
-    }
+    const initializer = stripParens (node);
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -10279,32 +10166,6 @@ function omitZeroStringProducer (csharp, node, context) {
     }
     const argumentType = csharpTypeOfValue (csharp, argument, context);
     return argumentType === 'string' || argumentType === 'string?';
-}
-
-// `this.safeIntegerProduct2 (obj, key1, key2, multiplier)` — hand-written in
-// cs/ccxt/base/Exchange.SafeMethods.cs and declared `object`:
-//     var result = safeValueN (obj, new List<object> { key1, key2 }, defaultValue);
-//     object parsedValue = null;
-//     try { parsedValue = Convert.ToInt64 ((Convert.ToDouble (result) * Convert.ToDouble (multiplier))); } catch { }
-//     return parsedValue == null ? defaultValue : parsedValue;
-// With no default passed, `defaultValue` stays null, so every return path is the caller's
-// null or the Convert.ToInt64 box — an Int64 or null, never anything else. Only the
-// 4-argument form (the default left out) is provable: a 5-argument call can hand an
-// arbitrary object back and keeps `object`.
-const SAFE_INTEGER_PRODUCT2_TYPE = 'Int64?';
-
-function safeIntegerProduct2CallCastType (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
-        return undefined;
-    }
-    const callee = initializer.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
-        return undefined;
-    }
-    if (callee.name?.text !== 'safeIntegerProduct2') {
-        return undefined;
-    }
-    return (initializer.arguments?.length === 4) ? SAFE_INTEGER_PRODUCT2_TYPE : undefined;
 }
 
 // `this.safeString (obj, key, <default>)` and its family (safeString2/N, safeStringLower*,
@@ -10418,7 +10279,7 @@ function guardedStringReturnGuards (declaration) {
 // the C# types whose spelling is a non-null reference: a value of one can never be the
 // undefined/null a guard tests for
 const NON_NULL_REFERENCE_ARGUMENT_TYPES = [
-    'string', 'Dictionary<string, object>', 'IDictionary<string, object>', 'List<object>', 'IList<object>',
+    'Dictionary<string, object>', 'IDictionary<string, object>',
 ];
 
 // a value this module proves is never null: a call whose own printed return type has no `?`, a
@@ -10581,9 +10442,6 @@ function nonNullLiteralLocalReturns (declaration) {
         }
         return writes.filter ((w) => w.left.kind === ts.SyntaxKind.Identifier && w.left.text === name).every ((w) => {
             const v = stripParens (w.right);
-            if (isStringLiteral (v)) {
-                return true;
-            }
             const guard = ts.findAncestor (w, (a) => a.kind === ts.SyntaxKind.IfStatement && ts.findAncestor (w, (c) => c === a.thenStatement) !== undefined);
             const parts = [];
             const flat = (c) => { c = stripParens (c); (c.kind === ts.SyntaxKind.BinaryExpression && c.operatorToken.kind === ts.SyntaxKind.BarBarToken) ? (flat (c.left), flat (c.right)) : parts.push (c); };
@@ -10599,10 +10457,7 @@ function nonNullLiteralLocalReturns (declaration) {
 }
 
 function nonNullStringDefaultCall (csharp, node, context) {
-    let initializer = node;
-    while (initializer?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        initializer = initializer.expression;
-    }
+    const initializer = stripParens (node);
     if (initializer?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -10648,58 +10503,13 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
 }
 
-// ===== the `as any` receiver copies of the safeList* producers =====
-//
-// `const rows = this.safeList (response, 'data') as any` is the only TS shape whose C#
-// declaration names no type: the assertion is compile-time-only, the printer wraps the
-// operand in its `((object)…)` box (printAsExpression) and dropRedundantObjectBoxCasts
-// strips that identity box back for an `object n = …` target, so the local's runtime box is
-// exactly safeList*'s own return — List<object>, or the caller's default (null for the
-// two-argument form). Naming the box moves no value, and the identity box goes with the
-// retype (stripObjectBox below).
-//
-// safeList* `as any` receiver copies: accepted only when no later write can store another box
-// (btse fetchPositions: the response is the implicit API's List<object>); other `as any` keeps `object`.
-// toArray (hand-written `IList<object> toArray (object)`, list or null) joins the family
-const SAFE_LIST_PRODUCER_CALLS = [ 'safeList', 'safeList2', 'safeListN', 'toArray' ];
-
-function asAnySafeListReceiverCopy (initializer) {
-    if (initializer?.kind !== ts.SyntaxKind.AsExpression || initializer.type?.kind !== ts.SyntaxKind.AnyKeyword) {
-        return undefined;
-    }
-    const inner = initializer.expression;
-    if (inner?.kind !== ts.SyntaxKind.CallExpression) {
-        return undefined;
-    }
-    const callee = inner.expression;
-    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
-        return undefined;
-    }
-    const name = callee.name?.text;
-    if ((typeof name !== 'string') || !SAFE_LIST_PRODUCER_CALLS.includes (name)) {
-        return undefined;
-    }
-    // own-key lookup only: `map['toString']` would hand back Object.prototype.toString
-    return Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name) ? CSHARP_LOCAL_THIS_RETURN_TYPES[name] : undefined;
-}
-
 function csharpLocalTypeOf (csharp, declaration, context) {
     const sourceName = declaration.name.text;
     const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
     const ctx = context ?? { scope, stack: new Set (), depth: 0 };
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer, ctx);
     let cast;
-    let castWhole;
     let joinedFallback;
-    // `object rows = this.safeList (response, 'data') as any;`: the receiver copy of a proven list
-    // producer (asAnySafeListReceiverCopy). The named type replaces the printer's `((object)…)` box
-    // (stripObjectBox); csharpLocalIsSafeToRetype still checks every later write.
-    const asAnyReceiverCopy = asAnySafeListReceiverCopy (declaration.initializer);
-    let stripObjectBox;
-    if (csharpType === undefined && asAnyReceiverCopy !== undefined) {
-        csharpType = asAnyReceiverCopy;
-        stripObjectBox = true;
-    }
     // `this.safeValue (recv, 'key')` with a same-file dict / list twin: the box the file
     // itself proves (see the family comment); the use-shape veto runs after the retype scan
     let safeValueTwin = (csharpType === undefined) ? safeValueTwinCastType (declaration.initializer) : undefined;
@@ -10804,11 +10614,6 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // Exchange.BaseMethods.cs#safeBool* prints
             csharpType = 'bool?';
             cast = 'bool?';
-        } else if (marketRowDictReadType (csharp, declaration.initializer) === 'dict') {
-            // `const precision = market['precision']`: the row's value at the dict keys is the
-            // `new Dictionary<string, object>()` its only writers print, so the interface cast names that box
-            csharpType = 'IDictionary<string, object>';
-            cast = 'IDictionary<string, object>';
         } else if (typedDictStringReadType (csharp, declaration.initializer) === 'string') {
             // `const r = signature['r']`: a proven dictionary receiver (the printer binds the
             // static twin GetValue) whose key the TS checker resolves to a string — the value is
@@ -10839,22 +10644,12 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // `const apiKey = this.apiKey`: the hand-written property is a `string`, so the box
             // is that string or null (no cast: the property's own C# type IS `string`)
             csharpType = 'string?';
-        } else if (elementAccessStringReadType (csharp, declaration.initializer) === 'string') {
-            // `const symbol = parsed['symbol']`: the receiver is a declared Dictionary and the
-            // checker proves the element a string at a proven key — same `(string)` cast
-            csharpType = 'string?';
-            cast = 'string';
         } else if (stringPadCallType (csharp, declaration.initializer) !== undefined) {
             // no cast: the printed PadLeft/PadRight call is already statically `string`
             csharpType = 'string';
         } else if (urlsDescribeStringProducer (declaration.initializer)) {
             // `const x = this.urls['api']['ws']`: the describe() literal spells that leaf as a
             // string, so the getValue chain's box is a string or null — same cast as above
-            csharpType = 'string?';
-            cast = 'string';
-        } else if (optionsLiteralStringProducer (declaration.initializer)) {
-            // `const x = this.options['chainName']`: every writer of the key
-            // (OPTIONS_LITERAL_STRING_KEYS above) stores a string box
             csharpType = 'string?';
             cast = 'string';
         } else if (dictRowElementReadType (csharp, declaration) !== undefined) {
@@ -10936,22 +10731,6 @@ function csharpLocalTypeOf (csharp, declaration, context) {
             // declaration names the box behind the exact cast.
             csharpType = filterByArrayBox;
             cast = filterByArrayBox;
-        } else if (safeIntegerProduct2CallCastType (declaration.initializer) !== undefined) {
-            // `const x = this.safeIntegerProduct2 (obj, k1, k2, multiplier)`: the hand-written
-            // helper (Exchange.SafeMethods.cs) hands back the caller's `defaultValue` — an
-            // arbitrary object — only when a default is passed; a 4-argument call leaves it at
-            // its null default, so every path is null or the Convert.ToInt64 (...) box and the
-            // `(Int64?)` cast names exactly that box (see safeIntegerProduct2CallCastType)
-            csharpType = 'Int64?';
-            cast = 'Int64?';
-        } else if (parseIntTernaryCastType (declaration.initializer) !== undefined) {
-            // `const x = c ? parseInt (v) : undefined`: the conditional's box is the parseInt box
-            // (Int64 or null, see parseIntTernaryCastType), so the declaration names it behind the
-            // boundary cast on the whole expression — a cast binds its own operand first, so the
-            // printed `((cond)) ? A : B` needs the extra paren pair (castWhole)
-            csharpType = 'Int64?';
-            cast = 'Int64?';
-            castWhole = true;
         } else {
             // `const x = this.safeValue (cache.hashmap, key[, {}])`: the read of an
             // ArrayCache bucket map, exact per arrayCacheHashmapReadType
@@ -11145,7 +10924,7 @@ function csharpLocalTypeOf (csharp, declaration, context) {
     if (!safe) {
         return undefined;
     }
-    return { type: csharpType, cast, castWhole, safeValueTwinShape, stripObjectBox };
+    return { type: csharpType, cast, safeValueTwinShape };
 }
 
 // the declared type only (kept for callers that do not rewrite the value)
@@ -11276,14 +11055,8 @@ function isLiteralInit (declaration) {
     return false;
 }
 
-// helpers whose element 0 IS the SafeString / SafeString2 result on every path
-// (Exchange.BaseMethods.cs: handleParamString / handleParamString2 both declare a `string?`
-// local in slot 0 and return it): the defaultValue argument's own box can never reach the
-// slot as a non-string, so the literal-init shard needs no defaultValue gate for them.
-const SAFE_STRING_ELEMENT0_HELPERS = [ 'handleParamString', 'handleParamString2', 'handleOptionStringAndParams', 'handleOptionStringAndParams2' ];
-
 // element 0 of an audited string helper proves the target a string (or null). The
-// null-initialised shard is the audited list above, gated per call site on the defaultValue
+// null-initialised shard is gated per call site on the defaultValue
 // argument (handleMarketTypeAndParams can hand that argument back UNCHANGED, so its box must
 // be provable); the literal-initialised shard is limited to the SafeString-bodied helpers.
 function destructuredStringElementProof (csharp, declaration, idNode, assignment, name, context) {
@@ -11430,8 +11203,7 @@ export const DESTRUCTURED_ELEMENT0_TYPES = {
 //
 // The locals this shard owns (name fence: sibling families never fire on the same declaration).
 export const BOOL_OPTION_LOCALS = [
-    'isPortfolioMargin', 'uta', 'paginate', 'returnRateLimits', 'usePrivate',
-    'isUnifiedAccount', 'isTrigger', 'createMarketBuyOrderRequiresPrice',
+    'uta', 'paginate', 'isTrigger', 'createMarketBuyOrderRequiresPrice',
 ];
 
 // [value, params] helpers whose element 0 is a BOOLEAN option (params / this.options / default arg), and the
@@ -11532,9 +11304,6 @@ function literalInitElement0Type (csharp, declaration, idNode, assignment, name,
     const elementType = DESTRUCTURED_ELEMENT0_TYPES[name];
     if (elementType !== undefined) {
         return elementType;
-    }
-    if (SAFE_STRING_ELEMENT0_HELPERS.includes (name)) {
-        return 'string?';
     }
     // the rest of the audited string helpers prove element 0 the same way on a literal-init
     // target (its initialiser is the string box the helper would hand back); the join keeps
@@ -11886,7 +11655,7 @@ function installDestructuredCasts (csharp) {
 // null-init string/numeric locals keyed on the declaration NAME, plus the write shapes the join cannot name
 // (`symbol = market['symbol']`, `typeof x === 'string'` copies) and the no-initialiser scalar annotations.
 const NULL_INIT_STRING_LOCAL_NAMES = new Set ([ 'symbol', 'url', 'channel', 'channelName', 'id', 'tag', 'settle', 'settleId', 'timeInForce' ]);
-const NULL_INIT_NUMERIC_LOCAL_NAMES = new Set ([ 'until', 'timestamp', 'since', 'limit' ]);
+const NULL_INIT_NUMERIC_LOCAL_NAMES = new Set ([ 'until', 'timestamp' ]);
 
 // the name-keyed string/numeric family of a declaration, or undefined (`marketType`, `currency`, `base`,
 // `quote`, `bs` belong to other families, so the name lists keep them apart)
@@ -12144,7 +11913,7 @@ function installProvenStringCastDrops (csharp) {
 
 // the numeric/bool spellings a null-initialised declaration can fall back to when its
 // annotation's own type is unreachable for the actual writes (see csharpLocalTypeOf)
-const NUMERIC_BOOL_LOCAL_TYPES = [ 'int?', 'Int64?', 'double?', 'bool?' ];
+const NUMERIC_BOOL_LOCAL_TYPES = [ 'int?', 'Int64?', 'double?' ];
 
 // ---------------------------------------------------------------------------
 // The safeString*/safeInteger*/safeTimestamp*/safeNumber* declarations (the helper call IS the
@@ -12372,13 +12141,6 @@ function typeFromValueOrWrites (csharp, scope, declaration, varName, initial, co
             // `x = cond ? 'lit' : x` over a safeString* local: the value reads x, so it has
             // no type until this declaration decides one (see selfTernaryStringWriteType).
             written = selfTernaryStringWriteType (csharp, context, declaration, parent.right);
-        }
-        if (written === undefined && safeCollectionFamilyLocal (declaration.initializer) && !sawNull) {
-            // `x = (x === undefined) ? <default> : x` (the safeDict*/safeList* family): the
-            // self arm is the running type, so the write contributes it exactly when the
-            // default arm converts to it (see selfTernaryCollectionWriteType).
-            const defaultArm = selfTernaryCollectionWriteType (csharp, context, declaration, parent.right);
-            written = (type !== undefined && assignable (type, defaultArm)) ? type : undefined;
         }
         if (written === undefined) {
             return undefined;
@@ -12692,8 +12454,7 @@ function retypeDestructuredElement0 (csharp, scope, declaration, printed) {
 const CSHARP_ELEMENT_1_PARAMS = new Set ([
     'handleOptionAndParams', 'handleOptionAndParams2', 'handleMarketTypeAndParams',
     'handleSubTypeAndParams', 'handleMarginModeAndParams', 'handleUntilOption',
-    'handleWithdrawTagAndParams', 'handleMaxEntriesPerRequestAndParams',
-    'handleTriggerAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
+    'handleMaxEntriesPerRequestAndParams', 'handleTriggerDirectionAndParams', 'handlePostOnly',
     'handleParamString', 'handleParamString2', 'handleParamInteger', 'handleParamInteger2',
     'handleParamBool', 'handleParamBool2', 'handleNetworkCodeAndParams',
     // typed option readers: element 1 is handleOptionAndParams/2's element 1 unchanged
@@ -13216,10 +12977,7 @@ function retypeDestructuringTemp (csharp, scope, printed) {
 // operand prover) + exchangeIdRead for the generated tests' `<exchangeVar>.id`; a nested `+` is
 // decided by its leftmost operand, so the spine is walked.
 function concatLeftOperandIsString (csharp, node) {
-    let current = node;
-    while (current?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        current = current.expression;
-    }
+    const current = stripParens (node);
     if (current === undefined) {
         return false;
     }
@@ -13324,45 +13082,6 @@ function installRedundantAddCasts (csharp) {
     csharp._redundantAddCastsPatched = true;
 }
 
-// ===== the printer's list-cast skip (`x.push (v)`) =====
-//
-// `x.push (v)` prints `((IList<object>)x).Add(v)`: the cast is how the printer reaches
-// ICollection<object>.Add on a receiver it printed as `object`. When this module retypes
-// that declaration to List<object> / IList<object> (installCsharpLocalTypes), the cast is
-// an identity conversion on the receiver and the printer must print `x.Add(v)`. The
-// printer cannot see the post-print retype, so it asks this hook for the type the PRINTED
-// declaration of a local read carries (csharpTranspiler.csharpLocalTypeOf, consumed by
-// csharpReceiverIsDeclaredList). An `object` receiver — a parameter, a member read, a
-// composite expression, or a local this module leaves `object` — answers nothing and keeps
-// the cast exactly as before.
-//
-// Only the shape the retype really rewrites answers, or the printer would drop a cast the
-// declaration still needs:
-//   - localIdentifierType's proof: exactly one binding of the name in the enclosing
-//     function, a plain variable declaration, one declarator, read after it;
-//   - the printer's own print of that declaration must be the `<VAR_TOKEN> x = ` head — a
-//     `var x = ` (`new` initializer) or a type the printer named itself is printed as-is
-//     and never rewritten;
-//   - an awaited initializer is skipped by the retype (awaitedCallIsPrintedAsProven needs
-//     the printed value), so it keeps the cast.
-function listLocalReadType (csharp, node) {
-    const type = localIdentifierType (csharp, node);
-    if ((type !== 'List<object>') && (type !== 'IList<object>')) {
-        return undefined;
-    }
-    const reference = resolveReference (csharp, node);
-    if (reference?.kind !== ts.SyntaxKind.VariableDeclaration) {
-        return undefined;
-    }
-    if (typeof csharp.getCSharpLocalType !== 'function' || csharp.getCSharpLocalType (reference) !== csharp.VAR_TOKEN) {
-        return undefined;
-    }
-    if (reference.initializer?.kind === ts.SyntaxKind.AwaitExpression) {
-        return undefined;
-    }
-    return type;
-}
-
 // Several installers answer csharpLocalTypeOf for disjoint local families; chain them so each
 // keeps the earlier answers instead of replacing the hook (first non-undefined answer wins).
 function chainCsharpLocalTypeOf (csharp, answer) {
@@ -13383,34 +13102,17 @@ function installCsharpListCastSkips (csharp) {
     if (csharp._listCastSkipsPatched) {
         return;
     }
-    chainCsharpLocalTypeOf (csharp, (node) => listLocalReadType (csharp, node));
+    // the same printed-list-type proof as the element-access skip below (a `x.push (v)` receiver)
+    chainCsharpLocalTypeOf (csharp, (node) => elementAccessListReceiverType (csharp, node));
     csharp._listCastSkipsPatched = true;
 }
 
 // ===== the printer's element-access cast skip (`((List<object>)x)[i] = v`) =====
 //
-// `x[i] = v` on a list prints `((List<object>)x)[Convert.ToInt32(i)] = v`: the cast is how
-// the printer reaches the indexer of a receiver it printed as `object`. When this module
-// retypes that declaration to List<object> (installCsharpLocalTypes), the cast is an
-// identity conversion on the receiver, and the ast printer prints `x[Convert.ToInt32(i)] = v`
-// instead. The printer cannot see the post-print retype, so it asks this hook what the
-// PRINTED declaration of a local read carries (ast src/csharpTranspiler.ts
-// #csharpElementAccessReceiverIsList). An `object` receiver — a parameter, a member read, a
-// call result, or a local this module leaves `object` — answers nothing and keeps the cast
-// exactly as before.
-//
-// Only the shapes the retype really rewrites answer, or the printer would drop a cast the
-// declaration still needs:
-//   - localIdentifierType's proof: exactly one binding of the name in the enclosing
-//     function, a plain variable declaration, one declarator, read after it;
-//   - the printer's own print of that declaration must be the `<VAR_TOKEN> x = ` head — a
-//     `var x = ` (`new` initializer) or a type the printer named itself is printed as-is
-//     and never rewritten;
-//   - an awaited initializer is skipped by the retype (awaitedCallIsPrintedAsProven needs
-//     the printed value), so it keeps the cast.
-// The answer is the PRINTED type: List<object> or IList<object>. The element-access rule
-// consumes only the concrete List<object> — the cast it removes is `(List<object>)`, an
-// identity on that spelling and a runtime-checked downcast on an IList<object> receiver.
+// the PRINTED list type (List<object> / IList<object>) of a local read whose `<VAR_TOKEN> x = `
+// declaration this module retypes (one binding, plain declarator, not awaited), so the printer
+// (csharpElementAccessReceiverIsList) can drop the identity `((List<object>)x)` cast; every other
+// receiver answers nothing and keeps the cast.
 function elementAccessListReceiverType (csharp, node) {
     const type = localIdentifierType (csharp, node);
     if ((type !== 'List<object>') && (type !== 'IList<object>')) {
@@ -13477,10 +13179,7 @@ function boundedKeysElementInitializer (csharp, node) {
     if (bindings !== 1 || declaration.kind !== ts.SyntaxKind.VariableDeclaration || declaration.getStart () > node.getStart ()) {
         return false;
     }
-    let init = declaration.initializer;
-    while (init?.kind === ts.SyntaxKind.ParenthesizedExpression) {
-        init = init.expression;
-    }
+    const init = stripParens (declaration.initializer);
     if (init?.kind !== ts.SyntaxKind.CallExpression || init.expression?.kind !== ts.SyntaxKind.PropertyAccessExpression) {
         return false;
     }
