@@ -469,7 +469,7 @@ class BaseExchange(object):
         :param str encoding: File encoding (default: 'utf-8')
         :returns bool: True if successful, False otherwise
         """
-        self._ensure_whitelisted_file(path)
+        self._ensure_whitelisted_file(path, True)
         try:
             with open(path, 'w', encoding=encoding) as file:
                 file.write(data)
@@ -489,16 +489,24 @@ class BaseExchange(object):
         except Exception:
             return False
 
+    def init_file_system(self):
+        # file io is synchronous in python, nothing to load before the first read_file call
+        return None
+
     def get_temp_dir(self):
         tmp = os.path.realpath(tempfile.gettempdir())
         return tmp if tmp.endswith(os.sep) else tmp + os.sep
 
-    def _ensure_whitelisted_file(self, file_path: str):
+    def _ensure_whitelisted_file(self, file_path: str, is_write: bool = False):
+        # .ccxtfile (cache files) can be read and written, but only inside the temp dir
+        # .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
         sanitized = os.path.realpath(file_path)
-        allowed_extensions = ['.ccxtfile', '.pem']
-        if any(sanitized.endswith(ext) for ext in allowed_extensions):
+        if sanitized.endswith('.ccxtfile'):
+            if sanitized.startswith(self.get_temp_dir()):
+                return
+        elif sanitized.endswith('.pem') and not is_write:
             return
-        raise ValueError(f'invalid file path: {file_path}, allowed extensions are: {", ".join(allowed_extensions)}')
+        raise ValueError(f'invalid file path: {file_path}, allowed are .ccxtfile (inside the temp dir) and read-only .pem')
 
     def add_fetch_cache(self, data):
         if self.fetchHistoryCacheSize <= 0:

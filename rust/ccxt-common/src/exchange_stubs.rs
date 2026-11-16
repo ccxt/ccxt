@@ -2915,15 +2915,19 @@ impl Exchange {
         let hash = crate::exchange::hash_raw(pubkey, "keccak");
         Value::Str(format!("0x{}", hex::encode(&hash[12..32])).into())
     }
-    /// Ensures the file path is a ccxt file inside the temp dir, so users would be safeguarded
+    /// Ensures the file path is permitted, so users would be safeguarded:
+    /// .ccxtfile (cache files) can be read and written, but only inside the temp dir
+    /// .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
     pub fn ensure_whitelisted_file(&self, p: &Value) {
+        self.ensure_whitelisted_file_for(p, false);
+    }
+    fn ensure_whitelisted_file_for(&self, p: &Value, is_write: bool) {
         let raw = match p {
             Value::Str(s) => s.to_string(),
             other => stringify_param(other).into(),
         };
-        let allowed_extensions: [&str; 2] = [".ccxtfile", ".pem"];
         let path = std::path::Path::new(&raw);
-        let sanitized = if path.is_absolute() {
+        let absolute = if path.is_absolute() {
             path.to_path_buf()
         } else {
             match std::env::current_dir() {
@@ -2931,11 +2935,26 @@ impl Exchange {
                 Err(_) => panic!("invalid file path: {}", raw),
             }
         };
+        // resolve "." and ".." lexically, Path::starts_with alone lets /tmp/../etc through
+        let mut sanitized = std::path::PathBuf::new();
+        for component in absolute.components() {
+            match component {
+                std::path::Component::ParentDir => {
+                    sanitized.pop();
+                }
+                std::path::Component::CurDir => {}
+                other => sanitized.push(other.as_os_str()),
+            }
+        }
         let sanitized_str = sanitized.to_string_lossy();
-        if allowed_extensions.iter().any(|ext| sanitized_str.ends_with(ext)) {
+        if sanitized_str.ends_with(".ccxtfile") {
+            if sanitized.starts_with(std::env::temp_dir()) {
+                return;
+            }
+        } else if sanitized_str.ends_with(".pem") && !is_write {
             return;
         }
-        panic!("invalid file path: {}, allowed extensions are: {}", raw, allowed_extensions.join(", "));
+        panic!("invalid file path: {}, allowed are .ccxtfile (inside the temp dir) and read-only .pem", raw);
     }
     pub fn exists_file(&self, p: Value) -> Value {
         self.ensure_whitelisted_file(&p);
@@ -2955,7 +2974,7 @@ impl Exchange {
         }
     }
     pub fn write_file(&self, p: Value, content: Value) -> Value {
-        self.ensure_whitelisted_file(&p);
+        self.ensure_whitelisted_file_for(&p, true);
         let path = match &p {
             Value::Str(s) => s.to_string(),
             _ => return Value::Bool(false),
@@ -3045,7 +3064,16 @@ impl Exchange {
         let v = match n {
             Value::Int(n) => n as u64,
             Value::Float(f) => f as u64,
-            Value::Str(s) => s.parse::<u64>().unwrap_or(0),
+            Value::Str(s) => match s.parse::<u64>() {
+                Ok(parsed) => parsed,
+                Err(_) => {
+                    // decimal string of a big integer, e.g. the result of mod_pow
+                    return match num_bigint::BigUint::parse_bytes(s.as_bytes(), 10) {
+                        Some(big) => Value::Str(big.to_str_radix(16).into()),
+                        None => Value::Str("0".into()),
+                    };
+                }
+            },
             _ => 0,
         };
         Value::Str(format!("{:x}", v).into())

@@ -66,19 +66,30 @@ export function getTempDir(): string | undefined {
 }
 
 /**
- * Check if file path is ccxt-cache file, so users are ensured there is no access possible to other files
- * @param path File path to check
+ * Check if the file path is permitted, so users are ensured there is no access possible to other files:
+ * - .ccxtfile (ccxt cache files) can be read and written, but only inside the system temporary directory
+ * - .wasm and .pem (user-supplied libraries and keys, e.g. the ibkr oauth keys) can be read from any location, but never written
+ * @param filePath File path to check
+ * @param isWrite true when the file is about to be written
+ * @returns the resolved (absolute, without ".." segments) file path
  */
-function ensureWhitelistedFile(filePath: string) {
+function ensureWhitelistedFile (filePath: string, isWrite = false) {
     if (pathSyncModule === null) {
         throw new Error ('path module is not available');
     }
     const resolvedInputFilePath = pathSyncModule.resolve (filePath);
-    const allowedExtensions = [ '.ccxtfile', '.wasm', '.pem' ]; // ibkr needs PEM file
-    if (!allowedExtensions.some (ext => resolvedInputFilePath.endsWith (ext))) {
-        throw new Error ('File path is not permitted: ' + filePath + ', allowed extensions are: ' + allowedExtensions.join (', '));
+    const readOnlyExtensions = [ '.wasm', '.pem' ];
+    if (resolvedInputFilePath.endsWith ('.ccxtfile')) {
+        const tempDir = getTempDir ();
+        if ((tempDir !== undefined) && resolvedInputFilePath.startsWith (tempDir)) {
+            return resolvedInputFilePath;
+        }
+        throw new Error ('File path is not permitted: ' + filePath + ', .ccxtfile files are only allowed inside the temporary directory');
     }
-    return resolvedInputFilePath;
+    if (!isWrite && readOnlyExtensions.some ((ext) => resolvedInputFilePath.endsWith (ext))) {
+        return resolvedInputFilePath;
+    }
+    throw new Error ('File path is not permitted: ' + filePath + ', allowed are .ccxtfile (inside the temporary directory) and read-only ' + readOnlyExtensions.join (', '));
 }
 
 /*  ------------------------------------------------------------------------ */
@@ -118,7 +129,7 @@ export function writeFile (path: string, data: string, encoding: BufferEncoding 
     if (!isNode || fsSyncModule === null) {
         return false;
     }
-    const normalizedPath = ensureWhitelistedFile (path);
+    const normalizedPath = ensureWhitelistedFile (path, true);
     try {
         fsSyncModule.writeFileSync (normalizedPath, data, encoding);
         return true;
