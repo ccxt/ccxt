@@ -4098,12 +4098,12 @@ impl Blofin {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: Vec<Value> = Vec::new();
-        let mut method: Value = self.handle_option(Value::Str("cancelOrders".into()), Value::Str("method".into()), &[Value::Str("privatePostTradeCancelBatchOrders".into())]);
+        let mut method: Option<String> = self.handle_option(Value::Str("cancelOrders".into()), Value::Str("method".into()), &[Value::Str("privatePostTradeCancelBatchOrders".into())]).as_str().map(str::to_owned);
         let mut clientOrderIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "clientOrderId", &[]));
         let mut tpslIds: Value = self.parse_ids(self.safe_value_k(params.clone(), "tpslId", &[]));
         let mut trigger: Option<bool> = self.safe_bool_n(params.clone(), Value::from(vec![Value::Str("stop".into()), Value::Str("trigger".into()), Value::Str("tpsl".into())]), &[]).as_bool();
         if (trigger == Some(true)) {
-            method = Value::Str("privatePostTradeCancelTpsl".into());
+            method = Some("privatePostTradeCancelTpsl".to_string());
         }
         if (clientOrderIds == Value::Null) {
             let mut orderIds: Value = self.parse_ids(ids);
@@ -4157,7 +4157,7 @@ impl Blofin {
             }
         }
         let mut response: Option<crate::value::Dict> = None;
-        if (method.as_str() == Some("privatePostTradeCancelTpsl")) {
+        if (method.as_deref() == Some("privatePostTradeCancelTpsl")) {
             response = self.private_post_trade_cancel_tpsl(&[Value::from(request.clone())]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
         }  else {
             response = self.private_post_trade_cancel_batch_orders(&[Value::from(request)]).await.into_opt_dict(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT

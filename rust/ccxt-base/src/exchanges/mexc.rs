@@ -6679,12 +6679,12 @@ impl Mexc {
         }
         if (code != Value::Null) {
             currency = Some(self.currency(code));
-            let mut currencyId: Value = crate::value::KeyRead::key_read(&&currency, "id");
-            request.insert("coin".into(), currencyId.clone());
+            let mut currencyId: Option<String> = crate::value::KeyRead::key_read(&&currency, "id").as_str().map(str::to_owned);
+            request.insert("coin".into(), Value::from(currencyId.as_deref()));
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             if (rawNetwork.is_some()) {
-                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId, "-").into()), rawNetwork.as_deref().unwrap_or("null")).into()));
+                request.insert("coin".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", currencyId.as_deref().unwrap_or("null"), "-").into()), rawNetwork.as_deref().unwrap_or("null")).into()));
             }
         }
         if (since != Value::Null) {

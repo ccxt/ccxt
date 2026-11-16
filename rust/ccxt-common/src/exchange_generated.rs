@@ -3698,23 +3698,23 @@ pub trait ExchangeBase:
         let mut price = get_arg(optional_args, 3, Value::Null);
         let mut takerOrMaker = get_arg(optional_args, 4, Value::Null);
         // this approach is being used by multiple exchanges (mexc, woo, coinsbit, dydx, ...)
-        let mut id: Value = Value::Null;
+        let mut id: Option<String> = None;
         if (timestamp != Value::Null) {
-            id = Value::from(self.number_to_string(timestamp));
+            id = self.number_to_string(timestamp);
             if (side != Value::Null) {
-                id = Value::Str(format!("{}{}", id, Value::Str(format!("{}{}", "-", side).into())).into());
+                id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", side)));
             }
             if (amount != Value::Null) {
-                id = Value::Str(format!("{}{}", id, Value::Str(format!("{}{}", "-", amount).into())).into());
+                id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", amount)));
             }
             if (price != Value::Null) {
-                id = Value::Str(format!("{}{}", id, Value::Str(format!("{}{}", "-", price).into())).into());
+                id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", price)));
             }
             if (takerOrMaker != Value::Null) {
-                id = Value::Str(format!("{}{}", id, Value::Str(format!("{}{}", "-", takerOrMaker).into())).into());
+                id = Some(format!("{}{}", id.as_deref().unwrap_or("null"), format!("{}{}", "-", takerOrMaker)));
             }
         }
-        return id;
+        return id.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }
@@ -9623,12 +9623,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 } }
 
     fn sort_cursor_paginated_result(&self, mut result: Value) -> Value {
-        let mut first: Value = self.safe_dict(result.clone(), Value::Int(0), &[]);
-        if (first != Value::Null) {
-            if (matches!(&first, Value::Dict(__d) if __d.contains_key("timestamp"))) {
+        let mut first: Option<crate::value::Dict> = self.safe_dict(result.clone(), Value::Int(0), &[]).into_opt_dict();
+        if (first.is_some()) {
+            if (matches!(first.as_deref(), Some(__d) if __d.contains_key("timestamp"))) {
                 return self.sort_by(result.clone(), Value::Str("timestamp".into()), &[Value::Bool(true)]);
             }
-            if (matches!(&first, Value::Dict(__d) if __d.contains_key("id"))) {
+            if (matches!(first.as_deref(), Some(__d) if __d.contains_key("id"))) {
                 return self.sort_by(result.clone(), Value::Str("id".into()), &[Value::Bool(true)]);
             }
         }

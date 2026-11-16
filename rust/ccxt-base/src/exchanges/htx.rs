@@ -5843,16 +5843,16 @@ impl Htx {
 })); }
         }
         let mut currencyId: Option<String> = self.safe_string_k(rawCurrency.clone(), "currency", &[]).as_str().map(str::to_owned);
-        let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+        let mut code: Option<String> = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), None);
         let mut assetType: Option<String> = self.safe_string_k(rawCurrency.clone(), "assetType", &[]).as_str().map(str::to_owned);
         let mut type_var: String = "fiat".to_string();
         if (assetType.as_deref() == Some("1")) {
             type_var = "crypto".to_string();
         }
-        if (code != Value::Null) {
+        if (code.is_some()) {
             if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } {
                 let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkChainIdsByNames".to_string()).or_insert(Value::Null);
-                if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&code), Value::Map({
+                if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
@@ -5871,13 +5871,13 @@ impl Htx {
             let mut chainEntry: crate::value::Dict = chains.get(j as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut uniqueChainId: Option<String> = self.safe_string_k_opt(&chainEntry, "chain", &[]); // i.e. usdterc20, trc20usdt ...
             let mut title: Value = self.safe_string2(&chainEntry, Value::Str("baseChain".into()), Value::Str("displayName".into()), &[]); // baseChain and baseChainProtocol are together existent or inexistent in entries, but baseChain is preferred. when they are both inexistent, then we use generic displayName
-            if (code != Value::Null) && (title != Value::Null) {
-                if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &code) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&title), uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null)); }
+            if (code.is_some()) && (title != Value::Null) {
+                if let Value::Dict(__r05d) = get_value_mut(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("networkChainIdsByNames".into())), &Value::from(code.as_deref())) { std::sync::Arc::make_mut(__r05d).insert(crate::runtime::stringify_param(&title), uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null)); }
             }
             if (uniqueChainId.is_some()) {
                 if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networkNamesByChainIds".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(uniqueChainId.as_deref().unwrap_or("null").to_string(), title); } }
             }
-            let mut networkCode: Option<String> = self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
+            let mut networkCode: Option<String> = self.network_id_to_code(&[uniqueChainId.clone().map(Value::from).unwrap_or(Value::Null), code.clone().map(Value::from).unwrap_or(Value::Null)]);
             if (networkCode.is_some()) {
                 networks.insert(networkCode.as_deref().unwrap_or("null").to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -5913,7 +5913,7 @@ impl Htx {
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), rawCurrency.clone());
-        m.insert("code".to_string(), code);
+        m.insert("code".to_string(), code.map(Value::from).unwrap_or(Value::Null));
         m.insert("id".to_string(), currencyId.map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(self.safe_string_k(rawCurrency, "instStatus", &[]).as_str() == Some("normal")));
         m.insert("deposit".to_string(), Value::Null);
@@ -8702,18 +8702,18 @@ impl Htx {
         let mut stopLossTakeProfit: Option<bool> = self.safe_bool_n(Value::from(&paramsSubType), Value::from(vec![Value::Str("stopLossTakeProfit".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into())]), &[]).as_bool();
         let mut trailing: bool = self.safe_bool_k(&paramsSubType, "trailing", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut query: crate::value::Dict = self.omit(&paramsSubType, &["stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"], &[]).into_dict();
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (marketType.as_deref() == Some("spot")) {
             let mut clientOrderId: Option<String> = self.safe_string2(&query, Value::Str("client-order-id".into()), Value::Str("clientOrderId".into()), &[]).as_str().map(str::to_owned);
             if (clientOrderId.is_none()) {
                 request.insert("order-id".into(), id.clone());
                 let __ws_arg_80 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await;
+                response = self.spot_private_post_v1_order_orders_order_id_submitcancel(&[__ws_arg_80]).await.into_opt_dict();
             }  else {
                 request.insert("client-order-id".into(), clientOrderId.map(Value::from).unwrap_or(Value::Null));
                 query = self.omit(Value::Dict(query), &["client-order-id", "clientOrderId"], &[]).into_dict();
                 let __ws_arg_81 = self.extend(Value::Map(request.clone()), &[&query]);
-                response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await;
+                response = self.spot_private_post_v1_order_orders_submit_cancel_client_order(&[__ws_arg_81]).await.into_opt_dict();
             }
         }  else {
             if (symbol == Value::Null) {
@@ -8748,39 +8748,39 @@ impl Htx {
                         query = self.omit(Value::Dict(query), &["client_order_id", "clientOrderId", "algo_client_order_id"], &[]).into_dict();
                     }
                     let mut requestBody: Value = Value::from(vec![self.extend(Value::Map(requestItem), &[&query])]);
-                    response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await;
+                    response = self.contract_private_post_v5_algo_cancel_orders(&[requestBody]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_82 = self.extend(Value::Map(request.clone()), &[&query]);
-                    response = self.contract_private_post_v5_trade_cancel_order(&[__ws_arg_82]).await;
+                    response = self.contract_private_post_v5_trade_cancel_order(&[__ws_arg_82]).await.into_opt_dict();
                 }
             }  else if matches!(self.safe_bool_k(&market, "inverse", &[Value::Bool(false)]), Value::Bool(true)) {
                 if matches!(self.safe_bool_k(&market, "swap", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_83 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_83]).await;
+                        response = self.contract_private_post_swap_api_v1_swap_trigger_cancel(&[__ws_arg_83]).await.into_opt_dict();
                     }  else if (stopLossTakeProfit == Some(true)) {
                         let __ws_arg_84 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_84]).await;
+                        response = self.contract_private_post_swap_api_v1_swap_tpsl_cancel(&[__ws_arg_84]).await.into_opt_dict();
                     }  else if trailing {
                         let __ws_arg_85 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[__ws_arg_85]).await;
+                        response = self.contract_private_post_swap_api_v1_swap_track_cancel(&[__ws_arg_85]).await.into_opt_dict();
                     }  else {
                         let __ws_arg_86 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_86]).await;
+                        response = self.contract_private_post_swap_api_v1_swap_cancel(&[__ws_arg_86]).await.into_opt_dict();
                     }
                 }  else if matches!(self.safe_bool_k(&market, "future", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (trigger == Some(true)) {
                         let __ws_arg_87 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_87]).await;
+                        response = self.contract_private_post_api_v1_contract_trigger_cancel(&[__ws_arg_87]).await.into_opt_dict();
                     }  else if (stopLossTakeProfit == Some(true)) {
                         let __ws_arg_88 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_88]).await;
+                        response = self.contract_private_post_api_v1_contract_tpsl_cancel(&[__ws_arg_88]).await.into_opt_dict();
                     }  else if trailing {
                         let __ws_arg_89 = self.extend(Value::Map(request.clone()), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_track_cancel(&[__ws_arg_89]).await;
+                        response = self.contract_private_post_api_v1_contract_track_cancel(&[__ws_arg_89]).await.into_opt_dict();
                     }  else {
                         let __ws_arg_90 = self.extend(Value::Map(request), &[&query]);
-                        response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_90]).await;
+                        response = self.contract_private_post_api_v1_contract_cancel(&[__ws_arg_90]).await.into_opt_dict();
                     }
                 }
             }  else {
@@ -8834,27 +8834,27 @@ impl Htx {
         //         "ts": 1737103890390
         //     }
         //
-        let mut result: Value = Value::Null;
+        let mut result: Option<crate::value::Dict> = None;
         if isLinear {
             if (trigger == Some(true)) || (stopLossTakeProfit == Some(true)) || trailing {
-                let mut data: crate::value::List = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_list();
+                let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
                 result = self.safe_dict(&data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
             }  else {
-                result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                result = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
             }
         }  else {
             result = response;
         }
-        if (result == Value::Null) {
+        if (result.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseOrder() returned empty response")));
         }
-        let __ws_arg_91 = self.parse_order(result, market.as_ref());
+        let __ws_arg_91 = self.parse_order(&result, market.as_ref());
         return self.extend(__ws_arg_91, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id);

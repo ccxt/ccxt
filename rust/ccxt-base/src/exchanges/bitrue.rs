@@ -1777,27 +1777,27 @@ impl Bitrue {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("fetchBalance".into()), None, &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut response: Value = Value::Null;
-        let mut result: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
+        let mut result: Option<crate::value::Dict> = None;
         if (type_var.as_deref() == Some("swap")) {
             if (subType.is_some()) && (subType.as_deref() == Some("inverse")) {
-                response = self.dapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await;
-                result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                response = self.dapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+                result = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
             }  else {
-                response = self.fapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await;
-                result = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+                response = self.fapi_v2_private_get_account(&[Value::from(&paramsSubType)]).await.into_opt_dict();
+                result = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
             }
         }  else {
-            response = self.spot_v1_private_get_account(&[Value::Dict(paramsSubType)]).await;
+            response = self.spot_v1_private_get_account(&[Value::Dict(paramsSubType)]).await.into_opt_dict();
             result = response;
         }
-        return self.parse_balance(result);
+        return self.parse_balance(&result);
         Value::Null
         }).await?))
     }

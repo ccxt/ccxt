@@ -1436,7 +1436,7 @@ impl Extended {
         }
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut dataList: Option<crate::value::List> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_list();
-        let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
+        let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
         if (dataList.is_some()) {
             let mut first: crate::value::Dict = self.safe_dict(&dataList, Value::Int(0), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -1448,29 +1448,29 @@ impl Extended {
             }  else {
                 self.handle_ohlcv(client.clone(), message.clone());
             }
-        }  else if (data != Value::Null) {
+        }  else if (data.is_some()) {
             // an account frame may carry several sections at once, so these are
             // not mutually exclusive and must not fall through to the order book
             let mut isAccountUpdate: bool = false;
-            if (type_var.as_deref() == Some("ORDER")) || (matches!(&data, Value::Dict(__d) if __d.contains_key("orders"))) {
+            if (type_var.as_deref() == Some("ORDER")) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("orders"))) {
                 self.handle_orders(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if (type_var.as_deref() == Some("TRADE")) || (matches!(&data, Value::Dict(__d) if __d.contains_key("trades"))) {
+            if (type_var.as_deref() == Some("TRADE")) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("trades"))) {
                 self.handle_my_trades(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if (type_var.as_deref() == Some("POSITION")) || (matches!(&data, Value::Dict(__d) if __d.contains_key("positions"))) {
+            if (type_var.as_deref() == Some("POSITION")) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("positions"))) {
                 self.handle_positions(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
-            if (type_var.as_deref() == Some("BALANCE")) || (matches!(&data, Value::Dict(__d) if __d.contains_key("balance"))) || (matches!(&data, Value::Dict(__d) if __d.contains_key("spotBalances"))) {
+            if (type_var.as_deref() == Some("BALANCE")) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("balance"))) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("spotBalances"))) {
                 self.handle_balance(client.clone(), message.clone());
                 isAccountUpdate = true;
             }
             if (type_var.as_deref() == Some("MP")) {
                 self.handle_mark_price(client.clone(), message.clone());
-            }  else if (matches!(&data, Value::Dict(__d) if __d.contains_key("f"))) {
+            }  else if (matches!(data.as_deref(), Some(__d) if __d.contains_key("f"))) {
                 self.handle_funding_rate(client.clone(), message.clone());
             }  else if !isAccountUpdate {
                 self.handle_order_book(client, message);

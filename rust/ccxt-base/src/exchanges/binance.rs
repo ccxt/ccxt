@@ -17785,7 +17785,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (depositUrl == Value::Null) {
             return None;
         }
-        let mut networkCode: Value = Value::Null;
+        let mut networkCode: Option<String> = None;
         let mut currency: crate::types::Currency = self.currency(currencyCode);
         let mut networks: indexmap::IndexMap<String, Value> = self.safe_dict_k(&currency, "networks", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -17805,11 +17805,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             // check if url matches the field's value
             let mut baseDomain: Value = self.get_base_domain_from_url(siteUrl.as_deref()).map(Value::from).unwrap_or(Value::Null);
             if (siteUrl.is_some()) && (baseDomain != Value::Null) && (depositUrl.as_str().zip(baseDomain.as_str()).is_some_and(|(__s, __p)| __s.starts_with(__p))) {
-                networkCode = currentNetworkCode.map(Value::from).unwrap_or(Value::Null);
+                networkCode = currentNetworkCode;
             }
         }
         }
-        return networkCode.as_str().map(str::to_owned);
+        return networkCode;
 }
 
     pub fn get_base_domain_from_url(&self, url: Option<&str>) -> Option<String> {

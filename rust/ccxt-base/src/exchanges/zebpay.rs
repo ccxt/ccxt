@@ -670,17 +670,17 @@ impl Zebpay {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
         if isSpot {
-            response = self.public_spot_get_v2_system_status(&[Value::from(&paramsMarketType)]).await;
-            data = response.clone().into_dict();
+            response = self.public_spot_get_v2_system_status(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            data = response.clone().unwrap_or_default();
         }  else {
-            response = self.public_swap_get_v1_system_status(&[Value::Dict(paramsMarketType)]).await;
-            data = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            response = self.public_swap_get_v1_system_status(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            data = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -703,7 +703,7 @@ impl Zebpay {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response.map_or(Value::Null, Value::Dict));
     m
 });
         Value::Null
@@ -733,17 +733,17 @@ impl Zebpay {
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut isSpot: bool = type_var.as_deref() == Some("spot");
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let mut data: crate::value::Dict = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         }).into_dict();
         if isSpot {
-            response = self.public_spot_get_v2_system_time(&[Value::from(&paramsMarketType)]).await;
-            data = response.clone().into_dict();
+            response = self.public_spot_get_v2_system_time(&[Value::from(&paramsMarketType)]).await.into_opt_dict();
+            data = response.clone().unwrap_or_default();
         }  else {
-            response = self.public_swap_get_v1_system_time(&[Value::Dict(paramsMarketType)]).await;
-            data = self.safe_dict_k(response, "data", &[Value::Map({
+            response = self.public_swap_get_v1_system_time(&[Value::Dict(paramsMarketType)]).await.into_opt_dict();
+            data = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();

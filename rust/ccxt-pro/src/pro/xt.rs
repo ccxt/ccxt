@@ -2285,8 +2285,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             });
             let mut method: Option<String> = (if (topic.is_none()) { None } else { self.safe_value(&methods, topic.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned) });
             if (topic.as_deref() == Some("trade")) {
-                let mut data: Value = (match __pro_message.get("data").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-                if (data != Value::Null) && ((matches!(&data, Value::Dict(__d) if __d.contains_key("oi"))) || (matches!(&data, Value::Dict(__d) if __d.contains_key("orderId")))) {
+                let mut data: Option<crate::value::Dict> = __pro_message.get("data").cloned().unwrap_or_default().into_opt_dict();
+                if (data.is_some()) && ((matches!(data.as_deref(), Some(__d) if __d.contains_key("oi"))) || (matches!(data.as_deref(), Some(__d) if __d.contains_key("orderId")))) {
                     method = Value::Str("handle_my_trades".into()).as_str().map(str::to_owned);
                 }  else {
                     method = Value::Str("handle_trade".into()).as_str().map(str::to_owned);

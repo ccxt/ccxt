@@ -8935,7 +8935,7 @@ impl Bingx {
         let mut rawKeys: Vec<Value> = Value::Array(sortedParams.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
         let mut rawKeysLength: i64 = rawKeys.len() as i64;
         let mut adjustedValue: Value = Value::Null;
-        let mut result: Value = Value::Null;
+        let mut result: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_328: bool = true;
@@ -8969,13 +8969,13 @@ impl Bingx {
                 value = adjustedValue.clone();
             }
             if (i == 0) {
-                result = Value::Str(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value).into());
+                result = Some(format!("{}{}", Value::Str(format!("{}{}", key, "=").into()), value));
             }  else {
-                result = Value::Str(format!("{}{}", result, Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value).into())).into());
+                result = Some(format!("{}{}", result.as_deref().unwrap_or("null"), format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "&", key).into()), "=").into()), value)));
             }
         }
         }
-        return result.as_str().map(str::to_owned);
+        return result;
 }
 
 /*

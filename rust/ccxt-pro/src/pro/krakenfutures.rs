@@ -2050,8 +2050,8 @@ impl Krakenfutures {
         // is a no-op while nobody is awaiting, so a replaced object would make
         // updates landing in that window invisible to the consumer forever
         // (same class of bug as kraken issue #26773)
-        let mut holding: Value = (match __pro_message.get("holding").cloned() { Some(__v) if matches!(__v, Value::Dict(_)) => __v, _ => Value::Null });
-        let mut futures: Value = self.safe_dict_k(message.clone(), "futures", &[]);
+        let mut holding: Option<crate::value::Dict> = __pro_message.get("holding").cloned().unwrap_or_default().into_opt_dict();
+        let mut futures: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "futures", &[]).into_opt_dict();
         let mut flexFutures: Option<crate::value::Dict> = __pro_message.get("flex_futures").cloned().unwrap_or_default().into_opt_dict();
         let mut messageHash: String = "balances".to_string();
         let mut timestamp: Option<i64> = self.safe_integer_k(message.clone(), "timestamp", &[]).as_i64();
@@ -2062,8 +2062,8 @@ impl Krakenfutures {
             });
         }
         let mut updatedBalance: Value = Value::Null;
-        if (holding != Value::Null) {
-            let mut holdingKeys: Vec<Value> = object_keys(&holding).as_array().cloned().unwrap_or_default(); // cashAccount
+        if (holding.is_some()) {
+            let mut holdingKeys: Vec<Value> = Value::Array(holding.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // cashAccount
             { let __be_tmp = self.safe_dict_k(self.balance.clone(), "cash", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2082,7 +2082,7 @@ impl Krakenfutures {
                 let mut key: Option<&str> = holdingKeys.get(i as usize).and_then(Value::as_str);
                 let mut code: Option<String> = self.safe_currency_code(Value::from(key.as_deref()), None);
                 let mut newAccount: Value = self.account();
-                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(holding.clone(), Value::from(key.as_deref()), &[])); }
+                if let Value::Dict(__d) = &mut newAccount { std::sync::Arc::make_mut(__d).insert("total".into(), self.safe_string(&holding, Value::from(key.as_deref()), &[])); }
                 if (code.is_some()) {
                     holdingCodes.insert(code.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
                     if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.balance) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cash".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), newAccount); } }
@@ -2093,8 +2093,8 @@ impl Krakenfutures {
             { let __be_tmp = self.safe_balance(crate::value::get_value_k(&self.balance, "cash")); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("cash".into(), __be_tmp); } }
             updatedBalance = self.balance.as_map().and_then(|__m| __m.get("cash")).cloned().unwrap_or(Value::Null);
         }
-        if (futures != Value::Null) {
-            let mut futuresKeys: Vec<Value> = Value::Array(futures.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default(); // marginAccount
+        if (futures.is_some()) {
+            let mut futuresKeys: Vec<Value> = Value::Array(futures.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default(); // marginAccount
             { let __be_tmp = self.safe_dict_k(self.balance.clone(), "margin", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2113,7 +2113,7 @@ impl Krakenfutures {
                 let mut key: Option<&str> = futuresKeys.get(i as usize).and_then(Value::as_str);
                 let mut symbol: Option<String> = self.safe_symbol(Value::from(key.as_deref()), None, &[]).as_str().map(str::to_owned);
                 let mut newAccount: crate::value::Dict = self.account().into_dict();
-                let mut future: crate::value::Dict = self.safe_dict(futures.clone(), Value::from(key.as_deref()), &[]).into_dict();
+                let mut future: crate::value::Dict = self.safe_dict(&futures, Value::from(key.as_deref()), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&future, "unit", &[]).as_str().map(str::to_owned);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut newAccount).insert("free".into(), self.safe_string_k(&future, "available", &[]));

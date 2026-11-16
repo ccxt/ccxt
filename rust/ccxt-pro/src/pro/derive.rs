@@ -888,9 +888,9 @@ impl Derive {
         //     }
         //
         let mut result: crate::value::Dict = __pro_message.get("result").cloned().unwrap_or_default().into_dict();
-        let mut status: Value = self.safe_dict_k(&result, "status", &[]);
-        if (status != Value::Null) {
-            let mut topics: Vec<Value> = Value::Array(status.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut status: Option<crate::value::Dict> = self.safe_dict_k(&result, "status", &[]).into_opt_dict();
+        if (status.is_some()) {
+            let mut topics: Vec<Value> = Value::Array(status.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_298: bool = true;
@@ -1209,9 +1209,9 @@ impl Derive {
                     if (fee.is_some()) {
                         if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fee".to_string(), fee.map_or(Value::Null, Value::Dict)); }
                     }
-                    let mut fees: Value = self.safe_list_k(&order, "fees", &[]);
-                    if (fees != Value::Null) {
-                        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees); }
+                    let mut fees: Option<crate::value::List> = self.safe_list_k(&order, "fees", &[]).into_opt_list();
+                    if (fees.is_some()) {
+                        if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("fees".to_string(), fees.map_or(Value::Null, Value::Arr)); }
                     }
                     if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("trades".to_string(), self.safe_list_k(&order, "trades", &[])); }
                     if let Value::Dict(__rda) = &mut parsed { std::sync::Arc::make_mut(__rda).insert("timestamp".to_string(), self.safe_integer_k(&order, "timestamp", &[])); }

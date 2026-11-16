@@ -10915,8 +10915,8 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1025: bool = true;
             while { if !__for_first_1025 { i += 1; } __for_first_1025 = false; i < (keys.len() as i64) } {
-            let mut code: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[code.clone(), since.clone(), limit.clone()]); borrowRateHistories.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+            let mut code: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
+            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::from(code.as_deref()), since.clone(), limit.clone()]); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(borrowRateHistories);
@@ -12204,9 +12204,9 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1028: bool = true;
             while { if !__for_first_1028 { i += 1; } __for_first_1028 = false; i < (depositWithdrawCodes.len() as i64) } {
-            let mut code: Value = depositWithdrawCodes.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut currency: crate::types::Currency = self.currency(code.clone());
-            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(crate::runtime::stringify_param(&code), __be_tmp); }
+            let mut code: Option<&str> = depositWithdrawCodes.get(i as usize).and_then(Value::as_str);
+            let mut currency: crate::types::Currency = self.currency(Value::from(code.as_deref()));
+            { let __be_tmp = self.assign_default_deposit_withdraw_fees(depositWithdrawFees.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[crate::Value::from(Some(&currency))]); depositWithdrawFees.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(depositWithdrawFees);

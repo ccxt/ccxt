@@ -2728,8 +2728,8 @@ impl Bithumb {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
-        let mut data: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
+        let mut data: Option<crate::value::Dict> = None;
         if (generation == Some(2)) {
             if twap {
                 if (market != Value::Null) {
@@ -2737,7 +2737,7 @@ impl Bithumb {
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_get_v1_twap(&[__ws_arg_23]).await;
+                response = self.private_get_v1_twap(&[__ws_arg_23]).await.into_opt_dict();
                 //
                 //     {
                 //         "has_next": false,
@@ -2762,11 +2762,11 @@ impl Bithumb {
                 //         ]
                 //     }
                 //
-                let mut orders: crate::value::List = self.safe_list_k(response.clone(), "orders", &[Value::from(vec![])]).into_list();
+                let mut orders: crate::value::List = self.safe_list_k(&response, "orders", &[Value::from(vec![])]).into_list();
                 data = self.safe_dict(&orders, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_opt_dict();
             }  else {
                 let mut clientOrderId: Option<String> = self.safe_string2(&paramsOmitted, Value::Str("clientOrderId".into()), Value::Str("client_order_id".into()), &[]).as_str().map(str::to_owned);
                 let mut paramsClientOrderId: crate::value::Dict = (if (clientOrderId.is_some()) { self.omit(&paramsOmitted, &["clientOrderId"], &[]).into_dict() } else { paramsOmitted.clone() });
@@ -2776,7 +2776,7 @@ impl Bithumb {
                     request.insert("uuid".into(), id.clone());
                 }
                 let __ws_arg_24 = self.extend(Value::Map(request.clone()), &[&paramsClientOrderId]);
-                response = self.private_get_v1_order(&[__ws_arg_24]).await;
+                response = self.private_get_v1_order(&[__ws_arg_24]).await.into_opt_dict();
                 //
                 //     {
                 //         "uuid": "C0101000003152406454",
@@ -2815,7 +2815,7 @@ impl Bithumb {
             request.insert("order_currency".into(), base.map(Value::from).unwrap_or(Value::Null));
             request.insert("payment_currency".into(), quote.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_25 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_post_info_order_detail(&[__ws_arg_25]).await;
+            response = self.private_post_info_order_detail(&[__ws_arg_25]).await.into_opt_dict();
             //
             //     {
             //         "status": "0000",
@@ -2843,7 +2843,7 @@ impl Bithumb {
             //         }
             //     }
             //
-            data = self.safe_dict_k(response, "data", &[]);
+            data = self.safe_dict_k(&response, "data", &[]).into_opt_dict();
         }
         let mut orderData: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();

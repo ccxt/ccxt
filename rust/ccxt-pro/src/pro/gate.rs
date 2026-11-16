@@ -2045,15 +2045,15 @@ impl Gate {
         let subTypeparamsSubTypeVariable: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyTrades".into()), market.as_ref(), &[Value::from(&paramsMarketType)]).as_array().cloned().unwrap_or_default();
         let mut subType: Option<String> = subTypeparamsSubTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsSubType: crate::value::Dict = subTypeparamsSubTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot".into()));
-                m.insert("margin".to_string(), Value::Str("spot".into()));
-                m.insert("future".to_string(), Value::Str("futures".into()));
-                m.insert("swap".to_string(), Value::Str("futures".into()));
-                m.insert("option".to_string(), Value::Str("options".into()));
-            m
-        })]);
+        let mut messageType: String = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot".into()));
+        m.insert("margin".to_string(), Value::Str("spot".into()));
+        m.insert("future".to_string(), Value::Str("futures".into()));
+        m.insert("swap".to_string(), Value::Str("futures".into()));
+        m.insert("option".to_string(), Value::Str("options".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         let mut channel: String = format!("{}{}", messageType, ".usertrades");
         let mut messageHash: String = "myTrades".to_string();
         if (symbol != Value::Null) {
@@ -2171,15 +2171,15 @@ impl Gate {
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
         let mut url: Option<String> = self.get_url_by_market_type(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Bool(isInverse)]).as_str().map(str::to_owned);
         let mut requiresUid: bool = type_var.as_deref() != Some("spot");
-        let mut channelType: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot".into()));
-                m.insert("margin".to_string(), Value::Str("spot".into()));
-                m.insert("future".to_string(), Value::Str("futures".into()));
-                m.insert("swap".to_string(), Value::Str("futures".into()));
-                m.insert("option".to_string(), Value::Str("options".into()));
-            m
-        })]);
+        let mut channelType: String = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot".into()));
+        m.insert("margin".to_string(), Value::Str("spot".into()));
+        m.insert("future".to_string(), Value::Str("futures".into()));
+        m.insert("swap".to_string(), Value::Str("futures".into()));
+        m.insert("option".to_string(), Value::Str("options".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         // todo: add correct margin support
         let mut channel: String = format!("{}{}", channelType, ".balances");
         let mut messageHash: String = format!("{}{}", type_var.as_deref().unwrap_or("null"), ".balance");
@@ -2279,13 +2279,13 @@ impl Gate {
         let mut channel: Value = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null });
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut rawType: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut channelType: Value = self.get_supported_mapping(rawType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot".into()));
-                m.insert("futures".to_string(), Value::Str("swap".into()));
-                m.insert("options".to_string(), Value::Str("option".into()));
-            m
-        })]);
+        let mut channelType: String = self.get_supported_mapping(rawType.map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot".into()));
+        m.insert("futures".to_string(), Value::Str("swap".into()));
+        m.insert("options".to_string(), Value::Str("option".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         let mut messageHash: String = format!("{}{}", channelType, ".balance");
         { let __t = self.safe_balance(self.balance.clone()); self.balance = __t; }
         client.resolve(self.balance.clone(), messageHash.as_str());
@@ -2332,13 +2332,13 @@ impl Gate {
         if (type_var.as_deref() == Some("spot")) {
             type_var = Some("swap".to_string());
         }
-        let mut typeId: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("future".to_string(), Value::Str("futures".into()));
-                m.insert("swap".to_string(), Value::Str("futures".into()));
-                m.insert("option".to_string(), Value::Str("options".into()));
-            m
-        })]);
+        let mut typeId: String = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("future".to_string(), Value::Str("futures".into()));
+        m.insert("swap".to_string(), Value::Str("futures".into()));
+        m.insert("option".to_string(), Value::Str("options".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         let mut messageHash: String = format!("{}{}", type_var.as_deref().unwrap_or("null"), ":positions");
         if !(self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true)) {
             if (symbolsNormalized.is_none()) {
@@ -2552,25 +2552,25 @@ impl Gate {
         let mut type_var: Option<String> = None;
         let mut query: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchOrders".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        let mut typeId: Value = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("spot".to_string(), Value::Str("spot".into()));
-                m.insert("margin".to_string(), Value::Str("spot".into()));
-                m.insert("future".to_string(), Value::Str("futures".into()));
-                m.insert("swap".to_string(), Value::Str("futures".into()));
-                m.insert("option".to_string(), Value::Str("options".into()));
-            m
-        })]);
+        let mut typeId: String = self.get_supported_mapping(type_var.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("spot".to_string(), Value::Str("spot".into()));
+        m.insert("margin".to_string(), Value::Str("spot".into()));
+        m.insert("future".to_string(), Value::Str("futures".into()));
+        m.insert("swap".to_string(), Value::Str("futures".into()));
+        m.insert("option".to_string(), Value::Str("options".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         let mut isTrigger: Value = Value::Bool(false);
         { let __destr_tmp: Vec<Value> = self.handle_param_bool2(query.clone(), Value::Str("trigger".into()), Value::Str("stop".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default(); isTrigger = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null); }
-        if (isTrigger.as_bool() == Some(true)) && (typeId.as_str() == Some("options")) {
+        if (isTrigger.as_bool() == Some(true)) && (typeId == "options") {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOrders() does not support trigger orders for options, see https://github.com/ccxt/ccxt/issues/27202")));
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
         let mut suffix: String = ".orders".to_string();
         if (isTrigger.as_bool() == Some(true)) {
-            suffix = (if (typeId.as_str() == Some("spot")) { ".priceorders".to_string() } else { ".autoorders".to_string() });
+            suffix = (if (typeId == "spot") { ".priceorders".to_string() } else { ".autoorders".to_string() });
         }
         let mut channel: String = format!("{}{}", typeId, suffix);
         let mut messageHash: String = "orders".to_string();
@@ -2766,13 +2766,13 @@ impl Gate {
         let mut type_var: Option<String> = None;
         let mut query: crate::value::Dict = Default::default();
         { let __destr_tmp: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default(); type_var = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
-        let mut typeId: Value = self.get_supported_mapping(Value::from(type_var.as_deref()), &[Value::Map({
-            let mut m = indexmap::IndexMap::new();
-                m.insert("future".to_string(), Value::Str("futures".into()));
-                m.insert("swap".to_string(), Value::Str("futures".into()));
-                m.insert("option".to_string(), Value::Str("options".into()));
-            m
-        })]);
+        let mut typeId: String = self.get_supported_mapping(Value::from(type_var.as_deref()), &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("future".to_string(), Value::Str("futures".into()));
+        m.insert("swap".to_string(), Value::Str("futures".into()));
+        m.insert("option".to_string(), Value::Str("options".into()));
+    m
+})]).as_str().unwrap_or_default().to_string();
         let mut subType: Option<String> = None;
         { let __destr_tmp: Vec<Value> = self.handle_sub_type_and_params(Value::Str("watchMyLiquidationsForSymbols".into()), market.as_ref(), &[Value::from(&query)]).as_array().cloned().unwrap_or_default(); subType = __destr_tmp.get(0).and_then(Value::as_str).map(str::to_owned); query = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         let mut isInverse: bool = subType.as_deref() == Some("inverse");
@@ -2780,7 +2780,7 @@ impl Gate {
         let mut payload: Vec<Value> = Vec::new();
         let mut messageHash: String = "".to_string();
         if self.is_empty(symbolsNormalized.clone().map_or(Value::Null, Value::Arr)).as_bool() == Some(true) {
-            if (typeId.as_str() != Some("futures")) && !isInverse {
+            if (typeId != "futures") && !isInverse {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.")));
             }
             messageHash = "myLiquidations".to_string();

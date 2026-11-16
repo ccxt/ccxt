@@ -2678,16 +2678,16 @@ impl Hollaex {
     m
 }));
         }
-        let mut withdrawalFees: Value = self.safe_dict_k(fee, "withdrawal_fees", &[]);
-        if (withdrawalFees != Value::Null) {
-            let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut withdrawalFees: Option<crate::value::Dict> = self.safe_dict_k(fee, "withdrawal_fees", &[]).into_opt_dict();
+        if (withdrawalFees.is_some()) {
+            let mut keys: Vec<Value> = Value::Array(withdrawalFees.as_deref().into_iter().flat_map(crate::value::HashMap::keys).cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             let mut keysLength: i64 = keys.len() as i64;
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_765: bool = true;
                 while { if !__for_first_765 { i += 1; } __for_first_765 = false; i < keysLength } {
                 let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-                let mut value: crate::value::Dict = self.safe_dict(withdrawalFees.clone(), Value::from(key.as_deref()), &[]).into_dict();
+                let mut value: crate::value::Dict = self.safe_dict(&withdrawalFees, Value::from(key.as_deref()), &[]).into_dict();
                 let mut currencyId: Option<String> = self.safe_string_k(&value, "symbol", &[]).as_str().map(str::to_owned);
                 let mut currencyCode: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut networkCode: Option<String> = self.network_id_to_code(&[Value::from(key.as_deref()), currencyCode.map(Value::from).unwrap_or(Value::Null)]);

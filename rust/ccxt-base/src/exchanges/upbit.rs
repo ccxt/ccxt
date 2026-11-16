@@ -96,7 +96,6 @@ impl crate::exchange_generated::ExchangeBase for Upbit {
     {
         Box::pin(async move {
             match method {
-                "calc_order_price" => self.calc_order_price(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_deposit_address" => crate::types::IntoRaw::into_raw(self.create_deposit_address(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -1886,7 +1885,7 @@ impl Upbit {
         }).await?))
     }
 
-    pub fn calc_order_price(&self, symbol: &str, optional_args: &[Value]) -> Value {
+    pub fn calc_order_price(&self, symbol: &str, optional_args: &[Value]) -> Option<String> {
         let mut symbol: Value = symbol.into();
         let mut amount = get_arg(optional_args, 0, Value::Null);
         let mut price = get_arg(optional_args, 1, Value::Null);
@@ -1918,9 +1917,7 @@ impl Upbit {
         if (quoteAmount.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " calcOrderPrice() could not determine quote amount")));
         }
-        return quoteAmount.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return quoteAmount;
 }
 
 /*
@@ -1996,7 +1993,7 @@ impl Upbit {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 request.insert("ord_type".into(), Value::Str("price".into()));
-                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), params.clone()]).as_str().map(str::to_owned);
+                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), params.clone()]);
                 request.insert("price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
@@ -2012,7 +2009,7 @@ impl Upbit {
         if (customType.as_deref() == Some("best")) {
             request.insert("ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {
-                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price, Value::from(&paramsOrdType)]).as_str().map(str::to_owned);
+                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price, Value::from(&paramsOrdType)]);
                 request.insert("price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
@@ -2161,7 +2158,7 @@ impl Upbit {
         }  else if (type_var.as_str() == Some("market")) {
             if (side.as_str() == Some("buy")) {
                 request.insert("new_ord_type".into(), Value::Str("price".into()));
-                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), Value::from(&paramsOmitted)]).as_str().map(str::to_owned);
+                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price.clone(), Value::from(&paramsOmitted)]);
                 request.insert("new_price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {
@@ -2177,7 +2174,7 @@ impl Upbit {
         if (customType.as_deref() == Some("best")) {
             request.insert("new_ord_type".into(), Value::Str("best".into()));
             if (side.as_str() == Some("buy")) {
-                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price, Value::from(&paramsOrdType)]).as_str().map(str::to_owned);
+                let mut orderPrice: Option<String> = self.calc_order_price(symbol.as_str().unwrap_or_default(), &[amount.clone(), price, Value::from(&paramsOrdType)]);
                 request.insert("new_price".into(), orderPrice.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 if (amount == Value::Null) {

@@ -657,7 +657,7 @@ impl Zaif {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        let mut deposit: Value = self.safe_dict_k(&balances, "deposit", &[]);
+        let mut deposit: Option<crate::value::Dict> = self.safe_dict_k(&balances, "deposit", &[]).into_opt_dict();
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response);
@@ -680,9 +680,9 @@ impl Zaif {
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             account.insert("free".into(), balance.clone().map(Value::from).unwrap_or(Value::Null));
             account.insert("total".into(), balance.map(Value::from).unwrap_or(Value::Null));
-            if (deposit != Value::Null) {
-                if (matches!((&deposit, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
-                    account.insert("total".into(), self.safe_string(deposit.clone(), Value::from(currencyId.as_deref()), &[]));
+            if (deposit.is_some()) {
+                if (matches!(deposit.as_deref(), Some(__d) if matches!(currencyId.as_deref(), Some(__k) if __d.contains_key(__k)))) {
+                    account.insert("total".into(), self.safe_string(&deposit, Value::from(currencyId.as_deref()), &[]));
                 }
             }
             if (code.is_some()) {
