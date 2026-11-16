@@ -209,3 +209,24 @@ describe ('ral-77c8-literal-right-add-chain', () => {
         assert.match (xt, /string\? param = \(\(string\)\(add\(add\(name, "@"\), listenKey\)\)\);/);
     });
 });
+
+describe ('cs-84c6-callee-returns-for-awaited-and-parse-locals', () => {
+    test('super.loadMarkets local, loadAccounts / parseFundingRateHistories / signPredictfunOrder returns', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const delta = (transpiler as any).transpileCSharpByPath ('./ts/src/delta.ts').content as string;
+        assert.match (delta, /IDictionary<string, object> markets = await base\.loadMarkets\(reload, parameters\);/);
+        assert.doesNotMatch (delta, /\(\(IDictionary<string, object>\)\(\(object\)\(markets\)\)\)/);
+        const btse = (transpiler as any).transpileCSharpByPath ('./ts/src/btse.ts').content as string;
+        assert.match (btse, /IList<object> rates = this\.parseFundingRateHistories\(/);
+        const htx = (transpiler as any).transpileCSharpByPath ('./ts/src/htx.ts').content as string;
+        assert.match (htx, /List<object> accounts = await this\.loadAccounts\(\);/);
+        const pf = (transpiler as any).transpileCSharpByPath ('./ts/src/prediction/predictfun.ts').content as string;
+        assert.match (pf, /Dictionary<string, object> signed = this\.signPredictfunOrder\(/);
+        const kucoin = (transpiler as any).transpileCSharpByPath ('./ts/src/kucoin.ts').content as string;
+        assert.match (kucoin, /public override List<object> parseMarketLeverageTiers\(/);
+        assert.match (kucoin, /List<object> tiers = this\.parseMarketLeverageTiers\(data\);/);
+        const deepcoin = (transpiler as any).transpileCSharpByPath ('./ts/src/deepcoin.ts').content as string;
+        assert.match (deepcoin, /IDictionary<string, object> result = base\.setMarkets\(markets, currencies\);/);
+    });
+});

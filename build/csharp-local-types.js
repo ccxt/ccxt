@@ -1935,7 +1935,7 @@ export function installCsharpCollectionReturns (transpiler) {
         const mapped = collectionReturnType (csharp, enclosing, 'object');
         // a proven per-declaration method, or a callee whose signature already returns mapped,
         // hands back the mapped box on every path, so the boundary cast would be an identity box
-        if (mapped === undefined || !node.expression || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
+        if (mapped === undefined || !node.expression || csharp84c6ReturnIsTyped (csharp, node.expression, mapped) || collectionReturnIsTyped (csharp, node.expression, mapped) || callReturnIsMapped (csharp, node.expression, mapped) || rowBuilderReturnIsTyped (csharp, enclosing, node.expression, mapped) || byDeclarationCollectionReturnIsProven (csharp, enclosing)) {
             return upstreamReturnStatement (node, identation);
         }
         // the printed expression keeps its upstream shape; the cast only names the box
@@ -2674,6 +2674,10 @@ function awaitedCallIsPrintedAsProven (value, initializer) {
         return true;
     }
     const call = initializer.expression;
+    // 84c6: `await super.<core> (...)` prints `await base.<core>(...)`, the call itself
+    if (value.startsWith ('await base.') && call?.expression?.expression?.kind === ts.SyntaxKind.SuperKeyword) {
+        return true;
+    }
     if (call?.kind !== ts.SyntaxKind.CallExpression) {
         return false;
     }
@@ -11027,6 +11031,13 @@ function calleeDeclaredResultType (csharp, declaration) {
         return undefined;
     }
     const name = callee.name.text;
+    if (awaited && callee.expression?.kind === ts.SyntaxKind.SuperKeyword) {
+        // (84c6-A) `await super.<core> (...)` binds the BASE declaration; a name the async-core
+        // table retypes prints that Task<T> on every declaration (base and overrides alike), so
+        // the awaited value IS T with no cast
+        const declared = Object.prototype.hasOwnProperty.call (CSHARP_ASYNC_CORE_RETURNS, name) ? CSHARP_ASYNC_CORE_RETURNS[name] : undefined;
+        return (typeof declared === 'string') ? { type: declared } : undefined;
+    }
     if (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
         return undefined;
     }
@@ -15413,7 +15424,7 @@ export function installCsharpAsyncCoreReturns (transpiler) {
         let trailingComment = csharp.printTraillingComment (node, identation);
         trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
         const value = csharp.printNode (node.expression, identation).trim ();
-        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type, owner.name?.text) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type);
+        const already = (retype.awaited ? awaitedCoreReturnIsAlreadyTyped (value, retype.type, owner.name?.text) : asyncCoreReturnIsAlreadyTyped (value)) || callReturnIsMapped (csharp, node.expression, retype.type) || csharp84c6ReturnIsTyped (csharp, node.expression, retype.type);
         if (already) {
             return upstreamReturnStatement (node, identation);
         }
@@ -19907,4 +19918,67 @@ function c84DictionarySlotWideningInner (csharp, declaration, context) {
         return undefined;
     }
     return { type };
+}
+
+// ===== 84c6: callee returns proven per declaration, so awaited / parse* result locals follow =====
+//
+// (84c6-B) prediction predictfun signPredictfunOrder (declared once in ts/src): its single return
+// is an object literal, so the per-declaration prover (methodReturnsProveCollection) retypes the
+// signature to Dictionary<string, object> and the caller's `signed` local takes it with no cast.
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS_BY_DECLARATION, {
+    'signPredictfunOrder': 'Dictionary<string, object>',
+});
+// hand-written BaseExchange properties read by the 84c6 return proofs (Exchange.Options.cs)
+const CSHARP_84C6_MEMBER_TYPES = {};
+// (84c6-C) base parseFundingRateHistories (declared once, no override): its only return is
+// `this.filterBySymbolSinceLimit (...)`, whose generated signature is IList<object>, so the
+// retyped signature needs no boundary cast and a `rates` local reads natively (Count / [i]).
+const CSHARP_84C6_COLLECTION_RETURNS = {
+    'parseFundingRateHistories': 'IList<object>',
+    // (84c6-E) every parseMarketLeverageTiers declaration (base `throw` stub + 14 venue overrides)
+    // returns its `List<object> tiers` local, a list literal (mexc) or gate's
+    // parseEmulatedLeverageTiers (List<object>); per-NAME so overrides stay signature-compatible
+    'parseMarketLeverageTiers': 'List<object>',
+    // (84c6-F) setMarkets: base returns `this.markets` (Exchange.Options.cs `public
+    // IDictionary<string, object> markets`), deepcoin returns its `result` copy of
+    // super.setMarkets, the prediction base its `stored` copy of the same call
+    'setMarkets': 'IDictionary<string, object>',
+};
+Object.assign (CSHARP_COLLECTION_RETURN_METHODS, CSHARP_84C6_COLLECTION_RETURNS);
+for (const [ name, type ] of Object.entries (CSHARP_84C6_COLLECTION_RETURNS)) {
+    if (!Object.prototype.hasOwnProperty.call (CSHARP_LOCAL_THIS_RETURN_TYPES, name)) {
+        CSHARP_LOCAL_THIS_RETURN_TYPES[name] = type;
+    }
+}
+// (84c6-D) base loadAccounts (declared once in ts/src, no override): both returns hand back
+// `this.accounts`, the hand-written `public List<object> accounts` of Exchange.Options.cs (no
+// generated class redeclares it). The awaited-core proof re-checks every return path per
+// declaration, the signature prints Task<List<object>> and `object accounts = await
+// this.loadAccounts ()` callers take List<object>.
+Object.assign (CSHARP_LOCAL_WS_MEMBER_TYPES, { 'accounts': 'List<object>' });
+Object.assign (CSHARP_84C6_MEMBER_TYPES, { 'accounts': 'List<object>', 'markets': 'IDictionary<string, object>' });
+Object.assign (CSHARP_AWAITED_CORE_RETURNS, { 'loadAccounts': 'List<object>' });
+Object.assign (CSHARP_LOCAL_AWAIT_RETURN_TYPES, { 'loadAccounts': 'List<object>' });
+// the return wrappers above skip the boundary cast when the printed expression's own static type
+// IS the mapped one, decided from the AST: a `this.<member>` read of a hand-written property
+// declared with that type (CSHARP_LOCAL_WS_MEMBER_TYPES), or a `this.<name> (...)` call whose
+// generated signature names it (callCollectionReturnType). Limited to the 84c6 names so no other
+// method's emitted text moves.
+const CSHARP_84C6_RETURN_OWNERS = new Set ([ 'parseFundingRateHistories', 'loadAccounts', 'parseMarketLeverageTiers', 'setMarkets' ]);
+function csharp84c6ReturnIsTyped (csharp, expression, mapped) {
+    const owner = ts.findAncestor (expression, ts.isFunctionLike);
+    if (!CSHARP_84C6_RETURN_OWNERS.has (owner?.name?.text)) {
+        return false;
+    }
+    const node = unwrapPassthroughExpression (expression);
+    if (node?.kind === ts.SyntaxKind.ArrayLiteralExpression) {
+        return mapped === 'List<object>';
+    }
+    if (node?.kind === ts.SyntaxKind.Identifier) {
+        return localIdentifierType (csharp, node) === mapped;
+    }
+    if (node?.kind === ts.SyntaxKind.PropertyAccessExpression && node.expression?.kind === ts.SyntaxKind.ThisKeyword) {
+        return CSHARP_84C6_MEMBER_TYPES[node.name?.text] === mapped;
+    }
+    return node?.kind === ts.SyntaxKind.CallExpression && (callReturnType (csharp, node) === mapped || callCollectionReturnType (csharp, node) === mapped);
 }
