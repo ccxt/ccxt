@@ -3396,10 +3396,10 @@ if _try_result.is_err() {
         let mut request: crate::value::Dict = self.cancel_all_orders_request(symbol.as_str(), &[params.clone()]).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["excludeReduceOnly", "expiryWindow"], &[]).into_dict();
         let __ws_arg_15 = self.extend(request, &[&paramsOmitted]);
-        let mut response: Value = self.private_post_orders_cancel_all(&[__ws_arg_15]).await;
+        let mut response: crate::value::Dict = self.private_post_orders_cancel_all(&[__ws_arg_15]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null
@@ -4383,8 +4383,8 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params).into_dict();
-        let mut response: Value = self.private_post_account_margin(&[Value::Dict(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_margin(&[Value::Dict(request)]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -4427,8 +4427,8 @@ if _try_result.is_err() {
             m
         });
         let mut request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params).into_dict();
-        let mut response: Value = self.private_post_account_leverage(&[Value::Dict(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_leverage(&[Value::Dict(request)]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -4472,10 +4472,10 @@ if _try_result.is_err() {
         let mut request: crate::value::Dict = self.post_action_request(operationType.as_str(), &mut sigPayload, params.clone()).into_dict();
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["expiryWindow"], &[]).into_dict();
         let __ws_arg_24 = self.extend(request, &[&paramsOmitted]);
-        let mut response: Value = self.private_post_account_withdraw(&[__ws_arg_24]).await;
+        let mut response: crate::value::Dict = self.private_post_account_withdraw(&[__ws_arg_24]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -5128,8 +5128,8 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut finalHeaders { std::sync::Arc::make_mut(__d).insert("expiry_window".into(), Value::from(expiryWindow)); }
         let mut request: Value = finalHeaders;
         let __ws_arg_34 = self.extend(request, &[&paramsExpiryWindow]);
-        let mut response: Value = self.private_post_account_subaccount_create(&[__ws_arg_34]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_subaccount_create(&[__ws_arg_34]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

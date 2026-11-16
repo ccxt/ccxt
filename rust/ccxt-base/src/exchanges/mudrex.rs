@@ -1353,8 +1353,8 @@ impl Mudrex {
         });
         let mut paramsOmitted: crate::value::Dict = self.omit(params, &["marginType"], &[]).into_dict();
         let __ws_arg_9 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_futures_asset_id_leverage(&[__ws_arg_9]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_futures_asset_id_leverage(&[__ws_arg_9]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

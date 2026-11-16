@@ -278,7 +278,7 @@ impl Extended {
         if (previousNonce.is_some()) && (nonce != ((if let Some(__l) = previousNonce { Some(__l + 1) } else { None }))) {
             __ch.remove_subscription(messageHash.as_str());
             CacheStore::forget(&mut self.orderbooks, &symbol);
-            let mut error: crate::ExchangeError = (crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce")));
+            let mut error: crate::ExchangeError = crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash.as_str());
             return;
         }

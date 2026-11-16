@@ -1428,10 +1428,10 @@ impl Btcturk {
             m
         });
         let __ws_arg_4 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_order(&[__ws_arg_4]).await;
+        let mut response: crate::value::Dict = self.private_delete_order(&[__ws_arg_4]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None);
         Value::Null

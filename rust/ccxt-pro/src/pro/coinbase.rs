@@ -273,12 +273,12 @@ impl Coinbase {
         }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("unSubscriptionPending".into(), Value::Bool(true)); }
         let mut market: Option<crate::types::Market> = None;
-        let mut watchMessageHash: Value = name.clone();
+        let mut watchMessageHash: String = name.as_str().unwrap_or_default().to_string();
         let mut unWatchMessageHash: String = format!("{}{}", "unsubscribe:", name);
         let mut productIds: Value = Value::from(vec![]);
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            watchMessageHash = Value::Str(format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol).into());
+            watchMessageHash = format!("{}{}", Value::Str(format!("{}{}", name, "::").into()), symbol);
             unWatchMessageHash = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:", name).into()), "::").into()), symbol);
             productIds = Value::from(vec![self.safe_string_k(&market, "id", &[])]);
         }
@@ -294,7 +294,7 @@ impl Coinbase {
         let mut subscription: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("messageHashes".to_string(), Value::from(vec![Value::from(unWatchMessageHash.clone())]));
-                m.insert("subMessageHashes".to_string(), Value::from(vec![watchMessageHash]));
+                m.insert("subMessageHashes".to_string(), Value::from(vec![Value::from(watchMessageHash)]));
                 m.insert("topic".to_string(), topic);
                 m.insert("unsubscribe".to_string(), Value::Bool(true));
                 m.insert("symbols".to_string(), Value::from(vec![symbol]));

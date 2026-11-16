@@ -2430,7 +2430,7 @@ impl Hyperliquid {
                     return Value::Bool(true);
                 }
             }
-            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), ret_msg)));
+            let mut error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), ret_msg));
             client.reject(error.clone(), None);
             return Value::Bool(true);
         }
@@ -2449,13 +2449,13 @@ impl Hyperliquid {
         })]).into_dict();
         let mut status: Option<String> = self.safe_string_k_opt(&payload, "status", &[]);
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
+            let mut error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload)));
             client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
         let mut type_var: Option<String> = self.safe_string_k_opt(&payload, "type", &[]);
         if (type_var.as_deref() == Some("error")) {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
+            let mut error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload)));
             client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
@@ -2515,7 +2515,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     pub async fn expire_pending_unsubscribe(&mut self, mut client: Value, mut subHash: Value, mut unsubHash: Value) -> Value {
         let __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
         if (__ch.has_subscription(&unsubHash)) {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unsubscribe ").into()), subHash).into()), " was not acknowledged")));
+            let mut error: crate::ExchangeError = crate::exchange_errors::request_timeout(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unsubscribe ").into()), subHash).into()), " was not acknowledged"));
             client.reject(error, &unsubHash);
             self.clean_unsubscription(client, subHash, unsubHash, &[]);
         }

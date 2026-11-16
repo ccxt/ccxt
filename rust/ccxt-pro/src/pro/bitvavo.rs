@@ -1543,17 +1543,17 @@ impl Bitvavo {
                         let mut i: i64 = 0;
             let mut __for_first_159: bool = true;
             while { if !__for_first_159 { i += 1; } __for_first_159 = false; i < (keys.len() as i64) } {
-            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-            if !(__ch.has_subscription(&key)) {
+            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if !(__ch.has_subscription(key.as_deref())) {
                 continue;
             }
-            if !(key.as_str().unwrap_or("").starts_with("unsubscribe:")) {
+            if !(key.as_deref().unwrap_or_default().starts_with("unsubscribe:")) {
                 continue;
             }
-            let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), key.clone(), &[]);
-            let mut subHash: Value = key.as_str().map(|__s| Value::Str(__s.replace("unsubscribe:", "").into())).unwrap_or_else(|| key.clone());
+            let mut subscription: Value = self.safe_value(__ch.subscriptions.clone(), Value::from(key.as_deref()), &[]);
+            let mut subHash: Value = (if let Some(__s) = key.as_deref() { Some(__s.replace("unsubscribe:", "")) } else { None }).map(Value::from).unwrap_or(Value::Null);
             self.clean_cache(subscription);
-            self.clean_unsubscription(client.clone(), subHash.clone(), key, &[]);
+            self.clean_unsubscription(client.clone(), subHash.clone(), key.map(Value::from).unwrap_or(Value::Null), &[]);
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
@@ -2750,7 +2750,7 @@ impl Bitvavo {
             // we resolve the future here permanently so authentication only happens once
             client.resolve(message.clone(), messageHash.as_str());
         }  else {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(&message));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {
@@ -2800,7 +2800,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             client.reject(e, messageHash.as_deref());
         }
         if !rejected {
-            let mut feedback: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+            let mut feedback: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message)));
             client.reject(feedback, messageHash.as_deref());
             return Value::Bool(true);
         }

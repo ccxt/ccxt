@@ -457,16 +457,16 @@ impl Blockchaincom {
         //
         let mut event: Option<String> = (match __pro_message.get("event").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
-        let mut symbol: String = self.safe_string_k(market.clone(), "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
+        let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut ticker: Value = Value::Null;
         if (event.as_deref() == Some("subscribed")) {
             return;
         }  else if (event.as_deref() == Some("snapshot")) {
-            ticker = self.parse_ticker(message.clone(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref());
+            ticker = self.parse_ticker(message.clone(), Some(&market));
         }  else if (event.as_deref() == Some("updated")) {
             let mut lastTicker: Value = self.safe_dict(self.tickers.clone(), Value::from(symbol.as_str()), &[]);
-            ticker = self.parse_ws_updated_ticker(message, &[lastTicker, market]);
+            ticker = self.parse_ws_updated_ticker(message, &[lastTicker, crate::Value::from(&market)]);
         }
         let mut messageHash: String = format!("{}{}", "ticker:", symbol);
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.to_string(), ticker.clone()); }

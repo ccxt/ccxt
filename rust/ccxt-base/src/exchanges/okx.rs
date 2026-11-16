@@ -8382,8 +8382,8 @@ impl Okx {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_trade_cancel_all_after(&[__ws_arg_37]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_trade_cancel_all_after(&[__ws_arg_37]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9605,14 +9605,14 @@ impl Okx {
         }
         let mut currency: crate::types::Currency = self.currency(code);
         let mut hasTag: bool = (tagWithdrawTag.is_some()) && (((tagWithdrawTag.as_deref().unwrap_or_default().chars().count() as i64)) > 0);
-        let mut addressWithTag: Value = address.clone();
+        let mut addressWithTag: String = address.as_str().unwrap_or_default().to_string();
         if hasTag {
-            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
+            addressWithTag = format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null"));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ccy".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
-                m.insert("toAddr".to_string(), addressWithTag);
+                m.insert("toAddr".to_string(), Value::from(addressWithTag));
                 m.insert("dest".to_string(), Value::Str("4".into()));
                 m.insert("amt".to_string(), Value::from(self.number_to_string(amount)));
             m
@@ -10929,8 +10929,8 @@ impl Okx {
             request.insert("posSide".into(), Value::from(posSide));
         }
         let __ws_arg_68 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_68]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_68]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -11015,8 +11015,8 @@ impl Okx {
             m
         });
         let __ws_arg_69 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_account_set_position_mode(&[__ws_arg_69]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_set_position_mode(&[__ws_arg_69]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -11070,8 +11070,8 @@ impl Okx {
             m
         });
         let __ws_arg_70 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_70]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_70]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

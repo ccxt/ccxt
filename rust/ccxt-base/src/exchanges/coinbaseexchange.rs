@@ -2801,10 +2801,10 @@ impl Coinbaseexchange {
             request.insert("product_id".into(), crate::value::KeyRead::key_read(&&market, "symbol")); // the request will be more performant if you include it
         }
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders(&[__ws_arg_21]).await;
+        let mut response: crate::value::List = self.private_delete_orders(&[__ws_arg_21]).await.into_list();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
     m
 }), None)]);
         Value::Null

@@ -3193,8 +3193,8 @@ impl Alpaca {
         }
         // the two calls stay sequential deliberately — the static request harness records one request per case,
         // and concurrent calls make the recorded url nondeterministic per language
-        let mut account: Value = self.trader_private_get_v2_account(&[params]).await;
-        let mut positions: Value = self.trader_private_get_v2_positions(&[]).await;
+        let mut account: crate::value::Dict = self.trader_private_get_v2_account(&[params]).await.into_dict();
+        let mut positions: crate::value::List = self.trader_private_get_v2_positions(&[]).await.into_list();
         //
         //     {
         //         "id": "43a01bde-4eb1-64fssc26adb5",
@@ -3245,8 +3245,8 @@ impl Alpaca {
         //
         let mut response: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("account".to_string(), account);
-                m.insert("positions".to_string(), positions);
+                m.insert("account".to_string(), Value::Dict(account));
+                m.insert("positions".to_string(), Value::Arr(positions));
             m
         });
         return <Self as crate::exchange::DerivedExchange>::parse_balance(self, Value::Map(response));

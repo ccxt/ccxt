@@ -1647,7 +1647,7 @@ impl crate::exchange_generated::ExchangeBase for Kucoin {
                 "is_hf_or_mining" => self.is_hf_or_mining(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "is_uta_enabled" => self.is_uta_enabled(&args[..]).await,
                 "load_migration_status" => self.load_migration_status(&args[..]).await,
-                "market_order_amount_to_precision" => self.market_order_amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "market_order_amount_to_precision" => crate::Value::from(self.market_order_amount_to_precision(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "nonce" => self.nonce(),
                 "parse_adl_rank" => self.parse_adl_rank(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_balance_helper" => self.parse_balance_helper(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -7570,7 +7570,7 @@ impl Kucoin {
         });
         let mut quoteAmount: Option<f64> = self.safe_number2(&paramsOmitted, Value::Str("cost".into()), Value::Str("funds".into()), &[]).as_f64();
         let mut amountString: Option<String> = None;
-        let mut costString: Value = Value::Null;
+        let mut costString: Option<String> = None;
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp: Vec<Value> = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[Value::from(&paramsOmitted)]).as_array().cloned().unwrap_or_default(); marginMode = __destr_tmp.get(0).cloned().unwrap_or(Value::Null); paramsOmitted = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
         if (type_var.as_str() == Some("market")) {
@@ -7578,7 +7578,7 @@ impl Kucoin {
                 paramsOmitted = self.omit(Value::Dict(paramsOmitted), &["cost", "funds"], &[]).into_dict();
                 // kucoin uses base precision even for quote values
                 costString = self.market_order_amount_to_precision(symbol.as_str(), Value::from(quoteAmount));
-                request.insert("funds".into(), costString);
+                request.insert("funds".into(), costString.map(Value::from).unwrap_or(Value::Null));
             }  else {
                 amountString = self.amount_to_precision(symbol.clone(), amount.clone());
                 request.insert("size".into(), Value::from(self.amount_to_precision(symbol.clone(), amount.clone())));
@@ -7632,7 +7632,7 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn market_order_amount_to_precision(&self, symbol: Option<&str>, amount: impl Into<crate::Value>) -> Value {
+    pub fn market_order_amount_to_precision(&self, symbol: Option<&str>, amount: impl Into<crate::Value>) -> Option<String> {
         let mut symbol: Value = symbol.into();
         let mut amount: Value = amount.into();
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
@@ -7649,9 +7649,7 @@ impl Kucoin {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " amount of ").into()), Value::from((market).symbol.clone())).into()), " must be greater than minimum amount precision of ").into()),
                 Value::from(self.number_to_string(marketPrecision.get("amount").cloned().unwrap_or(Value::Null))))));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
 /*
@@ -8004,7 +8002,7 @@ impl Kucoin {
             paramsRequest = self.omit(&paramsRequest, Value::Str("cost".into()), &[]).into_dict();
             if (isSpot == true) && isMarketOrder {
                 request.insert("sizeUnit".into(), Value::Str("QUOTECCY".into()));
-                request.insert("size".into(), self.market_order_amount_to_precision(symbol.as_str(), cost.map(Value::from).unwrap_or(Value::Null)));
+                request.insert("size".into(), self.market_order_amount_to_precision(symbol.as_str(), cost.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() with cost is supported for spot market orders only")));
             }
@@ -15504,8 +15502,8 @@ impl Kucoin {
             m
         });
         let __ws_arg_148 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.futures_private_post_position_switch_position_mode(&[__ws_arg_148]).await;
-        return response;
+        let mut response: crate::value::Dict = self.futures_private_post_position_switch_position_mode(&[__ws_arg_148]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

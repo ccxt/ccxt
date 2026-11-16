@@ -3136,8 +3136,8 @@ impl Limitless {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.limitless_private_get_profiles_me(&[params]).await;
-        let mut responseList: crate::value::List = std::sync::Arc::new(vec![response]);
+        let mut response: crate::value::Dict = self.limitless_private_get_profiles_me(&[params]).await.into_dict();
+        let mut responseList: crate::value::List = std::sync::Arc::new(vec![Value::Dict(response)]);
         return self.parse_accounts(&responseList, &[]);
         Value::Null
         }).await?))
@@ -3612,10 +3612,10 @@ if _try_result.is_err() {
         });
         let mut rest: crate::value::Dict = self.omit(params, &["conditionId", "condition_id"], &[]).into_dict();
         let __ws_arg_26 = self.extend(Value::Map(request), &[&rest]);
-        let mut response: Value = self.limitless_private_post_portfolio_redeem(&[__ws_arg_26]).await;
+        let mut response: crate::value::Dict = self.limitless_private_post_portfolio_redeem(&[__ws_arg_26]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("conditionId".to_string(), conditionId.clone().map(Value::from).unwrap_or(Value::Null));
     m
@@ -3710,10 +3710,10 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " cancelAllOrders requires either an outcome argument or a slug parameter")));
         }
         let __ws_arg_28 = self.extend(Value::Map(request), &[&paramsValue]);
-        let mut response: Value = self.limitless_private_delete_orders_all_slug(&[__ws_arg_28]).await;
+        let mut response: crate::value::Dict = self.limitless_private_delete_orders_all_slug(&[__ws_arg_28]).await.into_dict();
         return Value::from(vec![self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), &[])]);
         Value::Null
@@ -3745,10 +3745,10 @@ if _try_result.is_err() {
     m
 }));
         // resolve the handle for the final filter — the caller may have passed an outcomeId
-        let mut outcomeSymbol: Value = outcome.clone();
+        let mut outcomeSymbol: Option<String> = outcome.as_str().map(str::to_owned);
         if (outcome != Value::Null) {
             let mut outcomeObj: Option<crate::types::Market> = self.load_outcome(outcome.clone(), &[]).await;
-            outcomeSymbol = self.safe_string_k(&outcomeObj, "outcome", &[]);
+            outcomeSymbol = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
         }
         let mut paginate: bool = false;
         let mut maxLimit: i64 = 100;
@@ -3849,7 +3849,7 @@ if _try_result.is_err() {
         }
         }
         let mut parsedTrades: crate::value::List = self.parse_prediction_trades(Value::from(trades), &[Value::Null]).into_list();
-        return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcomeSymbol, since, limit]);
+        return self.filter_by_outcome_since_limit(Value::Arr(parsedTrades), &[outcomeSymbol.map(Value::from).unwrap_or(Value::Null), since, limit]);
         Value::Null
         }).await?))
     }

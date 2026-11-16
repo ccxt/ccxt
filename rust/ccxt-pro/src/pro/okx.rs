@@ -2207,7 +2207,7 @@ impl Okx {
         let mut prevSeqId: Option<i64> = (match message.get("prevSeqId") { Some(Value::Int(__n)) => Value::Int(*__n), Some(Value::Float(__f)) => Value::Int(*__f as i64), Some(Value::Str(__s)) => match __s.parse::<i64>() { Ok(__n) => Value::Int(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Value::Int(__f as i64), _ => Value::Null } }, _ => Value::Null }).as_i64();
         let mut nonce: Option<i64> = self.safe_integer_k(orderbook.clone(), "nonce", &[]).as_i64();
         if (prevSeqId.is_some()) && (prevSeqId != Some(-1)) && (nonce != prevSeqId) {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce")));
+            let mut error: crate::ExchangeError = crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce"));
             __ch.remove_subscription(&messageHash);
             if (symbol.is_some()) {
                 CacheStore::forget(&mut self.orderbooks, &symbol);

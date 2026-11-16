@@ -760,7 +760,7 @@ impl crate::exchange_generated::ExchangeBase for Apex {
                 "fetch_time" => crate::types::IntoRaw::into_raw(self.fetch_time(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_trades" => crate::types::IntoRaw::into_raw(self.fetch_trades(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "get_account_id" => self.get_account_id().await,
-                "get_seeds" => self.get_seeds(),
+                "get_seeds" => crate::Value::from(self.get_seeds()),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "parse_account" => self.parse_account(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2043,14 +2043,12 @@ impl Apex {
         return symbol.as_str().map(str::to_owned);
 }
 
-    pub fn get_seeds(&self) -> Value {
+    pub fn get_seeds(&self) -> Option<String> {
         let mut seeds: Option<String> = self.safe_string_k_opt(self.options.clone(), "seeds", &[]);
         if (seeds.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " the \"seeds\" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options[\"seeds\"] = XXXX")));
         }
-        return seeds.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return seeds;
 }
 
     pub async fn get_account_id(&mut self) -> Value {
@@ -2170,7 +2168,7 @@ impl Apex {
         if (triggerPrice.is_some()) {
             orderToSign.insert("triggerPrice".into(), Value::from(self.price_to_precision(symbol.clone(), triggerPrice.clone().map(Value::from).unwrap_or(Value::Null))));
         }
-        let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds()), &[Value::Map(orderToSign)]).await;
+        let mut signature: Value = self.get_zk_contract_signature_obj(self.remove0x_prefix(self.get_seeds().map(Value::from).unwrap_or(Value::Null)), &[Value::Map(orderToSign)]).await;
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
@@ -2324,7 +2322,7 @@ impl Apex {
                     m.insert("isContract".to_string(), Value::Bool(true));
                 m
             });
-            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
+            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds().map(Value::from).unwrap_or(Value::Null)), &[orderToSign]).await;
             let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("amount".to_string(), amount.clone());
@@ -2368,7 +2366,7 @@ impl Apex {
                     m.insert("timestampSeconds".to_string(), Value::from(timestampSeconds));
                 m
             });
-            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds()), &[orderToSign]).await;
+            let mut signature: Value = self.get_zk_transfer_signature_obj(self.remove0x_prefix(self.get_seeds().map(Value::from).unwrap_or(Value::Null)), &[orderToSign]).await;
             let mut ts: Option<i64> = timestampSeconds; // java req
             let mut request: crate::value::Dict = Value::Map({
                 let mut m = indexmap::IndexMap::new();

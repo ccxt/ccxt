@@ -3941,12 +3941,12 @@ if _try_result.is_err() {
             //
             let mut fiatData: crate::value::List = self.safe_list_k(&fiatResponse, "data", &[Value::from(vec![])]).into_list();
             let mut cryptoData: crate::value::List = self.safe_list_k(&cryptoResponse, "data", &[Value::from(vec![])]).into_list();
-            let mut exchangeRates: Value = self.v2_public_get_exchange_rates(&[params]).await;
+            let mut exchangeRates: crate::value::Dict = self.v2_public_get_exchange_rates(&[params]).await.into_dict();
             let __ws_arg_11 = self.array_concat(&fiatData, &cryptoData);
             { let __be_tmp = self.extend(options, &[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("currencies".to_string(), __ws_arg_11);
-        m.insert("exchangeRates".to_string(), exchangeRates);
+        m.insert("exchangeRates".to_string(), Value::Dict(exchangeRates));
         m.insert("timestamp".to_string(), Value::from(now));
     m
 })]); if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("fetchCurrencies".into(), __be_tmp); } }

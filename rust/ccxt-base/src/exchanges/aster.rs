@@ -3693,8 +3693,8 @@ impl Aster {
             m
         });
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.fapi_private_post_v3_margin_type(&[__ws_arg_18]).await;
-        return response;
+        let mut response: crate::value::Dict = self.fapi_private_post_v3_margin_type(&[__ws_arg_18]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -4599,8 +4599,8 @@ impl Aster {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.fapi_private_post_v3_leverage(&[__ws_arg_37]).await;
-        return response;
+        let mut response: crate::value::Dict = self.fapi_private_post_v3_leverage(&[__ws_arg_37]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

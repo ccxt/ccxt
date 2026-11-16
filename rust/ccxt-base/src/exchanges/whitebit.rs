@@ -1033,11 +1033,11 @@ impl crate::exchange::DerivedExchange for Whitebit {
         let mut query: crate::value::Dict = self.omit(params.clone(), self.extract_params(path.clone()), &[]).into_dict();
         let mut version: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut accessibility: Option<&str> = api.get(1).and_then(Value::as_str);
-        let mut publicHeaders: Value = Value::Map({
+        let mut publicHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
-        if let Value::Dict(__d) = &mut publicHeaders { std::sync::Arc::make_mut(__d).insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ccxt/", self.id.clone()).into()), "-").into()), self.version.clone()).into())); }
+        publicHeaders.insert("User-Agent".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ccxt/", self.id.clone()).into()), "-").into()), self.version.clone()).into()));
         let mut pathWithParams: String = format!("{}{}", Value::Str("/".into()), self.implode_params(path, params.clone()));
         let mut apiUrl: Option<String> = self.safe_string_opt(self.safe_dict(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(version.as_deref()), &[]), Value::from(accessibility.as_deref()), &[]);
         if (apiUrl.is_none()) {
@@ -1050,7 +1050,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
             }
         }
         let mut privateBody: Option<String> = None;
-        let mut privateHeaders: Value = Value::Map({
+        let mut privateHeaders: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1073,7 +1073,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
             privateBody = self.json(__ws_arg_43).as_str().map(str::to_owned);
             let mut payload: String = self.string_to_base64(privateBody.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             let mut signature: String = self.hmac(self.encode(Value::from(payload.clone())), &secret, Value::Str("sha512".into()), &[]);
-            privateHeaders = Value::Map({
+            privateHeaders = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("Content-Type".to_string(), Value::Str("application/json".into()));
                     m.insert("X-TXC-APIKEY".to_string(), self.apiKey.clone());
@@ -1092,7 +1092,7 @@ impl crate::exchange::DerivedExchange for Whitebit {
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), (if (isPrivate) { privateHeaders } else { publicHeaders }));
+        m.insert("headers".to_string(), (if (isPrivate) { Value::Map(privateHeaders) } else { Value::Map(publicHeaders) }));
     m
 });
 
@@ -2664,10 +2664,10 @@ impl Whitebit {
                         let mut i: i64 = 0;
             let mut __for_first_1151: bool = true;
             while { if !__for_first_1151 { i += 1; } __for_first_1151 = false; i < (currencyIds.len() as i64) } {
-            let mut entry: Value = currencyIds.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut splitEntry: crate::value::List = Value::Array(if let Some(__s) = entry.as_str() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
+            let mut entry: Option<String> = currencyIds.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut splitEntry: crate::value::List = Value::Array(if let Some(__s) = entry.as_deref() { __s.split(" ").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut currencyId: Option<String> = splitEntry.get(0).and_then(Value::as_str).map(str::to_owned);
-            let mut feeInfo: Value = self.safe_dict(response.clone(), entry.clone(), &[]);
+            let mut feeInfo: Value = self.safe_dict(response.clone(), Value::from(entry.as_deref()), &[]);
             let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
             if (code.is_some()) && ((codesValue.is_none()) || (self.in_array(&code, codesValue.clone().map_or(Value::Null, Value::Arr)))) {
                 let mut depositWithdrawFee: Option<crate::value::Dict> = self.safe_dict(&depositWithdrawFees, Value::from(code.as_deref()), &[]).into_opt_dict();
@@ -2677,7 +2677,7 @@ impl Whitebit {
     m
 })));
                 }
-                add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &entry, feeInfo.clone());
+                add_element_to_object(get_value_mut(depositWithdrawFees.entry(code.as_deref().unwrap_or("null").to_string()).or_default(), &Value::Str("info".into())), &entry.map(Value::from).unwrap_or(Value::Null), feeInfo.clone());
                 let mut networkId: Option<String> = self.safe_string_opt(&splitEntry, Value::Int(1), &[]);
                 let mut withdraw: crate::value::Dict = self.safe_dict_k(feeInfo.clone(), "withdraw", &[]).into_dict();
                 let mut deposit: crate::value::Dict = self.safe_dict_k(feeInfo, "deposit", &[]).into_dict();
@@ -4282,8 +4282,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("timeout".into(), Value::Str("null".into()));
         }
         let __ws_arg_19 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v4_private_post_order_kill_switch(&[__ws_arg_19]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

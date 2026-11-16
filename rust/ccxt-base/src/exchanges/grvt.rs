@@ -2239,7 +2239,7 @@ impl Grvt {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_edge_post_auth_api_key_login(&[__ws_arg_0]).await;
+        let mut response: crate::value::Dict = self.private_edge_post_auth_api_key_login(&[__ws_arg_0]).await.into_dict();
         //
         //    {
         //        "location": "",
@@ -2247,7 +2247,7 @@ impl Grvt {
         //    }
         //
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -2276,7 +2276,7 @@ impl Grvt {
             m
         });
         let __ws_arg_1 = self.extend(self.create_signed_request(&mut request, "EIP712_WALLETLOGIN_TYPE", &[]), &[params]);
-        let mut response: Value = self.private_edge_post_auth_wallet_login(&[__ws_arg_1]).await;
+        let mut response: crate::value::Dict = self.private_edge_post_auth_wallet_login(&[__ws_arg_1]).await.into_dict();
         //
         //    {
         //        "location": "",
@@ -2284,7 +2284,7 @@ impl Grvt {
         //    }
         //
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("signInExpiration".into(), Value::Int((now + 86400000))); }; // 24 hours
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -2390,7 +2390,7 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut marketsPromise: Value = self.public_market_post_full_v1_all_instruments(&[params]).await;
+        let mut marketsPromise: crate::value::Dict = self.public_market_post_full_v1_all_instruments(&[params]).await.into_dict();
         //
         //    {
         //        "result": [
@@ -2417,7 +2417,7 @@ if _try_result.is_err() {
         //            },
         //            ...
         //
-        let mut promises: Vec<Value> = vec![marketsPromise];
+        let mut promises: Vec<Value> = vec![Value::Dict(marketsPromise)];
         if !(self.is_empty_string(self.apiKey.clone()).as_bool() == Some(true)) || !(self.is_empty_string(self.privateKey.clone()).as_bool() == Some(true)) {
             promises.push(self.sign_in(&[]).await);
         }

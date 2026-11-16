@@ -60,8 +60,8 @@ impl crate::exchange_generated::ExchangeBase for Apex {
         Box::pin(async move {
             match method {
                 "authenticate" => self.authenticate(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
-                "get_ws_private_url" => self.get_ws_private_url(),
-                "get_ws_public_url" => self.get_ws_public_url(),
+                "get_ws_private_url" => crate::Value::from(self.get_ws_private_url()),
+                "get_ws_public_url" => crate::Value::from(self.get_ws_public_url()),
                 "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -98,8 +98,8 @@ impl Apex {
         let __n = match __name.strict() { Some(s) => s, None => return crate::Value::Null };
         match __n {
             "authenticate" => { crate::exchange_stubs::enqueue_spawn("authenticate", args.to_vec()); crate::Value::Null },
-            "get_ws_private_url" => self.get_ws_private_url(),
-            "get_ws_public_url" => self.get_ws_public_url(),
+            "get_ws_private_url" => crate::Value::from(self.get_ws_private_url()),
+            "get_ws_public_url" => crate::Value::from(self.get_ws_public_url()),
             "handle_account" => { self.handle_account(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_delta" => { self.handle_delta(crate::pro::order_book::Side::of(args.get(0).cloned().unwrap_or(crate::Value::Null)), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -275,7 +275,7 @@ impl Apex {
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchTradesForSymbols() requires a non-empty array of symbols")));
         }
-        let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_public_url();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -455,7 +455,7 @@ impl Apex {
         if (symbolsLength == 0) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " watchOrderBookForSymbols() requires a non-empty array of symbols")));
         }
-        let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_public_url();
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         let mut limitValue: i64 = limit.as_i64().unwrap_or(25);
@@ -517,7 +517,7 @@ impl Apex {
     Value::Null
 }
 
-    pub fn get_ws_public_url(&mut self) -> Value {
+    pub fn get_ws_public_url(&mut self) -> Option<String> {
         // apex appends a millisecond timestamp to the WS URL for connection-time
         // signing. CCXT's client manager keys clients by URL, so recomputing the
         // timestamp on every watch* call would open a new connection each time.
@@ -529,12 +529,10 @@ impl Apex {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPublicUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k_opt(self.options.clone(), "wsPublicUrl", &[Value::Str("".into())]);
         }
-        return url.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return url;
 }
 
-    pub fn get_ws_private_url(&mut self) -> Value {
+    pub fn get_ws_private_url(&mut self) -> Option<String> {
         let mut url: Option<String> = self.safe_string_k_opt(self.options.clone(), "wsPrivateUrl", &[]);
         if (url.is_none()) {
             let mut timeStamp: String = format!("{}", self.milliseconds());
@@ -542,9 +540,7 @@ impl Apex {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsPrivateUrl".into(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", wsEndpoint, "&timestamp=").into()), timeStamp).into())); }
             url = self.safe_string_k_opt(self.options.clone(), "wsPrivateUrl", &[Value::Str("".into())]);
         }
-        return url.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return url;
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
@@ -652,7 +648,7 @@ impl Apex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_public_url();
         let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
         let mut marketId: String = self.safe_string_k(&market, "id2", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut topics: crate::value::List = std::sync::Arc::new(vec![Value::Str(format!("{}{}", Value::Str(format!("{}{}", "instrumentInfo", ".H.").into()), marketId).into())]);
@@ -686,7 +682,7 @@ impl Apex {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut messageHashes: Vec<Value> = Vec::new();
-        let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_public_url();
         let mut topics: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
@@ -834,7 +830,7 @@ impl Apex {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut url: Option<String> = self.get_ws_public_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_public_url();
         let mut rawHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -965,7 +961,7 @@ impl Apex {
             symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "myTrades", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
-        let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_private_url();
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut trades: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::Str("myTrades".into())]), &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
@@ -1014,7 +1010,7 @@ impl Apex {
         if !(self.is_empty(symbols).as_bool() == Some(true)) {
             messageHash = format!("{}{}", Value::Str("::".into()), Value::Str(symbolsNormalized2.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(",")).unwrap_or_default().into()));
         }
-        let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_private_url();
         messageHash = format!("{}{}", "positions", messageHash);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
@@ -1067,7 +1063,7 @@ impl Apex {
             symbolResolved = Some(self.symbol(symbol));
             messageHash = format!("{}{}", Value::Str(format!("{}{}", "orders", ":").into()), symbolResolved.as_deref().unwrap_or("null"));
         }
-        let mut url: Option<String> = self.get_ws_private_url().as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_ws_private_url();
         self.authenticate(url.as_deref().unwrap_or_default(), &[]).await;
         let mut topics: crate::value::List = std::sync::Arc::new(vec![Value::Str("orders".into())]);
         let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[params]).await;
@@ -1603,7 +1599,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message)));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());

@@ -1049,12 +1049,12 @@ impl Independentreserve {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut baseCurrenciesPromise: Value = self.public_get_get_valid_primary_currency_codes(&[params.clone()]).await;
+        let mut baseCurrenciesPromise: crate::value::List = self.public_get_get_valid_primary_currency_codes(&[params.clone()]).await.into_list();
         //     ['Xbt', 'Eth', 'Usdt', ...]
-        let mut quoteCurrenciesPromise: Value = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await;
+        let mut quoteCurrenciesPromise: crate::value::List = self.public_get_get_valid_secondary_currency_codes(&[params.clone()]).await.into_list();
         //     ['Aud', 'Usd', 'Nzd', 'Sgd']
-        let mut limitsPromise: Value = self.public_get_get_order_minimum_volumes(&[params]).await;
-        let mut responses: crate::value::List = promise_all(&Value::from(vec![baseCurrenciesPromise, quoteCurrenciesPromise, limitsPromise])).await.into_list();
+        let mut limitsPromise: crate::value::Dict = self.public_get_get_order_minimum_volumes(&[params]).await.into_dict();
+        let mut responses: crate::value::List = promise_all(&Value::from(vec![Value::Arr(baseCurrenciesPromise), Value::Arr(quoteCurrenciesPromise), Value::Dict(limitsPromise)])).await.into_list();
         let mut limits: crate::value::Dict = self.safe_dict(&responses, Value::Int(2), &[]).into_dict();
         //
         //     {

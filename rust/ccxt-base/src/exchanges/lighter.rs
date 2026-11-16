@@ -819,7 +819,7 @@ impl crate::exchange_generated::ExchangeBase for Lighter {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "pow" => self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "pow" => crate::Value::from(self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "pre_load_lighter_library" => self.pre_load_lighter_library(&args[..]).await,
                 "reduce_margin" => crate::types::IntoRaw::into_raw(self.reduce_margin(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(2).cloned().unwrap_or_default()).await),
                 "set_leverage" => crate::types::IntoRaw::into_raw(self.set_leverage(args.get(0).and_then(crate::Value::as_i64).unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
@@ -1852,7 +1852,7 @@ impl Lighter {
         return token.as_str().map(str::to_owned);
 }
 
-    pub fn pow(&self, n: &str, mut m: Value) -> Value {
+    pub fn pow(&self, n: &str, mut m: Value) -> Option<String> {
         let mut n: Value = n.into();
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut c: Option<i64> = self.parse_to_int(m);
@@ -1860,7 +1860,7 @@ impl Lighter {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " pow() requires m > 0.")));
         }
         if (c == Some(0)) {
-            return Value::Str("1".into());
+            return Value::Str("1".into()).as_str().map(str::to_owned);
         }
         if c > Some(100) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " pow() requires m < 100.")));
@@ -1872,9 +1872,7 @@ impl Lighter {
             r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
         }
         }
-        return r.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return r;
 }
 
     pub fn hash_message(&self, message: &str) -> Option<String> {
@@ -2023,8 +2021,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), newTxInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -2217,8 +2215,8 @@ if _try_result.is_err() {
         })]).as_map().cloned().unwrap_or_default();
         let mut amountStr: Option<String> = None;
         let mut priceStr: Option<String> = self.price_to_precision(symbol.clone(), price);
-        let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut priceScale: Option<String> = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null));
+        let mut priceScale: Option<String> = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
         let mut triggerPriceStr: Option<String> = Some("0".to_string()); // default is 0
         let mut defaultClientOrderId: i64 = self.rand_number(Value::Int(9)); // c# only support int32 2147483647.
         let mut clientOrderId: Option<i64> = self.safe_integer2(&paramsOmitted, Value::Str("client_order_index".into()), Value::Str("clientOrderId".into()), &[Value::from(defaultClientOrderId)]).as_i64();
@@ -2524,8 +2522,8 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).as_map().cloned().unwrap_or_default();
-        let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
-        let mut priceScale: Option<String> = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null)).as_str().map(str::to_owned);
+        let mut amountScale: Option<String> = self.pow("10", marketInfo.get("size_decimals").cloned().unwrap_or(Value::Null));
+        let mut priceScale: Option<String> = self.pow("10", marketInfo.get("price_decimals").cloned().unwrap_or(Value::Null));
         let mut triggerPrice: Option<String> = self.safe_string_n_opt(Value::from(&paramsAccountIndex), Value::from(vec![Value::Str("stopPrice".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into())]), &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsAccountIndex, &["stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"], &[]).into_dict();
         let mut amountStr: Option<String> = None;
@@ -3935,7 +3933,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " transfer() only supports USDC and ETH transfers")));
         }
         let mut amountDecimals: String = (if (currencyCode.as_deref() == Some("USDC")) { "6".to_string() } else { "8".to_string() });
-        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &Value::from(self.currency_to_precision(code, amount, &[]))));
+        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)).map(Value::from).unwrap_or(Value::Null), &Value::from(self.currency_to_precision(code, amount, &[]))));
         let mut fromRouteType: i64 = (if (fromAccount.as_str() == Some("perp")) { 0 } else { 1 }); // 0: perp, 1: spot
         let mut toRouteType: i64 = (if (toAccount.as_str() == Some("perp")) { 0 } else { 1 });
         let mut memo: String = self.safe_string_k(&paramsToAccountIndex, "memo", &[Value::Str("0x000000000000000000000000000000".into())]).as_str().unwrap_or("0x000000000000000000000000000000").to_string();
@@ -4295,7 +4293,7 @@ if _try_result.is_err() {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " withdraw() only supports USDC and ETH transfers")));
         }
         let mut amountDecimals: String = (if (currencyCode.as_deref() == Some("USDC")) { "6".to_string() } else { "8".to_string() });
-        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)), &Value::from(self.currency_to_precision(code, amount, &[]))));
+        let mut amountScaled: Option<i64> = self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::from(amountDecimals)).map(Value::from).unwrap_or(Value::Null), &Value::from(self.currency_to_precision(code, amount, &[]))));
         let mut routeType: i64 = self.safe_integer_k(&paramsAccountIndex, "routeType", &[Value::Int(0)]).as_i64().unwrap_or(0); // 0: perp, 1: spot
         let mut paramsOmitted: crate::value::Dict = self.omit(&paramsAccountIndex, Value::Str("routeType".into()), &[]).into_dict();
         let mut nonce: Option<i64> = self.fetch_nonce(Value::from(accountIndex), Value::from(apiKeyIndex), &[Value::from(&paramsOmitted)]).await.as_i64();
@@ -4798,8 +4796,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return self.parse_orders(Value::from(vec![response]), None, &[]);
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return self.parse_orders(Value::from(vec![Value::Dict(response)]), None, &[]);
         Value::Null
         }).await?))
     }
@@ -4862,8 +4860,8 @@ if _try_result.is_err() {
                 m.insert("tx_info".to_string(), txInfo.map(Value::from).unwrap_or(Value::Null));
             m
         });
-        let mut response: Value = self.public_post_send_tx(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.public_post_send_tx(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -4982,7 +4980,7 @@ if _try_result.is_err() {
         let mut signRaw: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market_index".to_string(), Value::from(self.parse_to_int(Value::from((market).id.as_deref()))));
-                m.insert("usdc_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::Str("6".into())), &Value::from(self.currency_to_precision(Value::Str("USDC".into()), amount, &[]))))));
+                m.insert("usdc_amount".to_string(), Value::from(self.parse_to_int(crate::precise::Precise::stringMul(&self.pow("10", Value::Str("6".into())).map(Value::from).unwrap_or(Value::Null), &Value::from(self.currency_to_precision(Value::Str("USDC".into()), amount, &[]))))));
                 m.insert("direction".to_string(), Value::from(direction));
                 m.insert("nonce".to_string(), Value::from(nonce));
                 m.insert("api_key_index".to_string(), Value::from(apiKeyIndex));

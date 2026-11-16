@@ -4155,8 +4155,8 @@ impl Deepcoin {
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[&paramsMrgPosition]);
-        let mut response: Value = self.private_post_deepcoin_account_set_leverage(&[__ws_arg_34]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_deepcoin_account_set_leverage(&[__ws_arg_34]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

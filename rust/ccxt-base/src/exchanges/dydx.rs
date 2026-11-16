@@ -655,7 +655,7 @@ impl crate::exchange_generated::ExchangeBase for Dydx {
                 "parse_trade" => self.parse_trade(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transaction" => self.parse_transaction(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_transfer" => self.parse_transfer(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "pow" => self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "pow" => crate::Value::from(self.pow(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "retrieve_credentials" => self.retrieve_credentials(),
                 "set_sandbox_mode" => crate::types::IntoRaw::into_raw(self.set_sandbox_mode(args.get(0).is_some_and(crate::Value::is_truthy))),
                 "sign" => self.sign(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]),
@@ -2247,7 +2247,7 @@ impl Dydx {
     Value::Null
 }
 
-    pub fn pow(&self, n: &str, mut m: Value) -> Value {
+    pub fn pow(&self, n: &str, mut m: Value) -> Option<String> {
         let mut n: Value = n.into();
         let mut r: Option<String> = crate::precise::Precise::stringMul(&n, &Value::Str("1".into())).as_str().map(str::to_owned);
         let mut c: Option<i64> = self.parse_to_int(m);
@@ -2258,9 +2258,7 @@ impl Dydx {
             r = crate::precise::Precise::stringMul(&r, &n).as_str().map(str::to_owned);
         }
         }
-        return r.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return r;
 }
 
     pub fn create_order_request(&self, symbol: Option<&str>, type_var: &str, side: &str, mut amount: Value, optional_args: &[Value]) -> Value {
@@ -2303,10 +2301,10 @@ impl Dydx {
             m
         })]).as_map().cloned().unwrap_or_default();
         let mut atomicResolution: Value = marketInfo.get("atomicResolution").cloned().unwrap_or(Value::Null);
-        let mut quantumScale: Option<String> = self.pow("10", crate::precise::Precise::stringNeg(&atomicResolution)).as_str().map(str::to_owned);
+        let mut quantumScale: Option<String> = self.pow("10", crate::precise::Precise::stringNeg(&atomicResolution));
         let mut quantums: Option<String> = crate::precise::Precise::stringMul(&amountStr, &quantumScale).as_str().map(str::to_owned);
         let mut quantumConversionExponent: Value = marketInfo.get("quantumConversionExponent").cloned().unwrap_or(Value::Null);
-        let mut priceScale: Option<String> = self.pow("10", crate::precise::Precise::stringSub(&crate::precise::Precise::stringSub(&atomicResolution, &quantumConversionExponent), &Value::Str("-6".into()))).as_str().map(str::to_owned);
+        let mut priceScale: Option<String> = self.pow("10", crate::precise::Precise::stringSub(&crate::precise::Precise::stringSub(&atomicResolution, &quantumConversionExponent), &Value::Str("-6".into())));
         let mut subticks: Option<String> = crate::precise::Precise::stringMul(&priceStr, &priceScale).as_str().map(str::to_owned);
         let mut clientMetadata: i64 = 0;
         let mut conditionalType: i64 = 0;

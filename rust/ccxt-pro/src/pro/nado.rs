@@ -2639,7 +2639,7 @@ impl Nado {
                 __ch.remove_subscription(messageHash.as_str());
             }
             CacheStore::forget(&mut self.orderbooks, &symbol);
-            let mut error: crate::ExchangeError = (crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce")));
+            let mut error: crate::ExchangeError = crate::exchange_errors::invalid_nonce(format!("{}{}", self.id.clone(), " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash.as_str());
             return;
         }
@@ -2856,7 +2856,7 @@ impl Nado {
         if (!error) && (status.as_deref() != Some("failure")) {
             return Value::Bool(false);
         }
-        let mut feedback: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+        let mut feedback: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message)));
         let mut id: String = (match __pro_message.get("id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Str("".into()) }).as_str().unwrap_or("").to_string();
         if (true) {
             let mut executeHash: String = format!("{}{}", "execute:", id);

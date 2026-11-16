@@ -1405,10 +1405,10 @@ impl Bitflyer {
             m
         });
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancelchildorder(&[__ws_arg_5]).await;
+        let mut response: crate::value::Dict = self.private_post_cancelchildorder(&[__ws_arg_5]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None);
         Value::Null

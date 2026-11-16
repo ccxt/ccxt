@@ -74,7 +74,7 @@ impl crate::exchange_generated::ExchangeBase for Gate {
                 "fetch_orders_by_status_ws" => crate::types::IntoRaw::into_raw(self.fetch_orders_by_status_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), args.get(4).cloned().unwrap_or_default()).await),
                 "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "get_market_type_by_url" => self.get_market_type_by_url(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-                "get_type_by_market" => self.get_type_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "get_type_by_market" => self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "get_url_by_market" => self.get_url_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -132,7 +132,7 @@ impl Gate {
             "fetch_orders_by_status_ws" => { crate::exchange_stubs::enqueue_spawn("fetch_orders_by_status_ws", args.to_vec()); crate::Value::Null },
             "get_cache_index" => self.get_cache_index(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "get_market_type_by_url" => self.get_market_type_by_url(args.get(0).cloned().unwrap_or(crate::Value::Null)),
-            "get_type_by_market" => self.get_type_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "get_type_by_market" => self.get_type_by_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
             "get_url_by_market" => self.get_url_by_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
             "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "handle_authentication_message" => { self.handle_authentication_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -443,7 +443,7 @@ impl Gate {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_place");
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         if let Value::Dict(__d) = &mut params { std::sync::Arc::make_mut(__d).insert("textIsRequired".into(), Value::Bool(true)); }
@@ -486,7 +486,7 @@ impl Gate {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrdersWs is not supported for swap markets")));
         }
         // todo add swap support
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_batch_place");
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
@@ -531,7 +531,7 @@ impl Gate {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         }
         let mut trigger: Option<bool> = self.safe_bool2(params.clone(), Value::Str("stop".into()), Value::Str("trigger".into()), &[]).as_bool();
-        let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel_cp");
         let channelOptionparamsChannelVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("cancelAllOrdersWs".into()), Value::Str("channel".into()), &[Value::from(channel)]).as_array().cloned().unwrap_or_default();
         let mut channelOption: Option<String> = channelOptionparamsChannelVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -595,7 +595,7 @@ impl Gate {
             Value::from(&query)]) }).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_cancel");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
@@ -641,14 +641,14 @@ impl Gate {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut extendedRequest: crate::value::Dict = self.parent.edit_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), &[amount, price, params]).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market(market.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_amend");
-        let mut url: Option<String> = self.get_url_by_market(market.clone()).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
         let mut rawOrder: Value = self.request_private(url.as_deref(), &extendedRequest, Some(channel.as_str()), None).await;
-        return self.parse_order(rawOrder, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return self.parse_order(rawOrder, Some(&market));
         Value::Null
         }).await?))
     }
@@ -692,7 +692,7 @@ impl Gate {
         let requestrequestParamsVariable: Vec<Value> = self.parent.fetch_order_request(id.as_str().unwrap_or_default(), symbol.as_str(), &[params]).as_array().cloned().unwrap_or_default();
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_status");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
@@ -805,7 +805,7 @@ impl Gate {
         let mut request: crate::value::Dict = requestrequestParamsVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut requestParams: crate::value::Dict = requestrequestParamsVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut newRequest: crate::value::Dict = self.omit(&request, &["settle"], &[]).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(market.as_ref()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".order_list");
         let mut url: Option<String> = self.get_url_by_market(crate::Value::from(market.as_ref())).as_str().map(str::to_owned);
         self.authenticate(url.as_deref(), messageType.as_deref()).await;
@@ -860,7 +860,7 @@ impl Gate {
         let intervalqueryVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(intervalDefault)]).as_array().cloned().unwrap_or_default();
         let mut interval: Option<String> = intervalqueryVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut query: crate::value::Dict = intervalqueryVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), symbolValue);
         // max 100 atm, max 50 for options
         let mut defaultLimit: i64 = 100;
@@ -939,7 +939,7 @@ impl Gate {
         let intervalOptionparamsIntervalVariable: Vec<Value> = self.handle_option_string_and_params(params, Value::Str("watchOrderBook".into()), Value::Str("interval".into()), &[Value::from(interval)]).as_array().cloned().unwrap_or_default();
         let mut intervalOption: Option<String> = intervalOptionparamsIntervalVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsInterval: crate::value::Dict = intervalOptionparamsIntervalVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut limit: Option<i64> = self.safe_integer_k(&paramsInterval, "limit", &[]).as_i64();
         if (limit.is_none()) {
             limit = (if (market).spot { Some(50) } else { Some(100) }); // max 100 atm
@@ -1161,7 +1161,7 @@ impl Gate {
             storedOrderBook.set_book_meta("cache", Value::from(vec![]));
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
-                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null))));
                 client.reject(error, messageHash.as_str());
             }
         }
@@ -1379,13 +1379,13 @@ impl Gate {
         let mut callerMethodNameOption: Option<String> = callerMethodNameOptionparamsCallerMethodNameVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsCallerMethodName: crate::value::Dict = callerMethodNameOptionparamsCallerMethodNameVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-        let mut messageType: Option<String> = self.get_type_by_market(market.clone()).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match self.market((symbolsNormalized.get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[Value::Arr(symbolsNormalized.clone())]).into_opt_list();
         let channelNameparamsMethodVariable: Vec<Value> = self.handle_option_string_and_params(&paramsCallerMethodName, callerMethodNameOption.clone().map(Value::from).unwrap_or(Value::Null), Value::Str("method".into()), &[Value::Str("".into())]).as_array().cloned().unwrap_or_default();
         let mut channelName: Option<String> = channelNameparamsMethodVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMethod: crate::value::Dict = channelNameparamsMethodVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut url: Option<String> = self.get_url_by_market(market).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", Value::Str(format!("{}{}", messageType.as_deref().unwrap_or("null"), ".").into()), channelName.as_deref().unwrap_or("null"));
         if (callerMethodNameOption.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " requires a callerMethodName argument")));
@@ -1531,8 +1531,8 @@ impl Gate {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-        let mut messageType: Option<String> = self.get_type_by_market(market.clone()).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".trades");
         let mut messageHashes: Vec<Value> = Vec::new();
         {
@@ -1543,7 +1543,7 @@ impl Gate {
             messageHashes.push(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut url: Option<String> = self.get_url_by_market(market).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         let mut trades: Value = self.subscribe_public_multiple(url.as_deref(), Value::from(messageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
@@ -1580,8 +1580,8 @@ impl Gate {
         }
         let mut symbolsNormalized: Option<crate::value::List> = self.market_symbols(&[symbols]).into_opt_list();
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbolsNormalized.clone().map_or(Value::Null, Value::Arr)]).into_opt_list();
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()));
-        let mut messageType: Option<String> = self.get_type_by_market(market.clone()).as_str().map(str::to_owned);
+        let mut market: crate::types::Market = (match self.market((symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(0).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".trades");
         let mut subMessageHashes: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1594,7 +1594,7 @@ impl Gate {
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
-        let mut url: Option<String> = self.get_url_by_market(market).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
         return self.un_subscribe_public_multiple(url.as_deref(), "trades", symbolsNormalized.map_or(Value::Null, Value::Arr), Value::from(messageHashes), Value::from(subMessageHashes), marketIds.map_or(Value::Null, Value::Arr), Some(channel.as_str()), &[params]).await;
         Value::Null
         }).await?))
@@ -1708,7 +1708,7 @@ impl Gate {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), Value::from((market).symbol.clone()));
         let mut url: Option<String> = self.get_url_by_market((market).raw.clone()).as_str().map(str::to_owned);
@@ -1754,7 +1754,7 @@ impl Gate {
         let mut symbolValue: String = (market).symbol.clone();
         let mut marketId: Option<String> = (market).id.as_deref().map(str::to_owned);
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
-        let mut messageType: Option<String> = self.get_type_by_market((market).raw.clone()).as_str().map(str::to_owned);
+        let mut messageType: Option<String> = self.get_type_by_market(Some(&market)).as_str().map(str::to_owned);
         let mut channel: String = format!("{}{}", messageType.as_deref().unwrap_or("null"), ".candlesticks");
         let mut subMessageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbolValue);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:candles:", interval.as_deref().unwrap_or("null")).into()), ":").into()), symbolValue);
@@ -3160,13 +3160,13 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
     Value::Null
 }
 
-    pub fn get_type_by_market(&self, mut market: Value) -> Value {
-        if (market == Value::Null) {
+    pub fn get_type_by_market(&self, market: Option<&crate::types::Market>) -> Value {
+        if (market.is_none()) {
             return Value::Null;
         }
-        if matches!(self.safe_bool_k(market.clone(), "spot", &[Value::Bool(false)]), Value::Bool(true)) {
+        if matches!(self.safe_bool_k(&market, "spot", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Str("spot".into());
-        }  else if matches!(self.safe_bool_k(market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
+        }  else if matches!(self.safe_bool_k(&market, "option", &[Value::Bool(false)]), Value::Bool(true)) {
             return Value::Str("options".into());
         }  else {
             return Value::Str("futures".into());

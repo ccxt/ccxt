@@ -720,7 +720,7 @@ impl crate::exchange_generated::ExchangeBase for Polymarket {
                 "compact_signable" => self.compact_signable(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_request" => self.create_order_request(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_order_request" => self.create_order_request(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "create_orders" => crate::types::IntoRaw::into_raw(self.create_orders(crate::types::FromRaw::from_raw(args.get(0).cloned().unwrap_or_default()), args.get(1).cloned().unwrap_or_default()).await),
                 "create_proxy_credentials" => self.create_proxy_credentials(&args[..]).await,
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
@@ -2256,7 +2256,7 @@ impl Polymarket {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dict with the signable row and the body entry
  */
-    pub fn create_order_request(&self, mut market: Value, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn create_order_request(&self, market: Option<&crate::types::Market>, mut type_var: Value, mut side: Value, amount: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut amount: Value = amount.into();
         let mut price = get_arg(optional_args, 0, Value::Null);
         let mut params = get_arg(optional_args, 1, Value::Map({
@@ -2268,7 +2268,7 @@ impl Polymarket {
         if (triggerPrice.is_some()) || (attached) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrder() does not support trigger or attached stop orders yet")));
         }
-        let mut symbol: Option<String> = self.safe_symbol(Value::Null, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market.clone()).as_ref(), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_symbol(Value::Null, market, &[]).as_str().map(str::to_owned);
         let mut isMarketOrder: bool = (type_var.as_str() == Some("market"));
         let mut timeInForce: Option<String> = self.safe_string_upper_k_opt(params.clone(), "timeInForce", &[]);
         let mut isPostOnlyTimeInForce: bool = timeInForce.as_deref() == Some("PO");
@@ -2294,7 +2294,7 @@ impl Polymarket {
         let mut reduceOnly: bool = self.safe_bool_k(paramsOmitted.clone(), "reduceOnly", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut clientOrderId: Option<String> = self.safe_string2_opt(paramsOmitted.clone(), Value::Str("clientOrderId".into()), Value::Str("c".into()), &[]);
         paramsOmitted = self.omit(paramsOmitted, &["timeInForce", "reduceOnly", "clientOrderId"], &[]);
-        let mut instrumentId: Option<i64> = self.parse_to_int(market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+        let mut instrumentId: Option<i64> = self.parse_to_int(crate::Value::from(market).as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         let mut isBuy: bool = (side.as_str() == Some("buy"));
         let mut quantity: Option<String> = self.amount_to_precision(symbol.clone().map(Value::from).unwrap_or(Value::Null), amount);
         let mut priceString: Option<String> = None;
@@ -2437,7 +2437,7 @@ impl Polymarket {
             while { if !__for_first_1107 { i += 1; } __for_first_1107 = false; i < (orders.len() as i64) } {
             let mut rawOrder: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut symbol: Option<String> = self.safe_string_k_opt(&rawOrder, "symbol", &[]);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut type_var: Option<String> = self.safe_string_lower_k_opt(&rawOrder, "type", &[]);
             let mut side: Option<String> = self.safe_string_lower_k_opt(&rawOrder, "side", &[]);
             let mut amount: Option<String> = self.safe_string_k_opt(&rawOrder, "amount", &[]);
@@ -2446,10 +2446,10 @@ impl Polymarket {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(market.clone(), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[price.map(Value::from).unwrap_or(Value::Null), Value::Dict(orderParams)]).as_map().cloned().unwrap_or_default();
+            let mut request: indexmap::IndexMap<String, Value> = self.create_order_request(Some(&market), type_var.map(Value::from).unwrap_or(Value::Null), side.map(Value::from).unwrap_or(Value::Null), amount.map(Value::from).unwrap_or(Value::Null), &[price.map(Value::from).unwrap_or(Value::Null), Value::Dict(orderParams)]).as_map().cloned().unwrap_or_default();
             rows.push(request.get("signable").cloned().unwrap_or(Value::Null));
             entries.push(request.get("entry").cloned().unwrap_or(Value::Null));
-            ordersMarkets.push(market);
+            ordersMarkets.push((market).raw.clone());
             std::sync::Arc::make_mut(&mut ordersEntries).push(request.get("entry").cloned().unwrap_or(Value::Null));
         }
         }
@@ -2673,10 +2673,10 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: Value = self.trade_delete_trade_orders_all(&[Value::Dict(signed)]).await;
+        let mut response: crate::value::Dict = self.trade_delete_trade_orders_all(&[Value::Dict(signed)]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null
@@ -2714,8 +2714,8 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: Value = self.trade_patch_trade_auto_cancel(&[Value::Dict(signed)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.trade_patch_trade_auto_cancel(&[Value::Dict(signed)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -3684,8 +3684,8 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: Value = self.trade_patch_trade_leverage(&[Value::Dict(signed)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.trade_patch_trade_leverage(&[Value::Dict(signed)]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -3777,10 +3777,10 @@ impl Polymarket {
             m
         });
         let mut signed: crate::value::Dict = self.sign_perps_op(&signable, Value::Map(bodyOp), &[]).await.into_dict();
-        let mut response: Value = self.trade_patch_trade_margin(&[Value::Dict(signed)]).await;
+        let mut response: crate::value::Dict = self.trade_patch_trade_margin(&[Value::Dict(signed)]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("symbol".to_string(), Value::from((market).symbol.clone()));
         m.insert("type".to_string(), type_var);
         m.insert("marginMode".to_string(), Value::Str("isolated".into()));

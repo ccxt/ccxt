@@ -1721,14 +1721,14 @@ impl Coinsph {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_openapi_v1_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_openapi_v1_ping(&[params]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

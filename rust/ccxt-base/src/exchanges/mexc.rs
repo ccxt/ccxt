@@ -7818,8 +7818,8 @@ impl Mexc {
             m
         });
         let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await;
-        return response;
+        let mut response: crate::value::Dict = self.contract_private_post_position_change_position_mode(&[__ws_arg_60]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

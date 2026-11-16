@@ -9828,8 +9828,8 @@ impl Binance {
             m
         });
         let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_0]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9862,8 +9862,8 @@ impl Binance {
             m
         });
         let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_equity_tokenized_redeem(&[__ws_arg_1]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9895,8 +9895,8 @@ impl Binance {
             m
         });
         let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_convert_status(&[__ws_arg_2]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -9937,8 +9937,8 @@ impl Binance {
         let mut requestUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut paramsUntil: crate::value::Dict = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let __ws_arg_3 = self.extend(requestUntil, &[&paramsUntil]);
-        let mut response: Value = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_equity_tokenized_history(&[__ws_arg_3]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -15823,26 +15823,26 @@ impl Binance {
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isLinear {
             if isPortfolioMargin {
                 let __ws_arg_149 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-                response = self.papi_get_um_commission_rate(&[__ws_arg_149]).await;
+                response = self.papi_get_um_commission_rate(&[__ws_arg_149]).await.into_opt_dict();
             }  else {
                 let __ws_arg_150 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-                response = self.fapi_private_get_commission_rate(&[__ws_arg_150]).await;
+                response = self.fapi_private_get_commission_rate(&[__ws_arg_150]).await.into_opt_dict();
             }
         }  else if isInverse {
             if isPortfolioMargin {
                 let __ws_arg_151 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-                response = self.papi_get_cm_commission_rate(&[__ws_arg_151]).await;
+                response = self.papi_get_cm_commission_rate(&[__ws_arg_151]).await.into_opt_dict();
             }  else {
                 let __ws_arg_152 = self.extend(Value::Map(request.clone()), &[&paramsPapi]);
-                response = self.dapi_private_get_commission_rate(&[__ws_arg_152]).await;
+                response = self.dapi_private_get_commission_rate(&[__ws_arg_152]).await.into_opt_dict();
             }
         }  else {
             let __ws_arg_153 = self.extend(Value::Map(request), &[&paramsPapi]);
-            response = self.sapi_get_asset_trade_fee(&[__ws_arg_153]).await;
+            response = self.sapi_get_asset_trade_fee(&[__ws_arg_153]).await.into_opt_dict();
         }
         //
         // spot
@@ -15863,7 +15863,7 @@ impl Binance {
         //         "takerCommissionRate": "0.00040"   // 0.040%
         //     }
         //
-        let mut data: Value = response;
+        let mut data: Value = response.map_or(Value::Null, Value::Dict);
         if (matches!(&data, Value::Arr(_))) {
             data = self.safe_dict(data, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -17740,14 +17740,14 @@ impl Binance {
                 m.insert("marginType".to_string(), Value::from(marginModeValue));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             if ((market).linear == Some(true)) {
                 let __ws_arg_173 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-                response = self.fapi_private_post_margin_type(&[__ws_arg_173]).await;
+                response = self.fapi_private_post_margin_type(&[__ws_arg_173]).await.into_opt_dict();
             }  else if ((market).inverse == Some(true)) {
                 let __ws_arg_174 = self.extend(Value::Map(request), &[params]);
-                response = self.dapi_private_post_margin_type(&[__ws_arg_174]).await;
+                response = self.dapi_private_post_margin_type(&[__ws_arg_174]).await.into_opt_dict();
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " setMarginMode() supports linear and inverse contracts only")));
             }
@@ -17763,21 +17763,21 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (throwMarginModeAlreadySet == Some(true)) {
                     panic!("{}", e);
                 }  else {
-                    response = Value::Map({
+                    response = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("code".to_string(), Value::Int(-4046));
                             m.insert("msg".to_string(), Value::Str("No need to change margin type.".into()));
                         m
-                    });
+                    }));
                 }
             }  else {
                 panic!("{}", e);
             }
         }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " setMarginMode() returned empty response")));
         }
-        return response;
+        return response.map_or(Value::Null, Value::Dict);
         Value::Null
         }).await?))
     }
@@ -18899,8 +18899,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_195 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_giftcard_redeem_code(&[__ws_arg_195]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_post_giftcard_redeem_code(&[__ws_arg_195]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -18926,8 +18926,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_196 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_get_giftcard_verify(&[__ws_arg_196]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_get_giftcard_verify(&[__ws_arg_196]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

@@ -2645,11 +2645,11 @@ impl Btse {
         //
         // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
         let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, data, Some(&market));
+})])]).into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2688,11 +2688,11 @@ impl Btse {
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_6]).await.into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut interest: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let mut interest: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, interest, Some(&market));
+})])]).into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_open_interest(self, &interest, Some(&market));
         Value::Null
         }).await?))
     }
@@ -2772,11 +2772,11 @@ impl Btse {
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
         let mut response: crate::value::Dict = self.public_get_public_api_market_v1_ticker24hr(&[__ws_arg_7]).await.into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
-        let mut data: Value = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
+        let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[self.safe_dict(&rows, Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})])]);
-        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, data, Some(&market));
+})])]).into_dict();
+        return <Self as crate::exchange::DerivedExchange>::parse_funding_rate(self, &data, Some(&market));
         Value::Null
         }).await?))
     }
@@ -5093,8 +5093,8 @@ impl Btse {
             request.insert("marginMode".into(), marginMode.as_deref().map(str::to_uppercase).map(Value::from).unwrap_or(Value::Null));
         }
         let __ws_arg_39 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: Value = self.private_post_futures_api_v3_trade_leverage(&[__ws_arg_39]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_futures_api_v3_trade_leverage(&[__ws_arg_39]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

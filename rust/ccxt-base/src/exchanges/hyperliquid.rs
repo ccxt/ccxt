@@ -3789,8 +3789,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_18 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_18]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[__ws_arg_18]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -4672,10 +4672,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null
@@ -4725,8 +4725,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(params2, Value::Str("vaultAddress".into()), &[]);
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -5070,8 +5070,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_21]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[__ws_arg_21]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -6022,8 +6022,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (vaultAddress.is_some()) {
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -6085,8 +6085,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             params2 = self.omit(Value::Dict(params2), Value::Str("vaultAddress".into()), &[]).into_dict();
             request.insert("vaultAddress".into(), vaultAddress.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut response: Value = self.private_post_exchange(&[Value::Map(request)]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[Value::Map(request)]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -7076,8 +7076,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_37]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[__ws_arg_37]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -7116,8 +7116,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         request.insert("action".into(), Value::Map(action));
         request.insert("signature".into(), Value::Dict(signature));
         let __ws_arg_38 = self.extend(Value::Map(request), &[self.omit(params, Value::Str("expiresAfter".into()), &[])]);
-        let mut response: Value = self.private_post_exchange(&[__ws_arg_38]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_exchange(&[__ws_arg_38]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

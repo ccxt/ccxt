@@ -1968,14 +1968,14 @@ impl Toobit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.common_get_api_v1_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.common_get_api_v1_ping(&[params]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -4177,8 +4177,8 @@ impl Toobit {
             m
         });
         let __ws_arg_34 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_api_v1_futures_margin_type(&[__ws_arg_34]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_api_v1_futures_margin_type(&[__ws_arg_34]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -4219,8 +4219,8 @@ impl Toobit {
             m
         });
         let __ws_arg_35 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_api_v1_futures_leverage(&[__ws_arg_35]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_api_v1_futures_leverage(&[__ws_arg_35]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

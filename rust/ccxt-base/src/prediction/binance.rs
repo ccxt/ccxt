@@ -2310,8 +2310,8 @@ impl Binance {
     m
 }));
         let __ws_arg_13 = self.extend(request, &[params]);
-        let mut response: Value = self.sapi_private_post_trade_get_quote(&[__ws_arg_13]).await;
-        return response;
+        let mut response: crate::value::Dict = self.sapi_private_post_trade_get_quote(&[__ws_arg_13]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

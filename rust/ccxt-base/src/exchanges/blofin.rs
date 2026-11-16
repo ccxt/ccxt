@@ -767,7 +767,7 @@ impl crate::exchange::DerivedExchange for Blofin {
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), depositAddress);
         m.insert("currency".to_string(), self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency).map(Value::from).unwrap_or(Value::Null));
-        m.insert("network".to_string(), self.chain_id_to_network_code(networkId.as_deref()));
+        m.insert("network".to_string(), self.chain_id_to_network_code(networkId.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("address".to_string(), address.map(Value::from).unwrap_or(Value::Null));
         m.insert("tag".to_string(), tag.map(Value::from).unwrap_or(Value::Null));
     m
@@ -841,7 +841,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             while { if !__for_first_463 { i += 1; } __for_first_463 = false; (i as f64) < chainsLength } {
             let mut chain: Option<crate::value::Dict> = self.safe_dict(chains.clone(), Value::Int(i), &[]).into_opt_dict();
             let mut networkId: Option<String> = self.safe_string_k_opt(&chain, "chain", &[]);
-            let mut networkCode: Value = self.chain_id_to_network_code(networkId.as_deref());
+            let mut networkCode: Value = self.chain_id_to_network_code(networkId.as_deref()).map(Value::from).unwrap_or(Value::Null);
             if (networkCode == Value::Null) {
                 continue;
             }
@@ -969,7 +969,7 @@ impl crate::exchange::DerivedExchange for Blofin {
         // amount is NET of the fee: a 30 USDT withdrawal-apply lands as
         // amount 29 + fee 1
         let mut networkId: Option<String> = self.safe_string_k_opt(transaction.clone(), "chain", &[]);
-        let mut networkCode: Option<String> = self.chain_id_to_network_code(networkId.as_deref()).as_str().map(str::to_owned);
+        let mut networkCode: Option<String> = self.chain_id_to_network_code(networkId.as_deref());
         let mut txid: Option<String> = self.safe_string_k_opt(transaction.clone(), "txId", &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "ts", &[]).as_i64();
         let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "feeCurrency", &[]);
@@ -1090,7 +1090,7 @@ impl crate::exchange::DerivedExchange for Blofin {
             let mut __for_first_464: bool = true;
             while { if !__for_first_464 { i += 1; } __for_first_464 = false; (i as f64) < chainsLength } {
             let mut chain: crate::value::Dict = self.safe_dict(fee.clone(), Value::Int(i), &[]).into_dict();
-            let mut networkCode: Value = self.chain_id_to_network_code((self.safe_string_k(&chain, "chain", &[])).as_str());
+            let mut networkCode: Value = self.chain_id_to_network_code((self.safe_string_k(&chain, "chain", &[])).as_str()).map(Value::from).unwrap_or(Value::Null);
             if (networkCode == Value::Null) {
                 continue;
             }
@@ -1252,7 +1252,7 @@ impl crate::exchange_generated::ExchangeBase for Blofin {
             match method {
                 "cancel_order" => crate::types::IntoRaw::into_raw(self.cancel_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "cancel_orders" => crate::types::IntoRaw::into_raw(self.cancel_orders(args.get(0).cloned().unwrap_or_default().to_str_vec(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
-                "chain_id_to_network_code" => self.chain_id_to_network_code(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "chain_id_to_network_code" => crate::Value::from(self.chain_id_to_network_code(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "close_position" => crate::types::IntoRaw::into_raw(self.close_position(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).cloned().unwrap_or_default()).await),
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
@@ -3803,14 +3803,14 @@ impl Blofin {
     Value::Null
 }
 
-    pub fn chain_id_to_network_code(&self, chainId: Option<&str>) -> Value {
+    pub fn chain_id_to_network_code(&self, chainId: Option<&str>) -> Option<String> {
         let mut chainId: Value = chainId.into();
         // live history rows and the currencies registry carry display-name
         // chain ids like Tron with a parenthesized TRC20 suffix (verified
         // live 2026-09-15), while the doc examples still show short forms -
         // parse the suffix when present, fall back to the id maps otherwise
         if (chainId == Value::Null) {
-            return Value::Null;
+            return None;
         }
         if chainId.as_str().unwrap_or("").contains("(") {
             // php-safe suffix extraction: split instead of index arithmetic,
@@ -3822,23 +3822,21 @@ impl Blofin {
             let mut suffix: Option<String> = self.safe_string_opt(&tailParts, Value::Int(0), &[]);
             let mut suffixCode: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (suffixCode.is_some()) {
-                return suffixCode.map(Value::from).unwrap_or(Value::Null);
+                return suffixCode;
             }
             let mut prefixes: crate::value::Dict = self.safe_dict_k(self.options.clone(), "networkPrefixes", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
             if (suffix.is_some()) && (matches!(suffix.as_deref(), Some(__k) if prefixes.contains_key(__k))) {
-                return suffix.map(Value::from).unwrap_or(Value::Null);
+                return suffix;
             }
             // the suffix is not always a chain: 'Optimism (USDT0)' carries
             // the token name (verified live 2026-09-30), resolve by prefix
             let mut head: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-            return Value::from(self.network_id_to_code(&[Value::from(head.trim().to_string())]));
+            return Value::from(self.network_id_to_code(&[Value::from(head.trim().to_string())])).as_str().map(str::to_owned);
         }
-        return Value::from(self.network_id_to_code(&[chainId]));
-
-    Value::Null
+        return Value::from(self.network_id_to_code(&[chainId])).as_str().map(str::to_owned);
 }
 
 /*
@@ -4852,8 +4850,8 @@ impl Blofin {
             m
         });
         let __ws_arg_32 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-        let mut response: Value = self.private_post_account_set_leverage(&[__ws_arg_32]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_account_set_leverage(&[__ws_arg_32]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

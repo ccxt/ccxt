@@ -4130,10 +4130,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_16 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_order_batch(&[__ws_arg_16]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_order_batch(&[__ws_arg_16]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null
@@ -4163,10 +4163,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.private_post_cancel_all(&[params]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_all(&[params]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null
@@ -4205,8 +4205,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_17 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancel_all_orders_after(&[__ws_arg_17]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_cancel_all_orders_after(&[__ws_arg_17]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

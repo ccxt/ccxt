@@ -3680,10 +3680,10 @@ impl Delta {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_orders_all(&[__ws_arg_8]).await;
+        let mut response: crate::value::Dict = self.private_delete_orders_all(&[__ws_arg_8]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null

@@ -2768,10 +2768,10 @@ impl Ndax {
             request.insert("IntrumentId".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_14 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_cancel_all_orders(&[__ws_arg_14]).await;
+        let mut response: crate::value::Dict = self.private_post_cancel_all_orders(&[__ws_arg_14]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null

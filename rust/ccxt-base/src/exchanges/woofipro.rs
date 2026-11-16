@@ -2395,7 +2395,7 @@ impl Woofipro {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenPromise: Value = self.v1_public_get_public_token(&[params.clone()]).await;
+        let mut tokenPromise: crate::value::Dict = self.v1_public_get_public_token(&[params.clone()]).await.into_dict();
         //
         // {
         //     "success": true,
@@ -2418,8 +2418,8 @@ impl Woofipro {
         //     }
         // }
         //
-        let mut chainPromise: Value = self.v1_public_get_public_chain_info(&[params]).await;
-        let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenPromise, chainPromise])).await.as_array().cloned().unwrap_or_default();
+        let mut chainPromise: crate::value::Dict = self.v1_public_get_public_chain_info(&[params]).await.into_dict();
+        let tokenResponsechainResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenPromise), Value::Dict(chainPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut chainResponse: crate::value::Dict = tokenResponsechainResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenData: crate::value::Dict = self.safe_dict_k(&tokenResponse, "data", &[Value::Map({

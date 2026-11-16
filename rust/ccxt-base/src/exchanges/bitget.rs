@@ -11433,13 +11433,13 @@ if _try_result.is_err() {
                     marginModeRequest = "crossed".to_string();
                 }
                 if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("marginMode".into(), Value::from(marginModeRequest)); }
-                let mut requestSide: Value = side.clone();
+                let mut requestSide: Option<String> = side.as_str().map(str::to_owned);
                 if reduceOnly {
                     if (hedged != Some(true)) {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("reduceOnly".into(), Value::Str("YES".into())); }
                     }  else {
                         // on bitget hedge mode if the position is long the side is always buy, and if the position is short the side is always sell
-                        requestSide = (if (side.as_str() == Some("buy")) { Value::Str("sell".into()) } else { Value::Str("buy".into()) });
+                        requestSide = (if (side.as_str() == Some("buy")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Close".into())); }
                     }
                 }  else {
@@ -11447,7 +11447,7 @@ if _try_result.is_err() {
                         if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("tradeSide".into(), Value::Str("Open".into())); }
                     }
                 }
-                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), requestSide); }
+                if let Value::Dict(__d) = &mut request { std::sync::Arc::make_mut(__d).insert("side".into(), requestSide.map(Value::from).unwrap_or(Value::Null)); }
             }
         }  else if (marketType.as_deref() == Some("spot")) {
             if isStopLossOrTakeProfitTrigger || isStopLossOrTakeProfit {
@@ -15533,8 +15533,8 @@ if _try_result.is_err() {
             m
         });
         let __ws_arg_127 = self.extend(Value::Map(request), &[&paramsProductType]);
-        let mut response: Value = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_127]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_mix_post_v2_mix_account_set_margin_mode(&[__ws_arg_127]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

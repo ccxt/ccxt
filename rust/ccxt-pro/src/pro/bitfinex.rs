@@ -1174,7 +1174,7 @@ impl Bitfinex {
             CacheStore::forget(&mut self.orderbooks, &symbol);
             let mut checksum: Option<bool> = self.handle_option(Value::Str("watchOrderBook".into()), Value::Str("checksum".into()), &[Value::Bool(true)]).as_bool();
             if (checksum == Some(true)) {
-                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.map(Value::from).unwrap_or(Value::Null))));
                 client.reject(error, messageHash.as_str());
             }
         }
@@ -1477,7 +1477,7 @@ impl Bitfinex {
             let mut future: crate::pro::ws_client::Flight = __ch.get_future(messageHash.as_str());
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(&message));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {

@@ -601,7 +601,7 @@ impl crate::exchange::DerivedExchange for Upbit {
         if hasBody {
             requestBody = json_stringify(&params).as_str().map(str::to_owned);
         }
-        let mut headers: Value = Value::Map({
+        let mut headers: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -616,7 +616,7 @@ impl crate::exchange::DerivedExchange for Upbit {
             }).into_dict();
             let mut auth: Option<String> = None;
             if hasBody {
-                if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                headers.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
             if (numQueryKeys != 0.0) {
                 auth = Some(self.rawencode(&query, &[]));
@@ -627,14 +627,14 @@ impl crate::exchange::DerivedExchange for Upbit {
                 std::sync::Arc::make_mut(&mut request).insert("query_hash_alg".into(), Value::Str("SHA512".into()));
             }
             let mut token: String = jwt(&request, self.encode(self.secret.clone()), Value::Str("sha256".into()), Value::Bool(false), Value::Null);
-            if let Value::Dict(__d) = &mut headers { std::sync::Arc::make_mut(__d).insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into())); }
+            headers.insert("Authorization".into(), Value::Str(format!("{}{}", "Bearer ", token).into()));
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("url".to_string(), Value::from(url));
         m.insert("method".to_string(), method);
         m.insert("body".to_string(), requestBody.map(Value::from).unwrap_or(Value::Null));
-        m.insert("headers".to_string(), (if (apiName.as_deref() == Some("private")) { headers } else { Value::Null }));
+        m.insert("headers".to_string(), (if (apiName.as_deref() == Some("private")) { Value::Map(headers) } else { Value::Null }));
     m
 });
 

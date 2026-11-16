@@ -543,7 +543,7 @@ impl crate::exchange::DerivedExchange for Extended {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(item.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k_opt(item.clone(), "asset", &[]);
-        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut ledgerCurrency: crate::types::Currency = self.safe_currency(Value::from(code.as_deref()), currency);
         let mut amountString: Option<String> = self.safe_string_k_opt(item.clone(), "amount", &[]);
         let mut direction: Option<String> = None;
@@ -586,7 +586,7 @@ impl crate::exchange::DerivedExchange for Extended {
         let mut transfer: Value = transfer.into();
         let mut timestamp: Option<i64> = self.safe_integer_k(transfer.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k_opt(transfer.clone(), "asset", &[]);
-        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut amountString: Option<String> = self.safe_string_k_opt(transfer.clone(), "amount", &[]);
         let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString), &[]).as_f64() });
         let mut accountId: Option<String> = self.safe_string_k_opt(transfer.clone(), "accountId", &[]);
@@ -755,7 +755,7 @@ impl crate::exchange::DerivedExchange for Extended {
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(transaction.clone(), "time", &[]).as_i64();
         let mut assetId: Option<String> = self.safe_string_k_opt(transaction.clone(), "asset", &[]);
-        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.get_extended_currency_code_by_id(assetId.as_deref(), &[crate::Value::from(currency)]);
         let mut amountString: Option<String> = self.safe_string_k_opt(transaction.clone(), "amount", &[]);
         let mut amount: Option<f64> = (if (amountString.is_none()) { None } else { self.parse_number(crate::precise::Precise::stringAbs(&amountString), &[]).as_f64() });
         let mut fee: Option<crate::value::Dict> = None;
@@ -942,7 +942,7 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "fetch_transactions" => crate::types::IntoRaw::into_raw(self.fetch_transactions(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_extended_currency_code_by_id" => self.get_extended_currency_code_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]),
+                "get_extended_currency_code_by_id" => crate::Value::from(self.get_extended_currency_code_by_id(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..])),
                 "get_extended_decimal_to_base16" => self.get_extended_decimal_to_base16(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_extended_domain_hash" => self.get_extended_domain_hash(),
                 "get_extended_encode_i64" => self.get_extended_encode_i64(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -3377,11 +3377,11 @@ impl Extended {
     }
 
 
-    pub fn get_extended_currency_code_by_id(&self, assetId: Option<&str>, optional_args: &[Value]) -> Value {
+    pub fn get_extended_currency_code_by_id(&self, assetId: Option<&str>, optional_args: &[Value]) -> Option<String> {
         let mut assetId: Value = assetId.into();
         let mut currency = get_arg(optional_args, 0, Value::Null);
         if (assetId == Value::Null) {
-            return self.safe_string_k(currency.clone(), "code", &[]);
+            return self.safe_string_k_opt(currency.clone(), "code", &[]);
         }
         let mut currenciesByNumericId: crate::value::Dict = self.safe_dict_k(self.options.clone(), "currenciesByNumericId", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -3389,18 +3389,16 @@ impl Extended {
 })]).into_dict();
         let mut currencyByNumericId: Option<crate::value::Dict> = self.safe_dict(&currenciesByNumericId, assetId.clone(), &[]).into_opt_dict();
         if (currencyByNumericId.is_some()) {
-            return self.safe_string_k(&currencyByNumericId, "code", &[]);
+            return self.safe_string_k_opt(&currencyByNumericId, "code", &[]);
         }
         if (currency != Value::Null) {
-            return self.safe_string_k(currency, "code", &[]);
+            return self.safe_string_k_opt(currency, "code", &[]);
         }
         let mut code: Option<String> = self.safe_currency_code(assetId, None);
         if (code.as_deref() == Some("USD")) {
             code = Some("USDC".to_string());
         }
-        return code.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return code;
 }
 
     pub fn parse_transaction_status(&self, status: Option<&str>) -> Option<String> {

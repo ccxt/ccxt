@@ -2479,7 +2479,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "fetch_transfers" => crate::types::IntoRaw::into_raw(self.fetch_transfers(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
                 "fetch_volatility_history" => self.fetch_volatility_history(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[1.min(args.len())..]).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_amount" => self.get_amount(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
+                "get_amount" => crate::Value::from(self.get_amount(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null))),
                 "get_bybit_type" => self.get_bybit_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref(), &args[2.min(args.len())..]),
                 "get_leverage_tiers_paginated" => self.get_leverage_tiers_paginated(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
                 "get_price" => self.get_price(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref()),
@@ -6053,7 +6053,7 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn get_amount(&self, symbol: Option<&str>, mut amount: Value) -> Value {
+    pub fn get_amount(&self, symbol: Option<&str>, mut amount: Value) -> Option<String> {
         let mut symbol: Value = symbol.into();
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
@@ -6061,11 +6061,9 @@ impl Bybit {
         let mut emptyPrecisionAmount: bool = self.safe_number_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]) == Value::Null;
         let mut amountString: Option<String> = self.number_to_string(amount.clone());
         if !emptyPrecisionAmount && (amountString.as_deref() != Some("0")) {
-            return Value::from(self.amount_to_precision(symbol, amount));
+            return Value::from(self.amount_to_precision(symbol, amount)).as_str().map(str::to_owned);
         }
-        return amountString.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return amountString;
 }
 
     pub fn get_price(&self, symbol: Option<&str>, price: Option<&str>) -> Value {
@@ -8147,7 +8145,7 @@ impl Bybit {
         if crate::precise::Precise::stringGt(&Value::from(self.number_to_string(amount.clone())), &Value::Str("0".into())).as_bool() == Some(true) {
             amountValue = amount;
         }
-        let mut amountString: Value = (if (amountValue != Value::Null) { self.get_amount(Some(symbolValue.as_str()), amountValue.clone()) } else { Value::Null });
+        let mut amountString: Option<String> = (if (amountValue != Value::Null) { self.get_amount(Some(symbolValue.as_str()), amountValue.clone()) } else { None });
         let mut priceString: Value = (if (price != Value::Null) { self.get_price(Some(symbolValue.as_str()), (Value::from(self.number_to_string(price.clone()))).as_str()) } else { Value::Null });
         if endpointIsTradingStop {
             if hasStopLoss || hasTakeProfit || isTriggerOrder || (market).spot {
@@ -8163,11 +8161,11 @@ impl Bybit {
                         tpslModeSl = Some("Partial".to_string());
                         request.insert("slOrderType".into(), Value::Str("Limit".into()));
                         request.insert("slLimitPrice".into(), stopLossLimitPrice.map(Value::from).unwrap_or(Value::Null));
-                        request.insert("slSize".into(), amountString.clone());
+                        request.insert("slSize".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                     }  else {
                         request.insert("slOrderType".into(), Value::Str("Market".into()));
-                        if (amountString != Value::Null) {
-                            request.insert("slSize".into(), amountString.clone());
+                        if (amountString.is_some()) {
+                            request.insert("slSize".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                             tpslModeSl = Some("Partial".to_string());
                         }  else {
                             tpslModeSl = Some("Full".to_string());
@@ -8181,11 +8179,11 @@ impl Bybit {
                         tpslModeTp = Some("Partial".to_string());
                         request.insert("tpOrderType".into(), Value::Str("Limit".into()));
                         request.insert("tpLimitPrice".into(), takeProfitLimitPrice.map(Value::from).unwrap_or(Value::Null));
-                        request.insert("tpSize".into(), amountString.clone());
+                        request.insert("tpSize".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                     }  else {
                         request.insert("tpOrderType".into(), Value::Str("Market".into()));
-                        if (amountString != Value::Null) {
-                            request.insert("tpSize".into(), amountString.clone());
+                        if (amountString.is_some()) {
+                            request.insert("tpSize".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                             tpslModeTp = Some("Partial".to_string());
                         }  else {
                             tpslModeTp = Some("Full".to_string());
@@ -8258,7 +8256,7 @@ impl Bybit {
                 request.insert("qty".into(), self.get_cost(Some(symbolValue.as_str()), orderCost.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
             }  else {
                 request.insert("marketUnit".into(), Value::Str("baseCoin".into()));
-                request.insert("qty".into(), amountString.clone());
+                request.insert("qty".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
             }
         }  else if (market).spot && isMarketOrder && (side.as_str() == Some("buy")) {
             // classic accounts
@@ -8282,12 +8280,12 @@ impl Bybit {
                 }  else if (price != Value::Null) {
                     request.insert("qty".into(), self.get_cost(Some(symbolValue.as_str()), crate::precise::Precise::stringMul(&amountString, &priceString)).map(Value::from).unwrap_or(Value::Null));
                 }  else {
-                    request.insert("qty".into(), amountString.clone());
+                    request.insert("qty".into(), amountString.clone().map(Value::from).unwrap_or(Value::Null));
                 }
             }
         }  else {
             if !isTrailingOrder && !endpointIsTradingStop {
-                request.insert("qty".into(), amountString);
+                request.insert("qty".into(), amountString.map(Value::from).unwrap_or(Value::Null));
             }
         }
         if isTrailingOrder {
@@ -8507,7 +8505,7 @@ impl Bybit {
         let mut paramsValue: crate::value::Dict = categoryparamsValueVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         request.insert("category".into(), category.map(Value::from).unwrap_or(Value::Null));
         if (amount != Value::Null) {
-            request.insert("qty".into(), self.get_amount(symbol.as_str(), amount));
+            request.insert("qty".into(), self.get_amount(symbol.as_str(), amount).map(Value::from).unwrap_or(Value::Null));
         }
         if (price != Value::Null) {
             request.insert("price".into(), self.get_price(symbol.as_str(), (Value::from(self.number_to_string(price))).as_str()));
@@ -8968,8 +8966,8 @@ impl Bybit {
         let mut product: Option<String> = self.safe_string_opt(&productMap, Value::from(type_var.as_deref()), &[Value::from(type_var.as_deref())]);
         request.insert("product".into(), product.map(Value::from).unwrap_or(Value::Null));
         let __ws_arg_26 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_order_disconnected_cancel_all(&[__ws_arg_26]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -11200,8 +11198,8 @@ impl Bybit {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " setLeverage() only support linear and inverse market")));
         }
         let __ws_arg_52 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_v5_position_set_leverage(&[__ws_arg_52]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_position_set_leverage(&[__ws_arg_52]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -11256,8 +11254,8 @@ impl Bybit {
         }
         let mut paramsOmitted: crate::value::Dict = self.omit(query, Value::Str("type".into()), &[]).into_dict();
         let __ws_arg_53 = self.extend(Value::Map(request), &[&paramsOmitted]);
-        let mut response: Value = self.private_post_v5_position_switch_mode(&[__ws_arg_53]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_v5_position_switch_mode(&[__ws_arg_53]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

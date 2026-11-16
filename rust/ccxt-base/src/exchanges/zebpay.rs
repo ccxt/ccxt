@@ -2566,8 +2566,8 @@ impl Zebpay {
         // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
         //
         let __ws_arg_21 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_swap_post_v1_trade_update_user_leverage(&[__ws_arg_21]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_swap_post_v1_trade_update_user_leverage(&[__ws_arg_21]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }

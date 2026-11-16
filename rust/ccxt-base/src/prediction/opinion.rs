@@ -1824,11 +1824,11 @@ impl Opinion {
         let mut makerAmount: Option<String> = None;
         let mut takerAmount: Option<String> = None;
         if (side.as_str() == Some("BUY")) {
-            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum, &Value::Int(0));
+            let mut k: Option<String> = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceNum, &Value::Int(0)).as_str().map(str::to_owned);
             makerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
             takerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
         }  else {
-            let mut k: Value = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceDenom, &Value::Int(0));
+            let mut k: Option<String> = crate::precise::Precise::stringDivPrec(&makerAmountWei, &priceDenom, &Value::Int(0)).as_str().map(str::to_owned);
             makerAmount = crate::precise::Precise::stringMul(&k, &priceDenom).as_str().map(str::to_owned);
             takerAmount = crate::precise::Precise::stringMul(&k, &priceNum).as_str().map(str::to_owned);
         }
@@ -2638,14 +2638,14 @@ impl Opinion {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.opinion_private_delete_auth_api_key(&[params]).await;
+        let mut response: crate::value::Dict = self.opinion_private_delete_auth_api_key(&[params]).await.into_dict();
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("apiKey".into(), Value::Null); }
         // sign() prefers this.apiKey over options['apiKey'] - clear it too, or a directly-set
         // exchange.apiKey would keep being used for private calls after the key is revoked.
         // an empty string, not undefined: the strict base types the credential as string, and
         // sign() treats an empty key as absent
         self.apiKey = Value::Str("".into());
-        return response;
+        return Value::Dict(response);
 
     Value::Null
 }

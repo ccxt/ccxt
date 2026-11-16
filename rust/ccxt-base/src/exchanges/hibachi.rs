@@ -1970,10 +1970,10 @@ impl Hibachi {
         let mut request: indexmap::IndexMap<String, Value> = self.cancel_order_request(id.as_str().unwrap_or_default()).as_map().cloned().unwrap_or_default();
         request.insert("accountId".into(), self.get_account_id());
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_trade_order(&[__ws_arg_7]).await;
+        let mut response: crate::value::Dict = self.private_delete_trade_order(&[__ws_arg_7]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("id".to_string(), id);
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
@@ -2086,10 +2086,10 @@ impl Hibachi {
             request.insert("contractId".into(), self.safe_integer_k(&market, "numericId", &[]));
         }
         let __ws_arg_9 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_trade_orders(&[__ws_arg_9]).await;
+        let mut response: crate::value::Dict = self.private_delete_trade_orders(&[__ws_arg_9]).await.into_dict();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None)]);
         Value::Null

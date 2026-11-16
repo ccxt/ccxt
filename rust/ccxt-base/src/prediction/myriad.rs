@@ -360,7 +360,7 @@ impl crate::exchange_generated::ExchangeBase for Myriad {
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "handle_message" => { self.handle_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
                 "handle_text_message" => { self.handle_text_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
-                "hex_to_decimal_string" => self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "hex_to_decimal_string" => crate::Value::from(self.hex_to_decimal_string(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "order_to_trade" => self.order_to_trade(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_amm_event_to_order" => self.parse_amm_event_to_order(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_event" => self.parse_event(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2572,10 +2572,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 m.insert("network_id".to_string(), Value::from(self.parse_to_int(networkId.map(Value::from).unwrap_or(Value::Null))));
             m
         });
-        let mut response: Value = self.myriad_public_post_orders_cancel_all(&[Value::Map(request)]).await;
+        let mut response: crate::value::Dict = self.myriad_public_post_orders_cancel_all(&[Value::Map(request)]).await.into_dict();
         return Value::from(vec![self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
         m.insert("status".to_string(), Value::Str("canceled".into()));
     m
 }), &[])]);
@@ -3111,12 +3111,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         }).await?))
     }
 
-    pub fn hex_to_decimal_string(&self, hexValue: &str) -> Value {
+    pub fn hex_to_decimal_string(&self, hexValue: &str) -> Option<String> {
         let mut hexValue: Value = hexValue.into();
         // portable hex -> decimal string (avoids convertToBigInt, which is not uniform across languages)
         let mut stripped: Option<String> = self.remove0x_prefix(hexValue).as_str().map(str::to_owned);
         if (stripped.as_deref() == Some("")) {
-            return Value::Null;
+            return None;
         }
         let mut chars: Vec<Value> = self.string_to_chars_array(stripped.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)).as_array().cloned().unwrap_or_default();
         let mut n: i64 = chars.len() as i64;
@@ -3134,14 +3134,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             }
         }
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
     pub fn from_wei_with_decimals(&self, mut hexValue: Value, decimals: Option<i64>) -> Option<String> {
         let mut decimals: Value = decimals.into();
-        let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue.as_str().unwrap_or_default()).as_str().map(str::to_owned);
+        let mut decimalString: Option<String> = self.hex_to_decimal_string(hexValue.as_str().unwrap_or_default());
         if (decimalString.is_none()) {
             return None;
         }
@@ -4920,7 +4918,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         if (sym == Value::Null) {
             return;
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(sym.clone(), None, &[]));
+        let mut market: crate::types::Market = self.safe_market(sym.clone(), None, &[]);
         let mut outcomeObj: Option<crate::types::Market> = self.safe_outcome(sym.clone(), None);
         // the trades channel reports human-decimal values (averagePrice "0.14", totalAmount "1"),
         // unlike the orders channel which is 1e18-scaled — so read them directly without fromWei
@@ -4948,11 +4946,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(&fees, "total", &[]));
-        m.insert("currency".to_string(), self.safe_string_k(market.clone(), "quote", &[]));
+        m.insert("currency".to_string(), self.safe_string_k(&market, "quote", &[]));
     m
 }));
     m
-}), &[market]);
+}), &[crate::Value::from(&market)]);
         if (false) {
             self.trades = crate::pro::cache::CacheMap::new();
         }
@@ -4981,7 +4979,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut makerTrader: Option<String> = self.safe_string_lower_k_opt(&maker, "trader", &[]);
                 if (makerTrader == myWallet) {
                     let mut makerSym: Option<String> = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), (self.safe_string_k(&maker, "outcome", &[])).as_str());
-                    let mut makerMarket: Value = crate::types::IntoRaw::into_raw(self.safe_market(Value::from(makerSym.as_deref()), None, &[]));
+                    let mut makerMarket: crate::types::Market = self.safe_market(Value::from(makerSym.as_deref()), None, &[]);
                     let mut makerOutcomeObj: Option<crate::types::Market> = self.safe_outcome(Value::from(makerSym.as_deref()), None);
                     let mut makerFees: crate::value::Dict = self.safe_dict_k(&maker, "fees", &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
@@ -5007,11 +5005,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), self.safe_number_k(&makerFees, "total", &[]));
-        m.insert("currency".to_string(), self.safe_string_k(makerMarket.clone(), "quote", &[]));
+        m.insert("currency".to_string(), self.safe_string_k(&makerMarket, "quote", &[]));
     m
 }));
     m
-}), &[makerMarket]);
+}), &[crate::Value::from(&makerMarket)]);
                     myLegs.push(makerTrade);
                 }
             }

@@ -2256,7 +2256,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             self.get_listen_key(true).await;
             return;
         }
-        let mut error: crate::ExchangeError = (crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+        let mut error: crate::ExchangeError = crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message)));
         client.reject(error, None);
 }
 }

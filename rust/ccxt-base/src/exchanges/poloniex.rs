@@ -4732,8 +4732,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_39 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_wallets_activity(&[__ws_arg_39]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_get_wallets_activity(&[__ws_arg_39]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -5091,8 +5091,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_42 = self.extend(Value::Map(request), &[&paramsHedged]);
-        let mut response: Value = self.swap_private_post_v3_position_leverage(&[__ws_arg_42]).await;
-        return response;
+        let mut response: crate::value::Dict = self.swap_private_post_v3_position_leverage(&[__ws_arg_42]).await.into_dict();
+        return Value::Dict(response);
         Value::Null
         }).await?))
     }
@@ -5211,8 +5211,8 @@ impl Poloniex {
             m
         });
         let __ws_arg_44 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.swap_private_post_v3_position_mode(&[__ws_arg_44]).await;
-        return response;
+        let mut response: crate::value::Dict = self.swap_private_post_v3_position_mode(&[__ws_arg_44]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

@@ -2115,10 +2115,10 @@ impl Onetrading {
             request.insert("instrument_code".into(), Value::from((market).id.as_deref()));
         }
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_account_orders(&[__ws_arg_6]).await;
+        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_6]).await.into_list();
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Arr(response));
     m
 }), None)]);
         Value::Null
@@ -2156,7 +2156,7 @@ impl Onetrading {
             m
         });
         let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_account_orders(&[__ws_arg_7]).await;
+        let mut response: crate::value::List = self.private_delete_account_orders(&[__ws_arg_7]).await.into_list();
         //
         //     [
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -2164,7 +2164,7 @@ impl Onetrading {
         //
         let mut order: Value = self.safe_order(Value::Map({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), Value::Arr(response));
             m
         }), None);
         return Value::from(vec![order]);

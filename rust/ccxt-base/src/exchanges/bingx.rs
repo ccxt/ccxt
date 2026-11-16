@@ -7997,13 +7997,13 @@ impl Bingx {
                 m.insert("type".to_string(), Value::from(type_var));
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
             let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[params.clone()]);
-            response = self.cswap_v1_private_post_trade_position_margin(&[__ws_arg_59]).await;
+            response = self.cswap_v1_private_post_trade_position_margin(&[__ws_arg_59]).await.into_opt_dict();
         }  else {
             let __ws_arg_60 = self.extend(Value::Map(request), &[params]);
-            response = self.swap_v2_private_post_trade_position_margin(&[__ws_arg_60]).await;
+            response = self.swap_v2_private_post_trade_position_margin(&[__ws_arg_60]).await.into_opt_dict();
         }
         //
         //    {
@@ -8013,9 +8013,9 @@ impl Bingx {
         //        "type": 1
         //    }
         //
-        let mut responseData: Option<crate::value::Dict> = response.clone().into_opt_dict();
+        let mut responseData: Option<crate::value::Dict> = response.clone();
         if ((market).inverse.map(Value::Bool).unwrap_or_default().as_bool() == Some(true)) {
-            let __ws_arg_61 = self.safe_dict_k(response.clone(), "data", &[Value::Map({
+            let __ws_arg_61 = self.safe_dict_k(&response, "data", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]);
@@ -8027,7 +8027,7 @@ impl Bingx {
 }), &[__ws_arg_61]).into_opt_dict();
         }
         let mut result: indexmap::IndexMap<String, Value> = <Self as crate::exchange::DerivedExchange>::parse_margin_modification(self, &responseData, Some(&market)).as_map().cloned().unwrap_or_default();
-        result.insert("info".into(), response);
+        result.insert("info".into(), response.map_or(Value::Null, Value::Dict));
         return Value::Map(result);
         Value::Null
         }).await?))

@@ -7399,33 +7399,33 @@ impl Htx {
         let mut isolated: bool = marginMode.as_deref() == Some("isolated");
         let mut cross: bool = marginMode.as_deref() == Some("cross");
         let mut margin: bool = ((type_var.as_deref() == Some("margin")) || (spot && (cross || isolated)));
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if isMultiAssetMode || (linear && (swap || future)) {
             let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-            response = self.contract_private_get_v5_account_balance(&[__ws_arg_42]).await;
+            response = self.contract_private_get_v5_account_balance(&[__ws_arg_42]).await.into_opt_dict();
         }  else if spot || margin {
             if margin {
                 if isolated {
                     let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-                    response = self.spot_private_get_v1_margin_accounts_balance(&[__ws_arg_43]).await;
+                    response = self.spot_private_get_v1_margin_accounts_balance(&[__ws_arg_43]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-                    response = self.spot_private_get_v1_cross_margin_accounts_balance(&[__ws_arg_44]).await;
+                    response = self.spot_private_get_v1_cross_margin_accounts_balance(&[__ws_arg_44]).await.into_opt_dict();
                 }
             }  else {
                 self.load_accounts(&[]).await;
                 let mut accountId: Option<String> = self.fetch_account_id_by_type(type_var.as_deref().unwrap_or_default(), None, None, &[Value::from(&paramsMarginMode)]).await.as_str().map(str::to_owned);
                 request.insert("account-id".into(), accountId.map(Value::from).unwrap_or(Value::Null));
                 let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-                response = self.spot_private_get_v1_account_accounts_account_id_balance(&[__ws_arg_45]).await;
+                response = self.spot_private_get_v1_account_accounts_account_id_balance(&[__ws_arg_45]).await.into_opt_dict();
             }
         }  else if inverse {
             if future {
                 let __ws_arg_46 = self.extend(Value::Map(request.clone()), &[&paramsMarginMode]);
-                response = self.contract_private_post_api_v1_contract_account_info(&[__ws_arg_46]).await;
+                response = self.contract_private_post_api_v1_contract_account_info(&[__ws_arg_46]).await.into_opt_dict();
             }  else {
                 let __ws_arg_47 = self.extend(Value::Map(request), &[&paramsMarginMode]);
-                response = self.contract_private_post_swap_api_v1_swap_account_info(&[__ws_arg_47]).await;
+                response = self.contract_private_post_swap_api_v1_swap_account_info(&[__ws_arg_47]).await.into_opt_dict();
             }
         }
         //
@@ -7569,13 +7569,13 @@ impl Htx {
         //         "ts": 1770293281344
         //     }
         //
-        let mut finalResponse: Value = response.clone();
+        let mut finalResponse: Value = response.clone().map_or(Value::Null, Value::Dict);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), finalResponse);
             m
         });
-        let mut data: Value = self.safe_value_k(response, "data", &[]);
+        let mut data: Value = self.safe_value_k(&response, "data", &[]);
         if isMultiAssetMode || (linear && (swap || future)) {
             let mut details: crate::value::List = self.safe_list_k(data.clone(), "details", &[Value::from(vec![])]).into_list();
             {
@@ -10374,8 +10374,8 @@ impl Htx {
             m
         });
         let __ws_arg_110 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v2_private_post_algo_orders_cancel_all_after(&[__ws_arg_110]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v2_private_post_algo_orders_cancel_all_after(&[__ws_arg_110]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -13187,8 +13187,8 @@ impl Htx {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " setPositionMode can only be used for linear markets")));
         }
         let __ws_arg_165 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.contract_private_post_v5_position_mode(&[__ws_arg_165]).await;
-        return response;
+        let mut response: crate::value::Dict = self.contract_private_post_v5_position_mode(&[__ws_arg_165]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

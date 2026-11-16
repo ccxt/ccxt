@@ -2412,7 +2412,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut future: crate::pro::ws_client::Flight = __ch.get_future("authenticated");
             future.resolve(Value::Bool(true), None);
         }  else {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(json_stringify(&message)));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(json_stringify(&message));
             client.reject(error, messageHash.as_str());
             // allows further authentication attempts
             if (__ch.has_subscription(messageHash.as_str())) {

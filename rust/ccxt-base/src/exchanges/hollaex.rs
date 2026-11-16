@@ -2732,9 +2732,9 @@ impl Hollaex {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut currency: crate::types::Currency = self.currency(code.clone());
-        let mut addressWithTag: Value = address.clone();
+        let mut addressWithTag: String = address.as_str().unwrap_or_default().to_string();
         if (tagWithdrawTag.is_some()) {
-            addressWithTag = Value::Str(format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null")).into());
+            addressWithTag = format!("{}{}", Value::Str(format!("{}{}", address, ":").into()), tagWithdrawTag.as_deref().unwrap_or("null"));
         }
         let mut network: Option<String> = self.safe_string_k_opt(&paramsWithdrawTag, "network", &[]);
         if (network.is_none()) {
@@ -2744,7 +2744,7 @@ impl Hollaex {
             let mut m = indexmap::IndexMap::new();
                 m.insert("currency".to_string(), crate::value::KeyRead::key_read(&&currency, "id"));
                 m.insert("amount".to_string(), amount);
-                m.insert("address".to_string(), addressWithTag);
+                m.insert("address".to_string(), Value::from(addressWithTag));
                 m.insert("network".to_string(), self.network_code_to_id(network.map(Value::from).unwrap_or(Value::Null), &[code]));
             m
         });

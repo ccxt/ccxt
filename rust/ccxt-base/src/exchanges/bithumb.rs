@@ -878,7 +878,7 @@ impl crate::exchange_generated::ExchangeBase for Bithumb {
                 "fetch_withdrawal" => self.fetch_withdrawal(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref(), &args[2.min(args.len())..]).await,
                 "fetch_withdrawal_whitelist" => self.fetch_withdrawal_whitelist(&args[..]).await,
                 "fetch_withdrawals" => crate::types::IntoRaw::into_raw(self.fetch_withdrawals(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
-                "get_gen2_market_id" => self.get_gen2_market_id(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
+                "get_gen2_market_id" => crate::Value::from(self.get_gen2_market_id(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref())),
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
                     args.get(5).cloned().unwrap_or(crate::Value::Null), args.get(6).cloned().unwrap_or(crate::Value::Null), args.get(7).cloned().unwrap_or(crate::Value::Null), args.get(8).cloned().unwrap_or(crate::Value::Null)),
                 "nonce" => self.nonce(),
@@ -1655,10 +1655,10 @@ impl Bithumb {
         return self.decimal_to_precision(amount, Value::Int(crate::runtime::TRUNCATE), self.safe_value_k(crate::value::KeyRead::key_read(&&market, "precision"), "amount", &[]), &[Value::Int(crate::runtime::DECIMAL_PLACES)]).as_str().map(str::to_owned);
 }
 
-    pub fn get_gen2_market_id(&self, market: Option<&crate::types::Market>) -> Value {
+    pub fn get_gen2_market_id(&self, market: Option<&crate::types::Market>) -> Option<String> {
         let mut marketId: Option<String> = self.safe_string_k_opt(&market, "id", &[]);
         if (marketId.is_some()) && (marketId.as_deref().unwrap_or_default().contains("-")) {
-            return marketId.map(Value::from).unwrap_or(Value::Null);
+            return marketId;
         }
         let mut quoteId: Option<String> = self.safe_string_k_opt(&market, "quoteId", &[]);
         if (quoteId.is_none()) {
@@ -1668,9 +1668,7 @@ impl Bithumb {
         if (baseId.is_none()) {
             baseId = self.safe_string_k_opt(&market, "base", &[Value::Str("".into())]);
         }
-        return Value::Str(format!("{}{}", Value::Str(format!("{}{}", quoteId.as_deref().unwrap_or("null"), "-").into()), baseId.as_deref().unwrap_or("null")).into());
-
-    Value::Null
+        return Some(format!("{}{}", Value::Str(format!("{}{}", quoteId.as_deref().unwrap_or("null"), "-").into()), baseId.as_deref().unwrap_or("null")));
 }
 
 /*
@@ -2069,7 +2067,7 @@ impl Bithumb {
         let mut data: Value = Value::Null;
         let mut timestamp: Option<i64> = None;
         if (generation == Some(2)) {
-            request.insert("markets".into(), self.get_gen2_market_id(Some(&market)));
+            request.insert("markets".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_orderbook(&[__ws_arg_3]).await;
             //
@@ -2213,7 +2211,7 @@ impl Bithumb {
                 let mut __for_first_396: bool = true;
                 while { if !__for_first_396 { i += 1; } __for_first_396 = false; i < symbolsForMarketIdsLength } {
                 let mut market: crate::types::Market = (match self.market((symbolsForMarketIds.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-                marketIds.push(self.get_gen2_market_id(Some(&market)));
+                marketIds.push(self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             }
             }
             let mut marketIdsLength: i64 = marketIds.len() as i64;
@@ -2447,7 +2445,7 @@ impl Bithumb {
             m
         }).into_dict();
         if (generation == Some(2)) {
-            request.insert("markets".into(), self.get_gen2_market_id(Some(&market)));
+            request.insert("markets".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_7 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_ticker(&[__ws_arg_7]).await;
             //
@@ -2576,7 +2574,7 @@ impl Bithumb {
             }
             let mut until: Option<i64> = self.safe_integer_k(&paramsGeneration, "until", &[]).as_i64();
             let mut requestParams: crate::value::Dict = self.omit(&paramsGeneration, &["until", "paginate"], &[]).into_dict();
-            request.insert("market".into(), self.get_gen2_market_id(Some(&market)));
+            request.insert("market".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
             let mut count: Option<i64> = Some(200);
             if (limit != Value::Null) {
@@ -2732,7 +2730,7 @@ impl Bithumb {
         let mut response: Value = Value::Null;
         let mut data: Value = Value::from(vec![]);
         if (generation == Some(2)) {
-            request.insert("market".into(), self.get_gen2_market_id(Some(&market)));
+            request.insert("market".into(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_14 = self.extend(Value::Map(request.clone()), &[&paramsGeneration]);
             response = self.public_get_v1_trades_ticks(&[__ws_arg_14]).await;
             //
@@ -2899,7 +2897,7 @@ impl Bithumb {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), self.get_gen2_market_id(Some(&market)));
+                m.insert("market".to_string(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let mut sideRequest: Option<String> = None;
@@ -3146,7 +3144,7 @@ impl Bithumb {
         let mut durationSeconds: Option<String> = crate::precise::Precise::stringDiv(&durationString, &Value::Str("1000".into())).as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("market".to_string(), self.get_gen2_market_id(Some(&market)));
+                m.insert("market".to_string(), self.get_gen2_market_id(Some(&market)).map(Value::from).unwrap_or(Value::Null));
                 m.insert("duration".to_string(), durationSeconds.map(Value::from).unwrap_or(Value::Null));
             m
         });
@@ -3216,7 +3214,7 @@ impl Bithumb {
         if (generation == Some(2)) {
             if twap {
                 if (market.is_some()) {
-                    request.insert("market".into(), self.get_gen2_market_id(market.as_ref()));
+                    request.insert("market".into(), self.get_gen2_market_id(market.as_ref()).map(Value::from).unwrap_or(Value::Null));
                 }
                 request.insert("uuids".into(), Value::from(vec![id.clone()]));
                 let __ws_arg_23 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
@@ -3484,7 +3482,7 @@ impl Bithumb {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            request.insert("market".into(), self.get_gen2_market_id(market.as_ref()));
+            request.insert("market".into(), self.get_gen2_market_id(market.as_ref()).map(Value::from).unwrap_or(Value::Null));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
@@ -4009,8 +4007,8 @@ impl Bithumb {
         if (generation != Some(2)) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " fetchWithdrawalWhitelist() is only supported for the generation 2 API")));
         }
-        let mut response: Value = self.private_get_v1_withdraws_coin_addresses(&[Value::Dict(paramsGeneration)]).await;
-        return response;
+        let mut response: crate::value::List = self.private_get_v1_withdraws_coin_addresses(&[Value::Dict(paramsGeneration)]).await.into_list();
+        return Value::Arr(response);
 
     Value::Null
 }

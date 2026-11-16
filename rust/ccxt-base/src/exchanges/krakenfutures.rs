@@ -3650,8 +3650,8 @@ impl Krakenfutures {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_post_cancelallordersafter(&[__ws_arg_10]).await;
-        return response;
+        let mut response: crate::value::Dict = self.private_post_cancelallordersafter(&[__ws_arg_10]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }

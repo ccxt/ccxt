@@ -1290,7 +1290,7 @@ impl crate::exchange_generated::ExchangeBase for Weex {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
                 "create_spot_order" => self.create_spot_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_spot_order_request" => self.create_spot_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
-                "encode_margin_mode" => self.encode_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref()),
+                "encode_margin_mode" => crate::Value::from(self.encode_margin_mode(args.get(0).and_then(crate::Value::as_text).as_deref())),
                 "fetch_balance" => crate::types::IntoRaw::into_raw(self.fetch_balance(args.get(0).cloned().unwrap_or_default()).await),
                 "fetch_bids_asks" => crate::types::IntoRaw::into_raw(self.fetch_bids_asks(args.get(0).cloned().unwrap_or_default().to_opt_str_vec(), args.get(1).cloned().unwrap_or_default()).await),
                 "fetch_canceled_and_closed_orders" => crate::types::IntoRaw::into_raw(self.fetch_canceled_and_closed_orders(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), args.get(3).cloned().unwrap_or_default()).await),
@@ -2568,14 +2568,14 @@ impl Weex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_v3_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.public_get_api_v3_ping(&[params]).await.into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("ok".into()));
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null
@@ -5545,7 +5545,7 @@ impl Weex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.as_str()));
+                m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.as_str()).map(Value::from).unwrap_or(Value::Null));
             m
         });
         let __ws_arg_43 = self.extend(Value::Map(request), &[params]);
@@ -5554,7 +5554,7 @@ impl Weex {
         }).await?))
     }
 
-    pub fn encode_margin_mode(&self, marginMode: Option<&str>) -> Value {
+    pub fn encode_margin_mode(&self, marginMode: Option<&str>) -> Option<String> {
         let mut marginMode: Value = marginMode.into();
         let mut marginTypes: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -5566,9 +5566,7 @@ impl Weex {
         if (result.is_none()) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " marginMode must be either cross or isolated")));
         }
-        return result.map(Value::from).unwrap_or(Value::Null);
-
-    Value::Null
+        return result;
 }
 
 /*
@@ -5689,7 +5687,7 @@ impl Weex {
         let mut marginMode: Option<String> = marginModeparamsMarginModeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarginMode: crate::value::Dict = marginModeparamsMarginModeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         if (marginMode.is_some()) {
-            request.insert("marginType".into(), self.encode_margin_mode(marginMode.as_deref()));
+            request.insert("marginType".into(), self.encode_margin_mode(marginMode.as_deref()).map(Value::from).unwrap_or(Value::Null));
         }
         let mut isolatedLongLeverage: Option<f64> = self.safe_number_k(&paramsMarginMode, "isolatedLongLeverage", &[]).as_f64();
         let mut isolatedShortLeverage: Option<f64> = self.safe_number_k(&paramsMarginMode, "isolatedShortLeverage", &[]).as_f64();
@@ -5791,7 +5789,7 @@ impl Weex {
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), Value::from((market).id.as_deref()));
-                m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.as_deref()));
+                m.insert("marginType".to_string(), self.encode_margin_mode(marginMode.as_deref()).map(Value::from).unwrap_or(Value::Null));
                 m.insert("separatedType".to_string(), Value::from(separatedType));
             m
         });

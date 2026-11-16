@@ -420,7 +420,7 @@ impl Independentreserve {
             let mut calculatedChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             let mut responseChecksum: Option<i64> = self.safe_integer_k(&orderBook, "Crc32", &[]).as_i64();
             if (Some(calculatedChecksum) != responseChecksum) {
-                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_str())))));
+                let mut error: crate::ExchangeError = crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_str()))));
                 __ch.remove_subscription(messageHash.as_str());
                 CacheStore::forget(&mut self.orderbooks, &symbol);
                 client.reject(error, messageHash.as_str());

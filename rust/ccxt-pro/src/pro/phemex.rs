@@ -1237,7 +1237,7 @@ impl Phemex {
         //    }
         //
         let mut marketId: Option<String> = self.safe_string_k_opt(message.clone(), "symbol", &[]);
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]));
+        let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut type_var: Option<String> = (match __pro_message.get("type").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut depth: Option<i64> = (match __pro_message.get("depth") { Some(Value::Int(__n)) => Some(*__n), Some(Value::Float(__f)) => Some(*__f as i64), Some(Value::Str(__s)) if !__s.is_empty() => match __s.parse::<i64>() { Ok(__n) => Some(__n), Err(_) => match __s.parse::<f64>() { Ok(__f) if __f.is_finite() => Some(__f as i64), _ => None } }, _ => None });
@@ -1250,7 +1250,7 @@ impl Phemex {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), market.clone()]).into_dict();
+            let mut snapshot: crate::value::Dict = self.parent.custom_parse_order_book(&book, symbol.as_deref().unwrap_or_default(), &[Value::from(timestamp), Value::Str("bids".into()), Value::Str("asks".into()), Value::Int(0), Value::Int(1), crate::Value::from(&market)]).into_dict();
             std::sync::Arc::make_mut(&mut snapshot).insert("nonce".into(), Value::from(nonce));
             // reset the existing orderbook instead of replacing it: a consumer
             // holds a reference to the old object and would never see updates
@@ -1273,8 +1273,8 @@ impl Phemex {
                 })]).into_dict();
                 let mut asks: crate::value::List = self.safe_list_k(&changes, "asks", &[Value::from(vec![])]).into_list();
                 let mut bids: crate::value::List = self.safe_list_k(&changes, "bids", &[Value::from(vec![])]).into_list();
-                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks), &[market.clone()]);
-                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids), &[market]);
+                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks), &[crate::Value::from(&market)]);
+                self.custom_handle_deltas(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids), &[crate::Value::from(&market)]);
                 orderbook.set_book_meta("nonce", Value::from(nonce));
                 orderbook.set_book_meta("timestamp", Value::from(timestamp));
                 orderbook.set_book_meta("datetime", self.iso8601(timestamp));
@@ -2146,7 +2146,7 @@ impl Phemex {
         if (status.as_deref() == Some("success")) {
             client.resolve(message.clone(), messageHash.as_str());
         }  else {
-            let mut error: crate::ExchangeError = (crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message))));
+            let mut error: crate::ExchangeError = crate::exchange_errors::authentication_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message)));
             client.reject(error, messageHash.as_str());
             if (__ch.has_subscription(messageHash.as_str())) {
                 __ch.remove_subscription(messageHash.as_str());

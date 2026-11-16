@@ -1433,10 +1433,10 @@ impl Cryptomus {
         });
         request.insert("orderId".into(), id);
         let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_6]).await;
+        let mut response: crate::value::Dict = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_6]).await.into_dict();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 }), None);
         Value::Null

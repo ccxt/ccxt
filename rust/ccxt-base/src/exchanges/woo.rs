@@ -1297,7 +1297,7 @@ impl crate::exchange_generated::ExchangeBase for Woo {
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64), args.get(7).cloned().unwrap_or_default()).await),
                 "create_trailing_percent_order" => crate::types::IntoRaw::into_raw(self.create_trailing_percent_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).and_then(crate::Value::as_f64), args.get(7).cloned().unwrap_or_default()).await),
-                "default_network_code_for_currency" => self.default_network_code_for_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
+                "default_network_code_for_currency" => crate::Value::from(self.default_network_code_for_currency(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default())),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_accounts" => crate::types::IntoRaw::into_raw(self.fetch_accounts(args.get(0).cloned().unwrap_or_default()).await),
@@ -3084,7 +3084,7 @@ impl Woo {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenResponsePromise: Value = self.v1_public_get_token(&[params.clone()]).await;
+        let mut tokenResponsePromise: crate::value::Dict = self.v1_public_get_token(&[params.clone()]).await.into_dict();
         //
         //    {
         //      "rows": [
@@ -3130,7 +3130,7 @@ impl Woo {
         // }
         //
         // only make one request for currencies...
-        let mut tokenNetworkResponsePromise: Value = self.v1_public_get_token_network(&[params]).await;
+        let mut tokenNetworkResponsePromise: crate::value::Dict = self.v1_public_get_token_network(&[params]).await.into_dict();
         //
         // {
         //     "rows": [
@@ -3159,7 +3159,7 @@ impl Woo {
         //     "success": true
         // }
         //
-        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![tokenResponsePromise, tokenNetworkResponsePromise])).await.as_array().cloned().unwrap_or_default();
+        let tokenResponsetokenNetworkResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(tokenResponsePromise), Value::Dict(tokenNetworkResponsePromise)])).await.as_array().cloned().unwrap_or_default();
         let mut tokenResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenNetworkResponse: crate::value::Dict = tokenResponsetokenNetworkResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut tokenRows: crate::value::List = self.safe_list_k(&tokenResponse, "rows", &[Value::from(vec![])]).into_list();
@@ -3873,8 +3873,8 @@ impl Woo {
             m
         });
         let __ws_arg_10 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_10]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v3_private_post_trade_cancel_all_after(&[__ws_arg_10]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -4635,7 +4635,7 @@ impl Woo {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut mainAccountPromise: Value = self.v3_private_get_account_info(&[params.clone()]).await;
+        let mut mainAccountPromise: crate::value::Dict = self.v3_private_get_account_info(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4665,7 +4665,7 @@ impl Woo {
         //         "timestamp": 1752062807915
         //     }
         //
-        let mut subAccountPromise: Value = self.v3_private_get_account_sub_accounts_all(&[params.clone()]).await;
+        let mut subAccountPromise: crate::value::Dict = self.v3_private_get_account_sub_accounts_all(&[params.clone()]).await.into_dict();
         //
         //     {
         //         "success": true,
@@ -4681,7 +4681,7 @@ impl Woo {
         //         "timestamp": 1721295317627
         //     }
         //
-        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![mainAccountPromise, subAccountPromise])).await.as_array().cloned().unwrap_or_default();
+        let mainAccountResponsesubAccountResponseVariable: Vec<Value> = promise_all(&Value::from(vec![Value::Dict(mainAccountPromise), Value::Dict(subAccountPromise)])).await.as_array().cloned().unwrap_or_default();
         let mut mainAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(0).cloned().unwrap_or(Value::Null).into_dict();
         let mut subAccountResponse: crate::value::Dict = mainAccountResponsesubAccountResponseVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
         let mut mainData: crate::value::Dict = self.safe_dict_k(&mainAccountResponse, "data", &[Value::Map({
@@ -5805,8 +5805,8 @@ impl Woo {
             m
         });
         let __ws_arg_37 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v3_private_put_futures_position_mode(&[__ws_arg_37]).await;
-        return response;
+        let mut response: crate::value::Dict = self.v3_private_put_futures_position_mode(&[__ws_arg_37]).await.into_dict();
+        return Value::Dict(response);
 
     Value::Null
 }
@@ -6591,7 +6591,7 @@ impl Woo {
     }
 
 
-    pub fn default_network_code_for_currency(&self, code: &str) -> Value {
+    pub fn default_network_code_for_currency(&self, code: &str) -> Option<String> {
         let mut code: Value = code.into();
         let mut currencyItem: crate::types::Currency = self.currency(code);
         let mut networks: Value = crate::value::KeyRead::key_read(&&currencyItem, "networks");
@@ -6602,13 +6602,11 @@ impl Woo {
             while { if !__for_first_1176 { i += 1; } __for_first_1176 = false; i < (networkKeys.len() as i64) } {
             let mut network: Option<String> = networkKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             if (network.as_deref() == Some("ERC20")) {
-                return network.map(Value::from).unwrap_or(Value::Null);
+                return network;
             }
         }
         }
-        return self.safe_string(&networkKeys, Value::Int(0), &[]);
-
-    Value::Null
+        return self.safe_string_opt(&networkKeys, Value::Int(0), &[]);
 }
 
     pub fn set_sandbox_mode(&mut self, enable: bool) -> crate::Result<()> {

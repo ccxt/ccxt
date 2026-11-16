@@ -2223,13 +2223,13 @@ impl Bitrue {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.spot_v1_public_get_ping(&[params]).await;
+        let mut response: crate::value::Dict = self.spot_v1_public_get_ping(&[params]).await.into_dict();
         //
         // empty means working status.
         //
         //     {}
         //
-        let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut keys: Vec<Value> = Value::Array(response.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut keysLength: i64 = keys.len() as i64;
         let mut formattedStatus: String = "ok".to_string();
         if keysLength > 0 {
@@ -2241,7 +2241,7 @@ impl Bitrue {
         m.insert("updated".to_string(), Value::Null);
         m.insert("eta".to_string(), Value::Null);
         m.insert("url".to_string(), Value::Null);
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), Value::Dict(response));
     m
 });
         Value::Null

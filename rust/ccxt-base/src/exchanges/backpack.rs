@@ -1164,7 +1164,7 @@ impl crate::exchange::DerivedExchange for Backpack {
         }
         let mut requestParams: Value = (if (matches!(&params, Value::Arr(_))) { params.clone() } else { self.omit(params.clone(), &["stock", "defaultStock", "rfq", "callerMethodName"], &[]) });
         let mut sortedParams: Value = (if (matches!(&requestParams, Value::Arr(_))) { requestParams.clone() } else { self.keysort(requestParams.clone(), &[]) });
-        let mut headersSigned: Value = Value::Map({
+        let mut headersSigned: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
         });
@@ -1195,7 +1195,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             let mut secretBytes: crate::value::Bytes = self.base64_to_binary(self.secret.clone(), &[]);
             let mut seed: Value = self.array_slice(Value::from(&secretBytes), Value::Int(0), &[Value::Int(32)]);
             let mut signature: String = eddsa(self.encode(payload), seed, Value::Str("ed25519".into()));
-            headersSigned = Value::Map({
+            headersSigned = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("X-Timestamp".to_string(), ts.map(Value::from).unwrap_or(Value::Null));
                     m.insert("X-Window".to_string(), Value::from(recvWindow));
@@ -1206,7 +1206,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             });
             if (method.as_str() != Some("GET")) {
                 bodySigned = json_stringify(&sortedParams).as_str().map(str::to_owned);
-                if let Value::Dict(__d) = &mut headersSigned { std::sync::Arc::make_mut(__d).insert("Content-Type".into(), Value::Str("application/json".into())); }
+                headersSigned.insert("Content-Type".into(), Value::Str("application/json".into()));
             }
         }
         if (method.as_str() == Some("GET")) {
@@ -1216,7 +1216,7 @@ impl crate::exchange::DerivedExchange for Backpack {
             }
         }
         let mut url: String = format!("{}{}", apiUrl.as_deref().unwrap_or("null"), endpoint);
-        let mut headersResolved: Value = (if (apiName.as_deref() == Some("private")) { headersSigned } else { Value::Null });
+        let mut headersResolved: Value = (if (apiName.as_deref() == Some("private")) { Value::Map(headersSigned) } else { Value::Null });
         let mut bodyResolved: Option<String> = None;
         if (apiName.as_deref() == Some("private")) && (method.as_str() != Some("GET")) {
             bodyResolved = bodySigned.take();
@@ -2546,9 +2546,9 @@ impl Backpack {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut response: Value = self.public_get_api_v1_securities(&[params]).await;
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("securities".into(), response.clone()); }
-        return response;
+        let mut response: crate::value::List = self.public_get_api_v1_securities(&[params]).await.into_list();
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("securities".into(), Value::from(&response)); }
+        return Value::Arr(response);
 
     Value::Null
 }
@@ -3162,10 +3162,10 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut request: crate::value::Dict = self.stock_data_request("fetchTicker", params, &[market.clone()]).into_dict();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut request: crate::value::Dict = self.stock_data_request("fetchTicker", params, &[(market).raw.clone()]).into_dict();
         let mut response: crate::value::Dict = self.public_get_api_v1_ticker(&[Value::Dict(request)]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_ticker(self, &response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -3283,10 +3283,10 @@ impl Backpack {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut maxLimit: i64 = 2000;
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
-        let mut dataRequest: crate::value::Dict = self.stock_data_request("fetchOHLCV", params, &[market.clone()]).into_dict();
+        let mut dataRequest: crate::value::Dict = self.stock_data_request("fetchOHLCV", params, &[(market).raw.clone()]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), self.safe_string_k(&dataRequest, "symbol", &[]));
@@ -3329,7 +3329,7 @@ impl Backpack {
         let __ws_arg_6 = self.extend(Value::Map(request), &[&paramsOmitted]);
         let mut response: crate::value::List = self.public_get_api_v1_klines(&[__ws_arg_6]).await.into_list();
         let mut ohlcvs: crate::value::List = self.to_array(&response).into_list();
-        return self.parse_ohlc_vs(&ohlcvs, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref(), &[timeframe, since, Value::from(limitResolved)]);
+        return self.parse_ohlc_vs(&ohlcvs, Some(&market), &[timeframe, since, Value::from(limitResolved)]);
         Value::Null
         }).await?))
     }
@@ -4094,8 +4094,8 @@ impl Backpack {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut selection: crate::value::List = self.handle_stock_params("createOrder", params, &[market.clone()]).into_list();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut selection: crate::value::List = self.handle_stock_params("createOrder", params, &[(market).raw.clone()]).into_list();
         let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -4106,7 +4106,7 @@ impl Backpack {
                 m.insert("stock".to_string(), __ws_arg_19);
             m
         })]).into_dict();
-        if (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ")) {
+        if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             let mut rfqResponse: crate::value::Dict = self.create_rfq_order(symbol.as_str().unwrap_or_default(), type_var.as_str().unwrap_or_default(), side.as_str().unwrap_or_default(), amount.clone(), price.as_f64(), &[Value::from(&orderParams)]).await.into_dict();
             let mut rfqOrder: Option<crate::value::Dict> = self.safe_dict(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4117,7 +4117,7 @@ impl Backpack {
         }
         let mut orderRequest: crate::value::Dict = self.create_order_request(symbol.as_str(), type_var.as_str(), side.as_str(), amount, &[price, Value::Dict(orderParams)]).into_dict();
         let mut response: crate::value::Dict = self.private_post_api_v1_order(&[Value::Dict(orderRequest)]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
         Value::Null
         }).await?))
     }
@@ -4280,13 +4280,13 @@ impl Backpack {
     m
 }));
         if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
-        let mut selection: crate::value::List = self.handle_stock_params("acceptRfqQuote", params, &[market.clone()]).into_list();
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+        let mut selection: crate::value::List = self.handle_stock_params("acceptRfqQuote", params, &[(market).raw.clone()]).into_list();
         let mut query: crate::value::Dict = self.safe_dict(&selection, Value::Int(1), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-        if (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() != Some("RFQ")) {
+        if (self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() != Some("RFQ")) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", self.id.clone(), " acceptRfqQuote() requires an RFQ market")));
         }
         let mut request: indexmap::IndexMap<String, Value> = ({
@@ -4297,7 +4297,7 @@ impl Backpack {
         });
         let __ws_arg_21 = self.extend(query, &[Value::Map(request)]);
         let mut response: crate::value::Dict = self.private_post_api_v1_rfq_accept(&[__ws_arg_21]).await.into_dict();
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(market).as_ref());
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, Some(&market));
 
     Value::Null
 }
