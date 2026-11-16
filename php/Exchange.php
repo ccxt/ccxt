@@ -1413,18 +1413,12 @@ class BaseExchange {
 
 
     public function ensure_whitelisted_file(string $filePath) {
-        $tempDir = $this->get_temp_dir();
-        if (!str_ends_with($tempDir, DIRECTORY_SEPARATOR)) {
-            $tempDir .= DIRECTORY_SEPARATOR;
-        }
-        // resolve parent dir (which exists) + filename
-        $dir = realpath(dirname($filePath));
-        if ($dir === false) {
-            throw new \RuntimeException('dir path does not exist: ' . $filePath);
-        }
-        $sanitized = $dir . DIRECTORY_SEPARATOR . basename($filePath);
-        if (str_starts_with($sanitized, $tempDir) && str_ends_with($sanitized, '.ccxtfile')) {
-            return;
+        $sanitized = basename($filePath);
+        $exts = array('ccxtfile', 'pem', 'wasm');
+        foreach ($exts as $ext) {
+            if (str_ends_with($sanitized, '.' . $ext)) {
+                return;
+            }
         }
         throw new \RuntimeException('invalid file path: ' . $filePath);
     }
