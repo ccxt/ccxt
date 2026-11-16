@@ -278,18 +278,24 @@ function csharpCounterRegion (masked: string[], start: number, end: number) {
     return region;
 }
 
+// one region per method of a masked file (start = signature line, end = next signature), with params and
+// declarations, plus `for` counters and bound names when `counters`
+function csharpRegions (masked: string[], counters = false): any[] {
+    const signatures = csharpMethodSignatures (masked);
+    return signatures.map ((start, n) => {
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : masked.length;
+        return counters ? csharpCounterRegion (masked, start, end) : { start, end, params: csharpHelperSignatureParams (masked, start), declarations: csharpRegionDeclarations (masked, start, end), lines: masked };
+    });
+}
+
 // the per-line pass driver: per method region (with `for` counters and bound names when `counters`),
 // `rewrite` answers each body line's replacement or undefined
 function csharpLinePass (content: string, counters: boolean, rewrite: (region: any, original: string, masked: string, line: number) => string | undefined): string {
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = csharpMethodSignatures (masked);
     let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = counters ? csharpCounterRegion (masked, start, end) : { start, end, params: csharpHelperSignatureParams (masked, start), declarations: csharpRegionDeclarations (masked, start, end), lines: masked };
-        for (let i = start + 1; i < end; i++) {
+    for (const region of csharpRegions (masked, counters)) {
+        for (let i = region.start + 1; i < region.end; i++) {
             const next = rewrite (region, lines[i], masked[i], i);
             if (next !== undefined) {
                 lines[i] = next;
