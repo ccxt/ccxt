@@ -12311,6 +12311,44 @@ function omitZeroConstStringLocal (printer, identifier) {
     }
 }
 
+// r77-j4: a copy of a local or parameter whose printed Java declaration is already one scalar
+// box (published by an earlier section, or a parameter the printer types natively). A local
+// declared later in the source has not printed yet and answers undefined (declines).
+const NULL_SCALAR_COPY_TYPES = new Set ([ JAVA_DATAFLOW_STRING, 'Long', 'Double', 'Boolean' ]);
+const NULL_CONTAINER_TYPES = new Set ([ JAVA_STRUCTURE_TYPE, JAVA_ARRAY_TYPE ]);
+function nullScalarCopyTernaryType (printer, value, arms) {
+    const boxes = arms.filter ((t) => t !== 'null');
+    const operands = [ value.whenTrue, value.whenFalse ].map ((arm) => unwrapParens (arm));
+    if (boxes.length === 0 || !boxes.every ((t) => t === boxes[0]) || boxes[0] === JAVA_DATAFLOW_STRING
+        || !NULL_SCALAR_COPY_TYPES.has (boxes[0])
+        || !operands.every ((arm) => ts.isIdentifier (arm) || isNullishInitializer (arm))) {
+        return undefined;
+    }
+    return boxes[0];
+}
+
+// the one spelling each container box publishes under (`Map<String,Object>` / `java.util.List<Object>` ...)
+function nullContainerSpelling (type) {
+    const bare = typeof type === 'string' ? type.replace (/\s+/g, '').replace (/^java\.util\./, '') : undefined;
+    return bare === 'Map<String,Object>' ? JAVA_STRUCTURE_TYPE : bare === 'List<Object>' ? JAVA_ARRAY_TYPE : undefined;
+}
+
+function nullScalarDeclaredIdentifierType (printer, identifier) {
+    if (typeof printer.javaDeclaredTypeOf !== 'function') {
+        return undefined;
+    }
+    const declared = printer.javaDeclaredTypeOf (identifier);
+    if (NULL_SCALAR_COPY_TYPES.has (declared)) {
+        return declared;
+    }
+    const container = nullContainerSpelling (declared);
+    if (container !== undefined) {
+        return container;
+    }
+    const parameter = joinParameterReadType (printer, identifier);
+    return NULL_SCALAR_COPY_TYPES.has (parameter) ? parameter : undefined;
+}
+
 function nullScalarWriteType (printer, node) {
     const value = unwrapParens (node);
     if (value === undefined) {
@@ -12323,13 +12361,17 @@ function nullScalarWriteType (printer, node) {
         // an element binding section 4/28 typed, a String-printed local/param, or a later-printed
         // `const x = this.omitZero (<String>)` local that the declaration scan proves String
         return handleTypedBindingReadType (printer, value) ?? (isDeclaredStringIdentifier (printer, value) || omitZeroConstStringLocal (printer, value)
-            ? JAVA_DATAFLOW_STRING : undefined);
+            ? JAVA_DATAFLOW_STRING : nullScalarDeclaredIdentifierType (printer, value));
     }
     if (ts.isConditionalExpression (value)) {
         // arms that are each String (or null) keep the Java conditional String
         const arms = [ value.whenTrue, value.whenFalse ].map ((arm) => nullScalarWriteType (printer, arm));
-        return arms.every ((t) => t === JAVA_DATAFLOW_STRING || t === 'null') && arms.includes (JAVA_DATAFLOW_STRING)
-            ? JAVA_DATAFLOW_STRING : undefined;
+        if (arms.every ((t) => t === JAVA_DATAFLOW_STRING || t === 'null') && arms.includes (JAVA_DATAFLOW_STRING)) {
+            return JAVA_DATAFLOW_STRING;
+        }
+        // r77-j4: two identifier arms printed as the same reference box (or null): javac keeps
+        // that box for the conditional (JLS 15.25, no unboxing between two equal reference types)
+        return nullScalarCopyTernaryType (printer, value, arms);
     }
     const numeric = numericFamilyCallType (printer, value);
     if (numeric === 'Long' || numeric === 'Double') {
@@ -12354,6 +12396,12 @@ function nullScalarWriteType (printer, node) {
         }
         if (isThisCall (value) && (dataflowThisCallType (printer, value) ?? joinBaseProducerType (printer, value)) === JAVA_DATAFLOW_STRING) {
             return JAVA_DATAFLOW_STRING;
+        }
+        // r77-j4: a sync core whose printed signature already returns the box (no cast)
+        const core = isThisCall (value) ? syncCoreCallType (printer, value) : undefined;
+        const container = nullContainerSpelling (core);
+        if (container !== undefined || NULL_SCALAR_COPY_TYPES.has (core)) {
+            return container ?? core;
         }
     }
     return undefined;
@@ -12408,7 +12456,10 @@ function nullScalarLocalType (printer, declaration) {
         const written = nullScalarWriteType (printer, right);
         return written === 'null' || written === type;
     };
-    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk }) ? type : undefined;
+    // r77-j4: a Map / List box joined from sync-core / copy writes has no write hook, so its own
+    // writeOk decides every write and casts on the local decline it
+    const container = NULL_CONTAINER_TYPES.has (type);
+    return isSafeToNarrow (printer, declaration, sourceName, type, isProFile, { nonNull: false, writeOk, noCastAssertions: container, writeOnly: container }) ? type : undefined;
 }
 
 export function installJavaNullScalarLocalTypes (transpiler) {

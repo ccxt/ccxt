@@ -5808,7 +5808,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest());
 }
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
@@ -6940,6 +6940,39 @@ function javaScalarLocalsSelfTest (): string[] {
         for (const name of [ 'e', 'g' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default/arm and must stay Object`);
         }
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// r77-j4: `let x = undefined` seeds joined over copy / sync-core writes print the written box
+function javaNullSeedJoinSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj4nullseed${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        'export default class zzj4nullseed extends Exchange {',
+        "    action (p: Dict): Dict { return { 'a': this.safeString (p, 'a') }; }",
+        "    sign2 (p: Dict, flag: boolean) { let sig = undefined; if (flag) { sig = this.action (p); } else { sig = this.action ({}); } const r = sig['r']; return [ r ]; }",
+        "    copy (p: Dict, flag: boolean) { const a = this.safeString (p, 'a'); const b = this.safeString (p, 'b'); let c = undefined; if (flag) { c = a; } else { c = flag ? a : b; } return { 'c': c }; }",
+        "    signed (action: any, nonce: any, vault: string = undefined): Dict { return { 'r': action, 'n': nonce, 'v': vault }; }",
+        "    built (payload: any): Dict { return { 'r': payload }; }",
+        "    send (p: Dict, flag: boolean) { let sent: Dict; if (flag) { sent = this.signed (p, 1); } else { sent = this.built (p); } return { 'signature': sent }; }",
+        "    netw (p: Dict, flag: boolean) { let net = undefined; if (flag) { net = this.networkIdToCode (this.safeString (p, 'n')); } return { 'net': net }; }",
+        "    mixed (p: Dict, flag: boolean) { const a = this.safeString (p, 'a'); let m = undefined; if (flag) { m = a; } else { m = p; } return { 'm': m }; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> sent = null/.test(out)) problems.push("'sent' (sync cores returning Map on every write) must print Map<String, Object>");
+        if (!/String net = null/.test(out)) problems.push("'net' (base core printed String) must print String");
+        if (!/String c = null/.test(out)) problems.push("'c' (copies of String locals) must print String");
+        if (!/\bObject m = null/.test(out)) problems.push("'m' (String and Map writes) must stay Object");
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
     } finally {
