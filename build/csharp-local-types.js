@@ -4157,7 +4157,7 @@ function wsCacheMemberReadType (csharp, initializer) {
     return wsCacheMemberElementBox (csharp, initializer.getSourceFile?.(), member);
 }
 
-// ===== SPEC-A: ws cache BUCKET reads (`this.<member>[k1]`) =====
+// ===== ws cache BUCKET reads (`this.<member>[k1]`) =====
 //
 // this.safeValue (this.ohlcvs[symbol], timeframe): a level-1 read wsCacheMemberReadType rejects,
 // typed like wsOhlcvsBucketReadType when every [k1][k2] write stores an ArrayCache box (or null)
@@ -12678,16 +12678,7 @@ export function installCsharpLocalTypes (transpiler) {
             return printed;
         }
         let value = printed.slice (prefix.length);
-        // the printer's own `((object)…)` box around an `as any` operand is an identity upcast
-        // (printAsExpression); the named type IS that operand's box, so the box goes with the
-        // retype (the `as any` safeList* receiver copies — see asAnySafeListReceiverCopy)
-        if (info.stripObjectBox === true) {
-            const boxed = /^\(\(object\)(.*)\)$/s.exec (value.trimEnd ());
-            if (boxed !== null) {
-                value = boxed[1];
-            }
-        }
-        // RF-cs-1 c03: the printer printed the initializer as a typed member read (its own type is the
+        // the printer printed the initializer as a typed member read (its own type is the
         // declaration's), so there is no `object` box to cast back
         if (info.cast !== undefined && !(typeof csharp.csharpIsDeclaredDictMemberRead === 'function' && csharp.csharpIsDeclaredDictMemberRead (declaration.initializer))) {
             // a call whose printed argument list spans lines (a dict-literal argument) would put
@@ -12699,11 +12690,7 @@ export function installCsharpLocalTypes (transpiler) {
             }
             // the printer prints a bare `getValue (recv, key)`; the named element type only
             // compiles once the box is cast back
-            value = (info.castWhole === true)
-                // a conditional / binary value: a cast binds its own operand first, so the whole
-                // expression needs its own paren pair (`((T)(cond ? A : B))`)
-                ? '((' + info.cast + ')(' + value + '))'
-                : '((' + info.cast + ')' + value + ')';
+            value = '((' + info.cast + ')' + value + ')';
         }
         // the destructuring print (a later statement in the same function) casts back to this
         recordDestructuredWriteType (enclosingFunction (declaration), printedName, info.type, isUTAEnabledAwaitedInit (declaration));
@@ -14733,7 +14720,7 @@ function csharpParameterDecision (csharp, parameter, expected) {
         return undefined; // a destructured / rest parameter
     }
     if (coreArgParamPosition (name, position)) {
-        return undefined; // B-17's narrowed core arguments
+        return undefined; // narrowed core arguments
     }
     if (csharpParameterIsWritten (csharp, owner, parameter)) {
         return undefined; // D2

@@ -17,16 +17,14 @@ import { fileURLToPath } from 'node:url';
 // struct -> { names, kind }. kind 'one': the method returns one row (T);
 // kind 'map': it returns symbol -> row (Dictionary<string, T>), `row` names the row struct;
 // kind 'list': it returns rows (List<T>, declared IList<object>), built with ToTList / boxed with FromTList.
-// HOWTO add a type: see research NOTES ("HOWTO add a type"); names are all-or-nothing.
+// names are all-or-nothing (overrides are invariant)
 export const CSHARP_STRUCT_RETURN_TYPES = {
     'Ticker': { 'kind': 'one', 'names': [ 'parseTicker', 'parseWSTicker', 'parseWsTicker', 'safeTicker' ] },
     'Tickers': { 'kind': 'map', 'row': 'Ticker', 'names': [ 'parseTickers' ] },
     // REST books only; ws books (ccxt.pro.OrderBook classes in this.orderbooks) are boxed at the boundary
     'OrderBook': { 'kind': 'one', 'names': [ 'parseOrderBook' ] },
-    // --- Trade (unit trade) ---
     'Trade': { 'kind': 'one', 'names': [ 'parseTrade', 'parseWsTrade', 'safeTrade' ] },
     'Trades': { 'kind': 'list', 'row': 'Trade', 'names': [ 'parseTrades' ] },
-    // --- end Trade ---
     'Order': { 'kind': 'one', 'names': [ 'parseOrder', 'parseWsOrder', 'safeOrder' ] },
     'Orders': { 'kind': 'list', 'row': 'Order', 'names': [ 'parseOrders' ] },
 };
@@ -61,8 +59,7 @@ function structFields (name) {
 
 // scalar field write conversion (same Safe* the struct constructor applies to the key)
 const FIELD_CONVERTERS = {
-    'string?': 'StructString', 'string': 'StructString',
-    'Int64?': 'StructInt64', 'double?': 'StructDouble', 'bool?': 'StructBool',
+    'string?': 'StructString', 'Int64?': 'StructInt64', 'double?': 'StructDouble',
 };
 
 const NAME_TO_STRUCT = new Map ();
@@ -202,7 +199,7 @@ function stripCastWrap (s, a, b) {
     return [ a, b ];
 }
 
-function processMethod (s, mask, method, edits, stats, file) {
+function processMethod (s, mask, method, edits) {
     const ownStruct = NAME_TO_STRUCT.get (method.name);
     const body0 = method.bodyOpen + 1;
     const body1 = method.bodyClose;
@@ -217,14 +214,12 @@ function processMethod (s, mask, method, edits, stats, file) {
         if (close < 0) throw new StructFail ('unbalanced call ' + m[2]);
         calls.push ({ 'a': m.index, 'b': close + 1, 'struct': NAME_TO_STRUCT.get (m[2]) });
     }
-    const handled = new Set ();
     for (const call of calls) {
         const spec = CSHARP_STRUCT_RETURN_TYPES[call.struct];
         const before = s.slice (Math.max (body0, call.a - 200), call.a);
         const after = s.slice (call.b, call.b + 3);
         // already rewritten (a second pass over the same text): leave it
         if (before.endsWith (boxFunction (call.struct) + '(') || new RegExp ('(^|\\n)[ \\t]*' + structTypeName (call.struct).replace (/[.<>]/g, '\\$&') + ' \\w+ = $').test (before)) {
-            handled.add (call);
             continue;
         }
         // funnel `ccxt.BaseExchange.ToT(call)` -> call
@@ -233,13 +228,10 @@ function processMethod (s, mask, method, edits, stats, file) {
             if (spec.kind !== 'map') {
                 edits.push ([ call.a - funnel.length, call.a, '' ], [ call.b, call.b + 1, '' ]);
             } // map: the typed ToTickers(Dictionary<string, Ticker>) overload binds
-            stats.funnels++;
-            handled.add (call);
             continue;
         }
         // `return call;` in a same-struct method: identity
         if (/\breturn\s+$/.test (before) && after.startsWith (';') && ownStruct === call.struct) {
-            handled.add (call);
             continue;
         }
         // `Dictionary<string, object> X = call;` candidate struct local (row kind only)
@@ -255,7 +247,6 @@ function processMethod (s, mask, method, edits, stats, file) {
             }
             if (!locals.has (decl[4])) {
                 locals.set (decl[4], { 'struct': call.struct, 'typeSpan': [ typeStart, typeStart + decl[3].length ], 'call': call, 'declEnd': call.b + 1, 'scopeEnd': scopeEnd, 'reassigns': [] });
-                handled.add (call);
                 continue;
             }
         }
@@ -274,20 +265,16 @@ function processMethod (s, mask, method, edits, stats, file) {
         }
     }
     for (const [ name, local ] of locals) {
-        const plan = planLocal (s, mask, name, local, ownStruct, method, file);
+        const plan = planLocal (s, mask, name, local, ownStruct);
         if (plan === undefined) {
             // fail closed: the local stays a map, its initialiser (and reassignments) boxed
-            stats.localsKept++;
             for (const call of [ local.call, ...local.reassigns.map ((r) => r.call) ]) {
                 edits.push ([ call.a, call.a, boxFunction (local.struct) + '(' ], [ call.b, call.b, ')' ]);
-                stats.boxedCalls++;
             }
             continue;
         }
-        stats.localsTyped++;
         edits.push ([ local.typeSpan[0], local.typeSpan[1], structTypeName (local.struct) ]);
         for (const e of plan) edits.push (e);
-        stats.sites += plan.length;
     }
     // returns of this method (own struct): identity or constructor
     if (ownStruct !== undefined) {
@@ -323,14 +310,12 @@ function processMethod (s, mask, method, edits, stats, file) {
             } else {
                 edits.push ([ a, a, 'new ccxt.' + ownStruct + '(' ], [ end, end, ')' ]);
             }
-            stats.ctorReturns++;
         }
     }
     // every other call position: box at the call
     for (const call of calls) {
         if (!call.pending) continue;
         edits.push ([ call.a, call.a, boxFunction (call.struct) + '(' ], [ call.b, call.b, ')' ]);
-        stats.boxedCalls++;
     }
 }
 
@@ -368,7 +353,7 @@ function fieldRead (name, field, type) {
 }
 
 // every occurrence of the local in its scope -> list of edits, or undefined (fail closed)
-function planLocal (s, mask, name, local, ownStruct, method, file) {
+function planLocal (s, mask, name, local, ownStruct) {
     const struct = local.struct;
     const fields = structFields (struct);
     const box = boxFunction (struct);
@@ -472,8 +457,6 @@ function applyEdits (s, edits) {
     return out + s.slice (pos);
 }
 
-export const csharpStructReturnStats = { 'files': 0, 'decls': 0, 'funnels': 0, 'localsTyped': 0, 'localsKept': 0, 'sites': 0, 'ctorReturns': 0, 'boxedCalls': 0 };
-
 export function csharpStructReturns (content, file = '') {
     if (typeof content !== 'string' || !NAMES_RE.test (content)) {
         return content;
@@ -485,7 +468,6 @@ export function csharpStructReturns (content, file = '') {
         return content;
     }
     const edits = [];
-    const stats = csharpStructReturnStats;
     try {
         for (const method of methods) {
             const struct = NAME_TO_STRUCT.get (method.name);
@@ -494,19 +476,14 @@ export function csharpStructReturns (content, file = '') {
                     throw new StructFail (method.name + ' declares ' + method.returnType);
                 }
                 edits.push ([ method.typeStart, method.typeStart + method.returnType.length, structTypeName (struct) ]);
-                stats.decls++;
             }
-            processMethod (content, mask, method, edits, stats, file);
+            processMethod (content, mask, method, edits);
         }
     } catch (e) {
         if (e instanceof StructFail) {
             throw new Error ('csharpStructReturns: ' + file + ': ' + e.message);
         }
         throw e;
-    }
-    stats.files++;
-    if (process.env.CSHARP_STRUCT_STATS) {
-        fs.appendFileSync (process.env.CSHARP_STRUCT_STATS, file + '\t' + JSON.stringify (stats) + '\n');
     }
     return applyEdits (content, edits);
 }
