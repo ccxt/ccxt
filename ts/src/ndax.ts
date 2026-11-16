@@ -887,8 +887,7 @@ export default class ndax extends Exchange {
         //         }
         //     ]
         //
-        const tickers = this.parseTickers (response);
-        return this.filterByArrayTickers (tickers, 'symbol', symbolsNormalized);
+        return this.filterByArrayTickers (this.parseTickers (response), 'symbol', symbolsNormalized);
     }
 
     /**
