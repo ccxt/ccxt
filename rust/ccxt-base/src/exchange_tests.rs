@@ -223,3 +223,38 @@ mod dynamic_dispatch_tests {
         );
     }
 }
+
+#[cfg(all(test, feature = "engine", feature = "binance"))]
+mod nonce_override_from_lifted_sign_tests {
+    use crate::exchange::ExchangeRuntime;
+    use crate::exchange_generated::ExchangeBase;
+    use crate::Value;
+
+    // binance overrides nonce() (milliseconds - timeDifference); the base nonce() is seconds.
+    // sign now lives in `impl DerivedExchange` and calls the base trait path: it must still reach the override.
+    #[tokio::test]
+    async fn lifted_sign_reaches_the_venue_nonce_override() {
+        let config = Value::from_json(&serde_json::json!({ "apiKey": "fixture-key", "secret": "fixture-secret" }));
+        let mut exchange = crate::exchanges::binance::Binance::new(Some(config));
+        exchange.exchange.mock_response = Value::from_json(&serde_json::json!({ "orderId": 1 }));
+        let params = Value::from_json(&serde_json::json!({ "symbol": "BTCUSDT", "side": "BUY", "type": "MARKET", "quantity": "1" }));
+        let before_ms = exchange.milliseconds();
+        exchange.request_typed("order", &["private".to_string()], "POST", params, Value::Int(1)).await
+            .expect("signed mock response must not require network access");
+        let Value::Str(body) = &exchange.exchange.last_request_body else { panic!("signed POST must retain its encoded body") };
+        let ts: i64 = body.split('&').find_map(|kv| kv.strip_prefix("timestamp=")).expect("timestamp in the signed body")
+            .parse().expect("numeric timestamp");
+        assert!(ts >= before_ms, "sign reached the base nonce (seconds) instead of binance's override (milliseconds): {ts} < {before_ms}");
+    }
+
+    // a subclass venue (binanceusdm) reaches its parent's nonce override through derived_parent
+    #[cfg(feature = "binanceusdm")]
+    #[test]
+    fn subclass_reaches_the_parent_nonce_override() {
+        let b = crate::exchanges::binanceusdm::Binanceusdm::new(None);
+        let before_ms = b.milliseconds();
+        let n = <crate::exchanges::binanceusdm::Binanceusdm as ExchangeBase>::nonce(&b);
+        let Value::Int(n) = n else { panic!("nonce must be an Int, got {n:?}") };
+        assert!(n >= before_ms, "binanceusdm reached the base nonce (seconds): {n} < {before_ms}");
+    }
+}
