@@ -6222,13 +6222,10 @@ class NewTranspiler {
         };
         const methodDecl = /^\s*(?:public|protected|private|internal)\s+(?:static\s+|virtual\s+|override\s+|async\s+|new\s+|sealed\s+)*([\w<>,?\[\]. ]+?)\s+(\w+)\s*\(/;
         const localDecl = /^\s+([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*=\s*[^=]/;
-        const varDecl = /^\s+var\s+(\w+)\s*=\s*[^=]/;
+        const varDecl = /^\s+(var)\s+(\w+)\s*=\s*[^=]/;
         const fieldDecl = /^\s*(?:private|protected|public|internal)\s+(?:static\s+|readonly\s+|new\s+)*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s*[;=]/;
         const foreachDecl = /foreach\s*\(\s*([\w<>,?\[\].]+(?:<[^>]*>)?)\s+(\w+)\s+in\s/;
         const forDecl = /for\s*\(\s*([\w<>,?\[\].]+)\s+(\w+)\s*=/;
-        const declPrefix = /(?:^|\s)(\([^()]*\)|[A-Za-z_][\w<>?\[\].]*)\s+(\w+)\s*(?:=|;|\)|,)/g;
-        const lambdaArrow = /\(([^()]*)\)\s*=>/g;
-        const lambdaBare = /(?:^|[^\w>.,])(\w+)\s*=>/g;
         const spaceSplit = /\s+/;
         const methodTypes = new Map<string, Set<string>> ();
         const fieldTypes = new Map<string, Set<string>> ();
@@ -6240,15 +6237,14 @@ class NewTranspiler {
             map.set (name, set);
         };
         const safeType = (types: Set<string> | undefined): string | undefined => {
-            if (types === undefined || types.size === 0) {
+            if (types === undefined || Array.from (types).some ((type) => type === 'var' || valueNullable.has (type))) {
                 return undefined;
             }
-            for (const type of types) {
-                if (type === 'var' || valueNullable.has (type)) {
-                    return undefined;
-                }
-            }
             return Array.from (types)[0];
+        };
+        const methodType = (name: string): string | undefined => {
+            const own = methodTypes.get (name);
+            return own !== undefined ? safeType (own) : baseReturnTypes[name];
         };
         const paramTypes = (plist: string): string[][] => this.splitCsharpParams (plist)
             .map ((param: string) => param.split ('=')[0].trim ().split (spaceSplit).filter ((p: string) => p !== ''))
@@ -6282,9 +6278,7 @@ class NewTranspiler {
                         }
                     }
                 }
-                for (let k = i; k <= j && k < lines.length; k++) {
-                    scopes[k] = scope;
-                }
+                scopes.fill (scope, i, j + 1);
             } else if (indent <= 4) {
                 const trimmed = line.trim ();
                 if (trimmed !== '' && '{})]'.indexOf (trimmed[0]) < 0
@@ -6298,32 +6292,21 @@ class NewTranspiler {
             }
             if (scope !== undefined && method === null) {
                 scopes[i] = scope;
-                const local = localDecl.exec (line);
-                if (local !== null) {
-                    addType (scope.locals, local[2], local[1]);
-                }
-                const variable = varDecl.exec (line);
-                if (variable !== null) {
-                    addType (scope.locals, variable[1], 'var');
-                }
-                const each = foreachDecl.exec (line);
-                if (each !== null) {
-                    addType (scope.locals, each[2], each[1]);
-                }
-                const loop = forDecl.exec (line);
-                if (loop !== null) {
-                    addType (scope.locals, loop[2], loop[1]);
+                for (const decl of [ localDecl, varDecl, foreachDecl, forDecl ]) {
+                    const match = decl.exec (line);
+                    if (match !== null) {
+                        addType (scope.locals, match[2], match[1]);
+                    }
                 }
             }
             // comment text ("* @param {string} tag ... payment id") is not code: it must neither
             // declare a type for the audit nor poison a name
             const codeOnly = line.trimStart ();
             const skipLine = codeOnly.startsWith ('*') || codeOnly.startsWith ('//') || codeOnly.startsWith ('/*');
-            declPrefix.lastIndex = 0;
-            let prefix = skipLine ? null : declPrefix.exec (line);
-            while (prefix !== null) {
-                const kind = prefix[1];
-                const name = prefix[2];
+            if (skipLine) {
+                continue;
+            }
+            for (const [ , kind, name ] of line.matchAll (/(?:^|\s)(\([^()]*\)|[A-Za-z_][\w<>?\[\].]*)\s+(\w+)\s*(?:=|;|\)|,)/g)) {
                 if (!keywords.has (name) && !keywords.has (kind)) {
                     if (scalars.has (kind) || /^[A-Z][\w<>,?\[\]]*$/.test (kind)) {
                         if (scope !== undefined && method === null) {
@@ -6334,21 +6317,14 @@ class NewTranspiler {
                         unparsedNames.add (name);
                     }
                 }
-                prefix = declPrefix.exec (line);
             }
-            lambdaArrow.lastIndex = 0;
-            let lambda = skipLine ? null : lambdaArrow.exec (line);
-            while (lambda !== null) {
+            for (const lambda of line.matchAll (/\(([^()]*)\)\s*=>/g)) {
                 for (const parts of paramTypes (lambda[1])) {
                     lambdaNames.add (parts[parts.length - 1]);
                 }
-                lambda = lambdaArrow.exec (line);
             }
-            lambdaBare.lastIndex = 0;
-            lambda = skipLine ? null : lambdaBare.exec (line);
-            while (lambda !== null) {
+            for (const lambda of line.matchAll (/(?:^|[^\w>.,])(\w+)\s*=>/g)) {
                 lambdaNames.add (lambda[1]);
-                lambda = lambdaBare.exec (line);
             }
         }
         // ---- receiver -> static type, or undefined when the file cannot prove it
@@ -6357,19 +6333,12 @@ class NewTranspiler {
                 if (lineScope === undefined) {
                     return undefined;
                 }
-                const types = new Set<string> ();
                 const params = lineScope.params.get (name);
                 const locals = lineScope.locals.get (name);
                 if (params === undefined && locals === undefined) {
                     return undefined;
                 }
-                for (const type of params ?? []) {
-                    types.add (type);
-                }
-                for (const type of locals ?? []) {
-                    types.add (type);
-                }
-                return types;
+                return new Set<string> ([ ...(params ?? []), ...(locals ?? []) ]);
             };
             let text = operand.trim ();
             while (text.startsWith ('(') && this.matchingParen (text, 0) === text.length - 1) {
@@ -6384,17 +6353,12 @@ class NewTranspiler {
             }
             const memberCall = /^(?:this|base)\.(\w+)\s*\(/.exec (text);
             if (memberCall !== null) {
-                const own = methodTypes.get (memberCall[1]);
-                return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[memberCall[1]];
+                return methodType (memberCall[1]);
             }
             const bareCall = /^(\w+)\s*\(/.exec (text);
             if (bareCall !== null) {
                 const name = bareCall[1];
-                if (scopeHas (name) === undefined && !fieldTypes.has (name)) {
-                    const own = methodTypes.get (name);
-                    return own !== undefined && own.size > 0 ? safeType (own) : baseReturnTypes[name];
-                }
-                return undefined;
+                return (scopeHas (name) === undefined && !fieldTypes.has (name)) ? methodType (name) : undefined;
             }
             const identifier = /^([\w.]+)$/.exec (text);
             if (identifier !== null) {
@@ -6411,7 +6375,6 @@ class NewTranspiler {
             return undefined;
         };
         // ---- rewrite
-        const sites: number[] = [];
         const output = lines.map ((line: string, index: number) => {
             const declaration = /^(\s*object\s+[A-Za-z_]\w*\s*=\s*)\(\(object\)/.exec (line);
             if (declaration !== null) {
@@ -6421,10 +6384,7 @@ class NewTranspiler {
                     return declaration[1] + line.substring (open + 9, close) + ';';
                 }
             }
-            sites.length = 0;
-            for (const at of this.objectBoxSites (line)) {
-                sites.push (at);
-            }
+            const sites = this.objectBoxSites (line);
             let out = line;
             for (let k = sites.length - 1; k >= 0; k--) {
                 const at = sites[k];
@@ -6438,10 +6398,9 @@ class NewTranspiler {
                 if (/\(\([\w<>,?\[\]. ]+\)$/.test (before) || !after.startsWith ('.ToString()')) {
                     continue;
                 }
-                if (receiverType (operand, scopes[index]) === undefined) {
-                    continue;
+                if (receiverType (operand, scopes[index]) !== undefined) {
+                    out = before + operand + after;
                 }
-                out = before + operand + after;
             }
             return out;
         });
