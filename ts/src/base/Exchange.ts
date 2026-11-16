@@ -3305,6 +3305,9 @@ export class BaseExchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValueN (dictionaryOrList, keys, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (Array.isArray (value)) {
             return value;
         }
@@ -3341,6 +3344,9 @@ export class BaseExchange {
          * @returns {Array | undefined}
          */
         const value = this.safeValue (dictionaryOrList, key, defaultValue);
+        if (value === undefined) {
+            return defaultValue;
+        }
         if (Array.isArray (value)) {
             return value;
         }
