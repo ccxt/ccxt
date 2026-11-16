@@ -14141,7 +14141,8 @@ function goDefaultedLimitInt64SelfTest (): string[] {
         installCcxtGoIndexableTypes (t.goTranspiler);
         const go = t.transpileGoByPath (path.join (src, 'ex.ts')).content;
         const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go defaulted limit int64 self test: ' + msg); } };
-        ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
+        // ral-84g7 R1 prints a typed ternary local as if/else instead of an IIFE: either form must type lr int64 and read *limit
+        ok (/var lr int64 = func\(\) int64 \{[\s\S]*?return \*limit/.test (go) || /var lr int64\n\s*if limit == nil \{\n\s*lr = 200\n\s*\} else \{\n\s*lr = \*limit\n/.test (go), 'defaulted *int64 read only as a helper argument types int64: ' + go);
         ok (!/var d int64/.test (go), 'a non-defaulting shape keeps its type');
     } catch (e: any) {
         problems.push ('go defaulted limit int64 self test threw: ' + e.message);
