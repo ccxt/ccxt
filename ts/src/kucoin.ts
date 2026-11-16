@@ -10046,7 +10046,7 @@ export default class kucoin extends Exchange {
             }
         }
         const request: Dict = {
-            'leverage': leverage.toString (),
+            'leverage': this.numberToString (leverage),
         };
         let marginMode: Str = undefined;
         [ marginMode, paramsRequest ] = this.handleMarginModeAndParams ('setLeverage', paramsRequest);
