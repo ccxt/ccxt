@@ -534,11 +534,11 @@ function goBoxedPointerNames (fn: string): Set<string> {
 
 // each func block's rewrite is spliced back at its own offset, so a block whose
 // text occurs twice cannot be rewritten in the wrong place.
-function goRewriteFuncBlocks (content: string, rewrite: (block: string) => string): string {
+function goRewriteFuncBlocks (content: string, rewrite: (block: string, start: number, current: string) => string): string {
     const ranges = goFuncBlockRanges (content);
     for (let i = ranges.length - 1; i >= 0; i--) {
         const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = rewrite (block);
+        const rewritten = rewrite (block, ranges[i].start, content);
         if (rewritten !== block) {
             content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
         }
@@ -5825,7 +5825,9 @@ ${constStatements.join('\n')}
 
         // custom transformations needed for go
         baseClass = this.regexAll (baseClass, [
-            ...this.virtualBaseRegexes (),
+            [/\=\snew\s/gm, "= "],
+            [/callDynamically\(/gm, 'this.CallDynamically('],
+            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
             [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
             [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
             [/client any,/g, "client *Client,"],
@@ -5903,14 +5905,6 @@ ${constStatements.join('\n')}
         return baseClass.replace(asyncRegex, (_match: any, p1: string, p2: string) => `<-this.DerivedExchange.${capitalize(p1)}${GO_ASYNC_SUFFIX}(${p2 ?? ''})`);
     }
 
-    virtualBaseRegexes (): any[] {
-        return [
-            [/\=\snew\s/gm, "= "],
-            [/callDynamically\(/gm, 'this.CallDynamically('],
-            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
-        ];
-    }
-
     // the printed methods below the base files' delimiter comment, undefined when it is missing
     transpiledBaseMethodsBody (baseClass: string): string | undefined {
         const parts = baseClass.split ('// METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT');
@@ -5958,7 +5952,6 @@ ${constStatements.join('\n')}
         }
         let baseClass = this.dispatchVirtualBaseCalls (baseFile.content);
         baseClass = this.regexAll (baseClass, [
-            ...this.virtualBaseRegexes (),
             // super.method() in the outcome-stub overrides → the embedded BaseExchange
             [/\bbase\./gm, 'this.BaseExchange.'],
             // the base parse loops (parsePredictionTrades→parsePredictionTrade, etc.) must reach the
@@ -7013,35 +7006,18 @@ ${caseStatements.join('\n')}
             const redundantWraps = goDerefWrapRedundantLocals (fn, wrapLines, anyLocals);
             fn = goUnwrapDerefWraps (fn, redundantWraps, safeCall);
             fn = fn.replace (new RegExp ('(\\n\\s*)(\\w+) = (' + safeCall + ')', 'g'), ((m: string, pre: string, name: string, call: string) => (anyLocals.has (name) && !typedLocals.has (name) && !redundantWraps.has (name)) ? pre + name + ' = ' + derefFn + call + ')' : m) as any);
-            // An `any` name can still receive a typed pointer from its caller (an `any` parameter
-            // fed a *string by another exchange method), so `name == "literal"` compares an
-            // interface against an untyped constant and is always false. Route those via IsEqual.
-            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (("(?:[^"\\]|\\.)*")|-?\d+(?:\.\d+)?)/g, ((m: string, name: string, op: string, literal: string) => {
-                if (!anyLocals.has (name) || typedLocals.has (name)) {
-                    return m;
-                }
-                return isEqualCall (op, name, literal);
-            }) as any);
-            // Same hazard when the right side is a helper call returning `any` (Subtract,
-            // GetArrayLength, OpNeg, ...): `i == Subtract(n, 1)` compares an int against an
-            // interface holding int64 and is always false.
-            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) ((?:Subtract|Add|Multiply|Divide|OpNeg|GetArrayLength|ParseInt)\((?:[^()]|\([^()]*\))*\))/g, ((m: string, name: string, op: string, call: string) => {
-                if (name === 'nil' || typedLocals.has (name)) {
-                    return m;
-                }
-                return isEqualCall (op, name, call);
-            }) as any);
-            // ... and when both sides are `any` names: two interfaces holding different numeric
-            // kinds (int vs int64) compare unequal even when the numbers match.
-            fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (\w+)(?![\w(])/g, ((m: string, left: string, op: string, right: string) => {
-                if (right === 'nil' || left === 'nil' || right === 'true' || right === 'false') {
-                    return m;
-                }
-                if (!anyLocals.has (left) || !anyLocals.has (right) || typedLocals.has (left) || typedLocals.has (right)) {
-                    return m;
-                }
-                return isEqualCall (op, left, right);
-            }) as any);
+            // `any` operands of ==/!= compare interfaces, so route them via IsEqual: an `any` name vs a literal (it can hold a
+            // typed pointer from its caller), any name vs a helper call returning `any` (`i == Subtract(n, 1)` is int vs int64),
+            // and two `any` names (different numeric kinds compare unequal)
+            const untyped = (name: string) => anyLocals.has (name) && !typedLocals.has (name);
+            const compareRules: [ RegExp, (left: string, right: string) => boolean ][] = [
+                [ /(?<![.\w*"])(\w+) (==|!=) ((?:"(?:[^"\\]|\\.)*")|-?\d+(?:\.\d+)?)/g, (left) => untyped (left) ],
+                [ /(?<![.\w*"])(\w+) (==|!=) ((?:Subtract|Add|Multiply|Divide|OpNeg|GetArrayLength|ParseInt)\((?:[^()]|\([^()]*\))*\))/g, (left) => (left !== 'nil') && !typedLocals.has (left) ],
+                [ /(?<![.\w*"])(\w+) (==|!=) (\w+)(?![\w(])/g, (left, right) => ![ 'nil', 'true', 'false' ].includes (right) && (left !== 'nil') && untyped (left) && untyped (right) ],
+            ];
+            for (const [ rx, applies ] of compareRules) {
+                fn = fn.replace (rx, ((m: string, left: string, op: string, right: string) => applies (left, right) ? isEqualCall (op, left, right) : m) as any);
+            }
             return fn;
         }) as any);
 
@@ -7066,9 +7042,6 @@ ${caseStatements.join('\n')}
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
-                // bare dynamic calls (e.g. an implicit-api call pushed into a promises array)
-                // are emitted without the receiver - route them through the exported helper too
-                [/callDynamically\(/gm, 'this.CallDynamically('],
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
                 // for-loops initialized from a transpiled (any-typed) variable need a
@@ -7232,12 +7205,6 @@ func (this *${className}) Init(userConfig map[string]any) {
         return fs.readdirSync (folder).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
     }
 
-    // SafeBool* return `*bool`: an `any` local capturing the call must hold the plain value, because
-    // test code compares such locals against untyped bool constants (mirrors the exchange-body DerefScalar wrap)
-    goTestSafeDerefRule (): [RegExp, string] {
-        return [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'];
-    }
-
     // the harness and exchange tests call through ccxt.ICoreExchange; the symbol-based methods trimmed
     // from it assert to the per-method interface (ccxt.I<Method>) for exactly the method called
     goTestExchangeRegexes (): any[] {
@@ -7247,7 +7214,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
             GO_TEST_ANY_RECEIVE_REGEX,
-            this.goTestSafeDerefRule (),
+            // SafeBool* return `*bool`: an `any` local capturing the call must hold the plain value (test code compares it to bool constants)
+            [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
         ];
     }
 
@@ -7330,7 +7298,6 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // interface-vs-untyped-constant mismatch that is always false. Route the whole
                 // family (Safe*, PrecisionFromString, Crc32, Rsa, Jwt, ...) back through IsEqual.
                 [/(?<![.\w])((?:exchange\.)?[A-Z]\w*\((?:[^()]|\([^()]*\))*\)) == (("(?:[^"\\]|\\.)*")|(?:ccxt\.)?OpNeg\([^()]*\)|-?\d+(?:\.\d+)?)/g, 'IsEqual($1, $2)'],
-                this.goTestSafeDerefRule (),
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 // the markers sit inside `// ` comments: drop the marker text and the space
@@ -8838,15 +8805,7 @@ export function goNativeEquality (content: string): string {
     content = goProvenParamNativeNilCompares (content, 'IsEqual(');
     content = goStringLiteralNativeCompares (content, 'IsEqual(');
     content = goBoolLiteralCompares (content);
-    const ranges = goFuncBlockRanges (content);
-    for (let i = ranges.length - 1; i >= 0; i--) {
-        const block = content.slice (ranges[i].start, ranges[i].end);
-        const rewritten = goCollapseDuplicateNilCompares (goTypedBoolCompareText (block), 'IsEqual(');
-        if (rewritten !== block) {
-            content = content.slice (0, ranges[i].start) + rewritten + content.slice (ranges[i].end);
-        }
-    }
-    return content;
+    return goRewriteFuncBlocks (content, (block) => goCollapseDuplicateNilCompares (goTypedBoolCompareText (block), 'IsEqual('));
 }
 
 function goNativeEqualitySelfTest (ok: SelfTestOk): void {
@@ -9313,11 +9272,8 @@ function goNativeStringAdds (content: string): string {
     if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = goAddOverriddenMethods (fileMasked);
-    let out = '';
-    let cursor = 0;
-    for (const range of goFuncBlockRanges (content)) {
-        const fn = content.slice (range.start, range.end);
-        const masked = fileMasked.slice (range.start, range.end);
+    return goRewriteFuncBlocks (content, (fn, start) => {
+        const masked = fileMasked.slice (start, start + fn.length);
         const locals = goAddStringLocals (fn, masked, fileMasked);
         let body = '';
         let at = 0;
@@ -9337,10 +9293,8 @@ function goNativeStringAdds (content: string): string {
                 addRe.lastIndex = close + 1;
             }
         }
-        out += content.slice (cursor, range.start) + body + fn.slice (at);
-        cursor = range.end;
-    }
-    return out + content.slice (cursor);
+        return body + fn.slice (at);
+    });
 }
 
 // a func-local `var X any = <string>` whose every later write is a proven string (a literal, a []string
@@ -9350,11 +9304,8 @@ function goStringAnyLocals (content: string): string {
     if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
     const overridden = goAddOverriddenMethods (fileMasked);
-    let out = '';
-    let cursor = 0;
-    for (const range of goFuncBlockRanges (content)) {
-        let fn = content.slice (range.start, range.end);
-        const masked0 = fileMasked.slice (range.start, range.end);
+    return goRewriteFuncBlocks (content, (fn, start) => {
+        const masked0 = fileMasked.slice (start, start + fn.length);
         const cands = new Set<string> ([ ...masked0.matchAll (/^[ \t]*var (\w+) any = (.+)$/gm) ].filter ((m) => {
             const at = m.index + m[0].length - m[2].length;
             const rhs = fn.slice (at, at + m[2].length).replace (/\s*\/\/.*$/, '').trim ();
@@ -9364,7 +9315,7 @@ function goStringAnyLocals (content: string): string {
         for (const name of [ ...cands ]) {
             if (goStringOperandDeclaredType (masked0, name) !== 'any') { cands.delete (name); }
         }
-        if (cands.size === 0) { out += content.slice (cursor, range.start) + fn; cursor = range.end; continue; }
+        if (cands.size === 0) { return fn; }
         const masked = masked0;
         const strLocals = goAddStringLocals (fn, masked, fileMasked);
         const sane = (name: string): boolean => {
@@ -9401,10 +9352,8 @@ function goStringAnyLocals (content: string): string {
         for (const name of cands) {
             fn = fn.replace (new RegExp ('^([ \\t]*var ' + name.replace (/\$/g, '\\$') + ' )any( = )', 'm'), '$1string$2');
         }
-        out += content.slice (cursor, range.start) + fn;
-        cursor = range.end;
-    }
-    return out + content.slice (cursor);
+        return fn;
+    });
 }
 
 function goStringAnyLocalsCheck (ok: SelfTestOk): void {
@@ -9983,15 +9932,7 @@ export function goTypedIsEqualNative (content: string): string {
     if (!/(?<![\w.])(?:ccxt\.)?IsEqual\(/.test (content)) {
         return content;
     }
-    const ranges = goFuncBlockRanges (content);
-    for (let r = ranges.length - 1; r >= 0; r--) {
-        const fn = content.slice (ranges[r].start, ranges[r].end);
-        const rewritten = goTypedIsEqualFuncText (fn, content);
-        if (rewritten !== fn) {
-            content = content.slice (0, ranges[r].start) + rewritten + content.slice (ranges[r].end);
-        }
-    }
-    return collapseRedundantNilChecks (content);
+    return collapseRedundantNilChecks (goRewriteFuncBlocks (content, (fn, _start, current) => goTypedIsEqualFuncText (fn, current)));
 }
 
 function goTypedIsEqualFuncText (fn: string, file: string): string {
@@ -10659,42 +10600,27 @@ function goTypedLenSelfTest (ok: SelfTestOk): void {
 // GetValue/SafeValue on a client's futures read the typed client method FutureGet: it answers the *Future
 // or an untyped nil (never a typed-nil box), exactly what the helper answered, for any key kind.
 function w8ClientFuturesReads (content: string): string {
-    if (!/(?:GetValue|SafeValue)\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), /.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            continue;
-        }
-        if (lines[k] === '}') {
-            start = -1;
-            continue;
-        }
-        if (start < 0) {
-            continue;
-        }
-        const re = /(?<![\w.])((?:ccxt\.GetValue)|(?:this\.SafeValue))\((client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\)), (\w+|"[^"\\\n]*")\)/g;
-        let out = '';
-        let last = 0;
-        let m: RegExpExecArray | null;
-        while ((m = re.exec (lines[k])) !== null) {
-            const key = m[3];
-            if (masked[k].substring (m.index, m.index + 4) !== lines[k].substring (m.index, m.index + 4)) {
-                continue;
+    const applies = /(?:GetValue|SafeValue)\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), /.test (content);
+    return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
+        for (let k = start + 1; k < end; k++) {
+            const re = /(?<![\w.])((?:ccxt\.GetValue)|(?:this\.SafeValue))\((client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\)), (\w+|"[^"\\\n]*")\)/g;
+            let out = '';
+            let last = 0;
+            let m: RegExpExecArray | null;
+            while ((m = re.exec (lines[k])) !== null) {
+                const key = m[3];
+                if (masked[k].substring (m.index, m.index + 4) !== lines[k].substring (m.index, m.index + 4)) {
+                    continue;
+                }
+                out += lines[k].substring (last, m.index) + m[2].replace ('GetFutures()', 'FutureGet(' + key + ')');
+                last = m.index + m[0].length;
             }
-            out += lines[k].substring (last, m.index) + m[2].replace ('GetFutures()', 'FutureGet(' + key + ')');
-            last = m.index + m[0].length;
+            if (last > 0) {
+                lines[k] = out + lines[k].substring (last);
+                masked[k] = lines[k];
+            }
         }
-        if (last > 0) {
-            lines[k] = out + lines[k].substring (last);
-            masked[k] = lines[k];
-        }
-    }
-    return lines.join ('\n');
+    });
 }
 
 // InOp / ObjectKeys on the client's futures and SafeValue on its subscriptions become typed client methods.
@@ -10756,35 +10682,21 @@ function goFuncMaskedOffsets (lines: string[], masked: string[], k: number): { m
 function w8FuturesPairInOp (content: string): string {
     const recvRe = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.GetFutures\\(\\)';
     const pairRe = new RegExp ('^(\\s*)if \\(?(?:ccxt\\.)?InOp\\((' + recvRe + '), (\\w+)\\)\\)? \\|\\| \\(?(?:ccxt\\.)?InOp\\(\\2, (\\w+)\\)\\)? \\{$');
-    if (!/\bInOp\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), \w+\)\)? \|\| /.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    let scope: { maskedFunc: string, offsets: number[] } = { 'maskedFunc': '', 'offsets': [] };
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            scope = goFuncMaskedOffsets (lines, masked, k);
-        } else if (lines[k] === '}') {
-            start = -1;
+    const applies = /\bInOp\(client\.\((?:ccxt\.)?ClientInterface\)\.GetFutures\(\), \w+\)\)? \|\| /.test (content);
+    return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
+        const scope = goFuncMaskedOffsets (lines, masked, start);
+        for (let k = start + 1; k < end; k++) {
+            const m = (lines[k] === masked[k]) ? pairRe.exec (lines[k]) : null;
+            const stringKey = (name: string): boolean => {
+                const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], name);
+                return (decl !== undefined) && (decl.type === 'string') && ((decl.index === undefined) || (decl.index < scope.offsets[k - start]));
+            };
+            if ((m === null) || /\b(?:hasFuture|hasSymbolFuture)\b/.test (scope.maskedFunc) || !stringKey (m[3]) || !stringKey (m[4])) {
+                continue;
+            }
+            lines[k] = m[1] + '_, hasFuture := ' + m[2] + '[' + m[3] + ']\n' + m[1] + '_, hasSymbolFuture := ' + m[2] + '[' + m[4] + ']\n' + m[1] + 'if hasFuture || hasSymbolFuture {';
         }
-        const m = ((start >= 0) && (k > start) && (lines[k] === masked[k])) ? pairRe.exec (lines[k]) : null;
-        const stringKey = (name: string): boolean => {
-            const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], name);
-            return (decl !== undefined) && (decl.type === 'string') && ((decl.index === undefined) || (decl.index < scope.offsets[k - start]));
-        };
-        if ((m === null) || /\b(?:hasFuture|hasSymbolFuture)\b/.test (scope.maskedFunc) || !stringKey (m[3]) || !stringKey (m[4])) {
-            out.push (lines[k]);
-            continue;
-        }
-        out.push (m[1] + '_, hasFuture := ' + m[2] + '[' + m[3] + ']');
-        out.push (m[1] + '_, hasSymbolFuture := ' + m[2] + '[' + m[4] + ']');
-        out.push (m[1] + 'if hasFuture || hasSymbolFuture {');
-    }
-    return out.join ('\n');
+    });
 }
 
 function w8FuturesPairSelfTest (ok: SelfTestOk): void {
@@ -10801,49 +10713,33 @@ function w8FuturesPairSelfTest (ok: SelfTestOk): void {
 // GetFutures()/GetRejections() are statically map[string]any: a nil map reads ok=false like the helper.
 // Only a lone InOp in an if condition with a string key; any other shape keeps the helper.
 function goTypedInopClientMaps (content: string): string {
-    if (!/InOp\(client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    let start = -1;
-    let scope: { maskedFunc: string, offsets: number[] } = { 'maskedFunc': '', 'offsets': [] };
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            scope = goFuncMaskedOffsets (lines, masked, k);
-            continue;
-        }
-        if (lines[k] === '}') {
-            start = -1;
-            continue;
-        }
-        if ((start < 0) || /\bok\b/.test (scope.maskedFunc)) {
-            continue;
-        }
-        const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
-        const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
-        if ((cond === null) || (calls.length !== 1)) {
-            continue;
-        }
-        const at = calls[0].index;
-        const call = /^(?:ccxt\.)?InOp\((client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
-        if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
-            continue;
-        }
-        const [ all, recv, key ] = call;
-        if (!key.startsWith ('"')) {
-            const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], key);
-            if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= scope.offsets[k - start]))) {
+    const applies = /InOp\(client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)/.test (content);
+    return goRewriteEachFunc (content, applies, (lines, masked, start, end) => {
+        const scope = goFuncMaskedOffsets (lines, masked, start);
+        for (let k = start + 1; (k < end) && !/\bok\b/.test (scope.maskedFunc); k++) {
+            const cond = /^(\s*(?:\} else )?if )([^;{}]*) \{$/.exec (masked[k]);
+            const calls = [ ...masked[k].matchAll (/(?<![\w.])(?:ccxt\.)?InOp\(/g) ];
+            if ((cond === null) || (calls.length !== 1)) {
                 continue;
             }
+            const at = calls[0].index;
+            const call = /^(?:ccxt\.)?InOp\((client\.\((?:ccxt\.)?ClientInterface\)\.Get(?:Futures|Rejections)\(\)), (\w+|"[^"\\\n]*")\)/.exec (lines[k].substring (at));
+            if ((call === null) || (goMapWriteGroupEnd (masked[k], at + call[0].indexOf ('(')) !== at + call[0].length)) {
+                continue;
+            }
+            const [ all, recv, key ] = call;
+            if (!key.startsWith ('"')) {
+                const decl = goAccessSingleDeclaration (scope.maskedFunc, lines[start], key);
+                if ((decl === undefined) || (decl.type !== 'string') || ((decl.index !== undefined) && (decl.index >= scope.offsets[k - start]))) {
+                    continue;
+                }
+            }
+            let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
+            rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
+            lines[k] = cond[1] + '_, ok := ' + recv + '[' + key + ']; ' + rest;
+            masked[k] = lines[k];
         }
-        let rest = lines[k].substring (cond[1].length, at) + 'ok' + lines[k].substring (at + all.length);
-        rest = rest.replace (/(^|[^\w)\]])\(ok\)/g, '$1ok');
-        lines[k] = cond[1] + '_, ok := ' + recv + '[' + key + ']; ' + rest;
-        masked[k] = lines[k];
-    }
-    return lines.join ('\n');
+    });
 }
 
 function goTypedInopSelfTest (ok: SelfTestOk): void {
@@ -11559,22 +11455,24 @@ function goTupleWholeCall (masked: string, head: number): boolean {
     return depth === 0;
 }
 
-// the producer M of `h := this.M(..)` / `var h []any = this.M(..)`, nearest above k in an enclosing block, h unwritten in between
-function goTupleHolderProducer (ctx: any, fn: any, holder: string, k: number): string {
+// the nearest line above k (inside fn) matching rx, when its block encloses k and name is unwritten in between
+function goTupleNearestDef (ctx: any, fn: any, k: number, name: string, rx: RegExp): { m: RegExpExecArray, j: number } | undefined {
     for (let j = k - 1; j > fn.open; j--) {
-        const decl = new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) this\\.(\\w+)\\(').exec (ctx.masked[j]);
-        if (decl !== null) {
-            return goTupleSlotEncloses (ctx, j, k) ? decl[1] : undefined;
+        const m = rx.exec (ctx.masked[j]);
+        if (m !== null) {
+            return goTupleSlotEncloses (ctx, j, k) ? { 'm': m, 'j': j } : undefined;
         }
-        const recv = new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) (?:(\\w+)\\.Value|(\\w+Recv\\d*))\\s*$').exec (ctx.masked[j]);
-        if (recv !== null) {
-            return goTupleSlotEncloses (ctx, j, k) ? goTupleAsyncReceiveProducer (ctx, fn, j, recv[1] ?? recv[2]) : undefined;
-        }
-        if (goTextWritesName (ctx.masked[j], holder)) {
+        if (goTextWritesName (ctx.masked[j], name)) {
             return undefined;
         }
     }
     return undefined;
+}
+
+// the producer M of `h := this.M(..)` / `var h []any = this.M(..)` (or an async receive), nearest above k, h unwritten in between
+function goTupleHolderProducer (ctx: any, fn: any, holder: string, k: number): string {
+    const hit = goTupleNearestDef (ctx, fn, k, holder, new RegExp ('^\\s*(?:' + holder + ' :=|var ' + holder + ' \\[\\]any =) (?:this\\.(\\w+)\\(|(?:(\\w+)\\.Value|(\\w+Recv\\d*))\\s*$)'));
+    return (hit === undefined) ? undefined : (hit.m[1] ?? goTupleAsyncReceiveProducer (ctx, fn, hit.j, hit.m[2] ?? hit.m[3]));
 }
 
 // the body of the `[]any` async producer behind `rN := <-this.MAsync(..)` read as `rN.Value` or via `<h>Recv, _ := rN.Value, ..`
@@ -11591,19 +11489,8 @@ function goTupleAsyncReceiveProducer (ctx: any, fn: any, k: number, source: stri
             }
         }
     }
-    if (result === undefined) {
-        return undefined;
-    }
-    for (let j = k - 1; j > fn.open; j--) {
-        const recv = new RegExp ('^\\s*' + result + ' := <-this\\.(\\w+)Async\\(').exec (ctx.masked[j]);
-        if (recv !== null) {
-            return goTupleSlotEncloses (ctx, j, k) ? recv[1].charAt (0).toLowerCase () + recv[1].substring (1) + 'Body' : undefined;
-        }
-        if (goTextWritesName (ctx.masked[j], result)) {
-            return undefined;
-        }
-    }
-    return undefined;
+    const hit = (result === undefined) ? undefined : goTupleNearestDef (ctx, fn, k, result, new RegExp ('^\\s*' + result + ' := <-this\\.(\\w+)Async\\('));
+    return (hit === undefined) ? undefined : hit.m[1].charAt (0).toLowerCase () + hit.m[1].substring (1) + 'Body';
 }
 
 function goTupleSlotPlain (ctx: any, method: string, slot: number, depth: number): boolean {
@@ -12759,10 +12646,8 @@ function goPlainBoxIsEqual (content: string): string {
     const creds = [ 'ApiKey', 'Secret', 'Uid', 'Password', 'Login', 'Twofa', 'PrivateKey', 'WalletAddress', 'AccountId' ]
         .filter ((f) => !new RegExp ('\\bthis\\.' + f + '\\s*=(?!=)').test (fileMasked));
     const lit = '(nil|true|false|\"(?:[^\"\\\\\\n]|\\\\.)*\")';
-    const ranges = goFuncBlockRanges (content);
-    for (let r = ranges.length - 1; r >= 0; r--) {
-        const fn = content.slice (ranges[r].start, ranges[r].end);
-        const masked = fileMasked.slice (ranges[r].start, ranges[r].end);
+    return goRewriteFuncBlocks (content, (fn, start) => {
+        const masked = fileMasked.slice (start, start + fn.length);
         const header = masked.replace (/^\n/, '').split ('\n')[0];
         const plainLocal = new Map<string, boolean> ();
         const isPlainLocal = (x: string): boolean => {
@@ -12777,7 +12662,7 @@ function goPlainBoxIsEqual (content: string): string {
             return ok;
         };
         const re = new RegExp ('(!?)(?<![\\w.])(?:ccxt\\.)?IsEqual\\((this\\.\\w+|this\\.Has\\[\"\\w+\"\\]|\\w+), ' + lit + '\\)', 'g');
-        const rewritten = fn.replace (re, ((m: string, not: string, x: string, y: string, off: number) => {
+        return fn.replace (re, ((m: string, not: string, x: string, y: string, off: number) => {
             if (masked.slice (off, off + m.length).indexOf ('IsEqual(') < 0) { return m; }
             let ok = false;
             if (x.startsWith ('this.Has[')) {
@@ -12794,11 +12679,7 @@ function goPlainBoxIsEqual (content: string): string {
             const bare = (/\n\t*(?:\} else )?if $/.test (before) && /^ \{\n/.test (after)) || (before.endsWith ('(') && after.startsWith (')'));
             return bare ? form : ('(' + form + ')');
         }) as any);
-        if (rewritten !== fn) {
-            content = content.slice (0, ranges[r].start) + rewritten + content.slice (ranges[r].end);
-        }
-    }
-    return content;
+    });
 }
 
 function goPlainBoxIsEqualCheck (ok: SelfTestOk): void {
