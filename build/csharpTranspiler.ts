@@ -1,11 +1,9 @@
 import Transpiler from "ast-transpiler";
-import path from 'path'
-import errors from "../js/src/base/errors.js"
 import { basename, join, resolve } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile, checkCreateFolder } from './fsLocal.js'
 import { setupCsharpPrinter } from './csharp-worker.js'
 import { CORE_LIST_ARGS } from './csharp-local-types.js'
-import { MARKET_ROW_STRING_KEYS, MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
+import { MARKET_ROW_BOOL_KEYS, CSHARP_COLLECTION_RETURN_METHODS } from './csharp-local-types.js'
 // the positional core-argument type tables live in the classifier module so the pooled
 // workers' parameter-type hook (build/csharp-local-types.js) reads the same proof
 import { CORE_NUMERIC_ARGS, CORE_STRING_ARGS } from './csharp-local-types.js'
@@ -18,7 +16,6 @@ import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
 import {Transpiler as OldTranspiler } from "./transpile.js";
-import { writeFile } from 'fs/promises';
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import Piscina from 'piscina';
 import { isMainEntry } from "./transpile.js";
@@ -27,7 +24,6 @@ import { unCamelCase } from "../js/src/base/functions.js";
 
 ansi.nice
 
-type dict = { [key: string]: string }
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
@@ -245,6 +241,64 @@ function csharpHelperSignatureParams (masked: string[], start: number): { [name:
         params[name] = type;
     }
     return params;
+}
+
+// the method-signature lines of a masked file (each method's region runs to the next one)
+function csharpMethodSignatures (masked: string[]): number[] {
+    const signatures = [];
+    for (let i = 0; i < masked.length; i++) {
+        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
+    }
+    return signatures;
+}
+
+// every declaration line in [start, end)
+function csharpRegionDeclarations (masked: string[], start: number, end: number) {
+    const declarations = [];
+    for (let i = start; i < end; i++) {
+        const d = csharpHelperDeclarationOfLine (masked[i]);
+        if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
+    }
+    return declarations;
+}
+
+// a method region plus its `for (int|Int64 x = ...)` counters and the names any other syntax binds
+function csharpCounterRegion (masked: string[], start: number, end: number) {
+    const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: csharpRegionDeclarations (masked, start, end), lines: masked, bound: new Set<string> (), forInt: new Set<string> (), forInt64: new Set<string> () };
+    for (let i = start + 1; i < end; i++) {
+        for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
+        for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
+            if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
+        }
+        for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
+        for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
+            for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
+        }
+    }
+    return region;
+}
+
+// the per-line pass driver: per method region (with `for` counters and bound names when `counters`),
+// `rewrite` answers each body line's replacement or undefined
+function csharpLinePass (content: string, counters: boolean, rewrite: (region: any, original: string, masked: string, line: number) => string | undefined): string {
+    const lines = content.split ('\n');
+    const masked = lines.map (csharpHelperMaskLine);
+    const signatures = csharpMethodSignatures (masked);
+    let changed = false;
+    for (let n = 0; n < signatures.length; n++) {
+        const start = signatures[n];
+        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
+        const region = counters ? csharpCounterRegion (masked, start, end) : { start, end, params: csharpHelperSignatureParams (masked, start), declarations: csharpRegionDeclarations (masked, start, end), lines: masked };
+        for (let i = start + 1; i < end; i++) {
+            const next = rewrite (region, lines[i], masked[i], i);
+            if (next !== undefined) {
+                lines[i] = next;
+                masked[i] = csharpHelperMaskLine (next);
+                changed = true;
+            }
+        }
+    }
+    return changed ? lines.join ('\n') : content;
 }
 
 // the declaration a line carries, or undefined: `Type name = value;` / `Type name;` /
@@ -744,12 +798,7 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
-            signatures.push (i);
-        }
-    }
+    const signatures = csharpMethodSignatures (masked);
     if (signatures.length === 0) {
         return content;
     }
@@ -758,13 +807,7 @@ function nativeDeclaredHelperCallsBase (content: string, objectNull = true): str
         const start = signatures[n];
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const declaration = csharpHelperDeclarationOfLine (masked[i]);
-            if (declaration !== undefined) {
-                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
-            }
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         regions.push ({ start, end, params, declarations, lines: masked });
     }
     const regionOfLine = (line: number) => {
@@ -1842,8 +1885,7 @@ const CORE_ARG_SHADOW_CALLEES = [
 ];
 
 // Extension of the allowlist above: every definition of these names in cs/** types every position
-// `object`, so a narrowed argument keeps the same overload and box. Kept as a separate list so a
-// family can switch the extension off (`newRules`).
+// `object`, so a narrowed argument keeps the same overload and box.
 const CORE_ARG_SHADOW_NEW_CALLEES = [
     'subscribe', 'subscribePublic', 'subscribePublicUta', 'watchPublic', 'watchMultipleSubscription',
     'loadOutcome', 'iso8601', 'yyyymmdd', 'capitalize', 'numberToString', 'getMessageHash',
@@ -1855,44 +1897,6 @@ const CORE_ARG_SHADOW_NEW_CALLEES = [
     'amountToPrecision', 'currencyToPrecision', 'insertMissingCandles', 'parseBorrowRateHistory',
     'withdrawRequest',
 ];
-
-// `add` is admissible only as the RIGHT operand of a two-argument call: an `object` left keeps
-// add(object, object) and a `string` left moves add(string, object) -> add(string, string), which
-// the base declares identical. Index 0 would rebind to add(string, *) and differ on a null left.
-const CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS: Record<string, number[]> = {
-    'add': [ 1 ],
-};
-
-// Shadow copies of `symbol`/`timeframe`/`since`/`currency`/`tag`, typed with the parameter's type when
-// every use is an identity; `symbolVar = GetValue (market, "symbol")` and `tagVar = …[0]` become identities
-// with the emitted unboxing cast (the box is already string-or-null). Keyed by source parameter name.
-const CORE_ARG_SHADOW_OWNED_SOURCES = [ 'symbol', 'timeframe', 'since', 'currency', 'tag' ];
-
-const CORE_ARG_SHADOW_MARKET_ROW_READ_RE = /^(?:this\.)?(?:GetValue|getValue)\s*\(\s*([A-Za-z_]\w*)\s*,\s*"([^"]+)"\s*\)$/;
-// The printer's null-safe `(market.ContainsKey("symbol") ? market["symbol"] : null)` read of the
-// same key off the same proven row (backreference): a string-or-null box, identity `(string)` cast.
-const CORE_ARG_SHADOW_MARKET_ROW_COND_RE = /^\(([A-Za-z_]\w*)\.ContainsKey\("([^"]+)"\)\s*\?\s*\1\[\s*"([^"]+)"\s*\]\s*:\s*null\)$/;
-
-const CORE_ARG_SHADOW_MARKET_ROW_BIND_RE = /^\s*(?:I?Dictionary<string, object>\s+)?([A-Za-z_]\w*)\s*=\s*(?:this\.)?(?:market|safeMarket|safeMarketStructure)\s*\(/;
-const CORE_ARG_SHADOW_ELEMENT0_READ_RE = /^([A-Za-z_]\w*)\[\s*0\s*\]$/;
-// Tuple helpers whose element 0 is a string-or-null box at every call site in cs/** (declared once,
-// called only from Withdraw/WithdrawWs with their `string tag` copy), so the `(string)` element cast
-// names the box the slot already holds -- null passes a reference cast unchanged.
-const CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS = [ 'handleWithdrawTagAndParams' ];
-const CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE = /^\s*IList<object>\s+([A-Za-z_]\w*)\s*=\s*\(IList<object>\)\s*(?:this\.)?(?:handleWithdrawTagAndParams)\s*\(/;
-
-// Withdraw `tag` shadow aliases: `Withdraw`/`WithdrawWs` narrow `tag` to `string tag = null` and
-// reassign it from `handleWithdrawTagAndParams` via an `object tagVar = tag;` seed. Widenings are keyed
-// to this alias, so the other shadow families keep the base behaviour.
-const CORE_ARG_SHADOW_TAG_ALIASES = [ 'tagVar' ];
-
-// Declarations the scanned body carries for the family above: element-0 holders of the audited
-// helpers, dictionary locals and plain `object` locals.
-type CoreArgShadowTagContext = {
-    stringHolders: Set<string>;
-    dictNames: Set<string>;
-    objectNames: Set<string>;
-};
 
 // Declared types `retypeIdentifierCopies` may name for a plain identifier copy
 // (`object x = <typed param or local>;`). Every entry is a type the emitted tree already
@@ -2189,14 +2193,10 @@ const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
 const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
 const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
-const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
 const EXCHANGE_BASE_FOLDER = './cs/tests/Generated/Exchange/Base/';
 const EXCHANGE_GENERATED_FOLDER = './cs/tests/Generated/Exchange/';
-const EXAMPLES_INPUT_FOLDER = './examples/ts/';
-const EXAMPLES_OUTPUT_FOLDER = './examples/cs/examples/';
-const csharpComments: any = {};
 
 // default min(2, AP): 2w + shared-Program chunks is within ~10–15% of 4w and uses fewer cores.
 // Override with CCXT_TRANSPILE_PROCESSES.
@@ -2889,15 +2889,6 @@ class NewTranspiler {
         ]
     }
 
-    // c# custom method
-    customCSharpPropAssignment(node: any, identation: any) {
-        const stringValue = node.getFullText().trim();
-        if (Object.keys(errors).includes(stringValue)) {
-            return `typeof(${stringValue})`;
-        }
-        return undefined;
-    }
-
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
@@ -2942,112 +2933,9 @@ class NewTranspiler {
         }
     }
 
-    createSee(link: string) {
-        return `/// See <see href="${link}"/>  <br/>`
-    }
-
-    createParam(param: any) {
-        return`/// <item>
-    /// <term>${param.name}</term>
-    /// <description>
-    /// ${param.type} : ${param.description}
-    /// </description>
-    /// </item>`
-    }
-
-    createCsharpCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
-        //
-        // Summary:
-        //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
-        //     signed integer.
-        //
-        // Parameters:
-        //   value:
-        //     The 16-bit signed integer to convert.
-        //
-        // Returns:
-        //     A 64-bit signed integer that is equivalent to value
-        const comment = `
-    /// <summary>
-    /// ${desc}
-    /// </summary>
-    /// <remarks>
-    ${see.map( l => this.createSee(l)).join("\n    ")}
-    /// <list type="table">
-    ${params.map( p => this.createParam(p)).join("\n    ")}
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`
-    const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
-    return commentWithoutEmptyLines;
-    }
-
-    transformTSCommentIntoCSharp(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
-        return this.createCsharpCommentTemplate(name, desc, sees, params, returnType, returnDesc);
-    }
-
-    transformLeadingComment(comment: any) {
-        // parse comment
-        // /**
-        //  * @method
-        //  * @name binance#fetchTime
-        //  * @description fetches the current integer timestamp in milliseconds from the exchange server
-        //  * @see https://binance-docs.github.io/apidocs/spot/en/#check-server-time       // spot
-        //  * @see https://binance-docs.github.io/apidocs/futures/en/#check-server-time    // swap
-        //  * @see https://binance-docs.github.io/apidocs/delivery/en/#check-server-time   // future
-        //  * @param {object} [params] extra parameters specific to the exchange API endpoint
-        //  * @returns {int} the current integer timestamp in milliseconds from the exchange server
-        //  */
-        // return comment;
-        const commentNameRegex = /@name\s(\w+)#(\w+)/;
-        const nameMatches = comment.match(commentNameRegex);
-        const exchangeName = nameMatches ? nameMatches[1] : undefined;
-        if (!exchangeName) {
-            return comment;
-        }
-        const methodName = nameMatches[2];
-        const commentDescriptionRegex = /@description\s(.+)/;
-        const descriptionMatches = comment.match(commentDescriptionRegex);
-        const description = descriptionMatches ? descriptionMatches[1] : undefined;
-        const seeRegex = /@see\s(.+)/g;
-        const seeMatches = comment.match(seeRegex);
-        const sees: string[] = [];
-        if (seeMatches) {
-            seeMatches.forEach((match: any) => {
-                const [, link] = match.split(' ');
-                sees.push(link);
-            });
-        }
-        // const paramRegex = /@param\s{(\w+)}\s\[(\w+)\]\s(.+)/g; // @param\s{(\w+)}\s\[((\w+(.\w+)?))\]\s(.+)
-        const paramRegex = /@param\s{(\w+[?]?)}\s\[(\w+\.?\w+?)]\s(.+)/g;
-        const params = [] as any;
-        let paramMatch;
-        while ((paramMatch = paramRegex.exec(comment)) !== null) {
-            const [, type, name, description] = paramMatch;
-            params.push({type, name, description});
-        }
-        const returnRegex = /@returns\s{(\w+\[?\]?\[?\]?)}\s(.+)/;
-        const returnMatch = comment.match(returnRegex);
-        const returnType = returnMatch ? returnMatch[1] : undefined;
-        const returnDescription =  returnMatch && returnMatch.length > 1 ? returnMatch[2]: undefined;
-        let exchangeData = csharpComments[exchangeName];
-        if (!exchangeData) {
-            exchangeData = csharpComments[exchangeName] = {}
-        }
-        let exchangeMethods = csharpComments[exchangeName];
-        if (!exchangeMethods) {
-            exchangeMethods = {}
-        }
-        const transformedComment = this.transformTSCommentIntoCSharp(methodName, description, sees,params, returnType, returnDescription);
-        exchangeMethods[methodName] = transformedComment;
-        csharpComments[exchangeName] = exchangeMethods
-        return comment;
-    }
-
     setupTranspiler() {
         this.transpiler = new Transpiler (this.getTranspilerConfig())
         setupCsharpPrinter (this.transpiler);
-        this.transpiler.csharpTranspiler.transformLeadingComment = this.transformLeadingComment.bind(this);
         this.patchCsharpPropertyTypes ();
     }
 
@@ -3099,330 +2987,6 @@ class NewTranspiler {
             values.push ("using ccxt.pro;");
         }
         return values;
-    }
-
-    isObject(type: string) {
-        return (type === 'any') || (type === 'unknown');
-    }
-
-    isDictionary(type: string): boolean {
-        return (type === 'Object') || (type === 'Dictionary<any>') || (type === 'unknown') || (type === 'Dict') || (type === 'NullableDict') || ((type.startsWith('{')) && (type.endsWith('}')))
-    }
-
-    isStringType(type: string) {
-        return (type === 'Str') || (type === 'string') || (type === 'StringLiteral') || (type === 'StringLiteralType') || (type.startsWith('"') && type.endsWith('"')) || (type.startsWith("'") && type.endsWith("'"))
-    }
-
-    isNumberType(type: string) {
-        return (type === 'Num') || (type === 'number') || (type === 'NumericLiteral') || (type === 'NumericLiteralType')
-    }
-
-    isIntegerType(type: string) {
-        return type !== undefined && (type.toLowerCase() === 'int') ;
-    }
-
-    isBooleanType(type: string) {
-        return (type === 'boolean') || (type === 'BooleanLiteral') || (type === 'BooleanLiteralType') || (type === 'Bool')
-    }
-
-    convertJavascriptTypeToCsharpType(name: string, type: string, isReturn = false): string | undefined {
-
-        // handle watchOrderBook exception here (watchOrderBook and watchOrderBookForSymbols)
-        if (name.startsWith('watchOrderBook')) {
-            return this.isPrediction ? `Task<ccxt.PredictionOrderBook>` : `Task<ccxt.pro.IOrderBook>`;
-        }
-
-        if (name === 'watchOHLCVForSymbols') {
-            return `Task<Dictionary<string, Dictionary<string, List<OHLCV>>>>`;
-        }
-
-        if (name === 'fetchTime'){
-            return `Task<Int64>`; // custom handling for now
-        }
-
-        const isPromise = type.startsWith('Promise<') && type.endsWith('>');
-        let wrappedType = isPromise ? type.substring(8, type.length - 1) : type;
-        let isList = false;
-
-        // TS >= 5/6 (ast-transpiler 0.0.91) infers inline object literal types for
-        // methods without an explicit annotation (e.g. `{ info: any; hedged: boolean; }`).
-        // Map them to a plain dictionary (matches the previous TS 4.9 output).
-        if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
-            if (wrappedType.trim().endsWith('[]')) {
-                isList = true; // e.g. `{ id: Str; ... }[]` → List<Dictionary<string, object>>
-            }
-            return addTaskIfNeeded('Dictionary<string, object>');
-        }
-
-        // TS >= 5/6 (ast-transpiler 0.0.91) infers union return types for methods
-        // without an explicit annotation (e.g. `OpenInterest | undefined`, `Dict | Leverage`).
-        // Normalize them here: drop undefined/null members and collapse remaining
-        // multi-member unions to the first member (matches the previous TS 4.9 output).
-        if (wrappedType !== undefined && wrappedType.includes(' | ') && !wrappedType.includes('<')) {
-            const members = wrappedType.split(' | ').map (m => m.trim()).filter (m => m !== 'undefined' && m !== 'null' && m !== 'Undefined');
-            wrappedType = members.length > 0 ? members[0] : 'object';
-        }
-
-        // TS >= 5/6 keeps type alias names (e.g. `Market[]`) instead of expanding them;
-        // map the nullable alias back to its concrete interface (matches the previous
-        // TS 4.9 output, e.g. `List<MarketInterface>` in the committed wrappers).
-        if (wrappedType === 'Market' || wrappedType === 'Market[]') {
-            wrappedType = wrappedType.replace ('Market', 'MarketInterface');
-        }
-
-        function addTaskIfNeeded(type: string) {
-            if (type == 'void') {
-                return isPromise ? `Task` : 'void';
-            } else if (isList) {
-                return isPromise ? `Task<List<${type}>>` : `List<${type}>`;
-            }
-            return isPromise ? `Task<${type}>` : type;
-        }
-
-        const csharpReplacements: dict = {
-            'OrderType': 'string',
-            'OrderSide': 'string', // tmp
-            'fetchEventsParams': 'Dictionary<string, object>', // params bag; surface as a dict
-            // TS interface names whose C# structs are Currency / Fee (cs/ccxt/base/Exchange.Types.cs)
-            'CurrencyInterface': 'Currency',
-            'FeeInterface': 'Fee',
-        }
-
-        if (wrappedType === undefined || wrappedType === 'Undefined') {
-            return addTaskIfNeeded('object'); // default if type is unknown;
-        }
-
-        // `List` is an alias for `Array<any>` (see ts/src/base/types.ts) — normalize it
-        // to `any[]` so it flows through the array branch below instead of leaking the
-        // bare `List` identifier, which is not a valid C# type without a generic arg.
-        if (wrappedType === 'List') {
-            wrappedType = 'any[]';
-        }
-
-        // Tuple return types like `[Dict, Str]` belong to internal multi-return helpers
-        // (e.g. createOrderRequest) that aren't part of the unified API. C# has no inline
-        // tuple syntax matching `[A, B]`, so treat them as an untyped array — exactly how
-        // they transpiled before being annotated (they were `any[]`). The generated
-        // wrapper only needs to compile; these helpers are never called through it.
-        if (wrappedType.startsWith('[') && wrappedType.endsWith(']')) {
-            wrappedType = 'any[]';
-        }
-
-        if (wrappedType === 'string[][]') {
-            return addTaskIfNeeded('List<List<string>>');
-        }
-
-        // check if returns a list
-        if (wrappedType.endsWith('[]')) {
-            isList = true;
-            wrappedType = wrappedType.substring(0, wrappedType.length - 2);
-        }
-
-        if (this.isObject(wrappedType)) {
-            if (isReturn) {
-                return addTaskIfNeeded('Dictionary<string, object>');
-            }
-            return addTaskIfNeeded('object');
-        }
-        if (this.isDictionary(wrappedType)) {
-            return addTaskIfNeeded('Dictionary<string, object>');
-        }
-        if (this.isStringType(wrappedType)) {
-            return addTaskIfNeeded('string');
-        }
-        if (this.isIntegerType(wrappedType)) {
-            return addTaskIfNeeded('Int64');
-        }
-        if (this.isNumberType(wrappedType)) {
-            // return addTaskIfNeeded('float');
-            return addTaskIfNeeded('double');
-        }
-        if (this.isBooleanType(wrappedType)) {
-            return addTaskIfNeeded('bool');
-        }
-        if (wrappedType === 'Strings') {
-            return addTaskIfNeeded('List<String>')
-        }
-        if (csharpReplacements[wrappedType] !== undefined) {
-            return addTaskIfNeeded(csharpReplacements[wrappedType]);
-        }
-
-        if (wrappedType.startsWith('Dictionary<')) {
-            let type = wrappedType.substring(11, wrappedType.length - 1);
-            if (type.startsWith('Dictionary<')) {
-                type = this.convertJavascriptTypeToCsharpType(name, type) as any;
-            }
-            return addTaskIfNeeded(`Dictionary<string, ${type}>`);
-        }
-
-        return addTaskIfNeeded(wrappedType);
-    }
-
-    /**
-     * @description Single source of truth for the C# type of an optional scalar parameter.
-     * The wrapper signature declares it as `<type>? name = null` and passes it straight into
-     * the core call, so the nullable scalar type is computed here and nowhere else.
-     * Returns undefined for parameters that are not optional numeric scalars.
-     */
-    optionalScalarCsharpType(param: any): string | undefined {
-        const isOptional = param.optional || param.initializer === 'undefined';
-        if (!isOptional) {
-            return undefined;
-        }
-        if (this.isIntegerType(param.type)) {
-            return 'Int64';
-        }
-        if (this.isNumberType(param.type)) {
-            return 'double';
-        }
-        return undefined;
-    }
-
-    safeCsharpName(name: string): string {
-        const csharpReservedWordsReplacement: dict = {
-            'params': 'parameters',
-            'base': 'baseArg',
-        }
-        return csharpReservedWordsReplacement[name] || name;
-    }
-
-    convertJavascriptParamToCsharpParam(param: any): string | undefined {
-        const name = param.name;
-        const safeName = this.safeCsharpName(name);
-        const isOptional =  param.optional || param.initializer !== undefined;
-        const op = isOptional ? '?' : '';
-        let paramType: any = undefined;
-        
-        // Special case for setMarketsFromExchange method — base tier accepts any exchange
-        if (name === 'sourceExchange' && param.type === undefined) {
-            paramType = 'BaseExchange';
-        } else if (param.type == undefined) {
-            paramType = 'object';
-        } else {
-            paramType = this.convertJavascriptTypeToCsharpType(name, param.type);
-        }
-        const isNonNullableType = this.isNumberType(param.type) || this.isBooleanType(param.type) || this.isIntegerType(param.type);
-        if (isNonNullableType) {
-            if (isOptional) {
-                if (param.initializer !== undefined && param.initializer !== 'undefined') {
-                    return `${paramType} ${safeName} = ${param.initializer}`
-                } else {
-                    if (paramType  === 'bool') {
-                        return `${paramType}? ${safeName} = false`
-                    }
-                    const scalarType = this.optionalScalarCsharpType(param);
-                    if (scalarType !== undefined) {
-                        return `${scalarType}? ${safeName} = null`
-                    }
-                    return `${paramType}? ${safeName}`
-                }
-            }
-        } else {
-            // generated ccxt types (Currencies, MarketInterface, ...) are C# structs (value
-            // types) — an optional param can only default to null if declared nullable (CS1750)
-            const isStructType = paramType !== 'object' && paramType !== 'string'
-                && !paramType.startsWith('List<') && !paramType.startsWith('Dictionary<')
-                && paramType !== 'BaseExchange' && paramType !== 'Exchange';
-            if (isOptional) {
-                if (param.initializer !== undefined) {
-                        if (param.initializer === 'undefined' || param.initializer === '{}' || paramType === 'object') {
-                            return isStructType ? `${paramType}? ${safeName} = null` : `${paramType} ${safeName} = null`
-                        }
-                        return `${paramType} ${safeName} = ${param.initializer.replaceAll("'", '"')}`
-                }
-            } else {
-                return `${paramType} ${safeName}`
-            }
-        }
-        return `${paramType}${op} ${safeName}`
-    }
-
-    shouldCreateWrapper(methodName: string, isWs = false): boolean {
-        const allowedPrefixes = [
-            'fetch',
-            'create',
-            'edit',
-            'cancel',
-            'setP',
-            'setM',
-            'setL',
-            'transfer',
-            'withdraw',
-            'watch',
-            // 'load',
-        ];
-        // const allowedPrefixesWs = [
-        //     ''
-        // ]
-        const blacklistMethods = [
-            'fetch',
-            'setSandBoxMode',
-            'loadOrderBook',
-            'fetchCurrencies',
-            // same as fetchCurrencies: a hand-written PascalCase public method already
-            // lives on Exchange.cs (new Currencies(await fetchCurrenciesWs())). Emitting
-            // a generated wrapper is a second overload (object vs Dictionary params) and
-            // bitvavo's ws override stays on the camelCase core that the hand-written
-            // method already calls. Blacklist, don't type — the BaseExchange decl is
-            // never rewritten, so a typed override would be CS0508.
-            'fetchCurrenciesWs',
-            'loadMarketsHelper',
-            'setMarketsFromExchange',
-            'setLastRequest',
-            'setLastRestRequestTimestamp',
-            'setProperty',
-            'setProxyAgents',
-            'watch',
-            'watchMultipleSubscription',
-            'watchMultiple',
-            'watchPrivate',
-            'watchPublic',
-            // venue-internal ws transport plumbing: each of these resolves 2+ runtime
-            // shapes across its call sites (ticker dict / live orderbook / ArrayCache /
-            // [symbol, timeframe, stored] tuple / raw message), so no closed C# type
-            // fits and a cast-only `Dictionary<string, object>` wrapper is a lie
-            'watchExecuteRequest',
-            'watchHeartbeat',
-            'watchMany',
-            'watchMultiHelper',
-            'watchMultiTickerHelper',
-            'watchMultipleWrapper',
-            'watchPrivateMultiple',
-            'watchPrivateRequest',
-            'watchPrivateSubscribe',
-            'watchPublicMultiple',
-            'watchRequest',
-            'watchSpotPrivate',
-            'watchSpotPublic',
-            'watchStockMarketStream',
-            'watchSwapPrivate',
-            'watchSwapPublic',
-            'watchTopics',
-            'setPositionsCache',
-            'setPositionCache',
-            // internal HTTP / pagination transport: not public API (users never call
-            // fetch2 / fetchPaginatedCallCursor). fetch2 and fetchWebEndpoint return
-            // polymorphic JSON (dict | list | string). fetchPaginatedCall* return a
-            // concatenated List<object> of whatever the inner method produced, and
-            // ~80 consumers immediately wrap that in ToTradeList / ToOrderList / …
-            // which still hard-cast `(IList<object>)` — List<T> is invariant, so
-            // typing them as List<Dictionary<string, object>> would throw at those
-            // sites even after the toArray re-box. Blacklist, don't force a type.
-            'fetch2',
-            'fetchWebEndpoint',
-            'fetchPaginatedCallDynamic',
-            'fetchPaginatedCallDeterministic',
-            'fetchPaginatedCallCursor',
-            'fetchPaginatedCallIncremental',
-        ] // improve this later
-        if (isWs) {
-            if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
-                return false;
-            }
-        }
-        const isBlackListed = blacklistMethods.includes(methodName);
-        const startsWithAllowedPrefix = allowedPrefixes.some(prefix => methodName.startsWith(prefix));
-        return !isBlackListed && startsWithAllowedPrefix;
     }
 
     // the typed C# return of a core method, or '' when the method keeps `Task<object>`
@@ -3557,25 +3121,6 @@ class NewTranspiler {
             return '';
         }
         return 'ccxt.BaseExchange.From' + this.typedCoreHelperSuffix (csharpType);
-    }
-
-    // finds the `)` closing the call that starts at `open` (the `(` index), skipping
-    // string literals — generated argument lists carry `(`/`)` inside url templates
-    matchingParen (line: string, open: number): number {
-        let depth = 0;
-        let inString = false;
-        for (let i = open; i < line.length; i++) {
-            const ch = line[i];
-            if (inString) {
-                if (ch === '\\') { i++; continue; }
-                if (ch === '"') { inString = false; }
-                continue;
-            }
-            if (ch === '"') { inString = true; continue; }
-            if (ch === '(') { depth++; continue; }
-            if (ch === ')') { depth--; if (depth === 0) { return i; } }
-        }
-        return -1;
     }
 
     // wraps every `await this.<typedCore>(...)` on one line in its From* helper, so a typed
@@ -4013,33 +3558,8 @@ class NewTranspiler {
         return out + content.slice (last);
     }
 
-    // index of the `)` closing the `(` at `open`, skipping string and char literals
-    matchingParen (content: string, open: number): number {
-        let depth = 0;
-        let i = open;
-        while (i < content.length) {
-            const ch = content[i];
-            if (ch === '"' || ch === '\'') {
-                const quote = ch;
-                i += 1;
-                while (i < content.length && content[i] !== quote) {
-                    i += (content[i] === '\\') ? 2 : 1;
-                }
-            } else if (ch === '(') {
-                depth += 1;
-            } else if (ch === ')') {
-                depth -= 1;
-                if (depth === 0) {
-                    return i;
-                }
-            }
-            i += 1;
-        }
-        return -1;
-    }
-
     // right hand side whose C# static type is exactly the shadow's type
-    coreArgShadowRhsIsTyped (rhs: string, targetType: string, newRules = true, tagContext?: CoreArgShadowTagContext): boolean {
+    coreArgShadowRhsIsTyped (rhs: string, targetType: string): boolean {
         if (targetType === 'string') {
             if (/^"(?:[^"\\]|\\.)*"$/.test (rhs)) {
                 return true;
@@ -4048,24 +3568,15 @@ class NewTranspiler {
                 return true;
             }
             // `safeSymbol` returns `string?`, exactly like `safeString`
-            if (newRules && /^this\.safeSymbol\s*\(/.test (rhs)) {
+            if (/^this\.safeSymbol\s*\(/.test (rhs)) {
                 return true;
             }
             // `capitalize` returns `string`; `((object)x).ToString()` is a string for any non-null x
-            if (newRules && (/^this\.capitalize\s*\(/.test (rhs) || /^\(\(object\)[\w.]+\)\.ToString\s*\(\s*\)$/.test (rhs))) {
+            if (/^this\.capitalize\s*\(/.test (rhs) || /^\(\(object\)[\w.]+\)\.ToString\s*\(\s*\)$/.test (rhs)) {
                 return true;
             }
             if (/^\(\(string\)[\w.]+\)\.(?:ToLower|ToUpper|Trim)\s*\(\s*\)$/.test (rhs)) {
                 return true;
-            }
-            // the destructured seed of a `tagVar` shadow: `<holder>[0]` of an audited helper
-            // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS) holds a string or null, and the write
-            // gets the `(string)` cast back to that box (insertCoreArgShadowElementCasts)
-            if (tagContext !== undefined) {
-                const element = /^([A-Za-z_]\w*)\s*\[\s*0\s*\]$/.exec (rhs);
-                if (element !== null && tagContext.stringHolders.has (element[1])) {
-                    return true;
-                }
             }
         } else if (targetType === 'bool?') {
             if (/^(?:true|false)$/.test (rhs)) {
@@ -4134,42 +3645,13 @@ class NewTranspiler {
     // A callee outside the table keeps its argument untyped. No position exception is needed for
     // a narrowed parameter: castCoreArgCallSites wraps every argument there with `((string)…)`/
     // To*Arg, and coreArgShadowUseKind answers at that cast before asking about the callee.
-    coreArgShadowCalleeAllows (callee: string, line: string, at: number, openParen: number, newRules = true): boolean {
+    coreArgShadowCalleeAllows (callee: string): boolean {
         const name = callee.split ('.').pop () as string;
-        const only = newRules ? CORE_ARG_SHADOW_CALLEE_ONLY_POSITIONS[name] : undefined;
-        const extra = newRules ? CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1 : false;
-        if (CORE_ARG_SHADOW_CALLEES.indexOf (name) === -1 && !extra && only === undefined) {
-            return false;
-        }
-        if (only === undefined) {
-            return true;
-        }
-        const [ index, count ] = this.coreArgShadowArgIndex (line, openParen, at);
-        if (only !== undefined) {
-            return count === 2 && only.indexOf (index) !== -1;
-        }
-    }
-
-    // [ index of the argument holding `at`, number of top-level arguments ] of the call at `open`
-    coreArgShadowArgIndex (line: string, open: number, at: number): [ number, number ] {
-        let depth = 0;
-        let index = 0;
-        let count = 1;
-        for (let i = open + 1; i < line.length; i++) {
-            const ch = line[i];
-            if (ch === '(') { depth += 1; } else if (ch === ')') {
-                if (depth === 0) { break; }
-                depth -= 1;
-            } else if (ch === ',' && depth === 0) {
-                count += 1;
-                if (i < at) { index += 1; }
-            }
-        }
-        return [ index, count ];
+        return CORE_ARG_SHADOW_CALLEES.indexOf (name) !== -1 || CORE_ARG_SHADOW_NEW_CALLEES.indexOf (name) !== -1;
     }
 
     // classification of one occurrence: 'write', 'read', or '' when not provable
-    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, newRules = true, tagContext?: CoreArgShadowTagContext): string {
+    coreArgShadowUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean): string {
         const pre = line.slice (0, at);
         const post = line.slice (at + alias.length);
         const postl = post.replace (/^\s+/, '');
@@ -4181,7 +3663,7 @@ class NewTranspiler {
             if (m !== null) {
                 const op = m[1];
                 const rhs = m[2].trim ();
-                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType, newRules, tagContext)) {
+                if ((op === '??=' || op === '=') && this.coreArgShadowRhsIsTyped (rhs, targetType)) {
                     return 'write';
                 }
                 return '';
@@ -4225,19 +3707,6 @@ class NewTranspiler {
         if (postl.trim () === ';' && /request\s*\[[^\]]*\]\s*=\s*$/.test (pre)) {
             return 'read';
         }
-        // The `tagVar` shadow written into an object-valued slot of this body (an `object` local or
-        // the `object` indexer of a declared dictionary local): either slot boxes the same string
-        // reference the `object` spelling boxes.
-        if (tagContext !== undefined && postl.trim () === ';') {
-            const intoDict = /(?:^|[^\w.])([A-Za-z_]\w*)\s*\[[^\]]*\]\s*=\s*$/.exec (pre);
-            if (intoDict !== null && tagContext.dictNames.has (intoDict[1])) {
-                return 'read';
-            }
-            const intoObject = /(?:^|[^\w.])([A-Za-z_]\w*)\s*=\s*$/.exec (pre);
-            if (intoObject !== null && tagContext.objectNames.has (intoObject[1])) {
-                return 'read';
-            }
-        }
         if (/[{,]\s*$/.test (pre) && /(?:new List<object>|new object\[\]|new Dictionary<string, object>)\s*\(?\s*\)?\s*\{[^{}]*$/.test (pre)) {
             return 'read';
         }
@@ -4245,21 +3714,19 @@ class NewTranspiler {
             return 'read';
         }
         // A native `(a + b)` operand reads the alias exactly as a helper argument did, and the concat
-        // exists only where the printer proved the operands strings. Gated on newRules: a `timeframe`
-        // copy gets only the base rules.
-        if (newRules && (/\+\s*$/.test (pre) || /^\s*\+/.test (postl))) {
+        // exists only where the printer proved the operands strings.
+        if (/\+\s*$/.test (pre) || /^\s*\+/.test (postl)) {
             return 'read';
         }
         // The same native `+` concat with the printer's parenthesised operand, `... + (alias)` / `(alias) + ...`.
-        if (newRules
-            && (/\+\s*\(\s*$/.test (pre) && /^\)/.test (postl)
-                || /\($/.test (pre) && /^\)\s*\+/.test (postl))) {
+        if (/\+\s*\(\s*$/.test (pre) && /^\)/.test (postl)
+            || /\($/.test (pre) && /^\)\s*\+/.test (postl)) {
             return 'read';
         }
 
         if (postl.charAt (0) === ',' || postl.charAt (0) === ')') {
             const callee = this.coreArgShadowCallee (line, at);
-            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0], line, at, callee[1], newRules)) {
+            if (callee !== null && this.coreArgShadowCalleeAllows (callee[0])) {
                 return 'read';
             }
             return '';
@@ -4268,82 +3735,6 @@ class NewTranspiler {
             return 'read';
         }
         return '';
-    }
-
-    // The locals this body binds ONLY from `producer` (a `null` init is allowed): every assignment
-    // of the name is the producer or null. The name is the producer regex's group 1.
-    coreArgShadowProducerLocals (bodyLines: string[], producer: RegExp): string[] {
-        const names: string[] = [];
-        for (const line of bodyLines) {
-            const m = producer.exec (line);
-            if (m !== null && names.indexOf (m[1]) === -1) {
-                names.push (m[1]);
-            }
-        }
-        const out: string[] = [];
-        for (const name of names) {
-            if (this.coreArgShadowOnlyBinds (bodyLines, name, producer)) {
-                out.push (name);
-            }
-        }
-        return out;
-    }
-
-    coreArgShadowOnlyBinds (bodyLines: string[], name: string, producer: RegExp): boolean {
-        const target = new RegExp ('^\\s*(?:I?Dictionary<string, object>\\s+|IList<object>\\s+)?' + name + '\\s*=\\s*(.*)$');
-        let seen = false;
-        for (const line of bodyLines) {
-            const m = target.exec (line);
-            if (m === null) {
-                continue;
-            }
-            const rhs = m[1].trim ();
-            if (rhs === 'null' || rhs === 'null;') {
-                continue;
-            }
-            if (producer.test (line)) {
-                seen = true;
-                continue;
-            }
-            return false;
-        }
-        return seen;
-    }
-
-    // The cast an owned source's copy needs when written from `rhs`, or null when `rhs` is not one
-    // of the two proven string producers (see CORE_ARG_SHADOW_OWNED_SOURCES).
-    coreArgShadowWriteCastType (rhs: string, targetType: string, marketRows: string[], holders: string[]): string | null {
-        if (targetType !== 'string') {
-            return null;
-        }
-        const row = CORE_ARG_SHADOW_MARKET_ROW_READ_RE.exec (rhs);
-        if (row !== null && MARKET_ROW_STRING_KEYS.indexOf (row[2]) !== -1 && marketRows.indexOf (row[1]) !== -1) {
-            return 'string';
-        }
-        // The same read behind the printer's `ContainsKey` guard: both key literals from the table, same row local.
-        const guarded = CORE_ARG_SHADOW_MARKET_ROW_COND_RE.exec (rhs);
-        if (guarded !== null && guarded[2] === guarded[3] && MARKET_ROW_STRING_KEYS.indexOf (guarded[2]) !== -1 && marketRows.indexOf (guarded[1]) !== -1) {
-            return 'string';
-        }
-
-        const element = CORE_ARG_SHADOW_ELEMENT0_READ_RE.exec (rhs);
-        if (element !== null && holders.indexOf (element[1]) !== -1) {
-            return 'string';
-        }
-        return null;
-    }
-
-    // The `alias = <producer>;` write with the `((T)…)` cast its typed declaration needs, or null
-    // when the raw line does not carry the proven shape; the caller then keeps the declaration `object`.
-    coreArgShadowCastWrite (line: string, alias: string, targetType: string, bodyLines: string[]): string | null {
-        const m = new RegExp ('^(\\s*)' + alias + '\\s*=\\s*([^;]+?)\\s*;\\s*$').exec (line);
-        if (m === null) {
-            return null;
-        }
-        const cast = this.coreArgShadowWriteCastType (m[2].trim (), targetType,
-            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE),
-            this.coreArgShadowProducerLocals (bodyLines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE));
-        return cast === null ? null : m[1] + alias + ' = ((' + cast + ')' + m[2].trim () + ');';
     }
 
     // The `limit` shadow's two admitted write forms (getLimit / integer literal), or null otherwise.
@@ -4366,9 +3757,9 @@ class NewTranspiler {
     }
 
     // True when the shadow `alias` is used only in the proven ways above and read at least once
-    // (a write-only local is CS0219). `newRules` is false for a `timeframe` copy; `castCasts` /
-    // `limitCasts` collect the writes needing a `((T)…)` cast the caller re-inserts before retyping.
-    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, newRules = true, castCasts?: number[], limitCasts?: number[]): boolean {
+    // (a write-only local is CS0219).
+    // `limitCasts` collects the writes needing a `((T)…)` cast the caller re-inserts before retyping.
+    coreArgShadowIsProvable (bodyLines: string[], alias: string, targetType: string, methodReturnType: string, skipLine = -1, limitCasts?: number[]): boolean {
         if (CORE_ARG_SHADOW_TYPES.indexOf (targetType) === -1) {
             return false;
         }
@@ -4406,12 +3797,6 @@ class NewTranspiler {
             lines.push (line);
         }
         let reads = 0;
-        // The receivers the write forms below are proven through (only when the caller asks for
-        // the casts -- an owned source's copy)
-        const castWrites = castCasts !== undefined;
-        const marketRows = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_MARKET_ROW_BIND_RE) : [];
-        const stringHolders = castWrites ? this.coreArgShadowProducerLocals (lines, CORE_ARG_SHADOW_STRING_ELEMENT0_BIND_RE) : [];
-        const tagContext = CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 ? this.coreArgShadowTagContext (lines) : undefined;
         // Only the `limit` copy offers its write forms; they are re-checked on the RAW line by
         // coreArgShadowLimitCastWrite, so a line the rewrite cannot reproduce keeps the site `object`.
         const limitWrites = limitCasts !== undefined;
@@ -4421,15 +3806,8 @@ class NewTranspiler {
             }
             const line = lines[k];
             for (const at of this.coreArgShadowOccurrences (line, alias)) {
-                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k], newRules, tagContext);
+                const kind = this.coreArgShadowUseKind (line, at, alias, targetType, methodReturnType, dictInits[k]);
                 if (kind === '') {
-                    if (castWrites && line.slice (0, at).trim () === '') {
-                        const post = /^\s*=\s*([^;]+?)\s*;\s*$/.exec (line.slice (at + alias.length));
-                        if (post !== null && this.coreArgShadowWriteCastType (post[1].trim (), targetType, marketRows, stringHolders) !== null) {
-                            castCasts.push (k);
-                            continue;
-                        }
-                    }
                     if (limitWrites && line.slice (0, at).trim () === '') {
                         const post = /^\s*(?:\?\?=|=)\s*(.*?)\s*;(\s*(?:\/\/.*)?)$/.exec (line.slice (at + alias.length));
                         if (post !== null && this.coreArgShadowLimitWriteRhs (post[1]) !== null) {
@@ -4445,32 +3823,6 @@ class NewTranspiler {
             }
         }
         return reads > 0;
-    }
-
-    // Names the body declares for the `tag` family: element-0 holders of an audited destructuring
-    // helper, dictionary locals and plain `object` locals. Body-scoped: C# forbids a local from
-    // shadowing a parameter, and other declared types never enter the sets.
-    coreArgShadowTagContext (lines: string[]): CoreArgShadowTagContext {
-        const stringHolders = new Set<string> ();
-        const dictNames = new Set<string> ();
-        const objectNames = new Set<string> ();
-        const holderRe = new RegExp ('^\\s*IList<object> ([A-Za-z_]\\w*) = \\(IList<object>\\)this\\.('
-            + CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS.join ('|') + ')\\s*\\(');
-        for (const line of lines) {
-            const holder = holderRe.exec (line);
-            if (holder !== null) {
-                stringHolders.add (holder[1]);
-            }
-            const dict = /^\s*I?Dictionary<string, object>\s+([A-Za-z_]\w*)\s*=/.exec (line);
-            if (dict !== null) {
-                dictNames.add (dict[1]);
-            }
-            const obj = /^\s*object\s+([A-Za-z_]\w*)\s*=/.exec (line);
-            if (obj !== null) {
-                objectNames.add (obj[1]);
-            }
-        }
-        return { stringHolders, dictNames, objectNames };
     }
 
     // index of the `//` comment start outside string/char literals, or -1
@@ -4700,106 +4052,9 @@ class NewTranspiler {
     // Narrows the `object` parameters in VENUE_NUMERIC_ARGS (name + position, every declaration, since
     // overrides are invariant) to Int64?/double?, only for names in VENUE_NUMERIC_ARG_NAMES. A body that
     // assigns the parameter gets the `object <name>Var = <name>;` shadow, so it keeps an object slot.
-    typeVenueNumericArgs (content: string): string {
-        const names = Object.keys (VENUE_NUMERIC_ARGS);
-        if (!names.some (name => content.includes (' ' + name + '('))) {
-            return content;
-        }
-        const sigRe = /^(\s*)public (async )?(virtual|override) ([\w<>., ?]+) (\w+)\((.*)\)\s*$/;
-        const lines = content.split ('\n');
-        for (let i = 0; i < lines.length; i++) {
-            const sig = sigRe.exec (lines[i]);
-            if (!sig) {
-                continue;
-            }
-            const [ , indent, asyncKw, modifier, returnType, methodName, plist ] = sig;
-            const positions = VENUE_NUMERIC_ARGS[methodName];
-            if (positions === undefined) {
-                continue;
-            }
-            let bodyStart = i + 1;
-            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
-                bodyStart++;
-            }
-            if (bodyStart >= lines.length) {
-                continue;
-            }
-            let bodyEnd = lines.length - 1;
-            for (let j = bodyStart + 1; j < lines.length; j++) {
-                if (lines[j] === indent + '}') { bodyEnd = j; break; }
-            }
-            const body = lines.slice (bodyStart + 1, bodyEnd).join ('\n');
-            const params = this.splitCsharpParams (plist);
-            const shadows: string[] = [];
-            const renames: string[][] = [];
-            let changed = false;
-            for (const posKey of Object.keys (positions)) {
-                const pos = Number (posKey);
-                const targetType = positions[pos];
-                const param = params[pos];
-                if (param === undefined || !param.trimStart ().startsWith ('object ')) {
-                    continue;
-                }
-                const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
-                if (VENUE_NUMERIC_ARG_NAMES.indexOf (paramName) === -1) {
-                    continue;
-                }
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))
-                    || new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
-                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
-                if (reassigned) {
-                    const alias = paramName + 'Var';
-                    shadows.push (`${indent}    object ${alias} = ${paramName};`);
-                    renames.push ([ paramName, alias ]);
-                }
-                changed = true;
-            }
-            if (!changed) {
-                continue;
-            }
-            if (renames.length) {
-                for (let k = bodyStart + 1; k < bodyEnd; k++) {
-                    for (const [ name, alias ] of renames) {
-                        lines[k] = this.renameLocalInBody (lines[k], name, alias);
-                    }
-                }
-            }
-            lines[i] = `${indent}public ${asyncKw || ''}${modifier} ${returnType} ${methodName}(${params.join (',')})`;
-            if (shadows.length) {
-                lines[bodyStart] = lines[bodyStart] + '\n' + shadows.join ('\n');
-            }
-            i = bodyEnd;
-        }
-        return lines.join ('\n');
-    }
-
-    venueStringArgsWithBaseRows (venueKey: string): Record<string, number[]> | undefined {
-        const own = VENUE_STRING_ARGS[venueKey];
-        if (venueKey === 'BaseExchange' || venueKey === 'Exchange' || venueKey === 'PredictionExchange') {
-            return own;
-        }
-        const baseKeys = venueKey.startsWith ('prediction:') ? [ 'BaseExchange', 'PredictionExchange' ] : [ 'BaseExchange', 'Exchange' ];
-        const merged: Record<string, number[]> = { ...(own ?? {}) };
-        for (const baseKey of baseKeys) {
-            for (const [ name, positions ] of Object.entries (VENUE_STRING_ARGS[baseKey] ?? {})) {
-                merged[name] = Array.from (new Set ([ ...(merged[name] ?? []), ...positions ])).sort ((a, b) => a - b);
-            }
-        }
-        return Object.keys (merged).length ? merged : undefined;
-    }
-
-    // Narrows VENUE_STRING_ARGS[venueKey] parameters to `string?`: every call site passes a string, every
-    // override declaration is still `object`, and every body use is an identity under `string?`. A body
-    // that assigns the parameter gets the `object <name>Var = <name>;` shadow and keeps an object slot.
-    typeVenueStringArgs (content: string, venueKey: string): string {
-        // C# overrides are invariant on parameter types: a row on the generated base class
-        // (BaseExchange / Exchange / PredictionExchange) retypes the virtual, so every venue
-        // override of that name has to take the same spelling or CS0115 — merge the base rows
-        // under the venue's own table instead of enumerating each override by hand.
-        const table = this.venueStringArgsWithBaseRows (venueKey);
-        if (table === undefined) {
-            return content;
-        }
+    // the shared walk: `table` maps a method name to its [ position, C# type ] rows; `numeric` adds the
+    // VENUE_NUMERIC_ARG_NAMES filter and counts a ref/out argument as a write
+    typeVenueArgs (content: string, table: Record<string, any>, rows: (positions: any) => [ number, string ][], numeric: boolean): string {
         const names = Object.keys (table);
         if (!names.some (name => content.includes (' ' + name + '('))) {
             return content;
@@ -4832,14 +4087,18 @@ class NewTranspiler {
             const shadows: string[] = [];
             const renames: string[][] = [];
             let changed = false;
-            for (const pos of positions) {
+            for (const [ pos, targetType ] of rows (positions)) {
                 const param = params[pos];
                 if (param === undefined || !param.trimStart ().startsWith ('object ')) {
                     continue;
                 }
                 const paramName = param.split ('=')[0].trim ().split (/\s+/).pop () as string;
-                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body));
-                params[pos] = param.replace ('object ' + paramName, 'string? ' + paramName);
+                if (numeric && VENUE_NUMERIC_ARG_NAMES.indexOf (paramName) === -1) {
+                    continue;
+                }
+                const reassigned = new RegExp ('(?<![\\w.])' + paramName + '\\s*(?:\\?\\?)?=(?!=)').test (stripCsStringLiterals (body))
+                    || numeric && new RegExp ('(?<![\\w.])(?:ref|out)\\s+' + paramName + '(?![\\w])').test (body);
+                params[pos] = param.replace ('object ' + paramName, targetType + ' ' + paramName);
                 if (reassigned) {
                     const alias = paramName + 'Var';
                     shadows.push (`${indent}    object ${alias} = ${paramName};`);
@@ -4866,9 +4125,43 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    typeVenueNumericArgs (content: string): string {
+        return this.typeVenueArgs (content, VENUE_NUMERIC_ARGS, (positions: any) => Object.keys (positions).map ((k) => [ Number (k), positions[k] ]), true);
+    }
+
+    venueStringArgsWithBaseRows (venueKey: string): Record<string, number[]> | undefined {
+        const own = VENUE_STRING_ARGS[venueKey];
+        if (venueKey === 'BaseExchange' || venueKey === 'Exchange' || venueKey === 'PredictionExchange') {
+            return own;
+        }
+        const baseKeys = venueKey.startsWith ('prediction:') ? [ 'BaseExchange', 'PredictionExchange' ] : [ 'BaseExchange', 'Exchange' ];
+        const merged: Record<string, number[]> = { ...(own ?? {}) };
+        for (const baseKey of baseKeys) {
+            for (const [ name, positions ] of Object.entries (VENUE_STRING_ARGS[baseKey] ?? {})) {
+                merged[name] = Array.from (new Set ([ ...(merged[name] ?? []), ...positions ])).sort ((a, b) => a - b);
+            }
+        }
+        return Object.keys (merged).length ? merged : undefined;
+    }
+
+    // Narrows VENUE_STRING_ARGS[venueKey] parameters to `string?`: every call site passes a string, every
+    // override declaration is still `object`, and every body use is an identity under `string?`. A body
+    // that assigns the parameter gets the `object <name>Var = <name>;` shadow and keeps an object slot.
+    typeVenueStringArgs (content: string, venueKey: string): string {
+        // C# overrides are invariant on parameter types: a row on the generated base class
+        // (BaseExchange / Exchange / PredictionExchange) retypes the virtual, so every venue
+        // override of that name has to take the same spelling or CS0115 — merge the base rows
+        // under the venue's own table instead of enumerating each override by hand.
+        const table = this.venueStringArgsWithBaseRows (venueKey);
+        if (table === undefined) {
+            return content;
+        }
+        return this.typeVenueArgs (content, table, (positions: number[]) => positions.map ((pos) => [ pos, 'string?' ]), false);
+    }
+
     // Copies of a `typeCoreArgs`-narrowed parameter may name its type (same box). Runs after typeCoreArgs;
     // coreArgShadowIsProvable checks every other use keeps overload, box and control flow. Only the
-    // declaration changes, plus the `tagVar` seed-write `(string)` (insertCoreArgShadowElementCasts).
+    // declaration changes.
     retypeCoreArgCopies (content: string): string {
         if (!/^\s*object \w+ = \w+;/m.test (content)) {
             return content;
@@ -4911,24 +4204,14 @@ class NewTranspiler {
                 if (type === undefined || type === 'object' || CORE_ARG_SHADOW_TYPES.indexOf (type) === -1) {
                     continue;
                 }
-                // Every source gets the extended (callee / RHS) rules; `castCasts` only for owned
-                // sources and `limitCasts` (getLimit + integer literal, `((Int64?)...)`) only for `limit`.
+                // Every source gets the extended (callee / RHS) rules; `limitCasts` (getLimit + integer
+                // literal, `((Int64?)...)`) only for `limit`.
                 // All-or-nothing per source: an unreproducible write line keeps the declaration `object`.
-                const owned = CORE_ARG_SHADOW_OWNED_SOURCES.indexOf (source) !== -1;
                 const limitOwned = source === CORE_ARG_SHADOW_LIMIT_SOURCE;
-                const casts: number[] = [];
                 const limitCasts: number[] = [];
-                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, true, owned ? casts : undefined, limitOwned ? limitCasts : undefined)) {
+                if (this.coreArgShadowIsProvable (bodyLines, alias, type, returnType, k, limitOwned ? limitCasts : undefined)) {
                     const rewrites: Array<[ number, string ]> = [];
                     let ok = true;
-                    for (const li of casts) {
-                        const rewritten = this.coreArgShadowCastWrite (bodyLines[li], alias, type, bodyLines);
-                        if (rewritten === null) {
-                            ok = false;
-                            break;
-                        }
-                        rewrites.push ([ li, rewritten ]);
-                    }
                     for (const li of limitCasts) {
                         const rewritten = this.coreArgShadowLimitCastWrite (bodyLines[li], alias, type);
                         if (rewritten === null) {
@@ -4937,15 +4220,10 @@ class NewTranspiler {
                         }
                         rewrites.push ([ li, rewritten ]);
                     }
-                    if (ok && rewrites.length === casts.length + limitCasts.length) {
+                    if (ok && rewrites.length === limitCasts.length) {
                         bodyLines[k] = dindent + type + ' ' + alias + ' = ' + source + ';';
                         for (const [ li, rewritten ] of rewrites) {
                             bodyLines[li] = rewritten;
-                        }
-                        // The `tag` aliases carry element reads of the shadow local (the withdraw
-                        // tag core arg), so the string element casts go in after the write casts above.
-                        if (CORE_ARG_SHADOW_TAG_ALIASES.indexOf (alias) !== -1 && type === 'string') {
-                            this.insertCoreArgShadowElementCasts (bodyLines, alias);
                         }
                         changed = true;
                     }
@@ -4959,23 +4237,6 @@ class NewTranspiler {
             i = bodyEnd;
         }
         return lines.join ('\n');
-    }
-
-    // `tagVar = tagparametersVariable[0];` -- the destructured write the proof above admitted
-    // (CORE_ARG_SHADOW_STRING_ELEMENT0_HELPERS). The retyped `string tagVar` needs the box named
-    // in the slot, and `(string)` IS that box: an identity reference conversion, null included.
-    // The holder is what scopes the rewrite -- only the audited helper's own holder matches.
-    insertCoreArgShadowElementCasts (bodyLines: string[], alias: string) {
-        const { stringHolders } = this.coreArgShadowTagContext (bodyLines);
-        if (stringHolders.size === 0) {
-            return;
-        }
-        for (let j = 0; j < bodyLines.length; j++) {
-            const write = /^(\s*)([A-Za-z_]\w*) = ([A-Za-z_]\w*)\[0\];\s*$/.exec (bodyLines[j]);
-            if (write !== null && write[2] === alias && stringHolders.has (write[3])) {
-                bodyLines[j] = write[1] + write[2] + ' = (string)' + write[3] + '[0];';
-            }
-        }
     }
 
     // Order matters: retypeCoreArgCopies gives a narrowed parameter's copy the parameter's type, and
@@ -5121,7 +4382,7 @@ class NewTranspiler {
     // type as `string`), then the extra write / read / callee shapes.
     identifierCopyUseKind (line: string, at: number, alias: string, targetType: string, methodReturnType: string, inDictInit: boolean, declared: Record<string, string>): string {
         const bare = (targetType === 'string?') ? 'string' : targetType;
-        const known = this.coreArgShadowUseKind (line, at, alias, bare, methodReturnType, inDictInit, true);
+        const known = this.coreArgShadowUseKind (line, at, alias, bare, methodReturnType, inDictInit);
         if (known !== '') {
             return known;
         }
@@ -5191,7 +4452,7 @@ class NewTranspiler {
     // any nullable string producer): the write stores the same box either way.
     identifierCopyRhsIsTyped (rhs: string, targetType: string, declared: Record<string, string>): boolean {
         if (targetType === 'string' || targetType === 'string?') {
-            if (this.coreArgShadowRhsIsTyped (rhs, 'string', true)) {
+            if (this.coreArgShadowRhsIsTyped (rhs, 'string')) {
                 return true;
             }
             // `this.safeOutcomeSymbol (...)` => string? (Exchange.PredictionAliases.cs /
@@ -6728,108 +5989,16 @@ class NewTranspiler {
         return out;
     }
 
-    // see WS_HANDLER_DICT_MESSAGE.  Retypes this venue's admitted ws handler parameters
-    // and wraps the arguments the retype leaves statically `object`.  Self-gating: a handler
-    // with a call site the pass cannot name stays `object` whole.
-    retypeWsHandlerMessages (content: string): string {
+    // see WS_HANDLER_DICT_MESSAGE / WS_HANDLER_IDICT_MESSAGE. Retypes this venue's admitted ws handler
+    // parameters. The concrete spelling wraps the arguments the retype leaves statically `object`; the
+    // interface spelling edits no call site (every direct call must already pass a dict-typed value).
+    // Self-gating: a handler with a call site the pass cannot name or clear stays `object` whole.
+    retypeWsHandlerMessages (content: string, iface = false): string {
         const venueMatch = /public partial class (\w+)\s*:/.exec (content);
         if (venueMatch === null) {
             return content;
         }
-        const names = WS_HANDLER_DICT_MESSAGE[venueMatch[1]];
-        if (names === undefined) {
-            return content;
-        }
-        const membership = new Set (names);
-        const sigRe = /^ {4}(?:public|protected|private|internal)[^\n]*?\b(\w+)\s*\(([^()]*)\)\s*$/gm;
-        const sigs: { at: number, name: string }[] = [];
-        let signature;
-        while ((signature = sigRe.exec (content)) !== null) {
-            sigs.push ({ at: signature.index, name: signature[1] });
-        }
-        const enclosingName = (at: number) => {
-            let found = '';
-            for (const sig of sigs) {
-                if (sig.at >= at) {
-                    break;
-                }
-                found = sig.name;
-            }
-            return found;
-        };
-        const declarations: { index: number, text: string, param: string }[] = [];
-        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
-        let decl;
-        while ((decl = declRe.exec (content)) !== null) {
-            if (membership.has (decl[4])) {
-                declarations.push ({ index: decl.index, text: decl[0], param: decl[5] });
-            }
-        }
-        const edits: { start: number, end: number, text: string }[] = [];
-        for (const declaration of declarations) {
-            const name = declaration.text.match (/handle\w+/)![0];
-            const needle = 'object ' + declaration.param;
-            const rel = declaration.text.lastIndexOf (needle);
-            if (rel === -1) {
-                continue;
-            }
-            const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
-            const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
-            const sites: { start: number, end: number, arg: string, pad: string, chain: boolean }[] = [];
-            let call;
-            while ((call = callRe.exec (content)) !== null) {
-                if (call[1] !== name) {
-                    continue;
-                }
-                const open = call.index + call[0].length - 1;
-                const close = this.matchingParen (content, open);
-                if (close === -1) {
-                    continue;
-                }
-                const lineStart = content.lastIndexOf ('\n', call.index) + 1;
-                const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
-                if (trimmed.startsWith ('//') || trimmed.startsWith ('*') || lineStart === declLineStart) {
-                    continue;
-                }
-                const spans = this.wsArgSpans (content, open + 1, close);
-                if (spans.length < 2) {
-                    continue;
-                }
-                const arg = spans[1].text.trim ();
-                if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
-                    continue;
-                }
-                const offset = open + 1 + spans[1].start;
-                const raw = spans[1].text;
-                const pad = raw.substring (0, raw.length - raw.trimStart ().length);
-                sites.push ({ start: offset, end: offset + raw.length, arg, pad, chain: membership.has (enclosingName (call.index)) });
-            }
-            if (sites.some (site => !site.chain && !/^[A-Za-z_]\w*$/.test (site.arg))) {
-                continue;
-            }
-            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'Dictionary<string, object> ' + declaration.param });
-            for (const site of sites) {
-                if (site.chain) {
-                    continue;
-                }
-                edits.push ({ start: site.start, end: site.end, text: site.pad + '(Dictionary<string, object>)' + site.arg });
-            }
-        }
-        edits.sort ((a, b) => b.start - a.start);
-        for (const edit of edits) {
-            content = content.substring (0, edit.start) + edit.text + content.substring (edit.end);
-        }
-        return content;
-    }
-    // see WS_HANDLER_IDICT_MESSAGE. Retypes admitted ws handler parameters to the interface spelling
-    // and edits no call site (every direct call already passes a dict-typed value). Self-gating: a
-    // handler with a call the gate cannot clear stays `object` whole.
-    retypeWsHandlerMessagesToInterface (content: string): string {
-        const venueMatch = /public partial class (\w+)\s*:/.exec (content);
-        if (venueMatch === null) {
-            return content;
-        }
-        const names = WS_HANDLER_IDICT_MESSAGE[venueMatch[1]];
+        const names = (iface ? WS_HANDLER_IDICT_MESSAGE : WS_HANDLER_DICT_MESSAGE)[venueMatch[1]];
         if (names === undefined) {
             return content;
         }
@@ -6874,8 +6043,8 @@ class NewTranspiler {
             }
             return false;
         };
-        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
         const declarations: { index: number, text: string, param: string }[] = [];
+        const declRe = /^(\s*)(public|protected)((?:\s+(?:static|virtual|override|async|partial))*)\s+(?:[\w<>?,\[\] .]+?)\s+(\w+)\s*\(\s*WebSocketClient\s+client\s*,\s*object\s+([A-Za-z_]\w*)/gm;
         let decl;
         while ((decl = declRe.exec (content)) !== null) {
             if (membership.has (decl[4])) {
@@ -6892,6 +6061,7 @@ class NewTranspiler {
             }
             const declLineStart = content.lastIndexOf ('\n', declaration.index) + 1;
             const callRe = /(?<![\w.])(?:this\.|base\.)?(\w+)\s*\(/g;
+            const sites: { start: number, end: number, arg: string, pad: string, chain: boolean }[] = [];
             let clear = true;
             let call;
             while ((call = callRe.exec (content)) !== null) {
@@ -6901,8 +6071,11 @@ class NewTranspiler {
                 const open = call.index + call[0].length - 1;
                 const close = this.matchingParen (content, open);
                 if (close === -1) {
-                    clear = false;
-                    break;
+                    if (iface) {
+                        clear = false;
+                        break;
+                    }
+                    continue;
                 }
                 const lineStart = content.lastIndexOf ('\n', call.index) + 1;
                 const trimmed = content.substring (lineStart, content.indexOf ('\n', call.index)).trim ();
@@ -6911,29 +6084,35 @@ class NewTranspiler {
                 }
                 const spans = this.wsArgSpans (content, open + 1, close);
                 if (spans.length < 2) {
-                    clear = false;
-                    break;
+                    if (iface) {
+                        clear = false;
+                        break;
+                    }
+                    continue;
                 }
                 const arg = spans[1].text.trim ();
                 if (arg.startsWith ('(Dictionary<string, object>)') || arg.startsWith ('(IDictionary<string, object>)')) {
                     continue;
                 }
-                if (!/^[A-Za-z_]\w*$/.test (arg)) {
+                const chain = membership.has (enclosingName (call.index));
+                if (iface && (!/^[A-Za-z_]\w*$/.test (arg) || (!chain && !dictTypedInMethod (call.index, arg)))) {
                     clear = false;
                     break;
                 }
-                if (membership.has (enclosingName (call.index))) {
-                    continue;
-                }
-                if (!dictTypedInMethod (call.index, arg)) {
-                    clear = false;
-                    break;
-                }
+                const offset = open + 1 + spans[1].start;
+                const raw = spans[1].text;
+                const pad = raw.substring (0, raw.length - raw.trimStart ().length);
+                sites.push ({ start: offset, end: offset + raw.length, arg, pad, chain });
             }
-            if (!clear) {
+            if (!clear || sites.some (site => !site.chain && !/^[A-Za-z_]\w*$/.test (site.arg))) {
                 continue;
             }
-            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: 'IDictionary<string, object> ' + declaration.param });
+            edits.push ({ start: declaration.index + rel, end: declaration.index + rel + needle.length, text: (iface ? 'IDictionary' : 'Dictionary') + '<string, object> ' + declaration.param });
+            for (const site of sites) {
+                if (!iface && !site.chain) {
+                    edits.push ({ start: site.start, end: site.end, text: site.pad + '(Dictionary<string, object>)' + site.arg });
+                }
+            }
         }
         edits.sort ((a, b) => b.start - a.start);
         for (const edit of edits) {
@@ -7010,18 +6189,6 @@ class NewTranspiler {
             out.push (cur);
         }
         return out;
-    }
-
-    unwrapTaskIfNeeded(type: string): string {
-        return type.startsWith('Task<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapListIfNeeded(type: string): string {
-        return type.startsWith('List<') && type.endsWith('>') ? type.substring(5, type.length - 1) : type;
-    }
-
-    unwrapDictionaryIfNeeded(type: string): string {
-        return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
     }
 
     // drop redundant `((object)…)` boxes: `((object)X).ToString()` -> `X.ToString()` and `object N = ((object)X);`
@@ -7302,111 +6469,6 @@ class NewTranspiler {
             }
         }
         return sites;
-    }
-
-    createReturnStatement(methodName: string,  unwrappedType:string ) {
-        // typed cores already return the struct/list (see typeCores), so the wrapper no longer
-        // re-materialises it — it just forwards the typed core result
-        if (this.typedCoreType (methodName, this.isPrediction) !== '') {
-            return `return res;`;
-        }
-        // handle watchOrderBook exception here
-        if (methodName.startsWith('watchOrderBook')) {
-            // copy first to snapshot the live book, then reshape to the prediction structure for prediction venues
-            return this.isPrediction ? `return new ccxt.PredictionOrderBook(((ccxt.pro.IOrderBook) res).Copy());` : `return ((ccxt.pro.IOrderBook) res).Copy();`; // return copy to avoid concurrency issues
-        }
-        if (methodName === 'watchOHLCVForSymbols') {
-            return `return Helper.ConvertToDictionaryOHLCVList(res);`
-        }
-
-        // custom handling for now
-        if (methodName === 'fetchTime'){
-            return `return (Int64)res;`;
-        }
-
-        if (unwrappedType === 'double') {
-            return `return (double)res;`;
-        }
-
-        // handle the typescript type Dict (and its nullable alias from TS >= 5/6 inference)
-        if (unwrappedType === 'Dict' || unwrappedType === 'NullableDict') {
-            return `return (Dictionary<string, object>)res;`;
-        }
-
-        const needsToInstantiate = !unwrappedType.startsWith('List<') && !unwrappedType.startsWith('Dictionary<') && unwrappedType !== 'object' && unwrappedType !== 'string' && unwrappedType !== 'float' && unwrappedType !== 'bool' && unwrappedType !== 'Int64';
-        let returnStatement = "";
-        if (unwrappedType.startsWith('List<')) {
-            if (unwrappedType === 'List<Dictionary<string, object>>') {
-                returnStatement = `return ((IList<object>)res).Select(item => (item as Dictionary<string, object>)).ToList();`
-            } else if (unwrappedType === 'List<string>' || unwrappedType === 'List<String>') {
-                // string is a primitive with no `new string(object)` constructor — cast each element instead
-                returnStatement = `return ((IList<object>)res).Select(item => (item as string)).ToList();`
-            } else {
-                returnStatement = `return ((IList<object>)res).Select(item => new ${this.unwrapListIfNeeded(unwrappedType)}(item)).ToList<${this.unwrapListIfNeeded(unwrappedType)}>();`
-            }
-        } else if (unwrappedType.startsWith('Dictionary<string,') && unwrappedType !== 'Dictionary<string, object>' && !unwrappedType.startsWith('Dictionary')) {
-            const type = this.unwrapDictionaryIfNeeded(unwrappedType);
-            const returnParts = [
-                `var keys = ((IDictionary<string, object>)res).Keys.ToList();`,
-                `        var result = new Dictionary<string, ${type}>();`,
-                `        foreach (var key in keys)`,
-                `        {`,
-                `            result[key] = new ${type}(((IDictionary<string,object>)res)[key]);`,
-                `        }`,
-                `        return result;`,
-            ].join("\n");
-            return returnParts;
-        } else {
-            returnStatement =  needsToInstantiate ? `return new ${unwrappedType}(res);` :  `return ((${unwrappedType})res);`;            ;
-        }
-        return returnStatement;
-    }
-
-    inden(level: number) {
-        return '    '.repeat(level);
-    }
-
-    createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
-        // the PascalCase core IS the public C# API. Method wrappers (cast-only and
-        // converting) have been retired; only the `class Binance : binance` aliases
-        // remain, emitted by createExchangesWrappers / needsCapitalizedClass.
-        return '';
-        // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
-        const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
-        const methodName = methodWrapper.name;
-        if (!this.shouldCreateWrapper(methodName, isWs)) {
-            return ''; // skip aux methods like encodeUrl, parseOrder, etc
-        }
-        const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
-        // a typed core is emitted PascalCase (the printer's typedCores), so it already *is* the public
-        // API — a wrapper here would be a duplicate declaration of the same name
-        if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
-            return '';
-        }
-        const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
-        const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
-        // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
-        // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
-        const typedCore = this.typedCoreType (methodName, this.isPrediction, exchangeName);
-        const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
-        const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
-        const stringArgs = args.filter(arg => arg !== undefined).join(', ');
-        const params = methodWrapper.parameters.map((param: any) => this.safeCsharpName(param.name)).join(', ');
-
-        const one = this.inden(1);
-        const two = this.inden(2);
-        const methodDoc = [] as any[];
-        if (csharpComments[exchangeName] && csharpComments[exchangeName][methodName]) {
-            methodDoc.push(csharpComments[exchangeName][methodName]);
-        }
-        const method = [
-            `${one}public ${isAsync ? 'async ' : ''}${wrapperReturnType} ${methodNameCapitalized}(${stringArgs})`,
-            `${one}{`,
-            `${two}var res = ${isAsync ? 'await ' : ''}this.${methodName}(${params});`,
-            `${two}${this.createReturnStatement(methodName, unwrappedType)}`,
-            `${one}}`
-        ];
-        return methodDoc.concat(method).filter(e => !!e).join('\n')
     }
 
     createExchangesWrappers(): string[] {
@@ -7791,67 +6853,6 @@ class NewTranspiler {
         }
     }
 
-    camelize(str: string) {
-        var res =  str.replace(/(?:^\w|[A-Z]|\b\w|\s+)/g, function(match, index) {
-          if (+match === 0) return ""; // or if (/\s+/.test(match)) for white spaces
-          return index === 0 ? match.toLowerCase() : match.toUpperCase();
-        });
-        return res.replaceAll('-', '');
-      }
-
-    getCsharpExamplesWarning() {
-        return [
-            '',
-            '    // !!Warning!! This example was automatically transpiled',
-            '    // from the TS version, meaning that the code is overly',
-            '    // complex and illegible compared to the code you would need to write',
-            '    // normally. Use it only to get an idea of how things are done.',
-            '    // Additionally always choose the typed version of the method instead of the generic one',
-            '    // (e.g. CreateOrder (typed) instead of createOrder (generic)',
-            ''
-        ].join('\n')
-    }
-
-    transpileExamples () {
-        return;
-        // currently disabled!, the generated code is too complex and illegible
-        const transpileFlagPhrase = '// AUTO-TRANSPILE //'
-
-        const allTsExamplesFiles = fs.readdirSync (EXAMPLES_INPUT_FOLDER).filter((f) => f.endsWith('.ts'));
-        for (const filenameWithExtenstion of allTsExamplesFiles) {
-            const tsFile = path.join (EXAMPLES_INPUT_FOLDER, filenameWithExtenstion)
-            let tsContent = fs.readFileSync (tsFile).toString ()
-            if (tsContent.indexOf (transpileFlagPhrase) > -1) {
-                const fileName = filenameWithExtenstion.replace ('.ts', '')
-                log.magenta ('[C#] Transpiling example from', (tsFile as any).yellow)
-                const csharp = this.transpiler.transpileCSharp(tsContent);
-
-                const transpiledFixed = this.regexAll(
-                    csharp.content,
-                    [
-                        [/object exchange/, 'Exchange exchange'],
-                        [/async public Task example/gm, 'async public Task ' + this.camelize(fileName)],
-                        [/(^\s+)object\s(\w+)\s=/gm, '$1var $2 ='],
-                        [/^await.+$/gm, '']
-                    ]
-                )
-
-                const finalFile = [
-                    'using ccxt;',
-                    'using ccxt.pro;',
-                    'namespace examples;',
-                    // this.getCsharpExamplesWarning(),
-                    'partial class Examples',
-                    '{',
-                    transpiledFixed,
-                    '}'
-                ].join('\n');
-
-                overwriteFileAndFolder (EXAMPLES_OUTPUT_FOLDER + fileName + '.cs', finalFile);
-            }
-        }
-    }
-
     async transpileWS(force = false, prediction = false) {
         // prediction WS methods now live in the REST prediction classes (no ts/src/prediction/pro)
         if (prediction && !fs.existsSync ('./ts/src/prediction/pro')) {
@@ -7916,8 +6917,6 @@ class NewTranspiler {
             return;
         }
 
-        this.transpileExamples(); // disabled for now
-
         if (examplesOnly) {
             return;
         }
@@ -7975,25 +6974,8 @@ class NewTranspiler {
         const flatResult: any[] = [];
         for (const chunk of workerResult) {
             flatResult.push (...chunk.result);
-            // csharpComments lives on the main thread (the wrapper writer reads it), so
-            // replay the raw comments the worker saw through the same transform
-            for (const comment of chunk.comments) {
-                this.transformLeadingComment (comment);
-            }
         }
         return flatResult;
-    }
-
-    async transpilePrediction (force = false) {
-        const ws = process.argv.includes ('--ws');
-        const tsFolder = ws ? './ts/src/prediction/pro/' : './ts/src/prediction/';
-        let inputExchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'));
-        if (inputExchanges === undefined || inputExchanges.length === 0) {
-            inputExchanges = ws ? exchanges.predictionWs : exchanges.prediction;
-        }
-        const csharpFolder = ws ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_PREDICTION_FOLDER;
-        const options = { csharpFolder, exchanges: inputExchanges }
-        await this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, ws, true)
     }
 
     async transpileDerivedExchangeFiles (jsFolder: string, options: any, pattern = '.ts', force = false, ws = false, prediction = false) {
@@ -8126,7 +7108,7 @@ class NewTranspiler {
         // tier flag has to come from `this.isPrediction` (set by every prediction pass) --
         // otherwise a prediction file would look up the REST venue's table and skip its own
         const venueKey = (this.isPrediction ? 'prediction:' : ws ? 'pro:' : '') + this.currentVenue;
-        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessagesToInterface (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))))))))), venueKey)), false);
+        content = nativeDeclaredHelperCalls (this.typeVenueNumericArgs (this.typeVenueStringArgs (this.stripRedundantStringCasts (this.retypePrintedReceiverCasts (this.foldIdentityStringCasts (this.nativeListHelperCalls (this.retypeParseMarketParams (this.retypeWsHandlerMessages (this.retypeWsHandlerMessages ((this.dropStringTimeframeCasts ((this.finalizeCoreArgTypes (((this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content)))))))))), true)))))), venueKey)), false);
         // the copy retypes below read `isEqual(x, null)` on `object` names; the final pass rewrites them
         content = this.dropRedundantObjectBoxCasts (content);
         content = this.retypeIdentifierCopies (content);
@@ -8160,74 +7142,26 @@ class NewTranspiler {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp (outDir: string, force = true) {
-
-        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
-        const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
-
-        if (skipUpToDateStage ('csharp', 'ws orderbook test', force, testStageInputs (), [ csharpFile ])) {
+    // one base test file (orderbook / cache / cryptography): drop the TS preamble above `splitter`,
+    // the `equals` helper and rename `assert`, then wrap it in `BaseTest`
+    transpileBaseTestFileToCSharp (jsFile: string, csharpFile: string, stage: string, using: string, splitter: string | undefined, regexes: any[], force: boolean) {
+        if (skipUpToDateStage ('csharp', stage, force, testStageInputs (), [ csharpFile ])) {
             return;
         }
-
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
-        content = this.regexAll (content, [
-            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g,'var $1 = $2.$3;'], // tmp fix
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim ()
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
-
-        const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta ('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder (csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp (outDir: string, force = true) {
-
-        const jsFile = './ts/src/pro/test/base/test.cache.ts';
-        const csharpFile = `${outDir}/Ws/test.cache.cs`;
-
-        if (skipUpToDateStage ('csharp', 'ws cache test', force, testStageInputs (), [ csharpFile ])) {
-            return;
+        log.magenta ((using === 'using ccxt;' ? '[csharp] ' : '') + 'Transpiling from', (jsFile as any).yellow)
+        let content = this.transpiler.transpileCSharpByPath(jsFile).content;
+        if (splitter !== undefined) {
+            const splitParts = content.split(splitter);
+            splitParts.shift();
+            content = splitParts.join('\n' + splitter + '\n');
         }
-
-        log.magenta ('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// ----------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
-        content = this.regexAll (content, [
+        content = this.regexAll (content, regexes.concat ([
             [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
             [/assert/g, 'Assert'],
-        ]).trim ()
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
-
+        ])).trim ()
+        const contentIdented = content.split ('\n').map (line => '        ' + line).join ('\n');
         const file = [
-            'using ccxt.pro;',
+            using,
             'namespace Tests;',
             '',
             this.createGeneratedHeader().join('\n'),
@@ -8236,105 +7170,19 @@ class NewTranspiler {
             contentIdented,
             '}',
         ].join('\n')
-
         log.magenta ('→', (csharpFile as any).yellow)
-
         overwriteFileAndFolder (csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-
-    transpileCryptoTestsToCSharp (outDir: string, force = true) {
-
-        const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const csharpFile = `${outDir}/test.cryptography.cs`;
-
-        if (skipUpToDateStage ('csharp', 'crypto test', force, testStageInputs (), [ csharpFile ])) {
-            return;
-        }
-
-        log.magenta ('[csharp] Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        content = this.regexAll (content, [
-            [ /\s*public\sobject\sequals(([^}]|\n)+)+}/gm, '' ], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim ()
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '        ' + line).join ('\n');
-
-        const file = [
-            'using ccxt;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta ('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder (csharpFile, file);
-    }
-
-    transpileExchangeTest(name: string, path: string): [string, string] {
-        const csharp = this.transpiler.transpileCSharpByPath(path);
-        let content = csharp.content;
-
-        const parsedName = name.replace('.ts', '');
-        const parsedParts = parsedName.split('.');
-        const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
-
-        content = this.regexAll (content, [
-            [/assert/g, 'Assert'],
-            [/object exchange/g, 'Exchange exchange'],
-            [/function test/g, finalName],
-        ]).trim ()
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
-
-        const file = [
-            'using ccxt;',
-            'namespace Tests;',
-            'using System;',
-            'using System.Collections.Generic;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-        return [finalName, file];
-    }
-
-    async transpileExchangeTestsToCsharp() {
-        const inputDir = './ts/src/test/exchange/';
-        const outDir = GENERATED_TESTS_FOLDER;
-        const ignore = [
-            // 'exportTests.ts',
-            // 'test.fetchLedger.ts',
-            'test.throttler.ts',
-            // 'test.fetchOrderBooks.ts', // uses spread operator
-        ]
-
-        const inputFiles = fs.readdirSync('./ts/src/test/exchange');
-        const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
-        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all (transpiledFiles.map ((file, idx) => writeFile (outDir + file[0] + '.cs', csharpTupleReturns (file[1], file[0]))));
     }
 
     async transpileBaseTestsToCSharp (force = true) {
         const outDir = BASE_TESTS_FOLDER;
         await this.transpileBaseTests(outDir, force);
-        this.transpileCryptoTestsToCSharp(outDir, force);
-        this.transpileWsCacheTestsToCSharp(outDir, force);
-        this.transpileWsOrderbookTestsToCSharp(outDir, force);
+        const dashes = '// ' + '-'.repeat (76);
+        this.transpileBaseTestFileToCSharp ('./ts/src/test/base/test.cryptography.ts', `${outDir}/test.cryptography.cs`, 'crypto test', 'using ccxt;', undefined, [], force);
+        this.transpileBaseTestFileToCSharp ('./ts/src/pro/test/base/test.cache.ts', `${outDir}/Ws/test.cache.cs`, 'ws cache test', 'using ccxt.pro;', dashes, [], force);
+        this.transpileBaseTestFileToCSharp ('./ts/src/pro/test/base/test.orderBook.ts', `${outDir}/Ws/test.orderBook.cs`, 'ws orderbook test', 'using ccxt.pro;', dashes + '-'.repeat (40), [
+            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g,'var $1 = $2.$3;'], // tmp fix
+        ], force);
     }
 
     async transpileBaseTests (outDir: string, force = true) {
@@ -8407,10 +7255,6 @@ class NewTranspiler {
         } 
     }
 
-    capitalize(s: string) {
-        return s.charAt(0).toUpperCase() + s.slice(1);
-    }
-
     transpileMainTest(files: any) {
         log.magenta ('[csharp] Transpiling from', files.tsFile.yellow)
         // the legacy request-builders bind Exchange statically, so their typed-core calls print PascalCase
@@ -8458,6 +7302,12 @@ class NewTranspiler {
         overwriteFileAndFolder (files.csharpFile, file);
     }
 
+    // one `{ base, name, tsFile, csharpFile }` entry per `.ts` test in `tsDir`
+    exchangeTestEntries (tsDir: string, csharpDir: string, base?: boolean): any[] {
+        return fs.readdirSync (tsDir).filter (filename => filename.endsWith ('.ts')).map (filename => filename.replace ('.ts', ''))
+            .map ((name) => ({ base, name, tsFile: tsDir + name + '.ts', csharpFile: csharpDir + name + '.cs' }));
+    }
+
     transpileExchangeTests(force = true){
         const baseFolders = {
             ts: './ts/src/test/Exchange/',
@@ -8466,29 +7316,9 @@ class NewTranspiler {
             csharp: EXCHANGE_GENERATED_FOLDER,
         };
 
-        let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        const exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
         // ignore throttle test for now
-        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
-
-        const tests = [] as any;
-        baseTests.forEach (baseTest => {
-            tests.push({
-                base: true,
-                name:baseTest,
-                tsFile: baseFolders.tsBase + baseTest + '.ts',
-                csharpFile: baseFolders.csharpBase + baseTest + '.cs',
-            });
-        });
-        exchangeTests.forEach (test => {
-            tests.push({
-                base: false,
-                name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.csharp + test + '.cs',
-            });
-        });
+        const tests = this.exchangeTestEntries (baseFolders.tsBase, baseFolders.csharpBase, true).filter ((t: any) => t.name !== 'test.throttle')
+            .concat (this.exchangeTestEntries (baseFolders.ts, baseFolders.csharp, false));
 
         // whole-stage gate — TestMethods.cs is included because transpileMainTest below
         // writes it from ./ts/src/test/tests.ts, which is part of testStageInputs()
@@ -8511,17 +7341,7 @@ class NewTranspiler {
             csharp: EXCHANGE_GENERATED_FOLDER + 'Ws/',
         };
 
-        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
-        const tests = [] as any;
-
-        wsTests.forEach (test => {
-            tests.push({
-                name: test,
-                tsFile: baseFolders.ts + test + '.ts',
-                csharpFile: baseFolders.csharp + test + '.cs',
-            });
-        });
+        const tests = this.exchangeTestEntries (baseFolders.ts, baseFolders.csharp);
 
         if (skipUpToDateStage ('csharp', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.csharpFile))) {
             return;
@@ -8849,24 +7669,13 @@ export function csharpDeclaredReceiverHelperCalls (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
-            signatures.push (i);
-        }
-    }
+    const signatures = csharpMethodSignatures (masked);
     if (signatures.length === 0) {
         return content;
     }
     const regions = signatures.map ((start, n) => {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const declaration = csharpHelperDeclarationOfLine (masked[i]);
-            if (declaration !== undefined) {
-                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
-            }
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
     });
     let keys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
@@ -9136,21 +7945,10 @@ export function csharpNativeArithmetic (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
-            signatures.push (i);
-        }
-    }
+    const signatures = csharpMethodSignatures (masked);
     const regions = signatures.map ((start, n) => {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const declaration = csharpHelperDeclarationOfLine (masked[i]);
-            if (declaration !== undefined) {
-                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
-            }
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         // names bound by any other syntax (for/foreach/out/lambda/pattern/tuple) keep the helper
         const bound = new Set<string> ();
         for (let i = start + 1; i < end; i++) {
@@ -9228,31 +8026,7 @@ function csharpDeclaredIntMinMaxTruth (content: string): string {
     if (!/(?<![\w.])(?:mathMin|mathMax|isTrue)\(/.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            const next = declaredIntMinMaxTruthLine (region, lines[i], masked[i], i);
-            if (next !== undefined) {
-                lines[i] = next;
-                masked[i] = csharpHelperMaskLine (next);
-                changed = true;
-            }
-        }
-    }
-    return changed ? lines.join ('\n') : content;
+    return csharpLinePass (content, false, declaredIntMinMaxTruthLine);
 }
 
 // one name of the method: its single declared C# type at `line`, written nowhere else by ref/out
@@ -9343,22 +8117,42 @@ function declaredIntMinMax (region, original: string, masked: string, line: numb
     return undefined;
 }
 
+// a `check (name, body, expected, forbidden?)` closure: `run (body)` must contain `expected`, not `forbidden`,
+// and be a fixed point of `again` when given; a failure reports `label: name` and the (tail of the) output
+function snippetChecker (problems: string[], label: string, run: (body: string) => string, again?: (out: string) => string, tail?: number) {
+    return (name: string, body: string, expected: string, forbidden?: string) => {
+        const out = run (body);
+        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden)) || ((again !== undefined) && (again (out) !== out))) {
+            problems.push (`${label}: ${name}\n${(tail === undefined) ? out : out.slice (-tail)}`);
+        }
+    };
+}
+
+// `assert.ok` / `console.log ('FAIL …')` stand-ins that push `label: …` problems
+function selfTestSink (problems: string[], label: string) {
+    return {
+        assert: { ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`${label}: ${String (msg).slice (0, 300)}`); } } },
+        console: { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`${label}: ${s.slice (0, 300)}`); } } },
+    };
+}
+
+// a fresh printer for one self-test block (the module tail is not initialised yet when runMain starts)
+function selfTestTranspiler (): any {
+    const transpiler = new Transpiler ({ verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } } as any);
+    setupCsharpPrinter (transpiler);
+    return transpiler;
+}
+
 // snippet checks for the C# native-emission passes (`csharpTranspiler.ts --self-test`)
 export function csharpNativeEmissionSelfTest (): string[] {
     const problems: string[] = [];
     {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`csharp native emission self test native add: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`csharp native emission self test native add: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`csharp native emission self test native add: ${s.slice (0, 300)}`); } } };
-        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
-        const transpiler = new Transpiler (config);
-        setupCsharpPrinter (transpiler);
+        const { assert, console } = selfTestSink (problems, 'csharp native emission self test native add');
+        const transpiler = selfTestTranspiler ();
         let failures = 0;
         const check = (name: string, body: string, expected: string, forbidden?: string) => {
             const src = 'type Int = number; class Test {\n safeInteger (o, k, d = undefined): Int { return d; }\n seconds (): Int { return 1; }\n' + body + '\n}';
-            const out: string = (transpiler as any).transpileCSharp (src).content;
+            const out: string = transpiler.transpileCSharp (src).content;
             const ok = out.includes (expected) && (forbidden === undefined || !out.includes (forbidden));
             console.log ((ok ? 'ok   ' : 'FAIL ') + name);
             if (!ok) { failures++; console.log (out); }
@@ -9397,11 +8191,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         if (failures) { problems.push (`csharp native emission self test native add: ${failures} case(s) failed`); }
     }
     {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`arithmetic twins: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`arithmetic twins: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`arithmetic twins: ${s.slice (0, 300)}`); } } };
+        const { assert, console } = selfTestSink (problems, 'arithmetic twins');
         let failures = 0;
         const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
         const check = (name: string, body: string, expected: string) => {
@@ -9431,11 +8221,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         if (failures) { problems.push (`arithmetic twins: ${failures} case(s) failed`); }
     }
     {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`csharp native emission self test native equality: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`csharp native emission self test native equality: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`csharp native emission self test native equality: ${s.slice (0, 300)}`); } } };
+        const { assert, console } = selfTestSink (problems, 'csharp native emission self test native equality');
 
         const wrap = (body: string, extra = '') => [
             'namespace ccxt;',
@@ -9496,11 +8282,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
         }
     }
     {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`nullable comparisons: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`nullable comparisons: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`nullable comparisons: ${s.slice (0, 300)}`); } } };
+        const { assert, console } = selfTestSink (problems, 'nullable comparisons');
 
         const wrap = (body: string) => [
             'namespace ccxt;',
@@ -9542,16 +8324,8 @@ export function csharpNativeEmissionSelfTest (): string[] {
     }
     {
         // a safeDict* local rewritten through the 2-argument dict-receiver omit stays IDictionary
-        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
-        const transpiler = new Transpiler (config);
-        setupCsharpPrinter (transpiler);
-        const check = (name: string, body: string, expected: string, forbidden?: string) => {
-            const src = 'type Dict = any; class Test {\n safeDict (o, k, d = undefined): Dict { return d; }\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}';
-            const out: string = (transpiler as any).transpileCSharp (src).content;
-            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
-                problems.push (`omit-rewritten safeDict local: ${name}\n${out.slice (-600)}`);
-            }
-        };
+        const transpiler = selfTestTranspiler ();
+        const check = snippetChecker (problems, 'omit-rewritten safeDict local', (body) => transpiler.transpileCSharp ('type Dict = any; class Test {\n safeDict (o, k, d = undefined): Dict { return d; }\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}').content, undefined, 600);
         check ('omit(self, keys) keeps IDictionary',
             'f (raw) { let p = this.safeDict (raw, "params", {}); p["s"] = 1; p = this.omit (p, [ "a" ]); return this.safeString (p, "b"); }',
             'IDictionary<string, object> p = this.safeDict(', 'object p = ');
@@ -9569,16 +8343,8 @@ export function csharpNativeEmissionSelfTest (): string[] {
     }
     {
         // `const x = this.omit (params, …)` on the trailing `params = {}` parameter
-        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
-        const transpiler = new Transpiler (config);
-        setupCsharpPrinter (transpiler);
-        const check = (name: string, body: string, expected: string, forbidden?: string) => {
-            const src = 'type Dict = any; class Test {\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}';
-            const out: string = (transpiler as any).transpileCSharp (src).content;
-            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
-                problems.push (`omit(params) local: ${name}\n${out.slice (-600)}`);
-            }
-        };
+        const transpiler = selfTestTranspiler ();
+        const check = snippetChecker (problems, 'omit(params) local', (body) => transpiler.transpileCSharp ('type Dict = any; class Test {\n omit (o, ...k): any { return o; }\n safeString (o, k): string { return k; }\n' + body + '\n}').content, undefined, 600);
         check ('omit(params, key) -> IDictionary',
             'fetchX (symbol: string, params: Dict = {}) { const query = this.omit (params, \'a\'); return this.safeString (query, \'b\'); }',
             'IDictionary<string, object> query = ((IDictionary<string, object>)this.omit(parameters, "a"));');
@@ -9597,12 +8363,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
     {
         // getValue(list, <Int64 local>) on a declared list
         const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, object parameters = null)\n    {\n' + body + '\n    }\n}\n';
-        const check = (name: string, body: string, expected: string) => {
-            const out = nativeDeclaredHelperCalls (wrap (body));
-            if (!out.includes (expected)) {
-                problems.push (`Int64 list index: ${name}\n${out}`);
-            }
-        };
+        const check = snippetChecker (problems, 'Int64 list index', (body) => nativeDeclaredHelperCalls (wrap (body)));
         check ('List<object> x Int64 local', '        List<object> data = this.safeList(parameters, "d", new List<object>() {});\n        int n = data.Count;\n        for (Int64 i = 0; i < n; i++)\n        {\n            Int64 index = ((n - i) - 1);\n            object row = getValue(data, index);\n        }',
             'object row = (data != null && index < data.Count ? data[(int)index] : null);');
         check ('IList<object> x for-counter', '        IList<object> data = this.safeList(parameters, "d");\n        for (Int64 i = 0; i < 3; i++)\n        {\n            object row = getValue(data, i);\n        }',
@@ -9613,16 +8374,8 @@ export function csharpNativeEmissionSelfTest (): string[] {
     }
     // native `+` on a left operand proven a non-null string
     {
-        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
-        const transpiler = new Transpiler (config);
-        setupCsharpPrinter (transpiler);
-        const check = (name: string, body: string, expected: string, forbidden?: string) => {
-            const src = 'class Test {\n safeString (o, k, d = undefined): string { return d; }\n implodeParams (p, o): string { return p; }\n' + body + '\n}';
-            const out: string = (transpiler as any).transpileCSharp (src).content;
-            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
-                problems.push (`csharp native emission self test native concat: ${name}\n${out}`);
-            }
-        };
+        const transpiler = selfTestTranspiler ();
+        const check = snippetChecker (problems, 'csharp native emission self test native concat', (body) => transpiler.transpileCSharp ('class Test {\n safeString (o, k, d = undefined): string { return d; }\n implodeParams (p, o): string { return p; }\n' + body + '\n}').content);
         check ('literal-initialized accumulator += element', 'f (o, xs) { let s = \'\'; for (let i = 0; i < xs.length; i++) { s += \',\'; s += xs[i]; } return s + \'!\'; }', 'return (s + "!")', 'add(s, ",")');
         check ('+= conditional right keeps its parentheses', 'f (o, side) { let s = \'\'; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = s + ((', '(s + (isEqual');
         check ('object-printed += conditional right', 'f (o, side, xs) { let s = \'\'; s += xs[0]; s += (side === \'sell\') ? \'A\' : \'B\'; return s; }', 's = (s + ((isEqual(side, "sell")) ? "A" : "B"));', 'add(s, (');
@@ -9637,16 +8390,8 @@ export function csharpNativeEmissionSelfTest (): string[] {
     }
     // annotated exchange-local returns / string params
     {
-        const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
-        const transpiler = new Transpiler (config);
-        setupCsharpPrinter (transpiler);
-        const check = (name: string, body: string, expected: string, forbidden?: string) => {
-            const src = 'type Str = string | undefined; type Dict = any; class Test {\n' + body + '\n}';
-            const out: string = (transpiler as any).transpileCSharp (src).content;
-            if (!out.includes (expected) || (forbidden !== undefined && out.includes (forbidden))) {
-                problems.push (`typed signatures: ${name}\n${out}`);
-            }
-        };
+        const transpiler = selfTestTranspiler ();
+        const check = snippetChecker (problems, 'typed signatures', (body) => transpiler.transpileCSharp ('type Str = string | undefined; type Dict = any; class Test {\n' + body + '\n}').content);
         check ('sbe row builder returns Dictionary', 'parseSbeTrade (frameHex: string, a: number, b: number): Dict { if (a < 8) { return undefined; } return { \'id\': frameHex }; }', 'public virtual Dictionary<string, object> parseSbeTrade(');
         check ('string return gets boundary cast', 'fixCommaNumber (numberStr: Str): Str { const s = numberStr; return s; }', 'public virtual string? fixCommaNumber(');
         check ('caller local takes the return type', 'hashMessage (m: string): string { return m; }\n g (m) { const h = this.hashMessage (m); return h; }', 'string? h = this.hashMessage(m);');
@@ -9655,10 +8400,7 @@ export function csharpNativeEmissionSelfTest (): string[] {
     // typed-expression comparisons
     {
         const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since0, Int64? since = null, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-        const check = (name: string, body: string, expected: string) => {
-            const out = nativeDeclaredHelperCalls (wrap (body));
-            if (!out.includes (expected)) problems.push (`csharp native emission self test: ${name}\n${out}`);
-        };
+        const check = snippetChecker (problems, 'csharp native emission self test', (body) => nativeDeclaredHelperCalls (wrap (body)));
         check ('Int64 compound > Int64', '        Int64 a = this.milliseconds();\n        Int64 b = 5;\n        bool x = isGreaterThan((a - b), b);', 'bool x = ((a - b) > b);');
         check ('nullable compound keeps helper', '        Int64 a = this.milliseconds();\n        Int64? b = limit;\n        bool x = isGreaterThan((a - b), 1);', 'bool x = ((a - b) > 1);'); // null left is false in both
         check ('object operand keeps helper', '        object a = 1;\n        bool x = isLessThan(this.milliseconds(), a);', 'bool x = isLessThan(this.milliseconds(), a);'); // an object operand keeps the helper
@@ -9917,10 +8659,7 @@ export function csharpCounterAndGuardedMath (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     const set = (i: number, next: string) => {
         if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
@@ -9930,11 +8669,7 @@ export function csharpCounterAndGuardedMath (content: string): string {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
         const declarations = () => {
-            const out = [];
-            for (let i = start; i < end; i++) {
-                const d = csharpHelperDeclarationOfLine (masked[i]);
-                if (d !== undefined) out.push ({ line: i, name: d.name, type: d.type, value: d.value });
-            }
+            const out = csharpRegionDeclarations (masked, start, end);
             return out;
         };
         const occurrences = (name: string) => {
@@ -10017,12 +8752,7 @@ export function csharpCounterAndGuardedMath (content: string): string {
 export function counterAndGuardedMathSelfTest (): string[] {
     const problems: string[] = [];
     const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object since, double amount, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-    const check = (name: string, body: string, expected: string, forbidden?: string) => {
-        const out = csharpCounterAndGuardedMath (wrap (body));
-        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden))) {
-            problems.push (`counter and guarded math self native math: ${name}\n${out}`);
-        }
-    };
+    const check = snippetChecker (problems, 'counter and guarded math self native math', (body) => csharpCounterAndGuardedMath (wrap (body)));
     check ('counter read as a string key keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = ((string)i);\n        }', 'postFixIncrement(ref i)');
     check ('counter subtract of a typed name keeps object', '        for (object i = 0; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = subtract(i, d);\n        }', 'postFixIncrement(ref i)');
     check ('object-initialised counter keeps helper', '        object s = 0;\n        for (object i = s; isLessThan(i, n); postFixIncrement(ref i))\n        {\n            object b = getValue(xs, i);\n        }', 'postFixIncrement(ref i)');
@@ -10075,38 +8805,16 @@ export function csharpPureKeyInOp (content: string): string {
         'this.orderbooks': 'IDictionary<string, object>', 'this.markets': 'IDictionary<string, object>',
         'this.currencies_by_id': 'IDictionary<string, object>', 'this.has': 'Dictionary<string, object>',
         'this.timeframes': 'Dictionary<string, object>' };
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
     let keys = Math.max (-1, ...Array.from (content.matchAll (/\binOpKey(\d+)\b/g), (m) => Number (m[1]))) + 1;
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            if (!/(?<![\w.])(?:inOp|getIndexOf)\(/.test (masked[i])) continue;
-            const receiverOf = (name: string) => {
-                if (Object.prototype.hasOwnProperty.call (fields, name)) return fields[name];
-                if (/^[A-Za-z_]\w*$/.test (name)) return csharpHelperReceiverType (region, name, i, region.params)?.type;
-                return csharpInOpReceiverType (region, name, i)?.type;
-            };
-            const next = pureKeyInOpLine (lines[i], masked[i], receiverOf, objectDicts, () => `inOpKey${keys++}`);
-            if (next !== undefined) {
-                lines[i] = next;
-                masked[i] = csharpHelperMaskLine (next);
-                changed = true;
-            }
-        }
-    }
-    return changed ? lines.join ('\n') : content;
+    return csharpLinePass (content, false, (region, original, masked, i) => {
+        if (!/(?<![\w.])(?:inOp|getIndexOf)\(/.test (masked)) return undefined;
+        const receiverOf = (name: string) => {
+            if (Object.prototype.hasOwnProperty.call (fields, name)) return fields[name];
+            if (/^[A-Za-z_]\w*$/.test (name)) return csharpHelperReceiverType (region, name, i, region.params)?.type;
+            return csharpInOpReceiverType (region, name, i)?.type;
+        };
+        return pureKeyInOpLine (original, masked, receiverOf, objectDicts, () => `inOpKey${keys++}`);
+    });
 }
 
 // a key expression with no call but getValue / ContainsKey / Count and no write: evaluating it after
@@ -10219,17 +8927,10 @@ export function csharpStringAddEqualityTruth (content: string): string {
         if (own !== undefined) return own.every ((t) => kinds.includes (t));
         return table.includes (name);
     };
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     const regions = signatures.map ((start, n) => {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         // names bound by any other syntax (for/foreach/out/lambda/pattern/catch) are not proven
         const bound = new Set<string> ();
         for (let i = start + 1; i < end; i++) {
@@ -10634,12 +9335,7 @@ export function stringAddEqualityTruthSelfTest (): string[] {
     const problems: string[] = [];
     const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object a, string b, string? c)\n    {\n'
         + body.split ('\n').map ((l) => '        ' + l).join ('\n') + '\n    }\n}\n';
-    const check = (name: string, body: string, expected: string, forbidden?: string) => {
-        const out = csharpStringAddEqualityTruth (wrap (body));
-        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden)) || (csharpStringAddEqualityTruth (out) !== out)) {
-            problems.push (`string add equality truth self: ${name}\n${out}`);
-        }
-    };
+    const check = snippetChecker (problems, 'string add equality truth self', (body) => csharpStringAddEqualityTruth (wrap (body)), csharpStringAddEqualityTruth);
     check ('string param left', 'object q = add(b, a);', 'object q = (b + a);');
     check ('binaryToBase16 box accumulates natively', 'object h = this.binaryToBase16(a);\nobject d = add(add(h, \"00\"), this.intToBase16(a));\nd = add(d, \"01\");', 'd = (d + \"01\");');
     check ('uuid5 string result left', 'string? q = this.uuid5(c, "x");\nobject d = add(this.uuid5(c, "y"), "-");', '(this.uuid5(c, "y") + "-")');
@@ -10691,20 +9387,13 @@ export function csharpDeclaredGetValue (content: string): string {
     const listTypes = [ 'List<object>', 'IList<object>', 'ccxt.pro.IBids', 'ccxt.pro.IAsks', 'ccxt.pro.IOrderBookSide' ];
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     for (let n = 0; n < signatures.length; n++) {
         const start = signatures[n];
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         const region = { start, end, params, declarations, lines: masked };
         // every typed binding of `name` in the method (declarations, loop headers, lambdas, params) is `type`
         const onlyBinding = (name: string, type: string) => {
@@ -10786,6 +9475,22 @@ export function csharpDeclaredGetValue (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
+// the shared snippet runner: each case's output must contain its expected text (and be a fixed point when
+// `idempotent`), each keep must come back unchanged
+function snippetCaseProblems (label: string, pass: (text: string) => string, wrap: (body: string) => string, cases: [string, string, string][], keeps: [string, string][], tail: number, idempotent = true): string[] {
+    const problems: string[] = [];
+    for (const [ name, body, expected ] of cases) {
+        const out = pass (wrap (body));
+        if (!out.includes (expected)) problems.push (`${label}: ${name}: ${out.slice (-tail)}`);
+        if (idempotent && (pass (out) !== out)) problems.push (`${label}: ${name}: not idempotent`);
+    }
+    for (const [ name, body ] of keeps) {
+        const out = pass (wrap (body));
+        if (out !== wrap (body)) problems.push (`${label} keeps ${name}: ${out.slice (-tail)}`);
+    }
+    return problems;
+}
+
 // snippet checks (run from csharpNativeEmissionSelfTest)
 function declaredGetValueSelfTest (): string[] {
     const problems: string[] = [];
@@ -10806,14 +9511,7 @@ function declaredGetValueSelfTest (): string[] {
         [ 'unknown field', '        object a = getValue(this.fees, "trading");' ],
         [ 'Int64 expression index', '        List<object> xs = new List<object>() {};\n        Int64 n = 2;\n        object a = getValue(xs, (n - 1));' ],
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpDeclaredGetValue (wrap (body));
-        if (!out.includes (expected)) problems.push (`declared get value self test: ${name}: ${out.slice (-400)}`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpDeclaredGetValue (wrap (body));
-        if (out !== wrap (body)) problems.push (`declared get value self test keeps ${name}: ${out.slice (-400)}`);
-    }
+    problems.push (...snippetCaseProblems ('declared get value self test', csharpDeclaredGetValue, wrap, cases, keeps, 400, false));
     const tests = wrap ('        object a = getValue(this.userAgents, "chrome");', 'Tests');
     if (csharpDeclaredGetValue (tests) !== tests) problems.push ('declared get value self test tests namespace changed');
     return problems;
@@ -10830,10 +9528,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
     const intKinds = [ 'int', 'Int64', 'Int64?' ];
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     const set = (i: number, next: string) => {
         if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
@@ -10843,11 +9538,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const nameRe = (name: string) => new RegExp ('(?<![\\w.])' + name + '(?![\\w])', 'g');
         const region = () => {
-            const declarations = [];
-            for (let i = start; i < end; i++) {
-                const d = csharpHelperDeclarationOfLine (masked[i]);
-                if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-            }
+            const declarations = csharpRegionDeclarations (masked, start, end);
             return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
         };
         // every occurrence of `name` after its declaration line: [line, column]
@@ -10944,10 +9635,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
 export function objectNumericLocalRetypeSelfTest (): string[] {
     const problems: string[] = [];
     const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object o, IList<object> xs, Int64? limit = null)\n    {\n' + body + '\n    }\n}\n';
-    const check = (name: string, body: string, expected: string, forbidden?: string) => {
-        const out = csharpObjectNumericLocalRetype (wrap (body));
-        if (!out.includes (expected) || ((forbidden !== undefined) && out.includes (forbidden))) problems.push (`object numeric local retype self: ${name}\n${out}`);
-    };
+    const check = snippetChecker (problems, 'object numeric local retype self', (body) => csharpObjectNumericLocalRetype (wrap (body)));
     check ('page offset -> Int64? twin', '        int maxEntries = 100;\n        object page = (this.safeInteger(o, "p", 1) - 1);\n        Int64? off = this.safeInteger(o, "offset", multiply(page, maxEntries));',
         'Int64? off = this.safeInteger(o, "offset", (page * maxEntries));');
     check ('page read elsewhere keeps object', '        int maxEntries = 100;\n        object page = (this.safeInteger(o, "p", 1) - 1);\n        object a = multiply(page, maxEntries);\n        return page;', 'multiply(page, maxEntries)');
@@ -10976,20 +9664,13 @@ export function csharpDigitLiteralEquality (content: string): string {
         && /[A-DF-Za-df-z]/.test (body) && !/nan|inf/i.test (body);
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     for (let n = 0; n < signatures.length; n++) {
         const start = signatures[n];
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         const region = { start, end, params, declarations, lines: masked };
         // every typed binding of `name` in the method is one of `types`, and no lambda rebinds it
         const onlyBinding = (name: string, types: string[]) => {
@@ -11064,15 +9745,7 @@ function digitLiteralEqualitySelfTest (): string[] {
         [ 'call operand', '        if (isEqual(this.k(), "v2")) { }' ],
         [ 'object index on list', '        object j = 0;\n        if (isEqual(xs[j], "v2")) { }' ],
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpDigitLiteralEquality (wrap (body));
-        if (!out.includes (expected)) problems.push (`digit literal equality self test: ${name}: ${out.slice (-400)}`);
-        if (csharpDigitLiteralEquality (out) !== out) problems.push (`digit literal equality self test: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpDigitLiteralEquality (wrap (body));
-        if (out !== wrap (body)) problems.push (`digit literal equality self test keeps ${name}: ${out.slice (-400)}`);
-    }
+    problems.push (...snippetCaseProblems ('digit literal equality self test', csharpDigitLiteralEquality, wrap, cases, keeps, 400));
     const tests = wrap ('        object a = getValue(api, 0);\n        if (isEqual(a, "v2")) { }', 'Tests');
     if (csharpDigitLiteralEquality (tests) !== tests) problems.push ('digit literal equality self test tests namespace changed');
     return problems;
@@ -11125,42 +9798,8 @@ export function csharpNonNullIntCompare (content: string): string {
     if (!/(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> (), forInt64: new Set<string> () };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
-                if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
-            }
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
-            }
-        }
-        const statusCode = /\boverride[ ]+object[ ]+handleErrors\([ ]*object[ ]+([A-Za-z_]\w*)[ ]*,/.exec (masked[start])?.[1];
-        for (let i = start + 1; i < end; i++) {
-            const next = nonNullIntCompareLine (region, lines[i], masked[i], i, statusCode);
-            if (next !== undefined) {
-                lines[i] = next;
-                masked[i] = csharpHelperMaskLine (next);
-                changed = true;
-            }
-        }
-    }
-    return changed ? lines.join ('\n') : content;
+    const statusCode = (region: any) => /\boverride[ ]+object[ ]+handleErrors\([ ]*object[ ]+([A-Za-z_]\w*)[ ]*,/.exec (region.lines[region.start])?.[1];
+    return csharpLinePass (content, true, (region, original, masked, i) => nonNullIntCompareLine (region, original, masked, i, statusCode (region)));
 }
 
 // any write of `name` in the region other than its declaration line
@@ -11287,10 +9926,7 @@ function stringBoxConcatSelfTest (): string[] {
     const problems: string[] = [];
     const wrap = (body: string) => 'namespace ccxt;\npublic partial class t : Exchange\n{\n    public virtual object f(object a, string b, string? c)\n    {\n'
         + body.split ('\n').map ((l) => '        ' + l).join ('\n') + '\n    }\n}\n';
-    const check = (name: string, body: string, expected: string) => {
-        const out = csharpStringAddEqualityTruth (wrap (body));
-        if (!out.includes (expected) || (csharpStringAddEqualityTruth (out) !== out)) problems.push (`string box concat self test: ${name}\n${out}`);
-    };
+    const check = snippetChecker (problems, 'string box concat self test', (body) => csharpStringAddEqualityTruth (wrap (body)), csharpStringAddEqualityTruth);
     check ('two throw-guarded string boxes', 'object u = this.safeString(a, "x");\nif ((u == null))\n{\n    throw new Exception("x");\n}\nobject r = ("/" + b);\nobject w = add(u, r);', 'object w = ((string)u + (string)r);');
     check ('if-guarded box + literal-initialised box', 'object o = this.safeString(a, "o");\nobject p = "x";\nif ((o != null))\n{\n    p = add(o, p);\n}', 'p = ((string)o + (string)p);');
     check ('unguarded right box keeps helper', 'object o = "x";\nobject p = this.safeString(a, "p");\nobject q = add(o, p);', 'add(o, p)');
@@ -11315,20 +9951,13 @@ export function csharpWsAndIndexGetValue (content: string): string {
     const cacheTypes = [ 'ccxt.pro.ArrayCache', 'ccxt.pro.ArrayCacheByTimestamp', 'ccxt.pro.ArrayCacheBySymbolById', 'ccxt.pro.ArrayCacheBySymbolBySide' ];
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     for (let n = 0; n < signatures.length; n++) {
         const start = signatures[n];
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         const region = { start, end, params, declarations, lines: masked };
         const body = masked.slice (start, end).join ('\n');
         // every typed binding of `name` in the method (declarations, loop headers, params) is one of `types`,
@@ -11452,15 +10081,7 @@ function wsAndIndexGetValueSelfTest (): string[] {
         [ 'object list keys', '        object ks = new List<object>();\n        int i = 0;\n        object a = getValue(d, ks[i]);' ],
         [ 'object receiver', '        object o = d;\n        object a = getValue(o, "k");' ],
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpWsAndIndexGetValue (wrap (body));
-        if (!out.includes (expected)) problems.push (`ws and index get value: ${name}: ${out.slice (-400)}`);
-        if (csharpWsAndIndexGetValue (out) !== out) problems.push (`ws and index get value: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpWsAndIndexGetValue (wrap (body));
-        if (out !== wrap (body)) problems.push (`ws and index get value keeps ${name}: ${out.slice (-400)}`);
-    }
+    problems.push (...snippetCaseProblems ('ws and index get value', csharpWsAndIndexGetValue, wrap, cases, keeps, 400));
     const tests = wrap ('        object a = getValue(client.subscriptions, "x");', 'Tests');
     if (csharpWsAndIndexGetValue (tests) !== tests) problems.push ('ws and index get value tests namespace changed');
     return problems;
@@ -11473,41 +10094,7 @@ export function csharpArithmeticNullableCompare (content: string): string {
     if (!/(?<![\w.])(?:isLessThan|isGreaterThan|isLessThanOrEqual|isGreaterThanOrEqual)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
-    let changed = false;
-    for (let n = 0; n < signatures.length; n++) {
-        const start = signatures[n];
-        const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> (), forInt64: new Set<string> () };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
-                if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
-            }
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
-            }
-        }
-        for (let i = start + 1; i < end; i++) {
-            const next = arithmeticCompareLine (region, lines[i], masked[i], i);
-            if (next !== undefined) {
-                lines[i] = next;
-                masked[i] = csharpHelperMaskLine (next);
-                changed = true;
-            }
-        }
-    }
-    return changed ? lines.join ('\n') : content;
+    return csharpLinePass (content, true, arithmeticCompareLine);
 }
 
 function arithmeticCompareLine (region, original: string, masked: string, line: number): string | undefined {
@@ -11568,15 +10155,7 @@ function arithmeticNullableCompareSelfTest (): string[] {
         [ 'plain nullable names (other passes)', '        Int64? r = this.safeInteger(o, "r");\n        bool x = isLessThan(r, 5);' ],
         [ 'division', '        Int64? r = this.safeInteger(o, "r");\n        bool x = isLessThan(1, (r / 2));' ],
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpArithmeticNullableCompare (wrap (body));
-        if (!out.includes (expected)) problems.push (`arithmetic nullable compare self test: ${name}: ${out.slice (-300)}`);
-        if (csharpArithmeticNullableCompare (out) !== out) problems.push (`arithmetic nullable compare self test: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpArithmeticNullableCompare (wrap (body));
-        if (out !== wrap (body)) problems.push (`arithmetic nullable compare self test keeps ${name}: ${out.slice (-300)}`);
-    }
+    problems.push (...snippetCaseProblems ('arithmetic nullable compare self test', csharpArithmeticNullableCompare, wrap, cases, keeps, 300));
     const tests = 'namespace Tests;\n' + wrap ('        Int64? r = this.safeInteger(o, "r");\n        bool x = isLessThan(1, (r + 1));').split ('\n').slice (1).join ('\n');
     if (csharpArithmeticNullableCompare (tests) !== tests) problems.push ('arithmetic nullable compare self test tests namespace changed');
     return problems;
@@ -11591,10 +10170,7 @@ export function csharpNonNullDivModNegate (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     const set = (i: number, next: string) => {
         if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
@@ -11605,11 +10181,7 @@ export function csharpNonNullDivModNegate (content: string): string {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
         const params = csharpHelperSignatureParams (masked, start);
         const region = () => {
-            const declarations = [];
-            for (let i = start; i < end; i++) {
-                const d = csharpHelperDeclarationOfLine (masked[i]);
-                if (d !== undefined) declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-            }
+            const declarations = csharpRegionDeclarations (masked, start, end);
             return { start, end, params, declarations, lines: masked };
         };
         const bound = new Set<string> ();
@@ -11813,10 +10385,7 @@ export function csharpParamsBagGetValue (content: string): string {
     const listTypes = [ 'List<object>', 'IList<object>' ];
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     for (let n = 0; n < signatures.length; n++) {
         const start = signatures[n];
@@ -11983,15 +10552,7 @@ function paramsBagGetValueSnippetChecks (): string[] {
         const out = nativeDeclaredHelperCalls (wrap ('        if (isEqual(getValue(parameters, "k"), null))\n        {\n        }'));
         if (/\bisEqual\(/.test (out) || !out.includes (': null) == null)')) problems.push (`isEqual(getValue(bag), null): ${out.slice (-400)}`);
     }
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpParamsBagGetValue (wrap (body));
-        if (!out.includes (expected)) problems.push (`params bag get value snippet: ${name}: ${out.slice (-500)}`);
-        if (csharpParamsBagGetValue (out) !== out) problems.push (`params bag get value snippet: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        const out = csharpParamsBagGetValue (wrap (body));
-        if (out !== wrap (body)) problems.push (`params bag get value snippet keeps ${name}: ${out.slice (-500)}`);
-    }
+    problems.push (...snippetCaseProblems ('params bag get value snippet', csharpParamsBagGetValue, wrap, cases, keeps, 500));
     const tests = wrap ('        object a = getValue(parameters, "k");', 'Tests');
     if (csharpParamsBagGetValue (tests) !== tests) problems.push ('params bag get value snippet tests namespace changed');
     return problems;
@@ -12190,10 +10751,7 @@ export function csharpTypedSubtractMultiply (objectNull: boolean, content: strin
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     let changed = false;
     for (let n = 0; n < signatures.length; n++) {
         const start = signatures[n];
@@ -12367,35 +10925,17 @@ function inlineHelperSwitchSnippetChecks (): string[] {
         [ 'getArrayLength object', '        for (int i = 0; i < getArrayLength(x); i++) { }' ],
         [ 'getArrayLength call arg', '        int n = getArrayLength(this.f(x, y));' ],
     ];
-    for (const [ name, body, expected ] of cases) {
-        const out = csharpInlineHelperSwitch (true, wrap (body));
-        if (!out.includes (expected)) problems.push (`inline helper switch snippet checks: ${name}: ${out.slice (-400)}`);
-        if (csharpInlineHelperSwitch (true, out) !== out) problems.push (`inline helper switch snippet checks: ${name}: not idempotent`);
-    }
-    for (const [ name, body ] of keeps) {
-        if (csharpInlineHelperSwitch (true, wrap (body)) !== wrap (body)) problems.push (`inline helper switch snippet checks keeps ${name}`);
-    }
+    problems.push (...snippetCaseProblems ('inline helper switch snippet checks', (t) => csharpInlineHelperSwitch (true, t), wrap, cases, keeps, 400));
     if (csharpInlineHelperSwitch (false, wrap ('        if (isTrue(x)) { }')) !== wrap ('        if (isTrue(x)) { }')) problems.push ('objectNull=false changed');
     if (csharpInlineHelperSwitch (true, wrap ('        if (isTrue(x)) { }', 'Tests')) !== wrap ('        if (isTrue(x)) { }', 'Tests')) problems.push ('inline helper switch snippet checks tests namespace changed');
     return problems;
-}
-
-// operand shapes the compare pass may hand to arithmeticOperandType: identifiers / integer arithmetic, plus call and
-// member atoms typed non-null int / Int64 (this.milliseconds(), this.seconds(), getArrayLength(x), this.parseTimeframe(x),
-// x.Length on a string, x.Count on a List<object>). Anything else stays a helper call.
-function isProvenIntegerShape (bare: string): boolean {
-    const atoms = bare.replace (/\bthis\.(?:milliseconds|seconds)\(\)|(?<![\w.])getArrayLength\([A-Za-z_]\w*\)|\bthis\.parseTimeframe\([A-Za-z_]\w*\)|(?<![\w.])[A-Za-z_]\w*\.(?:Length|Count)\b/g, 'cxatom');
-    return /^[\w ()+*-]+$/.test (atoms) && !/\w[ ]*\(/.test (atoms) && !/\d[A-Za-z_]/.test (atoms);
 }
 
 // isEqual(X, int literal): the plain `X == n` only when the printed declaration proves X an
 // int / Int64 (or their nullable forms: a null box answers false in both); every other site keeps isEqual
 function x05RegionFinder (lines: string[]): (line: number) => any {
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures: number[] = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) signatures.push (i);
-    }
+    const signatures = csharpMethodSignatures (masked);
     const cache = new Map<number, any> ();
     return (line: number) => {
         let n = -1;
@@ -12404,21 +10944,7 @@ function x05RegionFinder (lines: string[]): (line: number) => any {
         if (cache.has (n)) return cache.get (n);
         const start = signatures[n];
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const region = { start, end, params: csharpHelperSignatureParams (masked, start), declarations: [], lines: masked, bound: new Set<string> (), forInt: new Set<string> (), forInt64: new Set<string> () };
-        for (let i = start; i < end; i++) {
-            const d = csharpHelperDeclarationOfLine (masked[i]);
-            if (d !== undefined) region.declarations.push ({ line: i, name: d.name, type: d.type, value: d.value });
-        }
-        for (let i = start + 1; i < end; i++) {
-            for (const b of masked[i].matchAll (/\bfor[ ]*\([ ]*(int|Int64)[ ]+([A-Za-z_]\w*)[ ]*=/g)) (b[1] === 'int' ? region.forInt : region.forInt64).add (b[2]);
-            for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*([A-Za-z_][\w<>?,]*)[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+|\bcatch[ ]*\([ ]*[A-Za-z_][\w.]*[ ]+)([A-Za-z_]\w*)/g)) {
-                if ((b[1] !== 'int') && (b[1] !== 'Int64')) region.bound.add (b[2]);
-            }
-            for (const b of masked[i].matchAll (/([A-Za-z_]\w*)[ ]*=>/g)) region.bound.add (b[1]);
-            for (const b of masked[i].matchAll (/\(([^()]*)\)[ ]*=>/g)) {
-                for (const p of b[1].split (',')) region.bound.add (p.trim ().split (/\s+/).pop ());
-            }
-        }
+        const region = csharpCounterRegion (masked, start, end);
         cache.set (n, region);
         return region;
     };
@@ -12468,24 +10994,13 @@ export function csharpNativeParseCalls (objectNull: boolean, content: string): s
     }
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
-    const signatures: number[] = [];
-    for (let i = 0; i < masked.length; i++) {
-        if (CSHARP_HELPER_SIGNATURE_RE.test (masked[i]) && !masked[i].trimEnd ().endsWith (';')) {
-            signatures.push (i);
-        }
-    }
+    const signatures = csharpMethodSignatures (masked);
     if (signatures.length === 0) {
         return content;
     }
     const regions = signatures.map ((start, n) => {
         const end = (n + 1 < signatures.length) ? signatures[n + 1] : lines.length;
-        const declarations = [];
-        for (let i = start; i < end; i++) {
-            const declaration = csharpHelperDeclarationOfLine (masked[i]);
-            if (declaration !== undefined) {
-                declarations.push ({ line: i, name: declaration.name, type: declaration.type, value: declaration.value });
-            }
-        }
+        const declarations = csharpRegionDeclarations (masked, start, end);
         return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
     });
     let changed = false;

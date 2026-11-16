@@ -491,9 +491,7 @@ export function goParamNativeNilCompares (content: string, isEqualFn: string): s
 // Self-test for the caller-fed `any` parameter rule: the bare parameter keeps the deref-aware
 // helper, the GetArg-bound optional and the typed local keep the printer's native comparison,
 // and a second application is a no-op.
-function goParamNilSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goParamNilSelfTest (ok: SelfTestOk): void {
     const pass = (text: string): string => goParamNativeNilCompares (text, 'IsEqual(');
     const param = pass ('\nfunc (this *X) f(currencyId any, optionalArgs ...any) any {\n\tif (currencyId == nil) {\n\t\treturn nil\n\t}\n\t_ = currencyId\n}\n');
     ok (param.indexOf ('if (IsEqual(currencyId, nil)) {') >= 0, 'a bare any parameter must keep the helper');
@@ -506,7 +504,6 @@ function goParamNilSelfTest (): string[] {
     const twice = pass (pass ('\nfunc (this *X) f(response any) any {\n\tif (response == nil) || (response == nil) {\n\t\treturn nil\n\t}\n}\n'));
     ok (twice.indexOf ('IsEqual(IsEqual(') < 0, 'a second application must be a no-op');
     ok (twice.indexOf ('(IsEqual(response, nil)) || (IsEqual(response, nil))') >= 0, 'both operands of a duplicated check must be wrapped once');
-    return problems;
 }
 
 // The same hazard reaches an `any` LOCAL, not only a bare parameter: the printer's proof
@@ -651,9 +648,7 @@ export function goBoxedPointerNilCompares (content: string, isEqualFn: string): 
 // Self-test: a local fed by a pointer-typed local or a native `*T` parameter keeps the
 // helper, a box fed by a container keeps the native comparison, another block's rewrite
 // cannot leak in, and a second application is a no-op.
-function goBoxedPointerSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goBoxedPointerSelfTest (ok: SelfTestOk): void {
     const pass = (text: string): string => goBoxedPointerNilCompares (text, 'IsEqual(');
     const fed = pass ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar requested *string = this.SafeStringN(optionalArgs, "currency")\n\tvar currency any = requested\n\tif currency == nil {\n\t\tcurrency = "USDT"\n\t}\n\treturn currency\n}\n');
     ok (fed.indexOf ('if IsEqual(currency, nil) {') >= 0, 'a local fed by a pointer-typed local must keep the helper');
@@ -669,7 +664,6 @@ function goBoxedPointerSelfTest (): string[] {
     ok (scoped.indexOf ('if currency == nil {') >= 0, 'a block with no pointer feed must stay untouched');
     const literal = pass ('\nfunc (this *X) f() any {\n\tvar requested *string = this.SafeString("x", "y")\n\tvar identity any = requested\n\tvar myidentity any = identity\n\tif myidentity == nil {\n\t\treturn nil\n\t}\n\treturn myidentity\n}\n');
     ok (literal.indexOf ('if IsEqual(myidentity, nil) {') >= 0, 'a name must not be rewritten inside a longer identifier');
-    return problems;
 }
 
 // IsEqual(x, nil) on a name declared once in the block as a map, []any, []string or scalar pointer is
@@ -708,9 +702,7 @@ export function goTypedNativeNilCompares (content: string, isEqualFn: string): s
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedNilCompareText (fn, isEqualFn)) as any);
 }
 
-function goTypedNilSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goTypedNilSelfTest (ok: SelfTestOk): void {
     const pass = (text: string): string => goTypedNativeNilCompares (text, 'IsEqual(');
     const typed = pass ('\nfunc (this *X) f(p any) any {\n\tvar m map[string]any = SafeMapTyped(p, "a")\n\tvar s *string = this.SafeString(p, "b")\n\tvar t string = "spot"\n\tif !IsEqual(m, nil) && IsEqual(s, nil) && IsEqual(t, "swap") {\n\t\treturn m\n\t}\n\treturn nil\n}\n');
     ok (typed.indexOf ('if (m != nil) && (s == nil) && (t == "swap") {') >= 0, 'typed locals must compare natively: ' + typed);
@@ -725,7 +717,6 @@ function goTypedNilSelfTest (): string[] {
     const ws = goTypedNativeNilCompares ('\nfunc (this *X) f(p any) any {\n\tvar l []any = nil\n\tif !ccxt.IsEqual(l, nil) {\n\t\treturn l\n\t}\n\treturn nil\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (l != nil) {') >= 0, 'the package-qualified helper must be rewritten too');
     ok (pass (typed) === typed, 'a second application must be a no-op');
-    return problems;
 }
 
 // IsEqual(x, nil) on an `any` local is `x == nil` unless the box can hold a nil scalar pointer,
@@ -1008,9 +999,7 @@ export function goAnyLocalNativeNilCompares (content: string, isEqualFn: string)
     return content;
 }
 
-function goAnyLocalNilSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goAnyLocalNilSelfTest (ok: SelfTestOk): void {
     const pass = (text: string): string => goAnyLocalNativeNilCompares (text, 'IsEqual(');
     const f = (body: string): string => pass ('\nfunc (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
     ok (f ('\tvar a any = nil\n\tif true {\n\t\ta = this.SafeDict(p, "x")\n\t} else {\n\t\ta = []any{1}\n\t}\n\tif !IsEqual(a, nil) {\n\t\treturn a\n\t}\n').indexOf ('if (a != nil) {') >= 0, 'SafeDict/literal writes compare natively');
@@ -1066,7 +1055,6 @@ function goAnyLocalNilSelfTest (): string[] {
     ok (dup ('\tif (q == nil) && (q == nil) {\n\t}\n\tif (q != nil) || (q != nil) {\n\t}\n').indexOf ('if (q == nil) {\n\t}\n\tif (q != nil) {') >= 0, 'any same-polarity duplicate collapses');
     ok (dup ('\tif (q != nil) && (q == nil) {\n\t}\n\tif (a != nil) && (q != nil) {\n\t}\n\tif (q == nil) && IsEqual(q, nil) {\n\t}\n').indexOf ('if (q != nil) && (q == nil) {\n\t}\n\tif (a != nil) && (q != nil) {\n\t}\n\tif (q == nil) && IsEqual(q, nil) {') >= 0, 'contradictions, other idents and non-absorbing mixed pairs are kept');
     ok (dup ('\tif (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {\n\t}\n').indexOf ('if (q != nil) && (q == nil) || (q == nil) {\n\t}\n\tif (q == nil) || (q == nil) && (a != nil) {') >= 0, 'an || pair bound into && is kept');
-    return problems;
 }
 
 // IsEqual(x, "lit") is `x == "lit"` on a box that never holds a *string/*any (the helper derefs
@@ -1224,9 +1212,7 @@ export function goSafeBoolLiteralDefaultDeref (content: string): string {
     return content.replace (guarded, (m: string, a: string, b: string) => ((a === b) ? '*' + a : m));
 }
 
-function goSafeBoolLiteralSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goSafeBoolLiteralSelfTest (ok: SelfTestOk): void {
     ok (goSafeBoolLiteralDefaultDeref ('if this.SafeBool(this.Options, "a", false) != nil && *this.SafeBool(this.Options, "a", false) {') === 'if *this.SafeBool(this.Options, "a", false) {', 'literal default derefs once');
     ok (goSafeBoolLiteralDefaultDeref ('(!(this.SafeBool2(GetValue(m, "i"), "a", "b", true) != nil && *this.SafeBool2(GetValue(m, "i"), "a", "b", true)))') === '(!(*this.SafeBool2(GetValue(m, "i"), "a", "b", true)))', 'nested args and SafeBool2');
     const keep = [
@@ -1236,12 +1222,9 @@ function goSafeBoolLiteralSelfTest (): string[] {
         'this.SafeBool(p, GetValue(k, false)) != nil && *this.SafeBool(p, GetValue(k, false))',
     ];
     keep.forEach ((text, index) => ok (goSafeBoolLiteralDefaultDeref (text) === text, 'non-literal default must keep the guard #' + index));
-    return problems;
 }
 
-function goSliceIndexSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goSliceIndexSelfTest (ok: SelfTestOk): void {
     const f = (decl: string, body: string, bound = 'len(s)'): string => nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n' + decl + '\tfor i := 0; i < ' + bound + '; i++ {\n' + body + '\t}\n\treturn nil\n}\n');
     const sd = '\tvar s []string = ObjectKeys(p)\n';
     ok (f (sd, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'asserted read goes native');
@@ -1265,19 +1248,13 @@ function goSliceIndexSelfTest (): string[] {
     keep.forEach ((c, index) => ok (f (c[0], c[1]).indexOf ('GetValue(s, ') >= 0, 'unproven read must keep GetValue #' + index));
     ok (f (sd, '\t\tr = GetValue(s, i)\n', 'len(t)').indexOf ('GetValue(s, i)') >= 0, 'other bound keeps GetValue');
     const twice = sd + '\tif true {\n\t}\n\tvar s []string = ObjectKeys(p)\n';
-    ok (f (twice, '\t\tvar a string = GetValue(s, i).(string)\n').indexOf ('var a string = s[i]\n') >= 0, 'repeated []string declarations go native');
     ok (f (sd + '\tvar s []any = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'mixed declaration types keep GetValue');
     ok (f (twice + '\ts = nil\n', '\t\tr = GetValue(s, i)\n').indexOf ('GetValue(s, i)') >= 0, 'written repeated slice keeps GetValue');
-    const sib = nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n\tif p != nil {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar a string = GetValue(s, i).(string)\n\t\t}\n\t} else {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar b string = GetValue(s, i).(string)\n\t\t}\n\t}\n\treturn nil\n}\n');
-    ok ((sib.indexOf ('var a string = s[i]') >= 0) && (sib.indexOf ('var b string = s[i]') >= 0), 'sibling-scope []string declarations: ' + sib);
     const sibBad = nativeLoopBoundedSliceReads ('func (this *X) f(p any) any {\n\tif p != nil {\n\t\tvar s []string = ObjectKeys(p)\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar a string = GetValue(s, i).(string)\n\t\t}\n\t} else {\n\t\tvar s any = p\n\t\tfor i := 0; i < len(s); i++ {\n\t\t\tvar b string = GetValue(s, i).(string)\n\t\t}\n\t}\n\treturn nil\n}\n');
     ok (sibBad.indexOf ('s[i]') < 0, 'a non-[]string sibling declaration keeps GetValue: ' + sibBad);
-    return problems;
 }
 
-function goStringLiteralSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goStringLiteralSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = 'p any'): string => goStringLiteralNativeCompares ('\nfunc (this *X) f(' + sig + ', optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n', 'IsEqual(');
     ok (f ('\tapi := GetArg(optionalArgs, 0, "public")\n\tif IsEqual(api, "private") || !IsEqual(api, "v2") {\n\t}\n').indexOf ('if (api == "private") || (api != "v2") {') >= 0, 'GetArg with a literal default compares natively');
     ok (f ('\tvar t any = "spot"\n\tvar u string = "x"\n\tif true {\n\t\tt = DerefScalar(this.SafeString(p, "type"))\n\t} else {\n\t\tt = u\n\t}\n\tt = GetValue(p, 0)\n\tif IsEqual(t, "swap") {\n\t}\n').indexOf ('if (t == "swap") {') >= 0, 'literal/DerefScalar/string-local/GetValue writes compare natively');
@@ -1301,14 +1278,11 @@ function goStringLiteralSelfTest (): string[] {
     const ws = goStringLiteralNativeCompares ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tapi := ccxt.GetArg(optionalArgs, 0, "public")\n\tif ccxt.IsEqual(api, "x") {\n\t}\n}\n', 'ccxt.IsEqual(');
     ok (ws.indexOf ('if (api == "x") {') >= 0, 'the package-qualified helper is rewritten');
     ok (goStringLiteralNativeCompares (ws, 'ccxt.IsEqual(') === ws, 'a second application is a no-op');
-    return problems;
 }
 
 // Self-test for the DerefScalar() redundancy proof: a shim-only local loses the wrap, and
 // every other read shape keeps it.
-function goDerefWrapSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goDerefWrapSelfTest (ok: SelfTestOk): void {
     const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601)\\((?:[^()]|\\([^()]*\\))*\\)';
     const redundant = (body: string, name: string): boolean => {
         const text = '\nfunc (this *X) f() any {\n' + body + '}\n';
@@ -1335,7 +1309,6 @@ function goDerefWrapSelfTest (): string[] {
     const unwrapped = goUnwrapDerefWraps ('func f() {\n\tvar flag any = DerefScalar(this.SafeBool(market, "flag", false))\n\tvar row any = ccxt.DerefScalar(this.SafeString(data, "row"))\n}\n', [ 'flag', 'row' ], safeCall);
     ok (unwrapped.indexOf ('DerefScalar(') < 0, 'both wrap forms must be removed');
     ok (unwrapped.indexOf ('var flag any = this.SafeBool(market, "flag", false)') >= 0 && unwrapped.indexOf ('var row any = this.SafeString(data, "row")') >= 0, 'the drop must keep the wrapped call');
-    return problems;
 }
 
 // One entry per line of a core body: how deeply it sits inside func literals, and
@@ -1586,12 +1559,7 @@ function nativeAppendWriteBack (content: string): string {
 // `}\n/**` and gofmt re-inserted the blank line.
 function joinGoDeclarations (decls: string[]): string {
     return decls.filter (decl => decl !== '').map ((decl, index) =>
-        (index === 0 ? '' : (goDeclStartsWithComment (decl) ? '\n\n' : '\n')) + decl).join ('');
-}
-
-function goDeclStartsWithComment (decl: string): boolean {
-    const firstLine = decl.split ('\n')[0].trim ();
-    return firstLine.startsWith ('//') || firstLine.startsWith ('/*');
+        (index === 0 ? '' : '\n') + decl).join ('');
 }
 
 // The Go printer emits gofmt-clean text (tabs, go/printer spacing, tabwriter alignment),
@@ -1761,26 +1729,6 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
     return undefined;
 }
 
-// the same `var name []string = ...` repeated in sibling branches of one func (each branch
-// re-lists `symbols := ObjectKeys(markets)`) is still one element type: every declaration is a
-// plain `var` of exactly `[]string`, and no param, `:=`, range or func literal rebinds the name.
-function goAccessRepeatedStringSliceDeclaration (maskedFunc: string, signature: string, name: string): any {
-    const n = goAccessEscape (name);
-    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + n + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
-    if ((vars.length < 2) || vars.some ((m) => m[1].trim () !== '[]string')) {
-        return undefined;
-    }
-    const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
-    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + n + '\\b').test (m[1]));
-    const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
-    const sigParam = new RegExp ('[(,]\\s*' + n + '\\s+([^,()]+?)\\s*[,)]').exec (signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0)));
-    if ((shortDecls.length > 0) || (literalParams.length > 0) || (rangeDecls.length > 0) || sigParam) {
-        return undefined;
-    }
-    const line = maskedFunc.substring (vars[0].index).split ('\n')[0];
-    return { 'type': '[]string', 'index': vars[0].index, 'line': line };
-}
-
 // line k sits directly in the body of an `if name != nil {` block (no else-if chain above it)
 function goAccessInsideNilGuard (masked: string[], k: number, name: string): boolean {
     let depth = 0;
@@ -1797,73 +1745,31 @@ function goAccessInsideNilGuard (masked: string[], k: number, name: string): boo
     return false;
 }
 
-function nativeTypedContainerAccess (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|ObjectKeys)\(/.test (content)) {
+// runs `rewrite (lines, masked, start, end)` over each top-level `func ... }` of the file when `applies`
+function goRewriteEachFunc (content: string, applies: boolean, rewrite: (lines: string[], masked: string[], start: number, end: number) => void): string {
+    if (!applies) {
         return content;
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     let start = -1;
     for (let k = 0; k < lines.length; k++) {
         if (lines[k].startsWith ('func ')) {
             start = k;
-            continue;
-        }
-        if ((start >= 0) && (lines[k] === '}')) {
-            rewriteTypedContainerFunc (lines, masked, start, k);
+        } else if ((start >= 0) && (lines[k] === '}')) {
+            rewrite (lines, masked, start, k);
             start = -1;
         }
     }
     return lines.join ('\n');
 }
 
+function nativeTypedContainerAccess (content: string): string {
+    return goRewriteEachFunc (content, /\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|ObjectKeys)\(/.test (content), rewriteTypedContainerFunc);
+}
+
 // Go types whose len() answers what GetArrayLength answers (nil slice -> 0, string -> bytes)
 const GO_ARRLEN_NATIVE_TYPES = /^(?:string|\[\](?:any|string|int64|float64|bool|int|map\[string\]any|\[\]any))$/;
-// hand-written callees whose Go signature returns []any (no generated override exists)
-const GO_ARRLEN_SLICE_PRODUCER = /^(?:ccxt\.)?(?:this\.(?:ToArray|ArrayConcat|Sort|SortBy|SortBy2|FilterBy|ExtractParams)\(.*\)|(?:ListTyped|ArrayTyped|ObjectValues|SafeListTyped|SafeList2Typed|SafeListTypedDefault)\(.*\)|\[\]any\{.*\})$/;
-
-// `var x any = P` -> `var x []any = P` when x is declared once, every write is a []any producer
-// and no read observes the box itself (nil comparison, type assertion, address, multi-assign):
-// each read then sees the same []any value it saw through the box.
-function retypeSliceProducerLocals (lines: string[], masked: string[], start: number, end: number) {
-    const maskedFunc = masked.slice (start, end + 1).join ('\n');
-    const names = new Set ([ ...maskedFunc.matchAll (/\bGetArrayLength\((\w+)\)/g) ].map ((m) => m[1]));
-    for (const name of names) {
-        const n = goAccessEscape (name);
-        const decl = goAccessSingleDeclaration (maskedFunc, lines[start], name);
-        if ((decl === undefined) || (decl.type !== 'any') || (decl.index === undefined)) {
-            continue;
-        }
-        const declRx = new RegExp ('^(\\s*var ' + n + ' )any( = )(.*)$');
-        const writeRx = new RegExp ('^\\s*' + n + ' = (.*)$');
-        let declLine = -1;
-        let safe = true;
-        for (let k = start + 1; (k < end) && safe; k++) {
-            const d = declRx.exec (masked[k]);
-            const w = writeRx.exec (masked[k]);
-            const rhs = d ? lines[k].substring (d[1].length + 3 + d[2].length) : (w ? lines[k].substring (lines[k].length - w[1].length) : undefined);
-            if (d) {
-                declLine = k;
-            }
-            if ((rhs !== undefined) && !GO_ARRLEN_SLICE_PRODUCER.test (rhs.trim ())) {
-                safe = false;
-            }
-            if ((rhs === undefined) && goTextWritesName (masked[k], n)) {
-                safe = false;
-            }
-            if (new RegExp ('\\b' + n + '\\s*[!=]=|[!=]=\\s*' + n + '\\b|\\b' + n + '\\s*\\.\\s*\\(|&\\s*' + n + '\\b|\\b' + n + '\\s*,[^=\\n]*=|,\\s*' + n + '\\s*(?:,[^=\\n]*)?=').test (masked[k])) {
-                safe = false;
-            }
-        }
-        if (safe && (declLine >= 0)) {
-            lines[declLine] = lines[declLine].replace (declRx, '$1[]any$2$3');
-            masked[declLine] = masked[declLine].replace (declRx, '$1[]any$2$3');
-        }
-    }
-}
 
 // len(ObjectKeys(m)) -> len(m) on a map[string]any local/param: the helper derefs nothing
 // for a plain map and counts every key, a nil map answers 0 either way
@@ -1946,7 +1852,6 @@ function goAnyObjectKeysLengthSelfTest (): string[] {
 }
 
 function rewriteTypedContainerFunc (lines: string[], masked: string[], start: number, end: number) {
-    retypeSliceProducerLocals (lines, masked, start, end);
     const maskedFunc = masked.slice (start, end + 1).join ('\n');
     const lineOffsets: number[] = [];
     let offset = 0;
@@ -2275,33 +2180,19 @@ function goNativeOrderBookSetter (lines: string[], masked: string[], k: number, 
 // Runs after nativeOrderBookSideReads: only then is the book local typed OrderBookInterface and the earlier
 // GetAsks()/GetBids() call that proves it non-nil printed.
 function goOrderBookSetterPass (content: string): string {
-    if (!/\bAddElementToObject\(\w+, \"(?:timestamp|nonce|datetime|symbol)\"/.test (content) || !/\bOrderBookInterface\b/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            const resolve = goBlockScopeResolver (masked, start, k);
-            const maskedFunc = masked.slice (start, k + 1).join ('\n');
-            const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
-            const declOf = (name: string) => resolve (name, k);
-            const typeAt = (name: string, at: number) => { const d = resolve (name, at); return (d === undefined) ? undefined : d.type; };
-            for (let j = start + 1; j < k; j++) {
-                if (masked[j].indexOf ('AddElementToObject(') >= 0) {
-                    goNativeOrderBookSetter (lines, masked, j, declOf, typeAt, notRebound);
-                }
+    const applies = /\bAddElementToObject\(\w+, \"(?:timestamp|nonce|datetime|symbol)\"/.test (content) && /\bOrderBookInterface\b/.test (content);
+    return goRewriteEachFunc (content, applies, (lines, masked, start, k) => {
+        const resolve = goBlockScopeResolver (masked, start, k);
+        const maskedFunc = masked.slice (start, k + 1).join ('\n');
+        const notRebound = (name: string): boolean => !new RegExp ('(?:^|[^\\w.&*])' + goAccessEscape (name) + '\\s*=(?!=)|&\\s*' + goAccessEscape (name) + '\\b', 'm').test (maskedFunc);
+        const declOf = (name: string) => resolve (name, k);
+        const typeAt = (name: string, at: number) => { const d = resolve (name, at); return (d === undefined) ? undefined : d.type; };
+        for (let j = start + 1; j < k; j++) {
+            if (masked[j].indexOf ('AddElementToObject(') >= 0) {
+                goNativeOrderBookSetter (lines, masked, j, declOf, typeAt, notRebound);
             }
-            start = -1;
         }
-    }
-    return lines.join ('\n');
+    });
 }
 
 function goOrderBookSetterCheck (): string[] {
@@ -2410,8 +2301,6 @@ function goNativeMapWrite (lines: string[], masked: string[], start: number, end
         valueOut = value; // a TickerToMap/OrderToMap/producer-call local is a fresh non-nil map, the helper stores it unchanged
     } else if (guardedPointer (value)) {
         valueOut = '*' + value;
-    } else if ((valueType === '*float64') && goMapWritePointerSinkOnly (maskedFunc, name)) {
-        valueOut = value; // a typed *float64 (ParseNumber/SafeNumber) is stored as the pointer map literals already hold
     } else if (defaultedOk) {
         valueOut = '*' + value;
     } else if ((valueType === 'any') && notRebound (value) && goMapWriteMapResultLocal (lines, declOf (value))) {
@@ -2608,38 +2497,6 @@ function goMapWriteMapResultCall (lines: string[], text: string, depth: number =
 // stored value is then the identity
 const GO_MAPWRITE_DEREFED_ANY_PRODUCER = /^(?:(?:ccxt\.)?(?:DerefScalar|GetValue)\(|this\.(?:SafeDict|SafeList|SafeValue|Extend|Account)\(|nil$)/;
 
-// every use of the map local reads it through a deref-aware accessor (Safe*, GetValue, InOp, ObjectKeys, len,
-// nil tests, a key-only range) or rebinds/extends it, so a stored *float64 reads the same as the helper's deref'd value
-function goMapWritePointerSinkOnly (maskedFunc: string, name: string): boolean {
-    const n = goAccessEscape (name);
-    const uses = [ ...maskedFunc.matchAll (new RegExp ('(?<![\\w.])' + n + '(?![\\w])', 'g')) ];
-    if (uses.length === 0) {
-        return false;
-    }
-    const okRx = new RegExp ('^(?:'
-        + 'var ' + n + ' map\\[string\\]any = [^\\n]*'
-        + '|' + n + ' = [^\\n]*'
-        + '|' + n + '\\[[^\\n\\]]+\\] = [^\\n]*'
-        + '|(?:ccxt\\.)?AddElementToObject\\(' + n + ', [^\\n]*'
-        + ')$');
-    const readRx = new RegExp ('(?:(?:this\\.|ccxt\\.)?(?:Safe\\w+|GetValue|InOp|ObjectKeys|SafeMapTyped|MapTyped)\\(' + n + '[,)]'
-        + '|\\blen\\(' + n + '\\)|\\b' + n + ' [!=]= nil|for \\w+ := range ' + n + ' \\{)');
-    for (const line of maskedFunc.split ('\n')) {
-        if (!new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (line)) {
-            continue;
-        }
-        const t = line.trim ();
-        if (okRx.test (t)) {
-            continue;
-        }
-        const stripped = t.replace (new RegExp ('(?:(?:this\\.|ccxt\\.)?(?:Safe\\w+|GetValue|InOp|ObjectKeys|SafeMapTyped|MapTyped)\\(' + n + '[,)]|\\blen\\(' + n + '\\)|\\b' + n + ' [!=]= nil|for \\w+ := range ' + n + ' \\{)', 'g'), '');
-        if (!readRx.test (t) || new RegExp ('(?<![\\w.])' + n + '(?![\\w])').test (stripped)) {
-            return false;
-        }
-    }
-    return true;
-}
-
 // a single-declaration `any` local whose declaration and every later write is a deref'd producer,
 // and whose address is never taken (AppendToArray(&x, ..) rewrites it)
 function goMapWriteDerefedAnyLocal (maskedFunc: string, decl: any, name: string): boolean {
@@ -2671,24 +2528,7 @@ function goMapWriteMapResultLocal (lines: string[], decl: any): boolean {
 const GO_MARKET_ROW_WRITE = /^(?:(?:ccxt\.)?this\.(?:DerivedExchange\.|Exchange\.)?(?:Market|SafeMarket|Currency|SafeCurrency)\(.*\)|nil)$/;
 
 function nativeMarketRowReads (content: string): string {
-    if (!/\bGetValue\(\w+, "/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            rewriteMarketRowReads (lines, masked, start, k);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), rewriteMarketRowReads);
 }
 
 function rewriteMarketRowReads (lines: string[], masked: string[], start: number, end: number) {
@@ -2779,9 +2619,6 @@ function nativeLoopBoundedSliceReads (content: string): string {
     }
     const lines = content.split ('\n');
     const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== maskedLines.length) {
-        return content;
-    }
     const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
     const readRx = /\b(?:ccxt\.)?GetValue\(([A-Za-z_]\w*), ([A-Za-z_]\w*)\)(\.\(string\))?/g;
     let changed = false;
@@ -2821,7 +2658,7 @@ function nativeLoopBoundedSliceReads (content: string): string {
                 return match;
             }
             const maskedFunc = maskedLines.slice (fn.open + 1, fn.close + 1).join ('\n');
-            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goAccessRepeatedStringSliceDeclaration (maskedFunc, maskedLines[fn.open], slice) ?? goLoopScopedStringSliceDeclaration (maskedLines, blocks, depth, fn, body, slice);
+            const decl = goAccessSingleDeclaration (maskedFunc, maskedLines[fn.open], slice);
             // a `[]any` unboxed from a SafeList accessor holds plain JSON values (no *T box
             // for GetValue to deref), so its in-range element is the slice element itself
             const jsonList = (decl !== undefined) && (decl.type === '[]any') && (decl.line !== undefined) && GO_GUARDED_READ_SAFE_LIST.test (decl.line);
@@ -2854,40 +2691,6 @@ function nativeLoopBoundedSliceReads (content: string): string {
         lines[index] = replaced;
     }
     return changed ? lines.join ('\n') : content;
-}
-
-// `var s []string = ...` declared in several sibling scopes of one func: every declaration of the name is a plain
-// `var s []string` line (no param, `:=`, range or func literal binding), so the declaration in scope at the loop
-// (nearest earlier line whose block still holds it) fixes the element type.
-function goLoopScopedStringSliceDeclaration (maskedLines: string[], blocks: any[], depth: number[], fn: any, body: any, slice: string): any {
-    const n = goAccessEscape (slice);
-    const declRx = new RegExp ('^[ \\t]*var ' + n + ' \\[\\]string\\b');
-    const bindRx = new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar\\s+' + n + '\\b|\\bfunc\\b[^\\n]*[(,]\\s*' + n + '\\s+[^,()]+[,)]');
-    if (new RegExp ('[(,]\\s*' + n + '\\s+[^,()]+[,)]').test (maskedLines[fn.open])) {
-        return undefined;
-    }
-    // a declaration lives from its line to the first later line that closes its block: a line
-    // starting with `}` at the declaration's depth (`} else {` closes the if body too)
-    const scopes: number[][] = [];
-    for (let k = fn.open + 1; k < fn.close; k++) {
-        if (declRx.test (maskedLines[k])) {
-            let end = fn.close;
-            for (let j = k + 1; j <= fn.close; j++) {
-                if ((depth[j] < depth[k]) || ((depth[j] === depth[k]) && /^\s*\}/.test (maskedLines[j]))) {
-                    end = j;
-                    break;
-                }
-            }
-            scopes.push ([ k, end ]);
-        } else if (bindRx.test (maskedLines[k])) {
-            return undefined;
-        }
-    }
-    const holding = scopes.filter ((c) => (c[0] < body.open) && (body.close < c[1]));
-    if ((holding.length !== 1) || scopes.some ((c) => (c !== holding[0]) && (c[0] > holding[0][0]) && (c[0] < holding[0][1]))) {
-        return undefined;
-    }
-    return { 'type': '[]string', 'index': 0, 'line': maskedLines[holding[0][0]] };
 }
 
 // Bounds-guard func literal around a typed element read: the `if i >= 0 && i < len(list)` closure goes when the index
@@ -3089,9 +2892,6 @@ function nativeGuardedListElementReads (content: string): string {
     }
     const lines = content.split ('\n');
     const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== maskedLines.length) {
-        return content;
-    }
     const { 'blocks': blocks, 'depth': depth } = goTextBlocks (maskedLines);
     const out: string[] = [];
     let changed = false;
@@ -3161,52 +2961,45 @@ function nativeGuardedListElementReads (content: string): string {
 
 // the guard literal goes when the index is provably in range, the derefScalar
 // wrap goes when the slice is a SafeList unbox; every other read keeps both
-function nativeGuardedListElementReadsSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('P2: ' + message); } };
+function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
     const lists = '\tvar markets []any = SafeListTyped(response, "markets")\n';
     const read = (key: string, container: string, wrap: string) => '\t\tvar m any = func() any {\n\t\t\tif ' + key + ' >= 0 && ' + key + ' < len(' + container + ') {\n\t\t\t\treturn ' + wrap + container + '[' + key + ']' + ((wrap === '') ? '' : ')') + '\n\t\t\t}\n\t\t\treturn nil\n\t\t}()\n';
     const g = (body: string) => nativeGuardedListElementReads ('func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
-    try {
-        ok (g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'an enclosing len() guard makes the read native');
-        ok (g (lists + '\tvar n int = len(markets)\n\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'a bound local equal to len() counts');
-        ok (g (lists + '\tfor i := 0; i < len(markets); i++ {\n' + read ('i', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[i]') >= 0, 'a counting loop over len() counts');
-        ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'DerefScalar(') + '\t}\n').indexOf ('var m any = DerefScalar(values[0])') >= 0, 'a non-SafeList slice keeps derefScalar');
-        ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'ccxt.DerefScalar(') + '\t}\n').indexOf ('var m any = ccxt.DerefScalar(values[0])') >= 0, 'the ccxt. prefix survives');
-        const unguarded = g (lists + read ('0', 'markets', 'DerefScalar('));
-        ok ((unguarded.indexOf ('\t\t\t\treturn markets[0]') >= 0) && (unguarded.indexOf ('DerefScalar(') < 0), 'without a proof a SafeList read drops only the wrap');
-        ok (g ('\tvar parts []string = strings.Split(x, "/")\n' + read ('1', 'parts', '')).indexOf ('func() any {') >= 0, 'an unproven []string read keeps the literal');
-        ok (g (lists + '\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'an unknown bound name keeps the literal');
-        ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
-        ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
-        ok (g (lists + '\tif len(markets) > 0 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'len() > 0 does not cover index 1');
-        // the declaration's own initializer proves the literal index
-        const split = (index: string, sep: string) => g ('\tvar parts []string = strings.Split(x, ' + sep + ')\n' + read (index, 'parts', ''));
-        ok (split ('0', '\"/\"').indexOf ('var m any = parts[0]') >= 0, 'strings.Split with a literal separator has element 0');
-        ok (split ('1', '\"/\"').indexOf ('func() any {') >= 0, 'strings.Split does not prove element 1');
-        ok (split ('0', 'sep').indexOf ('func() any {') >= 0, 'strings.Split with a variable separator keeps the literal');
-        ok (split ('0', '\"\"').indexOf ('func() any {') >= 0, 'strings.Split with an empty separator keeps the literal');
-        const symbols = (allowEmpty: string, index: string) => g ('\tvar syms []string = this.MarketSymbols(symbols, nil, ' + allowEmpty + ', true)\n' + read (index, 'syms', ''));
-        ok (symbols ('false', '0').indexOf ('var m any = syms[0]') >= 0, 'MarketSymbols(allowEmpty=false) has element 0');
-        ok (symbols ('true', '0').indexOf ('func() any {') >= 0, 'MarketSymbols(allowEmpty=true) may answer an empty list');
-        ok (symbols ('false', '1').indexOf ('func() any {') >= 0, 'MarketSymbols does not prove element 1');
-        const listed = (index: string) => g ('\tvar pair []any = []any{a, b}\n' + read (index, 'pair', 'DerefScalar('));
-        ok (listed ('1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a slice literal proves its listed indexes');
-        ok (listed ('2').indexOf ('func() any {') >= 0, 'a slice literal does not prove an index past its end');
-        ok (g ('\tvar pair []any = []any{}\n' + read ('0', 'pair', 'DerefScalar(')).indexOf ('func() any {') >= 0, 'an empty slice literal proves nothing');
-        // two sibling guard closures in one expression under a `len(row) > 1` statement bound
-        const arm = (idx: string, tail: string) => '\t\t\t\tif ' + idx + ' >= 0 && ' + idx + ' < len(row) {\n\t\t\t\t\treturn row[' + idx + ']\n\t\t\t\t}\n\t\t\t\treturn nil\n\t\t\t}()' + tail + '\n';
-        const sibling = g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar n int = len(row)\n\tvar s string = ""\n\tif n > 1 {\n\t\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')') + '\t}\n');
-        ok (sibling.indexOf ('func() any {') < 0 && sibling.indexOf ('s = this.F(row[0]) + this.F(row[1])') >= 0, 'sibling guard closures under a len() bound both go native: ' + sibling);
-        ok (g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar s string = ""\n\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')')).indexOf ('func() any {') >= 0, 'sibling guard closures without a bound keep the literals');
-        const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
-        ok (nativeGuardedListElementReads (once) === once, 'idempotent');
-        const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
-        ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
-    } catch (e) {
-        problems.push ('P2 threw: ' + e.message);
-    }
-    return problems;
+    ok (g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'an enclosing len() guard makes the read native');
+    ok (g (lists + '\tvar n int = len(markets)\n\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[0]') >= 0, 'a bound local equal to len() counts');
+    ok (g (lists + '\tfor i := 0; i < len(markets); i++ {\n' + read ('i', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[i]') >= 0, 'a counting loop over len() counts');
+    ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'DerefScalar(') + '\t}\n').indexOf ('var m any = DerefScalar(values[0])') >= 0, 'a non-SafeList slice keeps derefScalar');
+    ok (g ('\tvar values []any = []any{}\n\tif len(values) > 0 {\n' + read ('0', 'values', 'ccxt.DerefScalar(') + '\t}\n').indexOf ('var m any = ccxt.DerefScalar(values[0])') >= 0, 'the ccxt. prefix survives');
+    const unguarded = g (lists + read ('0', 'markets', 'DerefScalar('));
+    ok ((unguarded.indexOf ('\t\t\t\treturn markets[0]') >= 0) && (unguarded.indexOf ('DerefScalar(') < 0), 'without a proof a SafeList read drops only the wrap');
+    ok (g ('\tvar parts []string = strings.Split(x, "/")\n' + read ('1', 'parts', '')).indexOf ('func() any {') >= 0, 'an unproven []string read keeps the literal');
+    ok (g (lists + '\tif n > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'an unknown bound name keeps the literal');
+    ok (g (lists + '\tif len(markets) > 0 {\n\t\tmarkets = []any{}\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'a written slice keeps the literal');
+    ok (g (lists + '\tif len(markets) > 1 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('var m any = markets[1]') >= 0, 'len() > key');
+    ok (g (lists + '\tif len(markets) > 0 {\n' + read ('1', 'markets', 'DerefScalar(') + '\t}\n').indexOf ('func() any {') >= 0, 'len() > 0 does not cover index 1');
+    // the declaration's own initializer proves the literal index
+    const split = (index: string, sep: string) => g ('\tvar parts []string = strings.Split(x, ' + sep + ')\n' + read (index, 'parts', ''));
+    ok (split ('0', '\"/\"').indexOf ('var m any = parts[0]') >= 0, 'strings.Split with a literal separator has element 0');
+    ok (split ('1', '\"/\"').indexOf ('func() any {') >= 0, 'strings.Split does not prove element 1');
+    ok (split ('0', 'sep').indexOf ('func() any {') >= 0, 'strings.Split with a variable separator keeps the literal');
+    ok (split ('0', '\"\"').indexOf ('func() any {') >= 0, 'strings.Split with an empty separator keeps the literal');
+    const symbols = (allowEmpty: string, index: string) => g ('\tvar syms []string = this.MarketSymbols(symbols, nil, ' + allowEmpty + ', true)\n' + read (index, 'syms', ''));
+    ok (symbols ('false', '0').indexOf ('var m any = syms[0]') >= 0, 'MarketSymbols(allowEmpty=false) has element 0');
+    ok (symbols ('true', '0').indexOf ('func() any {') >= 0, 'MarketSymbols(allowEmpty=true) may answer an empty list');
+    ok (symbols ('false', '1').indexOf ('func() any {') >= 0, 'MarketSymbols does not prove element 1');
+    const listed = (index: string) => g ('\tvar pair []any = []any{a, b}\n' + read (index, 'pair', 'DerefScalar('));
+    ok (listed ('1').indexOf ('var m any = DerefScalar(pair[1])') >= 0, 'a slice literal proves its listed indexes');
+    ok (listed ('2').indexOf ('func() any {') >= 0, 'a slice literal does not prove an index past its end');
+    ok (g ('\tvar pair []any = []any{}\n' + read ('0', 'pair', 'DerefScalar(')).indexOf ('func() any {') >= 0, 'an empty slice literal proves nothing');
+    // two sibling guard closures in one expression under a `len(row) > 1` statement bound
+    const arm = (idx: string, tail: string) => '\t\t\t\tif ' + idx + ' >= 0 && ' + idx + ' < len(row) {\n\t\t\t\t\treturn row[' + idx + ']\n\t\t\t\t}\n\t\t\t\treturn nil\n\t\t\t}()' + tail + '\n';
+    const sibling = g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar n int = len(row)\n\tvar s string = ""\n\tif n > 1 {\n\t\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')') + '\t}\n');
+    ok (sibling.indexOf ('func() any {') < 0 && sibling.indexOf ('s = this.F(row[0]) + this.F(row[1])') >= 0, 'sibling guard closures under a len() bound both go native: ' + sibling);
+    ok (g ('\tvar row []any = SafeListTyped(a, 0)\n\tvar s string = ""\n\ts = this.F(func() any {\n' + arm ('0', ') + this.F(func() any {') + arm ('1', ')')).indexOf ('func() any {') >= 0, 'sibling guard closures without a bound keep the literals');
+    const once = g (lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n');
+    ok (nativeGuardedListElementReads (once) === once, 'idempotent');
+    const wired = formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n' + lists + '\tif len(markets) > 0 {\n' + read ('0', 'markets', 'DerefScalar(') + '\t}\n\treturn nil\n}\n');
+    ok (wired.indexOf ('var m any = markets[0]') >= 0, 'wired into formatGoSource: ' + wired);
 }
 
 // Semantic post-passes over the printer text: a leaked body goroutine, a missing type
@@ -3459,15 +3252,6 @@ function goWidenLevelFourChainText (text: string): string | null {
 
 // the characters a Go operand can end with, i.e. the left neighbour of a binary operator
 const GO_OPERAND_ENDER = /[A-Za-z0-9_)\]}"'`]/;
-
-// go/printer's walkBinary() raises the cutoff - and so keeps both blanks - for exactly the
-// operand pairs that would otherwise glue into another token: `/*`, `//`, `&&`, `&^`,
-// `++`, `--`. Every other pair (`+ *p`, `x & y`, ...) is compacted normally.
-function goOperatorGluesTokens (operator: string, right: string): boolean {
-    const pair = operator + right;
-    return (pair === '/*') || (pair === '//') || (pair === '&&') || (pair === '&^') ||
-        (pair === '++') || (pair === '--');
-}
 
 // go/printer never doubles grouping parens: a ParenExpr whose operand is itself a ParenExpr
 // prints its operand only, so `((a == b))` comes out `(a == b)`; call/conversion parens are kept
@@ -3875,7 +3659,7 @@ function goTightenedOperatorText (content: string, index: number, operator: stri
         end += 1;
     }
     const right = content[end] ?? '';
-    if ((right === '') || (right === '\n') || goOperatorGluesTokens (operator, right)) {
+    if ((right === '') || (right === '\n')) {
         return null;
     }
     return { 'start': start, 'end': end };
@@ -4352,9 +4136,7 @@ const GOFMT_SELFTEST_ELEMENT_ACCESS = `func (this *Exchange) parseKeysBody(ch ch
 }
 `;
 
-function gofmtSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function gofmtSelfTest (ok: SelfTestOk): void {
     const passedThrough = formatGoSource ('selftest.go', GOFMT_SELFTEST_MULTISEND);
     ok (passedThrough === GOFMT_SELFTEST_MULTISEND_GUARDED,
         'formatGoSource must preserve the multi-send guard byte-for-byte\n--- actual ---\n' + passedThrough + '--- expected ---\n' + GOFMT_SELFTEST_MULTISEND_GUARDED);
@@ -4393,7 +4175,6 @@ function gofmtSelfTest (): string[] {
             fs.rmSync (dir, { 'recursive': true, 'force': true });
         }
     }
-    return problems;
 }
 
 // Typed pointer locals print both `x !== undefined` and `x !== null` as `x != nil`, and the printer
@@ -4518,24 +4299,6 @@ const GO_PLAIN_ROW_CALL = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange
 
 function dropNoOpMapTyped (content: string): string {
     const callee = new RegExp ('^(?:this\\.(?:DerivedExchange\\.|Exchange\\.)?(?:' + GO_MAP_RETURNING_METHODS.join ('|') + ')|(?:ccxt\\.)?(?:' + GO_PROVEN_STRUCT_TO_MAP_CALLS.join ('|') + '))\\(');
-    // index of the paren closing the one opened at `open`, -1 when unbalanced
-    const close = (text: string, open: number): number => {
-        let depth = 0;
-        for (let i = open; i < text.length; i++) {
-            const c = text[i];
-            if (c === '"' || c === '`' || c === "'") {
-                i = goSkipLiteralText (text, i);
-            } else if (c === '(') {
-                depth += 1;
-            } else if (c === ')') {
-                depth -= 1;
-                if (depth === 0) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    };
     let out = '';
     let cursor = 0;
     const wrapper = /\b(?:ccxt\.)?(?:MapTyped|MarketTyped|CurrencyTyped)\(|\bthis\.(?:DerivedExchange\.|Exchange\.)?(?:Currency|SafeCurrency|SafeMarket)\(/g;
@@ -4544,7 +4307,7 @@ function dropNoOpMapTyped (content: string): string {
             continue;
         }
         const open = m.index + m[0].length - 1;
-        const end = close (content, open);
+        const end = goCloseParen (content, open);
         if (end < 0) {
             continue;
         }
@@ -4561,7 +4324,7 @@ function dropNoOpMapTyped (content: string): string {
         // plain row; MapTyped keeps its wider table
         const rowWrap = /^(?:ccxt\.)?(?:MarketTyped|CurrencyTyped)\($/.test (m[0]);
         const innerIsCall = (rowWrap ? GO_PLAIN_ROW_CALL : callee).test (inner);
-        if (!innerIsCall || (close (inner, innerOpen) !== inner.length - 1)) {
+        if (!innerIsCall || (goCloseParen (inner, innerOpen) !== inner.length - 1)) {
             continue;
         }
         out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
@@ -5372,40 +5135,12 @@ class NewTranspiler {
             // --- Generic fixes for WS transpilation (Go) ---
             // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
             [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
-            // await-style return (C#) → channel read in Go (return await foo; -> return <-$1)
-            [/return await (\w+);/g, 'return <-$1'],
-            [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
             // Casted access to subscriptions/futures/clients → exported Go field/prop
             [/client\.subscriptions/g, 'client.(*WSClient).Subscriptions'],
-            [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
-            [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
-            [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
-            // OrderBook & OrderBookSide casts → plain method/field access with proper capitalisation
-            [/(\w+)(\.cache)/g, '$1.Cache'],
-            [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
-            [/(countedBookSide)\.store\(/g, '$1.Store('],
-            [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
-            
-            // DynamicInvoker from C# → callDynamically helper in Go
-            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
-            
-            // .limit() on order book variable should be capitalised
-            [/(\w+)\.limit\(\)/g, '$1.Limit()'],
-            
-            // Future/Client Resolve/Reject casts
-            [/future\.resolve/g, 'future.(*Future).Resolve'],
-            [/(\w+)\.(resolve|reject)/g, '$1.$2'],
-            
-            // spawn/delay helpers – convert additional params array creation to variadic list
-            [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
-            [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
-            
             // callDynamically array wrapper removal
-            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
             
-            [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
@@ -5418,7 +5153,6 @@ class NewTranspiler {
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
-            [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
@@ -5433,15 +5167,11 @@ class NewTranspiler {
             // asserting the wrong one panics (e.g. handlePositions during ws static tests)
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
-            [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
             [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
-            [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
             [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
-            [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
-            [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
             // a discarded `await future` is received straight inside PanicOnError
             [/PanicOnError\(\(?<-future\.\(<-chan any\)\)?\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
@@ -5449,11 +5179,7 @@ class NewTranspiler {
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
             // Error constructors
             [/NewInvalidNonce/g, 'InvalidNonce'],
-            [/NewOrderBook/g, 'NewWsOrderBook'],
-            [/NewNotSupported/g, 'NotSupported'],
             [/NewRequestTimeout/g, 'RequestTimeout'],
-            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
-            [/GetDescribeForExtendedWsExchange\(&ccxt.(\w+){}, &ccxt.(\w+){}/g, 'GetDescribeForExtendedWsExchange(ccxt.New$1(nil), ccxt.New$2(nil)'],
             [/restInstance := &ccxt.(\w+){}/g, 'restInstance := ccxt.New$1(nil)'],
             // Nonce
         ];
@@ -5494,19 +5220,6 @@ class NewTranspiler {
         return this.isExtendedExchange(exchangeName) && !this.futuresExchanges.has(exchangeName);
     }
 
-    getParentExchange(exchangeName: string) {
-        return this.extendedExchanges[exchangeName];
-    }
-
-    // go custom method
-    customGoPropAssignment(node: any, identation: any) {
-        const stringValue = node.getFullText().trim();
-        if (Object.keys(errors).includes(stringValue)) {
-            return `typeof(${stringValue})`;
-        }
-        return undefined;
-    }
-
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
 
@@ -5518,11 +5231,6 @@ class NewTranspiler {
         return text;
     }
 
-    // ============================================================================
-
-    iden(level = 1) {
-        return '\t'.repeat(level);
-    }
     // ============================================================================
 
     getTranspilerConfig(isWrapper: boolean = false) {
@@ -5594,50 +5302,6 @@ class NewTranspiler {
             //     }
             },
         };
-    }
-
-    createSee(link: string) {
-        return `/// See <see href="${link}"/>  <br/>`;
-    }
-
-    createParam(param: any) {
-        return`/// <item>
-    /// <term>${param.name}</term>
-    /// <description>
-    /// ${param.type} : ${param.description}
-    /// </description>
-    /// </item>`;
-    }
-
-    createGOCommentTemplate(name: string, desc: string, see: string[], params : string[], returnType:string, returnDesc: string) {
-        //
-        // Summary:
-        //     Converts the value of the specified 16-bit signed integer to an equivalent 64-bit
-        //     signed integer.
-        //
-        // Parameters:
-        //   value:
-        //     The 16-bit signed integer to convert.
-        //
-        // Returns:
-        //     A 64-bit signed integer that is equivalent to value
-        const comment = `
-    /// <summary>
-    /// ${desc}
-    /// </summary>
-    /// <remarks>
-    ${see.map( l => this.createSee(l)).join("\n    ")}
-    /// <list type="table">
-    ${params.map( p => this.createParam(p)).join("\n    ")}
-    /// </list>
-    /// </remarks>
-    /// <returns> <term>${returnType}</term> ${returnDesc}.</returns>`;
-    const commentWithoutEmptyLines = comment.replace(/^\s*[\r\n]/gm, "");
-    return commentWithoutEmptyLines;
-    }
-
-    transformTSCommentIntoGO(name: string, desc: string, sees: string[], params : string[], returnType:string, returnDesc: string) {
-        return this.createGOCommentTemplate(name, desc, sees, params, returnType, returnDesc);
     }
 
     transformLeadingComment(comment: any) {
@@ -6105,10 +5769,6 @@ class NewTranspiler {
         return type.replace('[]', '');
     }
 
-    unwrapDictionaryIfNeeded(type: string): string {
-        return type.startsWith('Dictionary<string,') && type.endsWith('>') ? type.substring(19, type.length - 1) : type;
-    }
-
     // createReturnStatement's conversion of `res` as a func(any) T value for AwaitResult
     createReturnConverter (methodName: string, unwrappedType: string) {
         const stmt = this.createReturnStatement (methodName, unwrappedType);
@@ -6238,10 +5898,6 @@ class NewTranspiler {
         return !!(param.optional || param.initializer === 'undefined' || param.initializer !== undefined || param.initializer === '{}');
     }
 
-    inden(level: number) {
-        return '\t'.repeat(level);
-    }
-
     // qualifies base ccxt type names (e.g. Ticker -> ccxt.Ticker) for code generated
     // into a sibling package (pro / prediction); primitives are left untouched
     qualifyBaseGoType(type: string | undefined): string | undefined {
@@ -6360,17 +6016,6 @@ class NewTranspiler {
                 // }
             ].join('\n');
         }
-    }
-
-    // gofmt keeps a body on the function's header line only while the printed header (up to
-    // and including the space before `{`) plus the printed body stays within 100 characters
-    // (go/printer funcBody → bodySize, maxSize = 100); longer bodies move to their own
-    // tab-indented line. `header` must end with the space that precedes `{`.
-    goSingleStatementFunc (header: string, statement: string): string {
-        if (header.length + statement.length <= 100) {
-            return `${header}{ ${statement} }`;
-        }
-        return `${header}{\n\t${statement}\n}`;
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs: boolean | 'prediction' = false) {
@@ -6779,41 +6424,22 @@ ${constStatements.join('\n')}
             [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
             [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
             [/client any,/g, "client *Client,"],
-            [/this.Number = String/g, 'this.Number = "string"'],
             [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
 
             [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
             // --- WebSocket related fixes specific to **Go** ----------------------
-            // 1) Access the strongly-typed field instead of dynamic lookup.
-            ["client.futures", "client.Futures"],
-            // 2) Remove unresolved C# artefacts concerning `number` typing – the
-            //    Go layer already normalises this earlier to a literal string.
-            ["((object)this).number = String;", "this.Number = \"string\""],
-            ["((object)this).number = float;", "this.Number = 0"],
             // 3) Promise-style resolver calls don't exist in Go – comment them.
             ["client.resolve", "// client.resolve"],
-            ["this.number = Number;", "this.number = typeof(float);"], // tmp fix for c#
-            // 4) Translate the C# `throw new …` syntax into the helper used by Go.
-            //    The replacement is a complete Go statement: gofmt never emits a `;`
-            //    terminator, so none is written here either.
-            ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message)"],
-            ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message)"],
-            ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message)"],
             // 5) Fix error constructors - remove "New" prefix
-            [/NewNotSupported/g, 'NotSupported'],
             [/NewInvalidNonce/g, 'InvalidNonce'],
             // WS fixes
-            [/\(object client,/gm, '(WebSocketClient client,'],
-            [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
-            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
             // Symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
             // to an untyped []any{} literal which cannot be assigned to the typed field.
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
             // setMarkets indexes each parsed row pointer-free (markets_by_id keeps the row itself)
-            [/(\breturn )DerefScalar\(marketValues\[i\]\)/g, '$1MarketTyped(marketValues[i])'],
             [/\bvalues = append\(values, market\)/g, 'values = append(values, MarketTyped(market))'],
             // ParseToInt's TS body is `parseInt(parseFloat(numberToString(number)))` and the
             // hand-written ParseInt always returns int64 (math.MinInt64 when the conversion
@@ -6852,12 +6478,6 @@ ${constStatements.join('\n')}
             // copy then comes back as `any` and the declarations the classifier types `*bool`
             // fail the build loudly instead of drifting silently.
             [new RegExp ('func\\s+\\(this \\*BaseExchange\\)\\s+SafeBool(?:N|2)?\\([^)]*\\)\\s+any\\s*\\{[\\s\\S]*?(?=\\nfunc )', 'g'), ''],
-            // `any` locals that capture a SafeBool* pointer must carry the plain value: this
-            // file does not go through createGoExchange's unwrap pass, and its `any` locals are
-            // still compared raw (`postOnly != true` in IsPostOnly), which an interface holding
-            // a *bool always satisfies. Bool family only -- the other Safe* families' locals in
-            // this file are consumed through IsEqual/EvalTruthy and need no unwrap.
-            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
             // the 62 dispatch a few other 62-methods through this.DerivedExchange for virtual override
             // (e.g. editLimitOrder→editOrder, fetchTicker→fetchTickers, fetchOrderStatus→fetchOrder).
             // Those callees are NOT on PredictionExchange, so they are trimmed from IDerivedExchange
@@ -6948,7 +6568,6 @@ ${constStatements.join('\n')}
             [/\=\snew\s/gm, "= "],
             [/callDynamically\(/gm, 'this.CallDynamically('],
             [/throwDynamicException\(/gm, 'ThrowDynamicException('],
-            [/NewNotSupported/g, 'NotSupported'],
             // super.method() in the outcome-stub overrides → the embedded BaseExchange
             [/\bbase\./gm, 'this.BaseExchange.'],
             // the base parse loops (parsePredictionTrades→parsePredictionTrade, etc.) must reach the
@@ -6960,12 +6579,6 @@ ${constStatements.join('\n')}
             // AsyncResult[Order], prediction venues as the map of a prediction order): the prediction
             // base reaches the venue through the prediction-shaped per-method interface
             [/this\.DerivedExchange\.(CreateOrder|CancelOrder)Async\(/g, 'this.DerivedExchange.(IPrediction$1).$1Async('],
-            // `any` locals that capture a SafeBool* pointer must carry the plain value: this
-            // file does not go through createGoExchange's unwrap pass, and its `any` locals are
-            // still compared raw (`postOnly != true` in IsPostOnly), which an interface holding
-            // a *bool always satisfies. Bool family only -- the other Safe* families' locals in
-            // this file are consumed through IsEqual/EvalTruthy and need no unwrap.
-            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
         ]);
         // outcome/safeOutcome (: PredictionOutcomeMarket) and parseSearchQueries (: string[]) have no venue override
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'Outcome', undefined, true);
@@ -8246,9 +7859,6 @@ ${caseStatements.join('\n')}
         if (!isWs) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
-                [/base\.Describe/gm, "this.Exchange.Describe"],
-                [/var (precise|preciseAmount) any = /gm, "$1 := "],
-                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'], // idex tmp fix
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
                 // bare dynamic calls (e.g. an implicit-api call pushed into a promises array)
@@ -8400,12 +8010,9 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToGo (outDir: string, force = true) {
-
-        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
-        const goFile = `${outDir}/cache/orderbook.go`;
-
-        if (skipUpToDateStage ('go', 'ws orderbook test', force, testStageInputs (), [ goFile ])) {
+    // one `package cache` test file: drop the text before the first separator, then `regexes`
+    transpileWsCacheTestFileToGo (jsFile: string, goFile: string, stage: string, force: boolean, separator: string, regexes: any[]) {
+        if (skipUpToDateStage ('go', stage, force, testStageInputs (), [ goFile ])) {
             return;
         }
 
@@ -8413,65 +8020,17 @@ func (this *${className}) Init(userConfig map[string]any) {
 
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
-        const separator = '// --------------------------------------------------------------------------------------------------------------------';
         const splitParts = content.split(separator);
         splitParts.shift();
         content = splitParts.join('\n' + separator + '\n');
         content = this.normalizeSectionSeparators (content, separator);
-        content = this.regexAll (content, [
-            [/var (\w+) any = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
-            [/var (\w+) any = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
-            [/assert/g, 'Assert'],
-        ]).trim ();
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => line).join ('\n');
+        content = this.regexAll (content, regexes).trim ();
 
         const file = [
             'package cache',
             '',
             this.createGeneratedHeader().join('\n'),
-            contentIdented,
-        ].join('\n') + '\n';
-
-        log.magenta ('→', (goFile as any).yellow);
-
-        overwriteFileAndFolder (goFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToGo (outDir: string, force = true) {
-
-        const jsFile = './ts/src/pro/test/base/test.cache.ts';
-        const goFile = `${outDir}/cache/cache.go`;
-
-        if (skipUpToDateStage ('go', 'ws cache test', force, testStageInputs (), [ goFile ])) {
-            return;
-        }
-
-        log.magenta ('Transpiling from', (jsFile as any).yellow);
-
-        const go = this.transpiler.transpileGoByPath(jsFile);
-        let content = go.content;
-        const separator = '// ----------------------------------------------------------------------------';
-        const splitParts = content.split(separator);
-        splitParts.shift();
-        content = splitParts.join('\n' + separator + '\n');
-        content = this.normalizeSectionSeparators (content, separator);
-        content = this.regexAll (content, [
-            [/assert/g, 'Assert'],
-            [/GetValue\(cacheSymbolSide4/g, 'GetValue(cacheSymbolSide4.ToArray()' ],
-            [/GetArrayLength\(cacheSymbolSide4\)/g  , 'GetArrayLength(cacheSymbolSide4.ToArray())'],
-        ]).trim ();
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line =>  line).join ('\n');
-
-        const file = [
-            'package cache',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            contentIdented,
+            content,
         ].join('\n') + '\n';
 
         log.magenta ('→', (goFile as any).yellow);
@@ -8495,7 +8054,6 @@ func (this *${className}) Init(userConfig map[string]any) {
         const go = this.transpiler.transpileGoByPath(jsFile);
         let content = go.content;
         content = this.regexAll (content, [
-            [ /Newccxt.Exchange.+\n.+\n.+/gm, 'ccxt.Exchange{}' ],
             [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
         ]).trim ();
 
@@ -8563,8 +8121,18 @@ func (this *${className}) Init(userConfig map[string]any) {
         const outDir = BASE_TESTS_FOLDER;
         await this.transpileBaseTests(outDir, force);
         this.transpileCryptoTestsToGo(outDir, force);
-        this.transpileWsOrderbookTestsToGo(outDir, force);
-        this.transpileWsCacheTestsToGo(outDir, force);
+        this.transpileWsCacheTestFileToGo ('./ts/src/pro/test/base/test.orderBook.ts', `${outDir}/cache/orderbook.go`, 'ws orderbook test', force,
+            '// --------------------------------------------------------------------------------------------------------------------', [
+                [/var (\w+) any = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
+                [/var (\w+) any = GetValue\((\w+), "asks"\)/gm, '$1 := $2.Asks'],
+                [/assert/g, 'Assert'],
+            ]);
+        this.transpileWsCacheTestFileToGo ('./ts/src/pro/test/base/test.cache.ts', `${outDir}/cache/cache.go`, 'ws cache test', force,
+            '// ----------------------------------------------------------------------------', [
+                [/assert/g, 'Assert'],
+                [/GetValue\(cacheSymbolSide4/g, 'GetValue(cacheSymbolSide4.ToArray()' ],
+                [/GetArrayLength\(cacheSymbolSide4\)/g  , 'GetArrayLength(cacheSymbolSide4.ToArray())'],
+            ]);
     }
 
     async transpileBaseTests (outDir: string, force = true) {
@@ -8610,15 +8178,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                     const indent = statementIndent (whole, offset);
                     return `${varName} := ccxt.NewExchange().(*ccxt.Exchange)\n${indent}${varName}.DerivedExchange = ${varName}\n${indent}${varName}.InitParent(${args}, map[string]any{}, ${varName})`;
                 }],
-                // instantiate the core type (channel-based methods, implements ICoreExchange) and let
-                // Init wire up DerivedExchange/InitParent (Exchange above is the only special case)
-                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, (match: string, varName: string, className: string, args: string, offset: number, whole: string) => {
-                    const indent = statementIndent (whole, offset);
-                    return `${varName} := ccxt.New${className}Core()\n${indent}${varName}.Init(${args})`;
-                }],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
-                [/ any(?= \= map\[string\]any )/g, ' map[string]any'], // fix incorrect variable type
-                [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 // Base-test helpers and the Safe* accessors return `any`/typed pointers, so the
                 // printer's inlined `call == literal` is either a compile error or an
@@ -8641,12 +8201,8 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
                 [/(\w*ArrayCacheByTimestamp\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheByTimestamp).Hashmap'],
                 [/(\w*ArrayCacheBySymbolById\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
-                // General ArrayCache pattern (must not match the specific types above)
-                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
                 // Match stored/cached/orders patterns - explicit patterns for common variable names
                 [/\bstored\.Hashmap/g, 'stored.(*ccxt.ArrayCache).Hashmap'],
-                [/\bcached\.Hashmap/g, 'cached.(*ccxt.ArrayCache).Hashmap'],
-                [/\b([Oo]rders)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
 
             ]).trim ();
 
@@ -8678,7 +8234,6 @@ func (this *${className}) Init(userConfig map[string]any) {
         let ts = fs.readFileSync (files.tsFile).toString ();
 
         ts = this.regexAll (ts, [
-            [ /\'use strict\';?\s+/g, '' ],
             // the Go harness stores this field as an untyped `any` (it also appends to it), so
             // rewrite the annotation in the SOURCE: rewriting the printed `[]any` instead would
             // land after the printer has already aligned the struct fields (go/printer pads the
@@ -8713,7 +8268,6 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
-            [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ], // remove equals
         ]);
 
         const file = [
@@ -8821,8 +8375,6 @@ func (this *${className}) Init(userConfig map[string]any) {
             let contentIndentend = file.content;
 
             let regexes = [
-                [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
-                [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
                 // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
                 // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
@@ -8847,9 +8399,6 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
                 // [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
                 // [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
-                [/(any\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''], // remove equals
-                // Fix infinite loop bug in WebSocket tests - move now = exchange.Milliseconds() outside success check
-                [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
                 // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
                 [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
                 
@@ -8859,14 +8408,6 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
                 // [ /void function/g, 'void'],
             ];
-
-            if (isWs) {
-                // add ws-tests specific regeces
-                regexes = regexes.concat([
-                    [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
-                    [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
-                ]);
-            }
 
             contentIndentend = this.regexAll (contentIndentend, regexes);
             const namespace = 'package base';
@@ -9472,6 +9013,23 @@ async function runLocalTypeAudit () {
     process.exit (pass ? 0 : 1);
 }
 
+type SelfTestOk = (condition: boolean, message: string) => void;
+
+// one runner for the ok-callback self-test cases: collects every failed message under the case's prefix
+// (a case with a `threw` label also reports an exception as one problem instead of aborting the run)
+function runSelfTest (prefix: string, test: (ok: SelfTestOk) => void, threw?: string): string[] {
+    const problems: string[] = [];
+    try {
+        test ((condition, message) => { if (!condition) { problems.push (prefix + message); } });
+    } catch (e) {
+        if (threw === undefined) {
+            throw e;
+        }
+        problems.push (threw + e.message);
+    }
+    return problems;
+}
+
 async function runMain () {
     if (process.argv.includes ('--audit-local-types')) {
         await runLocalTypeAudit ();
@@ -9482,7 +9040,33 @@ async function runMain () {
         return;
     }
     if (process.argv.includes ('--self-test')) {
-        const problems = goTypedArithSelfTest ().concat (goIntegralArithmeticSelfTest ()).concat (goDerefWrapSelfTest ()).concat (goParamNilSelfTest ()).concat (goBoxedPointerSelfTest ()).concat (goTypedNilSelfTest ()).concat (goProvenParamNilSelfTest ()).concat (goAnyLocalNilSelfTest ()).concat (goStringLiteralSelfTest ()).concat (goSafeBoolLiteralSelfTest ()).concat (goSliceIndexSelfTest ()).concat (goAsyncTupleIndexSelfTest ()).concat (goNativeEqualitySelfTest ()).concat (goTypedShapeHelpersSelfTest ()).concat (goDerefArgMapReadSelfTest ()).concat (goNativeStringAddSelfTest ()).concat (goChanSelfTest ()).concat (goTypedDerefSelfTest ()).concat (goTypedMaplistSelfTest ()).concat (goTypedIsEqualSelfTest ()).concat (goTypedStrSelfTest ()).concat (goTypedLenSelfTest ()).concat (goTypedInopSelfTest ()).concat (w8FuturesPairSelfTest ()).concat (gvListSelfTest ()).concat (goTypedMiscSelfTest ()).concat (goErrSelfTest ()).concat (goStructReturnsSelfTest ()).concat (goChan3SelfTest ()).concat (goDropRedundantTypedSelfTest ()).concat (goTupleProducerReadsSelfTest ()).concat (goSelfMapRebindSelfTest ()).concat (goAnnotatedReturnSelfTest ()).concat (b02SafeBalanceSelfTest ()).concat (goMapWriteNilGuardSelfTest ()).concat (goTupleSlotReadsCheck ()).concat (goStrReturnSelfTest ()).concat (goAnyNilCompareSelfTest ()).concat (goNativeCompareSelfTest ()).concat (goStringAddLeafSelfTest ()).concat (goBaseNativePassesSelfTest ()).concat (goUnboxDefaultedSafeIntegerSelfTest ()).concat (goDefaultedLimitInt64SelfTest ()).concat (goTupleTruthySelfTest ()).concat (goRowStringLeafSelfTest ()).concat (goBlockScopedDeclCheck ()).concat (goPointerNonNilArithSelfTest ()).concat (goFloatComparisonsSelfTest ()).concat (goFloatComparisonsWiredCheck ()).concat (goIsEqualSafeLiteralSelfTest ()).concat (goInt64RetypeArithSelfTest ()).concat (goNativeDivideCheck ()).concat (goBoxedIntComparisonsSelfTest ()).concat (goProvenLocalIsEqualCheck ()).concat (goTupleSlotNeverNilCheck ()).concat (goArithHelpersWiredCheck ()).concat (goPlainBoxIsEqualCheck ()).concat (goTupleSlotDerefsCheck ()).concat (goInlineIsEqualWiredCheck ()).concat (goInOpHelperCheck ()).concat (goCaseAffixWiredCheck ()).concat (goStdlibStringHelpersCheck ()).concat (goParseNativeWiredCheck ()).concat (goNullableStrParamSelfTest ()).concat (goTypedIsEqualWiredCheck ()).concat (goNilJoinTypeSelfTest ()).concat (goDynamicCallParamsCheck ()).concat (goDictParamTypesSelfTest ()).concat (goParseFrameParamTypesSelfTest ()).concat (goHandleErrorsCodeSelfTest ()).concat (gb09Check ()).concat (nativeGuardedListElementReadsSelfTest ()).concat (goAnyObjectKeysLengthSelfTest ()).concat (goGofmtLayoutSelfTest ()).concat (w8ClientFuturesSelfTest ()).concat (goIsEqualBoolMethodCheck ()).concat (goPromiseAllSlotSelfTest ()).concat (goPromiseAllLoopSelfTest ()).concat (goOrderBookSetterCheck ()).concat (goJoinStringLocalsCheck ()).concat (goJoinNativeCheck ()).concat (goAsyncInt64ValueCheck ()).concat (goStringAnyLocalsCheck ());
+        const problems = [
+            goTypedArithSelfTest, goIntegralArithmeticSelfTest, [ '', goDerefWrapSelfTest ], [ '', goParamNilSelfTest ],
+            [ '', goBoxedPointerSelfTest ], [ '', goTypedNilSelfTest ], [ '', goProvenParamNilSelfTest ], [ '', goAnyLocalNilSelfTest ],
+            [ '', goStringLiteralSelfTest ], [ '', goSafeBoolLiteralSelfTest ], [ '', goSliceIndexSelfTest ],
+            [ '', goAsyncTupleIndexSelfTest ], [ '', goNativeEqualitySelfTest ], [ '', goTypedShapeHelpersSelfTest ],
+            [ 'go deref arg map read: ', goDerefArgMapReadSelfTest ], [ 'go native string add self: ', goNativeStringAddSelfTest ],
+            goChanSelfTest, [ 'go-typed-deref-self-test-deref: ', goTypedDerefSelfTest ],
+            [ 'go-typed-deref-self-test-maplist: ', goTypedMaplistSelfTest ], [ '', goTypedIsEqualSelfTest ],
+            [ 'go-typed-deref-self-test-str: ', goTypedStrSelfTest ], [ 'go-typed-deref-self-test-len: ', goTypedLenSelfTest ],
+            goTypedInopSelfTest, w8FuturesPairSelfTest, [ 'gv-list: ', gvListSelfTest ],
+            [ 'go-typed-deref-self-test-misc: ', goTypedMiscSelfTest ], goErrSelfTest, goStructReturnsSelfTest, goChan3SelfTest,
+            [ 'go drop redundant typed self: ', goDropRedundantTypedSelfTest ],
+            [ 'go tuple producer reads self: ', goTupleProducerReadsSelfTest ], goSelfMapRebindSelfTest, goAnnotatedReturnSelfTest,
+            b02SafeBalanceSelfTest, goMapWriteNilGuardSelfTest, [ 'go tuple slot reads check: ', goTupleSlotReadsCheck ],
+            goStrReturnSelfTest, [ 'go any nil compare self: ', goAnyNilCompareSelfTest, 'go any nil compare self threw: ' ], goNativeCompareSelfTest, [ 'go string add leaf self: ', goStringAddLeafSelfTest ],
+            [ 'go base native passes self: ', goBaseNativePassesSelfTest, 'go base native passes self threw: ' ], [ 'go unbox defaulted safe integer: ', goUnboxDefaultedSafeIntegerSelfTest, 'go unbox defaulted safe integer threw: ' ], goDefaultedLimitInt64SelfTest, goTupleTruthySelfTest,
+            [ 'go row string leaf self: ', goRowStringLeafSelfTest, 'go row string leaf self threw: ' ], [ 'go block scoped decl check: ', goBlockScopedDeclCheck, 'go block scoped decl check threw: ' ], goPointerNonNilArithSelfTest, goFloatComparisonsSelfTest,
+            goFloatComparisonsWiredCheck, [ 'go is equal safe literal: ', goIsEqualSafeLiteralSelfTest, 'go is equal safe literal threw: ' ], goInt64RetypeArithSelfTest, goNativeDivideCheck,
+            goBoxedIntComparisonsSelfTest, [ 'go proven local is equal: ', goProvenLocalIsEqualCheck, 'go proven local is equal threw: ' ], [ 'go tuple slot never nil: ', goTupleSlotNeverNilCheck, 'go tuple slot never nil threw: ' ], goArithHelpersWiredCheck,
+            [ 'go plain box is equal: ', goPlainBoxIsEqualCheck, 'go plain box is equal threw: ' ], [ 'go tuple slot derefs check: ', goTupleSlotDerefsCheck, 'go tuple slot derefs check threw: ' ], goInlineIsEqualWiredCheck, goInOpHelperCheck, goCaseAffixWiredCheck,
+            goStdlibStringHelpersCheck, goParseNativeWiredCheck, goNullableStrParamSelfTest, goTypedIsEqualWiredCheck,
+            goNilJoinTypeSelfTest, goDynamicCallParamsCheck, goDictParamTypesSelfTest, goParseFrameParamTypesSelfTest,
+            goHandleErrorsCodeSelfTest, [ 'credential fields check: ', gb09Check, 'credential fields check threw: ' ], [ 'P2: ', nativeGuardedListElementReadsSelfTest, 'P2 threw: ' ], goAnyObjectKeysLengthSelfTest,
+            goGofmtLayoutSelfTest, w8ClientFuturesSelfTest, goIsEqualBoolMethodCheck, [ 'promiseAll slots: ', goPromiseAllSlotSelfTest ],
+            [ 'promiseAll loop slots: ', goPromiseAllLoopSelfTest ], goOrderBookSetterCheck, goJoinStringLocalsCheck, goJoinNativeCheck,
+            goAsyncInt64ValueCheck, [ 'string any locals: ', goStringAnyLocalsCheck ]
+        ].flatMap ((selfTest) => (typeof selfTest === 'function') ? selfTest () : runSelfTest (selfTest[0], selfTest[1], selfTest[2]));
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -9605,9 +9189,7 @@ export function goProvenParamNativeNilCompares (content: string, isEqualFn: stri
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goProvenParamNilCompareText (fn, isEqualFn)) as any);
 }
 
-function goProvenParamNilSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goProvenParamNilSelfTest (ok: SelfTestOk): void {
     const sig = '\nfunc (this *X) HandleErrors(code any, reason any, url any, method any, headers any, body any, response any, requestHeaders any, requestBody any) any {\n';
     const pos = goProvenParamNativeNilCompares (sig + '\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\tif !IsEqual(response, nil) && IsEqual(body, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n', 'IsEqual(');
     ok ((pos.indexOf ('if (response == nil) {') >= 0) && (pos.indexOf ('(response != nil) && IsEqual(body, nil)') >= 0), 'tabled param compares natively: ' + pos);
@@ -9622,7 +9204,6 @@ function goProvenParamNilSelfTest (): string[] {
     const typed = '\nfunc (this *X) HandleErrors(code any, reason any, url any, method any, headers any, body any, response map[string]any, requestHeaders any, requestBody any) any {\n\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n\treturn nil\n}\n';
     ok (goProvenParamNativeNilCompares (typed, 'IsEqual(') === typed, 'non-any param keeps the helper');
     ok (goProvenParamNativeNilCompares (pos, 'IsEqual(') === pos, 'second application is a no-op');
-    return problems;
 }
 
 // `func (this *R) <m>Async` whose goroutine body (same file, same receiver) sends only two-element []any literals:
@@ -9675,9 +9256,6 @@ function nativeAsyncTupleHolderReads (content: string): string {
     }
     const lines = content.split ('\n');
     const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== maskedLines.length) {
-        return content;
-    }
     const masked = maskedLines.join ('\n');
     const { 'blocks': blocks } = goTextBlocks (maskedLines);
     const readRx = new RegExp ('\\b((?:ccxt\\.)?(?:' + GO_TUPLE_DEREF_CONSUMERS.join ('|') + '))\\((?:ccxt\\.)?GetValue\\(([A-Za-z_]\\w*), ([01])\\)\\)', 'g');
@@ -9778,9 +9356,6 @@ function goPromiseAllSlotReads (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const { 'blocks': blocks } = goTextBlocks (masked);
     const literalArity = (text: string): number => {
         const lit = /^(?:ccxt\.)?\[\]any\{([\s\S]*)\}$/.exec (text.trim ());
@@ -9922,9 +9497,6 @@ function goPromiseAllSelfBoundReads (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const { 'blocks': blocks } = goTextBlocks (masked);
     const forRx = /^\s*for (\w+) := 0; \1 < len\((\w+)\); \1\+\+ \{$/;
     let changed = false;
@@ -9981,9 +9553,6 @@ function goPromiseAllLoopReads (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const { 'blocks': blocks } = goTextBlocks (masked);
     const forRx = /^\s*for (\w+) := 0; \1 < len\((\w+)\); \1\+\+ \{$/;
     let changed = false;
@@ -10067,9 +9636,7 @@ function goPromiseAllLoopReads (content: string): string {
     return changed ? lines.join ('\n') : content;
 }
 
-function goPromiseAllLoopSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('promiseAll loop slots: ' + msg); } };
+function goPromiseAllLoopSelfTest (ok: SelfTestOk): void {
     const fn = (b: string) => 'func (this *X) f(keys []string) any {\n' + b + '\treturn nil\n}\n';
     const build = '\tvar promises []any = []any{}\n\tfor i := 0; i < len(keys); i++ {\n\t\tpromises = append(promises, this.G(keys[i]))\n\t}\n';
     const take = '\tr := <-ccxt.PromiseAll(promises)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar responses []any = ccxt.ListTyped(r.Value)\n';
@@ -10085,12 +9652,9 @@ function goPromiseAllLoopSelfTest (): string[] {
     ok (goPromiseAllLoopReads (fn (build + '\tpromises = append(promises, this.G(nil))\n' + take + read)).includes ('GetValue(responses, i)'), 'second append keeps GetValue');
     ok (goPromiseAllLoopReads (fn (build.replace ('for i := 0; i < len(keys); i++ {', 'for i := 1; i < len(keys); i++ {') + take + read)).includes ('GetValue(responses, i)'), 'offset append loop keeps GetValue');
     ok (formatGoSource ('selftest.go', 'package ccxt\n\n' + fn (build + take + read)).includes ('responses[i]'), 'wired into formatGoSource');
-    return problems;
 }
 
-function goPromiseAllSlotSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('promiseAll slots: ' + msg); } };
+function goPromiseAllSlotSelfTest (ok: SelfTestOk): void {
     const fn = (b: string) => 'func (this *X) f(p any) any {\n' + b + '\treturn nil\n}\n';
     const take = '\tr := <-promiseAll([]any{a, this.G(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar hVariable []any = ListTyped(r.Value)\n';
     const reads = '\tx := GetValue(hVariable, 0)\n\ty := GetValue(hVariable, 1)\n';
@@ -10116,12 +9680,9 @@ function goPromiseAllSlotSelfTest (): string[] {
     const loopHeld = goPromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\tv := f(GetValue(hVariable, i))\n\t}\n'));
     ok (loopHeld.includes ('f(hVariable[i])'), 'read under len(holder) loop is native');
     ok (goPromiseAllSelfBoundReads (fn (take + '\tfor i := 0; i < len(hVariable); i++ {\n\t\ti++\n\t\tv := f(GetValue(hVariable, i))\n\t}\n')).includes ('GetValue(hVariable, i)'), 'counter written keeps GetValue');
-    return problems;
 }
 
-function goAsyncTupleIndexSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goAsyncTupleIndexSelfTest (ok: SelfTestOk): void {
     const wrap = 'func (this *X) PairAsync(p any) <-chan any {\n\tch := make(chan any, 1)\n\tgo this.pairBody(ch, p)\n\treturn ch\n}\n';
     const body = (b: string) => 'func (this *X) pairBody(ch chan any, p any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n' + b + '}\n';
     const good = '\tif p != nil {\n\n\t\tch <- []any{p, p}\n\t\treturn nil\n\t}\n\tvar r any = func(this *X) any {\n\t\treturn nil\n\t}(this)\n\n\tch <- []any{r, p}\n\treturn nil\n';
@@ -10148,7 +9709,6 @@ function goAsyncTupleIndexSelfTest (): string[] {
         reader.replace ('MapTyped(GetValue(h, 1))', 'MapTyped(GetValue(h, 2))').replace ('SafeStringPtr(GetValue(h, 0))', 'IsEqual(GetValue(h, 1), nil)'),
     ];
     keepReaders.forEach ((r: string, i: number) => ok (run (good, r).indexOf ('GetValue(h, ') >= 0, 'async negative reader ' + i + ' keeps GetValue'));
-    return problems;
 }
 
 // `MapTyped(this.Omit(x, ..))` with x declared map[string]any in scope is `this.OmitDict(x, ..)`:
@@ -10329,9 +9889,7 @@ export function goNativeEquality (content: string): string {
     return content;
 }
 
-function goNativeEqualitySelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goNativeEqualitySelfTest (ok: SelfTestOk): void {
     const f = (body: string): string => goNativeEquality ('\nfunc (this *X) f(p any, optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n');
     const typed = f ('\tvar s []string = this.MarketSymbols(p)\n\tvar m map[string]any = nil\n\tif IsEqual(s, nil) && !IsEqual(m, nil) {\n\t}\n');
     ok (typed.indexOf ('if (s == nil) && (m != nil) {') >= 0, 'typed locals compare natively: ' + typed);
@@ -10350,7 +9908,6 @@ function goNativeEqualitySelfTest (): string[] {
     ok (f ('\tif IsEqual(this.ApiKey, nil) || IsEqual(this.Name, nil) {\n\t}\n').indexOf ('IsEqual(this.ApiKey, nil)') >= 0, 'other fields keep the helper');
     ok (goNativeEquality (typed) === typed, 'second application is a no-op');
     ok (box.indexOf ('__h2k_g08') < 0 && keep.indexOf ('__h2k_g08') < 0, 'no sentinel survives');
-    return problems;
 }
 
 // ===== AddElementToObject receivers from the base handleUntilOption =====
@@ -10400,9 +9957,6 @@ function goNativeKeysAndRemove (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const out: string[] = [];
     let start = -1;
     let offsets: number[] = [];
@@ -10548,9 +10102,7 @@ export function goTypedShapeHelpers (content: string, qual: string): string {
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedShapeHelpersFunc (fn, qual)) as any);
 }
 
-function goTypedShapeHelpersSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, m: string) => { if (!c) { problems.push (m); } };
+function goTypedShapeHelpersSelfTest (ok: SelfTestOk): void {
     const f = (sig: string, body: string, qual = '') => goTypedShapeHelpers ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n', qual);
     ok (f ('body string', '\tif IsString(body) {\n\t}\n').includes ('if true {'), 'string param IsString');
     ok (f ('', '\tvar s []string = GetArgStringSlice(o, 0, nil)\n\tif !IsArray(s) {\n\t}\n').includes ('if (s == nil) {'), 'IsArray []string');
@@ -10566,7 +10118,6 @@ function goTypedShapeHelpersSelfTest (): string[] {
     ok (f ('', '\tvar b []any = nil\n\tb2 := &b\n\t_ = b2\n\tif IsArray(b) {\n\t}\n').includes ('IsArray(b)'), 'address-taken keeps helper');
     ok (f ('', '\tvar q string\n\tq = F()\n\tif GetLength(q) != 0 {\n\t}\n').includes ('len(q) != 0'), 'uninitialised string decl');
     ok (f ('', '\tvar b []any = nil\n\tfn := func(b any) { _ = IsArray(b) }\n\t_ = fn\n').includes ('IsArray(b)'), 'shadowing closure keeps helper');
-    return problems;
 }
 
 // ===== GetValue(m, k) -> m[k] as a deref-at-entry argument =====
@@ -10591,28 +10142,11 @@ function goDerefAtEntryMethods (): string[] {
 }
 
 function nativeDerefArgMapReads (content: string): string {
-    if (!/GetValue\(\w+, /.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     // a method redeclared in this file (an exchange override) may not deref its argument
     const methods = goDerefAtEntryMethods ().filter ((m: string) => !new RegExp ('\\nfunc \\(this \\*\\w+\\) ' + m + '\\(').test ('\n' + content));
     const head = '(?:(?<![\\w.])(?:ccxt\\.)?(?:' + goDerefAtEntryFuncs ().join ('|') + ')|\\bthis\\.(?:' + methods.join ('|') + '))\\(';
     const rx = new RegExp ('(' + head + ')(?:ccxt\\.)?GetValue\\((\\w+), (\"[^\"\\\\\\n]*\"|\\w+)\\)', 'g');
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            goDerefArgRewriteFunc (lines, masked, start, k, rx, head);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, /GetValue\(\w+, /.test (content), (lines, masked, start, k) => goDerefArgRewriteFunc (lines, masked, start, k, rx, head));
 }
 
 function goDerefArgRewriteFunc (lines: string[], masked: string[], start: number, end: number, rx: RegExp, head: string) {
@@ -10714,9 +10248,7 @@ function goDerefGuardedListReads (lines: string[], masked: string[], start: numb
     }
 }
 
-function goDerefArgMapReadSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('go deref arg map read: ' + msg); } };
+function goDerefArgMapReadSelfTest (ok: SelfTestOk): void {
     const f = (body: string) => nativeDerefArgMapReads ('func (this *X) f(optionalArgs ...any) any {\n' + body + '\treturn nil\n}\n');
     const d = '\tvar p map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n';
     ok (f (d + '\tvar a *string = this.SafeString(GetValue(p, "k"), "x")\n').indexOf ('this.SafeString(p["k"], "x")') >= 0, 'safe method arg');
@@ -10747,7 +10279,6 @@ function goDerefArgMapReadSelfTest (): string[] {
         '\tvar s []any = ListTyped(x)\n\tvar a any = Foo(GetValue(s, 1))\n',
     ];
     keepList.forEach ((b: string, i: number) => ok (f (b).indexOf ('GetValue(s,') >= 0, 'list negative ' + i));
-    return problems;
 }
 
 // ===== native `+` for Add chains over proven Go strings =====
@@ -10958,9 +10489,7 @@ function goStringAnyLocals (content: string): string {
     return out + content.slice (cursor);
 }
 
-function goStringAnyLocalsCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('string any locals: ' + msg); } };
+function goStringAnyLocalsCheck (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goNativeStringAdds (goStringAnyLocals ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n'));
     const pos = f ('\tvar u string = \"a\"\n\tvar b any = strings.ToUpper(u)\n\tif u != \"\" {\n\t\tb = Add(Add(b, \"_\"), u)\n\t}\n\treturn Add(b, \":\")\n');
     ok (pos.includes ('var b string = strings.ToUpper(u)') && pos.includes ('b = b + \"_\" + u') && pos.includes ('return b + \":\"'), 'string-only any local goes native');
@@ -10969,12 +10498,9 @@ function goStringAnyLocalsCheck (): string[] {
     ok (f ('\tvar b any = \"\"\n\tb = p\n\treturn Add(b, \":\")\n', 'p any').includes ('var b any'), 'any write stays any');
     ok (f ('\tvar b any = \"\"\n\tif b == nil {\n\t\tb = \"x\"\n\t}\n\treturn b\n').includes ('var b any'), 'nil compare stays any');
     ok (f ('\tvar b any = \"\"\n\tb = Add(b, p)\n\treturn b\n', 'p any').includes ('var b any'), 'any operand stays any');
-    return problems;
 }
 
-function goNativeStringAddSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go native string add self: ' + msg); } };
+function goNativeStringAddSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goNativeStringAdds ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n');
     ok (f ('\tvar s string = this.Json(p)\n\tvar u any = Add(Add(s, ":"), this.Id)\n\treturn u\n').indexOf ('var u any = s + ":" + this.Id') >= 0, 'string chain goes native');
     ok (f ('\treturn Add("?", q)\n', 'q string').indexOf ('return "?" + q') >= 0, 'string param goes native');
@@ -10988,7 +10514,6 @@ function goNativeStringAddSelfTest (): string[] {
     ok (f ('\treturn Add(Add(market["id"], ":"), "b")\n').indexOf ('Add(Add(market["id"], ":"), "b")') >= 0, 'map read keeps Add');
     ok (f ('\treturn Add(x, Add(":", "b"))\n').indexOf ('Add(x, ":" + "b")') >= 0, 'inner proven chain converts alone');
     ok (goNativeStringAdds ('package ccxt\n\nfunc (this *X) Json(o any) any {\n\treturn nil\n}\n\nfunc (this *X) f() any {\n\treturn Add("a", this.Json(1))\n}\n').indexOf ('Add("a", this.Json(1))') >= 0, 'overridden method keeps Add');
-    return problems;
 }
 
 // ===== native strings.* for string helpers on proven operands; EndpointRaw into promiseAll =====
@@ -11052,29 +10577,6 @@ function goStringOperandKind (arg: string, maskedFunc: string): string | undefin
     return goStringOperandDeclaredType (maskedFunc, arg);
 }
 
-// JS slice bounds on a string exactly as the helper computes them (literal bounds only)
-function goNativeSliceText (s: string, a: string, b: string): string | undefined {
-    const bound = (t: string) => {
-        const neg = /^(?:ccxt\.)?OpNeg\((\d{1,9})\)$/.exec (t);
-        return (neg !== null) ? -Number (neg[1]) : (GO_SMALL_INT_LITERAL_RX ().test (t) ? Number (t) : undefined);
-    };
-    const start = bound (a);
-    if (start === undefined) {
-        return undefined;
-    }
-    const len = 'len(' + s + ')';
-    if (b === 'nil') {
-        return s + '[' + ((start >= 0) ? String (start) : 'max(' + len + '-' + (-start) + ', 0)') + ':]';
-    }
-    const end = bound (b);
-    if (end === undefined) {
-        return undefined;
-    }
-    const startText = (start >= 0) ? String (start) : len + '-' + (-start);
-    const endText = (end >= 0) ? 'min(' + end + ', ' + len + ')' : len + '-' + (-end);
-    return s + '[' + startText + ':' + endText + ']';
-}
-
 // the native text for one helper call, plus the stdlib package it needs; undefined keeps it
 function goNativeStringHelperText (helper: string, args: string[], maskedFunc: string): { text: string, pkg: string } | undefined {
     const k = args.map ((a) => goStringOperandKind (a, maskedFunc));
@@ -11107,9 +10609,6 @@ function goNativeStringHelperText (helper: string, args: string[], maskedFunc: s
         if (str (0)) { return { text: 'strings.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' }; }
         if (k[0] === '[]string') { return { text: 'slices.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'slices' }; }
         return undefined;
-    case 'Slice':
-        if ((args.length !== 3) || !str (0) || GO_STRING_LITERAL_RX ().test (args[0])) { return undefined; }
-        { const text = goNativeSliceText (args[0], args[1], args[2]); return (text === undefined) ? undefined : { text, pkg: '' }; }
     case 'PadStart':
         // pad with one byte to `n`, then keep the last n bytes, as the helper's loop does
         if ((args.length !== 3) || !str (0) || GO_STRING_LITERAL_RX ().test (args[0]) || !GO_SMALL_INT_LITERAL_RX ().test (args[1]) || !/^"[ !#-[\]-~]"$/.test (args[2])) { return undefined; }
@@ -11407,9 +10906,7 @@ export function goTypedNativeDerefs (filePath: string, content: string): string 
     return content.split ('\n').map ((line) => goTypedRewriteLine (line, own) ?? line).join ('\n');
 }
 
-export function goTypedDerefSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go-typed-deref-self-test-deref: ' + msg); } };
+export function goTypedDerefSelfTest (ok: SelfTestOk): void {
     const f = (text: string) => goTypedNativeDerefs ('x.go', text);
     ok (f ('\tvar s any = DerefScalar(this.SafeString(m, "s", "d"))') === '\tvar s any = (*this.SafeString(m, "s", "d"))', 'literal default, key named like the local');
     ok (f ('\tvar s any = DerefScalar(this.SafeInteger(m, "k", 2)) // cross (default)') === '\tvar s any = (*this.SafeInteger(m, "k", 2)) // cross (default)', 'literal default keeps its trailing comment');
@@ -11440,7 +10937,6 @@ export function goTypedDerefSelfTest (): string[] {
         '\tvar s any = DerefScalar(this.SafeString(m, "k")) + 1',
     ];
     kept.forEach ((line) => ok (f (line) === line, 'must keep: ' + line));
-    return problems;
 }
 
 
@@ -11463,9 +10959,6 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         return content;
     }
     const masked = goTextMaskLiteralsAndComments (content);
-    if (masked.length !== content.length) {
-        return content;
-    }
     const call = /(?<![\w.])(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
     let out = '';
     let cursor = 0;
@@ -11485,9 +10978,7 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
     return out + content.substring (cursor);
 }
 
-function goTypedMaplistSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('go-typed-deref-self-test-maplist: ' + m); } };
+function goTypedMaplistSelfTest (ok: SelfTestOk): void {
     const fn = (decl: string, use: string) => 'package x\nfunc (this *X) f(params any) any {\n' + decl + '\tvar q map[string]any = MapTyped(this.Omit(p, \")\"))\n' + use + '\treturn q\n}\n';
     const good = fn ('\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n\t_ = t\n', '');
     ok (goTypedMaplistOmitOfTupleMaps (good).indexOf ('var q map[string]any = this.OmitDict(p, ")")') > 0, 'tuple map converted');
@@ -11497,7 +10988,6 @@ function goTypedMaplistSelfTest (): string[] {
         fn ('\tt, p := this.HandleMarketTypeAndParams("f", nil, params)\n', '\tfunc(p any) {}(nil)\n') ]) {
         ok (goTypedMaplistOmitOfTupleMaps (bad) === bad, 'kept: ' + bad.split ('\n')[1].trim ());
     }
-    return problems;
 }
 
 // ===== native ==/!= for IsEqual on provably comparable concrete operands =====
@@ -11664,9 +11154,7 @@ function goTypedIsEqualFuncText (fn: string, file: string): string {
     return out + fn.slice (cursor);
 }
 
-function goTypedIsEqualSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push (message); } };
+function goTypedIsEqualSelfTest (ok: SelfTestOk): void {
     const f = (body: string): string => goTypedIsEqualNative ('\nfunc (this *X) f(p any, n int) any {\n' + body + '\treturn nil\n}\n\nfunc (this *X) HandleErrorMessage(c any, m any) bool {\n\treturn true\n}\n\nfunc (this *X) Other(c any) any {\n\treturn nil\n}\n');
     const pos = f ('\tvar s string = ToString(p)\n\tvar l *int64 = this.SafeInteger(p, "k")\n\tvar market map[string]any = this.Market(p)\n\tif IsEqual(s, "a") {\n\t}\n\tif !IsEqual(l, 1) && IsEqual(l, n) {\n\t}\n\tvar b bool = (IsEqual(market["settle"], "USDT")) || ccxt.IsEqual(this.HandleErrorMessage(p, p), true)\n');
     ok (pos.indexOf ('\tif s == "a" {\n') >= 0, 'scalar vs literal: ' + pos);
@@ -11679,7 +11167,6 @@ function goTypedIsEqualSelfTest (): string[] {
     const sd = f ('\tif !IsEqual(this.SafeInteger(p, "k", 0), 0) || IsEqual(this.SafeString(p, "k", ""), "x") || IsEqual(this.SafeInteger(p, "k"), 0) {\n\t}\n');
     ok (sd.indexOf ('if (*this.SafeInteger(p, "k", 0) != 0) || (*this.SafeString(p, "k", "") == "x") || IsEqual(this.SafeInteger(p, "k"), 0) {') >= 0, 'defaulted Safe* deref: ' + sd);
     ok (goTypedIsEqualNative (pos) === pos, 'second application is a no-op');
-    return problems;
 }
 
 // ===== `var x any` map locals retyped to map[string]any =====
@@ -11741,48 +11228,14 @@ function goTypedAddElemRetypeFunc (lines: string[], masked: string[], start: num
 }
 
 function goTypedAddElemRetypeMapLocals (content: string): string {
-    if (!/\bAddElementToObject\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            goTypedAddElemRetypeFunc (lines, masked, start, k);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, /\bAddElementToObject\(/.test (content), goTypedAddElemRetypeFunc);
 }
 
 // ===== GetValue(m, "lit") -> m["lit"] on multi-line market-row locals =====
 // Extends nativeMarketRowReads to `var m map[string]any = this.Market(<multi-line arg>)` and to
 // writes from another market-row local: every value of a MarketTyped row reads as GetValue does.
 function goTypedGvMapReads (content: string): string {
-    if (!/\bGetValue\(\w+, "/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            goTypedGvMapFunc (lines, masked, start, k);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, /\bGetValue\(\w+, "/.test (content), goTypedGvMapFunc);
 }
 
 // end line of a market call opened at (k, col), when the call closes its statement; else -1
@@ -11890,7 +11343,7 @@ function goTypedBoundOnceKind (masked: string, name: string, file: string): stri
     const first = new RegExp ('^' + n + '(?:,|\\s)').test (bind[0][0].trim ());
     const call = bind[0][1];
     const tuple = /^this\.(HandleOptionInteger(?:AndParams|AndParams2))\(/.exec (call);
-    if (first && (tuple !== null) && !goTypedStrOverrides (file, tuple[1])) {
+    if (first && (tuple !== null)) {
         return 'int64';
     }
     if ((new RegExp ('^' + n + ' := ').test (bind[0][0].trim ())) && /^(?:ccxt\.)?NewPrecise\(/.test (call)) {
@@ -11913,10 +11366,6 @@ function goTypedStrInit (func: string, masked: string, name: string, type: strin
     const start = m.index + m[0].length;
     const end = masked.indexOf ('\n', start);
     return func.substring (start, end).replace (/\s*\/\/.*$/, '').trim ();
-}
-
-function goTypedStrOverrides (file: string, method: string): boolean {
-    return new RegExp ('^func \\(this \\*\\w+\\) ' + method + '\\(', 'm').test (file);
 }
 
 // { kind, text }: the operand's Go type and the expression that yields it natively
@@ -11948,7 +11397,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
             return undefined;
         }
         const call = /^this\.(\w+)\(/.exec (init);
-        if ((call === null) || goTypedStrOverrides (file, call[1])) {
+        if (call === null) {
             return undefined;
         }
         const initMasked = goTextMaskLiteralsAndComments (init);
@@ -12005,7 +11454,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
         return { kind: 'string', text: arg };
     }
     const clock = /^this\.(Milliseconds|Seconds|Microseconds)\(\)$/.exec (arg);
-    if ((clock !== null) && !goTypedStrOverrides (file, clock[1])) {
+    if (clock !== null) {
         return { kind: 'int64', text: arg };
     }
     // Nonce () and IncrementingNonce () are int64 in the interface, the base and every override (ast goNonceReturnType)
@@ -12222,9 +11671,7 @@ function goTypedStrNativeStringHelpers (filePath: string, content: string): stri
     return out;
 }
 
-function goTypedStrSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go-typed-deref-self-test-str: ' + msg); } };
+function goTypedStrSelfTest (ok: SelfTestOk): void {
     const hdr = 'package ccxt\n\n' + GO_CONTRIBUTING_HEADER () + '\n\n';
     const f = (body: string) => goTypedStrNativeStringHelpers ('x/foo.go', hdr + 'func (this *X) f() any {\n' + body + '}\n');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('strings.Split(*t, ".")') >= 0, 'defaulted SafeString goes native');
@@ -12238,7 +11685,6 @@ function goTypedStrSelfTest (): string[] {
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn PadEnd(t, 6, "0")\n').indexOf ('(*t + strings.Repeat("0", max(6-len(*t), 0)))[:6]') >= 0, 'PadEnd goes native');
     ok (f ('\tvar t *string = this.SafeString(m, "k", "")\n\treturn Split(t, ".")\n').indexOf ('import "strings"') >= 0, 'import added');
     ok (goTypedStrNativeStringHelpers ('x/exchange_foo.go', hdr + 'func f() any {\n\treturn Trim(ks[0])\n}\n').indexOf ('Trim(ks[0])') >= 0, 'base file untouched');
-    return problems;
 }
 
 // ===== native len() on block-scoped typed operands =====
@@ -12318,9 +11764,7 @@ function goTypedLenNative (content: string): string {
     return content.replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedLenFunc (fn)) as any);
 }
 
-function goTypedLenSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('go-typed-deref-self-test-len: ' + m); } };
+function goTypedLenSelfTest (ok: SelfTestOk): void {
     const f = (sig: string, body: string) => goTypedLenNative ('\nfunc (this *X) M(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
     ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c == nil) || (ccxt.GetLength(c) == 0) {\n\t}\n').includes ('(c == nil) || (len(*c) == 0)'), 'nil-or guard');
     ok (f ('', '\tvar c *string = this.SafeString(o, "k")\n\tif (c != nil) || (GetLength(c) == 0) {\n\t}\n').includes ('GetLength(c)'), 'wrong guard keeps helper');
@@ -12333,7 +11777,6 @@ function goTypedLenSelfTest (): string[] {
     ok (f ('', '\tif (ccxt.GetLength(this.Secret) == 88) || (GetLength(this.ApiKey) == 8) {\n\t}\n').includes ('(len(this.Secret) == 88) || (len(this.ApiKey) == 8)'), 'credential string field');
     ok (f ('', '\tn := GetLength(this.Token)\n\tm := GetLength(this.Secrets)\n\tk := GetLength(that.Secret)\n').split ('GetLength(').length === 4, 'boxed or foreign field keeps helper');
     ok (f ('', '\tvar s string = "GetLength(x)"\n').includes ('"GetLength(x)"'), 'string literal untouched');
-    return problems;
 }
 
 
@@ -12346,9 +11789,6 @@ function w8ClientFuturesReads (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     let start = -1;
     let maskedFunc = '';
     let offsets: number[] = [];
@@ -12402,9 +11842,6 @@ function w8ClientTableCalls (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const recv = 'client\\.\\((?:ccxt\\.)?ClientInterface\\)\\.';
     const rules: [ RegExp, string ][] = [
         [ new RegExp ('(?<![\\w.])(?:ccxt\\.)?InOp\\((' + recv + ')GetFutures\\(\\), (\\w+)\\)', 'g'), '$1FutureHas($2)' ],
@@ -12459,9 +11896,6 @@ function w8FuturesPairInOp (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const out: string[] = [];
     let start = -1;
     let maskedFunc = '';
@@ -12526,9 +11960,6 @@ function goTypedInopClientMaps (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     let start = -1;
     let maskedFunc = '';
     let offsets: number[] = [];
@@ -12689,9 +12120,6 @@ function nativeDerefOnlyListReads (content: string): string {
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const joined = masked.join ('\n');
     const methods = goDerefAtEntryMethods ().filter ((m: string) => !new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + m + '\\(').test (joined));
     const overridden = GO_TUPLE_PAIR_PRODUCERS.filter ((m: string) => new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + m + '\\(').test (joined));
@@ -12735,9 +12163,7 @@ function nativeDerefOnlyListReads (content: string): string {
     return lines.join ('\n');
 }
 
-function gvListSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('gv-list: ' + msg); } };
+function gvListSelfTest (ok: SelfTestOk): void {
     const f = (body: string) => nativeDerefOnlyListReads ('func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
     const pairDecl = '\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, "m", "k")\n';
     const r1 = f (pairDecl + '\tx := GetValue(h, 0)\n\tif IsEqual(x, true) {\n\t}\n\tvar s *string = this.SafeString(x, "k")\n\t_ = s\n');
@@ -12762,7 +12188,6 @@ function gvListSelfTest (): string[] {
     const over = 'func (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n';
     ok (nativeDerefOnlyListReads (over + 'func (this *X) f(p any) any {\n' + pairDecl + '\tx := GetValue(h, 0)\n\t_ = this.SafeString(x, "k")\n\treturn nil\n}\n').indexOf ('GetValue(h, 0)') >= 0, 'overridden method keeps helper');
     ok (nativeDerefOnlyListReads (r2) === r2, 'idempotent');
-    return problems;
 }
 
 // ===== drop no-op SetDefaults, fold literal ParseInt/StringArg/EvalTruthy =====
@@ -12793,9 +12218,7 @@ export function goTypedMiscNative (content: string): string {
     return goTypedMiscSetDefaults (content).replace (/\nfunc [\s\S]*?\n\}/g, ((fn: string) => goTypedMiscFunc (fn)) as any);
 }
 
-function goTypedMiscSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('go-typed-deref-self-test-misc: ' + m); } };
+function goTypedMiscSelfTest (ok: SelfTestOk): void {
     const ctor = (fields: string) => 'package p\n\ntype X struct {\n\t*ccxt.X\n' + fields + '}\n\nfunc newX() *X {\n\tp := &X{}\n\tbase := &ccxt.X{}\n\tp.base = base\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
     ok (!goTypedMiscNative (ctor ('\tbase *ccxt.X\n')).includes ('SetDefaults'), 'untagged struct drops SetDefaults');
     const onlyUse = 'package p\n\nimport (\n\tccxt "github.com/ccxt/ccxt/go/v4"\n)\n\ntype X struct {\n\t*Y\n}\n\nfunc newX() *X {\n\tp := &X{}\n\tccxt.SetDefaults(p)\n\treturn p\n}\n';
@@ -12813,7 +12236,6 @@ function goTypedMiscSelfTest (): string[] {
     ok (f ('', '\tif EvalTruthy(this.SafeBool(this.SafeDict(m, \"info\"), \"hip3\", false)) {\n\t}\n').includes ('if *this.SafeBool(this.SafeDict(m, "info"), "hip3", false) {'), 'defaulted SafeBool');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\")) {\n\t}\n').includes ('EvalTruthy(this.SafeBool(m, "k"))'), 'nullable SafeBool kept');
     ok (f ('', '\tif EvalTruthy(this.SafeBool(m, \"k\", d)) {\n\t}\n').includes ('EvalTruthy('), 'non-literal default kept');
-    return problems;
 }
 
 // ===== ErrorParents map for hierarchy-aware IsInstance =====
@@ -12835,30 +12257,13 @@ function goTypedErrARtErrorParentsDecl (root: any): string {
 // ===== drop MapTyped/ListTyped around callees already printed with the target type, DerefScalar on `string` locals =====
 // MapTyped(m)/ListTyped(l) on an already typed value returns it unchanged, derefScalar of a `string` is the string. Proof is the
 // file's final text: the callee's signature on the receiver or a hand-written struct boundary; the local's sole declaration.
-function goTypedWrapCloseParen (text: string, open: number): number {
-    let depth = 0;
-    for (let i = open; i < text.length; i++) {
-        const c = text[i];
-        if (c === '"' || c === '`' || c === "'") {
-            i = goSkipLiteralText (text, i);
-        } else if (c === '(') {
-            depth += 1;
-        } else if (c === ')') {
-            depth -= 1;
-            if (depth === 0) {
-                return i;
-            }
-        }
-    }
-    return -1;
-}
 
 // return type text of `func (this *<recv>) <name>(...) <T> {` in this file, undefined when absent or ambiguous
 function goTypedWrapMethodReturnType (content: string, recv: string, name: string): string | undefined {
     const re = new RegExp ('^func \\(this \\*' + recv + '\\) ' + name + '\\(', 'gm');
     const found: string[] = [];
     for (let m = re.exec (content); m !== null; m = re.exec (content)) {
-        const close = goTypedWrapCloseParen (content, m.index + m[0].length - 1);
+        const close = goCloseParen (content, m.index + m[0].length - 1);
         const eol = content.indexOf ('\n', close);
         const tail = content.substring (close + 1, eol).trim ();
         found.push (tail.endsWith ('{') ? tail.slice (0, -1).trim () : '');
@@ -12932,7 +12337,7 @@ export function goDropRedundantTyped (content: string): string {
             continue;
         }
         const open = m.index + m[0].length - 1;
-        const end = goTypedWrapCloseParen (content, open);
+        const end = goCloseParen (content, open);
         if (end < 0) {
             continue;
         }
@@ -12946,7 +12351,7 @@ export function goDropRedundantTyped (content: string): string {
             native = /^[a-z_]\w*$/.test (inner) && goTypedWrapIsStringLocal (bodyOf (f), f.signature, inner);
         } else {
             const innerOpen = inner.indexOf ('(');
-            if ((innerOpen > 0) && (goTypedWrapCloseParen (inner, innerOpen) === inner.length - 1)) {
+            if ((innerOpen > 0) && (goCloseParen (inner, innerOpen) === inner.length - 1)) {
                 const want = (m[1] === 'MapTyped') ? 'map[string]any' : '[]any';
                 native = goTypedWrapCalleeType (content, f.recv, inner.substring (0, innerOpen + 1)) === want;
             }
@@ -12960,9 +12365,7 @@ export function goDropRedundantTyped (content: string): string {
     return out + content.substring (cursor);
 }
 
-function goDropRedundantTypedSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('go drop redundant typed self: ' + msg); } };
+function goDropRedundantTypedSelfTest (ok: SelfTestOk): void {
     const file = (body: string, extra = '') => 'package ccxt\n\nfunc (this *X) M(a any) map[string]any {\n\treturn nil\n}\n\nfunc (this *X) L(a any) []any {\n\treturn nil\n}\n\nfunc (this *X) A(a any) any {\n\treturn nil\n}\n' + extra + '\nfunc (this *X) F(p any, s string) any {\n' + body + '\treturn nil\n}\n';
     const run = (body: string, extra = '') => goDropRedundantTyped (file (body, extra));
     ok (run ('\tvar r map[string]any = MapTyped(this.M(GetValue(p, "a")))\n').includes ('\tvar r map[string]any = this.M(GetValue(p, "a"))\n'), 'map method unwrapped');
@@ -12982,7 +12385,6 @@ function goDropRedundantTypedSelfTest (): string[] {
     ok (run ('\tp = DerefScalar(p)\n').includes ('DerefScalar(p)'), 'any param kept');
     ok (run ('\tp = DerefScalar(this.SafeString(p, "a"))\n').includes ('DerefScalar(this.SafeString'), 'pointer accessor kept');
     ok (run ('\t// MapTyped(this.M(p))\n').includes ('// MapTyped(this.M(p))'), 'comment untouched');
-    return problems;
 }
 
 // ===== exchange tuple producers return []any; their holders read slots natively =====
@@ -13038,9 +12440,6 @@ function goTupleProducerReads (content: string, baseNames: Set<string> = undefin
     }
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
     const { 'blocks': blocks } = goTextBlocks (masked);
     const producers = goTupleProducers (lines, masked, blocks, baseNames ?? x01BaseMethodNames ());
     if ((producers.size === 0) || (baseNames === undefined && x01BaseMethodNames ().size === 0)) {
@@ -13087,9 +12486,7 @@ function goTupleProducerReads (content: string, baseNames: Set<string> = undefin
     return lines.join ('\n');
 }
 
-function goTupleProducerReadsSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('go tuple producer reads self: ' + msg); } };
+function goTupleProducerReadsSelfTest (ok: SelfTestOk): void {
     const producer = 'func (this *X) P(m any, p any) any {\n\tvar d any = func() string {\n\t\treturn "a"\n\t}()\n\tif m != nil {\n\t\treturn []any{d, p}\n\t}\n\treturn []any{SafeStringPtr("x"), Omit(p, "k")}\n}\n';
     const base = new Set<string> ([ 'ParseWsOHLCV' ]);
     const user = (body: string) => 'func (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n';
@@ -13117,7 +12514,6 @@ function goTupleProducerReadsSelfTest (): string[] {
     keepRead.forEach ((b: string, i: number) => ok (goTupleProducerReads (producer + user (b), base).indexOf ('GetValue(hVariable,') >= 0, 'read negative ' + i));
     const pro = 'func (this *X) P(p any) any {\n\treturn []any{nil, p}\n}\n' + user ('\thVariable := this.P(p)\n\tvar b map[string]any = ccxt.MapTyped(ccxt.GetValue(hVariable, 1))\n');
     ok (goTupleProducerReads (pro, base).indexOf ('ccxt.MapTyped(hVariable[1])') >= 0, 'ccxt-qualified read');
-    return problems;
 }
 
 // `MapTyped(this.Omit(x, ..))` / `MapTyped(this.MergeBalanceAccount(x, ..))` of a never-nil map x is
@@ -13328,9 +12724,6 @@ function goMapWriteNilGuardSelfTest (): string[] {
 function goTupleSlotCtx (content: string, path: string = ''): any {
     const lines = content.split ('\n');
     const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return undefined;
-    }
     return { 'path': path, 'lines': lines, 'masked': masked, 'blocks': goTextBlocks (masked).blocks, 'producers': undefined, 'busy': new Set<string> () };
 }
 
@@ -13667,9 +13060,7 @@ function goAsyncTupleSlotReads (content: string, path: string = '', reader: any 
     return changed ? lines.join ('\n') : content;
 }
 
-function goTupleSlotReadsCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, msg: string) => { if (!c) { problems.push ('go tuple slot reads check: ' + msg); } };
+function goTupleSlotReadsCheck (ok: SelfTestOk): void {
     const producer = 'func (this *X) P(m any, optionalArgs ...any) []any {\n\tvar params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n\tvar s *string = this.SafeString(params, "k")\n'
         + '\tvar flag any = nil\n\tif m != nil {\n\t\tflag = true\n\t\treturn []any{s, this.Omit(params, "k"), flag}\n\t}\n\treturn []any{s, params, false}\n}\n';
     const user = (body: string) => 'func (this *X) F(p any) any {\n' + body + '\treturn nil\n}\n';
@@ -13707,7 +13098,6 @@ function goTupleSlotReadsCheck (): string[] {
     ok (formatGoSource ('selftest.go', producer + user ('\thVariable := this.P(nil, p)\n\tb := GetValue(hVariable, 1)\n')).includes ('b := hVariable[1]'), 'wired into formatGoSource');
     const wiredAsync = formatGoSource ('selftest.go', 'package ccxt\n\n' + asyncProducer + 'func (this *X) F(p any) any {\n' + recvBody + '\treturn b\n}\n');
     ok (wiredAsync.includes ('b := hVariable[1]'), 'async producer slot wired into formatGoSource: ' + wiredAsync);
-    return problems;
 }
 
 // closed non-parse `: Str` methods returning a *string on every path print *string (caller locals follow);
@@ -13782,51 +13172,39 @@ function goInOpOwnedMapWrite (init: string): boolean {
     return /^this\.OmitDict\(\w+, /.test (init);
 }
 
-// exchange_prediction.go bypasses formatGoSource: run the block-scoped len() pass on it too
-function goPredictionBaseLen (content: string): string {
-    return goTypedLenNative (content);
-}
-
-function goAnyNilCompareSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go any nil compare self: ' + msg); } };
-    try {
-        const nil = (body: string) => goAnyLocalNativeNilCompares ('\nfunc (this *X) f(p any) any {\n' + body + '\tif IsEqual(v, nil) {\n\t}\n\treturn nil\n}\n', 'IsEqual(');
-        ok (nil ('\tvar v any = nil\n\tb, q := this.HandleOptionBoolAndParams(p, "m", "o", true)\n\tv = this.Omit(q, "cost")\n\t_ = b\n').includes ('if (v == nil) {'), 'Omit of a HandleOptionBoolAndParams map compares natively');
-        ok (nil ('\tvar q map[string]any = MapTyped(p)\n\tvar v any = this.Omit(q, []any{"a"})\n').includes ('if (v == nil) {'), 'Omit of a map local compares natively');
-        ok (nil ('\tvar v any = this.Omit(p, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of an any param keeps the helper');
-        ok (nil ('\tvar v any = this.Omit(this.Markets, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of a field keeps the helper');
-        ok (nil ('\tvar q map[string]any = MapTyped(p)\n\tif true {\n\t\tvar q any = p\n\t\t_ = q\n\t}\n\tvar v any = this.Omit(q, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of a shadowed name keeps the helper');
-        ok (nil ('\tvar v any = this.SortBy2(p, "a", "b")\n').includes ('if (v == nil) {'), 'SortBy2 literal key');
-        ok (nil ('\tvar v any = this.SafeList(p, "a", this.SafeList(p, "b"))\n').includes ('if (v == nil) {'), 'SafeList with a safe default');
-        ok (nil ('\tvar v any = this.SafeDict(p, "a", map[string]any{})\n').includes ('if (v == nil) {'), 'SafeDict literal default still native');
-        for (const keep of [
-            '\tvar v any = this.SortBy2(p, k, "b")\n',
-            '\tvar v any = this.SafeList(p, "a", p)\n',
-            '\tvar r []any = ArrayTyped(p)\n\tvar v any = this.SafeList(p, "a", r)\n',
-            '\tvar v any = this.SafeDict(p, "a", this.SafeValue(p, "b"))\n',
-            '\tvar v any = this.ToArray(p)\n',
-            '\tvar v any = this.FilterBy(p, "a", "b")\n',
-            '\tvar v any = ObjectKeys(p)\n',
-            '\tvar v any = ObjectValues(p)\n',
-            '\tvar v any = this.FilterBySinceLimit(p, nil, nil)\n',
-        ]) {
-            ok (nil (keep).includes ('IsEqual(v, nil)'), 'unproven write keeps the helper: ' + keep.trim ());
-        }
-        const inop = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p map[string]any) any {\n' + body + '\treturn nil\n}\n');
-        ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(q, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('if _, ok := q["symbol"]; ok {'), 'OmitDict-written map reads natively');
-        ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(this.Options, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'OmitDict of a field keeps the helper');
-        ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.Market("a")\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'a shared market row keeps the helper');
-        ok (inop ('\tif InOp(p, "symbol") {\n\t}\n').includes ('InOp(p, "symbol")'), 'a parameter keeps the helper');
-        ok (inop ('\tvar s string = "a"\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'a market table is not a receiver of this pass: the ast printer owns its reads');
-        ok (inop ('\tvar s any = nil\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'this.Markets with an any key keeps the helper');
-        ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('InOp(this.Markets_by_id, s)'), 'other getters keep the helper');
-        const len = goPredictionBaseLen ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)\n\tfor i := 0; i < GetArrayLength(outcomes); i++ {\n\t}\n\tvar w any = nil\n\treturn GetArrayLength(w)\n}\n');
-        ok (len.includes ('i < len(outcomes)') && len.includes ('GetArrayLength(w)'), 'prediction base len: ' + len);
-    } catch (e) {
-        problems.push ('go any nil compare self threw: ' + e.message);
+function goAnyNilCompareSelfTest (ok: SelfTestOk): void {
+    const nil = (body: string) => goAnyLocalNativeNilCompares ('\nfunc (this *X) f(p any) any {\n' + body + '\tif IsEqual(v, nil) {\n\t}\n\treturn nil\n}\n', 'IsEqual(');
+    ok (nil ('\tvar v any = nil\n\tb, q := this.HandleOptionBoolAndParams(p, "m", "o", true)\n\tv = this.Omit(q, "cost")\n\t_ = b\n').includes ('if (v == nil) {'), 'Omit of a HandleOptionBoolAndParams map compares natively');
+    ok (nil ('\tvar q map[string]any = MapTyped(p)\n\tvar v any = this.Omit(q, []any{"a"})\n').includes ('if (v == nil) {'), 'Omit of a map local compares natively');
+    ok (nil ('\tvar v any = this.Omit(p, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of an any param keeps the helper');
+    ok (nil ('\tvar v any = this.Omit(this.Markets, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of a field keeps the helper');
+    ok (nil ('\tvar q map[string]any = MapTyped(p)\n\tif true {\n\t\tvar q any = p\n\t\t_ = q\n\t}\n\tvar v any = this.Omit(q, "a")\n').includes ('IsEqual(v, nil)'), 'Omit of a shadowed name keeps the helper');
+    ok (nil ('\tvar v any = this.SortBy2(p, "a", "b")\n').includes ('if (v == nil) {'), 'SortBy2 literal key');
+    ok (nil ('\tvar v any = this.SafeList(p, "a", this.SafeList(p, "b"))\n').includes ('if (v == nil) {'), 'SafeList with a safe default');
+    ok (nil ('\tvar v any = this.SafeDict(p, "a", map[string]any{})\n').includes ('if (v == nil) {'), 'SafeDict literal default still native');
+    for (const keep of [
+        '\tvar v any = this.SortBy2(p, k, "b")\n',
+        '\tvar v any = this.SafeList(p, "a", p)\n',
+        '\tvar r []any = ArrayTyped(p)\n\tvar v any = this.SafeList(p, "a", r)\n',
+        '\tvar v any = this.SafeDict(p, "a", this.SafeValue(p, "b"))\n',
+        '\tvar v any = this.ToArray(p)\n',
+        '\tvar v any = this.FilterBy(p, "a", "b")\n',
+        '\tvar v any = ObjectKeys(p)\n',
+        '\tvar v any = ObjectValues(p)\n',
+        '\tvar v any = this.FilterBySinceLimit(p, nil, nil)\n',
+    ]) {
+        ok (nil (keep).includes ('IsEqual(v, nil)'), 'unproven write keeps the helper: ' + keep.trim ());
     }
-    return problems;
+    const inop = (body: string) => nativeTypedContainerAccess ('func (this *X) f(p map[string]any) any {\n' + body + '\treturn nil\n}\n');
+    ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(q, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('if _, ok := q["symbol"]; ok {'), 'OmitDict-written map reads natively');
+    ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.OmitDict(this.Options, []any{"a"})\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'OmitDict of a field keeps the helper');
+    ok (inop ('\tvar q map[string]any = this.Extend(map[string]any{}, p)\n\tq = this.Market("a")\n\tif InOp(q, "symbol") {\n\t}\n').includes ('InOp(q, "symbol")'), 'a shared market row keeps the helper');
+    ok (inop ('\tif InOp(p, "symbol") {\n\t}\n').includes ('InOp(p, "symbol")'), 'a parameter keeps the helper');
+    ok (inop ('\tvar s string = "a"\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'a market table is not a receiver of this pass: the ast printer owns its reads');
+    ok (inop ('\tvar s any = nil\n\tif (this.Markets != nil) && (InOp(this.Markets, s)) {\n\t}\n').includes ('InOp(this.Markets, s)'), 'this.Markets with an any key keeps the helper');
+    ok (inop ('\tvar s string = "a"\n\tif (this.Markets_by_id != nil) && (InOp(this.Markets_by_id, s)) {\n\t}\n').includes ('InOp(this.Markets_by_id, s)'), 'other getters keep the helper');
+    const len = goTypedLenNative ('\nfunc (this *X) f(optionalArgs ...any) any {\n\tvar outcomes []string = GetArgStringSlice(optionalArgs, 0, nil)\n\tfor i := 0; i < GetArrayLength(outcomes); i++ {\n\t}\n\tvar w any = nil\n\treturn GetArrayLength(w)\n}\n');
+    ok (len.includes ('i < len(outcomes)') && len.includes ('GetArrayLength(w)'), 'prediction base len: ' + len);
 }
 
 // Add leaves proven non-nil Go strings: `*x` on a once-declared `*string` local/param, `*this.Safe<String>(..)`,
@@ -13919,9 +13297,7 @@ function goStringAddLeaf (t: string, mt: string, locals: Set<string>, overridden
     return deref ? basePointer.indexOf (name) >= 0 : baseString.indexOf (name) >= 0;
 }
 
-function goStringAddLeafSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go string add leaf self: ' + msg); } };
+function goStringAddLeafSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '', extra = '') => goNativeStringAdds ('package ccxt\n\n' + extra + 'func (this *X) f(' + sig + ') any {\n' + body + '}\n');
     ok (f ('\tvar s *string = this.SafeString(p, "k")\n\treturn Add(Add("a.", *s), ".b")\n').indexOf ('return "a." + *s + ".b"') >= 0, '*string local deref goes native');
     ok (f ('\treturn ccxt.Add("a", *s)\n', 's *string').indexOf ('return "a" + *s') >= 0, '*string param deref (ccxt.Add)');
@@ -13950,7 +13326,6 @@ function goStringAddLeafSelfTest (): string[] {
     ok (g ('\tif s == nil {\n\t\treturn nil\n\t}\n\tfor {\n\t\tx = Add("a", s)\n\t\ts = this.SafeString(p, "j")\n\t}\n').indexOf ('Add("a", s)') >= 0, 'loop write after the read keeps Add');
     ok (g ('\tif s == nil {\n\t\treturn nil\n\t}\n\tvar q any = &s\n\treturn Add("a", s)\n').indexOf ('Add("a", s)') >= 0, 'address taken keeps Add');
     ok (formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f(s *string) any {\n\treturn Add("a", *s)\n}\n').indexOf ('"a" + *s') >= 0, 'wired through formatGoSource');
-    return problems;
 }
 
 // exchange_generated.go / exchange_prediction.go bypass formatGoSource: run its typed-receiver native passes on them
@@ -13969,21 +13344,14 @@ function goBaseNativePasses (content: string): string {
     return goTypedLenNative (goNativeStringAdds (goNativeArithmetic (content)));
 }
 
-function goBaseNativePassesSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go base native passes self: ' + msg); } };
-    try {
-        const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
-        const run = (body: string) => goBaseNativePasses (head + 'func (this *PredictionExchange) F(m map[string]any, p any) any {\n' + body + '\treturn nil\n}\n');
-        const loop = run ('\tvar keys []string = ObjectKeys(m)\n\tfor i := 0; i < len(keys); i++ {\n\t\tvar k string = GetValue(keys, i).(string)\n\t\t_ = k\n\t}\n');
-        ok (loop.includes ('var k string = keys[i]'), 'loop-bounded []string read goes native: ' + loop);
-        ok (!loop.includes ('ObjectKeys(m)'), 'ObjectKeys on a typed map param goes native: ' + loop);
-        const keep = run ('\tfor i := 0; i < GetArrayLength(p); i++ {\n\t\t_ = GetValue(p, i)\n\t}\n');
-        ok (keep.includes ('GetArrayLength(p)') && keep.includes ('GetValue(p, i)'), 'any receiver keeps the helpers: ' + keep);
-    } catch (e) {
-        problems.push ('go base native passes self threw: ' + e.message);
-    }
-    return problems;
+function goBaseNativePassesSelfTest (ok: SelfTestOk): void {
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const run = (body: string) => goBaseNativePasses (head + 'func (this *PredictionExchange) F(m map[string]any, p any) any {\n' + body + '\treturn nil\n}\n');
+    const loop = run ('\tvar keys []string = ObjectKeys(m)\n\tfor i := 0; i < len(keys); i++ {\n\t\tvar k string = GetValue(keys, i).(string)\n\t\t_ = k\n\t}\n');
+    ok (loop.includes ('var k string = keys[i]'), 'loop-bounded []string read goes native: ' + loop);
+    ok (!loop.includes ('ObjectKeys(m)'), 'ObjectKeys on a typed map param goes native: ' + loop);
+    const keep = run ('\tfor i := 0; i < GetArrayLength(p); i++ {\n\t\t_ = GetValue(p, i)\n\t}\n');
+    ok (keep.includes ('GetArrayLength(p)') && keep.includes ('GetValue(p, i)'), 'any receiver keeps the helpers: ' + keep);
 }
 
 // `var x *int64 = this.SafeInteger(o, k, 5)` -> `var x int64 = *this.SafeInteger(o, k, 5)` when the
@@ -14059,60 +13427,36 @@ function goUnboxDefaultedSafeIntegerFunc (lines: string[], masked: string[], sta
 }
 
 function goUnboxDefaultedSafeInteger (content: string): string {
-    if (content.indexOf ('*int64 = this.SafeInteger') < 0) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-        } else if ((start >= 0) && (lines[k] === '}')) {
-            goUnboxDefaultedSafeIntegerFunc (lines, masked, start, k);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, content.indexOf ('*int64 = this.SafeInteger') >= 0, goUnboxDefaultedSafeIntegerFunc);
 }
 
 
-function goUnboxDefaultedSafeIntegerSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('go unbox defaulted safe integer: ' + label); } };
+function goUnboxDefaultedSafeIntegerSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goUnboxDefaultedSafeInteger ('func (this *X) f(' + sig + ') any {\n' + body + '}\n');
-    try {
-        let r = f ('\tvar m *int64 = this.SafeInteger(t, "E", 0)\n\tvar ts int64 = this.ParseToInt(float64(*m) / 1000)\n');
-        ok (r.includes ('var m int64 = *this.SafeInteger(t, "E", 0)') && r.includes ('float64(m) / 1000'), 'deref read: ' + r);
-        r = f ('\tvar u *int64 = this.SafeInteger(this.Options, "u", 6)\n\tif u == nil || *u < 5 {\n\t}\n\tif (c != nil && *c == "i") && (u == nil || *u < 5) {\n\t}\n');
-        ok (r.includes ('\tif u < 5 {') && r.includes ('&& (u < 5) {'), 'leading nil guard dropped: ' + r);
-        r = f ('\tvar e *int64 = this.SafeInteger(this.Options, "s", 0)\n\tif (e != nil) && IsGreaterThan(e, now+10000) {\n\t}\n\tvar s any = ccxt.Add(e, 1)\n');
-        ok (r.includes ('var e int64') && r.includes ('if IsGreaterThan(e, now+10000) {') && r.includes ('ccxt.Add(e, 1)'), 'helper operands: ' + r);
-        r = f ('\tvar r *int64 = this.SafeInteger2(o, "a", "b", 0)\n\tfor i := 0; r != nil && int64(i) < *r; i++ {\n\t}\n');
-        ok (r.includes ('var r int64 = *this.SafeInteger2') && r.includes ('for i := 0; int64(i) < r; i++ {'), 'SafeInteger2 for guard: ' + r);
-        for (const keep of [
-            '\tvar x *int64 = this.SafeInteger(o, "a")\n\t_ = *x\n',                        // no default: may be nil
-            '\tvar x *int64 = this.SafeInteger(o, "a", d)\n\t_ = *x\n',                      // non-literal default
-            '\tvar x *int64 = this.SafeInteger(o, "a", 1.5)\n\t_ = *x\n',                    // float default
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tc := ccxt.NewArrayCache(x)\n',  // pointer handed on
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tif x == nil {\n\t}\n',           // bare nil test
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tif a && x == nil || *x > 1 {\n\t}\n', // guard not leading
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tx = this.SafeInteger(o, "b")\n',   // rewritten
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tp := &x\n',
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tvar s any = Add(x, this.F(x))\n',  // nested non-helper arg
-            '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\treturn x\n',
-        ]) {
-            ok (f (keep).includes ('var x *int64'), 'keeps pointer: ' + JSON.stringify (keep));
-        }
-        ok (f ('\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\t_ = *x\n', 'x any').includes ('var x *int64'), 'parameter name keeps pointer');
-        ok (formatGoSource ('selftest.go', 'func (this *X) f() any {\n\tvar m *int64 = this.SafeInteger(t, "E", 0)\n\treturn float64(*m)\n}\n').includes ('var m int64 = *this.SafeInteger'), 'wired into formatGoSource');
-    } catch (e) {
-        problems.push ('go unbox defaulted safe integer threw: ' + e.message);
+    let r = f ('\tvar m *int64 = this.SafeInteger(t, "E", 0)\n\tvar ts int64 = this.ParseToInt(float64(*m) / 1000)\n');
+    ok (r.includes ('var m int64 = *this.SafeInteger(t, "E", 0)') && r.includes ('float64(m) / 1000'), 'deref read: ' + r);
+    r = f ('\tvar u *int64 = this.SafeInteger(this.Options, "u", 6)\n\tif u == nil || *u < 5 {\n\t}\n\tif (c != nil && *c == "i") && (u == nil || *u < 5) {\n\t}\n');
+    ok (r.includes ('\tif u < 5 {') && r.includes ('&& (u < 5) {'), 'leading nil guard dropped: ' + r);
+    r = f ('\tvar e *int64 = this.SafeInteger(this.Options, "s", 0)\n\tif (e != nil) && IsGreaterThan(e, now+10000) {\n\t}\n\tvar s any = ccxt.Add(e, 1)\n');
+    ok (r.includes ('var e int64') && r.includes ('if IsGreaterThan(e, now+10000) {') && r.includes ('ccxt.Add(e, 1)'), 'helper operands: ' + r);
+    r = f ('\tvar r *int64 = this.SafeInteger2(o, "a", "b", 0)\n\tfor i := 0; r != nil && int64(i) < *r; i++ {\n\t}\n');
+    ok (r.includes ('var r int64 = *this.SafeInteger2') && r.includes ('for i := 0; int64(i) < r; i++ {'), 'SafeInteger2 for guard: ' + r);
+    for (const keep of [
+        '\tvar x *int64 = this.SafeInteger(o, "a")\n\t_ = *x\n',                        // no default: may be nil
+        '\tvar x *int64 = this.SafeInteger(o, "a", d)\n\t_ = *x\n',                      // non-literal default
+        '\tvar x *int64 = this.SafeInteger(o, "a", 1.5)\n\t_ = *x\n',                    // float default
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tc := ccxt.NewArrayCache(x)\n',  // pointer handed on
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tif x == nil {\n\t}\n',           // bare nil test
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tif a && x == nil || *x > 1 {\n\t}\n', // guard not leading
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tx = this.SafeInteger(o, "b")\n',   // rewritten
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tp := &x\n',
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\tvar s any = Add(x, this.F(x))\n',  // nested non-helper arg
+        '\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\treturn x\n',
+    ]) {
+        ok (f (keep).includes ('var x *int64'), 'keeps pointer: ' + JSON.stringify (keep));
     }
-    return problems;
+    ok (f ('\tvar x *int64 = this.SafeInteger(o, "a", 0)\n\t_ = *x\n', 'x any').includes ('var x *int64'), 'parameter name keeps pointer');
+    ok (formatGoSource ('selftest.go', 'func (this *X) f() any {\n\tvar m *int64 = this.SafeInteger(t, "E", 0)\n\treturn float64(*m)\n}\n').includes ('var m int64 = *this.SafeInteger'), 'wired into formatGoSource');
 }
 // `limit === undefined ? D : limit` over a `*int64` param types as `int64` when every read is a helper argument
 function goDefaultedLimitInt64SelfTest (): string[] {
@@ -14181,40 +13525,33 @@ function goRowStringLeaf (t: string, locals: Set<string>): boolean {
     return (r !== null) && (locals.has ('#m:' + r[1] + ':' + r[2]) || locals.has ('#c:' + r[1] + ':' + r[2]));
 }
 
-function goRowStringLeafSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go row string leaf self: ' + msg); } };
+function goRowStringLeafSelfTest (ok: SelfTestOk): void {
     const f = (body: string, sig = '') => goNativeStringAdds ('package ccxt\n\nfunc (this *X) f(' + sig + ') any {\n' + body + '}\n');
-    try {
-        let r = f ('\tvar market map[string]any = this.Market(symbol)\n\tvar h any = Add("ticker:", market["symbol"])\n\treturn h\n');
-        ok (r.includes ('var h any = "ticker:" + market["symbol"].(string)'), 'Market symbol native: ' + r);
-        r = f ('\tvar market map[string]any = nil\n\tmarket = this.Market(symbol)\n\treturn Add("a", market["symbol"])\n');
-        ok (r.includes ('Add("a", market["symbol"])'), 'nil write keeps Add');
-        r = f ('\tvar market map[string]any = this.Market(id)\n\tif x {\n\t\tmarket = this.Market(s)\n\t}\n\tpanic(Add(this.Id+" ", market["symbol"]))\n');
-        ok (r.includes ('panic(this.Id + " " + market["symbol"].(string))'), 'Market rewrites native: ' + r);
-        ok (f ('\tvar market map[string]any = this.SafeMarket(id)\n\treturn Add("a", market["symbol"])\n').includes ('Add("a", market'), 'SafeMarket keeps Add');
-        r = f ('\tvar currency map[string]any = this.Currency(code)\n\treturn Add(Add(currency["id"], "-"), currency["code"])\n');
-        ok (r.includes ('return currency["id"].(string) + "-" + currency["code"].(string)'), 'Currency id/code native: ' + r);
-        for (const keep of [
-            '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["id"])\n',                  // id is Str
-            '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["baseId"])\n',
-            '\tvar market map[string]any = GetArgMap(optionalArgs, 0, nil)\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)\n\tmarket = this.Extend(market, p)\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)\n\tmarket["symbol"] = x\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)\n\tAddElementToObject(market, "symbol", x)\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)\n\tif t {\n\t\tmarket := p\n\t\t_ = market\n\t}\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)["info"]\n\treturn Add("a", market["symbol"])\n',
-            '\tvar currency map[string]any = this.Market(s)\n\treturn Add("a", currency["code"])\n',            // market row has no code
-            '\tvar market map[string]any = this.Currency(s)\n\treturn Add("a", market["symbol"])\n',
-            '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["symbol"]) == nil\n',
-        ]) {
-            ok (f (keep).includes ('Add("a", '), 'keeps Add: ' + JSON.stringify (keep));
-        }
-        ok (f ('\treturn Add("a", market["symbol"])\n', 'market map[string]any').includes ('Add("a", market["symbol"])'), 'param keeps Add');
-    } catch (e) {
-        problems.push ('go row string leaf self threw: ' + e.message);
+    let r = f ('\tvar market map[string]any = this.Market(symbol)\n\tvar h any = Add("ticker:", market["symbol"])\n\treturn h\n');
+    ok (r.includes ('var h any = "ticker:" + market["symbol"].(string)'), 'Market symbol native: ' + r);
+    r = f ('\tvar market map[string]any = nil\n\tmarket = this.Market(symbol)\n\treturn Add("a", market["symbol"])\n');
+    ok (r.includes ('Add("a", market["symbol"])'), 'nil write keeps Add');
+    r = f ('\tvar market map[string]any = this.Market(id)\n\tif x {\n\t\tmarket = this.Market(s)\n\t}\n\tpanic(Add(this.Id+" ", market["symbol"]))\n');
+    ok (r.includes ('panic(this.Id + " " + market["symbol"].(string))'), 'Market rewrites native: ' + r);
+    ok (f ('\tvar market map[string]any = this.SafeMarket(id)\n\treturn Add("a", market["symbol"])\n').includes ('Add("a", market'), 'SafeMarket keeps Add');
+    r = f ('\tvar currency map[string]any = this.Currency(code)\n\treturn Add(Add(currency["id"], "-"), currency["code"])\n');
+    ok (r.includes ('return currency["id"].(string) + "-" + currency["code"].(string)'), 'Currency id/code native: ' + r);
+    for (const keep of [
+        '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["id"])\n',                  // id is Str
+        '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["baseId"])\n',
+        '\tvar market map[string]any = GetArgMap(optionalArgs, 0, nil)\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)\n\tmarket = this.Extend(market, p)\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)\n\tmarket["symbol"] = x\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)\n\tAddElementToObject(market, "symbol", x)\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)\n\tif t {\n\t\tmarket := p\n\t\t_ = market\n\t}\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)["info"]\n\treturn Add("a", market["symbol"])\n',
+        '\tvar currency map[string]any = this.Market(s)\n\treturn Add("a", currency["code"])\n',            // market row has no code
+        '\tvar market map[string]any = this.Currency(s)\n\treturn Add("a", market["symbol"])\n',
+        '\tvar market map[string]any = this.Market(s)\n\treturn Add("a", market["symbol"]) == nil\n',
+    ]) {
+        ok (f (keep).includes ('Add("a", '), 'keeps Add: ' + JSON.stringify (keep));
     }
-    return problems;
+    ok (f ('\treturn Add("a", market["symbol"])\n', 'market map[string]any').includes ('Add("a", market["symbol"])'), 'param keeps Add');
 }
 
 // Block-scoped declarations: a name declared in several sibling blocks resolves at line k when exactly one
@@ -14345,59 +13682,33 @@ function goBlockScopedDeclFunc (lines: string[], masked: string[], start: number
 }
 
 function goBlockScopedDeclPass (content: string): string {
-    if (!/\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== masked.length) {
-        return content;
-    }
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (lines[k].startsWith ('func ')) {
-            start = k;
-            continue;
-        }
-        if ((start >= 0) && (lines[k] === '}')) {
-            goBlockScopedDeclFunc (lines, masked, start, k);
-            start = -1;
-        }
-    }
-    return lines.join ('\n');
+    return goRewriteEachFunc (content, /\b(?:GetArrayLength|GetValue|AddElementToObject|InOp|IsEqual)\(/.test (content), goBlockScopedDeclFunc);
 }
 
-function goBlockScopedDeclCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('go block scoped decl check: ' + label); } };
+function goBlockScopedDeclCheck (ok: SelfTestOk): void {
     const f = (body: string, sig = 'p any') => goBlockScopedDeclPass ('func (this *X) f(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
-    try {
-        const twoBlocks = '\tif a {\n\t\tvar m map[string]any = SafeMapTyped(p, "a")\n\t\t_ = m\n\t} else {\n\t\tvar m map[string]any = SafeMapTyped(p, "b")\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t\tif !IsEqual(m, nil) && GetArrayLength(l) > 0 {\n\t\t}\n\t}\n';
-        let r = f (twoBlocks, 'p any, l []any');
-        ok (r.includes ('if (m == nil) {') && r.includes ('if (m != nil) && len(l) > 0 {'), 'shadowed map local compares natively: ' + r);
-        r = f ('\tvar result map[string]any = map[string]any{}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\t_ = account\n\t}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\tvar code *string = this.SafeString(p, "c")\n\t\tif code == nil {\n\t\t\tcontinue\n\t\t}\n\t\tAddElementToObject(result, code, account)\n\t}\n');
-        ok (r.includes ('result[*code] = account'), 'shadowed never-nil value under a nil-exit key guard: ' + r);
-        r = f ('\tif a {\n\t\tvar s string = "x"\n\t\t_ = s\n\t} else {\n\t\tvar s string = "y"\n\t\tif IsEqual(s, "spot") {\n\t\t}\n\t}\n');
-        ok (r.includes ('if (s == "spot") {'), 'shadowed string literal compare: ' + r);
-        for (const keep of [
-            '\tvar m map[string]any = SafeMapTyped(p, "a")\n\tif a {\n\t\tvar m any = p\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t}\n',            // inner any shadow
-            '\tif a {\n\t\tvar m map[string]any = SafeMapTyped(p, "a")\n\t\t_ = m\n\t}\n\tif IsEqual(m, nil) {\n\t}\n',                         // out of scope
-            '\tvar m map[string]any = nil\n\tm, q := this.G(p)\n\tif IsEqual(m, nil) {\n\t}\n\t_ = q\n',                                       // := rebinding
-            '\tfunc(m any) {\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t}(p)\n\tvar m map[string]any = nil\n\t_ = m\n',                                     // closure param
-            '\tswitch a {\n\tcase 1:\n\t\tvar s string = "x"\n\t\t_ = s\n\tcase 2:\n\t\tif IsEqual(s, "x") {\n\t\t}\n\t}\n',                         // other case clause
-            '\tvar v any = p\n\tif IsEqual(v, nil) {\n\t}\n',
-            '\tvar m map[string]any = map[string]any{}\n\tvar k *string = this.SafeString(p, "a")\n\tif a {\n\t\tvar m any = p\n\t\t_ = m\n\t}\n\tAddElementToObject(m, k, true)\n\tif IsEqual(v, nil) {\n\t}\n',
-        ]) {
-            r = f (keep);
-            ok (/IsEqual\((?:m|s|v), /.test (r), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + r);
-        }
-        r = f ('\tvar m map[string]any = map[string]any{}\n\tif a {\n\t\tvar k *string = this.SafeString(p, "a")\n\t\t_ = k\n\t} else {\n\t\tvar k *string = this.SafeString(p, "b")\n\t\tAddElementToObject(m, k, true)\n\t}\n');
-        ok (r.includes ('AddElementToObject(m, k, true)'), 'unguarded *string key keeps the helper (no guard block): ' + r);
-        { const w = formatGoSource ('selftest.go', 'func (this *X) f(p any) any {\n' + twoBlocks + '\treturn nil\n}\n'); ok (/if \(?m == nil\)? \{/.test (w), 'wired into formatGoSource: ' + w); }
-    } catch (e) {
-        problems.push ('go block scoped decl check threw: ' + e.message);
+    const twoBlocks = '\tif a {\n\t\tvar m map[string]any = SafeMapTyped(p, "a")\n\t\t_ = m\n\t} else {\n\t\tvar m map[string]any = SafeMapTyped(p, "b")\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t\tif !IsEqual(m, nil) && GetArrayLength(l) > 0 {\n\t\t}\n\t}\n';
+    let r = f (twoBlocks, 'p any, l []any');
+    ok (r.includes ('if (m == nil) {') && r.includes ('if (m != nil) && len(l) > 0 {'), 'shadowed map local compares natively: ' + r);
+    r = f ('\tvar result map[string]any = map[string]any{}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\t_ = account\n\t}\n\tfor i := 0; i < 2; i++ {\n\t\tvar account map[string]any = this.Account()\n\t\tvar code *string = this.SafeString(p, "c")\n\t\tif code == nil {\n\t\t\tcontinue\n\t\t}\n\t\tAddElementToObject(result, code, account)\n\t}\n');
+    ok (r.includes ('result[*code] = account'), 'shadowed never-nil value under a nil-exit key guard: ' + r);
+    r = f ('\tif a {\n\t\tvar s string = "x"\n\t\t_ = s\n\t} else {\n\t\tvar s string = "y"\n\t\tif IsEqual(s, "spot") {\n\t\t}\n\t}\n');
+    ok (r.includes ('if (s == "spot") {'), 'shadowed string literal compare: ' + r);
+    for (const keep of [
+        '\tvar m map[string]any = SafeMapTyped(p, "a")\n\tif a {\n\t\tvar m any = p\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t}\n',            // inner any shadow
+        '\tif a {\n\t\tvar m map[string]any = SafeMapTyped(p, "a")\n\t\t_ = m\n\t}\n\tif IsEqual(m, nil) {\n\t}\n',                         // out of scope
+        '\tvar m map[string]any = nil\n\tm, q := this.G(p)\n\tif IsEqual(m, nil) {\n\t}\n\t_ = q\n',                                       // := rebinding
+        '\tfunc(m any) {\n\t\tif IsEqual(m, nil) {\n\t\t}\n\t}(p)\n\tvar m map[string]any = nil\n\t_ = m\n',                                     // closure param
+        '\tswitch a {\n\tcase 1:\n\t\tvar s string = "x"\n\t\t_ = s\n\tcase 2:\n\t\tif IsEqual(s, "x") {\n\t\t}\n\t}\n',                         // other case clause
+        '\tvar v any = p\n\tif IsEqual(v, nil) {\n\t}\n',
+        '\tvar m map[string]any = map[string]any{}\n\tvar k *string = this.SafeString(p, "a")\n\tif a {\n\t\tvar m any = p\n\t\t_ = m\n\t}\n\tAddElementToObject(m, k, true)\n\tif IsEqual(v, nil) {\n\t}\n',
+    ]) {
+        r = f (keep);
+        ok (/IsEqual\((?:m|s|v), /.test (r), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + r);
     }
-    return problems;
+    r = f ('\tvar m map[string]any = map[string]any{}\n\tif a {\n\t\tvar k *string = this.SafeString(p, "a")\n\t\t_ = k\n\t} else {\n\t\tvar k *string = this.SafeString(p, "b")\n\t\tAddElementToObject(m, k, true)\n\t}\n');
+    ok (r.includes ('AddElementToObject(m, k, true)'), 'unguarded *string key keeps the helper (no guard block): ' + r);
+    { const w = formatGoSource ('selftest.go', 'func (this *X) f(p any) any {\n' + twoBlocks + '\treturn nil\n}\n'); ok (/if \(?m == nil\)? \{/.test (w), 'wired into formatGoSource: ' + w); }
 }
 
 // comparisons reach both the per-exchange (formatGoSource) and base-file pass chains
@@ -14449,39 +13760,32 @@ function goIsEqualSafeLiteral (content: string): string {
     return out + content.slice (cursor);
 }
 
-function goIsEqualSafeLiteralSelfTest (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go is equal safe literal: ' + msg); } };
-    try {
-        const f = (body: string) => goIsEqualSafeLiteral ('package ccxt\n\nfunc (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
-        let r = f ('\tif IsEqual(this.SafeString(GetValue(p, "info"), "t"), "RFQ") {\n\t}\n');
-        ok (r.includes ('if this.SafeString(GetValue(p, "info"), "t") != nil && *this.SafeString(GetValue(p, "info"), "t") == "RFQ" {'), 'SafeString literal: ' + r);
-        r = f ('\tvar a bool = (q != nil) && (IsEqual(this.SafeString(p, "t"), "R"))\n');
-        ok (r.includes ('var a bool = (q != nil) && (this.SafeString(p, "t") != nil && *this.SafeString(p, "t") == "R")'), 'parenthesised: ' + r);
-        r = f ('\tvar a bool = !ccxt.IsEqual(this.SafeInteger(p, 1), 1)\n');
-        ok (r.includes ('var a bool = (this.SafeInteger(p, 1) == nil || *this.SafeInteger(p, 1) != 1)'), 'negated SafeInteger: ' + r);
-        r = f ('\tvar a bool = IsEqual(this.SafeBool(p, "c"), true)\n');
-        ok (r.includes ('(this.SafeBool(p, "c") != nil && *this.SafeBool(p, "c") == true)'), 'SafeBool: ' + r);
-        r = f ('\tvar a any = map[string]any{"d": IsEqual(this.SafeStringLower(p, "c"), "x"),}\n');
-        ok (r.includes ('"d": (this.SafeStringLower(p, "c") != nil && *this.SafeStringLower(p, "c") == "x")'), 'SafeStringLower: ' + r);
-        for (const keep of [
-            '\tvar a bool = IsEqual(this.SafeString(p, "c"), 1)\n',
-            '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), "1")\n',
-            '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), 1.5)\n',
-            '\tvar a bool = IsEqual(this.SafeString(p, "c"), q)\n',
-            '\tvar a bool = IsEqual(this.SafeValue(p, "c"), "x")\n',
-            '\tvar a bool = IsEqual(this.SafeString(this.Next(p), "c"), "x")\n',
-            '\tvar a bool = IsEqual(this.SafeString(func() any { return p }(), "c"), "x")\n',
-            '\tvar a bool = IsEqual(this.SafeString(<-ch, "c"), "x")\n',
-        ]) {
-            ok (f (keep).includes ('IsEqual(this.Safe'), 'keeps IsEqual: ' + JSON.stringify (keep));
-        }
-        const own = 'package ccxt\n\nfunc (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n\nfunc (this *X) f(p any) any {\n\treturn IsEqual(this.SafeString(p, "k"), "x")\n}\n';
-        ok (goIsEqualSafeLiteral (own) === own, 'same-file SafeString override keeps IsEqual');
-    } catch (e) {
-        problems.push ('go is equal safe literal threw: ' + e.message);
+function goIsEqualSafeLiteralSelfTest (ok: SelfTestOk): void {
+    const f = (body: string) => goIsEqualSafeLiteral ('package ccxt\n\nfunc (this *X) f(p any) any {\n' + body + '\treturn nil\n}\n');
+    let r = f ('\tif IsEqual(this.SafeString(GetValue(p, "info"), "t"), "RFQ") {\n\t}\n');
+    ok (r.includes ('if this.SafeString(GetValue(p, "info"), "t") != nil && *this.SafeString(GetValue(p, "info"), "t") == "RFQ" {'), 'SafeString literal: ' + r);
+    r = f ('\tvar a bool = (q != nil) && (IsEqual(this.SafeString(p, "t"), "R"))\n');
+    ok (r.includes ('var a bool = (q != nil) && (this.SafeString(p, "t") != nil && *this.SafeString(p, "t") == "R")'), 'parenthesised: ' + r);
+    r = f ('\tvar a bool = !ccxt.IsEqual(this.SafeInteger(p, 1), 1)\n');
+    ok (r.includes ('var a bool = (this.SafeInteger(p, 1) == nil || *this.SafeInteger(p, 1) != 1)'), 'negated SafeInteger: ' + r);
+    r = f ('\tvar a bool = IsEqual(this.SafeBool(p, "c"), true)\n');
+    ok (r.includes ('(this.SafeBool(p, "c") != nil && *this.SafeBool(p, "c") == true)'), 'SafeBool: ' + r);
+    r = f ('\tvar a any = map[string]any{"d": IsEqual(this.SafeStringLower(p, "c"), "x"),}\n');
+    ok (r.includes ('"d": (this.SafeStringLower(p, "c") != nil && *this.SafeStringLower(p, "c") == "x")'), 'SafeStringLower: ' + r);
+    for (const keep of [
+        '\tvar a bool = IsEqual(this.SafeString(p, "c"), 1)\n',
+        '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), "1")\n',
+        '\tvar a bool = IsEqual(this.SafeInteger(p, "c"), 1.5)\n',
+        '\tvar a bool = IsEqual(this.SafeString(p, "c"), q)\n',
+        '\tvar a bool = IsEqual(this.SafeValue(p, "c"), "x")\n',
+        '\tvar a bool = IsEqual(this.SafeString(this.Next(p), "c"), "x")\n',
+        '\tvar a bool = IsEqual(this.SafeString(func() any { return p }(), "c"), "x")\n',
+        '\tvar a bool = IsEqual(this.SafeString(<-ch, "c"), "x")\n',
+    ]) {
+        ok (f (keep).includes ('IsEqual(this.Safe'), 'keeps IsEqual: ' + JSON.stringify (keep));
     }
-    return problems;
+    const own = 'package ccxt\n\nfunc (this *X) SafeString(a any, b any) *string {\n\treturn nil\n}\n\nfunc (this *X) f(p any) any {\n\treturn IsEqual(this.SafeString(p, "k"), "x")\n}\n';
+    ok (goIsEqualSafeLiteral (own) === own, 'same-file SafeString override keeps IsEqual');
 }
 
 // `AddElementToObject(m, k, v)` -> `m[k] = v` when v is a single-assignment map local whose initializer never
@@ -14587,32 +13891,25 @@ function goSplitTopLevelCommas (text: string): string[] {
     return parts;
 }
 
-function goTupleSlotNeverNilCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('go tuple slot never nil: ' + label); } };
+function goTupleSlotNeverNilCheck (ok: SelfTestOk): void {
     const prep = (ret: string) => 'func (this *X) Prep(optionalArgs ...any) []any {\n\tvar params map[string]any = GetArgMap(optionalArgs, 0, map[string]any{})\n'
         + '\tvar request map[string]any = map[string]any{}\n\tif params != nil {\n\t\treturn []any{request, this.Omit(params, "a")}\n\t}\n\treturn ' + ret + '\n}\n';
     const until = 'func (this *X) Until(key string, request map[string]any, optionalArgs ...any) []any {\n\treturn []any{request, nil}\n}\n';
     const caller = (body: string) => 'func (this *X) f(p any) any {\n' + body + '\tAddElementToObject(request, "k", "v")\n\treturn request\n}\n';
     const viaPrep = '\th := this.Prep(p)\n\tvar request map[string]any = MapTyped(h[0])\n';
-    try {
-        ok (formatGoSource ('selftest.go', prep ('[]any{request, params}') + caller (viaPrep)).includes ('request["k"] = "v"'), 'same-file tuple slot 0 local');
-        ok (formatGoSource ('selftest.go', until + caller ('\tvar r0 map[string]any = map[string]any{}\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n')).includes ('request["k"] = "v"'), 'map param fed a never-nil local');
-        for (const keep of [
-            prep ('[]any{nil, params}') + caller (viaPrep),                                              // a nil slot
-            prep ('[]any{request, params}') + caller (viaPrep.replace ('h[0]', 'h[1]')),                 // Omit slot can be nil
-            until + caller ('\tvar r0 map[string]any = SafeMapTyped(p, "r")\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n'),  // nilable arg
-            prep ('[]any{request, params}') + caller (viaPrep + '\th = this.Prep(p)\n'),                  // rebound holder
-            caller (viaPrep),                                                                             // callee not in this file
-        ]) {
-            const r = formatGoSource ('selftest.go', keep);
-            // the tuple-slot proof covers the unguarded write; a nil-guarded write needs no slot proof
-            ok (!/\n\trequest\["k"\] = "v"\n/.test (r), 'no unguarded write without the slot proof: ' + JSON.stringify (keep) + ' -> ' + r);
-        }
-    } catch (e) {
-        problems.push ('go tuple slot never nil threw: ' + e.message);
+    ok (formatGoSource ('selftest.go', prep ('[]any{request, params}') + caller (viaPrep)).includes ('request["k"] = "v"'), 'same-file tuple slot 0 local');
+    ok (formatGoSource ('selftest.go', until + caller ('\tvar r0 map[string]any = map[string]any{}\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n')).includes ('request["k"] = "v"'), 'map param fed a never-nil local');
+    for (const keep of [
+        prep ('[]any{nil, params}') + caller (viaPrep),                                              // a nil slot
+        prep ('[]any{request, params}') + caller (viaPrep.replace ('h[0]', 'h[1]')),                 // Omit slot can be nil
+        until + caller ('\tvar r0 map[string]any = SafeMapTyped(p, "r")\n\th := this.Until("t", r0, p)\n\tvar request map[string]any = MapTyped(h[0])\n'),  // nilable arg
+        prep ('[]any{request, params}') + caller (viaPrep + '\th = this.Prep(p)\n'),                  // rebound holder
+        caller (viaPrep),                                                                             // callee not in this file
+    ]) {
+        const r = formatGoSource ('selftest.go', keep);
+        // the tuple-slot proof covers the unguarded write; a nil-guarded write needs no slot proof
+        ok (!/\n\trequest\["k"\] = "v"\n/.test (r), 'no unguarded write without the slot proof: ' + JSON.stringify (keep) + ' -> ' + r);
     }
-    return problems;
 }
 
 // IsEqual on proven locals: `x, p := this.Handle*AndParams(..)` slot 0 (*string / int64 by the base
@@ -14663,35 +13960,28 @@ function goProvenLocalIsEqual (content: string): string {
     }) as any);
 }
 
-function goProvenLocalIsEqualCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go proven local is equal: ' + msg); } };
-    try {
-        const f = (body: string, sig = 'p any', extra = '') => goProvenLocalIsEqual ('package ccxt\n' + extra + '\nfunc (this *X) f(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
-        let r = f ('\tmarginMode, q := this.HandleMarginModeAndParams("x", p)\n\tif !IsEqual(marginMode, nil) {\n\t}\n\t_ = q\n');
-        ok (r.includes ("if marginMode != nil {"), "margin mode nil: " + r);
-        r = f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tvar a bool = IsEqual(t, "gtc") || ccxt.IsEqual(t, nil)\n\t_ = q\n');
-        ok (r.includes ('var a bool = (t != nil && *t == "gtc") || (t == nil)'), 'string tuple: ' + r);
-        r = f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, 2) {\n\t}\n\tif !IsEqual(g, 1) {\n\t}\n\t_ = q\n');
-        ok (r.includes ('if g == 2 {') && r.includes ('if g != 1 {'), 'int tuple: ' + r);
-        r = f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tif IsEqual(limit, nil) {\n\t}\n\tif IsEqual(limit, 5) {\n\t}\n', 'optionalArgs ...any');
-        ok (r.includes ('if limit == nil {') && r.includes ('IsEqual(limit, 5)'), 'GetArg nil only: ' + r);
-        const keep = [
-            f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tlimit = this.SafeInteger(p, "l")\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
-            f ('\tlimit := GetArg(optionalArgs, 0, 10)\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
-            f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif true {\n\t\tt := p\n\t\t_ = t\n\t}\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n'),
-            f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif IsEqual(t, 1) {\n\t}\n\t_ = q\n'),
-            f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif !IsEqual(g, nil) {\n\t}\n\t_ = q\n'),
-            f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, "2") {\n\t}\n\t_ = q\n'),
-            f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (any, map[string]any) {\n\treturn nil, nil\n}\n'),
-        ];
-        keep.forEach ((k: string, i: number) => ok (k.includes ('IsEqual('), 'negative ' + i + ': ' + k));
-        r = f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (*string, map[string]any) {\n\treturn nil, nil\n}\n');
-        ok (r.includes ('if t == nil {'), 'same-type override: ' + r);
-    } catch (e) {
-        problems.push ('go proven local is equal threw: ' + e.message);
-    }
-    return problems;
+function goProvenLocalIsEqualCheck (ok: SelfTestOk): void {
+    const f = (body: string, sig = 'p any', extra = '') => goProvenLocalIsEqual ('package ccxt\n' + extra + '\nfunc (this *X) f(' + sig + ') any {\n' + body + '\treturn nil\n}\n');
+    let r = f ('\tmarginMode, q := this.HandleMarginModeAndParams("x", p)\n\tif !IsEqual(marginMode, nil) {\n\t}\n\t_ = q\n');
+    ok (r.includes ("if marginMode != nil {"), "margin mode nil: " + r);
+    r = f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tvar a bool = IsEqual(t, "gtc") || ccxt.IsEqual(t, nil)\n\t_ = q\n');
+    ok (r.includes ('var a bool = (t != nil && *t == "gtc") || (t == nil)'), 'string tuple: ' + r);
+    r = f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, 2) {\n\t}\n\tif !IsEqual(g, 1) {\n\t}\n\t_ = q\n');
+    ok (r.includes ('if g == 2 {') && r.includes ('if g != 1 {'), 'int tuple: ' + r);
+    r = f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tif IsEqual(limit, nil) {\n\t}\n\tif IsEqual(limit, 5) {\n\t}\n', 'optionalArgs ...any');
+    ok (r.includes ('if limit == nil {') && r.includes ('IsEqual(limit, 5)'), 'GetArg nil only: ' + r);
+    const keep = [
+        f ('\tlimit := GetArg(optionalArgs, 0, nil)\n\tlimit = this.SafeInteger(p, "l")\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
+        f ('\tlimit := GetArg(optionalArgs, 0, 10)\n\tif IsEqual(limit, nil) {\n\t}\n', 'optionalArgs ...any'),
+        f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif true {\n\t\tt := p\n\t\t_ = t\n\t}\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n'),
+        f ('\tt, q := this.HandleOptionStringAndParams(p, "m", "t")\n\tif IsEqual(t, 1) {\n\t}\n\t_ = q\n'),
+        f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif !IsEqual(g, nil) {\n\t}\n\t_ = q\n'),
+        f ('\tg, q := this.HandleOptionIntegerAndParams(p, "m", "g", 2)\n\tif IsEqual(g, "2") {\n\t}\n\t_ = q\n'),
+        f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (any, map[string]any) {\n\treturn nil, nil\n}\n'),
+    ];
+    keep.forEach ((k: string, i: number) => ok (k.includes ('IsEqual('), 'negative ' + i + ': ' + k));
+    r = f ('\tt, q := this.HandleMarginModeAndParams("x", p)\n\tif IsEqual(t, nil) {\n\t}\n\t_ = q\n', 'p any', '\nfunc (this *X) HandleMarginModeAndParams(m any, o ...any) (*string, map[string]any) {\n\treturn nil, nil\n}\n');
+    ok (r.includes ('if t == nil {'), 'same-type override: ' + r);
 }
 
 function goCompositeKeyAligner (): any {
@@ -14702,27 +13992,20 @@ function goCompositeKeyAligner (): any {
 
 function goArithHelpersWiredCheck (): string[] {
     // proven operands go native, unproven ones keep the helper call, never an inline closure
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-arith-helpers-wired-check-'));
-    const file = path.join (dir, 'x.go');
-    try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        const problems: string[] = [];
-        if (/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')) {
-            problems.push ('inline closure emitted: ' + out);
-        }
-        for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
-            if (!out.includes (want)) {
-                problems.push ('unproven call lost its helper (' + want + '): ' + out);
-            }
-        }
-        if (out.includes ('IsLessThan(n, 10)')) {
-            problems.push ('proven int64 comparison not native: ' + out);
-        }
-        return problems;
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
+    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, b any) any {\n\tvar n int64 = 5\n\tif IsLessThan(n, 10) {\n\t\treturn Multiply(a, 2)\n\t}\n\tif IsGreaterThan(a, b) {\n\t\treturn Subtract(a, b)\n\t}\n\treturn OpNeg(Divide(a, 3))\n}\n');
+    const problems: string[] = [];
+    if (/func\((?:a, b|v) any\) (?:any|bool|float64) \{/.test (out) || out.includes ('import "reflect"')) {
+        problems.push ('inline closure emitted: ' + out);
     }
+    for (const want of [ 'Multiply(a, 2)', 'IsGreaterThan(a, b)', 'Subtract(a, b)', 'OpNeg(Divide(a, 3))' ]) {
+        if (!out.includes (want)) {
+            problems.push ('unproven call lost its helper (' + want + '): ' + out);
+        }
+    }
+    if (out.includes ('IsLessThan(n, 10)')) {
+        problems.push ('proven int64 comparison not native: ' + out);
+    }
+    return problems;
 }
 
 // IsEqual -> native ==/!= where the operand box is provably plain (no scalar pointer, no nil *sync.Map): credential
@@ -14775,36 +14058,29 @@ function goPlainBoxIsEqual (content: string): string {
     return content;
 }
 
-function goPlainBoxIsEqualCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (cond: boolean, msg: string) => { if (!cond) { problems.push ('go plain box is equal: ' + msg); } };
-    try {
-        const f = (body: string, extra = '') => goPlainBoxIsEqual ('package ccxt\n' + extra + '\nfunc (this *X) f(p any, q any) any {\n' + body + '\treturn nil\n}\n');
-        let r = f ('\tif IsEqual(this.ApiKey, nil) || !ccxt.IsEqual(this.PrivateKey, nil) {\n\t}\n');
-        ok (r.includes ('if (this.ApiKey == nil) || (this.PrivateKey != nil) {'), 'credential fields: ' + r);
-        r = f ('\tif !IsEqual(this.Has["fetchTrades"], false) && IsEqual(this.Has["x"], nil) {\n\t}\n');
-        ok (r.includes ('if (this.Has["fetchTrades"] != false) && (this.Has["x"] == nil) {'), 'has rows: ' + r);
-        r = f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n\tvar a bool = !IsEqual(v, \"x\") || IsEqual(v, true)\n');
-        ok (r.includes ('if v == nil {') && r.includes ('var a bool = (v != \"x\") || (v == true)'), 'GetValue local: ' + r);
-        ok (formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n\tif IsEqual(this.Secret, nil) {\n\t}\n\treturn nil\n}\n').includes ('if this.Secret == nil {'), 'wired into formatGoSource');
-        for (const keep of [
-            f ('\tif IsEqual(this.Token, nil) {\n\t}\n'),
-            f ('\tif IsEqual(this.ApiKey, \"\") {\n\t}\n'),
-            f ('\tif IsEqual(this.ApiKey, nil) {\n\t}\n\tthis.ApiKey = this.SafeString(p, \"k\")\n'),
-            f ('\tif IsEqual(this.Has[\"x\"], \"emulated\") {\n\t}\n'),
-            f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, 1) {\n\t}\n'),
-            f ('\tv := GetValue(p, 0)\n\tv = this.SafeString(q, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
-            f ('\tv := GetValue(p, 0)\n\tif true {\n\t\tv := q\n\t\t_ = v\n\t}\n\tif IsEqual(v, nil) {\n\t}\n'),
-            f ('\tv := GetValue(this, \"options\")\n\tif IsEqual(v, nil) {\n\t}\n'),
-            f ('\tvar v any = this.SafeValue(p, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
-            f ('\tif IsEqual(q, nil) {\n\t}\n'),
-        ]) {
-            ok (keep.includes ('IsEqual('), 'keeps IsEqual: ' + keep);
-        }
-    } catch (e) {
-        problems.push ('go plain box is equal threw: ' + e.message);
+function goPlainBoxIsEqualCheck (ok: SelfTestOk): void {
+    const f = (body: string, extra = '') => goPlainBoxIsEqual ('package ccxt\n' + extra + '\nfunc (this *X) f(p any, q any) any {\n' + body + '\treturn nil\n}\n');
+    let r = f ('\tif IsEqual(this.ApiKey, nil) || !ccxt.IsEqual(this.PrivateKey, nil) {\n\t}\n');
+    ok (r.includes ('if (this.ApiKey == nil) || (this.PrivateKey != nil) {'), 'credential fields: ' + r);
+    r = f ('\tif !IsEqual(this.Has["fetchTrades"], false) && IsEqual(this.Has["x"], nil) {\n\t}\n');
+    ok (r.includes ('if (this.Has["fetchTrades"] != false) && (this.Has["x"] == nil) {'), 'has rows: ' + r);
+    r = f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, nil) {\n\t}\n\tvar a bool = !IsEqual(v, \"x\") || IsEqual(v, true)\n');
+    ok (r.includes ('if v == nil {') && r.includes ('var a bool = (v != \"x\") || (v == true)'), 'GetValue local: ' + r);
+    ok (formatGoSource ('selftest.go', 'package ccxt\n\nfunc (this *X) f() any {\n\tif IsEqual(this.Secret, nil) {\n\t}\n\treturn nil\n}\n').includes ('if this.Secret == nil {'), 'wired into formatGoSource');
+    for (const keep of [
+        f ('\tif IsEqual(this.Token, nil) {\n\t}\n'),
+        f ('\tif IsEqual(this.ApiKey, \"\") {\n\t}\n'),
+        f ('\tif IsEqual(this.ApiKey, nil) {\n\t}\n\tthis.ApiKey = this.SafeString(p, \"k\")\n'),
+        f ('\tif IsEqual(this.Has[\"x\"], \"emulated\") {\n\t}\n'),
+        f ('\tv := GetValue(p, 0)\n\tif IsEqual(v, 1) {\n\t}\n'),
+        f ('\tv := GetValue(p, 0)\n\tv = this.SafeString(q, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+        f ('\tv := GetValue(p, 0)\n\tif true {\n\t\tv := q\n\t\t_ = v\n\t}\n\tif IsEqual(v, nil) {\n\t}\n'),
+        f ('\tv := GetValue(this, \"options\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+        f ('\tvar v any = this.SafeValue(p, \"k\")\n\tif IsEqual(v, nil) {\n\t}\n'),
+        f ('\tif IsEqual(q, nil) {\n\t}\n'),
+    ]) {
+        ok (keep.includes ('IsEqual('), 'keeps IsEqual: ' + keep);
     }
-    return problems;
 }
 
 // `x := GetValue(h, 0)` / `x = GetValue(h, 0)` (x an `any` local) where `var h []any = this.P(..)` is unwritten and P is a
@@ -14821,7 +14097,6 @@ function goTupleSlotDerefs (content: string): string {
     if (!/GetValue\(\w+, 0\)/.test (content)) { return content; }
     const lines = content.split ('\n');
     const maskedLines = goTextMaskLiteralsAndComments (content).split ('\n');
-    if (lines.length !== maskedLines.length) { return content; }
     const masked = maskedLines.join ('\n');
     const producers = Object.keys (slot0).filter ((p) => !new RegExp ('(?:^|\\n)func \\(this \\*\\w+\\) ' + p + '\\(').test (masked));
     const { 'blocks': blocks } = goTextBlocks (maskedLines);
@@ -14858,34 +14133,27 @@ function goTupleSlotDerefs (content: string): string {
     return out.join ('\n');
 }
 
-function goTupleSlotDerefsCheck (): string[] {
-    const problems: string[] = [];
-    const ok = (c: boolean, label: string) => { if (!c) { problems.push ('go tuple slot derefs check: ' + label); } };
+function goTupleSlotDerefsCheck (ok: SelfTestOk): void {
     const f = (body: string, pre: string = '') => formatGoSource ('selftest.go', pre + 'func (this *X) f(p any) any {\n\tvar t any = nil\n' + body + '\treturn t\n}\n');
     const d = '\tvar h []any = this.HandleParamString(p, "tag")\n';
-    try {
-        const pos = f (d + '\ttag := GetValue(h, 0)\n\tt = tag\n');
-        ok (pos.includes ('tag := func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n\t\treturn nil\n\t}()'), 'HandleParamString slot 0 inline deref: ' + pos);
-        ok (f ('\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, "m", "k")\n\tt = ccxt.GetValue(h, 0)\n').includes ('t = func() any {\n\t\tif p, _ := h[0].(*bool); p != nil {'), 'assignment to an any local, ccxt-qualified');
-        for (const keep of [
-            '\tvar h []any = this.HandleOptionAndParams(p, "m", "k")\n\tx := GetValue(h, 0)\n\tt = x\n',  // slot 0 is any
-            d + '\th = this.HandleParamString(p, "x")\n\tx := GetValue(h, 0)\n\tt = x\n',                // rebound holder
-            d + '\tvar s string = ""\n\ts = GetValue(h, 0)\n',                                          // typed target
-            '\tif p != nil {\n' + d + '\t}\n\tx := GetValue(h, 0)\n\tt = x\n',                          // declaration block closed
-        ]) {
-            ok (f (keep).includes ('GetValue(h,'), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + f (keep));
-        }
-        ok (!f (d + '\ttag := GetValue(h, 1)\n').includes ('func() any'), 'slot 1 is not a pointer slot');
-        const w = (body: string) => formatGoSource ('selftest.go', 'func (this *X) f(p any, price any) any {\n\tvar request map[string]any = map[string]any{}\n' + body + '\treturn request\n}\n');
-        ok (w ('\tif price != nil {\n\t\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n\t}\n').includes ('\t\trequest["p"] = func() any {\n\t\t\tif v := this.PriceToPrecision("s", price); v != nil {\n\t\t\t\treturn *v\n\t\t\t}\n\t\t\treturn nil\n\t\t}()'), 'base *string call value: ' + w ('\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n'));
-        ok (w ('\tvar c *string = this.SafeString(p, "c")\n\tAddElementToObject(request, "c", c)\n').includes ('if v := c; v != nil {'), 'pointer local value');
-        ok (w ('\tAddElementToObject(request, "c", this.CostToPrecision("s", p))\n').includes ('AddElementToObject('), 'any-returning call keeps helper');
-        ok (formatGoSource ('selftest.go', 'func (this *X) PriceToPrecision(a any, b any) any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n\tAddElementToObject(request, "p", this.PriceToPrecision("s", p))\n\treturn request\n}\n').includes ('AddElementToObject('), 'same-file any override keeps helper');
-        ok (f (d + '\tx := GetValue(h, 0)\n\tt = x\n', 'func (this *X) HandleParamString(a any, b any) []any {\n\treturn nil\n}\n').includes ('GetValue(h, 0)'), 'producer overridden in the file keeps helper');
-    } catch (e) {
-        problems.push ('go tuple slot derefs check threw: ' + e.message);
+    const pos = f (d + '\ttag := GetValue(h, 0)\n\tt = tag\n');
+    ok (pos.includes ('tag := func() any {\n\t\tif p, _ := h[0].(*string); p != nil {\n\t\t\treturn *p\n\t\t}\n\t\treturn nil\n\t}()'), 'HandleParamString slot 0 inline deref: ' + pos);
+    ok (f ('\tvar h []any = this.HandleOptionBoolAndParamsNullable(p, "m", "k")\n\tt = ccxt.GetValue(h, 0)\n').includes ('t = func() any {\n\t\tif p, _ := h[0].(*bool); p != nil {'), 'assignment to an any local, ccxt-qualified');
+    for (const keep of [
+        '\tvar h []any = this.HandleOptionAndParams(p, "m", "k")\n\tx := GetValue(h, 0)\n\tt = x\n',  // slot 0 is any
+        d + '\th = this.HandleParamString(p, "x")\n\tx := GetValue(h, 0)\n\tt = x\n',                // rebound holder
+        d + '\tvar s string = ""\n\ts = GetValue(h, 0)\n',                                          // typed target
+        '\tif p != nil {\n' + d + '\t}\n\tx := GetValue(h, 0)\n\tt = x\n',                          // declaration block closed
+    ]) {
+        ok (f (keep).includes ('GetValue(h,'), 'keeps helper: ' + JSON.stringify (keep) + ' -> ' + f (keep));
     }
-    return problems;
+    ok (!f (d + '\ttag := GetValue(h, 1)\n').includes ('func() any'), 'slot 1 is not a pointer slot');
+    const w = (body: string) => formatGoSource ('selftest.go', 'func (this *X) f(p any, price any) any {\n\tvar request map[string]any = map[string]any{}\n' + body + '\treturn request\n}\n');
+    ok (w ('\tif price != nil {\n\t\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n\t}\n').includes ('\t\trequest["p"] = func() any {\n\t\t\tif v := this.PriceToPrecision("s", price); v != nil {\n\t\t\t\treturn *v\n\t\t\t}\n\t\t\treturn nil\n\t\t}()'), 'base *string call value: ' + w ('\tAddElementToObject(request, "p", this.PriceToPrecision("s", price))\n'));
+    ok (w ('\tvar c *string = this.SafeString(p, "c")\n\tAddElementToObject(request, "c", c)\n').includes ('if v := c; v != nil {'), 'pointer local value');
+    ok (w ('\tAddElementToObject(request, "c", this.CostToPrecision("s", p))\n').includes ('AddElementToObject('), 'any-returning call keeps helper');
+    ok (formatGoSource ('selftest.go', 'func (this *X) PriceToPrecision(a any, b any) any {\n\treturn nil\n}\n' + 'func (this *X) f(p any) any {\n\tvar request map[string]any = map[string]any{}\n\tAddElementToObject(request, "p", this.PriceToPrecision("s", p))\n\treturn request\n}\n').includes ('AddElementToObject('), 'same-file any override keeps helper');
+    ok (f (d + '\tx := GetValue(h, 0)\n\tt = x\n', 'func (this *X) HandleParamString(a any, b any) []any {\n\treturn nil\n}\n').includes ('GetValue(h, 0)'), 'producer overridden in the file keeps helper');
 }
 
 // the helper stores derefScalar(v); for a typed pointer v (a pointer local, or one call of a method whose
@@ -14909,62 +14177,46 @@ function goDerefPointerValue (lines: string[], value: string, valueMasked: strin
     return wrap (value);
 }
 
-// the typed operand comparison pass must run in both write paths (overwriteFileAndFolder and the base chain)
-function goTypedIsEqualWiredCheck (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-typed-is-equal-wired-'));
-    const file = path.join (dir, 'x.go');
-    const body = 'func (this *X) F(p any) any {\n\tvar a *string = this.SafeString(p, "a")\n\tvar b *string = this.SafeString(p, "b")\n\tif IsEqual(a, b) {\n\t\treturn nil\n\t}\n\treturn a\n}\n';
+// what overwriteFileAndFolder writes for `src` (through a throwaway x.go): the wired checks read the full write chain
+function goWrittenThrough (src: string): string {
+    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-wired-check-'));
     try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
-        const out = fs.readFileSync (file, 'utf8');
-        if (!out.includes ('if a == b || (a != nil && b != nil && *a == *b) {')) {
-            return [ 'go markets-by-id write: not wired into overwriteFileAndFolder: ' + out ];
-        }
-        const base = goBaseNativePasses ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
-        if (!base.includes ('if a == b ||')) {
-            return [ 'go markets-by-id write: not wired into the base-methods chain: ' + base ];
-        }
-        return [];
+        const file = path.join (dir, 'x.go');
+        overwriteFileAndFolder (file, src);
+        return fs.readFileSync (file, 'utf8');
     } finally {
         fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
+}
+
+// the typed operand comparison pass must run in both write paths (overwriteFileAndFolder and the base chain)
+function goTypedIsEqualWiredCheck (): string[] {
+    const body = 'func (this *X) F(p any) any {\n\tvar a *string = this.SafeString(p, "a")\n\tvar b *string = this.SafeString(p, "b")\n\tif IsEqual(a, b) {\n\t\treturn nil\n\t}\n\treturn a\n}\n';
+    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
+    if (!out.includes ('if a == b || (a != nil && b != nil && *a == *b) {')) {
+        return [ 'go markets-by-id write: not wired into overwriteFileAndFolder: ' + out ];
+    }
+    const base = goBaseNativePasses ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n' + body);
+    if (!base.includes ('if a == b ||')) {
+        return [ 'go markets-by-id write: not wired into the base-methods chain: ' + base ];
+    }
+    return [];
 }
 
 function goInlineIsEqualWiredCheck (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-inline-is-equal-wired-'));
-    const file = path.join (dir, 'x.go');
-    try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, m map[string]any) any {\n\tif IsEqual(m, nil) {\n\t\treturn nil\n\t}\n\treturn IsEqual(a, "x")\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        return (!out.includes ('return IsEqual(a, "x")') || !out.includes ('\tif m == nil {\n') || out.includes ('reflect') || out.includes ('func(a')) ? [ 'go isEqual inline: not wired into overwriteFileAndFolder: ' + out ] : [];
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
-    }
+    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, m map[string]any) any {\n\tif IsEqual(m, nil) {\n\t\treturn nil\n\t}\n\treturn IsEqual(a, "x")\n}\n');
+    return (!out.includes ('return IsEqual(a, "x")') || !out.includes ('\tif m == nil {\n') || out.includes ('reflect') || out.includes ('func(a')) ? [ 'go isEqual inline: not wired into overwriteFileAndFolder: ' + out ] : [];
 }
 
 function goCaseAffixWiredCheck (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-case-affix-wired-check-'));
-    const file = path.join (dir, 'x.go');
-    try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn ToUpper(a) + ToUpper(s)\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        // proven `string` goes native in plain spelling, the `any` operand keeps the helper, no closure
-        return (!out.includes ('return ToUpper(a) + strings.ToUpper(s)') || !out.includes ('import "strings"') || out.includes ('func(v any)')) ? [ 'go case-affix strings: not wired into overwriteFileAndFolder: ' + out ] : [];
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
-    }
+    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn ToUpper(a) + ToUpper(s)\n}\n');
+    // proven `string` goes native in plain spelling, the `any` operand keeps the helper, no closure
+    return (!out.includes ('return ToUpper(a) + strings.ToUpper(s)') || !out.includes ('import "strings"') || out.includes ('func(v any)')) ? [ 'go case-affix strings: not wired into overwriteFileAndFolder: ' + out ] : [];
 }
 
 function goParseNativeWiredCheck (): string[] {
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-parse-native-wired-check-'));
-    const file = path.join (dir, 'x.go');
-    try {
-        overwriteFileAndFolder (file, 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn this.G(ToString(a), ToString(s))\n}\n');
-        const out = fs.readFileSync (file, 'utf8');
-        return (!out.includes ('this.G(ToString(a), s)') || out.includes ('func(v any)')) ? [ 'go parse native: not wired into overwriteFileAndFolder: ' + out ] : [];
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
-    }
+    const out = goWrittenThrough ('package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *X) F(a any, s string) any {\n\treturn this.G(ToString(a), ToString(s))\n}\n');
+    return (!out.includes ('this.G(ToString(a), s)') || out.includes ('func(v any)')) ? [ 'go parse native: not wired into overwriteFileAndFolder: ' + out ] : [];
 }
 
 // InOp has exactly two outcomes: goNativeInOp / goTypedInopClientMaps / goFieldInOp emit `_, ok := m[k]` on a proven
@@ -14973,23 +14225,16 @@ function goParseNativeWiredCheck (): string[] {
 function goInOpHelperCheck (): string[] {
     const problems: string[] = [];
     const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\n';
-    const dir = fs.mkdtempSync (path.join (os.tmpdir (), 'go-in-op-helper-check-'));
-    try {
-        const cases = [
-            head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
-            'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
-            head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
-        ];
-        for (const [ i, src ] of cases.entries ()) {
-            const file = path.join (dir, 'x' + i + '.go');
-            overwriteFileAndFolder (file, src);
-            const out = fs.readFileSync (file, 'utf8');
-            if (/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)) {
-                problems.push ('unproven InOp must stay a helper call: ' + out);
-            }
+    const cases = [
+        head + 'func (this *X) F(a any) any {\n\treturn InOp(a, "k")\n}\n',
+        'package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n\n' + head.slice (14) + 'func (this *K) F(c any, h any) bool {\n\treturn ccxt.InOp(this.Orderbooks, h)\n}\n',
+        head + 'func (this *K) F(o any, n any) any {\n\tif InOp(o, "a, b") && !InOp(GetValue(o, n), n) {\n\t}\n\treturn nil\n}\n',
+    ];
+    for (const src of cases) {
+        const out = goWrittenThrough (src);
+        if (/func\(a, b any\) bool|AddElementMu|import "reflect"/.test (out) || !/InOp\(/.test (out)) {
+            problems.push ('unproven InOp must stay a helper call: ' + out);
         }
-    } finally {
-        fs.rmSync (dir, { 'recursive': true, 'force': true });
     }
     return problems;
 }
@@ -15027,14 +14272,6 @@ function goNullableStrParamSelfTest (): string[] {
 
 // Split/Join/Replace: a proven non-pointer `string` subject (`[]string` for Join) whose other operands are literals or proven
 // `string`s takes the plain stdlib call; every other site keeps the helper. Operands move verbatim (evaluated once).
-function goStringHelperCloseParen (masked: string, open: number): number {
-    let depth = 0;
-    for (let i = open; i < masked.length; i++) {
-        const c = masked[i];
-        if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; if (depth === 0) { return i; } }
-    }
-    return -1;
-}
 
 function goStringHelperArgSpans (masked: string, open: number, close: number): number[][] {
     const spans: number[][] = [];
@@ -15081,7 +14318,7 @@ export function goStdlibStringHelpers (content: string): string {
     let text = content;
     let used = false;
     for (const call of calls) {
-        const close = goStringHelperCloseParen (masked, call.open);
+        const close = goAddCloseParen (masked, call.open);
         if (close < 0) { continue; }
         const spans = goStringHelperArgSpans (masked, call.open, close);
         if ((spans.length !== ((call.helper === 'Replace') ? 3 : 2)) || spans.some (([ s, e ]) => text.slice (s, e).trim () === '')) { continue; }
@@ -15205,25 +14442,18 @@ export function gb09CredentialStrings (content: string): string {
     return lines.join ('\n');
 }
 
-function gb09Check (): string[] {
-    const problems: string[] = [];
-    const ok = (condition: boolean, message: string) => { if (!condition) { problems.push ('credential fields check: ' + message); } };
-    try {
-        const f = (text: string) => gb09CredentialStrings (text);
-        const nilTest = '\tif this.ApiKey == nil {';
-        ok (f (nilTest).indexOf ('if this.ApiKey == "" {') >= 0, 'nil test prints as the empty-string test: ' + f (nilTest));
-        const pair = '\tvar s bool = (this.PrivateKey != nil) && (this.PrivateKey != "")';
-        ok (f (pair).indexOf ('var s bool = (this.PrivateKey != "")') >= 0, 'nil/empty pair collapses: ' + f (pair));
-        const boxed = '\tif this.Token == nil || this.Login == nil {';
-        ok (f (boxed) === boxed, 'Token/Login stay boxed: ' + f (boxed));
-        const write = '\tthis.ApiKey = this.SafeString(creds, "apiKey", "")';
-        ok (f (write).indexOf ('this.ApiKey = *this.SafeString(creds, "apiKey", "")') >= 0, 'defaulted write derefs: ' + f (write));
-        const nilable = '\tthis.ApiKey = this.SafeString(creds, "apiKey")';
-        ok (f (nilable) === nilable, 'nil-able write keeps the call: ' + f (nilable));
-        const once = f (pair + '\n' + write + '\n' + nilTest);
-        ok (f (once) === once, 'idempotent');
-    } catch (e) {
-        problems.push ('credential fields check threw: ' + e.message);
-    }
-    return problems;
+function gb09Check (ok: SelfTestOk): void {
+    const f = (text: string) => gb09CredentialStrings (text);
+    const nilTest = '\tif this.ApiKey == nil {';
+    ok (f (nilTest).indexOf ('if this.ApiKey == "" {') >= 0, 'nil test prints as the empty-string test: ' + f (nilTest));
+    const pair = '\tvar s bool = (this.PrivateKey != nil) && (this.PrivateKey != "")';
+    ok (f (pair).indexOf ('var s bool = (this.PrivateKey != "")') >= 0, 'nil/empty pair collapses: ' + f (pair));
+    const boxed = '\tif this.Token == nil || this.Login == nil {';
+    ok (f (boxed) === boxed, 'Token/Login stay boxed: ' + f (boxed));
+    const write = '\tthis.ApiKey = this.SafeString(creds, "apiKey", "")';
+    ok (f (write).indexOf ('this.ApiKey = *this.SafeString(creds, "apiKey", "")') >= 0, 'defaulted write derefs: ' + f (write));
+    const nilable = '\tthis.ApiKey = this.SafeString(creds, "apiKey")';
+    ok (f (nilable) === nilable, 'nil-able write keeps the call: ' + f (nilable));
+    const once = f (pair + '\n' + write + '\n' + nilTest);
+    ok (f (once) === once, 'idempotent');
 }

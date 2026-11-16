@@ -136,14 +136,6 @@ function javaIntCounterIndex (lines: string[], lineIndex: number, name: string):
     return false;
 }
 
-function javaMemberRange (lines: string[], lineIndex: number): [number, number] {
-    let start = lineIndex;
-    while (start > 0 && !JAVA_MEMBER_START_RE.test(lines[start])) start--;
-    let end = lineIndex + 1;
-    while (end < lines.length && !JAVA_MEMBER_START_RE.test(lines[end])) end++;
-    return [start, end];
-}
-
 // `Helpers.GetValue(x, k)` on a receiver whose printed declaration is `List<Object>` (int literal or int
 // counter index) or `WsOrderBook` (a key its containsKey always answers) -> the helper's own branch,
 // with its null / out-of-range answers kept explicit; every other receiver keeps the helper
@@ -3797,64 +3789,6 @@ class NewTranspiler {
         return result.join('\n');
     }
 
-    /**
-     * Remove "return null;" after if { return } else { ...return } where BOTH branches
-     * guarantee a return. Uses brace-depth to find the exact else block boundaries,
-     * then checks that the else block's last statement (at depth 0 within the block) is a return
-     * and the if block's statement just before "} else" is also a return.
-     */
-    removeReturnNullAfterCompleteIfElse(content: string): string {
-        const lines = content.split('\n');
-        const result: string[] = [];
-        for (let i = 0; i < lines.length; i++) {
-            if (lines[i].trim() === 'return null;'
-                && i + 1 < lines.length && isAsyncLambdaClose(lines[i + 1].trim())) {
-                let j = i - 1;
-                while (j >= 0 && lines[j].trim() === '') j--;
-                if (j >= 0 && lines[j].trim() === '}') {
-                    // Find matching { using depth tracking
-                    let depth = 0;
-                    let elseOpen = -1;
-                    for (let k = j; k >= 0; k--) {
-                        for (let c = lines[k].length - 1; c >= 0; c--) {
-                            if (lines[k][c] === '}') depth++;
-                            else if (lines[k][c] === '{') depth--;
-                        }
-                        if (depth === 0) {
-                            elseOpen = k;
-                            break;
-                        }
-                    }
-                    if (elseOpen >= 0 && elseOpen > 0 && lines[elseOpen - 1].trim() === '} else') {
-                        // Check else block: last non-empty/non-comment/non-brace line is return
-                        let elseLastReturn = false;
-                        for (let k = j - 1; k > elseOpen; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}' || t === '{') continue;
-                            elseLastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        // Check if block: line before "} else" should be return
-                        let ifLastReturn = false;
-                        const elseKeyLine = elseOpen - 1; // "} else" line
-                        // Find the line before } in "} else" — scan backward
-                        for (let k = elseKeyLine - 1; k >= 0; k--) {
-                            const t = lines[k].trim();
-                            if (t === '' || t.startsWith('//') || t === '}' || t === '{') continue;
-                            ifLastReturn = t.startsWith('return ');
-                            break;
-                        }
-                        if (elseLastReturn && ifLastReturn) {
-                            continue; // Skip unreachable return null;
-                        }
-                    }
-                }
-            }
-            result.push(lines[i]);
-        }
-        return result.join('\n');
-    }
-
     replaceImportedRestClasses(content: string, imports: any[]) {
         for (const imp of imports) {
             // { name: "hitbtc", path: "./hitbtc.js", isDefault: true, }
@@ -4903,87 +4837,6 @@ class NewTranspiler {
         }
     }
 
-    // ---------------------------------------------------------------------------------------------
-    transpileWsOrderbookTestsToCSharp(outDir: string) {
-
-        const jsFile = './ts/src/pro/test/base/test.orderBook.ts';
-        const csharpFile = `${outDir}/Ws/test.orderBook.cs`;
-
-        log.magenta('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// --------------------------------------------------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// --------------------------------------------------------------------------------------------------------------------\n');
-        content = this.regexAll(content, [
-            [/typeof\((\w+)\)/g, '$1'], // tmp fix
-            [/object\s*(\w+)\s=\sgetValue\((\w+),\s*"(bids|asks)".+/g, 'var $1 = $2.$3;'], // tmp fix
-            [/object  = functions;/g, ''], // tmp fix
-            [/\s*public\sobject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim()
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
-        const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder(csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
-    transpileWsCacheTestsToCSharp(outDir: string) {
-
-        const jsFile = './ts/src/pro/test/base/test.cache.ts';
-        const csharpFile = `${outDir}/Ws/test.cache.cs`;
-
-        log.magenta('Transpiling from', (jsFile as any).yellow)
-
-        const csharp = this.transpiler.transpileCSharpByPath(jsFile);
-        let content = csharp.content;
-        const splitParts = content.split('// ----------------------------------------------------------------------------');
-        splitParts.shift();
-        content = splitParts.join('\n// ----------------------------------------------------------------------------\n');
-        content = this.regexAll(content, [
-            [/typeof\((\w+)\)/g, '$1'], // tmp fix
-            [/typeof\(timestampCache\)/g, 'timestampCache'], // tmp fix
-            [/object  = functions;/g, ''], // tmp fix
-            [/\s*public\sobject\sequals(([^}]|\n)+)+}/gm, ''], // remove equals
-            [/assert/g, 'Assert'],
-        ]).trim()
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '        ' + line).join('\n');
-
-        const file = [
-            'using ccxt.pro;',
-            'namespace Tests;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n')
-
-        log.magenta('→', (csharpFile as any).yellow)
-
-        overwriteFileAndFolder(csharpFile, file);
-    }
-
-    // ---------------------------------------------------------------------------------------------
 
     transpileCryptoTestsToJava(outDir: string, force = true) {
 
@@ -5026,62 +4879,10 @@ class NewTranspiler {
         overwriteFileAndFolder(csharpFile, file);
     }
 
-    transpileExchangeTest(name: string, path: string): [string, string] {
-        const java = this.transpiler.transpileJavaByPath(path);
-        let content = java.content;
-
-        const parsedName = name.replace('.ts', '');
-        const parsedParts = parsedName.split('.');
-        const finalName = parsedParts[0] + this.capitalize(parsedParts[1]);
-
-        content = this.regexAll(content, [
-            [/assert/g, 'Assert'],
-            [/object exchange/g, 'Exchange exchange'],
-            [/function test/g, finalName],
-        ]).trim()
-        // cast callDynamically to CompletableFuture when .join() is called on the result
-        content = content.replace(/\(Helpers\.callDynamically\(([^)]+(?:\([^)]*\))*[^)]*)\)\)\.join\(\)/g, '((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically($1)).join()');
-
-        const contentLines = content.split('\n');
-        const contentIdented = contentLines.map(line => '    ' + line).join('\n');
-
-        const className = 'Test' + this.capitalize(parsedName.replace('test.', ''))
-        const file = [
-            'package tests.exchange;',
-            'import io.github.ccxt.Helpers;',
-            'import io.github.ccxt.Exchange;',
-            JAVA_ASYNC_SUPPLIER_IMPORT,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            `public class ${className} {`,
-            contentIdented,
-            '}',
-        ].join('\n')
-        return [className, file];
-    }
-
-    async transpileExchangeTestsToJava() {
-        const inputDir = './ts/src/test/exchange/';
-        const outDir = GENERATED_TESTS_FOLDER;
-        const ignore = [
-            // 'exportTests.ts',
-            // 'test.fetchLedger.ts',
-            'test.throttler.ts',
-            // 'test.fetchOrderBooks.ts', // uses spread operator
-        ]
-
-        const inputFiles = fs.readdirSync('./ts/src/test/exchange');
-        const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file));
-        const transpiledFiles = files.map(file => this.transpileExchangeTest(file, inputDir + file));
-        await Promise.all(transpiledFiles.map((file, idx) => writeFile(outDir + file[0] + '.java', file[1])))
-    }
-
     transpileBaseTestsToJava(force = true) {
         const outDir = BASE_TESTS_FOLDER;
         this.transpileBaseTests(outDir, force);
         this.transpileCryptoTestsToJava(outDir, force);
-        // this.transpileWsCacheTestsToCSharp(outDir);
-        // this.transpileWsOrderbookTestsToCSharp(outDir);
     }
 
     transpileBaseTests(outDir: string, force = true) {
@@ -5763,6 +5564,34 @@ function auditClassify (repo: string, target: string | null, files: Map<string, 
 }
 
 // synthetic repo: the gate must flag an injected ternary and an 'other' edit, and pass a clean retype
+// Writes throwaway ts/src probe files (first one transpiled), lets `check` inspect the Java, then removes them
+function probeSelfTest (files: [string, string[]][], check: (out: string, problems: string[]) => void, threw = 'self-test threw'): string[] {
+    const problems: string[] = [];
+    const paths = files.map(([ name ]) => path.join(process.cwd(), 'ts', 'src', `${name}${process.pid}.ts`));
+    try {
+        files.forEach(([ , lines ], i) => fs.writeFileSync(paths[i], lines.join('\n')));
+        check(new NewTranspiler().transpiler.transpileJavaByPath(paths[0]).content as string, problems);
+    } catch (e: any) {
+        problems.push(`${threw}: ${e.message}`);
+    } finally {
+        for (const p of paths) fs.rmSync(p, { force: true });
+    }
+    return problems;
+}
+
+type SnippetCase = [string, string, string | undefined];
+
+// expect set: pass(wrap(body)) must include it and satisfy `extra`; unset: it must equal `unchanged(body)`
+function runSnippetCases (cases: SnippetCase[], wrap: (body: string) => string, pass: (src: string) => string, label: (name: string, out: string) => string, unchanged = wrap, extra = (out: string) => true): string[] {
+    const problems: string[] = [];
+    for (const [ name, body, expect ] of cases) {
+        const out = pass (wrap (body));
+        const ok = expect === undefined ? out === unchanged (body) : out.includes (expect) && extra (out);
+        if (!ok) problems.push (label (name, out));
+    }
+    return problems;
+}
+
 function auditSelfTest (): string[] {
     const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'java-string-audit-'));
     const problems: string[] = [];
@@ -5809,8 +5638,6 @@ function auditSelfTest (): string[] {
 
 // section 50 is fail-closed: a nested, closure or Object-returning (safeDict / safeValue) write keeps `Object`
 function mapLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzmaplocalsselftest extends Exchange {',
@@ -5819,28 +5646,19 @@ function mapLocalsSelfTest (): string[] {
         "    closure (params = {}) { let p = this.extend (params, {}); const f = () => { p = this.safeValue (params, 'q'); }; f (); return this.omit (p, 'a'); }",
         "    positive (params = {}) { let q = this.extend (params, {}); if (params['z'] !== undefined) { q = this.extend (q, {}); } return this.omit (q, 'a'); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzmaplocalsselftest', body ] ], (out, problems) => {
         if (!/\bObject p = /.test(out)) problems.push("map locals: 'p' has an unproven write and must stay Object");
         // the Map-locals pass types the nested safeDict writes and prints their checkcast
         for (const name of [ 'data', 'raw' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out) && !new RegExp(`\\b${name} = \\(java\\.util\\.Map<String, Object>\\) this\\.safeDict\\(`).test(out)) problems.push(`map locals: '${name}' safeDict write needs Object or a checkcast`);
         }
         if (!/Map<String, Object> q = /.test(out)) problems.push("map locals: 'q' (every write a Map) must print Map<String, Object>");
-    } catch (e: any) {
-        problems.push(`map locals self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    }, 'map locals self-test threw');
 }
 
 // A fresh map local printed Object puts natively; null, published or merged receivers keep the helper
 function javaFreshObjectMapWritesSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzh2kj02selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzh2kj02selftest extends Exchange {',
@@ -5849,22 +5667,15 @@ function javaFreshObjectMapWritesSelfTest (): string[] {
         "    published (code: string) { let c: any = {}; c = this.mergeBalanceAccount (c, code, this.account ()); this.balance[code] = c; c['free'] = 1; return c; }",
         "    unkeyed (k: any) { let d: any = {}; d = this.mergeBalanceAccount (d, 'x', this.account ()); d[k] = 1; return d; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzh2kj02selftest', body ] ], (out, problems) => {
         if (/Helpers\.addElementToObject\(a, /.test(out)) problems.push("fresh local 'a' must put natively");
         for (const name of [ 'c', 'd' ]) {
             if (!new RegExp(`Helpers\\.addElementToObject\\(${name}, `).test(out)) problems.push(`'${name}' is unproven and must keep the helper`);
         }
         // the Map-locals pass declares 'b' a Map; only the declared-Map non-null put may fire, never the cast put
         if (/\(\(java\.util\.Map<String, Object>\)b\)\.put\(/.test(out)) problems.push("'b' is unproven and must not take the cast put");
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 function runStringTypeAudit (): void {
@@ -6670,18 +6481,14 @@ if (isMainEntry(metaUrl)) {
 
 // Integer-literal counters print `long`; a counter read as a value (map literal, call argument) or captured stays Object
 function javaCounterLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj10selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj10selftest extends Exchange {',
         "    pos (s: string, max: number) { let a = 0; let b = 1; while (a <= max && s[a] === '0') { a = a + 1; } b += 2; b++; return [ a > 3, a === 2, b - 1 ]; }",
         "    neg (params = {}) { let c = 0; c += 1; let d = 0; d = d + 1; const r = { 'page': d }; let e = 0; const f = () => { e = e + 1; }; f (); return [ this.safeString (params, c), r, e > 1 ]; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj10selftest', body ] ], (out, problems) => {
         for (const name of [ 'a', 'b' ]) {
             if (!new RegExp(`\\blong ${name} = `).test(out)) problems.push(`counter '${name}' must print long`);
         }
@@ -6689,18 +6496,11 @@ function javaCounterLocalsSelfTest (): string[] {
         for (const name of [ 'c', 'd', 'e' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' is read as a value or captured and must stay Object`);
         }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Object locals whose init and every write are Maps print Map<String, Object>; any other write keeps Object
 function javaMapLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj11selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj11selftest extends Exchange {',
@@ -6711,10 +6511,8 @@ function javaMapLocalsSelfTest (): string[] {
         "    fieldWrite (code: string) { let f = this.account (); if (code in this.balance) { f = this.balance[code]; } f['free'] = '1'; return f; }",
         "    otherDefault (r: any) { const g = this.safeDict (r, 'k', r); return g['q']; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj11selftest', body ] ], (out, problems) => {
         if (!/Map<String, Object> a = \(java\.util\.Map<String, Object>\) this\.safeDict\(/.test(out)) problems.push("'a' (safeDict + omit-self) must print Map<String, Object> with a checkcast");
         if (!/Map<String, Object> b = (\(java\.util\.Map<String, Object>\) )?this\.depositWithdrawFee\(/.test(out)) problems.push("'b' (fresh-map method) must print Map<String, Object>");
         if (!/Map<String, Object> c = /.test(out)) problems.push("'c' (safeDict + Map copy) must print Map<String, Object>");
@@ -6722,58 +6520,36 @@ function javaMapLocalsSelfTest (): string[] {
         for (const name of [ 'e', 'f', 'g' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Snippet checks for the native arithmetic pass (`--audit-string-types --self-test`)
 function javaTypedArithmeticSelfTest (): string[] {
-    const problems: string[] = [];
-    {
-        const assert = {
-            ok: (cond: any, msg?: string) => { if (!cond) { problems.push (`arithmetic: ${String (msg).slice (0, 300)}`); } },
-            strictEqual: (a: any, b: any) => { if (a !== b) { problems.push (`arithmetic: ${a} !== ${b}`); } },
-        };
-        const console = { log: (...a: any[]) => { const s = a.join (' '); if (s.startsWith ('FAIL')) { problems.push (`arithmetic: ${s.slice (0, 300)}`); } } };
-
-        const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
-        const run = (body: string) => nativeJavaTypedArithmetic (member (body));
-        const cases: [string, string, string | undefined][] = [
-            // positives
-            [ 'getArrayLength local', '        Integer n = Helpers.getArrayLength(x);\n        Object a = Helpers.GetValue(x, Helpers.subtract(n, 1));', 'Helpers.GetValue(x, (n - 1L))' ],
-            [ 'block guard', '        if (!java.util.Objects.equals(limit, null))\n        {\n            Object p = Helpers.multiply(limit, 2);\n        }', 'Object p = (limit * 2L);' ],
-            [ 'early exit', '        if (java.util.Objects.equals(since, null))\n        {\n            throw new Error("x") ;\n        }\n        Object e = Helpers.add(this.seconds(), since);', 'Object e = (this.seconds() + since);' ],
-            [ 'all-int widened', '        int d = this.parseTimeframe(x);\n        Object e = this.sum(x, Helpers.multiply(d, d));', 'this.sum(x, (((long) d) * d))' ],
-            [ 'divide as double', '        Long n = 5L;\n        Object e = this.sum(x, Helpers.divide(n, 1000));', 'this.sum(x, (((double) n) / ((double) 1000)))' ],
-            [ 'ternary default', '        Long r = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;\n        Object e = this.sum(x, Helpers.multiply(r, 3));', 'this.sum(x, (r * 3L))' ],
-            // negatives: nullable, unguarded, guard after a later write, ternary arm, Object operand, double operand
-            [ 'nullable param', '        Object p = Helpers.multiply(limit, 2);', undefined ],
-            [ 'safeInteger no default', '        Long v = this.safeInteger(x, "k");\n        Object p = Helpers.subtract(v, 1);', undefined ],
-            [ 'ternary arm', '        Long n = 5L;\n        Object p = (x == null) ? Helpers.add(n, 1) : x;', undefined ],
-            [ 'object operand', '        Object p = Helpers.add(x, 1);', undefined ],
-            [ 'double multiply', '        Double d = 1.5;\n        Object p = this.sum(x, Helpers.multiply(d, 2));', undefined ],
-            [ 'guard then write', '        if (!java.util.Objects.equals(limit, null))\n        {\n            limit = this.safeInteger(x, "k");\n            Object p = Helpers.multiply(limit, 2);\n        }', undefined ],
-        ];
-        let failed = 0;
-        for (const [ name, body, expect ] of cases) {
-            const out = run (body);
-            const ok = expect === undefined ? out === member (body) : out.includes (expect);
-            if (!ok) { failed++; console.log ('FAIL', name, '\n', out); }
-        }
-        assert.strictEqual (failed, 0);
-    }
+    const member = (body: string) => `    public Object m(Long since, Long limit, Object x)\n    {\n${body}\n    }\n`;
+    const cases: [string, string, string | undefined][] = [
+        // positives
+        [ 'getArrayLength local', '        Integer n = Helpers.getArrayLength(x);\n        Object a = Helpers.GetValue(x, Helpers.subtract(n, 1));', 'Helpers.GetValue(x, (n - 1L))' ],
+        [ 'block guard', '        if (!java.util.Objects.equals(limit, null))\n        {\n            Object p = Helpers.multiply(limit, 2);\n        }', 'Object p = (limit * 2L);' ],
+        [ 'early exit', '        if (java.util.Objects.equals(since, null))\n        {\n            throw new Error("x") ;\n        }\n        Object e = Helpers.add(this.seconds(), since);', 'Object e = (this.seconds() + since);' ],
+        [ 'all-int widened', '        int d = this.parseTimeframe(x);\n        Object e = this.sum(x, Helpers.multiply(d, d));', 'this.sum(x, (((long) d) * d))' ],
+        [ 'divide as double', '        Long n = 5L;\n        Object e = this.sum(x, Helpers.divide(n, 1000));', 'this.sum(x, (((double) n) / ((double) 1000)))' ],
+        [ 'ternary default', '        Long r = (((java.util.Objects.equals(limit, null)))) ? 100L : limit;\n        Object e = this.sum(x, Helpers.multiply(r, 3));', 'this.sum(x, (r * 3L))' ],
+        // negatives: nullable, unguarded, guard after a later write, ternary arm, Object operand, double operand
+        [ 'nullable param', '        Object p = Helpers.multiply(limit, 2);', undefined ],
+        [ 'safeInteger no default', '        Long v = this.safeInteger(x, "k");\n        Object p = Helpers.subtract(v, 1);', undefined ],
+        [ 'ternary arm', '        Long n = 5L;\n        Object p = (x == null) ? Helpers.add(n, 1) : x;', undefined ],
+        [ 'object operand', '        Object p = Helpers.add(x, 1);', undefined ],
+        [ 'double multiply', '        Double d = 1.5;\n        Object p = this.sum(x, Helpers.multiply(d, 2));', undefined ],
+        [ 'guard then write', '        if (!java.util.Objects.equals(limit, null))\n        {\n            limit = this.safeInteger(x, "k");\n            Object p = Helpers.multiply(limit, 2);\n        }', undefined ],
+    ];
+    const problems = runSnippetCases(cases, member, nativeJavaTypedArithmetic, (name, out) => `arithmetic: ${[ 'FAIL', name, '\n', out ].join (' ').slice (0, 300)}`);
+    if (problems.length) problems.push (`arithmetic: ${problems.length} !== 0`);
     return problems;
 }
 
 // Venue-only methods called with typed arguments print typed parameters; a written,
 // mistyped, `+`-left or name-referenced parameter keeps Object
 function javaParamTypesSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj12selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj12selftest extends Exchange {',
@@ -6784,10 +6560,8 @@ function javaParamTypesSelfTest (): string[] {
         "    zzjD (code: string) { return code; }",
         "    zzjE (code: string) { return code; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj12selftest', body ] ], (out, problems) => {
         if (!/zzjA\(String code, Boolean flag, java\.util\.List<Object> rows\)/.test(out)) problems.push('zzjA must print String/Boolean/List<Object> params');
         if (!/this\.zzjA\(s, java\.util\.Objects\.equals\(s, "b"\), \(java\.util\.List<Object>\) \(this\.safeList\(/.test(out)) problems.push('zzjA call must pass the String local bare and checkcast the List');
         // A plain `string` annotation prints String on a generated venue method whether the
@@ -6796,18 +6570,11 @@ function javaParamTypesSelfTest (): string[] {
         for (const name of [ 'zzjB', 'zzjC', 'zzjD', 'zzjE' ]) {
             if (!new RegExp(`${name}\\(String code\\)`).test(out)) problems.push(`java param types self test: ${name} must print String code`);
         }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Object locals whose init and every write are Lists print List<Object>; any other write keeps Object
 function javaListLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj13selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj13selftest extends Exchange {',
@@ -6825,10 +6592,8 @@ function javaListLocalsSelfTest (): string[] {
         "    anyCast (r: any) { const s = this.toArray (r) as any; let t = s; t = this.sortBy (t, 'x'); return t.length; }",
         "    fbl (r: any) { let o = this.filterBySinceLimit (r, 1, 2); if (o.length > 1) { o = this.sortBy (o, 'x'); } return o[0]; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj13selftest', body ] ], (out, problems) => {
         if (!/List<Object> a = /.test(out)) problems.push("'a' ([] + arrayConcat) must print List<Object>");
         if (!/a = \(java\.util\.List<Object>\) this\.arrayConcat\(/.test(out)) problems.push("'a' arrayConcat write needs a checkcast");
         if (!/List<Object> b = \(java\.util\.List<Object>\) this\.safeList\(/.test(out)) problems.push("'b' (safeList + safeList write) must print List<Object> with a checkcast");
@@ -6845,18 +6610,11 @@ function javaListLocalsSelfTest (): string[] {
         }
         if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Object locals whose init and every write are one proven scalar box print it; a mixed write keeps Object
 function javaScalarLocalsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj14selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj14selftest extends Exchange {',
@@ -6867,10 +6625,8 @@ function javaScalarLocalsSelfTest (): string[] {
         "    mixed (p: any) { let e = this.safeInteger (p, 'k'); e = this.sum (e, 1); return e; }",
         "    product (p: any) { const g = this.safeIntegerProduct2 (p, 'a', 'b', 1000, 0); return g; }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj14selftest', body ] ], (out, problems) => {
         if (!/Long a = \(Long\) this\.safeIntegerOmitZero\(/.test(out)) problems.push("'a' (safeIntegerOmitZero, no default) must print Long with a checkcast");
         if (!/Boolean b = \(Boolean\) this\.safeBool\(/.test(out)) problems.push("'b' (safeBool, Boolean default) must print Boolean");
         if (!/String c = this\.safeString\(/.test(out)) problems.push("'c' (safeString + safeString2 write) must print String");
@@ -6878,19 +6634,12 @@ function javaScalarLocalsSelfTest (): string[] {
         for (const name of [ 'e', 'g' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default/arm and must stay Object`);
         }
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Scalar-proven locals compared to each other print a value compare; a typed-param callee declared above its caller
 // still reads the caller's typed local
 function javaParamTypesPreScanSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj15selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         'export default class zzj15selftest extends Exchange {',
@@ -6898,27 +6647,17 @@ function javaParamTypesPreScanSelfTest (): string[] {
         "    seq (p: any) { const a = this.safeInteger (p, 'a'); const b = this.safeInteger (p, 'b'); if (a !== b) { return 1; } return a === b; }",
         "    run (r: any) { const s = this.safeString (r, 'a'); return this.zzjHelper (s); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj15selftest', body ] ], (out, problems) => {
         if (!/Long a = this\.safeInteger\(/.test(out) || !/Long b = this\.safeInteger\(/.test(out)) problems.push("'a'/'b' compared box-to-box must print Long (box-to-box veto lifted)");
         if (!/!java\.util\.Objects\.equals\(a, b\)/.test(out) || !/[^!]java\.util\.Objects\.equals\(a, b\)/.test(out)) problems.push('Long === / !== Long must print Objects.equals');
         if (/\ba [!=]= b\b/.test(out)) problems.push('no reference ==/!= on two Long boxes');
         if (!/zzjHelper\(String code\)/.test(out)) problems.push('zzjHelper above its caller must print String code (helper return pre-scan)');
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 // `: Str` / `: Int` / `: Num` venue methods print String / Long / Double once their bodies print
 function javaStringReturnsSelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzj17selftest${process.pid}.ts`);
-    const child = path.join(process.cwd(), 'ts', 'src', `zzj17selftestchild${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         "import type { Str, Int, Num } from './base/types.js';",
@@ -6931,18 +6670,15 @@ function javaStringReturnsSelfTest (): string[] {
         "    useU (p: any) { const u = this.unboxed (p); return (u > 1) ? u : 0; }",
         "    over (x: any): Str { const u = this.safeString (x, 'u'); return u; }",
         '}',
-    ].join('\n');
+    ];
     const childBody = [
         `import base from './zzj17selftest${process.pid}.js';`,
         "import type { Str } from './base/types.js';",
         `export default class zzj17selftestchild${process.pid} extends base {`,
         "    over (x: any): Str { return this.safeValue (x, 'u'); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        fs.writeFileSync(child, childBody);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzj17selftest', body ], [ 'zzj17selftestchild', childBody ] ], (out, problems) => {
         if (!/public String pairSym\(/.test(out)) problems.push("pairSym (callee printed after its caller, String local return) must print String");
         if (!/String a = this\.pairSym\(/.test(out)) problems.push("the caller local of pairSym must print String");
         if (!/public Long tif\(/.test(out)) problems.push("tif (Int, safeInteger return) must print Long");
@@ -6950,13 +6686,7 @@ function javaStringReturnsSelfTest (): string[] {
         if (!/public Double fromW\(/.test(out)) problems.push("fromW (Num, parseNumber/undefined arms) must print Double");
         if (!/public Object unboxed\(/.test(out)) problems.push("unboxed has a ternary-arm caller and must stay Object");
         if (!/public Object over\(/.test(out)) problems.push("over is redeclared by a descendant and must stay Object");
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-        fs.rmSync(child, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Ordered comparisons / Math.max-min over non-null numeric expressions (runs after the typed arithmetic + long-limit passes)
@@ -7080,7 +6810,6 @@ export function nativeJavaNonNullCompare (content: string): string {
 }
 
 function javaNonNullCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         [ 'diff vs literal', '        Long a = 5L;\n        boolean b = Helpers.isGreaterThan((a - since), 86400000);', 'boolean b = ((a - since) > 86400000);' ],
@@ -7099,12 +6828,7 @@ function javaNonNullCompareSelfTest (): string[] {
         [ 'double lt compound', '        boolean b = Helpers.isLessThan((d * 2.0), since);', undefined ],
         [ 'override ms', '        boolean b = Helpers.isLessThan(this.milliseconds(), 5L);\n    }\n    public Long milliseconds()\n    {\n        return 1L;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNonNullCompare (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 400)}`);
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaNonNullCompare, (name, out) => `compare ${name}: ${out.slice (0, 400)}`);
 }
 
 // The unwritten first parameter of setLeverage / cancelAllOrdersAfter / handleErrors compared to,
@@ -7301,7 +7025,6 @@ function javaCoreArgIdentitiesSelfTest (): string[] {
 
 // Snippet checks for the extended native arithmetic pass (`--audit-string-types --self-test`)
 function javaPrimitiveArithmeticSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives
@@ -7319,17 +7042,11 @@ function javaPrimitiveArithmeticSelfTest (): string[] {
         [ 'object operand', '        Object e = this.sum(x, Helpers.add(this.parseToInt(x), 1));', undefined ],
         [ 'nullable Double', '        Object e = this.sum(x, Helpers.add(d, 1));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaPrimitiveArithmetic (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaPrimitiveArithmetic, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Snippet checks for the Object-local retype that lets the primitive arithmetic go native
 function javaNumericLocalsRetypeSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Long limit, Object x, String s)\n    {\n        Long now = this.milliseconds();\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives
@@ -7342,12 +7059,7 @@ function javaNumericLocalsRetypeSelfTest (): string[] {
         [ 'object write', '        Object delta = (duration * 2L);\n        delta = x;\n        Object t = Helpers.subtract(now, delta);', undefined ],
         [ 'ternary arm read', '        Object delta = (duration * 2L);\n        Object t = Helpers.subtract(now, delta);\n        Object u = (s == null) ? delta : x;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumericLocalsRetype (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaNumericLocalsRetype, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Object/var locals whose every write is a proven Map (null, a Map literal / newMap, a Map-declared
@@ -7569,7 +7281,6 @@ export function nativeJavaMapLocalsRetype (content: string): string {
 
 // Snippet checks for the Map-local retype (`--audit-string-types --self-test`)
 function javaMapLocalsRetypeSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Bitget extends BitgetApi\n{\n    public Object m(Map<String, Object> parameters, Object p)\n    {\n${body}\n    }\n}`;
     const run = (body: string) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (cls (body)));
     const cases: [string, string, string | undefined][] = [
@@ -7588,12 +7299,7 @@ function javaMapLocalsRetypeSelfTest (): string[] {
         [ 'String cast use', '        Object o = this.omit(parameters, "a");\n        String s = (String) o;\n        return this.f(Helpers.toMapArg(o));', undefined ],
         [ 'other write', '        Object o = this.omit(parameters, "a");\n        o = this.safeValue(parameters, "x");\n        return this.f(Helpers.toMapArg(o));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = run (body);
-        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`map locals: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, (src) => nativeJavaCoreArgIdentities (nativeJavaMapLocalsRetype (src)), (name, out) => `map locals: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
 
 // Snippet checks for the Object-local box retype (`--audit-string-types --self-test`)
@@ -7703,7 +7409,6 @@ export function nativeJavaNumberParamCompare (content: string): string {
 }
 
 function javaNumberParamCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (pkg: string, name: string, member: string) => `package io.github.ccxt.exchanges${pkg};\n\npublic class ${name} extends X\n{\n${member}    }\n}\n`;
     const sbe = (body: string) => cls ('.pro', 'Paradex', `    public Map<String, Object> parseSbeTrade(Object frameHex, Object blockLength, Object frameLength)\n    {\n${body}\n`);
     const cases: [string, string, string | undefined][] = [
@@ -7719,12 +7424,7 @@ function javaNumberParamCompareSelfTest (): string[] {
         [ 'object local', cls ('', 'Bitget', '    public Object m(Object a, Object b)\n    {\n        Object x = a;\n        if (Helpers.isGreaterThan(this.sum(a, b), x))\n'), undefined ],
         [ 'sum override', cls ('', 'Bitget', '    public Object m(Object a, Object b)\n    {\n        if (Helpers.isGreaterThan(this.sum(a, b), 1))\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;\n'), undefined ],
     ];
-    for (const [ name, src, expect ] of cases) {
-        const out = nativeJavaNumberParamCompare (src);
-        const ok = expect === undefined ? out === src : out.includes (expect);
-        if (!ok) problems.push (`compare ${name}: ${out.slice (0, 600)}`);
-    }
-    return problems;
+    return runSnippetCases(cases, (src) => src, nativeJavaNumberParamCompare, (name, out) => `compare ${name}: ${out.slice (0, 600)}`);
 }
 
 // Helpers.addElementToObject / Helpers.GetValue on locals whose single member-wide declaration
@@ -7790,7 +7490,6 @@ export function nativeJavaWsOrderBookContainers (content: string): string {
 
 // Snippet checks for the WsOrderBook / List<String> container pass (`--audit-string-types --self-test`)
 function javaWsOrderBookContainersSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public void m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
         [ 'book literal put', 'Object client', '        io.github.ccxt.ws.WsOrderBook orderbook = this.orderbook(null);\n        Helpers.addElementToObject(orderbook, "cache", new ArrayList<Object>(Arrays.asList()));', '        orderbook.put("cache", new ArrayList<Object>(Arrays.asList()));' ],
@@ -7805,13 +7504,8 @@ function javaWsOrderBookContainersSelfTest (): string[] {
         [ 'Object index', 'Object i', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, i);', undefined ],
         [ 'List<Object> left to the list-local pass', 'Object client', '        List<String> keys = this.sort(raw);\n        Object key = Helpers.GetValue(keys, 0);', undefined ],
     ];
-    for (const [ name, sig, body, expect ] of cases) {
-        const input = cls (sig, body);
-        const out = nativeJavaWsOrderBookContainers (input);
-        const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`containers: ${name}\n${out}`);
-    }
-    return problems;
+    const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
+    return runSnippetCases(wrapped, (src) => src, nativeJavaWsOrderBookContainers, (name, out) => `containers: ${name}\n${out}`);
 }
 
 // Object/var locals whose every write proves one box: String / Long (`this.sum` of Long-or-int operands) /
@@ -7989,7 +7683,6 @@ export function nativeJavaBoxLocalsCoreArgs (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaBoxLocalsCoreArgsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'sum Long', '        Object id;\n        synchronized (this) {\n        id = this.sum(this.safeInteger(this.options, "requestId", 0), 1);\n        }\n        return Helpers.toLongOrNull(id);',
@@ -8007,17 +7700,11 @@ function javaBoxLocalsCoreArgsSelfTest (): string[] {
         [ 'sum of Object', '        Object x = this.sum(p, 1);\n        return this.f(Helpers.toLongOrNull(x));', undefined ],
         [ 'Integer vs Long write', '        Object c = this.sum(n, 1);\n        if (Helpers.isEqual(c, 1)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaBoxLocalsCoreArgs (cls (body));
-        const ok = expect === undefined ? out === nativeJavaCoreArgIdentities (cls (body)) : out.includes (expect);
-        if (!ok) problems.push (`java box locals core args: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaBoxLocalsCoreArgs, (name, out) => `java box locals core args: ${name}\n${out}`, (body) => nativeJavaCoreArgIdentities (cls (body)));
 }
 
 // Snippet checks for multiply/subtract over Long/Integer/integral-Object locals (`--audit-string-types --self-test`)
 function javaIntegralMultiplySubtractSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Object o, Long since, Long limit, String s)\n    {\n        int duration = 60;\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         // positives: string-literal ternary, safeInteger default, integral Object local, Generic.sum of integral args
@@ -8031,17 +7718,11 @@ function javaIntegralMultiplySubtractSelfTest (): string[] {
         [ 'object default', '        Long f = this.safeInteger(o, "k", o);\n        Object st = Helpers.multiply(f, 60);', undefined ],
         [ 'unknown object write', '        Object r = limit;\n        r = o;\n        Object e = Helpers.multiply(r, 2);', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaIntegralMultiplySubtract (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`arithmetic: ${name}\n${out}`); }
-    }
-    return problems;
+    return runSnippetCases(cases, member, nativeJavaIntegralMultiplySubtract, (name, out) => `arithmetic: ${name}\n${out}`);
 }
 
 // Snippet checks for native divide / mod / opNeg (`--audit-string-types --self-test`)
 function javaNumberDivModNegSelfTest (): string[] {
-    const problems: string[] = [];
     const member = (body: string) => `    public Object m(Long since, Object p, Double d)\n    {\n${body}\n    }\n`;
     const cases: [string, string, string | undefined][] = [
         [ 'long param divide', '        Long s = this.parseToInt(Helpers.divide(since, 1000));', '(since == null ? null : ((double) since) / ((double) 1000))' ],
@@ -8055,11 +7736,7 @@ function javaNumberDivModNegSelfTest (): string[] {
         [ 'operator operand', '        Object r = this.f(Helpers.divide(since, 1000) + 1);', undefined ],
         [ 'opNeg on object', '        Object r = this.f(Helpers.opNeg(p));', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumberDivModNeg (member (body));
-        const ok = expect === undefined ? out === member (body) : out.includes (expect);
-        if (!ok) { problems.push (`java number div mod neg: ${name}\n${out}`); }
-    }
+    const problems = runSnippetCases(cases, member, nativeJavaNumberDivModNeg, (name, out) => `java number div mod neg: ${name}\n${out}`);
     const overridden = `    public Object sum(Object a, Object b)\n    {\n        return a;\n    }\n${member ('        Object r = this.f(Helpers.divide(this.sum(since, 1), 2));')}`;
     if (nativeJavaNumberDivModNeg (overridden) !== overridden) problems.push ('an overridden sum keeps the helper');
     return problems;
@@ -8227,7 +7904,6 @@ export function nativeJavaNumberProvenCompare (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaNumberProvenCompareSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object since, Object limit, Long n, Double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'sum local gt', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, n)) {}', 'if (((n == null || ((Number) e).doubleValue() > n))) {}' ],
@@ -8245,12 +7921,7 @@ function javaNumberProvenCompareSelfTest (): string[] {
         [ 'string local', '        Object s = \"a\";\n        if (Helpers.isLessThan(s, \"b\")) {}', undefined ],
         [ 'sum override', '        Object e = this.sum(since, 5);\n        if (Helpers.isGreaterThan(e, 1)) {}\n    }\n    public Object sum(Object a, Object b)\n    {\n        return a;', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaNumberProvenCompare (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java number proven compare self: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaNumberProvenCompare, (name, out) => `java number proven compare self: ${name}\n${out}`);
 }
 
 // Every write to this.urls in the file is the base ctor deepExtend read or an omit() result (never a ConcurrentHashMap)
@@ -8486,7 +8157,6 @@ export function nativeJavaMapLocalOps (content: string): string {
 
 // Snippet checks for the Map-local put/get/in/keys pass (`--audit-string-types --self-test`)
 function javaMapLocalOpsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (sig: string, body: string) => `public class Gemini extends GeminiRest\n{\n    public Object m(${sig})\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string, string | undefined][] = [
         [ 'fresh literal put', 'Object v', '        Map<String, Object> r = new HashMap<String, Object>() {{}};\n        Helpers.addElementToObject(r, "a", v);', '        r.put("a", v);' ],
@@ -8526,13 +8196,8 @@ function javaMapLocalOpsSelfTest (): string[] {
         [ 'super parseTrade local reassigned keeps helper', 'Object t, Object v', '        Object p = super.parseTrade((Object) (t), (Map<String, Object>) null);\n        p = v;\n        Helpers.addElementToObject(p, \"side\", v);', undefined ],
         [ 'extend of 3', 'Object p, Object q, Object v', '        Map<String, Object> r = (Map<String, Object>) this.extend(p, q, new HashMap<String, Object>() {{}});\n        Helpers.addElementToObject(r, "a", v);', undefined ],
     ];
-    for (const [ name, sig, body, expect ] of cases) {
-        const input = cls (sig, body);
-        const out = nativeJavaMapLocalOps (input);
-        const ok = expect === undefined ? out === input : out.includes (expect);
-        if (!ok) problems.push (`map locals: ${name}\n${out}`);
-    }
-    return problems;
+    const wrapped = cases.map(([ name, sig, body, expect ]): SnippetCase => [ name, cls (sig, body), expect ]);
+    return runSnippetCases(wrapped, (src) => src, nativeJavaMapLocalOps, (name, out) => `map locals: ${name}\n${out}`);
 }
 
 // Native forms for the remaining core-arg / isEqual / isTrue sites: the Map-locals and box-locals passes re-run with `//` comments masked,
@@ -8742,7 +8407,6 @@ export function nativeJavaRemainingCoreArgs (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaRemainingCoreArgsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> parameters, Object p, Long n, String outcome)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'comment masked', '        Object l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(Helpers.toLongOrNull(l));', 'Long l = this.safeInteger(p, "limit", n); // limit=1000\n        return this.f(l);' ],
@@ -8759,12 +8423,7 @@ function javaRemainingCoreArgsSelfTest (): string[] {
         [ 'Object isTrue', '        if (Helpers.isTrue(p)) {}', undefined ],
         [ 'ternary isTrue', '        if (Helpers.isTrue(p == null ? n : p)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaRemainingCoreArgs (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java remaining core args self: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaRemainingCoreArgs, (name, out) => `java remaining core args self: ${name}\n${out}`);
 }
 
 // Snippet checks (`--audit-string-types --self-test`)
@@ -9023,7 +8682,6 @@ export function nativeJavaContainerOps (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaContainerOpsSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Map<String, Object> p, Object o, String s, List<Object> l)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'length', '        return Helpers.getArrayLength(o);', 'case java.util.List<?> j39v1 -> j39v1.size(); case String j39v2 -> j39v2.length()' ],
@@ -9043,12 +8701,7 @@ function javaContainerOpsSelfTest (): string[] {
         [ 'newMap id key', '        return Helpers.newMap(s, o);', undefined ],
         [ 'in string', '        return "Helpers.inOp(o, s)";', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaContainerOps (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect);
-        if (!ok) problems.push (`java container ops self test: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaContainerOps, (name, out) => `java container ops self test: ${name}\n${out}`);
 }
 
 // Core-arg / truthiness / literal-equality / literal-add helpers as inline pattern switches
@@ -9182,7 +8835,23 @@ export function nativeJavaCoreArgHelpers (content: string): string {
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaCoreArgHelpersSelfTest (): string[] {
-    const problems: string[] = javaIsTrueSelfTest();
+    const isTrueCls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
+    const isTrueCases: [string, string, string | undefined][] = [
+        [ 'Boolean param', '        if (Helpers.isTrue(q)) {}', 'if (Boolean.TRUE.equals(q)) {}' ],
+        [ 'boolean param', '        if (Helpers.isTrue(r)) {}', 'if (r) {}' ],
+        [ 'Boolean local', '        Boolean b = null;\n        if (Helpers.isTrue(b)) {}', 'if (Boolean.TRUE.equals(b)) {}' ],
+        [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
+        [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
+        [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
+        [ 'TRUE.equals && call', '        if (Helpers.isTrue(Boolean.TRUE.equals(q) && this.inArray(p, p))) {}', 'if ((Boolean.TRUE.equals(q) && this.inArray(p, p))) {}' ],
+        [ 'ternary', '        if (Helpers.isTrue(r ? p : q)) {}', undefined ],
+        // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
+        [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
+        [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'mixed decls', '        { Object b = p; }\n        Boolean b = q;\n        if (Helpers.isTrue(b)) {}', undefined ],
+        [ 'rNNE Object', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(p, false))) {}', undefined ],
+        [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
+    ];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'isEqual null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
@@ -9198,12 +8867,8 @@ function javaCoreArgHelpersSelfTest (): string[] {
         [ 'add String', '        return Helpers.add(s, 1);', undefined ],
         [ 'statement', '        Helpers.toMapArg(p);', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.');
-        if (!ok) problems.push (`java core arg helpers self: ${name}\n${out}`);
-    }
-    return problems;
+    const isTrue = runSnippetCases(isTrueCases, isTrueCls, nativeJavaCoreArgHelpers, (name, out) => `java is true self test: ${name}\n${out}`, isTrueCls, (out) => !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
+    return isTrue.concat(runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java core arg helpers self: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.')));
 }
 
 // Truthiness. Helpers.isTrue tests null, Boolean, Long, Integer, Double, String, List, Map in
@@ -9290,33 +8955,6 @@ function nativeIsTrue (x: string, ctx: CoreArgHelperCtx): string | undefined {
     return undefined;
 }
 
-function javaIsTrueSelfTest (): string[] {
-    const problems: string[] = [];
-    const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, Boolean q, boolean r)\n    {\n${body}\n    }\n}`;
-    const cases: [string, string, string | undefined][] = [
-        [ 'Boolean param', '        if (Helpers.isTrue(q)) {}', 'if (Boolean.TRUE.equals(q)) {}' ],
-        [ 'boolean param', '        if (Helpers.isTrue(r)) {}', 'if (r) {}' ],
-        [ 'Boolean local', '        Boolean b = null;\n        if (Helpers.isTrue(b)) {}', 'if (Boolean.TRUE.equals(b)) {}' ],
-        [ 'paren Boolean', '        if (Helpers.isTrue((q))) {}', 'if (Boolean.TRUE.equals((q))) {}' ],
-        [ 'requireNonNullElse', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(q, false))) {}', 'if (Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(q, false))) {}' ],
-        [ 'java boolean expr', '        if (Helpers.isTrue(p == null)) {}', 'if ((p == null)) {}' ],
-        [ 'TRUE.equals && call', '        if (Helpers.isTrue(Boolean.TRUE.equals(q) && this.inArray(p, p))) {}', 'if ((Boolean.TRUE.equals(q) && this.inArray(p, p))) {}' ],
-        [ 'ternary', '        if (Helpers.isTrue(r ? p : q)) {}', undefined ],
-        // helper left alone: Object param, Object local, mixed declarations, requireNonNullElse on Object, call result
-        [ 'Object param', '        if (Helpers.isTrue(p)) {}', undefined ],
-        [ 'Object local', '        Object b = p;\n        if (Helpers.isTrue(b)) {}', undefined ],
-        [ 'mixed decls', '        { Object b = p; }\n        Boolean b = q;\n        if (Helpers.isTrue(b)) {}', undefined ],
-        [ 'rNNE Object', '        if (Helpers.isTrue(java.util.Objects.requireNonNullElse(p, false))) {}', undefined ],
-        [ 'call', '        if (Helpers.isTrue(this.safeBool(p, "a"))) {}', undefined ],
-    ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.isTrue(') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
-        if (!ok) problems.push (`java is true self test: ${name}\n${out}`);
-    }
-    return problems;
-}
-
 // Literal equality. Exactly two outcomes per Helpers.isEqual site:
 // a proven operand type -> plain native `==` / `.equals`; anything else -> the helper call, untouched.
 // `==` is only emitted between proven primitives (boxed `==` is reference identity, and the helper
@@ -9344,7 +8982,6 @@ function nativeIsEqual (a: string, b: string, intConsts: Set<string>, ctx: CoreA
 
 // Snippet checks (`--audit-string-types --self-test`)
 function javaIsEqualSelfTest (): string[] {
-    const problems: string[] = [];
     const cls = (body: string) => `public class Woo extends WooApi\n{\n    public Object m(Object p, String s, Long n, long k, double d)\n    {\n${body}\n    }\n}`;
     const cases: [string, string, string | undefined][] = [
         [ 'null', '        if (Helpers.isEqual(p, null)) {}', 'if ((((Object) (p)) == null)) {}' ],
@@ -9362,19 +8999,12 @@ function javaIsEqualSelfTest (): string[] {
         [ 'numeric lit vs Object', '        if (Helpers.isEqual(p, "1")) {}', undefined ],
         [ 'Object pair', '        if (Helpers.isEqual(p, n)) {}', undefined ],
     ];
-    for (const [ name, body, expect ] of cases) {
-        const out = nativeJavaCoreArgHelpers (cls (body));
-        const ok = expect === undefined ? out === cls (body) : out.includes (expect) && !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out;
-        if (!ok) problems.push (`java is equal self test: ${name}\n${out}`);
-    }
-    return problems;
+    return runSnippetCases(cases, cls, nativeJavaCoreArgHelpers, (name, out) => `java is equal self test: ${name}\n${out}`, cls, (out) => !out.includes ('Helpers.') && !out.includes ('switch') && nativeJavaCoreArgHelpers (out) === out);
 }
 
 // Object locals proven String (base `: Str` producers) / Map (venue `: Dict` omit/fresh-map
 // callees) print their concrete type; any unproven write or producer keeps Object
 function x21SelfTest (): string[] {
-    const problems: string[] = [];
-    const probe = path.join(process.cwd(), 'ts', 'src', `zzx21selftest${process.pid}.ts`);
     const body = [
         "import Exchange from './abstract/binance.js';",
         "import type { Dict } from './base/types.js';",
@@ -9389,10 +9019,8 @@ function x21SelfTest (): string[] {
         "    rt () { const q = {}; const e = this.zzxRoute ('fetchX', q); return this.extend (e, {}); }",
         "    lo () { const q = {}; const f = this.zzxLoose (q); return this.extend (f, {}); }",
         '}',
-    ].join('\n');
-    try {
-        fs.writeFileSync(probe, body);
-        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+    ];
+    return probeSelfTest([ [ 'zzx21selftest', body ] ], (out, problems) => {
         if (!/String a = \(String\) this\.currencyToPrecision\(/.test(out)) problems.push("'a' (currencyToPrecision + literal write) must print String with a checkcast");
         if (!/String b = \(String\) this\.parsePrecision\(/.test(out)) problems.push("'b' (parsePrecision) must print String");
         if (!/Map<String, Object> d = /.test(out)) problems.push("'d' (venue omit-of-Map-param callee) must print Map");
@@ -9403,12 +9031,7 @@ function x21SelfTest (): string[] {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/producer and must stay Object`);
         }
         if (problems.length) problems.push('output:\n' + out);
-    } catch (e: any) {
-        problems.push(`self-test threw: ${e.message}`);
-    } finally {
-        fs.rmSync(probe, { force: true });
-    }
-    return problems;
+    });
 }
 
 // Helpers.GetValue / Helpers.addElementToObject inside nativeJavaContainerOps. Exactly two outcomes per site:
