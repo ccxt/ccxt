@@ -9604,13 +9604,19 @@ function goAddNative (text: string, masked: string, locals: Set<string>, overrid
     return (left === null || right === null) ? null : left + ' + ' + right;
 }
 
-function goNativeStringAdds (content: string): string {
-    if (content.indexOf ('Add(') < 0) { return content; }
-    const fileMasked = goTextMaskLiteralsAndComments (content);
+// the file's own methods that shadow a base string method (non-`string` return)
+function goAddOverriddenMethods (fileMasked: string): Set<string> {
     const overridden = new Set<string> ();
     const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
     let d: RegExpExecArray | null;
     while ((d = defRe.exec (fileMasked)) !== null) { if (d[2] !== 'string') { overridden.add (d[1]); } goRecordStringMethod (overridden, d[1], d[2]); }
+    return overridden;
+}
+
+function goNativeStringAdds (content: string): string {
+    if (content.indexOf ('Add(') < 0) { return content; }
+    const fileMasked = goTextMaskLiteralsAndComments (content);
+    const overridden = goAddOverriddenMethods (fileMasked);
     let out = '';
     let cursor = 0;
     for (const range of goFuncBlockRanges (content)) {
@@ -9647,10 +9653,7 @@ function goNativeStringAdds (content: string): string {
 function goStringAnyLocals (content: string): string {
     if (content.indexOf ('Add(') < 0) { return content; }
     const fileMasked = goTextMaskLiteralsAndComments (content);
-    const overridden = new Set<string> ();
-    const defRe = /^func \(\w+ \*\w+\) (\w+)\(.*\) (\S+) \{$/gm;
-    let d: RegExpExecArray | null;
-    while ((d = defRe.exec (fileMasked)) !== null) { if (d[2] !== 'string') { overridden.add (d[1]); } goRecordStringMethod (overridden, d[1], d[2]); }
+    const overridden = goAddOverriddenMethods (fileMasked);
     let out = '';
     let cursor = 0;
     for (const range of goFuncBlockRanges (content)) {
@@ -9789,52 +9792,13 @@ function goStringOperandKind (arg: string, maskedFunc: string): string | undefin
     if (GO_SMALL_INT_LITERAL_RX ().test (arg)) {
         return 'const-int';
     }
-    const m = /^OpNeg\((\d{1,9})\)$/.exec (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('));
-    if (m !== null) {
-        return 'const-neg';
-    }
     return goStringOperandDeclaredType (maskedFunc, arg);
 }
 
 // the native text for one helper call, plus the stdlib package it needs; undefined keeps it
 function goNativeStringHelperText (helper: string, args: string[], maskedFunc: string): { text: string, pkg: string } | undefined {
-    const k = args.map ((a) => goStringOperandKind (a, maskedFunc));
-    const str = (i: number) => (k[i] === 'string');
-    switch (helper) {
-    case 'ToString':
-        if (args.length !== 1) { return undefined; }
-        if (k[0] === 'string') { return { text: args[0], pkg: '' }; }
-        if (k[0] === 'int') { return { text: 'strconv.Itoa(' + args[0] + ')', pkg: 'strconv' }; }
-        if (k[0] === 'int64') { return { text: 'strconv.FormatInt(' + args[0] + ', 10)', pkg: 'strconv' }; }
-        return undefined;
-    case 'ToUpper':
-    case 'ToLower':
-        return ((args.length === 1) && str (0)) ? { text: 'strings.' + helper + '(' + args[0] + ')', pkg: 'strings' } : undefined;
-    case 'Trim':
-        return ((args.length === 1) && str (0)) ? { text: 'strings.TrimSpace(' + args[0] + ')', pkg: 'strings' } : undefined;
-    case 'Split':
-        // an empty separator splits by UTF-8 sequence in Go, by UTF-16 unit in JS: keep the helper
-        return ((args.length === 2) && str (0) && str (1) && (args[1] !== '""')) ? { text: 'strings.Split(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
-    case 'StartsWith':
-    case 'EndsWith':
-        return ((args.length === 2) && str (0) && str (1)) ? { text: 'strings.' + ((helper === 'StartsWith') ? 'HasPrefix' : 'HasSuffix') + '(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
-    case 'Replace':
-        // the helper replaces every occurrence
-        return ((args.length === 3) && str (0) && str (1) && str (2)) ? { text: 'strings.ReplaceAll(' + args[0] + ', ' + args[1] + ', ' + args[2] + ')', pkg: 'strings' } : undefined;
-    case 'Join':
-        return ((args.length === 2) && (k[0] === '[]string') && str (1)) ? { text: 'strings.Join(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' } : undefined;
-    case 'GetIndexOf':
-        if ((args.length !== 2) || !str (1)) { return undefined; }
-        if (str (0)) { return { text: 'strings.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'strings' }; }
-        if (k[0] === '[]string') { return { text: 'slices.Index(' + args[0] + ', ' + args[1] + ')', pkg: 'slices' }; }
-        return undefined;
-    case 'PadStart':
-        // pad with one byte to `n`, then keep the last n bytes, as the helper's loop does
-        if ((args.length !== 3) || !str (0) || GO_STRING_LITERAL_RX ().test (args[0]) || !GO_SMALL_INT_LITERAL_RX ().test (args[1]) || !/^"[ !#-[\]-~]"$/.test (args[2])) { return undefined; }
-        { const s = args[0]; const n = args[1];
-            return { text: '(strings.Repeat(' + args[2] + ', max(' + n + '-len(' + s + '), 0)) + ' + s + ')[max(len(' + s + ')-' + n + ', 0):]', pkg: 'strings' }; }
-    }
-    return undefined;
+    const ops = args.map ((a) => { const kind = goStringOperandKind (a, maskedFunc); return (kind === undefined) ? undefined : { kind, text: a }; });
+    return goTypedStrNative (helper, ops, args);
 }
 
 function GO_STRING_HELPER_CALL_RX () { return /(?<![\w.])(ccxt\.)?(ToString|ToUpper|ToLower|Trim|Split|StartsWith|EndsWith|Replace|Join|GetIndexOf|Slice|PadStart)\(/g; }
@@ -11104,7 +11068,7 @@ function w8ClientFuturesSelfTest (): string[] {
     return problems;
 }
 
-// ===== W8-futures-pair: `if InOp(F, a) || InOp(F, b) {` on string keys -> two comma-ok reads =====
+// ===== futures pair: `if InOp(F, a) || InOp(F, b) {` on string keys -> two comma-ok reads =====
 // GetFutures() is a map[string]any (nil reads ok=false like the helper); both keys must be string locals
 // declared once before the line. Reads go ahead of the if, they have no side effects.
 function w8FuturesPairInOp (content: string): string {
