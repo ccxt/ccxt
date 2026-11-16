@@ -5095,7 +5095,7 @@ export default class xt extends Exchange {
     }
 
     parseTradingFee (fee: Dict, market: Market = undefined): TradingFeeInterface {
-        const symbol = (market !== undefined) ? market['symbol'] : undefined;
+        const symbol = this.safeString (market, 'symbol');
         return {
             'info': fee,
             'symbol': symbol,
