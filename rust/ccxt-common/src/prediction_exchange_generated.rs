@@ -2027,12 +2027,12 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 if (side.is_none()) {
                     side = self.safe_string_k(&trade, "side", &[]).as_str().map(str::to_owned);
                 }
-                let mut tradeTimestamp: Value = self.safe_integer_k(&trade, "timestamp", &[]);
-                if (tradeTimestamp != Value::Null) {
+                let mut tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
+                if (tradeTimestamp.is_some()) {
                     if (lastTradeTimestamp == Value::Null) {
-                        lastTradeTimestamp = tradeTimestamp.clone();
-                    }  else if tradeTimestamp.as_f64().unwrap_or(f64::NAN) > lastTradeTimestamp.as_f64().unwrap_or(f64::NAN) {
-                        lastTradeTimestamp = tradeTimestamp;
+                        lastTradeTimestamp = Value::from(tradeTimestamp);
+                    }  else if matches!(tradeTimestamp, Some(__p) if (__p as f64) > lastTradeTimestamp.as_f64().unwrap_or(f64::NAN)) {
+                        lastTradeTimestamp = Value::from(tradeTimestamp);
                     }
                 }
                 let mut tradeFee: Option<crate::value::Dict> = self.safe_dict_k(&trade, "fee", &[]).into_opt_dict();

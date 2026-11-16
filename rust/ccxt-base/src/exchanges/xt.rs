@@ -5973,7 +5973,7 @@ impl Xt {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("cancelOrder".into()), market.as_ref(), &[params]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut paramsMarketType: crate::value::Dict = type_varparamsMarketTypeVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -6002,38 +6002,38 @@ impl Xt {
             let mut paramsOmitted3: crate::value::Dict = self.omit(&paramsSubType, &["trigger", "stop"], &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_58 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_58]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_58]).await.into_opt_dict();
             }  else {
                 let __ws_arg_59 = self.extend(Value::Map(request.clone()), &[&paramsOmitted3]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_59]).await;
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_plan(&[__ws_arg_59]).await.into_opt_dict();
             }
         }  else if stopLossTakeProfit {
             let mut paramsOmitted2: crate::value::Dict = self.omit(&paramsSubType, Value::Str("stopLossTakeProfit".into()), &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_60 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_60]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_60]).await.into_opt_dict();
             }  else {
                 let __ws_arg_61 = self.extend(Value::Map(request.clone()), &[&paramsOmitted2]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_61]).await;
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_profit_stop(&[__ws_arg_61]).await.into_opt_dict();
             }
         }  else if trailing {
             let mut paramsOmitted: crate::value::Dict = self.omit(&paramsSubType, Value::Str("trailing".into()), &[]).into_dict();
             if (subType.as_deref() == Some("inverse")) {
                 let __ws_arg_62 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_inverse_post_future_trade_v1_entrust_cancel_track(&[__ws_arg_62]).await;
+                response = self.private_inverse_post_future_trade_v1_entrust_cancel_track(&[__ws_arg_62]).await.into_opt_dict();
             }  else {
                 let __ws_arg_63 = self.extend(Value::Map(request.clone()), &[&paramsOmitted]);
-                response = self.private_linear_post_future_trade_v1_entrust_cancel_track(&[__ws_arg_63]).await;
+                response = self.private_linear_post_future_trade_v1_entrust_cancel_track(&[__ws_arg_63]).await.into_opt_dict();
             }
         }  else if (subType.as_deref() == Some("inverse")) {
             let __ws_arg_64 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_inverse_post_future_trade_v1_order_cancel(&[__ws_arg_64]).await;
+            response = self.private_inverse_post_future_trade_v1_order_cancel(&[__ws_arg_64]).await.into_opt_dict();
         }  else if (subType.as_deref() == Some("linear")) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future")) {
             let __ws_arg_65 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-            response = self.private_linear_post_future_trade_v1_order_cancel(&[__ws_arg_65]).await;
+            response = self.private_linear_post_future_trade_v1_order_cancel(&[__ws_arg_65]).await.into_opt_dict();
         }  else {
             let __ws_arg_66 = self.extend(Value::Map(request), &[&paramsSubType]);
-            response = self.private_spot_delete_order_order_id(&[__ws_arg_66]).await;
+            response = self.private_spot_delete_order_order_id(&[__ws_arg_66]).await.into_opt_dict();
         }
         //
         // spot
@@ -6057,7 +6057,7 @@ impl Xt {
         //     }
         //
         let mut isContractResponse: bool = (subType.is_some()) || (type_var.as_deref() == Some("swap")) || (type_var.as_deref() == Some("future"));
-        let mut order: Value = (if isContractResponse { response.clone() } else { self.safe_dict_k(response, "result", &[Value::Map({
+        let mut order: Value = (if isContractResponse { response.clone().map_or(Value::Null, Value::Dict) } else { self.safe_dict_k(&response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });
@@ -8075,7 +8075,7 @@ impl Xt {
             request.insert("orderId".into(), id);
             request.insert("price".into(), Value::from(self.price_to_precision(symbol.clone(), price)));
         }
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         if (market).swap {
             if isStopLoss {
                 request.insert("triggerStopPrice".into(), Value::from(self.price_to_precision(symbol.clone(), Value::from(stopLoss))));
@@ -8090,26 +8090,26 @@ impl Xt {
             if (subType.as_deref() == Some("inverse")) {
                 if isStopLoss || isTakeProfit {
                     let __ws_arg_108 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_108]).await;
+                    response = self.private_inverse_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_108]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_109 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-                    response = self.private_inverse_post_future_trade_v1_order_update(&[__ws_arg_109]).await;
+                    response = self.private_inverse_post_future_trade_v1_order_update(&[__ws_arg_109]).await.into_opt_dict();
                 }
             }  else {
                 if isStopLoss || isTakeProfit {
                     let __ws_arg_110 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_110]).await;
+                    response = self.private_linear_post_future_trade_v1_entrust_update_profit_stop(&[__ws_arg_110]).await.into_opt_dict();
                 }  else {
                     let __ws_arg_111 = self.extend(Value::Map(request.clone()), &[&paramsSubType]);
-                    response = self.private_linear_post_future_trade_v1_order_update(&[__ws_arg_111]).await;
+                    response = self.private_linear_post_future_trade_v1_order_update(&[__ws_arg_111]).await.into_opt_dict();
                 }
             }
         }  else {
             request.insert("quantity".into(), Value::from(self.amount_to_precision(symbol, amount)));
             let __ws_arg_112 = self.extend(Value::Map(request), &[&paramsOmitted]);
-            response = self.private_spot_put_order_order_id(&[__ws_arg_112]).await;
+            response = self.private_spot_put_order_order_id(&[__ws_arg_112]).await.into_opt_dict();
         }
-        let mut result: Value = (if (market).swap { response.clone() } else { self.safe_dict_k(response, "result", &[Value::Map({
+        let mut result: Value = (if (market).swap { response.clone().map_or(Value::Null, Value::Dict) } else { self.safe_dict_k(&response, "result", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]) });

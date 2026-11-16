@@ -1145,9 +1145,9 @@ impl Coinbaseexchange {
                                                         let mut i: i64 = 0;
                             let mut __for_first_239: bool = true;
                             while { if !__for_first_239 { i += 1; } __for_first_239 = false; i < (keys.len() as i64) } {
-                            let mut key: Value = keys.get(i as usize).cloned().unwrap_or(Value::Null);
-                            if (order.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null) != Value::Null) {
-                                add_element_to_object(&mut previousOrder, &key, order.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+                            let mut key: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+                            if (order.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null) != Value::Null) {
+                                add_element_to_object(&mut previousOrder, &Value::from(key.as_deref()), order.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
                             }
                         }
                         }

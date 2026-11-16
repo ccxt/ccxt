@@ -2585,24 +2585,24 @@ pub trait ExchangeBase:
             return (if (defaultValue != Value::Null) { defaultValue.clone() } else { methodDict.clone() });
         }
         let mut splited: crate::value::List = Value::Array(if let Some(__s) = paramName.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list(); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
-        let mut parentKey: Value = splited.get(0).cloned().unwrap_or(Value::Null);
+        let mut parentKey: Option<String> = splited.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut subKey: Option<String> = self.safe_string_opt(&splited, Value::Int(1), &[]);
-        if !(matches!((&methodDict, &parentKey), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+        if !(matches!((&methodDict, parentKey.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
             return defaultValue;
         }
-        let mut dictionary: Option<crate::value::Dict> = self.safe_dict(methodDict.clone(), parentKey.clone(), &[]).into_opt_dict();
+        let mut dictionary: Option<crate::value::Dict> = self.safe_dict(methodDict.clone(), parentKey.clone().map(Value::from).unwrap_or(Value::Null), &[]).into_opt_dict();
         if (dictionary.is_none()) {
-            return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+            return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
         }  else {
             // return as is, when calling without subKey eg: featureValueByType('spot', undefined, 'createOrder', 'stopLoss')
             if (subKey.is_none()) {
-                return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
+                return (if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null });
             }
             // throw an exception for unsupported subKey
-            if !(in_op(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null))) {
+            if !(in_op(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null))) {
                 return defaultValue;
             }
-            return get_value(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null));
+            return get_value(&(if let (Some(__m), Some(__k)) = (methodDict.as_map(), parentKey.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), &subKey.clone().map(Value::from).unwrap_or(Value::Null));
         }
 
     Value::Null
@@ -3292,10 +3292,10 @@ pub trait ExchangeBase:
                     if parseSide {
                         side = self.safe_string_k(&trade, "side", &[]).as_str().map(str::to_owned);
                     }
-                    let mut tradeTimestamp: Value = self.safe_integer_k(&trade, "timestamp", &[]);
-                    if parseLastTradeTimeTimestamp && (tradeTimestamp != Value::Null) {
-                        if (lastTradeTimeTimestamp == Value::Null) || tradeTimestamp.as_f64().unwrap_or(f64::NAN) > lastTradeTimeTimestamp.as_f64().unwrap_or(f64::NAN) {
-                            lastTradeTimeTimestamp = tradeTimestamp;
+                    let mut tradeTimestamp: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
+                    if parseLastTradeTimeTimestamp && (tradeTimestamp.is_some()) {
+                        if (lastTradeTimeTimestamp == Value::Null) || matches!(tradeTimestamp, Some(__p) if (__p as f64) > lastTradeTimeTimestamp.as_f64().unwrap_or(f64::NAN)) {
+                            lastTradeTimeTimestamp = Value::from(tradeTimestamp);
                         }
                     }
                     if shouldParseFees {
@@ -5981,18 +5981,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     let mut m = indexmap::IndexMap::new();
     m
 })]).as_map().cloned().unwrap_or_default();
-            let mut ts: Value = self.safe_integer_k(&trade, "timestamp", &[]);
+            let mut ts: Option<i64> = self.safe_integer_k(&trade, "timestamp", &[]).as_i64();
             let mut price: Value = trade.get("price").cloned().unwrap_or(Value::Null);
-            if (ts == Value::Null) || (price == Value::Null) {
+            if (ts.is_none()) || (price == Value::Null) {
                 continue;
             }
-            if ts.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
+            if matches!(ts, Some(__p) if (__p as f64) < since.as_f64().unwrap_or(f64::NAN)) {
                 continue;
             }
-            if (ts == Value::Null) {
+            if (ts.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " buildOHLCVC() missing ts")));
             }
-            let mut openingTime: Value = (match (&(((match ((ts).as_f64(), (Value::from(ms)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)), &(Value::from(ms))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
+            let mut openingTime: Value = (match (&(((match ((Value::from(ts)).as_f64(), (Value::from(ms)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null })).as_f64().map(|__x| Value::Float(__x.floor())).unwrap_or(Value::Null)), &(Value::from(ms))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x),
                 Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }); // shift to the edge of m/h/d (but not M)
             if openingTime.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
                 continue;
@@ -7663,13 +7663,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                         let mut i: i64 = 0;
             let mut __for_first_138: bool = true;
             while { if !__for_first_138 { i += 1; } __for_first_138 = false; i < (fields.len() as i64) } {
-            let mut field: Value = fields.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut current: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), field.clone(), &[]).as_str().map(str::to_owned);
-            let mut incoming: Option<String> = self.safe_string_opt(account.clone(), field.clone(), &[]);
+            let mut field: Option<String> = fields.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut current: Option<String> = self.safe_string((if let (Some(__m), Some(__k)) = (result.as_map(), code.as_str()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), field.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
+            let mut incoming: Option<String> = self.safe_string_opt(account.clone(), field.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (current.is_none()) {
-                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), incoming.clone().map(Value::from).unwrap_or(Value::Null)); } }
+                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(field.as_deref().unwrap_or("null").to_string(), incoming.clone().map(Value::from).unwrap_or(Value::Null)); } }
             }  else if (incoming.is_some()) {
-                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(crate::runtime::stringify_param(&field), crate::precise::Precise::stringAdd(&current, &incoming.clone().map(Value::from).unwrap_or(Value::Null))); } }
+                if let Value::Dict(__h0) = &mut result { if let Some(Value::Dict(__h1)) = std::sync::Arc::make_mut(__h0).get_mut(&crate::runtime::stringify_param(&code)) { std::sync::Arc::make_mut(__h1).insert(field.as_deref().unwrap_or("null").to_string(), crate::precise::Precise::stringAdd(&current, &incoming.clone().map(Value::from).unwrap_or(Value::Null))); } }
             }
         }
         }
@@ -9543,11 +9543,11 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     shouldBreak = true;
                     break;
                 }
-                let mut lastTimestamp: Value = self.safe_integer_k(&last, "timestamp", &[]);
+                let mut lastTimestamp: Option<i64> = self.safe_integer_k(&last, "timestamp", &[]).as_i64();
                 if (since == Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " fetchPaginatedCallCursor() requires a since argument")));
                 }
-                if (lastTimestamp != Value::Null) && lastTimestamp.as_f64().unwrap_or(f64::NAN) < since.as_f64().unwrap_or(f64::NAN) {
+                if (lastTimestamp.is_some()) && matches!(lastTimestamp, Some(__p) if (__p as f64) < since.as_f64().unwrap_or(f64::NAN)) {
                     shouldBreak = true;
                     break;
                 }

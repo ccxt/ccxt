@@ -2108,24 +2108,24 @@ impl Polymarket {
             }
         }
         }
-        let mut tokenIdsLength: Value = Value::Int(tokenIds.len() as i64);
-        if tokenIdsLength.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        let mut tokenIdsLength: i64 = tokenIds.len() as i64;
+        if tokenIdsLength > 0 {
             if (self.markets.clone() == Value::Null) {
                 { let __t = self.create_safe_dictionary(&[]); self.markets = __t; }
             }
             // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
             let mut chunkSize: i64 = self.safe_integer_k(self.options.clone(), "fetchOutcomesBatchSize", &[Value::Int(50)]).as_i64().unwrap_or(50);
             let mut startIndex: i64 = 0;
-            while (startIndex as f64) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-                let mut endIndex: Value = Value::Int((startIndex + chunkSize));
-                if endIndex.as_f64().unwrap_or(f64::NAN) > tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-                    endIndex = tokenIdsLength.clone();
+            while startIndex < tokenIdsLength {
+                let mut endIndex: i64 = (startIndex + chunkSize);
+                if endIndex > tokenIdsLength {
+                    endIndex = tokenIdsLength;
                 }
                 let mut chunk: Vec<Value> = Vec::new();
                 {
                                         let mut i: i64 = startIndex;
                     let mut __for_first_1425: bool = true;
-                    while { if !__for_first_1425 { i += 1; } __for_first_1425 = false; (i as f64) < endIndex.as_f64().unwrap_or(f64::NAN) } {
+                    while { if !__for_first_1425 { i += 1; } __for_first_1425 = false; i < endIndex } {
                     chunk.push(get_value(&tokenIds, &Value::Int(i)));
                 }
                 }
@@ -2282,18 +2282,18 @@ impl Polymarket {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tokenIdsLength: Value = Value::Int(tokenIds.len() as i64);
+        let mut tokenIdsLength: i64 = tokenIds.len() as i64;
         let mut startIndex: i64 = 0;
-        while (startIndex as f64) < tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-            let mut endIndex: Value = Value::Int((startIndex + chunkSize));
-            if endIndex.as_f64().unwrap_or(f64::NAN) > tokenIdsLength.as_f64().unwrap_or(f64::NAN) {
-                endIndex = tokenIdsLength.clone();
+        while startIndex < tokenIdsLength {
+            let mut endIndex: i64 = (startIndex + chunkSize);
+            if endIndex > tokenIdsLength {
+                endIndex = tokenIdsLength;
             }
             let mut bookParams: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = startIndex;
                 let mut __for_first_1430: bool = true;
-                while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; (i as f64) < endIndex.as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; i < endIndex } {
                 bookParams.push(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("token_id".to_string(), get_value(&tokenIds, &Value::Int(i)));

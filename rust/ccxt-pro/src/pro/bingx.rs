@@ -370,7 +370,7 @@ impl Bingx {
         }  else {
             url = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), marketType.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_str().map(str::to_owned);
         }
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from((market).symbol.clone())]);
+        let mut messageHash: Option<String> = self.get_message_hash("ticker", &[Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -420,7 +420,7 @@ impl Bingx {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut dataType: String = format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@ticker".into()));
-        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("ticker".into()), &[Value::from((market).symbol.clone())]);
+        let mut subMessageHash: Option<String> = self.get_message_hash("ticker", &[Value::from((market).symbol.clone())]);
         let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
         let mut topic: String = "ticker".to_string();
         let mut methodName: String = "unWatchTicker".to_string();
@@ -503,9 +503,9 @@ impl Bingx {
         let mut isInverse: Value = Value::Bool((inverseUrl.is_some()) && (Value::Int(__ch.url.as_str().zip(inverseUrl.as_deref()).and_then(|(__s, __n)| __s.find(__n)).map(|__i| __i as i64).unwrap_or(-1)).as_f64() == Some(0.0)));
         let mut ticker: crate::value::Dict = self.parse_ws_ticker(&data, Some(&market), &[isInverse]).into_dict();
         if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
-        client.resolve(Value::from(&ticker), &self.get_message_hash(Value::Str("ticker".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
+        client.resolve(Value::from(&ticker), &self.get_message_hash("ticker", &[symbol.map(Value::from).unwrap_or(Value::Null)]).map(Value::from).unwrap_or(Value::Null));
         if ((match message.get("dataType") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("all@ticker")) {
-            client.resolve(Value::Dict(ticker), &self.get_message_hash(Value::Str("ticker".into()), &[]).map(Value::from).unwrap_or(Value::Null));
+            client.resolve(Value::Dict(ticker), &self.get_message_hash("ticker", &[]).map(Value::from).unwrap_or(Value::Null));
         }
 }
 
@@ -586,19 +586,20 @@ impl Bingx {
     Value::Null
 }
 
-    pub fn get_message_hash(&self, mut unifiedChannel: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn get_message_hash(&self, unifiedChannel: &str, optional_args: &[Value]) -> Option<String> {
+        let mut unifiedChannel: Value = unifiedChannel.into();
         let mut symbol = get_arg(optional_args, 0, Value::Null);
         let mut extra = get_arg(optional_args, 1, Value::Null);
-        let mut hash: Value = unifiedChannel;
+        let mut hash: String = unifiedChannel.as_str().unwrap_or_default().to_string();
         if (symbol != Value::Null) {
-            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", "::", symbol).into())).into());
+            hash.push_str(&format!("{}{}", "::", symbol));
         }  else {
-            hash = Value::Str(format!("{}{}", hash, "s").into()); // tickers, orderbooks, ohlcvs, etc ...
+            hash.push_str("s"); // tickers, orderbooks, ohlcvs, etc ...
         }
         if (extra != Value::Null) {
-            hash = Value::Str(format!("{}{}", hash, Value::Str(format!("{}{}", "::", extra).into())).into());
+            hash.push_str(&format!("{}{}", "::", extra));
         }
-        return hash.as_str().map(str::to_owned);
+        return Some(hash);
 }
 
 /*
@@ -706,7 +707,7 @@ impl Bingx {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut subMessageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::from((market).symbol.clone())]);
+        let mut subMessageHash: Option<String> = self.get_message_hash("trade", &[Value::from((market).symbol.clone())]);
         let mut messageHash: String = format!("{}{}", "unsubscribe::", subMessageHash.as_deref().unwrap_or("null"));
         let mut topic: String = "trades".to_string();
         let mut methodName: String = "unWatchTrades".to_string();
@@ -880,7 +881,7 @@ impl Bingx {
         })]).into_dict();
         let mut depth: String = self.safe_string_k(&options, "depth", &[Value::Str("100".into())]).as_str().unwrap_or("100").to_string();
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@depth".into())).into()), depth);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::from((market).symbol.clone())]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[Value::from((market).symbol.clone())]);
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1076,11 +1077,11 @@ impl Bingx {
         let mut nonce: Option<i64> = self.safe_integer_k(&data, "lastUpdateId", &[]).as_i64();
         snapshot.set_book_meta("nonce", Value::from(nonce));
         orderbook.reset(snapshot);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[symbol.map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: Option<String> = self.get_message_hash("orderbook", &[symbol.map(Value::from).unwrap_or(Value::Null)]);
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[]);
+            let mut messageHashForAll: Option<String> = self.get_message_hash("orderbook", &[]);
             client.resolve(Value::from(&orderbook), messageHashForAll.as_deref());
         }
 }
@@ -1239,11 +1240,11 @@ impl Bingx {
         }
         }
         let mut resolveData: Value = Value::from(vec![symbol.clone(), unifiedTimeframe.clone(), Value::from(&stored)]);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[symbol, unifiedTimeframe.clone()]);
+        let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[symbol, unifiedTimeframe.clone()]);
         client.resolve(resolveData.clone(), messageHash.as_deref());
         // resolve for "all"
         if isAllEndpoint {
-            let mut messageHashForAll: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::Null, unifiedTimeframe]);
+            let mut messageHashForAll: Option<String> = self.get_message_hash("ohlcv", &[Value::Null, unifiedTimeframe]);
             client.resolve(resolveData, messageHashForAll.as_deref());
         }
 }
@@ -1304,7 +1305,7 @@ impl Bingx {
             m
         })]).into_dict();
         let mut rawTimeframe: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("ohlcv".into()), &[Value::from((market).symbol.clone()), timeframe]);
+        let mut messageHash: Option<String> = self.get_message_hash("ohlcv", &[Value::from((market).symbol.clone()), timeframe]);
         let mut subscriptionHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).id.as_deref().unwrap_or("")), Value::Str("@kline_".into())).into()), rawTimeframe.as_deref().unwrap_or("null"));
         let mut uuid: String = self.uuid(&[]);
         let mut request: indexmap::IndexMap<String, Value> = ({

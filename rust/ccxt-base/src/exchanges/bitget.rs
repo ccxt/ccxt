@@ -10678,7 +10678,7 @@ if _try_result.is_err() {
         });
         let mut marketType: Option<String> = None;
         let mut marginMode: Option<String> = None;
-        let mut response: Value = Value::Null;
+        let mut response: Option<crate::value::Dict> = None;
         let stockparamsStockVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("fetchBalance".into()), Value::Str("stock".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut stock: bool = stockparamsStockVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsStock: crate::value::Dict = stockparamsStockVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -10693,33 +10693,33 @@ if _try_result.is_err() {
             let mut assets: Option<crate::value::List> = None;
             if (marketType.as_deref() == Some("funding")) {
                 let __ws_arg_41 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
-                response = self.private_uta_get_v3_account_funding_assets(&[__ws_arg_41]).await;
-                assets = self.safe_list_k(response.clone(), "data", &[Value::from(vec![])]).into_opt_list();
+                response = self.private_uta_get_v3_account_funding_assets(&[__ws_arg_41]).await.into_opt_dict();
+                assets = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_opt_list();
             }  else {
                 let __ws_arg_42 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
-                response = self.private_uta_get_v3_account_assets(&[__ws_arg_42]).await;
-                let mut results: crate::value::Dict = self.safe_dict_k(response.clone(), "data", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+                response = self.private_uta_get_v3_account_assets(&[__ws_arg_42]).await.into_opt_dict();
+                let mut results: crate::value::Dict = self.safe_dict_k(&response, "data", &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                    m
+                })]).into_dict();
                 assets = self.safe_list_k(&results, "assets", &[Value::from(vec![])]).into_opt_list();
             }
-            return self.parse_uta_balance(&assets, &[response.clone()]);
+            return self.parse_uta_balance(&assets, &[response.clone().map_or(Value::Null, Value::Dict)]);
         }  else if (marketType.as_deref() == Some("swap")) || (marketType.as_deref() == Some("future")) {
             let mut productType: Option<String> = None;
             { let __destr_tmp: Vec<Value> = self.handle_product_type_and_params(None, &[Value::from(&paramsUTA)]).as_array().cloned().unwrap_or_default(); productType = __destr_tmp.get(0).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned); paramsUTA = __destr_tmp.get(1).cloned().unwrap_or(Value::Null).into_dict(); }
             request.insert("productType".into(), productType.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_43 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
-            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_43]).await;
+            response = self.private_mix_get_v2_mix_account_accounts(&[__ws_arg_43]).await.into_opt_dict();
         }  else if (marginMode.as_deref() == Some("isolated")) {
             let __ws_arg_44 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
-            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_44]).await;
+            response = self.private_margin_get_v2_margin_isolated_account_assets(&[__ws_arg_44]).await.into_opt_dict();
         }  else if (marginMode.as_deref() == Some("cross")) {
             let __ws_arg_45 = self.extend(Value::Map(request.clone()), &[&paramsUTA]);
-            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_45]).await;
+            response = self.private_margin_get_v2_margin_crossed_account_assets(&[__ws_arg_45]).await.into_opt_dict();
         }  else if (marketType.as_deref() == Some("spot")) {
             let __ws_arg_46 = self.extend(Value::Map(request), &[&paramsUTA]);
-            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_46]).await;
+            response = self.private_spot_get_v2_spot_account_assets(&[__ws_arg_46]).await.into_opt_dict();
         }  else {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchBalance() does not support ").into()), marketType.as_deref().unwrap_or("null")).into()), " accounts")));
         }
@@ -10815,7 +10815,7 @@ if _try_result.is_err() {
         //         ]
         //     }
         //
-        let mut data: crate::value::List = self.safe_list_k(response, "data", &[Value::from(vec![])]).into_list();
+        let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         return self.parse_balance_list(&data);
         Value::Null
         }).await?))

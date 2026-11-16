@@ -3117,9 +3117,9 @@ impl Backpack {
                 continue;
             }
             let mut marketIsRfq: bool = self.safe_string_k(crate::value::KeyRead::key_read(&&market, "info"), "marketType", &[]).as_str() == Some("RFQ");
-            let mut ticker: Value = self.safe_dict(tickers.clone(), Value::from(marketSymbol.as_deref()), &[]);
-            if (ticker != Value::Null) && ((source.as_deref() != Some("External")) || ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true))) {
-                result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), ticker);
+            let mut ticker: Option<crate::value::Dict> = self.safe_dict(tickers.clone(), Value::from(marketSymbol.as_deref()), &[]).into_opt_dict();
+            if (ticker.is_some()) && ((source.as_deref() != Some("External")) || ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() == Some(true))) {
+                result.insert(marketSymbol.as_deref().unwrap_or("null").to_string(), ticker.map_or(Value::Null, Value::Dict));
             }  else if marketIsRfq {
                 let mut underlyingId: String = format!("{}{}", Value::Str(format!("{}{}", Value::from((market).base_id.as_deref().unwrap_or("")), Value::Str("_".into())).into()), Value::from((market).quote_id.as_deref().unwrap_or("")));
                 let mut useExternal: bool = (source.as_deref() == Some("External")) || needsExternalRfqTickers;

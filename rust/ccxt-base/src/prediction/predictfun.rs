@@ -1407,18 +1407,18 @@ impl Predictfun {
                                 let mut mi: i64 = 0;
                 let mut __for_first_1461: bool = true;
                 while { if !__for_first_1461 { mi += 1; } __for_first_1461 = false; mi < rawMarketsLength } {
-                let mut rawMarket: Value = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null);
-                let mut marketSlug: Option<String> = self.safe_string_k_opt(rawMarket.clone(), "categorySlug", &[]);
+                let mut rawMarket: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
+                let mut marketSlug: Option<String> = self.safe_string_k_opt(&rawMarket, "categorySlug", &[]);
                 if (marketSlug.is_some()) {
                     if (matches!(&marketSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if orphanMarkets.contains_key(__k.as_ref()))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
                         let mut bucket: Value = orphanMarkets.get(marketSlug.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                        if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(rawMarket.clone()); };
+                        if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(Value::from(&rawMarket)); };
                         if let Some(__k) = marketSlug.as_deref() { orphanMarkets.insert(__k.to_string(), bucket.clone()); }
                         orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket);
                     }  else {
-                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![rawMarket]));
+                        orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![Value::Dict(rawMarket)]));
                         orphanSlugs.push(marketSlug.map(Value::from).unwrap_or(Value::Null));
                     }
                 }

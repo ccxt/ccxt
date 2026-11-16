@@ -8363,8 +8363,8 @@ impl Bingx {
                         let mut i: i64 = 0;
             let mut __for_first_325: bool = true;
             while { if !__for_first_325 { i += 1; } __for_first_325 = false; i < rawKeysLength } {
-            let mut key: Value = rawKeys.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut value: Value = sortedParams.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null);
+            let mut key: Option<String> = rawKeys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            let mut value: Value = sortedParams.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
             if (matches!(&value, Value::Arr(_))) {
                 let mut arrStr: String = "[".to_string();
                 {
@@ -8379,7 +8379,7 @@ impl Bingx {
                 }
                 }
                 arrStr.push_str("]");
-                add_element_to_object(&mut copied, &key, Value::from(arrStr));
+                add_element_to_object(&mut copied, &Value::from(key.as_deref()), Value::from(arrStr));
             }
         }
         }
