@@ -99,6 +99,103 @@ function goArithIntLiteralValue (t: string): number | undefined {
 
 interface GoArithScope { masked: string; signature: string; known: Map<string, Kind>; ownMethods: Set<string>; pos: number; derefs: Set<string>; sums?: Map<string, string> }
 
+// one self-test case table: `want` must (or must not) appear in the pass output of `wrap (body)`
+function goArithCaseProblems (pass: (content: string) => string, wrap: (body: string) => string, cases: [ string, string, boolean ][], prefix: string): string[] {
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = pass (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push (prefix + want + ' in ' + out);
+        }
+    }
+    return problems;
+}
+
+// file-level shadows: own int64-method overrides (+ extra names), BaseExchange numeric fields not redeclared, own Handle* methods
+function goArithOwnMethods (masked: string, extra: string[] = []): Set<string> {
+    return new Set<string> (GO_ARITH_INT64_METHODS.concat (extra).filter ((name) => new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)));
+}
+
+function goArithBaseFields (masked: string): Set<string> {
+    return new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
+}
+
+function goArithFileOwnHandles (masked: string): Set<string> {
+    return new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
+}
+
+function goArithScope (masked: string, ownMethods: Set<string>): GoArithScope {
+    const nl = masked.indexOf ('\n');
+    return { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+}
+
+// rewrite every top-level `func ...{` .. `}` block of a file; `head` is its first line
+function goArithEachFunc (content: string, rewrite: (fn: string, head: string) => string): string {
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (start < 0) {
+            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) {
+                start = k;
+            } else {
+                out.push (lines[k]);
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            out.push (rewrite (lines.slice (start, k + 1).join ('\n'), lines[start]));
+            start = -1;
+        }
+    }
+    if (start >= 0) {
+        out.push (...lines.slice (start));
+    }
+    return out.join ('\n');
+}
+
+// goArithEachFunc for rewrites that may emit `math.X`: undone where a local shadows `math`, else adds the import
+function goArithMathEachFunc (content: string, masked: string, rewrite: (fn: string, head: string) => { text: string, math: boolean }): string {
+    const mathShadowed = /(?<![\w.])math\s*(?::=|,)|\bvar math\b|[(,]\s*math\s+\w/.test (masked);
+    let usesMath = false;
+    const joined = goArithEachFunc (content, (fn, head) => {
+        const result = rewrite (fn, head);
+        if (result.math && mathShadowed) {
+            return fn;
+        }
+        usesMath = usesMath || result.math;
+        return result.text;
+    });
+    return usesMath ? goAddImport (joined, 'math') : joined;
+}
+
+// right-to-left over the calls `rx` matches (an inner call is rewritten before its container); `native` answers the replacement
+function goArithRewriteCalls (text: string, scope: GoArithScope, rx: RegExp, native: (helper: string, args: string[], margs: string[], text: string) => string | undefined): string {
+    let masked = scope.masked;
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
+        scope.pos = call.start;
+        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
+        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
+        let out = native (call.helper, args, margs, text);
+        if (out === undefined) {
+            continue;
+        }
+        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
+            out = out.slice (1, -1);
+        }
+        text = text.slice (0, call.start) + out + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (out) + masked.slice (close + 1);
+        scope.masked = masked;
+    }
+    return text;
+}
+
+const GO_COMPARE_CALL_RX = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
+
 function goArithKind (scope: GoArithScope, text: string, maskedText: string): Kind | undefined {
     const t = goArithStripParens (text);
     const m = goArithStripParens (maskedText);
@@ -190,7 +287,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: 
     const bothFloat = isFloatSide (ka) && isFloatSide (kb) && ((ka === 'f64') || (kb === 'f64'));
     if ((helper === 'MathMin') || (helper === 'MathMax')) {
         // the helper answers float64(a|b); integral operands carry no NaN
-        if (bothInt64 || goIntegralPair (ka, kb)) {
+        if (bothInt64) {
             return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
         }
         return undefined;
@@ -234,8 +331,7 @@ function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: 
 
 function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: string, math: boolean } {
     let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+    const scope = goArithScope (masked, ownMethods);
     const calls = [ ...masked.matchAll (GO_ARITH_CALL_RX) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
     let usesMath = false;
     // right to left: an inner call is rewritten before the call that contains it
@@ -312,69 +408,17 @@ function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: str
     return { text, 'math': usesMath };
 }
 
-// adds `import "math"` to the file header (one blank line after it, as normalizeGoFileHeader lays out)
-function goArithAddMathImport (content: string): string {
-    if (/^import "math"$/m.test (content) || /^\s*"math"$/m.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    let at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
-    if (at < 0) {
-        return content;
-    }
-    lines.splice (at + 2, 0, 'import "math"', '');
-    return lines.join ('\n');
-}
-
 export function goNativeArithmetic (content: string): string {
     if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !GO_ARITH_CALL_RX.test (content)) {
         return content;
     }
     GO_ARITH_CALL_RX.lastIndex = 0;
     const masked = goArithMask (content);
-    // a local named `math` would shadow the package
-    const mathShadowed = /(?<![\w.])math\s*(?::=|,)|\bvar math\b|[(,]\s*math\s+\w/.test (masked);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
-    if (/^func \(this \*\w+\) Sum\(/m.test (masked)) {
-        ownMethods.add ('Sum');
-    }
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
     for (const m of masked.matchAll (/^func \(this \*\w+\) (HandleOptionIntegerAndParams2?)\(/gm)) {
         ownMethods.add (m[1]);
     }
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let usesMath = false;
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) {
-                start = k;
-            } else {
-                out.push (lines[k]);
-            }
-            continue;
-        }
-        if (lines[k] === '}') {
-            const fn = lines.slice (start, k + 1).join ('\n');
-            let result = goArithRewriteFunc (fn, ownMethods);
-            if (result.math && mathShadowed) {
-                result = { 'text': fn, 'math': false };
-            }
-            usesMath = usesMath || result.math;
-            out.push (result.text);
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    const joined = out.join ('\n');
-    return usesMath ? goArithAddMathImport (joined) : joined;
+    return goArithMathEachFunc (content, masked, (fn) => goArithRewriteFunc (fn, ownMethods));
 }
 
 // ===== non-nil pointer operands =====
@@ -418,14 +462,7 @@ export function goTypedArithSelfTest (): string[] {
         [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil {\n\t\tc = this.SafeNumber(o, "d")\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
         [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil || true {\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goNativeArithmetic (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go-typed-arith-self-test-arith: expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go-typed-arith-self-test-arith: expected ');
 }
 
 // ----- extra operand proofs -----
@@ -547,11 +584,6 @@ function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: stri
 }
 
 // MathMin/MathMax answer float64(a|b); integral operands carry no NaN
-function goIntegralPair (ka: Kind, kb: Kind): boolean {
-    const integral = (k: Kind) => (k === 'i64') || (k === 'int') || (k === 'ilit');
-    return integral (ka) && integral (kb) && ((ka !== 'ilit') || (kb !== 'ilit'));
-}
-
 // `L == OpNeg(N)` / `L != OpNeg(N)` with a typed numeric L compares against the constant -N
 function goNegLiteralCompare (before: string, after: string, kind: Kind, operand: string, scope: GoArithScope): boolean {
     if ((kind !== 'ilit') || !/^\d+$/.test (operand) || /^\s*[.([]/.test (after)) {
@@ -606,14 +638,7 @@ export function goIntegralArithmeticSelfTest (): string[] {
         [ '\tvar a int64 = d\n\treturn Multiply(this.Sum(a, 1), d)', '((a + 1) * d)', true ],
         [ '\tvar a any = d\n\treturn Multiply(this.Sum(a, 1), d)', 'Multiply(this.Sum(a, 1), d)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goNativeArithmetic (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go integral arithmetic self test expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go integral arithmetic self test expected ');
 }
 
 // ----- native ordered comparisons -----
@@ -680,7 +705,8 @@ function goNativeCompareSkippable (masked: string): boolean {
     return !/\w\s*\(/.test (noConv) && !/[/%]/.test (masked) && !/(?:^|[(+\-*,]\s*)\*\s*[A-Za-z_(]/.test (masked.trim ()) && !/\b(?:nil|true|false)\b/.test (masked);
 }
 
-function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[]): string | undefined {
+// native ordered comparison; a float `<` / `<=` (true for NaN in the helper) is spelled `!(a >= b)` when nanSafe, else kept
+function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[], nanSafe = false): string | undefined {
     const op: string = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' }[helper];
     const isLit = (k: Kind) => (k === 'ilit') || (k === 'flit');
     if ((op === undefined) || (isLit (ka) && isLit (kb))) {
@@ -688,7 +714,7 @@ function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb
     }
     const float = (ka === 'f64') || (kb === 'f64') || (ka === 'flit') || (kb === 'flit');
     // IsLessThan = !GT && !EQ answers true for NaN
-    if (float && ((ka === 'f64') || (kb === 'f64')) && ((op === '<') || (op === '<='))) {
+    if (!nanSafe && float && ((ka === 'f64') || (kb === 'f64')) && ((op === '<') || (op === '<='))) {
         return undefined;
     }
     const conv = (x: string, k: Kind, other: Kind) => {
@@ -699,7 +725,14 @@ function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb
     if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) {
         return undefined;
     }
-    const cmp = conv (a, ka, kb) + ' ' + op + ' ' + conv (b, kb, ka);
+    const ca = conv (a, ka, kb);
+    const cb = conv (b, kb, ka);
+    let cmp = ca + ' ' + op + ' ' + cb;
+    if (nanSafe && float && (op === '<')) {
+        cmp = '!(' + ca + ' >= ' + cb + ')';
+    } else if (nanSafe && float && (op === '<=')) {
+        cmp = '!(' + ca + ' > ' + cb + ')';
+    }
     if (!pa && !pb) {
         return '(' + cmp + ')';
     }
@@ -718,80 +751,37 @@ function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb
     return gtOrGe ? '(' + nb + ' == nil || ' + cmp + ')' : '(' + nb + ' != nil && ' + cmp + ')';
 }
 
+// a nil test may skip the other operand: that one must be side-effect free
+function goNilSkipUnsafe (isPtr: boolean[], margs: string[]): boolean {
+    return (isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0]));
+}
+
 function goNativeCompareRewriteFunc (text: string, ownMethods: Set<string>): string {
-    let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
-    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
-        if (spans.length !== 2) {
-            continue;
+    const scope = goArithScope (goArithMask (text), ownMethods);
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => {
+        if (args.length !== 2) {
+            return undefined;
         }
-        scope.pos = call.start;
-        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
-        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
         const ptr = args.map ((x) => (/^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined));
         const isPtr = ptr.map ((p) => (p === '*int64') || (p === '*float64'));
         const guarded = args.map ((x, i) => isPtr[i] && goTypedArithPointerIsNonNil (scope, x));
         const kinds = args.map ((x, i) => (isPtr[i] ? ((ptr[i] === '*int64') ? 'i64' : 'f64') as Kind : goCompareOperandKind (scope, x, margs[i])));
-        if (kinds.some ((k) => k === undefined)) {
-            continue;
-        }
-        // a nil test may skip the other operand: it must be side-effect free
-        const nilA = isPtr[0] && !guarded[0];
-        const nilB = isPtr[1] && !guarded[1];
-        if ((nilA && !nilB && !goNativeCompareSkippable (margs[1])) || (nilB && !nilA && !goNativeCompareSkippable (margs[0]))) {
-            continue;
+        const nil = isPtr.map ((p, i) => p && !guarded[i]);
+        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (nil, margs)) {
+            return undefined;
         }
         // every proven operand is arithmetic or a primary, which binds tighter than a comparison
         const ops = args.map ((x, i) => (isPtr[i] ? '*' + x : x));
-        let native = goNativeCompareText (call.helper, ops[0], ops[1], kinds[0], kinds[1], nilA, nilB, args);
-        if (native === undefined) {
-            continue;
-        }
-        const before = masked.slice (0, call.start);
-        if (/\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (close + 1))) {
-            native = native.slice (1, -1);
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
-        scope.masked = masked;
-    }
-    return text;
+        return goNativeCompareText (helper, ops[0], ops[1], kinds[0], kinds[1], nil[0], nil[1], args);
+    });
 }
 
 export function goNativeCompare (content: string): string {
     if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
         return content;
     }
-    const masked = goArithMask (content);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
-            continue;
-        }
-        if (lines[k] === '}') {
-            out.push (goNativeCompareRewriteFunc (lines.slice (start, k + 1).join ('\n'), ownMethods));
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    return out.join ('\n');
+    const ownMethods = goArithOwnMethods (goArithMask (content));
+    return goArithEachFunc (content, (fn) => goNativeCompareRewriteFunc (fn, ownMethods));
 }
 
 export function goNativeCompareSelfTest (): string[] {
@@ -808,14 +798,7 @@ export function goNativeCompareSelfTest (): string[] {
         [ '\tfor i := 1; IsLessThan(i, n); i++ {\n\t}\n\treturn nil', 'IsLessThan(i, n)', true ],
         [ '\tfor i := 1; IsLessThan(i, 3); i++ {\n\t}\n\tvar i any = 2\n\treturn nil', 'IsLessThan(i, 3)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goNativeCompare (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go native compare self test expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goNativeCompare, wrap, cases, 'go native compare self test expected ');
 }
 
 // ----- tuple / counter / early-exit comparison operands -----
@@ -873,63 +856,47 @@ function goAddOnlyCounter (scope: GoArithScope, name: string): boolean {
 }
 
 function goTupleCompareRewriteFunc (text: string, ownMethods: Set<string>, fileOwn: Set<string>): string {
-    let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+    const scope = goArithScope (goArithMask (text), ownMethods);
     const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan|EvalTruthy)\(/g;
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
-        scope.pos = call.start;
-        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
-        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
-        let native: string | undefined = undefined;
-        if (call.helper === 'EvalTruthy') {
+    return goArithRewriteCalls (text, scope, rx, (helper, args, margs) => {
+        if (helper === 'EvalTruthy') {
             // EvalTruthy derefs a *bool box: nil is false
             if ((args.length === 1) && (goTupleElementType (scope, args[0], fileOwn) === '*bool')) {
-                native = '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))';
+                return '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))';
             }
-        } else if (spans.length === 2) {
-            const ptrName: string[] = [];
-            const isPtr: boolean[] = [];
-            const kinds: (Kind | undefined)[] = [];
-            const ops: string[] = [];
-            for (let i = 0; i < 2; i++) {
-                const x = args[i];
-                const tuple = goTupleElementType (scope, x, fileOwn);
-                const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
-                if (tuple === '*int64') {
-                    ptrName.push (x + '.(*int64)'); isPtr.push (true); kinds.push ('i64'); ops.push ('*' + x + '.(*int64)');
-                } else if (tuple === 'int64') {
-                    ptrName.push (x); isPtr.push (false); kinds.push ('i64'); ops.push (x);
-                } else if (goAddOnlyCounter (scope, x)) {
-                    ptrName.push (x); isPtr.push (false); kinds.push ('int'); ops.push (x + '.(int)');
-                } else if (((declared === '*int64') || (declared === '*float64')) && goEarlyExitPointerNonNil (scope, x, declared)) {
-                    ptrName.push (x); isPtr.push (false); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-                } else if ((declared === '*int64') || (declared === '*float64')) {
-                    const guarded = goTypedArithPointerIsNonNil (scope, x);
-                    ptrName.push (x); isPtr.push (!guarded); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-                } else {
-                    ptrName.push (x); isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
-                }
-            }
-            if (kinds.every ((k) => k !== undefined) && !((isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0])))) {
-                native = goNativeCompareText (call.helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], ptrName);
+            return undefined;
+        }
+        if (args.length !== 2) {
+            return undefined;
+        }
+        const ptrName: string[] = [];
+        const isPtr: boolean[] = [];
+        const kinds: (Kind | undefined)[] = [];
+        const ops: string[] = [];
+        for (let i = 0; i < 2; i++) {
+            const x = args[i];
+            const tuple = goTupleElementType (scope, x, fileOwn);
+            const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
+            if (tuple === '*int64') {
+                ptrName.push (x + '.(*int64)'); isPtr.push (true); kinds.push ('i64'); ops.push ('*' + x + '.(*int64)');
+            } else if (tuple === 'int64') {
+                ptrName.push (x); isPtr.push (false); kinds.push ('i64'); ops.push (x);
+            } else if (goAddOnlyCounter (scope, x)) {
+                ptrName.push (x); isPtr.push (false); kinds.push ('int'); ops.push (x + '.(int)');
+            } else if (((declared === '*int64') || (declared === '*float64')) && goEarlyExitPointerNonNil (scope, x, declared)) {
+                ptrName.push (x); isPtr.push (false); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
+            } else if ((declared === '*int64') || (declared === '*float64')) {
+                const guarded = goTypedArithPointerIsNonNil (scope, x);
+                ptrName.push (x); isPtr.push (!guarded); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
+            } else {
+                ptrName.push (x); isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
             }
         }
-        if (native === undefined) {
-            continue;
+        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
+            return undefined;
         }
-        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
-            native = native.slice (1, -1);
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
-        scope.masked = masked;
-    }
-    return text;
+        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], ptrName);
+    });
 }
 
 export function goTupleTruthyComparisons (content: string): string {
@@ -937,31 +904,10 @@ export function goTupleTruthyComparisons (content: string): string {
         return content;
     }
     const masked = goArithMask (content);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
+    const ownMethods = goArithOwnMethods (masked);
     // an exchange-level override of a Handle* method may answer another element type
-    const fileOwn = new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
-            continue;
-        }
-        if (lines[k] === '}') {
-            out.push (goTupleCompareRewriteFunc (lines.slice (start, k + 1).join ('\n'), ownMethods, fileOwn));
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    return out.join ('\n');
+    const fileOwn = goArithFileOwnHandles (masked);
+    return goArithEachFunc (content, (fn) => goTupleCompareRewriteFunc (fn, ownMethods, fileOwn));
 }
 
 export function goTupleTruthySelfTest (): string[] {
@@ -980,14 +926,7 @@ export function goTupleTruthySelfTest (): string[] {
         [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif e == nil {\n\t\treturn nil\n\t}\n\tif f == nil {\n\t\treturn nil\n\t}\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'if (*e < *f-1) {', true ],
         [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'IsLessThan(e, *f-1)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goTupleTruthyComparisons (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go tuple truthy self test expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goTupleTruthyComparisons, wrap, cases, 'go tuple truthy self test expected ');
 }
 
 // ----- Subtract/Multiply on proven non-nil operands -----
@@ -1113,14 +1052,7 @@ export function goPointerNonNilArithSelfTest (): string[] {
         [ '\tvar page int64 = 2\n\tvar m int = 100\n\treturn Multiply(page, m)', '(page * int64(m))', true ],
         [ '\tvar page int64 = 2\n\tvar m any = 100\n\treturn Multiply(page, m)', 'Multiply(page, m)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goNativeArithmetic (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go pointer non nil arith expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go pointer non nil arith expected ');
 }
 
 // ----- float NaN-algebra comparisons and BaseExchange numeric fields -----
@@ -1128,63 +1060,12 @@ export function goPointerNonNilArithSelfTest (): string[] {
 // (`IsLessThan = !(a >= b)`, `LE = !(a > b)`), and non-nil BaseExchange numeric fields type.
 const GO_BASE_NUMERIC_FIELDS: { [name: string]: Kind } = { 'RateLimit': 'f64', 'FetchHistoryCacheSize': 'int', 'MinFundingAddressLength': 'int' };
 
-function goFloatFieldCompareNative (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[]): string | undefined {
-    const op: string = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' }[helper];
-    const isLit = (k: Kind) => (k === 'ilit') || (k === 'flit');
-    if ((op === undefined) || (isLit (ka) && isLit (kb))) {
-        return undefined;
-    }
-    const float = (ka === 'f64') || (kb === 'f64') || (ka === 'flit') || (kb === 'flit');
-    if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) {
-        return undefined;
-    }
-    const conv = (x: string, k: Kind, other: Kind) => {
-        if (float && ((k === 'i64') || (k === 'int'))) { return 'float64(' + x + ')'; }
-        if ((k === 'int') && (other === 'i64')) { return 'int64(' + x + ')'; }
-        return x;
-    };
-    const ca = conv (a, ka, kb);
-    const cb = conv (b, kb, ka);
-    let cmp = ca + ' ' + op + ' ' + cb;
-    if (float && (op === '<')) {
-        cmp = '!(' + ca + ' >= ' + cb + ')';
-    } else if (float && (op === '<=')) {
-        cmp = '!(' + ca + ' > ' + cb + ')';
-    }
-    if (!pa && !pb) {
-        return '(' + cmp + ')';
-    }
-    const [ na, nb ] = name;
-    // helper nil table: GT(nil, x) false, GT(x, nil) true, EQ(nil, nil) true
-    const gtOrGe = (op === '>') || (op === '>=');
-    if (pa && pb) {
-        if (op === '>') { return '(' + na + ' != nil && (' + nb + ' == nil || ' + cmp + '))'; }
-        if (op === '<') { return '(' + nb + ' != nil && (' + na + ' == nil || ' + cmp + '))'; }
-        if (op === '>=') { return '(' + nb + ' == nil || (' + na + ' != nil && ' + cmp + '))'; }
-        return '(' + na + ' == nil || (' + nb + ' != nil && ' + cmp + '))';
-    }
-    if (pa) {
-        return gtOrGe ? '(' + na + ' != nil && ' + cmp + ')' : '(' + na + ' == nil || ' + cmp + ')';
-    }
-    return gtOrGe ? '(' + nb + ' == nil || ' + cmp + ')' : '(' + nb + ' != nil && ' + cmp + ')';
-}
-
 function goFloatFieldRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
-    let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
-    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
-        if (spans.length !== 2) {
-            continue;
+    const scope = goArithScope (goArithMask (text), ownMethods);
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => {
+        if (args.length !== 2) {
+            return undefined;
         }
-        scope.pos = call.start;
-        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
-        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
         const isPtr: boolean[] = [];
         const kinds: (Kind | undefined)[] = [];
         const ops: string[] = [];
@@ -1201,21 +1082,11 @@ function goFloatFieldRewriteFunc (text: string, ownMethods: Set<string>, fields:
                 isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
             }
         }
-        if (kinds.some ((k) => k === undefined) || (isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0]))) {
-            continue;
+        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
+            return undefined;
         }
-        let native = goFloatFieldCompareNative (call.helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args);
-        if (native === undefined) {
-            continue;
-        }
-        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
-            native = native.slice (1, -1);
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
-        scope.masked = masked;
-    }
-    return text;
+        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args, true);
+    });
 }
 
 export function goFloatFieldComparisons (content: string): string {
@@ -1223,34 +1094,11 @@ export function goFloatFieldComparisons (content: string): string {
         return content;
     }
     const masked = goArithMask (content);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
+    const ownMethods = goArithOwnMethods (masked);
     // a file that declares its own field / method of that name may shadow the BaseExchange one
-    const fields = new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
-            continue;
-        }
-        if (lines[k] === '}') {
-            const fn = lines.slice (start, k + 1).join ('\n');
-            // only methods on an exchange receiver (`this`) see BaseExchange fields
-            const own = /^func \(this \*\w+\)/.test (lines[start]) ? fields : new Set<string> ();
-            out.push (goFloatFieldRewriteFunc (fn, ownMethods, own));
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    return out.join ('\n');
+    const fields = goArithBaseFields (masked);
+    // only methods on an exchange receiver (`this`) see BaseExchange fields
+    return goArithEachFunc (content, (fn, head) => goFloatFieldRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
 }
 
 export function goFloatComparisonsSelfTest (): string[] {
@@ -1267,13 +1115,7 @@ export function goFloatComparisonsSelfTest (): string[] {
         [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif IsLessThan(d, this.Seconds()) {\n\t}\n\treturn nil', 'IsLessThan(d, this.Seconds())', true ],
         [ '\tif IsGreaterThan(this.Other, 0) {\n\t}\n\treturn nil', 'IsGreaterThan(this.Other, 0)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goFloatFieldComparisons (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go float comparisons self test expected ' + want + ' in ' + out);
-        }
-    }
+    const problems = goArithCaseProblems (goFloatFieldComparisons, wrap, cases, 'go float comparisons self test expected ');
     // a struct that redeclares the field keeps the helper
     const shadow = goFloatFieldComparisons ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil'));
     if (!shadow.includes ('IsGreaterThan(this.RateLimit, 0)')) {
@@ -1564,37 +1406,8 @@ export function goAnyToInt64Retype (content: string): string {
     if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/\bvar \w+ any = /.test (content)) {
         return content;
     }
-    const masked = goArithMask (content);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
-    if (/^func \(this \*\w+\) Sum\(/m.test (masked)) {
-        ownMethods.add ('Sum');
-    }
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) {
-                start = k;
-            } else {
-                out.push (lines[k]);
-            }
-            continue;
-        }
-        if (lines[k] === '}') {
-            out.push (goAnyToInt64RetypeFunc (lines.slice (start, k + 1).join ('\n'), ownMethods));
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    return out.join ('\n');
+    const ownMethods = goArithOwnMethods (goArithMask (content), [ 'Sum' ]);
+    return goArithEachFunc (content, (fn) => goAnyToInt64RetypeFunc (fn, ownMethods));
 }
 
 // native arithmetic, then retype the locals it proved int64 and rerun until nothing moves
@@ -1626,14 +1439,7 @@ export function goInt64RetypeArithSelfTest (): string[] {
         [ '\tvar d int64 = 60\n\tvar w any = this.Sum(d, 1)\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
         [ '\tvar d int64 = 60\n\tvar w any = mathMin(limit, 1440)\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goInt64RetypeArith (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go int64retype arith self test expected ' + want + ' in ' + out);
-        }
-    }
-    return problems;
+    return goArithCaseProblems (goInt64RetypeArith, wrap, cases, 'go int64retype arith self test expected ');
 }
 
 // ----- Divide on guarded operands -----
@@ -1817,8 +1623,7 @@ function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
 
 function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>, fileOwn: Set<string>): { text: string, math: boolean } {
     let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+    const scope = goArithScope (masked, ownMethods);
     const rx = /(?<![\w.])(?:ccxt\.)?(Divide|MathFloor|MathCeil)\(/g;
     const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
     calls.sort ((x, y) => y.start - x.start);
@@ -1881,41 +1686,10 @@ export function goGuardedDivide (content: string): string {
         return content;
     }
     const masked = goArithMask (content);
-    const mathShadowed = /(?<![\w.])math\s*(?::=|,)|\bvar math\b|[(,]\s*math\s+\w/.test (masked);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS.concat ([ 'Sum' ])) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
-    const fields = new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
-    const fileOwn = new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let usesMath = false;
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
-            continue;
-        }
-        if (lines[k] === '}') {
-            const fn = lines.slice (start, k + 1).join ('\n');
-            const own = /^func \(this \*\w+\)/.test (lines[start]) ? fields : new Set<string> ();
-            let result = goGuardedDivideRewriteFunc (fn, ownMethods, own, fileOwn);
-            if (result.math && mathShadowed) {
-                result = { 'text': fn, 'math': false };
-            }
-            usesMath = usesMath || result.math;
-            out.push (result.text);
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    const joined = out.join ('\n');
-    return usesMath ? goArithAddMathImport (joined) : joined;
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
+    const fields = goArithBaseFields (masked);
+    const fileOwn = goArithFileOwnHandles (masked);
+    return goArithMathEachFunc (content, masked, (fn, head) => goGuardedDivideRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> (), fileOwn));
 }
 
 export function goNativeDivideCheck (): string[] {
@@ -1938,13 +1712,7 @@ export function goNativeDivideCheck (): string[] {
         [ '\tvar l int = 0\n\tvar s int64 = 3\n\treturn this.ParseToInt(Divide(s, l))', 'Divide(s, l)', true ],
         [ tuple + '\tif !IsEqual(u, nil) {\n\t\tif Divide(u, 1000) == 2 {\n\t\t}\n\t}\n\treturn nil', 'Divide(u, 1000) == 2', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goGuardedDivide (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go native divide check expected ' + want + ' in ' + out);
-        }
-    }
+    const problems = goArithCaseProblems (goGuardedDivide, wrap, cases, 'go native divide check expected ');
     const shadow = goGuardedDivide ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif this.RateLimit > 0 {\n\t\treturn Divide(1, this.RateLimit)\n\t}\n\treturn nil'));
     if (!shadow.includes ('Divide(1, this.RateLimit)')) {
         problems.push ('shadowed field went native: ' + shadow);
@@ -2078,22 +1846,12 @@ function goIntegralBoxKind (scope: GoArithScope, name: string, seen: Set<string>
 }
 
 function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
-    let masked = goArithMask (text);
-    const nl = masked.indexOf ('\n');
-    const scope: GoArithScope & { text: string } = { 'text': text, 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
-    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
-    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
-    calls.sort ((x, y) => y.start - x.start);
-    for (const call of calls) {
-        const close = goArithClose (masked, call.open);
-        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
-        if (spans.length !== 2) {
-            continue;
+    const scope: GoArithScope & { text: string } = { ...goArithScope (goArithMask (text), ownMethods), 'text': text };
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs, current) => {
+        if (args.length !== 2) {
+            return undefined;
         }
-        scope.pos = call.start;
-        scope.text = text;
-        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
-        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
+        scope.text = current;
         const isPtr: boolean[] = [];
         const kinds: (Kind | undefined)[] = [];
         const ops: string[] = [];
@@ -2117,21 +1875,11 @@ function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields
             }
         }
         // only sites the field-comparison pass could not prove (a box local or a guarded pointer)
-        if (!boxed || kinds.some ((k) => k === undefined) || (isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0]))) {
-            continue;
+        if (!boxed || kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
+            return undefined;
         }
-        let native = goFloatFieldCompareNative (call.helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args);
-        if (native === undefined) {
-            continue;
-        }
-        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
-            native = native.slice (1, -1);
-        }
-        text = text.slice (0, call.start) + native + text.slice (close + 1);
-        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (close + 1);
-        scope.masked = masked;
-    }
-    return text;
+        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args, true);
+    });
 }
 
 export function goIntegralBoxComparisons (content: string): string {
@@ -2139,34 +1887,9 @@ export function goIntegralBoxComparisons (content: string): string {
         return content;
     }
     const masked = goArithMask (content);
-    const ownMethods = new Set<string> ();
-    for (const name of GO_ARITH_INT64_METHODS) {
-        if (new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)) {
-            ownMethods.add (name);
-        }
-    }
-    if (/^func \(this \*\w+\) Sum\(/m.test (masked)) {
-        ownMethods.add ('Sum');
-    }
-    const fields = new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
-    const lines = content.split ('\n');
-    const out: string[] = [];
-    let start = -1;
-    for (let k = 0; k < lines.length; k++) {
-        if (start < 0) {
-            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) { start = k; } else { out.push (lines[k]); }
-            continue;
-        }
-        if (lines[k] === '}') {
-            const own = /^func \(this \*\w+\)/.test (lines[start]) ? fields : new Set<string> ();
-            out.push (goIntegralBoxRewriteFunc (lines.slice (start, k + 1).join ('\n'), ownMethods, own));
-            start = -1;
-        }
-    }
-    if (start >= 0) {
-        out.push (...lines.slice (start));
-    }
-    return out.join ('\n');
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
+    const fields = goArithBaseFields (masked);
+    return goArithEachFunc (content, (fn, head) => goIntegralBoxRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
 }
 
 export function goBoxedIntComparisonsSelfTest (): string[] {
@@ -2185,13 +1908,7 @@ export function goBoxedIntComparisonsSelfTest (): string[] {
         [ '\tvar c int64 = 5\n\tvar i any = this.Sum(c, 1)\n\ti, o = this.F(o, n), nil\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
         [ '\tvar f float64 = 1.5\n\tvar c int64 = 5\n\tvar i any = Subtract(f, c)\n\tif IsGreaterThan(i, c) {\n\t}\n\treturn nil', 'IsGreaterThan(i, c)', true ],
     ];
-    const problems: string[] = [];
-    for (const [ body, want, present ] of cases) {
-        const out = goIntegralBoxComparisons (wrap (body));
-        if (out.includes (want) !== present) {
-            problems.push ('go boxed int comparisons self expected ' + want + ' in ' + out);
-        }
-    }
+    const problems = goArithCaseProblems (goIntegralBoxComparisons, wrap, cases, 'go boxed int comparisons self expected ');
     // a file-local Sum may answer another box
     const own = goIntegralBoxComparisons ('// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) Sum(a ...any) any {\n\treturn nil\n}\n' + wrap ('\tvar s int64 = 5\n\tvar e any = this.Sum(s, 10)\n\tif IsLessThan(e, s) {\n\t}\n\treturn nil'));
     if (!own.includes ('IsLessThan(e, s)')) {
