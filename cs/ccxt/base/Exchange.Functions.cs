@@ -368,27 +368,6 @@ public partial class BaseExchange
         }
 
         return JsonConvert.SerializeObject(obj);
-        // if (obj.GetType() == typeof(dict))
-        // {
-        //     var obj2 = (dict)obj;
-        //     return JsonSerializer.Serialize<Dictionary<string, object>>(obj2)dd;
-        // }
-        // if (obj.GetType() == typeof(List<object>))
-        // {
-        //     var obj2 = (List<object>)obj;
-        //     return JsonSerializer.Serialize<List<object>>(obj2);
-        // }
-        // if (obj.GetType() == typeof(List<string>))
-        // {
-        //     var obj2 = (List<string>)obj;
-        //     return JsonSerializer.Serialize<List<string>>(obj2);
-        // }
-        // if (obj.GetType() == typeof(List<int>))
-        // {
-        //     var obj2 = (List<int>)obj;
-        //     return JsonSerializer.Serialize<List<int>>(obj2);
-        // }
-        // return null;
     }
 
 }
