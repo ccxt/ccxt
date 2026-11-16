@@ -159,6 +159,7 @@
         "ext-curl": "*",
         "ext-pcre": "*",
         "ext-json": "*",
+        "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-gmp": "*",
         "clue/http-proxy-react": "1.10.0",
