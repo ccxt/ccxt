@@ -179,14 +179,14 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "ccxt-common",
  "futures",
@@ -195,7 +195,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-common"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "base64",
  "chrono",
@@ -239,14 +239,14 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "ccxt-base",
 ]
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.86"
+version = "4.5.92"
 dependencies = [
  "ccxt-base",
  "futures",
@@ -1607,9 +1607,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",
@@ -1799,9 +1799,9 @@ dependencies = [
 
 [[package]]
 name = "simd-adler32"
-version = "0.3.10"
+version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a219298ac11a56ea9a6d2120044824d6f01aeb034955e7af7bc16858527deea"
+checksum = "703d5c7ef118737c72f1af64ad2f6f8c5e1921f818cdcb97b8fe6fc69bf66214"
 
 [[package]]
 name = "simdutf8"
