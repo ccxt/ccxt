@@ -6318,15 +6318,11 @@ ${caseStatements.join('\n')}
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const scopedRun = inputExchanges.length > 0;
-        if (inputExchanges === undefined) {
-            inputExchanges = exchanges.ws;
-        }
         if (prediction && (!inputExchanges || !inputExchanges.length)) {
             inputExchanges = predictionWsIds;
         }
         const wsFolder = prediction ? EXCHANGES_PREDICTION_WS_FOLDER : EXCHANGES_WS_FOLDER;
         const options = { goFolder: wsFolder, exchanges:inputExchanges };
-        // const options = { goFolder: EXCHANGES_WS_FOLDER, exchanges:['bitget'] }
         if (scopedRun) {
             force = true; // a scoped run (CI `goTranspiler.ts <exchange> --ws`) always writes, same as the REST path
         }
@@ -6456,7 +6452,7 @@ ${caseStatements.join('\n')}
         // Order-preserving flatten: Promise.all is in input order; each task returns one file.
         const flatResult = [];
         for (const res of workerResult) {
-            for (const f of (res.files ?? [res.file])) {
+            for (const f of res.files) {
                 flatResult.push(f);
             }
             this.mergeWorkerGoComments(res.goComments);
@@ -6608,26 +6604,18 @@ ${caseStatements.join('\n')}
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, typedSections[idx]));
         // prediction packages always need their own option-structs file even with a single exchange.
-        // `goTypeOptions` only holds the structs of the exchanges transpiled in THIS run, and
-        // safeOptionsStructFile() dumps it wholesale — so after an incremental run that skipped
-        // exchanges, rewriting the shared file would truncate it to the dirty subset. The existing
-        // file already covers the full set (it was written by the last full/--force run), so leave
-        // it alone; `--force` regenerates it from scratch.
+        // `goTypeOptions` only holds this run's structs: after an incremental run that skipped
+        // exchanges, keep the shared file from the last full run (`--force` regenerates it).
         if (this.skippedUnchangedExchanges) {
             log.bright.cyan ('[go] Keeping exchange_wrapper_structs.go from the previous full run (incremental run, pass --force to regenerate)');
         } else if (exchangeFiles.length > 1 || this.isPrediction) {
             this.safeOptionsStructFile(ws);
         }
-        const classes = {};
-
-        return classes;
+        return {};
     }
 
-    // Write a generated file, skipping the write when this process already wrote
-    // byte-identical content to the
-    // same path. transpileBaseMethods re-emits exchange_generated.go / exchange_wrappers.go
-    // on every one of its three passes and the later passes produce the same bytes; only
-    // those two paths are remembered, so the cache never grows with the ~200 per-exchange files.
+    // Write a generated file, skipping the rewrite of identical bytes to the two files
+    // transpileBaseMethods re-emits on each of its passes (exchange_generated.go / exchange_wrappers.go).
     writeGeneratedOnce (path: string, content: string) {
         const repeated = (path === BASE_METHODS_FILE) || (path === GLOBAL_WRAPPER_FILE);
         if (repeated && this._lastWrittenContent[path] === content) {
@@ -7124,11 +7112,11 @@ ${caseStatements.join('\n')}
         for (let i = start; i < index; i++) {
             const char = content[i];
             if (char === '"' || char === '\'' || char === '`') {
-                i = this.goSkipGoLiteral (content, i);
+                i = goSkipLiteralText (content, i);
             } else if (char === '/' && (content[i + 1] === '/' || content[i + 1] === '*')) {
-                i = this.goSkipGoComment (content, i);
+                i = goSkipCommentText (content, i);
             } else if (char === '(' || char === '[' || char === '{') {
-                frames.push ({ kind: char, args: this.goCountFrameArgs (content, i) });
+                frames.push ({ kind: char, args: goCountFrameArgsText (content, i) });
             } else if (char === ')' || char === ']' || char === '}') {
                 frames.pop ();
             }
@@ -7149,22 +7137,6 @@ ${caseStatements.join('\n')}
             }
         }
         return depth;
-    }
-
-    // index of the last byte of the Go literal that starts at `index`
-    goSkipGoLiteral (content: string, index: number): number {
-        return goSkipLiteralText (content, index);
-    }
-
-    // index of the last byte of the comment that starts at `index`
-    goSkipGoComment (content: string, index: number): number {
-        return goSkipCommentText (content, index);
-    }
-
-    // number of comma separated entries between the bracket at `opener` and its
-    // matching closer (strings and comments ignored); 0 when unbalanced
-    goCountFrameArgs (content: string, opener: number): number {
-        return goCountFrameArgsText (content, opener);
     }
 
     // the two-literal concatenation a `"\0"` string literal is rewritten into,
@@ -7191,17 +7163,13 @@ ${caseStatements.join('\n')}
         let isExtended = this.isExtendedExchange(exchangeName);
         const isAlias = this.isAlias (exchangeName);
 
-        // A non-async method declared to return a Promise (e.g. `watchTrades (symbol): Promise<Trade[]> {
-        // return this.watchTradesForSymbols([symbol], ...) }`) is transpiled with a Go return type of
-        // `any` — the ast-transpiler only channel-wraps `async` methods. But its body returns a channel
-        // and the typed wrapper reads it with `<-`, so coerce the declared return type to `<-chan any`.
-        // Target methods by name from the parsed metadata (the same async||Promise signal the wrapper
-        // side uses) so only Promise-returning methods are touched, never the many sync helpers.
+        // A non-async method declared to return a Promise is printed with an `any` return, but its
+        // body returns a channel the typed wrapper reads with `<-`: coerce it to `<-chan any`
+        // (targeted by name from the parsed metadata, so sync helpers are never touched).
         const promiseMethods = (goVersion.methodsTypes || []).filter ((m: any) => !m.async && (typeof m.returnType === 'string') && m.returnType.startsWith ('Promise'));
         for (let mi = 0; mi < promiseMethods.length; mi++) {
             const capName = capitalize (promiseMethods[mi].name);
             const coerceRegex = new RegExp ('(func\\s+\\(this\\s+\\*\\w+\\)\\s+' + capName + '\\([^)]*\\))\\s+any(\\s+\\{)', 'g');
-            // F04: spell the single space before `{` (see coerceGoBoolMethodReturns)
             content = content.replace (coerceRegex, '$1 <-chan any {');
         }
 
@@ -7218,7 +7186,8 @@ ${caseStatements.join('\n')}
         // `any` local, later inline `local == "literal"` comparisons compare an interface holding
         // a *string against an untyped constant and are always false. Unwrap at the assignment so
         // the `any` local carries the plain value, matching every other language port.
-        const derefFn = isWs ? 'ccxt.DerefScalar(' : 'DerefScalar(';
+        const wsQual = isWs ? 'ccxt.' : '';
+        const derefFn = wsQual + 'DerefScalar(';
         const safeCall = 'this\\.(?:DerivedExchange\\.)?(?:Safe(?:(?:String|Integer|Number|Float|Bool)[N2-9]*|CurrencyCode|Symbol)|NumberToString|Parse8601|Iso8601|' + CCXT_GO_STRING_PTR_METHOD_NAMES.join ('|') + ')\\((?:[^()]|\\([^()]*\\))*\\)';
         content = content.replace (new RegExp ('(var \\w+ any = )(' + safeCall + ')', 'g'), ((_m: string, decl: string, call: string) => decl + derefFn + call + ')') as any);
         // A SafeBool* call compared directly to a bool literal has no local for the unwrap
@@ -7226,7 +7195,7 @@ ${caseStatements.join('\n')}
         // That compiled while the accessor returned `any`; now it is a type error (*bool vs
         // untyped bool), so route it through IsEqual, which derefs. Same rewrite the test
         // passes apply to their call comparisons; bool family only.
-        const isEqualWrap = isWs ? 'ccxt.IsEqual(' : 'IsEqual(';
+        const isEqualWrap = wsQual + 'IsEqual(';
         content = content.replace (new RegExp ('(this\\.SafeBool(?:2|N)?\\((?:[^()]|\\([^()]*\\))*\\)) (==|!=) (true|false)\\b', 'g'), ((_m: string, call: string, op: string, literal: string) => (op === '==') ? isEqualWrap + call + ', ' + literal + ')' : '!' + isEqualWrap + call + ', ' + literal + ')') as any);
         // ... and the same for reassignments of a local already declared `any`. A typed
         // `var x *string` local must keep its pointer, and the same name can be `any` in one
@@ -7263,12 +7232,11 @@ ${caseStatements.join('\n')}
             // An `any` name can still receive a typed pointer from its caller (an `any` parameter
             // fed a *string by another exchange method), so `name == "literal"` compares an
             // interface against an untyped constant and is always false. Route those via IsEqual.
-            const isEqualFn = isWs ? 'ccxt.IsEqual(' : 'IsEqual(';
             fn = fn.replace (/(?<![.\w*"])(\w+) (==|!=) (("(?:[^"\\]|\\.)*")|-?\d+(?:\.\d+)?)/g, ((m: string, name: string, op: string, literal: string) => {
                 if (!anyLocals.has (name) || typedLocals.has (name)) {
                     return m;
                 }
-                const call = isEqualFn + name + ', ' + literal + ')';
+                const call = isEqualWrap + name + ', ' + literal + ')';
                 return (op === '==') ? call : '!' + call;
             }) as any);
             // Same hazard when the right side is a helper call returning `any` (Subtract,
@@ -7278,7 +7246,7 @@ ${caseStatements.join('\n')}
                 if (name === 'nil' || typedLocals.has (name)) {
                     return m;
                 }
-                const wrapped = isEqualFn + name + ', ' + call + ')';
+                const wrapped = isEqualWrap + name + ', ' + call + ')';
                 return (op === '==') ? wrapped : '!' + wrapped;
             }) as any);
             // ... and when both sides are `any` names: two interfaces holding different numeric
@@ -7290,7 +7258,7 @@ ${caseStatements.join('\n')}
                 if (!anyLocals.has (left) || !anyLocals.has (right) || typedLocals.has (left) || typedLocals.has (right)) {
                     return m;
                 }
-                const wrapped = isEqualFn + left + ', ' + right + ')';
+                const wrapped = isEqualWrap + left + ', ' + right + ')';
                 return (op === '==') ? wrapped : '!' + wrapped;
             }) as any);
             return fn;
@@ -7300,23 +7268,21 @@ ${caseStatements.join('\n')}
         // is local to the function, so a typed `*T` local handed over by another method needs the
         // deref-aware helper (goParamNativeNilCompares). GetArg-bound optionals and the proven
         // locals keep the native comparison.
-        content = goParamNativeNilCompares (content, isWs ? 'ccxt.IsEqual(' : 'IsEqual(');
+        content = goParamNativeNilCompares (content, isEqualWrap);
         // ... and the same for the `any` LOCALS a pointer reaches: the printer's local proof
         // only knows a `*T`-returning helper call, not a typed local or a native `*T` parameter.
         // A prediction exchange lives in package ccxtprediction, which reaches the helper as
         // `ccxt.IsEqual` too (its generated file uses no bare form).
-        content = goBoxedPointerNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
-        // ... and the same for a local boxed from a method this file types with a pointer result
-        // (`var timeInForce any = this.ParseOrderTimeInForce(…)`): the printer cannot see that
-        // signature, so its native `timeInForce == nil` never fires on the boxed (*string)(nil).
-        // typed locals compare natively (goTypedNativeNilCompares)
-        content = goTypedNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
-        content = goProvenParamNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
-        content = goAnyLocalNativeNilCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
-        content = goStringLiteralNativeCompares (content, (isWs || isPrediction) ? 'ccxt.IsEqual(' : 'IsEqual(');
+        // A local boxed from a method this file types with a pointer result is invisible to the
+        // printer's native `x == nil`; typed locals compare natively (goTypedNativeNilCompares).
+        const qual = (isWs || isPrediction) ? 'ccxt.' : '';
+        const comparePasses = [ goBoxedPointerNilCompares, goTypedNativeNilCompares, goProvenParamNativeNilCompares, goAnyLocalNativeNilCompares, goStringLiteralNativeCompares ];
+        for (const pass of comparePasses) {
+            content = pass (content, qual + 'IsEqual(');
+        }
         content = goNativeEquality (content);
         content = goSafeBoolLiteralDefaultDeref (content);
-        content = goTypedShapeHelpers (content, (isWs || isPrediction) ? 'ccxt.' : '');
+        content = goTypedShapeHelpers (content, qual);
 
         if (!isWs) {
             content = this.regexAll(content, [
@@ -7352,12 +7318,9 @@ ${caseStatements.join('\n')}
                 // package-level types/functions of go/v4 need the ccxt. qualifier
                 // (this also rewrites the embedded struct member into ccxt.PredictionExchange)
                 content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
-                // inherited prediction helpers (outcome, shortenSlug, checkEventsAndMarkets, ...)
-                // reach the derived exchange via callDynamically. The shared `<-callDynamically`
-                // fixup only covers awaited calls; non-awaited/sync ones stay bare and would be
-                // undefined in package ccxtprediction. Route them through the exported
-                // channel-based dispatcher — CallInternalMethod forwards both plain and channel
-                // returns, so the `<-` receive is always valid.
+                // non-awaited callDynamically calls (inherited prediction helpers) would be undefined
+                // in package ccxtprediction: route them through the exported channel dispatcher, whose
+                // CallInternalMethod forwards plain and channel returns alike
                 content = this.regexAll (content, [
                     [/callDynamically\(/gm, '<-this.CallDynamically('],
                 ]);
@@ -7419,40 +7382,26 @@ func (this *${className}) Init(userConfig map[string]any) {
         // plain join produced TWO blank lines before the constructor; gofmt keeps at most one
         // between declarations (go/printer linebreak nlimit).
         content = this.createGeneratedHeader().join('\n') + '\n' + content + (content.endsWith('\n') ? '' : '\n') + publicCtor + initMethod + typedSection;
-        if (isPrediction) {
-            // qualify everything that lives in the base ccxt package (types, helpers,
-            // error constructors, the embedded Exchange struct itself, ...)
-            content = this.addPackagePrefix(content, this.extractTypeAndFuncNames(EXCHANGES_FOLDER), 'ccxt');
-        }
         content = goTypedMiscNative (content);
         return goImports + content;
     }
 
     transpileDerivedExchangeFile (tsFolder: string, filename: string, options: any, goResult: any, force = false, ws: boolean | 'prediction' = false, typedSection = '') {
 
-        const tsPath = `${tsFolder}/${filename}`;
-
-        let { goFolder } = options;
+        const { goFolder } = options;
 
         const extensionlessName = filename.replace ('.ts', '');
         const goFilename = filename.replace ('.ts', '.go');
-
-        const tsMtime = fs.statSync (tsPath).mtime.getTime ();
 
         const go  = this.createGoExchange (extensionlessName, goResult, ws, typedSection);
 
         if (goFolder) {
             overwriteFileAndFolder (`${goFolder}/${goFilename}`, go);
-            // fs.utimesSync (`${goFolder}/${goFilename}`, new Date (), new Date (tsMtime))
         }
     }
 
-    // The two ws test files (go/tests/base/cache/*.go) are assembled by splitting the transpiled
-    // source on its section-separator comments and re-joining the parts. Splitting on the comment
-    // *text* leaves the comment's own indentation behind as a whitespace-only line, and the
-    // re-join puts the comment back at column 0 — both are things gofmt undoes (it trims blank
-    // lines and indents a comment to the block it introduces), so normalize them at assembly time.
-    // No content change: only the indentation of the separator and the blank lines move.
+    // The ws cache test files are split on their separator comments and re-joined: indent each
+    // separator to the block it introduces and blank whitespace-only lines, as gofmt would.
     normalizeSectionSeparators (content: string, separator: string): string {
         const lines = content.split ('\n');
         for (let i = 0; i < lines.length; i++) {
@@ -7471,25 +7420,18 @@ func (this *${className}) Init(userConfig map[string]any) {
         return lines.join ('\n');
     }
 
-    // ---------------------------------------------------------------------------------------------
-    // one `package cache` test file: drop the text before the first separator, then `regexes`
-    transpileWsCacheTestFileToGo (jsFile: string, goFile: string, stage: string, force: boolean, separator: string, regexes: any[]) {
+    // one hand-assembled test file: `transform` turns the transpiled source into the file body
+    transpileGoTestFile (jsFile: string, goFile: string, stage: string, force: boolean, logLabel: string, pkg: string, transform: (content: string) => string) {
         if (skipUpToDateStage ('go', stage, force, testStageInputs (), [ goFile ])) {
             return;
         }
 
-        log.magenta ('Transpiling from', (jsFile as any).yellow);
+        log.magenta (logLabel, (jsFile as any).yellow);
 
-        const go = this.transpiler.transpileGoByPath(jsFile);
-        let content = go.content;
-        const splitParts = content.split(separator);
-        splitParts.shift();
-        content = splitParts.join('\n' + separator + '\n');
-        content = this.normalizeSectionSeparators (content, separator);
-        content = this.regexAll (content, regexes).trim ();
+        const content = transform (this.transpiler.transpileGoByPath(jsFile).content).trim ();
 
         const file = [
-            'package cache',
+            pkg,
             '',
             this.createGeneratedHeader().join('\n'),
             content,
@@ -7500,89 +7442,54 @@ func (this *${className}) Init(userConfig map[string]any) {
         overwriteFileAndFolder (goFile, file);
     }
 
-    // ---------------------------------------------------------------------------------------------
-
-    transpileCryptoTestsToGo (outDir: string, force = true) {
-
-        const jsFile = './ts/src/test/base/test.cryptography.ts';
-        const goFile = `${outDir}/test.cryptography.go`;
-
-        if (skipUpToDateStage ('go', 'crypto test', force, testStageInputs (), [ goFile ])) {
-            return;
-        }
-
-        log.magenta ('[go] Transpiling from', (jsFile as any).yellow);
-
-        const go = this.transpiler.transpileGoByPath(jsFile);
-        let content = go.content;
-        content = this.regexAll (content, [
-            [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
-        ]).trim ();
-
-        const file = [
-            'package base',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            content,
-        ].join('\n') + '\n';
-
-        log.magenta ('→', (goFile as any).yellow);
-
-        overwriteFileAndFolder (goFile, file);
+    // the two `package cache` ws test files: drop the text before the first separator, then `regexes`
+    transpileWsCacheTestFileToGo (jsFile: string, goFile: string, stage: string, force: boolean, separator: string, regexes: any[]) {
+        this.transpileGoTestFile (jsFile, goFile, stage, force, 'Transpiling from', 'package cache', (content: string) => {
+            const splitParts = content.split(separator);
+            splitParts.shift();
+            return this.regexAll (this.normalizeSectionSeparators (splitParts.join('\n' + separator + '\n'), separator), regexes);
+        });
     }
 
-    transpileExchangeTest(name: string, path: string): [string, string] {
-        const go = this.transpiler.transpileGoByPath(path);
-        let content = go.content;
-
-        const parsedName = name.replace('.ts', '');
-        const parsedParts = parsedName.split('.');
-        const finalName = parsedParts[0] + capitalize(parsedParts[1]);
-
-        content = this.regexAll (content, [
-            [/assert/g, 'Assert'],
-            [/object exchange/g, 'Exchange exchange'],
-            [/function test/g, finalName],
-        ]).trim ();
-
-        const contentLines = content.split ('\n');
-        const contentIdented = contentLines.map (line => '    ' + line).join ('\n');
-
-        const file = [
-            'using ccxt;',
-            'namespace Tests;',
-            'using System;',
-            'using System.Collections.Generic;',
-            '',
-            this.createGeneratedHeader().join('\n'),
-            'public partial class BaseTest',
-            '{',
-            contentIdented,
-            '}',
-        ].join('\n');
-        return [finalName, file];
+    // the `.ts` sources of a test folder, extension stripped
+    listTsTestNames (folder: string): string[] {
+        return fs.readdirSync (folder).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
     }
 
-    // async transpileExchangeTestsToGo() {
-    //     const inputDir = './ts/src/test/exchange';
-    //     const outDir = GENERATED_TESTS_FOLDER;
-    //     const ignore = [
-    //         // 'exportTests.ts',
-    //         // 'test.fetchLedger.ts',
-    //         'test.throttler.ts',
-    //         // 'test.fetchOrderBooks.ts', // uses spread operator
-    //     ];
+    // SafeBool* return `*bool`: an `any` local capturing the call must hold the plain value, because
+    // test code compares such locals against untyped bool constants (mirrors the exchange-body DerefScalar wrap)
+    goTestSafeDerefRule (): [RegExp, string] {
+        return [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'];
+    }
 
-    //     const inputFiles = fs.readdirSync('./ts/src/test/exchange');
-    //     const files = inputFiles.filter(file => file.match(/\.ts$/)).filter(file => !ignore.includes(file) );
-    //     const transpiledFiles = files.map(file => this.transpileExchangeTest(file, `${inputDir}/${file}`));
-    //     await Promise.all (transpiledFiles.map ((file, idx) => writeFile (`${outDir}/${file[0]}.go`, file[1])));
-    // }
+    // the harness and exchange tests call through ccxt.ICoreExchange; the symbol-based methods trimmed
+    // from it assert to the per-method interface (ccxt.I<Method>) for exactly the method called
+    goTestExchangeRegexes (): any[] {
+        return [
+            [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
+            [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
+            GO_TEST_ANY_RECEIVE_REGEX,
+            this.goTestSafeDerefRule (),
+        ];
+    }
+
+    // one { name, tsFile, goFile } entry per test name
+    goTestEntries (names: string[], tsFolder: string, goFolder: string): any[] {
+        return names.map ((name: string) => ({
+            name,
+            tsFile: `${tsFolder}/${name}.ts`,
+            goFile: `${goFolder}/${name}.go`,
+        }));
+    }
 
     async transpileBaseTestsToGo (force = true) {
         const outDir = BASE_TESTS_FOLDER;
         await this.transpileBaseTests(outDir, force);
-        this.transpileCryptoTestsToGo(outDir, force);
+        this.transpileGoTestFile ('./ts/src/test/base/test.cryptography.ts', `${outDir}/test.cryptography.go`, 'crypto test', force, '[go] Transpiling from', 'package base', (content: string) => this.regexAll (content, [
+            [ /func Equals\(.+\n.*\n.*\n.*}/gm, '' ], // remove equals
+        ]));
         this.transpileWsCacheTestFileToGo ('./ts/src/pro/test/base/test.orderBook.ts', `${outDir}/cache/orderbook.go`, 'ws orderbook test', force,
             '// --------------------------------------------------------------------------------------------------------------------', [
                 [/var (\w+) any = GetValue\((\w+), "bids"\)/gm, '$1 := $2.Bids'],
@@ -7603,7 +7510,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             ts: './ts/src/test/base',
         };
 
-        const baseFunctionTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
+        const baseFunctionTests = this.listTsTestNames (baseFolders.ts);
         // `// NO_AUTO_TRANSPILE` sources are emitted by their own stage (test.cryptography)
         const eligible = baseFunctionTests.filter ((testName: string) => !fs.readFileSync (`${baseFolders.ts}/${testName}.ts`).toString ().includes ('// NO_AUTO_TRANSPILE'));
         // the accumulator feeds createFunctionsMapFile(), which rewrites the whole FunctionsMap —
@@ -7647,12 +7554,7 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // interface-vs-untyped-constant mismatch that is always false. Route the whole
                 // family (Safe*, PrecisionFromString, Crc32, Rsa, Jwt, ...) back through IsEqual.
                 [/(?<![.\w])((?:exchange\.)?[A-Z]\w*\((?:[^()]|\([^()]*\))*\)) == (("(?:[^"\\]|\\.)*")|(?:ccxt\.)?OpNeg\([^()]*\)|-?\d+(?:\.\d+)?)/g, 'IsEqual($1, $2)'],
-                // SafeBool* now return `*bool` (the pointer layer): an `any` local that
-                // captures the call must keep holding the plain value, exactly as it did before
-                // that change, because test code compares such locals against untyped bool
-                // constants (`local != true`) -- always true for an interface holding a *bool.
-                // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                this.goTestSafeDerefRule (),
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 // the markers sit inside `// ` comments: drop the marker text and the space
@@ -7710,21 +7612,7 @@ func (this *${className}) Init(userConfig map[string]any) {
         // ad-hoc fixes
         contentIndentend = this.regexAll (contentIndentend, [
             [/var (mockedExchange|exchange) any =/g, 'var $1 ccxt.ICoreExchange ='],
-            [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
-            // these 62 symbol-based methods are trimmed from ICoreExchange (so prediction cores satisfy
-            // it), so call sites in the harness type-assert to the per-method interface (ccxt.I<Method>)
-            // for exactly the method called. A prediction venue that overrides only some of these runs
-            // the has-gated test for the ones it has, and each single-method assertion succeeds.
-            [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
-            [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
-            [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3+W4
-            GO_TEST_ANY_RECEIVE_REGEX,
-            // SafeBool* now return `*bool` (the pointer layer): an `any` local that captures
-            // the call must keep holding the plain value, exactly as it did before that change,
-            // because test code compares such locals against untyped bool constants
-            // (`local != true`) -- always true for an interface holding a *bool. Mirrors the
-            // DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-            [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+            ...this.goTestExchangeRegexes (),
             // the (?!=) guard keeps the assignment rewrite off == comparisons
             [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
@@ -7753,30 +7641,10 @@ func (this *${className}) Init(userConfig map[string]any) {
             go: './go/tests/base',
         };
 
-        let baseTests = fs.readdirSync (baseFolders.tsBase).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-        let exchangeTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
         // ignore throttle test for now
-        baseTests = baseTests.filter (filename => filename !== 'test.throttle');
-        exchangeTests = exchangeTests.filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.createOrder');
-
-        const tests: any[] = [] as any;
-        baseTests.forEach (baseTest => {
-            tests.push({
-                base: true,
-                name:baseTest,
-                tsFile: `${baseFolders.tsBase}/${baseTest}.ts`,
-                goFile: `${baseFolders.goBase}/${baseTest}.go`,
-            });
-        });
-        exchangeTests.forEach (test => {
-            tests.push({
-                base: false,
-                name: test,
-                tsFile: `${baseFolders.ts}/${test}.ts`,
-                goFile: `${baseFolders.go}/${test}.go`,
-            });
-        });
+        const baseTests = this.listTsTestNames (baseFolders.tsBase).filter (filename => filename !== 'test.throttle');
+        const exchangeTests = this.listTsTestNames (baseFolders.ts).filter (filename => filename !== 'test.proxies' &&  filename !== 'test.fetchLastPrices' && filename !== 'test.createOrder');
+        const tests = this.goTestEntries (baseTests, baseFolders.tsBase, baseFolders.goBase).concat (this.goTestEntries (exchangeTests, baseFolders.ts, baseFolders.go));
 
         const testNames = tests.map (test => test.name);
         // push before the gate: createFunctionsMapFile() rewrites the whole map from this
@@ -7805,18 +7673,9 @@ func (this *${className}) Init(userConfig map[string]any) {
             go: `${GENERATED_TESTS_FOLDER}/base`,
         };
 
-        const wsTests = fs.readdirSync (baseFolders.ts).filter(filename => filename.endsWith('.ts')).map(filename => filename.replace('.ts', ''));
-
-        const tests = [] as any;
-
-        wsTests.forEach (test => {
-            tests.push({
-                name: test,
-                tsFile: `${baseFolders.ts}/${test}.ts`,
-                goFile: `${baseFolders.go}/${test}.go`,
-            });
-            goWsTests.push(test)
-        });
+        const wsTests = this.listTsTestNames (baseFolders.ts);
+        const tests = this.goTestEntries (wsTests, baseFolders.ts, baseFolders.go);
+        wsTests.forEach (test => goWsTests.push(test));
 
         if (skipUpToDateStage ('go', 'ws exchange tests', force, testStageInputs (), tests.map ((t: any) => t.goFile))) {
             return;
@@ -7828,29 +7687,14 @@ func (this *${className}) Init(userConfig map[string]any) {
     }
 
     async transpileAndSaveGoExchangeTests(tests: any[], isWs = false) {
-        let paths = tests.map(test => test.tsFile);
-        // paths = [paths[30]];
+        const paths = tests.map(test => test.tsFile);
         const flatResult = await this.webworkerTranspile (paths,  this.getTranspilerConfig());
         flatResult.forEach((file, idx) => {
-            // the transpiled base tests are top-level funcs: gofmt puts them in column 0, so no
-            // indentation prefix is applied here (the old 4-space one was stripped by gofmt)
+            // the transpiled tests are top-level funcs: gofmt puts them in column 0, no indentation prefix
             let contentIndentend = file.content;
 
             let regexes = [
-                [/exchange any([,)])/g, 'exchange ccxt.ICoreExchange$1'],
-                // 62 symbol-based methods trimmed from ICoreExchange → assert to the per-method interface
-                // (ccxt.I<Method>) for exactly the method called, so a prediction venue that overrides
-                // only some of them satisfies each has-gated per-method assertion it actually runs.
-                [/exchange\.(CreateOrder|CancelOrder|FetchL2OrderBook|FetchPositions|FetchTicker|FetchTickers|WatchTicker|WatchTickers|FetchOpenOrders|EditOrder|FetchOrder|CancelOrderWithClientOrderId|CancelOrdersWithClientOrderIds|EditOrderWithClientOrderId|FetchOrderWithClientOrderId|FetchBidsAsks|WatchBidsAsks|WatchOrderBookForSymbols|WatchPosition|WatchTradesForSymbols)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('],
-                [/exchange\.(FetchTrades|FetchOrders|FetchClosedOrders|FetchOHLCV)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W28
-                [/exchange\.(FetchTradingFee|FetchMyTrades|CreateOrders|CancelOrders|WatchMyTrades|WatchOHLCV|WatchOrders|WatchPositions|WatchTrades|FetchOrderBook|FetchStatus)(Async)?\(/g, 'exchange.(ccxt.I$1).$1$2('], // W3+W4
-                GO_TEST_ANY_RECEIVE_REGEX,
-                // SafeBool* now return `*bool` (the pointer layer): an `any` local that
-                // captures the call must keep holding the plain value, exactly as it did before
-                // that change, because these tests compare such locals against untyped bool
-                // constants (`local != true`) -- always true for an interface holding a *bool.
-                // Mirrors the DerefScalar() wrap the exchange-body pass applies to this.SafeBool*.
-                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
+                ...this.goTestExchangeRegexes (),
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
                 [/exchange\.(\w+)\s*=(?!=)\s*(.+)/g, 'exchange.Set$1($2)'],
@@ -7859,16 +7703,8 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // the spawned helper is an async test function, i.e. a suffixed channel trampoline
                 [/Spawn\(createOrderAfterDelay/g, `Spawn(CreateOrderAfterDelay${GO_ASYNC_SUFFIX}`],
                 [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
-                // [/<-exchange.WatchOrderBook\(symbol\)/g, '(ToOrderBook(<-exchange.WatchOrderBook(symbol)))'], // orderbook watch
-                // [/<-exchange.WatchOrderBookForSymbols\((.*?)\)/g, '(ToOrderBook(<-exchange.WatchOrderBookForSymbols($1)))'],
                 // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
                 [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
-                
-
-                // [ /object exchange(?=[,)])/g, 'Exchange exchange' ],
-                // [ /throw new Error/g, 'throw new Exception' ],
-                // [/testSharedMethods\.assertTimestampAndDatetime\(exchange, skippedProperties, method, orderbook\)/, '// testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook)'], // tmp disabling timestamp check on the orderbook
-                // [ /void function/g, 'void'],
             ];
 
             contentIndentend = this.regexAll (contentIndentend, regexes);
@@ -7884,24 +7720,10 @@ func (this *${className}) Init(userConfig map[string]any) {
                 '',
                 this.createGeneratedHeader().join('\n'),
             ];
-            let go: string;
-            const filename = tests[idx].name;
-            if (filename === 'test.sharedMethods') {
-                // const doubleIndented = contentIndentend.split('\n').map(line => line ? '    ' + line : line).join('\n');
-                go = [
-                    ...fileHeaders,
-                    contentIndentend,
-                ].join('\n');
-            } else {
-                contentIndentend = this.regexAll (contentIndentend, [
-                    // [ /public void/g, 'public static void' ], // make tests static
-                    // [ /async public Task/g, 'async static public Task' ], // make tests static
-                ])
-                go = [
-                    ...fileHeaders,
-                    contentIndentend,
-                ].join('\n');
-            }
+            const go = [
+                ...fileHeaders,
+                contentIndentend,
+            ].join('\n');
             overwriteFileAndFolder (tests[idx].goFile, go);
         });
     }
@@ -7911,10 +7733,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             log.bright.yellow ('Skipping tests transpilation');
             return;
         }
-        // every stage is awaited: the test writers are async (they go through the pool),
-        // and letting them float meant `transpileEverything` returned — and the WS stage
-        // started — while ~80 test files were still being printed, so three root sets
-        // alternated against the worker sticky-Program LRU
+        // every stage is awaited: the test writers go through the pool, and floating them
+        // lets the WS stage start while test files are still printing (sticky-Program LRU thrash)
         await this.transpileBaseTestsToGo(force);
         await this.transpileExchangeTests(force);
         await this.transpileWsExchangeTests(force);
@@ -7926,44 +7746,6 @@ func (this *${className}) Init(userConfig map[string]any) {
         if (skipUpToDateStage ('go', 'functions map file', force, testStageInputs (), [ `${BASE_TESTS_FOLDER}/test.functions.go` ])) {
             return;
         }
-        // const normalizedTestNames = goTests.map(test => 'Test' + capitalize(test.replace('Test.', '').replace('test.', '')) );
-        const normalizedTestNames: string[] = [];
-        const normalizedFunctionNames: string[] = [];
-
-        //ws
-        const normalizedWsTestNames: string[] = [];
-        const normalizedWsFunctionNames: string[] = [];
-        for (let test of goTests) {
-            const skipTests = [
-                "test.sharedMethods",
-                "Tests.init",
-            ];
-            if (skipTests.includes(test)) {
-                continue;
-            }
-            if (test === 'test.ohlcv') {
-                test = 'test.OHLCV';
-            }
-            const methodName = test.replace('Test.', '').replace('test.', '');
-            normalizedFunctionNames.push(methodName);
-            test = 'Test' + capitalize(methodName);
-            normalizedTestNames.push(test);
-        }
-
-        for (let test of goWsTests) {
-            const skipTests: any = [];
-            if (skipTests.includes(test)) {
-                continue;
-            }
-            if (test === 'test.ohlcv') {
-                test = 'test.OHLCV';
-            }
-            const methodName = test.replace('Test.', '').replace('test.', '');
-            normalizedWsFunctionNames.push(methodName);
-            test = 'Test' + capitalize(methodName);
-            normalizedWsTestNames.push(test);
-        }
-
         // an async test transpiles to `Test<Name>Async` (channel-returning); the map keeps the
         // unified method name as key and points at whichever symbol the test file declares
         const goTestSymbol = (test: string, methodName: string): string => {
@@ -7973,21 +7755,32 @@ func (this *${className}) Init(userConfig map[string]any) {
             }
             return test;
         };
+        // gofmt aligns every consecutive single-line entry of a composite literal to the widest key;
+        // alignGoCompositeEntries applies the printer's rule and renders the commas
+        const mapEntries = (tests: string[]): string[] => {
+            const entries: string[] = [];
+            for (let test of tests) {
+                if ((test === 'test.sharedMethods') || (test === 'Tests.init')) {
+                    continue;
+                }
+                if (test === 'test.ohlcv') {
+                    test = 'test.OHLCV';
+                }
+                const methodName = test.replace('Test.', '').replace('test.', '');
+                entries.push (`\t"${methodName}": ${goTestSymbol ('Test' + capitalize(methodName), methodName)}`);
+            }
+            return this.transpiler.goTranspiler.alignGoCompositeEntries (entries);
+        };
         const file = [
             'package base',
             '',
             this.createGeneratedHeader().join('\n'),
             'var FunctionsMap = map[string]any{',
-            // F09 — gofmt aligns the value of every consecutive single-line entry of a
-            // composite literal to the widest key of the run (go/printer exprList +
-            // text/tabwriter); route these hand-written entries through the same rule the
-            // ast printer uses, so the column comes out where gofmt would put it. The
-            // entries carry no comma: alignGoCompositeEntries renders it.
-            ...this.transpiler.goTranspiler.alignGoCompositeEntries (normalizedTestNames.map((test,i) => `\t"${normalizedFunctionNames[i]}": ${goTestSymbol (test, normalizedFunctionNames[i])}`)),
+            ...mapEntries (goTests),
             '}',
             '',
             'var WsFunctionsMap = map[string]any{',
-            ...this.transpiler.goTranspiler.alignGoCompositeEntries (normalizedWsTestNames.map((test,i) => `\t"${normalizedWsFunctionNames[i]}": ${goTestSymbol (test, normalizedWsFunctionNames[i])}`)),
+            ...mapEntries (goWsTests),
             '}',
         ].join('\n') + '\n';
         overwriteFileAndFolder (`${BASE_TESTS_FOLDER}/test.functions.go`, file);
