@@ -71,7 +71,7 @@ public class TestCurrency extends BaseTest {
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new HashMap<String, Object>() {{}});
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
-        Integer networkKeysLength = ((List<?>)networkKeys).size();
+        Integer networkKeysLength = networkKeys.size();
         for (var i = 0; (networkKeysLength != null && i < networkKeysLength); i++)
         {
             TestSharedMethods.AssertUnifiedNetworkCode(exchange, skippedProperties, (String) (method), entry, (String) ((networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i))));

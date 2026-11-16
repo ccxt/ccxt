@@ -1414,7 +1414,7 @@ public class Mexc extends MexcApi
                 //     {}
                 //
                 List<String> keys = new ArrayList<String>(response.keySet());
-                Integer length = ((List<?>)keys).size();
+                Integer length = keys.size();
                 status = ((((length != null && length > 0)))) ? this.json(response) : "ok";
             } else if (java.util.Objects.equals(marketType, "swap"))
             {
@@ -1548,7 +1548,7 @@ public class Mexc extends MexcApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString2(chain, "netWork", "network");
@@ -1682,7 +1682,7 @@ public class Mexc extends MexcApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
@@ -1826,7 +1826,7 @@ public class Mexc extends MexcApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2434,7 +2434,7 @@ public class Mexc extends MexcApi
             Boolean isSingularMarket = false;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer length = ((List<?>)symbols).size();
+                Integer length = symbols.size();
                 isSingularMarket = java.util.Objects.equals(length, 1);
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
@@ -2721,7 +2721,7 @@ public class Mexc extends MexcApi
             Boolean isSingularMarket = false;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer length = ((List<?>)symbols).size();
+                Integer length = symbols.size();
                 isSingularMarket = java.util.Objects.equals(length, 1);
                 market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
             }
@@ -4525,7 +4525,7 @@ public class Mexc extends MexcApi
             Object response = (this.fetchAccountHelper(marketType, (Map<String, Object>) (query))).join();
             List<Object> data = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object account = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String currencyId = this.safeString2(account, "asset", "currency");
@@ -4668,7 +4668,7 @@ public class Mexc extends MexcApi
         {
             wallet = (List<Object>) this.safeList(response, "balances", new ArrayList<Object>(Arrays.asList()));
         }
-        Object result = new HashMap<String, Object>() {{
+        Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
         if (Boolean.TRUE.equals(isMarginType))
@@ -4682,11 +4682,11 @@ public class Mexc extends MexcApi
                 String quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"), (Map<String, Object>) null);
                 if (!java.util.Objects.equals(baseCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
+                    result = (Map<String, Object>) this.mergeBalanceAccount(result, baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                 }
                 if (!java.util.Objects.equals(quoteCode, null))
                 {
-                    result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
+                    result = (Map<String, Object>) this.mergeBalanceAccount(result, quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                 }
             }
             return this.safeBalance(result);
@@ -4702,7 +4702,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "frozenBalance"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -4718,7 +4718,7 @@ public class Mexc extends MexcApi
                 account.put("used", this.safeString(entry, "locked"));
                 if (!java.util.Objects.equals(code, null))
                 {
-                    ((Map<String, Object>)result).put(code, account);
+                    result.put(code, account);
                 }
             }
             return this.safeBalance(result);
@@ -5246,7 +5246,7 @@ public class Mexc extends MexcApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> resultList = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)resultList).size(); i++)
+            for (var i = 0; i < resultList.size(); i++)
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
@@ -5444,7 +5444,7 @@ public class Mexc extends MexcApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", (Object) null);
             List<Object> result = (List<Object>) this.safeList(data, "resultList", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -5652,7 +5652,7 @@ public class Mexc extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -5780,7 +5780,7 @@ public class Mexc extends MexcApi
         return BaseExchange.supplyAsync(() -> {
 
             String network = this.safeString(parameters, "network");
-            Object addressStructures = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Map<String, Object> addressStructures = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             String key = null;
             if (!java.util.Objects.equals(network, null))
             {
@@ -5794,7 +5794,7 @@ public class Mexc extends MexcApi
                     key = defaultNetworkForCurrency;
                 } else
                 {
-                    List<String> keys = new ArrayList<String>(((Map<String, Object>)addressStructures).keySet());
+                    List<String> keys = new ArrayList<String>(addressStructures.keySet());
                     key = this.safeString(keys, 0);
                 }
             }
@@ -6523,13 +6523,13 @@ public class Mexc extends MexcApi
             String toId = this.safeString(accounts, toAccount, toAccount);
             if (java.util.Objects.equals(fromId, null))
             {
-                Object keys = new ArrayList<Object>(accounts.keySet());
-                throw new ExchangeError(((this.id + " fromAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
+                List<String> keys = new ArrayList<String>(accounts.keySet());
+                throw new ExchangeError(((this.id + " fromAccount must be one of ") + String.join(", ", keys))) ;
             }
             if (java.util.Objects.equals(toId, null))
             {
-                Object keys = new ArrayList<Object>(accounts.keySet());
-                throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", (List<String>)keys))) ;
+                List<String> keys = new ArrayList<String>(accounts.keySet());
+                throw new ExchangeError(((this.id + " toAccount must be one of ") + String.join(", ", keys))) ;
             }
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("asset", currency.get("id"));
@@ -6722,7 +6722,7 @@ public class Mexc extends MexcApi
             }
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(this.options, "networks", new HashMap<String, Object>() {{}});
             String networkRaw = this.safeString2(paramsWithdrawTag, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
-            Object network = this.networkCodeToId(this.safeString(networks, networkRaw, networkRaw), this.safeString(currency, "code")); // handle ETH > ERC-20 alias
+            String network = this.networkCodeToId(this.safeString(networks, networkRaw, networkRaw), this.safeString(currency, "code")); // handle ETH > ERC-20 alias
             this.checkAddress(address, code, tagResolved);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "coin", currency.get("id") );
@@ -6870,13 +6870,13 @@ public class Mexc extends MexcApi
         Map<String, Object> withdrawFees = new HashMap<String, Object>() {{}};
         for (var i = 0; i < ((List<?>)response).size(); i++)
         {
-            Object entry = (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
+            Map<String, Object> entry = (Map<String, Object>) (response == null || i < 0 || i >= ((List<?>)response).size() ? null : ((List<?>)response).get(i));
             String currencyId = this.safeString(entry, "coin");
             Map<String, Object> currency = this.safeCurrency(currencyId, (Map<String, Object>) null);
             String code = this.safeString(currency, "code");
             if ((java.util.Objects.equals(codes, null)) || (this.inArray(code, codes)))
             {
-                withdrawFees.put((String)code, this.parseTransactionFee((Map<String, Object>) (entry), currency));
+                withdrawFees.put((String)code, this.parseTransactionFee(entry, currency));
             }
         }
         return new HashMap<String, Object>() {{
@@ -6916,7 +6916,7 @@ public class Mexc extends MexcApi
         //
         List<Object> networkList = (List<Object>) this.safeList(transaction, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        for (var j = 0; j < networkList.size(); j++)
         {
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
             String networkId = this.safeString(networkEntry, "network");
@@ -7010,7 +7010,7 @@ public class Mexc extends MexcApi
         //
         List<Object> networkList = (List<Object>) this.safeList(fee, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        for (var j = 0; j < networkList.size(); j++)
         {
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkList, j, (Object) null);
             String networkId = this.safeString(networkEntry, "network");
@@ -7170,7 +7170,7 @@ public class Mexc extends MexcApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));

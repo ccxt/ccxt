@@ -216,14 +216,14 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         List<Object> obBids = (List<Object>) this.safeList(delta, "b", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
         io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-        for (var i = 0; i < ((List<?>)obBids).size(); i++)
+        for (var i = 0; i < obBids.size(); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(obBids, i, (Object) null);
             Double price = this.safeNumber(bid, 0, (Object) null);
             Double quantity = this.safeNumber(bid, 1, (Object) null);
             bids.store(price, quantity);
         }
-        for (var i = 0; i < ((List<?>)obAsks).size(); i++)
+        for (var i = 0; i < obAsks.size(); i++)
         {
             List<Object> ask = (List<Object>) this.safeList(obAsks, i, (Object) null);
             Double price = this.safeNumber(ask, 0, (Object) null);
@@ -854,10 +854,10 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             String url = ((this.safeString(apiUrls, "contract", "") + "/") + "user");
             Client client = this.client(url);
             this.setPositionsCache(client);
-            Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-            Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
+            boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+            boolean awaitPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && this.isEmpty(cache))
+            if ((fetchPositionsSnapshot) && (awaitPositionsSnapshot) && this.isEmpty(cache))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
@@ -955,8 +955,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             Long timestamp = this.safeInteger(data, "t");
             fundingRate.put("timestamp", timestamp);
             fundingRate.put("datetime", this.iso8601(timestamp));
-            Object symbol = fundingRate.get("symbol");
-            Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
+            String symbol = (String) fundingRate.get("symbol");
+            this.fundingRates.put(symbol, fundingRate);
             String eventVar = this.safeString(message, "event");
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -973,8 +973,8 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", (Object) null);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", (Object) null));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = "fetchPositionsSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -993,7 +993,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
@@ -1055,12 +1055,12 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         Map<String, Object> position = (Map<String, Object>) this.parsePosition(data, (Map<String, Object>) null);
         cache.append(position);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "position::contract");
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-            List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(new ArrayList<Object>(Arrays.asList(position)), "symbol", symbols, false);
             if (!this.isEmpty(positions))
             {
@@ -1237,7 +1237,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             tradeType = "spot";
         }
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object tickerData = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(tickerData, (Map<String, Object>) null);
@@ -1250,15 +1250,15 @@ public class Xt extends io.github.ccxt.exchanges.Xt
         }
         String messageHashStart = ((this.safeString(message, "topic", "") + "::") + tradeType);
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (messageHashStart + "::"));
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 2 >= parts.size() ? null : parts.get(2));
-            List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
             Map<String, Object> tickers = (Map<String, Object>) this.filterByArray(newTickers, "symbol", symbols, true);
             List<String> tickersSymbols = new ArrayList<String>(tickers.keySet());
-            Integer numTickers = ((List<?>)tickersSymbols).size();
+            Integer numTickers = tickersSymbols.size();
             if ((numTickers != null && numTickers > 0))
             {
                 client.resolve(tickers, messageHash);
@@ -1502,7 +1502,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             if (!java.util.Objects.equals(obAsks, null))
             {
                 io.github.ccxt.ws.OrderBookSide asks = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("asks"));
-                for (var i = 0; i < ((List<?>)obAsks).size(); i++)
+                for (var i = 0; i < obAsks.size(); i++)
                 {
                     List<Object> ask = (List<Object>) this.safeList(obAsks, i, (Object) null);
                     Double price = this.safeNumber(ask, 0, (Object) null);
@@ -1513,7 +1513,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
             if (!java.util.Objects.equals(obBids, null))
             {
                 io.github.ccxt.ws.OrderBookSide bids = (io.github.ccxt.ws.OrderBookSide) (orderbook == null ? null : orderbook.get("bids"));
-                for (var i = 0; i < ((List<?>)obBids).size(); i++)
+                for (var i = 0; i < obBids.size(); i++)
                 {
                     List<Object> bid = (List<Object>) this.safeList(obBids, i, (Object) null);
                     Double price = this.safeNumber(bid, 0, (Object) null);
@@ -1950,7 +1950,7 @@ public class Xt extends io.github.ccxt.exchanges.Xt
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+        for (var j = 0; j < messageHashes.size(); j++)
         {
             Object unsubHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
             Object subHash = (subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j));

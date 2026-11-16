@@ -723,7 +723,7 @@ public class Delta extends DeltaApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "network");
@@ -807,7 +807,7 @@ public class Delta extends DeltaApi
             return null;
         }
         List<String> keys = new ArrayList<String>(((Map<String, Object>)input).keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> item = (Map<String, Object>) this.safeDict(input, key, new HashMap<String, Object>() {{}});
@@ -1015,7 +1015,7 @@ public class Delta extends DeltaApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String type = this.safeString(market, "contract_type");
@@ -1606,7 +1606,7 @@ public class Delta extends DeltaApi
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Object rawTicker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 String contractType = this.safeString(rawTicker, "contract_type");
@@ -1927,7 +1927,7 @@ public class Delta extends DeltaApi
             put( "info", response );
         }};
         Map<String, Object> currenciesByNumericId = (Map<String, Object>) this.safeDict(this.options, "currenciesByNumericId", new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "asset_id");

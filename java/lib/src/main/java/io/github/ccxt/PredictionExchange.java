@@ -136,14 +136,14 @@ public Map<String, Object> describe()
         List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
         String eventId = this.safeString(parameters, "eventId");
         String slug = this.safeString(parameters, "slug");
-        Integer queriesLength = ((List<?>)queries).size();
-        Integer tagsLength = ((List<?>)tags).size();
+        Integer queriesLength = queries.size();
+        Integer tagsLength = tags.size();
         if ((!java.util.Objects.equals(query, null)) || ((queriesLength != null && queriesLength > 0)) || ((tagsLength != null && tagsLength > 0)) || (!java.util.Objects.equals(eventId, null)) || (!java.util.Objects.equals(slug, null)))
         {
             return null;
         }
         List<Object> extraScopeParams = (List<Object>) this.safeList(this.options, "eventScopeParams", new ArrayList<Object>(Arrays.asList()));
-        Integer extraScopeParamsLength = ((List<?>)extraScopeParams).size();
+        Integer extraScopeParamsLength = extraScopeParams.size();
         String extraNames = "";
         for (var i = 0; (extraScopeParamsLength != null && i < extraScopeParamsLength); i++)
         {
@@ -323,7 +323,7 @@ public Map<String, Object> describe()
         List<String> chars = this.stringToCharsArray(lower);
         String s = "";
         Boolean pendingSep = false;
-        for (var i = 0; i < ((List<?>)chars).size(); i++)
+        for (var i = 0; i < chars.size(); i++)
         {
             String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
             if (((String)allowed).indexOf(ch) >= 0)
@@ -371,7 +371,7 @@ public Map<String, Object> describe()
             Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> eventTags = (List<Object>) this.safeList(eventVar, "tags", new ArrayList<Object>(Arrays.asList()));
             Boolean matched = false;
-            for (var ti = 0; ti < ((List<?>)eventTags).size(); ti++)
+            for (var ti = 0; ti < eventTags.size(); ti++)
             {
                 Object tag = (eventTags == null || ti < 0 || ti >= eventTags.size() ? null : eventTags.get(ti));
                 Object tagLabel = null;
@@ -385,7 +385,7 @@ public Map<String, Object> describe()
                 if (!java.util.Objects.equals(tagLabel, null))
                 {
                     Object tagKey = this.normalizeTagKey(tagLabel);
-                    for (var wi = 0; wi < ((List<?>)wanted).size(); wi++)
+                    for (var wi = 0; wi < wanted.size(); wi++)
                     {
                         if (Helpers.getIndexOf(tagKey, (wanted == null || wi < 0 || wi >= wanted.size() ? null : wanted.get(wi))) >= 0)
                         {
@@ -467,7 +467,7 @@ public Map<String, Object> describe()
         List<Object> result = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> seen = new HashMap<String, Object>() {{}};
         List<Object> keys = ((List<Object>) switch ((Object)(this.events)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             String identity = this.safeString2(eventVar, "id", "event", (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
@@ -642,7 +642,7 @@ public Map<String, Object> describe()
         List<String> chars = this.stringToCharsArray(lower);
         Object s = "";
         Boolean lastDash = true; // start true to drop leading separators
-        for (var i = 0; i < ((List<?>)chars).size(); i++)
+        for (var i = 0; i < chars.size(); i++)
         {
             String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
             if (((String)allowed).indexOf(ch) >= 0)
@@ -656,7 +656,7 @@ public Map<String, Object> describe()
             }
         }
         List<String> replacementKeys = new ArrayList<String>(replacements.keySet());
-        for (var i = 0; i < ((List<?>)replacementKeys).size(); i++)
+        for (var i = 0; i < replacementKeys.size(); i++)
         {
             String replacementKey = (replacementKeys == null || i < 0 || i >= replacementKeys.size() ? null : replacementKeys.get(i));
             String replacementValue = this.safeString(replacements, replacementKey);
@@ -667,7 +667,7 @@ public Map<String, Object> describe()
         }
         List<Object> rawParts = new ArrayList<Object>(Arrays.asList(((String)s).split(java.util.regex.Pattern.quote("-"))));
         Object parts = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawParts).size(); i++)
+        for (var i = 0; i < rawParts.size(); i++)
         {
             String w = (String) (rawParts == null || i < 0 || i >= rawParts.size() ? null : rawParts.get(i));
             if (w.length() > 0 && !this.inArray(w, stopWords))
@@ -712,7 +712,7 @@ public Map<String, Object> describe()
         List<String> chars = this.stringToCharsArray(upper);
         Object label = "";
         Boolean pendingSep = false;
-        for (var i = 0; i < ((List<?>)chars).size(); i++)
+        for (var i = 0; i < chars.size(); i++)
         {
             String ch = (chars == null || i < 0 || i >= chars.size() ? null : chars.get(i));
             if (((String)allowed).indexOf(ch) >= 0)
@@ -743,7 +743,7 @@ public Map<String, Object> describe()
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         List<Object> marketsList = this.toArray(markets);
         List<Object> aliased = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)marketsList).size(); i++)
+        for (var i = 0; i < marketsList.size(); i++)
         {
             Object row = (marketsList == null || i < 0 || i >= marketsList.size() ? null : marketsList.get(i));
             Map<String, Object> copy = this.extend(new HashMap<String, Object>() {{}}, row);
@@ -755,7 +755,7 @@ public Map<String, Object> describe()
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
         List<String> marketKeys = new ArrayList<String>(((Map<String, Object>)stored).keySet());
-        for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
+        for (var i = 0; i < marketKeys.size(); i++)
         {
             String key = (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i));
             ((Map<String, Object>)stored).put(key, this.omit(this.safeDict(stored, key, new HashMap<String, Object>() {{}}), "symbol"));
@@ -781,7 +781,7 @@ public Map<String, Object> describe()
             this.outcomes_by_id = new HashMap<String, Object>() {{}};
         }
         List<Object> outcomesList = (List<Object>) this.safeList(market, "outcomes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)outcomesList).size(); j++)
+        for (var j = 0; j < outcomesList.size(); j++)
         {
             Object oc = (outcomesList == null || j < 0 || j >= outcomesList.size() ? null : outcomesList.get(j));
             String ocSymbol = this.safeString2(oc, "outcome", "symbol");
@@ -838,7 +838,7 @@ public Map<String, Object> describe()
             return;
         }
         List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
-        for (var i = 0; i < ((List<?>)marketKeys).size(); i++)
+        for (var i = 0; i < marketKeys.size(); i++)
         {
             this.indexMarketOutcomes((this.markets == null ? null : ((Map<?, ?>)this.markets).get((marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)))));
         }
@@ -856,7 +856,7 @@ public Map<String, Object> describe()
             this.markets = this.createSafeDictionary();
         }
         List<Object> markets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-        Integer marketsLength = ((List<?>)markets).size();
+        Integer marketsLength = markets.size();
         for (var i = 0; (marketsLength != null && i < marketsLength); i++)
         {
             Object m = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
@@ -893,7 +893,7 @@ public Map<String, Object> describe()
                         ((List<Object>)missing).add((outcomes == null || i < 0 || i >= ((List<?>)outcomes).size() ? null : ((List<?>)outcomes).get(i)));
                     }
                 }
-                Integer missingLength = ((List<?>)missing).size();
+                Integer missingLength = missing.size();
                 Boolean wasWarm = (!java.util.Objects.equals(this.outcomes, null)) && !this.isEmpty(this.outcomes);
                 Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
                 if (((missingLength != null && missingLength > 0)) && Boolean.TRUE.equals(loadAll) && !Boolean.TRUE.equals(wasWarm) && !java.util.Objects.requireNonNullElse(reload, false))
@@ -910,7 +910,7 @@ public Map<String, Object> describe()
                         }
                     }
                     missing = stillMissing;
-                    missingLength = ((List<?>)missing).size();
+                    missingLength = missing.size();
                 }
                 if ((missingLength != null && missingLength > 0))
                 {
@@ -1026,7 +1026,7 @@ public Map<String, Object> describe()
         Object words = new ArrayList<Object>(Arrays.asList());
         Boolean hasLetters = false;
         String letters = "abcdefghijklmnopqrstuvwxyz";
-        for (var i = 0; i < ((List<?>)rawWords).size(); i++)
+        for (var i = 0; i < rawWords.size(); i++)
         {
             String word = (String) (rawWords == null || i < 0 || i >= rawWords.size() ? null : rawWords.get(i));
             // inline .length so the php transpiler emits strlen() — the standalone
@@ -1037,7 +1037,7 @@ public Map<String, Object> describe()
             }
             Boolean wordHasLetters = false;
             List<String> chars = this.stringToCharsArray(word);
-            for (var ci = 0; ci < ((List<?>)chars).size(); ci++)
+            for (var ci = 0; ci < chars.size(); ci++)
             {
                 if (Helpers.getIndexOf(letters, (chars == null || ci < 0 || ci >= chars.size() ? null : chars.get(ci))) >= 0)
                 {
@@ -1672,7 +1672,7 @@ public Map<String, Object> describe()
         }
         Map<String, Object> fee = (Map<String, Object>) this.safeDict(outcomeOrder, "fee", (Object) null);
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
-        Integer feeListLength = ((List<?>)feeList).size();
+        Integer feeListLength = feeList.size();
         if ((java.util.Objects.equals(fee, null)) && ((feeListLength != null && feeListLength > 0)))
         {
             fee = (Map<String, Object>) this.safeDict(this.reduceFeesByCurrency(feeList), 0, (Object) null);
@@ -1924,7 +1924,7 @@ public Map<String, Object> describe()
         // `symbol` key, which would silently drop every parsed row
         List<Object> rows = this.toArray(trades);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionTrade((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v3 -> (Map<String, Object>) hx4J40v3; case Object hx4J40v3 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v3.getClass().getName()); })));
             Map<String, Object> trade = this.extend(parsed, parameters);
@@ -1952,7 +1952,7 @@ public Map<String, Object> describe()
         // prediction-market analogue of the base parseOrders — see parsePredictionTrades
         List<Object> rows = this.toArray(orders);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionOrder((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), ((Map<String, Object>) (switch ((Object) (outcomeObj)) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v2 -> (Map<String, Object>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v2.getClass().getName()); })));
             Map<String, Object> order = this.extend(parsed, parameters);
@@ -1980,7 +1980,7 @@ public Map<String, Object> describe()
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         List<Object> rows = this.toArray(positions);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parsePredictionPosition((Map<String, Object>) ((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i))), (Map<String, Object>) null);
             Map<String, Object> position = this.extend(parsed, parameters);

@@ -1245,7 +1245,7 @@ public class Hashkey extends HashkeyApi
             if (!java.util.Objects.equals(riskLimits, null))
             {
                 Map<String, Object> first = (Map<String, Object>) this.safeDict(riskLimits, 0, (Object) null);
-                Integer arrayLength = ((List<?>)riskLimits).size();
+                Integer arrayLength = riskLimits.size();
                 Map<String, Object> last = (Map<String, Object>) this.safeDict(riskLimits, (((long) arrayLength) - 1L), (Object) null);
                 Object minInitialMargin = this.safeString(first, "initialMargin");
                 Object maxInitialMargin = this.safeString(last, "initialMargin");
@@ -1378,7 +1378,7 @@ public class Hashkey extends HashkeyApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         List<Object> networks = (List<Object>) this.safeList(rawCurrency, "chainTypes", (Object) null);
         Map<String, Object> parsedNetworks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networks).size(); j++)
+        for (var j = 0; j < networks.size(); j++)
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             String networkId = this.safeString(network, "chainType");
@@ -2097,7 +2097,7 @@ public class Hashkey extends HashkeyApi
             put( "info", balance );
         }};
         List<Object> balances = (List<Object>) this.safeList(balance, "balances", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balanceEntry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balanceEntry, "asset");
@@ -3262,7 +3262,7 @@ public class Hashkey extends HashkeyApi
             }
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> responseOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Map<String, Object> responseEntry = (Map<String, Object>) this.safeDict(result, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> responseOrder = (Map<String, Object>) this.safeDict(responseEntry, "order", new HashMap<String, Object>() {{}});
@@ -4218,7 +4218,7 @@ public class Hashkey extends HashkeyApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> rows = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.safeInteger(entry, "settleTime");
@@ -4258,7 +4258,7 @@ public class Hashkey extends HashkeyApi
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires a symbol argument with one single market symbol")) ;
             } else
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if (!java.util.Objects.equals(symbolsLength, 1))
                 {
                     throw new NotSupported((((this.id + " ") + methodName) + "() is supported for a symbol argument with one single market symbol only")) ;
@@ -4728,7 +4728,7 @@ public class Hashkey extends HashkeyApi
         String marketId = this.safeString(info, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)riskLimits).size(); i++)
+        for (var i = 0; i < riskLimits.size(); i++)
         {
             Object tier = (riskLimits == null || i < 0 || i >= riskLimits.size() ? null : riskLimits.get(i));
             String initialMarginRate = this.safeString(tier, "initialMargin");
@@ -4830,7 +4830,7 @@ public class Hashkey extends HashkeyApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsedFee = this.parseTradingFee(fee, (Map<String, Object>) null);
@@ -4975,7 +4975,7 @@ public class Hashkey extends HashkeyApi
         if ((responseCodeInteger != null && responseCodeInteger == 0))
         {
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList())); // for batch methods
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(result, i, (Object) null);
                 Long entryCodeInteger = this.safeInteger(entry, "code");

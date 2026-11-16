@@ -632,11 +632,11 @@ public class Apex extends ApexApi
         String name = this.safeString(currency, "displayName");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(this.options, "_temp_currencies_chains", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             List<Object> tokens = (List<Object>) this.safeList(chain, "tokens", new ArrayList<Object>(Arrays.asList()));
-            for (var f = 0; f < ((List<?>)tokens).size(); f++)
+            for (var f = 0; f < tokens.size(); f++)
             {
                 Map<String, Object> token = (Map<String, Object>) this.safeDict(tokens, f, (Object) null);
                 String tokenName = this.safeString(token, "token");
@@ -671,7 +671,7 @@ public class Apex extends ApexApi
             }
         }
         List<String> networkKeys = new ArrayList<String>(networks.keySet());
-        Integer networksLength = ((List<?>)networkKeys).size();
+        Integer networksLength = networkKeys.size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Boolean valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1307,7 +1307,7 @@ public class Apex extends ApexApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> resultList = (List<Object>) this.safeList(data, "historyFunds", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)resultList).size(); i++)
+            for (var i = 0; i < resultList.size(); i++)
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "fundingTimestamp");
@@ -1712,7 +1712,7 @@ public class Apex extends ApexApi
             String subAccountId = this.safeString(spotAccount, "defaultSubAccountId", "0");
             List<Object> subAccounts = (List<Object>) this.safeList(spotAccount, "subAccounts", new ArrayList<Object>(Arrays.asList()));
             String nonce = "0";
-            if (((List<?>)subAccounts).size() > 0)
+            if (subAccounts.size() > 0)
             {
                 nonce = this.safeString((subAccounts == null || 0 >= ((List<?>)subAccounts).size() ? null : ((List<?>)subAccounts).get(0)), "nonce", "0");
             }
@@ -1726,7 +1726,7 @@ public class Apex extends ApexApi
             {
                 assets = (List<Object>) this.safeList(contractConfig, "assets", new ArrayList<Object>(Arrays.asList()));
             }
-            Integer numAssets = ((List<?>)assets).size();
+            Integer numAssets = assets.size();
             for (var i = 0; (numAssets != null && i < numAssets); i++)
             {
                 Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, new HashMap<String, Object>() {{}});

@@ -82,7 +82,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
             }
             Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, subscriptionsKey, new HashMap<String, Object>() {{}});
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String marketId = this.safeString(marketIds, i, "");
                 String symbol = this.safeString(symbolsNormalized, i, "");
@@ -100,7 +100,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "ticket", Upbit.this.uuid() );
     }}));
             List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
+            for (var i = 0; i < channelKeys.size(); i++)
             {
                 String key = (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i));
                 ((List<Object>)finalMessage).add((subscriptions == null || key == null ? null : subscriptions.get(key)));
@@ -345,7 +345,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Long timestamp = this.safeInteger(message, "timestamp");
         List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
         List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
@@ -490,7 +490,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         put( "ticket", Upbit.this.uuid() );
     }}));
             List<String> channelKeys = new ArrayList<String>(subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)channelKeys).size(); i++)
+            for (var i = 0; i < channelKeys.size(); i++)
             {
                 ((List<Object>)message).add(Helpers.GetValue(subscriptions, (channelKeys == null || i < 0 || i >= channelKeys.size() ? null : channelKeys.get(i))));
             }
@@ -866,7 +866,7 @@ public class Upbit extends io.github.ccxt.exchanges.Upbit
         Long timestamp = this.safeInteger(message, "timestamp");
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", this.iso8601(timestamp));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");

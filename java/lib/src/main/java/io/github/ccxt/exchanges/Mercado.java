@@ -381,7 +381,7 @@ public class Mercado extends MercadoApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> amountLimits = (Map<String, Object>) this.safeDict(this.options, "limits", new HashMap<String, Object>() {{}});
             List<Object> coins = this.toArray(response);
-            for (var i = 0; i < ((List<?>)coins).size(); i++)
+            for (var i = 0; i < coins.size(); i++)
             {
                 String coin = this.safeString(coins, i, "");
                 String baseId = coin;
@@ -648,7 +648,7 @@ public class Mercado extends MercadoApi
             put( "info", response );
         }};
         List<String> currencyIds = new ArrayList<String>(balances.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -1221,7 +1221,7 @@ public class Mercado extends MercadoApi
         for (var i = 0; i < ((List<?>)orders).size(); i++)
         {
             List<Object> trades = (List<Object>) this.safeList(this.safeDict(orders, i, (Object) null), "trades", new ArrayList<Object>(Arrays.asList()));
-            for (var y = 0; y < ((List<?>)trades).size(); y++)
+            for (var y = 0; y < trades.size(); y++)
             {
                 ((List<Object>)result).add((trades == null || y < 0 || y >= trades.size() ? null : trades.get(y)));
             }

@@ -621,7 +621,7 @@ public class Bithumb extends BithumbApi
                 //         },
                 //     ]
                 //
-                for (var i = 0; i < ((List<?>)response).size(); i++)
+                for (var i = 0; i < response.size(); i++)
                 {
                     Object entry = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                     String marketId = this.safeString(entry, "market");
@@ -697,20 +697,20 @@ public class Bithumb extends BithumbApi
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
                 List<String> quotes = new ArrayList<String>(quoteCurrencies.keySet());
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)quotes).size(); i++)
+                for (var i = 0; i < quotes.size(); i++)
                 {
                     request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
                     ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
                 }
                 List<Object> results = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                for (var i = 0; i < ((List<?>)quotes).size(); i++)
+                for (var i = 0; i < quotes.size(); i++)
                 {
                     String quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     Map<String, Object> response = (Map<String, Object>) this.safeDict(results, i, (Object) null);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Map<String, Object> extension = (Map<String, Object>) this.safeDict(quoteCurrencies, quote, new HashMap<String, Object>() {{}});
                     List<String> currencyIds = new ArrayList<String>(data.keySet());
-                    for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
+                    for (var j = 0; j < currencyIds.size(); j++)
                     {
                         String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         if (java.util.Objects.equals(currencyId, "date"))
@@ -821,7 +821,7 @@ public class Bithumb extends BithumbApi
         if (!java.util.Objects.equals(balances, null))
         {
             List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
-            for (var i = 0; i < ((List<?>)codes).size(); i++)
+            for (var i = 0; i < codes.size(); i++)
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Map<String, Object> account = this.account();
@@ -946,7 +946,7 @@ public class Bithumb extends BithumbApi
                 List<Object> orderBookUnits = (List<Object>) this.safeList(result, "orderbook_units", new ArrayList<Object>(Arrays.asList()));
                 List<Object> bids = new ArrayList<Object>(Arrays.asList());
                 List<Object> asks = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)orderBookUnits).size(); i++)
+                for (var i = 0; i < orderBookUnits.size(); i++)
                 {
                     Map<String, Object> entry = (Map<String, Object>) this.safeDict(orderBookUnits, i, (Object) null);
                     ((List<Object>)bids).add(new HashMap<String, Object>() {{
@@ -1163,13 +1163,13 @@ public class Bithumb extends BithumbApi
                 {
                     symbolsForMarketIds = symbols;
                 }
-                Integer symbolsForMarketIdsLength = ((List<?>)symbolsForMarketIds).size();
+                Integer symbolsForMarketIdsLength = symbolsForMarketIds.size();
                 for (var i = 0; (symbolsForMarketIdsLength != null && i < symbolsForMarketIdsLength); i++)
                 {
                     Map<String, Object> market = this.market((symbolsForMarketIds == null || i < 0 || i >= symbolsForMarketIds.size() ? null : symbolsForMarketIds.get(i)));
                     ((List<Object>)marketIds).add(this.getGen2MarketId(market));
                 }
-                Integer marketIdsLength = ((List<?>)marketIds).size();
+                Integer marketIdsLength = marketIds.size();
                 if (java.util.Objects.equals(marketIdsLength, 0))
                 {
                     return result;
@@ -1253,7 +1253,7 @@ public class Bithumb extends BithumbApi
                         } else
                         {
                             List<Object> ids = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v5 -> { synchronized (j39v5) { yield new ArrayList<Object>(j39v5.keySet()); } } case null, default -> new ArrayList<Object>(); });
-                            for (var j = 0; j < ((List<?>)ids).size(); j++)
+                            for (var j = 0; j < ids.size(); j++)
                             {
                                 Object id = (ids == null || j < 0 || j >= ids.size() ? null : ids.get(j));
                                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(response, id, (Object) null);
@@ -1285,11 +1285,11 @@ public class Bithumb extends BithumbApi
             } else
             {
                 Map<String, Object> quoteCurrencies = (Map<String, Object>) this.safeDict(this.options, "quoteCurrencies", new HashMap<String, Object>() {{}});
-                Object quotes = new ArrayList<Object>(quoteCurrencies.keySet());
+                List<Object> quotes = new ArrayList<Object>(quoteCurrencies.keySet());
                 if (!java.util.Objects.equals(symbols, null))
                 {
                     Map<String, Object> requiredQuotes = new HashMap<String, Object>() {{}};
-                    for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                    for (var i = 0; i < symbols.size(); i++)
                     {
                         String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = this.market(symbol);
@@ -1307,21 +1307,21 @@ public class Bithumb extends BithumbApi
                     }
                 }
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)quotes).size(); i++)
+                for (var i = 0; i < quotes.size(); i++)
                 {
-                    request.put("quoteId", (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i)));
+                    request.put("quoteId", (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i)));
                     ((List<Object>)promises).add(this.publicGetPublicTickerALLQuoteId(this.extend(request, paramsGeneration)));
                 }
                 Object responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                for (var i = 0; i < ((List<?>)quotes).size(); i++)
+                for (var i = 0; i < quotes.size(); i++)
                 {
-                    Object quote = (quotes == null || i < 0 || i >= ((List<?>)quotes).size() ? null : ((List<?>)quotes).get(i));
+                    Object quote = (quotes == null || i < 0 || i >= quotes.size() ? null : quotes.get(i));
                     Object response = this.safeDict(responses, i, (Object) null);
                     Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
                     List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
-                    for (var j = 0; j < ((List<?>)currencyIds).size(); j++)
+                    for (var j = 0; j < currencyIds.size(); j++)
                     {
                         String currencyId = (currencyIds == null || j < 0 || j >= currencyIds.size() ? null : currencyIds.get(j));
                         Object ticker = (data == null || currencyId == null ? null : data.get(currencyId));
@@ -1707,7 +1707,7 @@ public class Bithumb extends BithumbApi
         if (!java.util.Objects.equals(transactionDatetime, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)transactionDatetime).split(java.util.regex.Pattern.quote(" "))));
-            Integer numParts = ((List<?>)parts).size();
+            Integer numParts = parts.size();
             if ((numParts != null && numParts > 1))
             {
                 Object transactionDate = (parts == null || 0 >= parts.size() ? null : parts.get(0));
@@ -3812,7 +3812,7 @@ public class Bithumb extends BithumbApi
     {
         List<String> keys = new ArrayList<String>(query.keySet());
         String result = "";
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object value = this.safeValue(query, key);
@@ -3862,7 +3862,7 @@ public class Bithumb extends BithumbApi
         String url = (this.implodeHostname(apiUrl) + endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
         List<String> queryKeys = new ArrayList<String>(((Map<String, Object>)query).keySet());
-        Integer queryKeysLength = ((List<?>)queryKeys).size();
+        Integer queryKeysLength = queryKeys.size();
         Boolean hasQuery = ((queryKeysLength != null && queryKeysLength > 0));
         if (java.util.Objects.equals(apiName, "public"))
         {
@@ -3915,8 +3915,8 @@ public class Bithumb extends BithumbApi
                 mapLiteral5.put("endpoint", endpoint);
                 String encodedBody = this.urlencode(this.extend(mapLiteral5, query));
                 // bithumb verifies signatures with PHP http_build_query conventions, spaces must be '+'
-                Object bodyParts = new ArrayList<Object>(Arrays.asList(((String)encodedBody).split(java.util.regex.Pattern.quote("%20"))));
-                requestBody = String.join("+", (List<String>)bodyParts);
+                List<String> bodyParts = new ArrayList<String>(Arrays.asList(((String)encodedBody).split(java.util.regex.Pattern.quote("%20"))));
+                requestBody = String.join("+", bodyParts);
                 String nonce = this.numberToString(this.nonce());
                 String authPayload = ((((endpoint + "\\") + requestBody) + "\\") + nonce); // eslint-disable-line quotes
                 String signature = (String) this.hmac(this.encode(authPayload), this.encode(this.secret), sha512());

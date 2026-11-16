@@ -214,7 +214,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             Map<String, Object> paramsName = nameOptionparamsNameVariable.second();
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 ((List<Object>)messageHashes).add(((nameOption + "::") + this.safeString(market, "symbol", "")));
@@ -276,7 +276,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     messageHashes.add(("deals::" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 }
@@ -418,7 +418,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
             tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
             this.trades.put(symbol, tradesArray);
         }
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Object item = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(item, market);
@@ -540,7 +540,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         if (!java.util.Objects.equals(bids, null))
         {
-            for (var i = 0; i < ((List<?>)bids).size(); i++)
+            for (var i = 0; i < bids.size(); i++)
             {
                 List<Object> bid = (List<Object>) this.safeList(bids, i, (Object) null);
                 Double price = this.safeNumber(bid, 0, (Object) null);
@@ -551,7 +551,7 @@ public class P2b extends io.github.ccxt.exchanges.P2b
         }
         if (!java.util.Objects.equals(asks, null))
         {
-            for (var i = 0; i < ((List<?>)asks).size(); i++)
+            for (var i = 0; i < asks.size(); i++)
             {
                 List<Object> ask = (List<Object>) this.safeList(asks, i, (Object) null);
                 Double price = this.safeNumber(ask, 0, (Object) null);

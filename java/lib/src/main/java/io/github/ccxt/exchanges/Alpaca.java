@@ -1102,7 +1102,7 @@ public class Alpaca extends AlpacaApi
                     String pageToken = this.safeString(response, "next_page_token");
                     for (var i = 1; (paginationCalls != null && i < paginationCalls); i++)
                     {
-                        Integer ohlcvsLength = ((List<?>)ohlcvs).size();
+                        Integer ohlcvsLength = ohlcvs.size();
                         if ((java.util.Objects.equals(pageToken, null)) || ((!java.util.Objects.equals(limit, null)) && (((ohlcvsLength != null && ohlcvsLength >= limit)))))
                         {
                             break;
@@ -1111,7 +1111,7 @@ public class Alpaca extends AlpacaApi
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, query))).join();
                         bars = (Map<String, Object>) this.safeDict(response, "bars", new HashMap<String, Object>() {{}});
                         List<Object> page = (List<Object>) this.safeList(bars, marketId, new ArrayList<Object>(Arrays.asList()));
-                        Integer pageLength = ((List<?>)page).size();
+                        Integer pageLength = page.size();
                         if (java.util.Objects.equals(pageLength, 0))
                         {
                             break;
@@ -1283,7 +1283,7 @@ public class Alpaca extends AlpacaApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> snapshots = (Map<String, Object>) this.safeDict(response, "snapshots", new HashMap<String, Object>() {{}});
             List<String> marketIds = new ArrayList<String>(snapshots.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1326,8 +1326,8 @@ public class Alpaca extends AlpacaApi
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         String uuid = this.uuid();
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)uuid).split(java.util.regex.Pattern.quote("-"))));
-        String random_id = String.join("", (List<String>)parts);
+        List<String> parts = new ArrayList<String>(Arrays.asList(((String)uuid).split(java.util.regex.Pattern.quote("-"))));
+        String random_id = String.join("", parts);
         String defaultClientId = (String) this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -2256,7 +2256,7 @@ public class Alpaca extends AlpacaApi
                 {
                     ledger = activities;
                 }
-                for (var i = 0; i < ((List<?>)ledger).size(); i++)
+                for (var i = 0; i < ledger.size(); i++)
                 {
                     Object entry = (ledger == null || i < 0 || i >= ledger.size() ? null : ledger.get(i));
                     String activityType = this.safeString(entry, "activity_type");
@@ -2298,7 +2298,7 @@ public class Alpaca extends AlpacaApi
             {
                 transfers = response;
             }
-            for (var i = 0; i < ((List<?>)transfers).size(); i++)
+            for (var i = 0; i < transfers.size(); i++)
             {
                 Object entry = (transfers == null || i < 0 || i >= transfers.size() ? null : transfers.get(i));
                 String direction = this.safeString(entry, "direction");
@@ -2646,7 +2646,7 @@ public class Alpaca extends AlpacaApi
             cashAccount.put("total", Precise.stringSub(equity, positionsValue)); // equity minus the positions market value equals cash plus open-order holds; stringSub degrades to undefined when either field is absent and safeBalance then derives the total from free
             result.put(code, cashAccount);
         }
-        for (var i = 0; i < ((List<?>)positions).size(); i++)
+        for (var i = 0; i < positions.size(); i++)
         {
             Map<String, Object> position = (Map<String, Object>) this.safeDict(positions, i, (Object) null);
             String positionSymbol = this.safeString(position, "symbol", "");

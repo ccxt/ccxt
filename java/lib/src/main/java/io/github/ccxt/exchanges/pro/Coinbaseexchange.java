@@ -142,7 +142,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             List<String> productIds = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 market = this.market(symbol);
@@ -212,7 +212,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
             {
                 throw new ArgumentsRequired((this.id + " watchTickers() symbols is required")) ;
             }
-            Integer symbolsLength = ((List<?>)symbols).size();
+            Integer symbolsLength = symbols.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new BadSymbol((this.id + " watchTickers requires a non-empty symbols array")) ;
@@ -841,7 +841,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", trade.get("timestamp"));
                         String totalCost = "0";
                         String totalAmount = "0";
-                        for (var i = 0; i < ((List<?>)previousTrades).size(); i++)
+                        for (var i = 0; i < previousTrades.size(); i++)
                         {
                             Map<String, Object> tradeEntry = (Map<String, Object>) this.safeDict(previousTrades, i, (Object) null);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -882,7 +882,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                         Map<String, Object> order = (Map<String, Object>) this.parseWsOrder(info, (Map<String, Object>) null);
                         List<String> keys = new ArrayList<String>(order.keySet());
                         // update the reference
-                        for (var i = 0; i < ((List<?>)keys).size(); i++)
+                        for (var i = 0; i < keys.size(); i++)
                         {
                             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                             if (!java.util.Objects.equals((order == null || key == null ? null : order.get(key)), null))
@@ -1120,7 +1120,7 @@ public class Coinbaseexchange extends io.github.ccxt.exchanges.Coinbaseexchange
                 put( "sell", "asks" );
                 put( "buy", "bids" );
             }};
-            for (var i = 0; i < ((List<?>)changes).size(); i++)
+            for (var i = 0; i < changes.size(); i++)
             {
                 List<Object> change = (List<Object>) this.safeList(changes, i, (Object) null);
                 String key = this.safeString(change, 0);

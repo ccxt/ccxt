@@ -412,7 +412,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         List<Object> trades = this.parseTrades(data, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        Integer tradesLength = ((List<?>)trades).size();
+        Integer tradesLength = trades.size();
         for (var i = 0; (tradesLength != null && i < tradesLength); i++)
         {
             ((io.github.ccxt.ws.ArrayCache) this.myTrades).append((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)));
@@ -494,7 +494,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 channels.add(((("user.orders." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
@@ -563,7 +563,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         {
             orders = new ArrayList<Object>(Arrays.asList(this.parseOrder(data, (Map<String, Object>) null)));
         }
-        Integer ordersLength = ((List<?>)orders).size();
+        Integer ordersLength = orders.size();
         for (var i = 0; (ordersLength != null && i < ordersLength); i++)
         {
             ((io.github.ccxt.ws.ArrayCache) this.orders).append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
@@ -603,7 +603,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsResolved, null))
             {
-                symbolsLength = ((List<?>)symbolsResolved).size();
+                symbolsLength = symbolsResolved.size();
             }
             if ((!java.util.Objects.equals(symbolsResolved, null)) && ((symbolsLength != null && symbolsLength > 0)))
             {
@@ -654,7 +654,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsResolved, null))
             {
-                symbolsLength = ((List<?>)symbolsResolved).size();
+                symbolsLength = symbolsResolved.size();
             }
             if ((!java.util.Objects.equals(symbolsResolved, null)) && ((symbolsLength != null && symbolsLength > 0)))
             {
@@ -750,7 +750,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Tickers tickers = (this.watchTickers(symbols, paramsResolved)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> tickerSymbols = new ArrayList<String>(((Map<String, Object>)tickers).keySet());
-            Integer tickerSymbolsLength = ((List<?>)tickerSymbols).size();
+            Integer tickerSymbolsLength = tickerSymbols.size();
             for (var i = 0; (tickerSymbolsLength != null && i < tickerSymbolsLength); i++)
             {
                 String symbol = (tickerSymbols == null || i < 0 || i >= tickerSymbols.size() ? null : tickerSymbols.get(i));
@@ -889,7 +889,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
@@ -937,7 +937,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 channels.add(((("ticker." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
@@ -1060,7 +1060,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
@@ -1101,7 +1101,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             }
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 channels.add(("quote." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")));
@@ -1117,8 +1117,8 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, (Map<String, Object>) null);
         String channel = this.safeString(parameters, "channel");
-        Object symbol = ticker.get("symbol");
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        String symbol = (String) ticker.get("symbol");
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, channel);
     }
 
@@ -1376,7 +1376,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             Boolean isPrivate = java.util.Objects.equals(interval, "raw");
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 Map<String, Object> market = this.market(this.safeString(symbolsResolved, i, ""));
@@ -1443,7 +1443,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             String interval = intervalparamsIntervalVariable.first();
             Map<String, Object> paramsInterval = intervalparamsIntervalVariable.second();
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            Integer symbolsLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsLength = symbolsResolved.size();
             for (var i = 0; (symbolsLength != null && i < symbolsLength); i++)
             {
                 channels.add(((("trades." + this.safeString(this.market(this.safeString(symbolsResolved, i, "")), "id", "")) + ".") + interval));
@@ -1469,7 +1469,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             this.trades.put(symbol, tradesArrayCache);
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
@@ -1643,7 +1643,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         Long timestamp = this.safeInteger(data, "timestamp");
         String channel = this.safeString(parameters, "channel");
         List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-        Integer channelPartsLength = ((List<?>)channelParts).size();
+        Integer channelPartsLength = channelParts.size();
         Boolean isGrouped = java.util.Objects.equals(channelPartsLength, 5);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
         {
@@ -1694,7 +1694,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> channelParts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
-            Integer channelPartsLength = ((List<?>)channelParts).size();
+            Integer channelPartsLength = channelParts.size();
             Boolean isPrivate = java.util.Objects.equals(this.safeString(channelParts, (((long) channelPartsLength) - 1L)), "raw");
             String url = this.getWsUrl(isPrivate);
             if (Boolean.TRUE.equals(isPrivate))
@@ -2338,7 +2338,7 @@ public class Coinbaseinternational extends io.github.ccxt.exchanges.Coinbaseinte
             Object balance = new HashMap<String, Object>() {{
                 put( "info", result );
             }};
-            Integer summariesLength = ((List<?>)summaries).size();
+            Integer summariesLength = summaries.size();
             for (var i = 0; (summariesLength != null && i < summariesLength); i++)
             {
                 balance = this.deepExtend(balance, this.parseBalanceList((summaries == null || i < 0 || i >= summaries.size() ? null : summaries.get(i))));

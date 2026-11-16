@@ -743,7 +743,7 @@ public class Digifinex extends DigifinexApi
         String id = this.safeString(this.safeDict(networkEntries, 0, new HashMap<String, Object>() {{}}), "currency"); // it must have at least one entry
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkEntries).size(); j++)
+        for (var j = 0; j < networkEntries.size(); j++)
         {
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networkEntries, j, (Object) null);
             String networkId = this.safeString2(networkEntry, "chain", "currency");
@@ -884,7 +884,7 @@ public class Digifinex extends DigifinexApi
             List<Object> swapData = (List<Object>) this.safeList(swapMarkets, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> response = (List<Object>) this.arrayConcat(spotData, swapData);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Object market = (response == null || i < 0 || i >= response.size() ? null : response.get(i));
                 String id = this.safeString2(market, "symbol", "instrument_id");
@@ -1008,7 +1008,7 @@ public class Digifinex extends DigifinexApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market");
@@ -1109,7 +1109,7 @@ public class Digifinex extends DigifinexApi
             put( "info", response );
         }};
         List<Object> rows = this.toArray(response);
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
@@ -1398,7 +1398,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> tickers = (List<Object>) this.safeList2(response, "ticker", "data", new ArrayList<Object>(Arrays.asList()));
             Long date = this.safeInteger(response, "date");
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Map<String, Object> rawTicker = this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
@@ -2497,7 +2497,7 @@ public class Digifinex extends DigifinexApi
             if (Boolean.TRUE.equals(isMargin) || (java.util.Objects.equals(marketType, "spot")))
             {
                 List<Object> canceledOrders = (List<Object>) this.safeList(response, "success", new ArrayList<Object>(Arrays.asList()));
-                Integer numCanceledOrders = ((List<?>)canceledOrders).size();
+                Integer numCanceledOrders = canceledOrders.size();
                 if (!java.util.Objects.equals(numCanceledOrders, 1))
                 {
                     throw new OrderNotFound((((this.id + " cancelOrder() ") + idValue) + " not found")) ;
@@ -2663,13 +2663,13 @@ public class Digifinex extends DigifinexApi
             }
             if (java.util.Objects.equals(marketType, "swap"))
             {
-                Integer numIds = ((List<?>)ids).size();
+                Integer numIds = ids.size();
                 if ((numIds != null && numIds > 20))
                 {
                     throw new BadRequest((this.id + " cancelOrdersForSymbols() accepts up to 20 orders for swap markets")) ;
                 }
                 List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                for (var i = 0; i < ids.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     String marketId = (String) market.get("id");
@@ -2692,7 +2692,7 @@ public class Digifinex extends DigifinexApi
                 // ids that were not canceled are absent from data
                 List<Object> data = (List<Object>) this.safeList(swapResponse, "data", new ArrayList<Object>(Arrays.asList()));
                 List<Object> result = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)ids).size(); i++)
+                for (var i = 0; i < ids.size(); i++)
                 {
                     String orderId = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                     boolean isCanceled = this.inArray(orderId, data);
@@ -2869,7 +2869,7 @@ public class Digifinex extends DigifinexApi
             if (!java.util.Objects.equals(sideRaw, null))
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)sideRaw).split(java.util.regex.Pattern.quote("_"))));
-                Integer numParts = ((List<?>)parts).size();
+                Integer numParts = parts.size();
                 if ((numParts != null && numParts > 1))
                 {
                     side = (String) (parts == null || 0 >= parts.size() ? null : parts.get(0));
@@ -4168,7 +4168,7 @@ public class Digifinex extends DigifinexApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "list", new ArrayList<Object>(Arrays.asList()));
             Object result = null;
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 if (java.util.Objects.equals(this.safeString(entry, "currency"), code))
@@ -4255,7 +4255,7 @@ public class Digifinex extends DigifinexApi
         //     },
         //
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)info).size(); i++)
+        for (var i = 0; i < info.size(); i++)
         {
             Object item = (info == null || i < 0 || i >= info.size() ? null : info.get(i));
             String currency = this.safeString(item, codeKey);
@@ -4443,7 +4443,7 @@ public class Digifinex extends DigifinexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> result = (List<Object>) this.safeList(data, "funding_rates", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(data, "instrument_id");
@@ -4555,7 +4555,7 @@ public class Digifinex extends DigifinexApi
                 Object symbol = null;
                 if ((symbolsNormalized instanceof List))
                 {
-                    Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                    Integer symbolsLength = symbolsNormalized.size();
                     if ((symbolsLength != null && symbolsLength > 1))
                     {
                         throw new BadRequest((this.id + " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -4658,7 +4658,7 @@ public class Digifinex extends DigifinexApi
             }
             List<Object> positions = (List<Object>) this.safeList(response, positionRequest, new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), market));
             }
@@ -5175,7 +5175,7 @@ public class Digifinex extends DigifinexApi
         List<Object> brackets = (List<Object>) this.safeList(info, "open_max_limits", new ArrayList<Object>(Arrays.asList()));
         String marketId = this.safeString(info, "instrument_id");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        for (var i = 0; i < ((List<?>)brackets).size(); i++)
+        for (var i = 0; i < brackets.size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
             HashMap<String, Object> j39v4 = new HashMap<String, Object>();
@@ -5304,7 +5304,7 @@ public class Digifinex extends DigifinexApi
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
         List<Object> rows = this.toArray(response);
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String code = this.safeCurrencyCode(this.safeString(entry, "currency"), (Map<String, Object>) null);
@@ -5346,7 +5346,7 @@ public class Digifinex extends DigifinexApi
             }
         }
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
-        for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
+        for (var i = 0; i < depositWithdrawCodes.size(); i++)
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
@@ -5617,11 +5617,11 @@ public class Digifinex extends DigifinexApi
         if (Boolean.TRUE.equals(signed))
         {
             Object auth = "";
-            Object nonce = "";
+            String nonce = "";
             if (java.util.Objects.equals(pathPart, "/swap/v2"))
             {
                 nonce = String.valueOf(this.milliseconds());
-                auth = (((java.util.function.BinaryOperator<Object>) (hx4J40v1A, hx4J40v1B) -> { Object hx4J40v1P = hx4J40v1A instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1A; Object hx4J40v1Q = hx4J40v1B instanceof Integer hx4J40v1i ? (Object) Long.valueOf(hx4J40v1i.longValue()) : hx4J40v1B; if (hx4J40v1P instanceof Long hx4J40v1l && hx4J40v1Q instanceof Long hx4J40v1r) { return hx4J40v1l + hx4J40v1r; } if (hx4J40v1P instanceof Double || hx4J40v1Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v1D = hx4J40v1o -> { if (hx4J40v1o instanceof Double || hx4J40v1o instanceof Float || hx4J40v1o instanceof Long || hx4J40v1o instanceof Integer || hx4J40v1o instanceof java.math.BigDecimal) { return ((Number) hx4J40v1o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v1o)); } catch (NumberFormatException hx4J40v1e) { return 0.0; } }; return hx4J40v1D.applyAsDouble(hx4J40v1P) + hx4J40v1D.applyAsDouble(hx4J40v1Q); } if (hx4J40v1P instanceof String || hx4J40v1Q instanceof String) { return String.valueOf(hx4J40v1P) + String.valueOf(hx4J40v1Q); } return null; }).apply(nonce, java.util.Objects.requireNonNullElse(method, "GET")) + payload);
+                auth = ((nonce + java.util.Objects.requireNonNullElse(method, "GET")) + payload);
                 if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
                 {
                     if ((!java.util.Objects.equals(urlencoded, "")))

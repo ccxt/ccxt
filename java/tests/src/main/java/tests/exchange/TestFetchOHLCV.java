@@ -24,7 +24,7 @@ public class TestFetchOHLCV extends BaseTest {
         String method = "fetchOHLCV";
         List<Object> timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Object logText = TestSharedMethods.logTemplate(exchange, method, new HashMap<String, Object>() {{}});
-        Assert(((List<?>)timeframeKeys).size() > 0, ((((exchange.id + " ") + method) + " - no timeframes found") + logText)); // prefer 1m timeframe if available, otherwise return the first one
+        Assert(timeframeKeys.size() > 0, ((((exchange.id + " ") + method) + " - no timeframes found") + logText)); // prefer 1m timeframe if available, otherwise return the first one
         Object chosenTimeframeKey = "1m";
         if (!Helpers.isTrue(exchange.inArray(chosenTimeframeKey, timeframeKeys)))
         {
@@ -36,10 +36,10 @@ public class TestFetchOHLCV extends BaseTest {
         //
         List<Object> sinceArray = new ArrayList<Object>(Arrays.asList(null, Helpers.subtract(exchange.milliseconds(), Helpers.multiply(durationMs, 2800)))); // eg, "since" was a date of 2800 bars back
         List<Object> limitsArray = new ArrayList<Object>(Arrays.asList(null, 50, 25000));
-        for (var i = 0; i < ((List<?>)sinceArray).size(); i++)
+        for (var i = 0; i < sinceArray.size(); i++)
         {
             Object sinceCurrent = (sinceArray == null || i < 0 || i >= sinceArray.size() ? null : sinceArray.get(i));
-            for (var j = 0; j < ((List<?>)limitsArray).size(); j++)
+            for (var j = 0; j < limitsArray.size(); j++)
             {
                 Object limit = (limitsArray == null || j < 0 || j >= limitsArray.size() ? null : limitsArray.get(j));
                 Object ohlcvs = ((CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, Helpers.toStringArg(chosenTimeframeKey), Helpers.toLongOrNull(sinceCurrent), Helpers.toLongOrNull(limit), new HashMap<String, Object>() {{}}})).join();

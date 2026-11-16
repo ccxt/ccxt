@@ -162,7 +162,7 @@ public class Dydx extends io.github.ccxt.exchanges.Dydx
             this.trades.put(symbol, stored);
         }
         List<Object> parsedTrades = this.parseTrades(rawTrades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
+        for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append((parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i)));
         }

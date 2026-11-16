@@ -1215,11 +1215,11 @@ public class Paradex extends ParadexApi
             //
             List<Object> fees = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
-                Object symbol = fee.get("symbol");
-                result.put((String)((String)symbol), fee);
+                String symbol = (String) fee.get("symbol");
+                result.put((String)symbol, fee);
             }
             return result;
         }).thenApply(TradingFees::new);
@@ -1500,7 +1500,7 @@ public class Paradex extends ParadexApi
             Object target = "ALL";
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     target = ((String)((Map<String, Object>)this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)))).get("id"));
@@ -1724,7 +1724,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
@@ -1900,10 +1900,10 @@ public class Paradex extends ParadexApi
     public String signHash(String hash, String privateKey)
     {
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = (String) signature.get("r");
+        String s = (String) signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
+        return ((("0x" + (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r)) + (s.length() >= 64 ? s.substring(s.length() - 64) : String.format("%" + (64 - s.length()) + "s", "").replace(' ', '0') + s)) + v);
     }
 
     public String signMessage(Object message, String privateKey)
@@ -2774,7 +2774,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Object result = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String marketId = this.safeString(result, "market");
@@ -2994,7 +2994,7 @@ public class Paradex extends ParadexApi
             //
             List<Object> orders = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
-            Integer ordersLength = ((List<?>)orders).size();
+            Integer ordersLength = orders.size();
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((ordersLength != null && ordersLength > 0)))
             {
                 Object first = (orders == null || 0 >= ((List<?>)orders).size() ? null : ((List<?>)orders).get(0));
@@ -3202,7 +3202,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> trades = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Helpers.addElementToObject((trades == null || i < 0 || i >= trades.size() ? null : trades.get(i)), "next", this.safeString(response, "next"));
             }
@@ -3235,7 +3235,7 @@ public class Paradex extends ParadexApi
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // unlike fetchPositions, a closed or flat position is kept so the market still gets a structured position
             List<Object> matching = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 if (java.util.Objects.equals(this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "market"), market.get("id")))
                 {
@@ -3299,7 +3299,7 @@ public class Paradex extends ParadexApi
             List<Object> data = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the endpoint keeps returning a market's position after it is closed, with a size of 0
             List<Object> openPositions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object position = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String status = this.safeString(position, "status");
@@ -3530,12 +3530,12 @@ public class Paradex extends ParadexApi
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
             }
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "DEPOSIT")))
@@ -3622,12 +3622,12 @@ public class Paradex extends ParadexApi
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
             }
             List<Object> deposits = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 if (Boolean.TRUE.equals(allKinds) || (java.util.Objects.equals(this.safeString(row, "kind"), "WITHDRAWAL")))
@@ -3712,7 +3712,7 @@ public class Paradex extends ParadexApi
             List<Object> rows = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Helpers.addElementToObject((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), "next", next);
             }
@@ -4313,7 +4313,7 @@ public class Paradex extends ParadexApi
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             // the cursor pagination reads the next page cursor from the parsed entries
             String next = this.safeString(response, "next");
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Helpers.addElementToObject((results == null || i < 0 || i >= results.size() ? null : results.get(i)), "next", next);
             }
@@ -4418,7 +4418,7 @@ public class Paradex extends ParadexApi
             // into funding_index, so the series cannot be summed
             List<Object> results = (List<Object>) this.safeList(response, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Object rate = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 Long timestamp = this.safeInteger(rate, "created_at");
@@ -4572,7 +4572,7 @@ public class Paradex extends ParadexApi
             //     }
             //
             List<Object> batchErrors = (List<Object>) this.safeList(response, "errors", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)batchErrors).size(); i++)
+            for (var i = 0; i < batchErrors.size(); i++)
             {
                 String batchErrorCode = this.safeString((batchErrors == null || i < 0 || i >= batchErrors.size() ? null : batchErrors.get(i)), "error");
                 if (!java.util.Objects.equals(batchErrorCode, null))

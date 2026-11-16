@@ -161,7 +161,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             var order = ((List<Object>) orderglobalParamsVariable).get(0);
             Map<String, Object> globalParams = (Map<String, Object>) ((List<Object>) orderglobalParamsVariable).get(1);
             List<Order> orders = (this.createOrdersWs(new ArrayList<Object>(Arrays.asList(((Object)order))), globalParams)).join();
-            Integer ordersLength = ((List<?>)orders).size();
+            Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
             {
                 // not sure why but it is happening sometimes
@@ -255,7 +255,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Map<String, Object> data = (Map<String, Object>) this.safeDict(responseObj, "data", new HashMap<String, Object>() {{}});
             List<Object> statuses = (List<Object>) this.safeList(data, "statuses", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)statuses).size(); i++)
+            for (var i = 0; i < statuses.size(); i++)
             {
                 Object status = (statuses == null || i < 0 || i >= statuses.size() ? null : statuses.get(i));
                 ((List<Object>)orders).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -690,7 +690,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 messageHashes.add("myLiquidations");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     messageHashes.add(("myLiquidations::" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 }
@@ -782,7 +782,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         if (!java.util.Objects.equals(mids, null))
         {
             List<String> keys = new ArrayList<String>(mids.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String name = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String marketId = this.coinToMarketId(name);
@@ -887,21 +887,21 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         List<Object> data = (List<Object>) this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
-            Object symbol = parsed.get("symbol");
-            symbols.put((String)((String)symbol), true);
+            Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
+            String symbol = (String) parsed.get("symbol");
+            symbols.put((String)symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             client.resolve(trades, ("myTrades:" + this.safeString(keys, i, "")));
         }
@@ -932,7 +932,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String user = this.safeStringLower(entry, "user");
         List<Object> fills = (List<Object>) this.safeList(entry, "fills", new ArrayList<Object>(Arrays.asList()));
         List<Object> newLiquidations = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)fills).size(); i++)
+        for (var i = 0; i < fills.size(); i++)
         {
             Object fill = (fills == null || i < 0 || i >= fills.size() ? null : fills.get(i));
             Map<String, Object> liquidation = (Map<String, Object>) this.safeDict(fill, "liquidation", new HashMap<String, Object>() {{}});
@@ -942,7 +942,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
                 ((List<Object>)newLiquidations).add(this.parseLiquidation(fill, (Map<String, Object>) null));
             }
         }
-        Integer newLiquidationsLength = ((List<?>)newLiquidations).size();
+        Integer newLiquidationsLength = newLiquidations.size();
         if (java.util.Objects.equals(newLiquidationsLength, 0))
         {
             return;
@@ -956,7 +956,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             symbols.put((String)((String)((Map<String, Object>)liquidation).get("symbol")), true);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object symbolLiquidations = this.filterBySymbol(newLiquidations, symbol);
@@ -1064,7 +1064,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         //     }
         //
         List<Object> entry = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer entryLength = ((List<?>)entry).size();
+        Integer entryLength = entry.size();
         if (java.util.Objects.equals(entryLength, 0))
         {
             return;
@@ -1081,7 +1081,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)entry).size(); i++)
+        for (var i = 0; i < entry.size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
@@ -1494,7 +1494,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             timestamp = this.safeInteger(clearinghouseState, "time");
             this.handlePositions(client, message);
         }
-        for (var i = 0; i < ((List<?>)rawBalances).size(); i++)
+        for (var i = 0; i < rawBalances.size(); i++)
         {
             this.parseWsBalance((Map<String, Object>) ((rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i))), account);
         }
@@ -1665,19 +1665,19 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         Map<String, Object> clearinghouseState = (Map<String, Object>) this.safeDict(data, "clearinghouseState", new HashMap<String, Object>() {{}});
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         List<Object> rawPositions = (List<Object>) this.safeList(clearinghouseState, "assetPositions", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             cache.append(position);
         }
         String baseMessageHash = "clearinghouseState::positions";
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, baseMessageHash);
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = this.safeString(parts, 2);
             if (java.util.Objects.equals(symbolsString, null))
             {
@@ -1863,7 +1863,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
@@ -1871,7 +1871,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         String messageHash = "order";
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
@@ -1880,7 +1880,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             marketSymbols.put((String)symbol, true);
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String innerMessageHash = ((messageHash + ":") + symbol);
@@ -2080,7 +2080,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
         }
@@ -2305,7 +2305,7 @@ public class Hyperliquid extends io.github.ccxt.exchanges.Hyperliquid
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)

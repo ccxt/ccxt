@@ -56,7 +56,7 @@ public class TestAfterConstruct extends BaseTest {
             List<Object> networkCodes = Helpers.objectKeys(((Map<String, Object>)exchange.options).get("networks"));
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             List<Object> collectedNetworkIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
+            for (var i = 0; i < networkCodes.size(); i++)
             {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);
@@ -68,14 +68,14 @@ public class TestAfterConstruct extends BaseTest {
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
             List<Object> collectedNetworkCodes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
+            for (var i = 0; i < networkCodes.size(); i++)
             {
                 String networkCodeLower = ((String)((networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i)))).toLowerCase();
                 Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), (("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"" + (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i))) + "\" in different uppercase/lowercase format"));
                 ((List<Object>)collectedNetworkCodes).add(networkCodeLower);
             }
             // 5) test networkCodeToId & networkIdToCode
-            for (var i = 0; i < ((List<?>)networkCodes).size(); i++)
+            for (var i = 0; i < networkCodes.size(); i++)
             {
                 Object networkCode = (networkCodes == null || i < 0 || i >= networkCodes.size() ? null : networkCodes.get(i));
                 Object networkId = Helpers.GetValue(((Map<String, Object>)exchange.options).get("networks"), networkCode);

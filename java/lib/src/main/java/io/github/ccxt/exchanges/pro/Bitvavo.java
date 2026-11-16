@@ -134,7 +134,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList(methodName));
             List<String> args = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 args.add(((String)market.get("id")));
@@ -225,14 +225,14 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String eventVar = this.safeString(message, "event");
         List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; i < tickers.size(); i++)
         {
             Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(data, "market");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, "-", (String) null);
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(data, market);
-            Object symbol = ticker.get("symbol");
-            Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+            String symbol = (String) ticker.get("symbol");
+            this.tickers.put(symbol, ticker);
             ((List<Object>)result).add(ticker);
             if (!java.util.Objects.equals(eventVar, null))
             {
@@ -274,10 +274,10 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         String eventVar = "bidask";
         List<Object> tickers = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; i < tickers.size(); i++)
         {
-            Object data = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
-            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (data), (Map<String, Object>) null);
+            Map<String, Object> data = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+            Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
             String symbol = this.safeString(ticker, "symbol", "");
             this.bidsasks.put(symbol, ticker);
             ((List<Object>)result).add(ticker);
@@ -390,7 +390,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "trades";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
@@ -458,7 +458,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "trades";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
@@ -576,7 +576,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        for (var i = 0; i < ((List<?>)candles).size(); i++)
+        for (var i = 0; i < candles.size(); i++)
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             List<Object> parsed = (List<Object>) this.parseOHLCV(candle, market);
@@ -620,13 +620,13 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 {
                     marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
-                ((List<Object>)intervalIds).add(market.get("id"));
+                List<Object> intervalIds = (List<Object>) ((marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+                intervalIds.add(market.get("id"));
                 messageHashes.add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
-            for (var i = 0; i < ((List<?>)intervals).size(); i++)
+            for (var i = 0; i < intervals.size(); i++)
             {
                 String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
                 HashMap<String, Object> j39v1 = new HashMap<String, Object>();
@@ -707,15 +707,15 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
                 {
                     marketIdsByInterval.put(interval, new ArrayList<Object>(Arrays.asList()));
                 }
-                Object intervalIds = (marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval));
-                ((List<Object>)intervalIds).add(market.get("id"));
+                List<Object> intervalIds = (List<Object>) ((marketIdsByInterval == null || interval == null ? null : marketIdsByInterval.get(interval)));
+                intervalIds.add(market.get("id"));
                 // both the single-symbol and the multi-symbol watch hashes must be released
                 subMessageHashes.add(((((name + "@") + this.safeString(market, "id", "")) + "_") + interval));
                 subMessageHashes.add(((((("multi:" + name) + "@") + this.safeString(market, "id", "")) + "_") + interval));
             }
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> intervals = new ArrayList<String>(marketIdsByInterval.keySet());
-            for (var i = 0; i < ((List<?>)intervals).size(); i++)
+            for (var i = 0; i < intervals.size(); i++)
             {
                 String interval = (intervals == null || i < 0 || i >= intervals.size() ? null : intervals.get(i));
                 HashMap<String, Object> j39v2 = new HashMap<String, Object>();
@@ -799,7 +799,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "book";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
@@ -867,7 +867,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             String name = "book";
             List<String> marketIds = new ArrayList<String>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 marketIds.add(((String)market.get("id")));
@@ -1141,21 +1141,21 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
         List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
-            Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (!(client.subscriptions.containsKey(key)))
             {
                 continue;
             }
-            if (!((String)key).startsWith("unsubscribe:"))
+            if (!(key.startsWith(((String)"unsubscribe:"))))
             {
                 continue;
             }
             Object subscription = this.safeValue(client.subscriptions, key);
             String subHash = (key == null ? null : ((String)key).replaceFirst("unsubscribe:", ""));
             this.cleanCache(subscription);
-            this.cleanUnsubscription(client, subHash, (String) (key), false);
+            this.cleanUnsubscription(client, subHash, key, false);
             // bitvavo resolves-and-deletes the data futures on every message, so at
             // unsubscribe time the sub future is usually already gone and cleanUnsubscription
             // stashes the error in client.rejections instead - that stale entry
@@ -2133,7 +2133,7 @@ public class Bitvavo extends io.github.ccxt.exchanges.Bitvavo
             put( "book", "handleOrderBookSubscriptions");
         }};
         List<String> names = new ArrayList<String>(subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)names).size(); i++)
+        for (var i = 0; i < names.size(); i++)
         {
             String name = (names == null || i < 0 || i >= names.size() ? null : names.get(i));
             Object method = this.safeValue(methods, name);

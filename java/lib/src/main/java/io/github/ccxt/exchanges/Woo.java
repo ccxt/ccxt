@@ -1443,7 +1443,7 @@ public class Woo extends WooApi
             {
                 return result;
             }
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -1557,7 +1557,7 @@ public class Woo extends WooApi
             Map<String,Object> networksById = this.groupBy(tokenNetworkRows, "token");
             Map<String,Object> tokensById = this.groupBy(tokenRows, "balance_token");
             List<String> currencyIds = new ArrayList<String>(tokensById.keySet());
-            for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+            for (var i = 0; i < currencyIds.size(); i++)
             {
                 String id = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
                 Map<String, Object> customCurrency = new HashMap<String, Object>() {{
@@ -1585,7 +1585,7 @@ public class Woo extends WooApi
         Map<String,Object> chainsByNetworkId = this.indexBy(((Map<String, Object>)rawCurrency).get("_networks_by_id"), "network");
         List<String> keys = new ArrayList<String>(chainsByNetworkId.keySet());
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)keys).size(); j++)
+        for (var j = 0; j < keys.size(); j++)
         {
             String networkId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
             Map<String, Object> tokenEntry = (Map<String, Object>) this.safeDict(tokensByNetworkId, networkId, new HashMap<String, Object>() {{}});
@@ -2872,7 +2872,7 @@ public class Woo extends WooApi
             }
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     // the type gate throws NotSupported rather than letting marketSymbols raise
@@ -2907,7 +2907,7 @@ public class Woo extends WooApi
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol");
@@ -3313,7 +3313,7 @@ public class Woo extends WooApi
             put( "info", response );
         }};
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"), (Map<String, Object>) null);
@@ -3585,7 +3585,7 @@ public class Woo extends WooApi
         } else
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)networkizedCode).split(java.util.regex.Pattern.quote("_"))));
-            Integer partsLength = ((List<?>)parts).size();
+            Integer partsLength = parts.size();
             String firstPart = this.safeString(parts, 0);
             String currencyId = this.safeString(parts, 1, firstPart);
             if ((partsLength != null && partsLength > 2))
@@ -4089,7 +4089,7 @@ public class Woo extends WooApi
         }
         String urlPrefix = (((this.implodeHostname(baseApiUrl) + "/") + version) + "/");
         Map<String,Object> paramsSorted = this.keysort(this.omit(parameters, this.extractParams(path)));
-        Object url = urlPrefix;
+        String url = urlPrefix;
         if (java.util.Objects.equals(access, "public"))
         {
             String publicUrl = ((urlPrefix + "public/") + pathWithParams);
@@ -4126,7 +4126,7 @@ public class Woo extends WooApi
                 }
             }
             Map<String,Object> paramsSigned = this.keysort(paramsSorted);
-            Object auth = "";
+            String auth = "";
             String ts = String.valueOf(this.nonce());
             String authBase = (((((ts + java.util.Objects.requireNonNullElse(method, "GET")) + "/") + version) + "/") + pathWithParams);
             url = (urlPrefix + pathWithParams);
@@ -4570,7 +4570,7 @@ public class Woo extends WooApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -4686,7 +4686,7 @@ public class Woo extends WooApi
         Long longLeverage = spotLeverage;
         Long shortLeverage = spotLeverage;
         List<Object> details = (List<Object>) this.safeList(leverage, "details", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)details).size(); i++)
+        for (var i = 0; i < details.size(); i++)
         {
             Map<String, Object> position = (Map<String, Object>) this.safeDict(details, i, new HashMap<String, Object>() {{}});
             Long positionLeverage = this.safeInteger(position, "leverage");
@@ -4911,7 +4911,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -5374,7 +5374,7 @@ public class Woo extends WooApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> data = (List<Object>) this.safeList(response, "rows", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(entry, "token");
@@ -5438,7 +5438,7 @@ public class Woo extends WooApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -5529,7 +5529,7 @@ public class Woo extends WooApi
         Map<String, Object> currencyItem = this.currency((String) (code));
         Object networks = currencyItem.get("networks");
         List<String> networkKeys = new ArrayList<String>(((Map<String, Object>)networks).keySet());
-        for (var i = 0; i < ((List<?>)networkKeys).size(); i++)
+        for (var i = 0; i < networkKeys.size(); i++)
         {
             String network = (networkKeys == null || i < 0 || i >= networkKeys.size() ? null : networkKeys.get(i));
             if (java.util.Objects.equals(network, "ERC20"))

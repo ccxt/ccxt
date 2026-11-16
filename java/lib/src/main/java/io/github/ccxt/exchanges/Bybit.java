@@ -2392,7 +2392,7 @@ public class Bybit extends BybitApi
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeListN(result, new ArrayList<Object>(Arrays.asList("list", "rows", "data", "dataList")), new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString2(result, "nextPageCursor", "cursor");
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
         {
             Object first = (data == null || 0 >= ((List<?>)data).size() ? null : ((List<?>)data).get(0));
@@ -2730,7 +2730,7 @@ public class Bybit extends BybitApi
             String status = "ok";
             Long eta = null;
             String url = null;
-            for (var i = 0; i < ((List<?>)list).size(); i++)
+            for (var i = 0; i < list.size(); i++)
             {
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(list, i, (Object) null);
                 String state = this.safeString(eventVar, "state");
@@ -2856,7 +2856,7 @@ public class Bybit extends BybitApi
         String name = this.safeString(currency, "name");
         List<Object> chains = (List<Object>) this.safeList(currency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chain");
@@ -2962,7 +2962,7 @@ public class Bybit extends BybitApi
                 } else if (java.util.Objects.equals(marketType, "option"))
                 {
                     List<Object> optionsCurrencies = (List<Object>) this.safeList(fetchMarketsOptions, "options", new ArrayList<Object>(Arrays.asList("BTC", "ETH", "SOL")));
-                    for (var j = 0; j < ((List<?>)optionsCurrencies).size(); j++)
+                    for (var j = 0; j < optionsCurrencies.size(); j++)
                     {
                         Object currency = (optionsCurrencies == null || j < 0 || j >= optionsCurrencies.size() ? null : optionsCurrencies.get(j));
                         ((List<Object>)promisesUnresolved).add(this.fetchOptionMarkets(new HashMap<String, Object>() {{
@@ -2976,7 +2976,7 @@ public class Bybit extends BybitApi
             }
             List<Object> promises = (((List<?>)(promisesUnresolved)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)promises).size(); i++)
+            for (var i = 0; i < promises.size(); i++)
             {
                 Object parsedMarket = (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
                 result = (List<Object>) this.arrayConcat(result, parsedMarket);
@@ -3005,9 +3005,9 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", "spot" );
             }};
-            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+            boolean usePrivateInstrumentsInfo = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
+            if (usePrivateInstrumentsInfo)
             {
                 response = (this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters))).join();
             } else
@@ -3051,7 +3051,7 @@ public class Bybit extends BybitApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Double takerFee = this.parseNumber("0.001");
             Double makerFee = this.parseNumber("0.001");
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -3136,9 +3136,9 @@ public class Bybit extends BybitApi
             Map<String, Object> paramsExtended = this.extend(parameters, new HashMap<String, Object>() {{}});
             paramsExtended.put("limit", 1000); // minimize number of requests
             Object preLaunchMarkets = new ArrayList<Object>(Arrays.asList());
-            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+            boolean usePrivateInstrumentsInfo = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
+            if (usePrivateInstrumentsInfo)
             {
                 response = (this.privateGetV5MarketInstrumentsInfo(paramsExtended)).join();
             } else
@@ -3159,7 +3159,7 @@ public class Bybit extends BybitApi
                 {
                     paramsExtended.put("cursor", paginationCursor);
                     Map<String, Object> responseInner = null;
-                    if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
+                    if (usePrivateInstrumentsInfo)
                     {
                         responseInner = (this.privateGetV5MarketInstrumentsInfo(paramsExtended)).join();
                     } else
@@ -3168,7 +3168,7 @@ public class Bybit extends BybitApi
                     }
                     Map<String, Object> dataNew = (Map<String, Object>) this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
                     List<Object> rawMarkets = (List<Object>) this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
-                    Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+                    Integer rawMarketsLength = rawMarkets.size();
                     if (java.util.Objects.equals(rawMarketsLength, 0))
                     {
                         break;
@@ -3226,7 +3226,7 @@ public class Bybit extends BybitApi
             markets = (List<Object>) this.arrayConcat(markets, preLaunchMarketsList);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             String category = this.safeString(data, "category");
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 if (java.util.Objects.equals(category, null))
@@ -3361,9 +3361,9 @@ public class Bybit extends BybitApi
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "category", "option" );
             }};
-            Object usePrivateInstrumentsInfo = this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false);
+            boolean usePrivateInstrumentsInfo = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "usePrivateInstrumentsInfo", false));
             Map<String, Object> response = null;
-            if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
+            if (usePrivateInstrumentsInfo)
             {
                 response = (this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters))).join();
             } else
@@ -3372,8 +3372,8 @@ public class Bybit extends BybitApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> markets = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-            Object loadAllOptions = this.handleOption("fetchMarkets", "loadAllOptions", (Object) null);
-            if (java.util.Objects.equals(loadAllOptions, true))
+            boolean loadAllOptions = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "loadAllOptions", (Object) null));
+            if (loadAllOptions)
             {
                 request.put("limit", 1000);
                 String paginationCursor = this.safeString(data, "nextPageCursor");
@@ -3383,7 +3383,7 @@ public class Bybit extends BybitApi
                     {
                         request.put("cursor", paginationCursor);
                         Map<String, Object> responseInner = null;
-                        if (java.util.Objects.equals(usePrivateInstrumentsInfo, true))
+                        if (usePrivateInstrumentsInfo)
                         {
                             responseInner = (this.privateGetV5MarketInstrumentsInfo(this.extend(request, parameters))).join();
                         } else
@@ -3392,7 +3392,7 @@ public class Bybit extends BybitApi
                         }
                         Map<String, Object> dataNew = (Map<String, Object>) this.safeDict(responseInner, "result", new HashMap<String, Object>() {{}});
                         List<Object> rawMarkets = (List<Object>) this.safeList(dataNew, "list", new ArrayList<Object>(Arrays.asList()));
-                        Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+                        Integer rawMarketsLength = rawMarkets.size();
                         if (java.util.Objects.equals(rawMarketsLength, 0))
                         {
                             break;
@@ -3438,7 +3438,7 @@ public class Bybit extends BybitApi
             //     }
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -3465,8 +3465,8 @@ public class Bybit extends BybitApi
                 String optionLetter = this.safeString(splitId, 3, "");
                 Boolean isActive = (java.util.Objects.equals(status, "Trading"));
                 Boolean isInverse = java.util.Objects.equals(base, settle);
-                Object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions", (Object) null);
-                if (Boolean.TRUE.equals(isActive) || (java.util.Objects.equals(loadAllOptions, true)) || (java.util.Objects.equals(loadExpiredOptions, true)))
+                boolean loadExpiredOptions = Boolean.TRUE.equals(this.handleOption("fetchMarkets", "loadExpiredOptions", (Object) null));
+                if (Boolean.TRUE.equals(isActive) || (loadAllOptions) || (loadExpiredOptions))
                 {
                     ((List<Object>)result).add(this.safeMarketStructure((switch (0) { default -> { HashMap<String, Object> j39v2 = new HashMap<String, Object>();
                         j39v2.put("id", id);
@@ -3759,12 +3759,12 @@ public class Bybit extends BybitApi
                 String defaultType = (String) ((List<Object>)this.handleMarketTypeAndParams("fetchTickers", (Map<String, Object>) null, parameters, (String) null)).get(0); // don't omit here
                 // we can't use marketSymbols here due to the conflicting ids between markets
                 String currentType = null;
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < symbols.size(); i++)
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                     // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                    Boolean isExchangeSpecificSymbol = (((String)symbol).indexOf("/") < 0);
+                    Boolean isExchangeSpecificSymbol = (symbol.indexOf("/") < 0);
                     if (Boolean.TRUE.equals(isExchangeSpecificSymbol))
                     {
                         market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, defaultType);
@@ -4151,7 +4151,7 @@ public class Bybit extends BybitApi
             {
                 Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
                 market = symbolMarket;
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     request.put("symbol", symbolMarket.get("id"));
@@ -4208,7 +4208,7 @@ public class Bybit extends BybitApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> tickerList = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
-            for (var i = 0; i < ((List<?>)tickerList).size(); i++)
+            for (var i = 0; i < tickerList.size(); i++)
             {
                 Helpers.addElementToObject((tickerList == null || i < 0 || i >= tickerList.size() ? null : tickerList.get(i)), "timestamp", timestamp); // will be removed inside the parser
             }
@@ -4317,7 +4317,7 @@ public class Bybit extends BybitApi
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", (Object) null);
             List<Object> resultList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)resultList).size(); i++)
+            for (var i = 0; i < resultList.size(); i++)
             {
                 Object entry = (resultList == null || i < 0 || i >= resultList.size() ? null : resultList.get(i));
                 Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
@@ -4874,14 +4874,14 @@ public class Bybit extends BybitApi
             result.put(code, account);
         } else
         {
-            for (var i = 0; i < ((List<?>)currencyList).size(); i++)
+            for (var i = 0; i < currencyList.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(currencyList, i, (Object) null);
                 String accountType = this.safeString(entry, "accountType");
                 if (java.util.Objects.equals(accountType, "UNIFIED") || java.util.Objects.equals(accountType, "CONTRACT") || java.util.Objects.equals(accountType, "SPOT"))
                 {
                     List<Object> coins = (List<Object>) this.safeList(entry, "coin", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < ((List<?>)coins).size(); j++)
+                    for (var j = 0; j < coins.size(); j++)
                     {
                         Map<String, Object> account = this.account();
                         Map<String, Object> coinEntry = (Map<String, Object>) this.safeDict(coins, j, (Object) null);
@@ -5995,7 +5995,7 @@ public class Bybit extends BybitApi
             Map<String, Object> retInfo = (Map<String, Object>) this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
             List<Object> codes = (List<Object>) this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
             // extend the error with the unsuccessful orders
-            for (var i = 0; i < ((List<?>)codes).size(); i++)
+            for (var i = 0; i < codes.size(); i++)
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
@@ -6244,7 +6244,7 @@ public class Bybit extends BybitApi
             Map<String, Object> retInfo = (Map<String, Object>) this.safeDict(response, "retExtInfo", new HashMap<String, Object>() {{}});
             List<Object> codes = (List<Object>) this.safeList(retInfo, "list", new ArrayList<Object>(Arrays.asList()));
             // extend the error with the unsuccessful orders
-            for (var i = 0; i < ((List<?>)codes).size(); i++)
+            for (var i = 0; i < codes.size(); i++)
             {
                 Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
                 Long retCode = this.safeInteger(code, "code");
@@ -6405,7 +6405,7 @@ public class Bybit extends BybitApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsValue, "clientOrderIds", "clientOids", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> paramsOmitted = this.omit(paramsValue, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 HashMap<String, Object> j39v4 = new HashMap<String, Object>();
                 j39v4.put("symbol", market.get("id"));
@@ -6871,7 +6871,7 @@ public class Bybit extends BybitApi
             List<Object> innerList = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
             // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
             // see https://github.com/ccxt/ccxt/pull/29602
-            Integer innerListLength = ((List<?>)innerList).size();
+            Integer innerListLength = innerList.size();
             if (java.util.Objects.equals(innerListLength, 0))
             {
                 String extra = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -7043,7 +7043,7 @@ public class Bybit extends BybitApi
                 put( "orderId", id );
             }};
             List<Order> result = (this.fetchClosedOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Integer length = ((List<?>)result).size();
+            Integer length = result.size();
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
@@ -7090,7 +7090,7 @@ public class Bybit extends BybitApi
                 put( "orderId", id );
             }};
             List<Order> result = (this.fetchOpenOrders(symbol, (Long) null, (Long) null, this.extend(request, parameters))).join();
-            Integer length = ((List<?>)result).size();
+            Integer length = result.size();
             if (java.util.Objects.equals(length, 0))
             {
                 Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
@@ -7619,7 +7619,7 @@ public class Bybit extends BybitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7693,8 +7693,8 @@ public class Bybit extends BybitApi
             List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
-            Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, (Map<String, Object>) (indexedAddresses), true);
+            Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
@@ -8338,10 +8338,10 @@ public class Bybit extends BybitApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsAccountType));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
-                request.put("chain", ((String)networkId).toUpperCase());
+                request.put("chain", networkId.toUpperCase());
             }
             Map<String, Object> response = (this.privatePostV5AssetWithdrawCreate(this.extend(request, query))).join();
             //
@@ -8479,7 +8479,7 @@ public class Bybit extends BybitApi
             Object symbolsNormalized = null;
             if ((!java.util.Objects.equals(symbols, null)) && (symbols instanceof List))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if ((symbolsLength != null && symbolsLength > 1))
                 {
                     throw new ArgumentsRequired((this.id + " fetchPositions() does not accept an array with more than one symbol")) ;
@@ -8569,7 +8569,7 @@ public class Bybit extends BybitApi
             //
             List<Object> positions = this.addPaginationCursorToResult(response);
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Object rawPosition = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 if (((switch ((Object)(rawPosition)) { case List<?> j39v8 -> j39v8.contains("data"); case Map<?, ?> j39v7 -> j39v7.containsKey("data"); case null, default -> false; })) && ((switch ((Object)(rawPosition)) { case List<?> j39v6 -> j39v6.contains("is_valid"); case Map<?, ?> j39v5 -> j39v5.containsKey("is_valid"); case null, default -> false; })))
@@ -10148,7 +10148,7 @@ public class Bybit extends BybitApi
             Map<String, Object> feeRates = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> fees = (List<Object>) this.safeList(feeRates, "list", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
@@ -10185,7 +10185,7 @@ public class Bybit extends BybitApi
         //    }
         //
         List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
-        Integer chainsLength = ((List<?>)chains).size();
+        Integer chainsLength = chains.size();
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new HashMap<String, Object>() {{
@@ -10676,7 +10676,7 @@ public class Bybit extends BybitApi
             }};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> symbolMarket = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -10969,7 +10969,7 @@ public class Bybit extends BybitApi
             Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, paramsSubType))).join();
             List<Object> result = this.addPaginationCursorToResult(response);
             Map<String, Object> first = (Map<String, Object>) this.safeDict(result, 0, (Object) null);
-            Integer total = ((List<?>)result).size();
+            Integer total = result.size();
             Long lastIndex = (((long) total) - 1L);
             Map<String, Object> last = (Map<String, Object>) this.safeDict(result, lastIndex, new HashMap<String, Object>() {{}});
             String cursorValue = this.safeString(first, "nextPageCursor");
@@ -11043,7 +11043,7 @@ public class Bybit extends BybitApi
         List<Object> filteredResults = (List<Object>) this.filterByArray(response, idKey, marketIds, false);
         Map<String,Object> grouped = this.groupBy(filteredResults, idKey);
         List<String> keys = new ArrayList<String>(grouped.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Object entry = (grouped == null || marketId == null ? null : grouped.get(marketId));
@@ -11447,7 +11447,7 @@ public class Bybit extends BybitApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbols, null))
             {
-                symbolsLength = ((List<?>)symbols).size();
+                symbolsLength = symbols.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -11594,7 +11594,7 @@ public class Bybit extends BybitApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> coins = (List<Object>) this.safeList(data, "coins", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)coins).size(); i++)
+            for (var i = 0; i < coins.size(); i++)
             {
                 Object entry = (coins == null || i < 0 || i >= coins.size() ? null : coins.get(i));
                 String id = this.safeString(entry, "coin");

@@ -275,7 +275,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             List<String> symbolsResolved = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i)));
                 String marketId = this.safeString(market, "id", "");
@@ -545,18 +545,18 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         if (!java.util.Objects.equals(status, null))
         {
             List<String> topics = new ArrayList<String>(status.keySet());
-            for (var i = 0; i < ((List<?>)topics).size(); i++)
+            for (var i = 0; i < topics.size(); i++)
             {
                 String topic = (topics == null || i < 0 || i >= topics.size() ? null : topics.get(i));
-                List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
+                List<Object> parsedTopic = new ArrayList<Object>(Arrays.asList(topic.split(java.util.regex.Pattern.quote("."))));
                 String suffix = this.safeString(parsedTopic, 1);
-                if ((((String)topic).indexOf("orderbook") == 0))
+                if ((topic.indexOf("orderbook") == 0))
                 {
                     this.handleOrderBookUnSubscription(client, topic);
-                } else if ((((String)topic).indexOf("ticker_slim") == 0))
+                } else if ((topic.indexOf("ticker_slim") == 0))
                 {
                     this.handleTickerUnSubscription(client, topic);
-                } else if ((((String)topic).indexOf("trades") == 0))
+                } else if ((topic.indexOf("trades") == 0))
                 {
                     this.handleTradesUnSubscription(client, topic);
                 } else if (java.util.Objects.equals(suffix, "orders"))
@@ -652,8 +652,8 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 Long requestId = this.requestId(url);
                 String now = this.numberToString(this.nonce());
@@ -747,7 +747,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> orders = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
+            List<Object> orders = (List<Object>) (this.watchPrivate(messageHash, message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -804,7 +804,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         String topic = this.safeString(parameters, "channel");
         List<Object> rawOrders = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
             Object data = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(data, (Map<String, Object>) null);
@@ -931,7 +931,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 put( "params", paramsDeriveSubaccountId );
             }};
             Map<String, Object> message = this.extend(request, paramsDeriveSubaccountId);
-            List<Object> trades = (List<Object>) (this.watchPrivate((String) (messageHash), message, subscription)).join();
+            List<Object> trades = (List<Object>) (this.watchPrivate(messageHash, message, subscription)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -956,7 +956,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", (Object) null);
         String topic = this.safeString(parameters, "channel");
         List<Object> rawTrades = (List<Object>) this.safeList(parameters, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i)), (Map<String, Object>) null);
             myTrades.append(trade);
@@ -1123,7 +1123,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
                 Map<String, Object> snapshotParams = this.extend(snapshotRequest, paramsDeriveSubaccountId);
                 List<Position> positionsSnapshot = (this.fetchPositions((List<String>) null, snapshotParams)).join();
                 Object cache = this.safeValue(this.positionsByType, subaccountIdKey);
-                for (var i = 0; i < ((List<?>)positionsSnapshot).size(); i++)
+                for (var i = 0; i < positionsSnapshot.size(); i++)
                 {
                     Map<String, Object> snapshotPosition = (Map<String, Object>) this.safeDict(positionsSnapshot, i, (Object) null);
                     ((io.github.ccxt.ws.ArrayCache) cache).append(snapshotPosition);
@@ -1230,7 +1230,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         Map<String, Object> subBalance = (Map<String, Object>) this.safeDict(this.balance, subaccountIdKey, new HashMap<String, Object>() {{}});
         Boolean updated = false;
         List<Object> positionUpdates = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             String name = this.safeString(entry, "name", "");
@@ -1267,7 +1267,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             this.balance.put(subaccountIdKey, this.safeBalance(((Object)subBalance)));
             client.resolve(this.safeValue(this.balance, subaccountIdKey), topic);
         }
-        Integer positionUpdatesLength = ((List<?>)positionUpdates).size();
+        Integer positionUpdatesLength = positionUpdates.size();
         if ((positionUpdatesLength != null && positionUpdatesLength > 0))
         {
             client.resolve(positionUpdates, ("positions:" + topic));
@@ -1385,7 +1385,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
             // the subscriptions are scanned with safeString comparisons: an indexBy over the integer ids would need an integer lookup key in python while the object keys are always strings in javascript
             List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
             Boolean matched = false;
-            for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
+            for (var i = 0; i < subscriptionKeys.size(); i++)
             {
                 Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i)), new HashMap<String, Object>() {{}});
                 String subscriptionId = this.safeString(subscription, "id");
@@ -1426,7 +1426,7 @@ public class Derive extends io.github.ccxt.exchanges.Derive
         //
         String messageHash = "authenticated";
         List<Object> ids = (List<Object>) this.safeList(message, "result", new ArrayList<Object>(Arrays.asList()));
-        Integer idsLength = ((List<?>)ids).size();
+        Integer idsLength = ids.size();
         if ((idsLength != null && idsLength > 0))
         {
             // client.resolve (message, messageHash);

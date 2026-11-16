@@ -675,7 +675,7 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             this.trades.put(symbol, stored);
         }
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList(rawTrade)));
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
             Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) ((rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i))), market);
             trade.put("symbol", symbol);

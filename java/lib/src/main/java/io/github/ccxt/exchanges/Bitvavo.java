@@ -767,7 +767,7 @@ public class Bitvavo extends BitvavoApi
         String precision = this.safeString(rawCurrency, "decimals", "8");
         Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount", (Object) null);
         // btw, absolutely all of them have 1 network atm
-        for (var j = 0; j < ((List<?>)networksArray).size(); j++)
+        for (var j = 0; j < networksArray.size(); j++)
         {
             Object networkId = (networksArray == null || j < 0 || j >= networksArray.size() ? null : networksArray.get(j));
             String networkCode = this.networkIdToCode(java.util.Objects.toString(networkId, null), code);

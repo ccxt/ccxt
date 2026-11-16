@@ -1172,7 +1172,7 @@ public class Btse extends BtseApi
             }
             List<Object> rates = this.parseFundingRateHistories(data, market, since, limit);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rates).size(); i++)
+            for (var i = 0; i < rates.size(); i++)
             {
                 Object rate = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
                 Long timestamp = this.safeInteger(rate, "timestamp");
@@ -1279,7 +1279,7 @@ public class Btse extends BtseApi
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 List<Object> inUse = (List<Object>) this.safeList(row, "assetsInUse", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)inUse).size(); j++)
+                for (var j = 0; j < inUse.size(); j++)
                 {
                     Map<String, Object> usedRow = (Map<String, Object>) this.safeDict(inUse, j, (Object) null);
                     String usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"), (Map<String, Object>) null);
@@ -1289,7 +1289,7 @@ public class Btse extends BtseApi
                     }
                     useds.put(usedCode, Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance")));
                 }
-                for (var j = 0; j < ((List<?>)assets).size(); j++)
+                for (var j = 0; j < assets.size(); j++)
                 {
                     Map<String, Object> assetRow = (Map<String, Object>) this.safeDict(assets, j, (Object) null);
                     String code = this.safeCurrencyCode(this.safeString(assetRow, "currency"), (Map<String, Object>) null);
@@ -1314,7 +1314,7 @@ public class Btse extends BtseApi
             }
         }
         List<String> codes = new ArrayList<String>(totals.keySet());
-        for (var i = 0; i < ((List<?>)codes).size(); i++)
+        for (var i = 0; i < codes.size(); i++)
         {
             String code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = this.account();
@@ -1345,7 +1345,7 @@ public class Btse extends BtseApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     String requestedSymbol = this.safeString(symbolsNormalized, 0);
@@ -1376,7 +1376,7 @@ public class Btse extends BtseApi
             Map<String, Object> single = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList(single)));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String marketId = this.safeString(entry, "symbol");
@@ -1388,7 +1388,7 @@ public class Btse extends BtseApi
                     List<Object> tiers = new ArrayList<Object>(Arrays.asList());
                     // each tier's floor is the previous tier's cap (0 for the first)
                     Double minNotional = null;
-                    for (var j = 0; j < ((List<?>)levels).size(); j++)
+                    for (var j = 0; j < levels.size(); j++)
                     {
                         Object level = (levels == null || j < 0 || j >= levels.size() ? null : levels.get(j));
                         Double maxNotional = this.safeNumber(level, "value", (Object) null);
@@ -1623,7 +1623,7 @@ public class Btse extends BtseApi
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object row = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 // spot rows do not carry an open interest
@@ -1705,7 +1705,7 @@ public class Btse extends BtseApi
             Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object row = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 // spot rows do not carry a funding rate
@@ -1842,7 +1842,7 @@ public class Btse extends BtseApi
             }
             List<Object> trades = this.parseTrades(data, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 Long timestamp = this.safeInteger(trade, "timestamp");
@@ -1882,22 +1882,22 @@ public class Btse extends BtseApi
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, this.omit(parameters, "paginate"), (Long) null, true)).join();
             }
             Map<String, Object> market = null;
-            Object request = new HashMap<String, Object>() {{}};
+            Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbol, null))
             {
                 market = this.market(symbol);
-                Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
+                request.put("symbol", this.safeString(market, "id"));
             }
             if (!java.util.Objects.equals(since, null))
             {
-                ((Map<String, Object>)request).put("startTime", since);
+                request.put("startTime", since);
             }
             if (!java.util.Objects.equals(limit, null))
             {
-                ((Map<String, Object>)request).put("count", limit);
+                request.put("count", limit);
             }
             Map<String, Object> paramsUntil = null;
-            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", (Map<String, Object>) (request), (Map<String, Object>) (parameters), 1);
+            Pair<Map<String, Object>, Map<String, Object>> requestparamsUntilVariable = this.handleUntilOption("endTime", request, (Map<String, Object>) (parameters), 1);
             request = requestparamsUntilVariable.first();
             paramsUntil = requestparamsUntilVariable.second();
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, paramsUntil, "spot");
@@ -1946,7 +1946,7 @@ public class Btse extends BtseApi
                 request = this.omit(request, "count");
                 if (!java.util.Objects.equals(symbol, null))
                 {
-                    Helpers.addElementToObject(request, "symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
+                    request.put("symbol", this.futuresRequestId((Map<String, Object>) (this.market(symbol))));
                 }
                 //
                 //     {
@@ -3273,7 +3273,7 @@ public class Btse extends BtseApi
             List<Object> rows = (List<Object>) this.safeList(response, "data", ((Object)response));
             List<Object> responseList = (List<Object>) this.arrayConcat(new ArrayList<Object>(Arrays.asList()), rows);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)responseList).size(); i++)
+            for (var i = 0; i < responseList.size(); i++)
             {
                 Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(responseList, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(feeInfo, "symbol");
@@ -3370,7 +3370,7 @@ public class Btse extends BtseApi
             // and the unified enum vocabularies as the legacy endpoint ignored the
             // filter and returned the whole mixed ledger
             Map<String, Object> allowed = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)typesList).size(); i++)
+            for (var i = 0; i < typesList.size(); i++)
             {
                 String historyType = this.safeString(typesList, i, "");
                 allowed.put(historyType, true);
@@ -4213,7 +4213,7 @@ public class Btse extends BtseApi
             Long longLeverage = null;
             Long shortLeverage = null;
             String marginMode = null;
-            for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
+            for (var i = 0; i < safeResponse.size(); i++)
             {
                 Map<String, Object> entrty = (Map<String, Object>) this.safeDict(safeResponse, i, (Object) null);
                 Long leverageValue = this.safeInteger(entrty, "leverage");
@@ -4349,7 +4349,7 @@ public class Btse extends BtseApi
         {
             rows = new ArrayList<Object>(Arrays.asList(response));
         }
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String status = this.safeString(row, "status");

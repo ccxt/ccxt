@@ -882,7 +882,7 @@ public class Grvt extends GrvtApi
             //
             Map<String, Object> currentBuilders = (Map<String, Object>) this.safeDict(results, 0, (Object) null);
             List<Object> approvedBuilder = (List<Object>) this.safeList(currentBuilders, "results", new ArrayList<Object>(Arrays.asList()));
-            Integer length = ((List<?>)approvedBuilder).size();
+            Integer length = approvedBuilder.size();
             Boolean found = false;
             String builderId = this.safeString(this.options, "builder");
             for (var i = 0; (length != null && i < length); i++)
@@ -1791,7 +1791,7 @@ public class Grvt extends GrvtApi
         }};
         List<Object> spotBalances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
         String availableBalance = this.safeString(response, "available_balance");
-        for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
+        for (var i = 0; i < spotBalances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -2397,7 +2397,7 @@ public class Grvt extends GrvtApi
             if (Boolean.TRUE.equals(accountIsUndefined))
             {
                 List<Object> subAccountIds = (List<Object>) this.safeList((responses == null || 1 >= ((List<?>)responses).size() ? null : ((List<?>)responses).get(1)), "sub_account_ids", new ArrayList<Object>(Arrays.asList()));
-                Integer length = ((List<?>)subAccountIds).size();
+                Integer length = subAccountIds.size();
                 if (((length == null || length < 1)))
                 {
                     throw new ArgumentsRequired((this.id + " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2439,7 +2439,7 @@ public class Grvt extends GrvtApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             if (java.util.Objects.equals(networkId, null))
             {
                 throw new BadRequest((this.id + " withdraw() requires a network parameter")) ;
@@ -2719,10 +2719,10 @@ public class Grvt extends GrvtApi
         Integer priceMultiplier = 1000000000;
         List<Object> orderLegs = (List<Object>) this.safeList(order, "legs", new ArrayList<Object>(Arrays.asList()));
         List<Object> legs = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)orderLegs).size(); i++)
+        for (var i = 0; i < orderLegs.size(); i++)
         {
-            Object leg = (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
-            Map<String, Object> market = this.market(((Map<String, Object>)leg).get("instrument"));
+            Map<String, Object> leg = (Map<String, Object>) (orderLegs == null || i < 0 || i >= orderLegs.size() ? null : orderLegs.get(i));
+            Map<String, Object> market = this.market(leg.get("instrument"));
             Integer precisionValue = this.precisionFromString(this.safeString(market.get("precision"), "base"));
             Double sizeMultiplier = Math.pow(Double.parseDouble(String.valueOf(10)), Double.parseDouble(java.util.Objects.toString(precisionValue, null)));
             String size = this.safeString(leg, "size");
@@ -2739,7 +2739,7 @@ public class Grvt extends GrvtApi
             Map<String, Object> legOrder = new HashMap<String, Object>() {{
                 put( "assetID", Grvt.this.safeString(market.get("info"), "instrument_hash") );
                 put( "contractSize", Grvt.this.parseToInt(sizeInteger) );
-                put( "isBuyingContract", ((Map<String, Object>)leg).get("is_buying_asset") );
+                put( "isBuyingContract", leg.get("is_buying_asset") );
             }};
             String limitPrice = this.safeString(leg, "limit_price");
             if ((!java.util.Objects.equals(limitPrice, null)) && (!java.util.Objects.equals(this.omitZero(limitPrice), null)))
@@ -2885,7 +2885,7 @@ public class Grvt extends GrvtApi
             {
                 List<Object> baseIds = new ArrayList<Object>(Arrays.asList());
                 List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     Map<String, Object> market = this.market(symbol);

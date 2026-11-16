@@ -842,7 +842,7 @@ public class Gemini extends GeminiApi
             }
             String table = this.safeString(tables, 1, "");
             List<Object> rows = new ArrayList<Object>(Arrays.asList(((String)table).split(java.util.regex.Pattern.quote("\n<tr>\n")))); // eslint-disable-line quotes
-            Integer numRows = ((List<?>)rows).size();
+            Integer numRows = rows.size();
             if (((numRows == null || numRows < 2)))
             {
                 throw new NotSupported(error) ;
@@ -852,8 +852,8 @@ public class Gemini extends GeminiApi
             for (var i = 1; (numRows != null && i < numRows); i++)
             {
                 String row = (String) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
-                List<Object> cells = new ArrayList<Object>(Arrays.asList(((String)row).split(java.util.regex.Pattern.quote("</td>\n")))); // eslint-disable-line quotes
-                Integer numCells = ((List<?>)cells).size();
+                List<Object> cells = new ArrayList<Object>(Arrays.asList(row.split(java.util.regex.Pattern.quote("</td>\n")))); // eslint-disable-line quotes
+                Integer numCells = cells.size();
                 if (((numCells == null || numCells < 5)))
                 {
                     throw new NotSupported(error) ;
@@ -973,7 +973,7 @@ public class Gemini extends GeminiApi
             }
             List<Object> fetchUsdtMarkets = (List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)fetchUsdtMarkets).size(); i++)
+            for (var i = 0; i < fetchUsdtMarkets.size(); i++)
             {
                 Object marketId = (fetchUsdtMarkets == null || i < 0 || i >= fetchUsdtMarkets.size() ? null : fetchUsdtMarkets.get(i));
                 Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1014,7 +1014,7 @@ public class Gemini extends GeminiApi
             {
                 allMarketIds = marketIdsRaw;
             }
-            for (var i = 0; i < ((List<?>)allMarketIds).size(); i++)
+            for (var i = 0; i < allMarketIds.size(); i++)
             {
                 if (!this.inArray((allMarketIds == null || i < 0 || i >= allMarketIds.size() ? null : allMarketIds.get(i)), brokenPairs))
                 {
@@ -1024,7 +1024,7 @@ public class Gemini extends GeminiApi
             if (Boolean.TRUE.equals(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
             {
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+                for (var i = 0; i < marketIds.size(); i++)
                 {
                     Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                     Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1033,7 +1033,7 @@ public class Gemini extends GeminiApi
                     ((List<Object>)promises).add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
                 }
                 List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-                for (var i = 0; i < ((List<?>)responses).size(); i++)
+                for (var i = 0; i < responses.size(); i++)
                 {
                     MarketInterface parsed = this.parseMarket((responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
                     if (!java.util.Objects.equals(parsed, null))
@@ -1048,7 +1048,7 @@ public class Gemini extends GeminiApi
                 if (!java.util.Objects.equals(tradingPairs, null))
                 {
                     Map<String,Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
-                    for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+                    for (var i = 0; i < marketIds.size(); i++)
                     {
                         Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                         List<Object> pairInfo = (List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase(), (Object) null);
@@ -1063,7 +1063,7 @@ public class Gemini extends GeminiApi
                     }
                 } else
                 {
-                    for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+                    for (var i = 0; i < marketIds.size(); i++)
                     {
                         if (!this.inArray((marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), brokenPairs))
                         {
@@ -1452,8 +1452,8 @@ public class Gemini extends GeminiApi
         Object symbol = null;
         String marketId = this.safeStringLower(ticker, "pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
-        Object baseId = null;
-        Object quoteId = null;
+        String baseId = null;
+        String quoteId = null;
         String base = null;
         String quote = null;
         if ((!java.util.Objects.equals(marketId, null)) && (java.util.Objects.equals(marketResolved, null)))
@@ -1468,8 +1468,8 @@ public class Gemini extends GeminiApi
                 baseId = (marketId == null ? null : ((String)marketId).substring(0, Math.min(3, ((String)marketId).length())));
                 quoteId = (marketId == null ? null : ((String)marketId).substring(Math.min(3, ((String)marketId).length()), Math.min(6, ((String)marketId).length())));
             }
-            base = this.safeCurrencyCode((String) (baseId), (Map<String, Object>) null);
-            quote = this.safeCurrencyCode((String) (quoteId), (Map<String, Object>) null);
+            base = this.safeCurrencyCode(baseId, (Map<String, Object>) null);
+            quote = this.safeCurrencyCode(quoteId, (Map<String, Object>) null);
             if ((!java.util.Objects.equals(base, null)) && (!java.util.Objects.equals(quote, null)))
             {
                 symbol = ((base + "/") + quote);
@@ -1742,7 +1742,7 @@ public class Gemini extends GeminiApi
             Double taker = this.parseNumber(takerString);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -2497,7 +2497,7 @@ public class Gemini extends GeminiApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
+            Map<String, Object> indexedByNetwork = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             String networkCode = (String) ((List<Object>)this.handleNetworkCodeAndParams((Map<String, Object>) (parameters))).get(0);
             return this.safeDict(indexedByNetwork, networkCode, (Object) null);
         }).thenApply(DepositAddress::new);
@@ -2514,7 +2514,7 @@ public class Gemini extends GeminiApi
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -2532,7 +2532,7 @@ public class Gemini extends GeminiApi
             {
                 throw new ArgumentsRequired((this.id + " fetchDepositAddresses() requires a network parameter")) ;
             }
-            Object networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
+            String networkId = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "network", networkId );
             }};

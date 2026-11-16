@@ -372,7 +372,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
             List<String> marketIds = new ArrayList<String>(markets.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(markets, marketId, (Object) null);
@@ -885,7 +885,7 @@ public class Blockchaincom extends BlockchaincomApi
             Double takerFee = this.safeNumber(response, "takerRate", (Object) null);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -1444,7 +1444,7 @@ public class Blockchaincom extends BlockchaincomApi
             Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            for (var i = 0; i < balances.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 String currencyId = this.safeString(entry, "currency");

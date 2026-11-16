@@ -907,9 +907,9 @@ public class Phemex extends PhemexApi
         {
             return value;
         }
-        Object parts = new ArrayList<Object>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(","))));
-        Object valueOption = String.join("", (List<String>)parts);
-        parts = new ArrayList<Object>(Arrays.asList(((String)((String)valueOption)).split(java.util.regex.Pattern.quote(" "))));
+        List<String> parts = new ArrayList<String>(Arrays.asList(((String)((String)value)).split(java.util.regex.Pattern.quote(","))));
+        Object valueOption = String.join("", parts);
+        parts = new ArrayList<String>(Arrays.asList(((String)((String)valueOption)).split(java.util.regex.Pattern.quote(" "))));
         return this.safeNumber(parts, 0, (Object) null);
     }
 
@@ -1390,7 +1390,7 @@ public class Phemex extends PhemexApi
             Map<String,Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
             Map<String,Object> currenciesByCode = this.indexBy(currencies, "currency");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)products).size(); i++)
+            for (var i = 0; i < products.size(); i++)
             {
                 Object market = (products == null || i < 0 || i >= products.size() ? null : products.get(i));
                 String type = this.safeStringLower(market, "type");
@@ -1523,12 +1523,12 @@ public class Phemex extends PhemexApi
             put( "nonce", null );
         }};
         List<Object> sides = new ArrayList<Object>(Arrays.asList(java.util.Objects.requireNonNullElse(bidsKey, "bids"), java.util.Objects.requireNonNullElse(asksKey, "asks")));
-        for (var i = 0; i < ((List<?>)sides).size(); i++)
+        for (var i = 0; i < sides.size(); i++)
         {
             Object side = (sides == null || i < 0 || i >= sides.size() ? null : sides.get(i));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<Object> bidasks = (List<Object>) this.safeList(orderbook, side, new ArrayList<Object>(Arrays.asList()));
-            for (var k = 0; k < ((List<?>)bidasks).size(); k++)
+            for (var k = 0; k < bidasks.size(); k++)
             {
                 ((List<Object>)orders).add(this.customParseBidAsk((bidasks == null || k < 0 || k >= bidasks.size() ? null : bidasks.get(k)), java.util.Objects.requireNonNullElse(priceKey, 0), java.util.Objects.requireNonNullElse(amountKey, 1), market));
             }
@@ -2457,7 +2457,7 @@ public class Phemex extends PhemexApi
             put( "info", response );
         }};
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -3768,7 +3768,7 @@ public class Phemex extends PhemexApi
             } else if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
             {
                 List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
-                Integer numRows = ((List<?>)rows).size();
+                Integer numRows = rows.size();
                 if (((numRows == null || numRows < 1)))
                 {
                     if (!java.util.Objects.equals(clientOrderId, null))
@@ -4670,10 +4670,10 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> positions = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
-                Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
-                ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (position), (Map<String, Object>) null));
+                Map<String, Object> position = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                ((List<Object>)result).add(this.parsePosition(position, (Map<String, Object>) null));
             }
             return this.filterByArrayPositions(result, "symbol", symbolsNormalized);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
@@ -5000,7 +5000,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object entry = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 Long timestamp = this.safeInteger(entry, "createTime");
@@ -5479,7 +5479,7 @@ public class Phemex extends PhemexApi
         List<Object> riskLimits = (List<Object>) this.safeList(marketResolved.get("info"), "riskLimits", new ArrayList<Object>(Arrays.asList()));
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         Object minNotional = 0;
-        for (var i = 0; i < ((List<?>)riskLimits).size(); i++)
+        for (var i = 0; i < riskLimits.size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(riskLimits, i, (Object) null);
             Long maxNotional = this.safeInteger(tier, "limit");
@@ -5959,7 +5959,7 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> rates = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rates).size(); i++)
+            for (var i = 0; i < rates.size(); i++)
             {
                 Object item = (rates == null || i < 0 || i >= rates.size() ? null : rates.get(i));
                 Long timestamp = this.safeInteger(item, "fundingTime");
@@ -6496,10 +6496,10 @@ public class Phemex extends PhemexApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> ranks = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)ranks).size(); i++)
+            for (var i = 0; i < ranks.size(); i++)
             {
-                Object rank = (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i));
-                ((List<Object>)result).add(this.parseADLRank((Map<String, Object>) (rank), (Map<String, Object>) null));
+                Map<String, Object> rank = (Map<String, Object>) (ranks == null || i < 0 || i >= ranks.size() ? null : ranks.get(i));
+                ((List<Object>)result).add(this.parseADLRank(rank, (Map<String, Object>) null));
             }
             return this.filterByArrayADLRanks(result, "symbol", symbolsNormalized, false);
         }).thenApply(res -> ((List<?>) res).stream().map(ADL::new).collect(Collectors.toList()));

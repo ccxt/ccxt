@@ -1013,7 +1013,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
     public Object pruneCachedBySymbols(Object newCache, Object cache, Object symbols)
     {
         List<Object> entries = this.toArray(cache);
-        for (var i = 0; i < ((List<?>)entries).size(); i++)
+        for (var i = 0; i < entries.size(); i++)
         {
             Object entry = (entries == null || i < 0 || i >= entries.size() ? null : entries.get(i));
             String entrySymbol = this.safeString(entry, "symbol");
@@ -1077,7 +1077,7 @@ public class Bitstamp extends io.github.ccxt.exchanges.Bitstamp
             put( "private-my_trades", "handleMyTrades");
         }};
         List<String> keys = new ArrayList<String>(methods.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((String)channel).indexOf(key) > -1)

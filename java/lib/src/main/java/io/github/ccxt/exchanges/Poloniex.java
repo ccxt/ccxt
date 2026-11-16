@@ -1439,7 +1439,7 @@ public class Poloniex extends PoloniexApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -1568,7 +1568,7 @@ public class Poloniex extends PoloniexApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(currency, "networkList", new ArrayList<Object>(Arrays.asList()));
-        Integer chainsLength = ((List<?>)chains).size();
+        Integer chainsLength = chains.size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
@@ -2215,7 +2215,7 @@ public class Poloniex extends PoloniexApi
 
     public Object parseOpenOrders(List<Object> orders, Map<String, Object> market, Object result)
     {
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.safeDict(orders, i, new HashMap<String, Object>() {{}});
             Map<String, Object> extended = this.extend(order, new HashMap<String, Object>() {{
@@ -2595,7 +2595,7 @@ public class Poloniex extends PoloniexApi
             }
             // the responses are positional, aligned with the submitted orders
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -3179,7 +3179,7 @@ public class Poloniex extends PoloniexApi
             result.put("timestamp", ts);
             result.put("datetime", this.iso8601(ts));
             List<Object> details = (List<Object>) this.safeList(response, "details", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)details).size(); i++)
+            for (var i = 0; i < details.size(); i++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
                 String currencyId = this.safeString(balance, "ccy");
@@ -3199,7 +3199,7 @@ public class Poloniex extends PoloniexApi
         {
             Map<String, Object> account = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
             List<Object> balances = (List<Object>) this.safeList(account, "balances", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)balances).size(); j++)
+            for (var j = 0; j < balances.size(); j++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, j, (Object) null);
                 String currencyId = this.safeString(balance, "currency");
@@ -3327,7 +3327,7 @@ public class Poloniex extends PoloniexApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -3404,7 +3404,7 @@ public class Poloniex extends PoloniexApi
             List<Object> bids = (List<Object>) this.safeList(response, "bids", new ArrayList<Object>(Arrays.asList()));
             List<Object> asksResult = new ArrayList<Object>(Arrays.asList());
             List<Object> bidsResult = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)asks).size(); i++)
+            for (var i = 0; i < asks.size(); i++)
             {
                 if ((((((double) i) % ((double) 2))) == 0))
                 {
@@ -3413,7 +3413,7 @@ public class Poloniex extends PoloniexApi
                     ((List<Object>)asksResult).add(new ArrayList<Object>(Arrays.asList(price, amount)));
                 }
             }
-            for (var i = 0; i < ((List<?>)bids).size(); i++)
+            for (var i = 0; i < bids.size(); i++)
             {
                 if ((((((double) i) % ((double) 2))) == 0))
                 {
@@ -3494,7 +3494,7 @@ public class Poloniex extends PoloniexApi
             //     }
             //
             List<String> keys = new ArrayList<String>(response.keySet());
-            Integer length = ((List<?>)keys).size();
+            Integer length = keys.size();
             if (((length == null || length < 1)))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
@@ -4005,7 +4005,7 @@ public class Poloniex extends PoloniexApi
             {
                 entries = response;
             }
-            for (var i = 0; i < ((List<?>)entries).size(); i++)
+            for (var i = 0; i < entries.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i, new HashMap<String, Object>() {{}});
                 List<String> currencies = new ArrayList<String>(entry.keySet());
@@ -4043,10 +4043,10 @@ public class Poloniex extends PoloniexApi
         Map<String, Object> depositWithdrawFees = new HashMap<String, Object>() {{}};
         List<Object> codesValue = this.marketCodes(codes);
         List<Object> responseKeys = ((List<Object>) switch ((Object)(response)) { case Map<?, ?> j39v4 -> { synchronized (j39v4) { yield new ArrayList<Object>(j39v4.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        for (var i = 0; i < ((List<?>)responseKeys).size(); i++)
+        for (var i = 0; i < responseKeys.size(); i++)
         {
-            Object currencyId = (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
-            String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
+            String currencyId = (String) (responseKeys == null || i < 0 || i >= responseKeys.size() ? null : responseKeys.get(i));
+            String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
             Map<String, Object> feeInfo = (Map<String, Object>) this.safeDict(response, currencyId, (Object) null);
             if ((!java.util.Objects.equals(code, null)) && ((java.util.Objects.equals(codesValue, null)) || (this.inArray(code, codesValue))))
             {
@@ -4054,10 +4054,10 @@ public class Poloniex extends PoloniexApi
                 depositWithdrawFees.put(code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Map<String, Object> parsedFee = (Map<String, Object>) this.safeDict(depositWithdrawFees, code, new HashMap<String, Object>() {{}});
                 List<Object> childChains = (List<Object>) this.safeList(feeInfo, "childChains", new ArrayList<Object>(Arrays.asList()));
-                Integer chainsLength = ((List<?>)childChains).size();
+                Integer chainsLength = childChains.size();
                 if ((chainsLength != null && chainsLength > 0))
                 {
-                    for (var j = 0; j < ((List<?>)childChains).size(); j++)
+                    for (var j = 0; j < childChains.size(); j++)
                     {
                         String rawNetworkId = this.safeString(childChains, j, "");
                         String networkId = Helpers.replace(rawNetworkId, (String)code, (String)"");
@@ -4380,7 +4380,7 @@ public class Poloniex extends PoloniexApi
         String marketId = null;
         String marginMode = null;
         List<Object> data = (List<Object>) this.safeList(leverage, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             marketId = this.safeString(entry, "symbol");

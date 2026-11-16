@@ -174,7 +174,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         }
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
         List<String> keys = new ArrayList<String>(balance.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (this.inArray(key, reserved))
@@ -277,12 +277,12 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         //
         List<Object> tickers = (List<Object>) this.safeList(message, "ticker_updates", new ArrayList<Object>(Arrays.asList()));
         String datetime = this.safeString(message, "time");
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; i < tickers.size(); i++)
         {
-            Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
+            Map<String, Object> ticker = (Map<String, Object>) (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String marketId = this.safeString(ticker, "instrument");
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
-            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker((Map<String, Object>) (ticker), (Map<String, Object>) null);
+            Map<String, Object> parsedTicker = (Map<String, Object>) this.parseWSTicker(ticker, (Map<String, Object>) null);
             Long timestamp = this.parse8601(datetime);
             parsedTicker.put("timestamp", timestamp);
             parsedTicker.put("datetime", this.iso8601(timestamp));
@@ -837,20 +837,20 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         List<Object> rawOrders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
-        Integer rawOrdersLength = ((List<?>)rawOrders).size();
+        Integer rawOrdersLength = rawOrders.size();
         if (java.util.Objects.equals(rawOrdersLength, 0))
         {
             return;
         }
         io.github.ccxt.ws.ArrayCache orders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
             Map<String, Object> order = (Map<String, Object>) this.parseOrder((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), (Map<String, Object>) null);
             String symbol = this.safeString(order, "symbol", "");
             orders.append(order);
             client.resolve(this.orders, ("orders:" + symbol));
             List<Object> rawTrades = (List<Object>) this.safeList((rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i)), "trades", new ArrayList<Object>(Arrays.asList()));
-            for (var ii = 0; ii < ((List<?>)rawTrades).size(); ii++)
+            for (var ii = 0; ii < rawTrades.size(); ii++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.parseTrade((rawTrades == null || ii < 0 || ii >= rawTrades.size() ? null : rawTrades.get(ii)), (Map<String, Object>) null);
                 symbol = this.safeString(trade, "symbol", symbol);
@@ -1129,7 +1129,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.orders, "orders");
         // update balance
         List<String> balanceKeys = new ArrayList<String>(Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
-        for (var i = 0; i < ((List<?>)balanceKeys).size(); i++)
+        for (var i = 0; i < balanceKeys.size(); i++)
         {
             Map<String, Object> newBalance = (Map<String, Object>) this.safeDict(update, (balanceKeys == null || i < 0 || i >= balanceKeys.size() ? null : balanceKeys.get(i)), (Object) null);
             if (!java.util.Objects.equals(newBalance, null))
@@ -1249,11 +1249,11 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
             }
             List<Object> properties = new ArrayList<Object>(Arrays.asList());
             List<String> marketIds = new ArrayList<String>(((Map<String, Object>)subscription).keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 Map<String, Object> marketSubscription = (Map<String, Object>) this.safeDict(subscription, (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i)), new HashMap<String, Object>() {{}});
                 List<String> marketIdtimeframes = new ArrayList<String>(marketSubscription.keySet());
-                for (var ii = 0; ii < ((List<?>)marketIdtimeframes).size(); ii++)
+                for (var ii = 0; ii < marketIdtimeframes.size(); ii++)
                 {
                     Map<String, Object> marketTimeframeId = (Map<String, Object>) this.safeDict(timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), (Object) null);
                     Map<String, Object> property = new HashMap<String, Object>();
@@ -1340,13 +1340,13 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
 
     public String findTimeframe(Object timeframe, Object timeframes)
     {
-        Object timeframesResolved = (((java.util.Objects.equals(timeframes, null)))) ? this.timeframes : timeframes;
+        Map<String, Object> timeframesResolved = (Map<String, Object>) ((((java.util.Objects.equals(timeframes, null)))) ? this.timeframes : timeframes);
         if (java.util.Objects.equals(timeframesResolved, null))
         {
             throw new ArgumentsRequired((this.id + " findTimeframe() timeframes is required")) ;
         }
-        List<String> keys = new ArrayList<String>(((Map<String, Object>)timeframesResolved).keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        List<String> keys = new ArrayList<String>(timeframesResolved.keySet());
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> timeframeResolved = (Map<String, Object>) this.safeDict(timeframesResolved, key, new HashMap<String, Object>() {{}});
@@ -1516,7 +1516,7 @@ public class Onetrading extends io.github.ccxt.exchanges.Onetrading
         return BaseExchange.supplyAsync(() -> {
 
             Object marketIds = new ArrayList<Object>(Arrays.asList());
-            Integer numSymbols = ((List<?>)symbols).size();
+            Integer numSymbols = symbols.size();
             if (java.util.Objects.equals(numSymbols, 0))
             {
                 Map<String, Object> marketsById = this.markets_by_id;

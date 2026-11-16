@@ -779,7 +779,7 @@ public class Bitteam extends BitteamApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Double networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");
-        for (var j = 0; j < ((List<?>)networkIds).size(); j++)
+        for (var j = 0; j < networkIds.size(); j++)
         {
             String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             String networkCode = this.networkIdToCode(networkId, code);
@@ -1643,7 +1643,7 @@ public class Bitteam extends BitteamApi
             {
                 rawTickers = response;
             }
-            for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
+            for (var i = 0; i < rawTickers.size(); i++)
             {
                 Object rawTicker = (rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(rawTicker, (Map<String, Object>) null);
@@ -2408,7 +2408,7 @@ public class Bitteam extends BitteamApi
         Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         Map<String, Object> balanceByCurrencies = this.omit(result, new ArrayList<Object>(Arrays.asList("free", "used", "total")));
         List<String> rawCurrencyIds = new ArrayList<String>(balanceByCurrencies.keySet());
-        for (var i = 0; i < ((List<?>)rawCurrencyIds).size(); i++)
+        for (var i = 0; i < rawCurrencyIds.size(); i++)
         {
             String rawCurrencyId = (rawCurrencyIds == null || i < 0 || i >= rawCurrencyIds.size() ? null : rawCurrencyIds.get(i));
             Map<String, Object> currencyBalance = (Map<String, Object>) this.safeDict(result, rawCurrencyId, (Object) null);

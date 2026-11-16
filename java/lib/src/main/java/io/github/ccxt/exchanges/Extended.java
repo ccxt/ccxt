@@ -547,7 +547,7 @@ public class Extended extends ExtendedApi
             return null;
         }
         List<String> keys = new ArrayList<String>(input.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> item = (Map<String, Object>) this.safeDict(input, key, new HashMap<String, Object>() {{}});
@@ -1011,7 +1011,7 @@ public class Extended extends ExtendedApi
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
                 List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     ((List<Object>)marketIds).add(market.get("id"));
@@ -1038,7 +1038,7 @@ public class Extended extends ExtendedApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> marketData = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String marketId = this.safeString(marketData, "name");
@@ -1286,7 +1286,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -1372,7 +1372,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -1654,7 +1654,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -1985,7 +1985,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -2119,7 +2119,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -2307,7 +2307,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -2622,7 +2622,7 @@ public class Extended extends ExtendedApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> fee = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseTradingFee(fee, (Map<String, Object>) null);
@@ -2899,7 +2899,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
@@ -3638,7 +3638,7 @@ public class Extended extends ExtendedApi
             Boolean hasClientOrderIds = !java.util.Objects.equals(clientOrderIds, null);
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                Integer clientOrderIdsLength = ((List<?>)clientOrderIds).size();
+                Integer clientOrderIdsLength = clientOrderIds.size();
                 if ((clientOrderIdsLength != null && clientOrderIdsLength > 0))
                 {
                     request.put("externalOrderIds", clientOrderIds);
@@ -3906,7 +3906,7 @@ public class Extended extends ExtendedApi
             Map<String, Object> pagination = (Map<String, Object>) this.safeDict(response, "pagination", new HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});

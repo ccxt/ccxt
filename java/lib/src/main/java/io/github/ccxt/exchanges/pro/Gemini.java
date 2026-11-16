@@ -282,7 +282,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
                 this.trades.put(symbol, stored);
             }
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Map<String, Object> trade = this.parseWsTrade((Map<String, Object>) (this.safeValue(trades, i)), market);
                 stored.append(trade);
@@ -315,7 +315,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             storesForSymbols.put(symbol, stored);
         }
         List<String> symbols = new ArrayList<String>(storesForSymbols.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object symbolStore = (storesForSymbols == null || symbol == null ? null : storesForSymbols.get(symbol));
@@ -422,7 +422,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
         }
-        Integer changesLength = ((List<?>)changes).size();
+        Integer changesLength = changes.size();
         // reverse order of array to store candles in ascending order
         for (var i = 0; (changesLength != null && i < changesLength); i++)
         {
@@ -497,7 +497,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             // the initial message carries the full book (https://github.com/ccxt/ccxt/issues/29210)
             List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
             List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)changes).size(); i++)
+            for (var i = 0; i < changes.size(); i++)
             {
                 Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
                 List<Object> bidAsk = new ArrayList<Object>(Arrays.asList(this.safeNumber(delta, 1, (Object) null), this.safeNumber(delta, 2, (Object) null)));
@@ -517,7 +517,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             client.resolve(orderbook, messageHash);
             return;
         }
-        for (var i = 0; i < ((List<?>)changes).size(); i++)
+        for (var i = 0; i < changes.size(); i++)
         {
             Object delta = (changes == null || i < 0 || i >= changes.size() ? null : changes.get(i));
             Double price = this.safeNumber(delta, 1, (Object) null);
@@ -674,7 +674,7 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Object marketIds = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = this.safeString(symbolsNormalized, i, "");
                 String messageHash = ((itemHashName + ":") + symbol);
@@ -1103,8 +1103,8 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
             List<Object> orderBookItems = new ArrayList<Object>(Arrays.asList());
             List<Object> bidaskItems = new ArrayList<Object>(Arrays.asList());
             List<Object> collectedEventsOfTrades = new ArrayList<Object>(Arrays.asList());
-            Integer eventsLength = ((List<?>)events).size();
-            for (var i = 0; i < ((List<?>)events).size(); i++)
+            Integer eventsLength = events.size();
+            for (var i = 0; i < events.size(); i++)
             {
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, new HashMap<String, Object>() {{}});
                 String eventType = this.safeString(eventVar, "type");
@@ -1123,17 +1123,17 @@ public class Gemini extends io.github.ccxt.exchanges.Gemini
                     ((List<Object>)collectedEventsOfTrades).add(eventVar);
                 }
             }
-            Integer lengthBa = ((List<?>)bidaskItems).size();
+            Integer lengthBa = bidaskItems.size();
             if ((lengthBa != null && lengthBa > 0))
             {
                 this.handleBidsAsksForMultidata(client, bidaskItems, ts, eventId);
             }
-            Integer lengthOb = ((List<?>)orderBookItems).size();
+            Integer lengthOb = orderBookItems.size();
             if ((lengthOb != null && lengthOb > 0))
             {
                 this.handleOrderBookForMultidata(client, orderBookItems, ts, eventId);
             }
-            Integer lengthTrades = ((List<?>)collectedEventsOfTrades).size();
+            Integer lengthTrades = collectedEventsOfTrades.size();
             if ((lengthTrades != null && lengthTrades > 0))
             {
                 this.handleTradesForMultidata(client, collectedEventsOfTrades, ts);

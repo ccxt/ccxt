@@ -436,7 +436,7 @@ public class Zaif extends ZaifApi
         }};
         Map<String, Object> funds = (Map<String, Object>) this.safeDict(balances, "funds", new HashMap<String, Object>() {{}});
         List<String> currencyIds = new ArrayList<String>(funds.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -669,7 +669,7 @@ public class Zaif extends ZaifApi
             //      ]
             //
             List<Object> trades = this.toArray(response);
-            Integer numTrades = ((List<?>)trades).size();
+            Integer numTrades = trades.size();
             if (java.util.Objects.equals(numTrades, 1))
             {
                 Map<String, Object> firstTrade = (Map<String, Object>) this.safeDict(trades, 0, new HashMap<String, Object>() {{}});

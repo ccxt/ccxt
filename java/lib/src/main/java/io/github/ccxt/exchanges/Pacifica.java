@@ -1095,7 +1095,7 @@ public class Pacifica extends PacificaApi
             usdcAccount.put("used", this.safeString(data, "total_margin_used"));
             result.put("USDC", usdcAccount);
             List<Object> spotBalances = (List<Object>) this.safeList(data, "spot_balances", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
+            for (var i = 0; i < spotBalances.size(); i++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(spotBalances, i, (Object) null);
                 String currencyId = this.safeString(balance, "symbol");
@@ -1266,7 +1266,7 @@ public class Pacifica extends PacificaApi
 
     public Map<String, Object> parseAccountSettings(List<Object> settings)
     {
-        Integer settingsLen = ((List<?>)settings).size();
+        Integer settingsLen = settings.size();
         if (java.util.Objects.equals(settingsLen, 0))
         {
             return new HashMap<String, Object>() {{}};
@@ -2185,7 +2185,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String error = this.safeString(order, "error");
@@ -2261,7 +2261,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Object order = (results == null || i < 0 || i >= results.size() ? null : results.get(i));
                 String error = this.safeString(order, "error");
@@ -2300,7 +2300,7 @@ public class Pacifica extends PacificaApi
         }
         List<Object> clientOrderIds = (List<Object>) this.safeList(parameters, "clientOrderIds", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> paramsOmitted = this.omit(parameters, "clientOrderIds");
-        for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+        for (var i = 0; i < clientOrderIds.size(); i++)
         {
             Object cloid = (clientOrderIds == null || i < 0 || i >= clientOrderIds.size() ? null : clientOrderIds.get(i));
             Map<String, Object> cloidParams = new HashMap<String, Object>() {{
@@ -2672,7 +2672,7 @@ public class Pacifica extends PacificaApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(info, (Map<String, Object>) null);
@@ -2955,7 +2955,7 @@ public class Pacifica extends PacificaApi
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
         Boolean hasMore = (Boolean) this.safeBool(response, "has_more", false);
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (Boolean.TRUE.equals(hasMore))
         {
             if ((!java.util.Objects.equals(paginationCursor, null)) && ((dataLength != null && dataLength > 0)))
@@ -3045,7 +3045,7 @@ public class Pacifica extends PacificaApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // return last state, history_id is the per-event sequence, created_at can tie within a millisecond
             List<Object> sorted = this.sortBy(data, "history_id", true);
-            Integer lastIdx = ((List<?>)sorted).size();
+            Integer lastIdx = sorted.size();
             Object lastInfo = new HashMap<String, Object>() {{}};
             if ((lastIdx != null && lastIdx > 0))
             {
@@ -3313,7 +3313,7 @@ public class Pacifica extends PacificaApi
             // }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), (Map<String, Object>) null));
             }
@@ -3582,7 +3582,7 @@ public class Pacifica extends PacificaApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, this.parseTradingFee(data, this.market(symbol)));
@@ -4588,9 +4588,9 @@ public class Pacifica extends PacificaApi
         }
         if (!this.isSandboxModeEnabled)
         {
-            Object useBuilder = this.handleOption("postActionRequest", "builderFee", true);
+            boolean useBuilder = Boolean.TRUE.equals(this.handleOption("postActionRequest", "builderFee", true));
             Object builderCode = null;
-            if (java.util.Objects.equals(useBuilder, true))
+            if (useBuilder)
             {
                 builderCode = this.handleOption("postActionRequest", "builderCode", (Object) null);
             }

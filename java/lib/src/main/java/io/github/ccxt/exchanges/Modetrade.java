@@ -1063,7 +1063,7 @@ public class Modetrade extends ModetradeApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         String minPrecision = null;
         Map<String, Object> resultingNetworks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networks).size(); j++)
+        for (var j = 0; j < networks.size(); j++)
         {
             Object network = (networks == null || j < 0 || j >= networks.size() ? null : networks.get(j));
             // TODO: transform chain id to human readable name
@@ -1481,7 +1481,7 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> result = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -1633,7 +1633,7 @@ public class Modetrade extends ModetradeApi
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
@@ -1737,7 +1737,7 @@ public class Modetrade extends ModetradeApi
             List<Object> rows = (List<Object>) this.safeList(data, "rows", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object row = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String marketId = this.safeString(row, "symbol", "");
@@ -1923,7 +1923,7 @@ public class Modetrade extends ModetradeApi
             List<String> symbols = this.symbols;
             if (!java.util.Objects.equals(symbols, null))
             {
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < symbols.size(); i++)
                 {
                     String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     result.put(symbol, new HashMap<String, Object>() {{
@@ -2134,7 +2134,7 @@ public class Modetrade extends ModetradeApi
         {
             Map<String, Object> first = (Map<String, Object>) this.safeDict(childOrders, 0, (Object) null);
             List<Object> innerChildOrders = (List<Object>) this.safeList(first, "childOrders", new ArrayList<Object>(Arrays.asList()));
-            Integer innerChildOrdersLength = ((List<?>)innerChildOrders).size();
+            Integer innerChildOrdersLength = innerChildOrders.size();
             if ((innerChildOrdersLength != null && innerChildOrdersLength > 0))
             {
                 Map<String, Object> takeProfitOrder = (Map<String, Object>) this.safeDict(innerChildOrders, 0, (Object) null);
@@ -2407,10 +2407,10 @@ public class Modetrade extends ModetradeApi
             Map<String, Object> market = this.market(symbol);
             Map<String, Object> request = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
-            Object stopLoss = this.safeValue(parameters, "stopLoss");
-            Object takeProfit = this.safeValue(parameters, "takeProfit");
+            boolean stopLoss = (this.safeValue(parameters, "stopLoss")) != null;
+            boolean takeProfit = (this.safeValue(parameters, "takeProfit")) != null;
             List<Object> childOrders = (List<Object>) this.safeList(parameters, "childOrders", (Object) null);
-            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || !java.util.Objects.equals(stopLoss, null) || !java.util.Objects.equals(takeProfit, null) || (!java.util.Objects.equals(childOrders, null));
+            Boolean isConditional = !java.util.Objects.equals(triggerPrice, null) || stopLoss || takeProfit || (!java.util.Objects.equals(childOrders, null));
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(isConditional))
             {
@@ -2731,13 +2731,13 @@ public class Modetrade extends ModetradeApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object clientOrderIds = this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
+            List<String> clientOrderIds = (List<String>) this.safeListN(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")), (Object) null);
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             Map<String, Object> response = null;
             if (!java.util.Objects.equals(clientOrderIds, null))
             {
-                request.put("client_order_ids", String.join(",", (List<String>)clientOrderIds));
+                request.put("client_order_ids", String.join(",", clientOrderIds));
                 response = (this.v1PrivateDeleteClientBatchOrder(this.extend(request, paramsOmitted))).join();
             } else
             {
@@ -3234,7 +3234,7 @@ public class Modetrade extends ModetradeApi
             put( "info", response );
         }};
         List<Object> balances = (List<Object>) this.safeList(response, "holding", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String code = this.safeCurrencyCode(this.safeString(balance, "token"), (Map<String, Object>) null);
@@ -4086,7 +4086,7 @@ public class Modetrade extends ModetradeApi
                     {
                         List<Object> ordersList = (List<Object>) this.safeList(paramsSorted, "orders", new ArrayList<Object>(Arrays.asList()));
                         List<Object> taggedOrders = new ArrayList<Object>(Arrays.asList());
-                        for (var i = 0; i < ((List<?>)ordersList).size(); i++)
+                        for (var i = 0; i < ordersList.size(); i++)
                         {
                             ((List<Object>)taggedOrders).add(this.extend(this.safeDict(ordersList, i, new HashMap<String, Object>() {{}}), new HashMap<String, Object>() {{
                                 put( "order_tag", brokerId );

@@ -250,21 +250,21 @@ public class Opinion extends OpinionApi
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> rawMarkets = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
+                Integer rawMarketsLength = rawMarkets.size();
                 // categorical parents expand into several flatMarkets entries each, so the raw,
                 // unflattened row count in 'total' must be compared against fetchedRawCount, not
                 // flatMarkets.length - otherwise expansion makes the comparison meaningless
                 Long total = this.safeInteger(result, "total");
                 for (var i = 0; (rawMarketsLength != null && i < rawMarketsLength); i++)
                 {
-                    Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                    Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                     ((List<Object>)fetchedRawRows).add(raw);
                     Long marketType = this.safeInteger(raw, "marketType");
                     if ((marketType != null && marketType == 1))
                     {
-                        Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent((Map<String, Object>) (raw));
+                        Map<String, Object> eventVar = (Map<String, Object>) this.parseEvent(raw);
                         List<Object> childMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-                        Integer childMarketsLength = ((List<?>)childMarkets).size();
+                        Integer childMarketsLength = childMarkets.size();
                         for (var ci = 0; (childMarketsLength != null && ci < childMarketsLength); ci++)
                         {
                             ((List<Object>)flatMarkets).add((childMarkets == null || ci < 0 || ci >= childMarkets.size() ? null : childMarkets.get(ci)));
@@ -277,18 +277,18 @@ public class Opinion extends OpinionApi
                         }
                     } else
                     {
-                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket((Map<String, Object>) (raw), (String) null));
+                        ((List<Object>)flatMarkets).add(this.parseOpinionMarket(raw, (String) null));
                     }
                 }
-                Integer collectedLength = ((List<?>)flatMarkets).size();
-                Integer fetchedRawCount = ((List<?>)fetchedRawRows).size();
+                Integer collectedLength = flatMarkets.size();
+                Integer fetchedRawCount = fetchedRawRows.size();
                 if (((pageLimit != null && (rawMarketsLength == null || rawMarketsLength < pageLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((!java.util.Objects.equals(userLimit, null)) && ((userLimit == null || (collectedLength != null && collectedLength >= userLimit)))))
                 {
                     break;
                 }
             }
             this.setEvents(eventsList);
-            Integer flatMarketsLength = ((List<?>)flatMarkets).size();
+            Integer flatMarketsLength = flatMarkets.size();
             if ((!java.util.Objects.equals(userLimit, null)) && ((flatMarketsLength != null && (userLimit == null || flatMarketsLength > userLimit))))
             {
                 return this.arraySlice(flatMarkets, 0, userLimit);
@@ -379,7 +379,7 @@ public class Opinion extends OpinionApi
         List<String> outcomeTokenIds = new ArrayList<String>(Arrays.asList(this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcome = null;
-        for (var i = 0; i < ((List<?>)outcomeLabels).size(); i++)
+        for (var i = 0; i < outcomeLabels.size(); i++)
         {
             String label = this.safeString(outcomeLabels, i);
             String tokenId = this.safeString(outcomeTokenIds, i);
@@ -530,7 +530,7 @@ public class Opinion extends OpinionApi
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
             for (var page = 1; ((maxPages != null && page <= maxPages)); page++)
             {
-                Integer fetchedSoFar = ((List<?>)rawEvents).size();
+                Integer fetchedSoFar = rawEvents.size();
                 Long remaining = this.parseToInt((fetchCap - ((long) fetchedSoFar)));
                 Long reqLimit = ((((pageLimit != null && (remaining == null || remaining < pageLimit))))) ? remaining : pageLimit;
                 if ((reqLimit == null || reqLimit <= 0))
@@ -544,20 +544,20 @@ public class Opinion extends OpinionApi
                 Map<String, Object> response = (this.opinionPublicGetMarket(this.extend(request, rest))).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
                 List<Object> pageEvents = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-                Integer pageEventsLength = ((List<?>)pageEvents).size();
+                Integer pageEventsLength = pageEvents.size();
                 for (var i = 0; (pageEventsLength != null && i < pageEventsLength); i++)
                 {
                     ((List<Object>)rawEvents).add((pageEvents == null || i < 0 || i >= pageEvents.size() ? null : pageEvents.get(i)));
                 }
                 // rawEvents holds every row fetched so far, so its length is the raw fetched count
-                Integer fetchedRawCount = ((List<?>)rawEvents).size();
+                Integer fetchedRawCount = rawEvents.size();
                 Long total = this.safeInteger(result, "total");
                 if (((reqLimit != null && (pageEventsLength == null || pageEventsLength < reqLimit))) || ((maxPages == null || page >= maxPages)) || ((!java.util.Objects.equals(total, null)) && ((total == null || (fetchedRawCount != null && fetchedRawCount >= total)))) || ((fetchCap == null || (fetchedRawCount != null && fetchedRawCount >= fetchCap))))
                 {
                     break;
                 }
             }
-            Integer rawEventsLength = ((List<?>)rawEvents).size();
+            Integer rawEventsLength = rawEvents.size();
             List<Object> parsedEvents = new ArrayList<Object>(Arrays.asList());
             if (java.util.Objects.equals(this.markets, null))
             {
@@ -569,7 +569,7 @@ public class Opinion extends OpinionApi
                 ((List<Object>)parsedEvents).add(eventVar);
                 // register the parsed markets so populateOutcomes can index their outcomes
                 List<Object> eventMarkets = (List<Object>) this.safeList(eventVar, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer eventMarketsLength = ((List<?>)eventMarkets).size();
+                Integer eventMarketsLength = eventMarkets.size();
                 for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                 {
                     Object m = (eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi));
@@ -728,7 +728,7 @@ public class Opinion extends OpinionApi
             eventHandle = this.shortenSlug((String) (slug));
         }
         List<Object> rawChildren = (List<Object>) this.safeList(rawEvent, "childMarkets", new ArrayList<Object>(Arrays.asList()));
-        Integer rawChildrenLength = ((List<?>)rawChildren).size();
+        Integer rawChildrenLength = rawChildren.size();
         List<Object> marketsList = new ArrayList<Object>(Arrays.asList());
         for (var i = 0; (rawChildrenLength != null && i < rawChildrenLength); i++)
         {
@@ -1006,7 +1006,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> history = (List<Object>) this.safeList(result, "history", new ArrayList<Object>(Arrays.asList()));
             List<Object> candles = new ArrayList<Object>(Arrays.asList());
-            Integer historyLength = ((List<?>)history).size();
+            Integer historyLength = history.size();
             for (var i = 0; (historyLength != null && i < historyLength); i++)
             {
                 Map<String, Object> point = (Map<String, Object>) this.safeDict(history, i, (Object) null);
@@ -1068,7 +1068,7 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPublicGetQuoteToken(new HashMap<String, Object>() {{}})).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Integer listLength = ((List<?>)list).size();
+            Integer listLength = list.size();
             Map<String, Object> quoteTokens = new HashMap<String, Object>() {{}};
             for (var i = 0; (listLength != null && i < listLength); i++)
             {
@@ -1598,10 +1598,10 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetTradeUserWalletAddress(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> trades = (List<Object>) this.safeList(result, "list", new ArrayList<Object>(Arrays.asList()));
-            Integer tradesLength = ((List<?>)trades).size();
+            Integer tradesLength = trades.size();
             for (var i = 0; (tradesLength != null && i < tradesLength); i++)
             {
-                Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
+                Map<String, Object> trade = (Map<String, Object>) (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tokenId = this.safeString(trade, "tokenId");
                 Long marketId = this.safeInteger(trade, "marketId");
                 if ((java.util.Objects.equals(tokenId, null)) && (!java.util.Objects.equals(marketId, null)))
@@ -1715,13 +1715,13 @@ public class Opinion extends OpinionApi
             Map<String, Object> response = (this.opinionPrivateGetUserBalance(this.extend(request, parameters))).join();
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> rawBalances = (List<Object>) this.safeList(result, "balances", new ArrayList<Object>(Arrays.asList()));
-            Integer rawBalancesLength = ((List<?>)rawBalances).size();
+            Integer rawBalancesLength = rawBalances.size();
             for (var i = 0; (rawBalancesLength != null && i < rawBalancesLength); i++)
             {
-                Object rawBalance = (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
+                Map<String, Object> rawBalance = (Map<String, Object>) (rawBalances == null || i < 0 || i >= rawBalances.size() ? null : rawBalances.get(i));
                 String quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
                 Map<String, Object> quoteToken = (this.loadQuoteToken((String) (quoteTokenAddress))).join();
-                ((Map<String, Object>)rawBalance).put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
+                rawBalance.put("symbol", this.safeString(quoteToken, "symbol", "USDT"));
             }
             return this.parseBalance(response);
         }).thenApply(Balances::new);
@@ -1743,7 +1743,7 @@ public class Opinion extends OpinionApi
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(data, "balances", new ArrayList<Object>(Arrays.asList()));
-        Integer balancesLength = ((List<?>)balances).size();
+        Integer balancesLength = balances.size();
         for (var i = 0; (balancesLength != null && i < balancesLength); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
@@ -1795,10 +1795,10 @@ public class Opinion extends OpinionApi
             Object parsed = this.parsePredictionPositions(positions, new HashMap<String, Object>() {{}});
             Map<String, Object> wantedTokenIds = new HashMap<String, Object>() {{}};
             // copy to a plain list so the strict null checks see one shape
-            Object outcomesList = (((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes;
-            for (var i = 0; i < ((List<?>)outcomesList).size(); i++)
+            List<Object> outcomesList = (List<Object>) ((((java.util.Objects.equals(outcomes, null)))) ? new ArrayList<Object>(Arrays.asList()) : outcomes);
+            for (var i = 0; i < outcomesList.size(); i++)
             {
-                Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= ((List<?>)outcomesList).size() ? null : ((List<?>)outcomesList).get(i))));
+                Map<String, Object> outcomeObj = this.outcome((String) ((outcomesList == null || i < 0 || i >= outcomesList.size() ? null : outcomesList.get(i))));
                 String tokenId = this.safeString(outcomeObj, "outcomeId");
                 if (!java.util.Objects.equals(tokenId, null))
                 {
@@ -2127,7 +2127,7 @@ public class Opinion extends OpinionApi
             return null;
         }
         List<Object> marketKeys = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
-        Integer marketKeysLength = ((List<?>)marketKeys).size();
+        Integer marketKeysLength = marketKeys.size();
         for (var i = 0; (marketKeysLength != null && i < marketKeysLength); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, (marketKeys == null || i < 0 || i >= marketKeys.size() ? null : marketKeys.get(i)), (Object) null);
@@ -2640,8 +2640,8 @@ public class Opinion extends OpinionApi
     {
         String apiGroup = (String) (api == null || 0 >= ((List<?>)api).size() ? null : ((List<?>)api).get(0));
         String access = (String) (api == null || 1 >= ((List<?>)api).size() ? null : ((List<?>)api).get(1));
-        Object baseUrls = this.urls.get("api");
-        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)((Map<String, Object>)baseUrls).get("opinion")));
+        Map<String, Object> baseUrls = (Map<String, Object>) this.urls.get("api");
+        String baseUrl = this.safeString(baseUrls, apiGroup, ((String)baseUrls.get("opinion")));
         String url = ((baseUrl + "/") + this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};

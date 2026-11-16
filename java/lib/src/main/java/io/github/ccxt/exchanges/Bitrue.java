@@ -791,7 +791,7 @@ public class Bitrue extends BitrueApi
             //     {}
             //
             List<String> keys = new ArrayList<String>(response.keySet());
-            Integer keysLength = ((List<?>)keys).size();
+            Integer keysLength = keys.size();
             String formattedStatus = "ok";
             if ((keysLength != null && keysLength > 0))
             {
@@ -906,7 +906,7 @@ public class Bitrue extends BitrueApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         List<Object> networkDetails = (List<Object>) this.safeList(rawCurrency, "chainDetail", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkDetails).size(); j++)
+        for (var j = 0; j < networkDetails.size(); j++)
         {
             Object entry = (networkDetails == null || j < 0 || j >= networkDetails.size() ? null : networkDetails.get(j));
             String networkId = this.safeString(entry, "chain");
@@ -1252,7 +1252,7 @@ public class Bitrue extends BitrueApi
         }};
         Long timestamp = this.safeInteger(response, "updateTime");
         List<Object> balances = (List<Object>) this.safeList2(response, "balances", "account", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString2(balance, "asset", "marginCoin");
@@ -1878,7 +1878,7 @@ public class Bitrue extends BitrueApi
             // the market ids do not have an underscore, so it has to be removed
             // https://github.com/ccxt/ccxt/issues/13856
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 // skip entries without a symbol: an undefined market id would become a null
@@ -3302,7 +3302,7 @@ public class Bitrue extends BitrueApi
         //   }
         //
         List<Object> chainDetails = (List<Object>) this.safeList(fee, "chainDetail", new ArrayList<Object>(Arrays.asList()));
-        Integer chainDetailLength = ((List<?>)chainDetails).size();
+        Integer chainDetailLength = chainDetails.size();
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", fee );
@@ -3846,7 +3846,7 @@ public class Bitrue extends BitrueApi
         {
             Long limit = this.safeInteger(parameters, "limit");
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)byLimit).size(); i++)
+            for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long threshold = this.safeInteger(entry, 0);

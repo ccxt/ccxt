@@ -331,12 +331,12 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         } else if (message.containsKey("data"))
         {
             List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 ((List<Object>)tickers).add(this.parsePerpetualTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null));
             }
         }
-        for (var i = 0; i < ((List<?>)tickers).size(); i++)
+        for (var i = 0; i < tickers.size(); i++)
         {
             Object ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
             String symbol = this.safeString(ticker, "symbol", "");
@@ -508,7 +508,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         List<Object> trades = (List<Object>) this.safeList2(message, "trades", "trades_p", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsed = this.parseTrades(trades, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)parsed).size(); i++)
+        for (var i = 0; i < parsed.size(); i++)
         {
             stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
@@ -567,7 +567,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
             }
-            for (var i = 0; i < ((List<?>)ohlcvs).size(); i++)
+            for (var i = 0; i < ohlcvs.size(); i++)
             {
                 Object candle = (ohlcvs == null || i < 0 || i >= ohlcvs.size() ? null : ohlcvs.get(i));
                 stored.append(candle);
@@ -655,7 +655,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             Long requestId = this.requestId();
             String subscriptionHash = (name + ".subscribe");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 messageHashes.add(("ticker:" + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
             }
@@ -941,9 +941,9 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         //
         String id = this.safeString(message, "id");
         List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+        for (var i = 0; i < subscriptionHashes.size(); i++)
         {
-            Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+            String subscriptionHash = (String) (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
             Object subscription = (client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash));
             Boolean isUnSubscription = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             String subscriptionId = this.safeString(subscription, "id");
@@ -955,7 +955,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
                 if (!java.util.Objects.equals(error, null))
                 {
                     // the stream stays subscribed, so drop only the pending unsubscribe
-                    client.subscriptions.remove((String)subscriptionHash);
+                    client.subscriptions.remove(subscriptionHash);
                     client.reject(new ExchangeError(((this.id + " ") + this.json(error))), subscriptionHash);
                     return;
                 }
@@ -1256,7 +1256,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             }
         }
         List<String> keys = new ArrayList<String>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String market = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String hash = ((channel + ":") + market);
@@ -1494,13 +1494,13 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             List<Object> closed = (List<Object>) this.safeList(message, "closed", new ArrayList<Object>(Arrays.asList()));
             List<Object> open = (List<Object>) this.safeList(message, "open", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = (List<Object>) this.arrayConcat(open, closed);
-            Integer ordersLength = ((List<?>)orders).size();
+            Integer ordersLength = orders.size();
             if (java.util.Objects.equals(ordersLength, 0))
             {
                 return;
             }
             trades = (List<Object>) this.safeList(message, "fills", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; i < orders.size(); i++)
             {
                 Object rawOrder = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 Map<String, Object> parsedOrder = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
@@ -1535,7 +1535,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
         }
         Object type = null;
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
-        for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
+        for (var i = 0; i < parsedOrders.size(); i++)
         {
             Object parsed = (parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i));
             stored.append(parsed);
@@ -1549,7 +1549,7 @@ public class Phemex extends io.github.ccxt.exchanges.Phemex
             ((Map<Object, Object>) (Map<?, ?>) marketIds).put(symbol, true);
         }
         List<Object> keys = new ArrayList<Object>(marketIds.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String currentMessageHash = (("orders" + ":") + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
             client.resolve(this.orders, currentMessageHash);

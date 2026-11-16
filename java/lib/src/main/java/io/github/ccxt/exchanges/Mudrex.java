@@ -532,7 +532,7 @@ public class Mudrex extends MudrexApi
                 rows = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             }
             Map<String, Object> resultTickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 Object t = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String sym = this.safeString(t, "symbol");
@@ -613,11 +613,11 @@ public class Mudrex extends MudrexApi
                 {
                     items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
                     // hoisted - inline length reads within conditionals become strlen for php, fatal on arrays
-                    Integer itemsLength = ((List<?>)items).size();
+                    Integer itemsLength = items.size();
                     if (java.util.Objects.equals(itemsLength, 0))
                     {
                         items = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
-                        itemsLength = ((List<?>)items).size();
+                        itemsLength = items.size();
                     }
                     if ((java.util.Objects.equals(itemsLength, 0)) && ((switch ((Object)(data)) { case List<?> j39v2 -> j39v2.contains("symbol"); case Map<?, ?> j39v1 -> j39v1.containsKey("symbol"); case null, default -> false; })))
                     {
@@ -627,7 +627,7 @@ public class Mudrex extends MudrexApi
                 {
                     items = this.toArray(data);
                 }
-                Integer numItems = ((List<?>)items).size();
+                Integer numItems = items.size();
                 if (java.util.Objects.equals(numItems, 0))
                 {
                     paging = false;
@@ -647,7 +647,7 @@ public class Mudrex extends MudrexApi
                 }
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)aggregated).size(); i++)
+            for (var i = 0; i < aggregated.size(); i++)
             {
                 ((List<Object>)result).add(this.parseMarket((aggregated == null || i < 0 || i >= aggregated.size() ? null : aggregated.get(i))));
             }
@@ -1232,7 +1232,7 @@ public class Mudrex extends MudrexApi
                 market = this.market(symbol);
             }
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 ((List<Object>)orders).add(this.parseOrder((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market));
             }
@@ -1332,12 +1332,12 @@ public class Mudrex extends MudrexApi
             }
             List<Object> rows = this.toArray(data);
             List<Object> outPos = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
-                Object p = (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
+                Map<String, Object> p = (Map<String, Object>) (rows == null || i < 0 || i >= rows.size() ? null : rows.get(i));
                 String symRaw = this.safeString(p, "symbol");
                 Map<String, Object> m = this.safeMarket(symRaw, (Map<String, Object>) null, (String) null, (String) null);
-                Map<String, Object> pos = (Map<String, Object>) this.parsePosition((Map<String, Object>) (p), m);
+                Map<String, Object> pos = (Map<String, Object>) this.parsePosition(p, m);
                 ((List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols);
@@ -1494,7 +1494,7 @@ public class Mudrex extends MudrexApi
                 {
                     candidates = this.filterBy(candidates, "side", side);
                 }
-                Integer numCandidates = ((List<?>)candidates).size();
+                Integer numCandidates = candidates.size();
                 if ((numCandidates != null && numCandidates > 0))
                 {
                     Object found = (candidates == null || 0 >= ((List<?>)candidates).size() ? null : ((List<?>)candidates).get(0));
@@ -1555,7 +1555,7 @@ public class Mudrex extends MudrexApi
             {
                 List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();
                 List<Object> matches = this.filterBy(positions, "symbol", symbol);
-                Integer numMatches = ((List<?>)matches).size();
+                Integer numMatches = matches.size();
                 if ((numMatches != null && numMatches > 0))
                 {
                     Object found = (matches == null || 0 >= ((List<?>)matches).size() ? null : ((List<?>)matches).get(0));
@@ -1643,8 +1643,8 @@ public class Mudrex extends MudrexApi
                 }
                 Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, paramsPaginationCalls))).join();
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                Object dataLength = ((List<?>)data).size();
-                for (var i = 0; i < ((List<?>)data).size(); i++)
+                Object dataLength = data.size();
+                for (var i = 0; i < data.size(); i++)
                 {
                     Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     ((List<Object>)allRows).add(entry);
@@ -1675,7 +1675,7 @@ public class Mudrex extends MudrexApi
             List<String> rebateAmounts = new ArrayList<String>(Arrays.asList());
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
             List<Object> transactionKeys = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)allRows).size(); i++)
+            for (var i = 0; i < allRows.size(); i++)
             {
                 Object entry = (allRows == null || i < 0 || i >= allRows.size() ? null : allRows.get(i));
                 String feeType = this.safeString(entry, "fee_type");
@@ -1691,10 +1691,10 @@ public class Mudrex extends MudrexApi
                 }
             }
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)transactions).size(); i++)
+            for (var i = 0; i < transactions.size(); i++)
             {
                 String rebate = null;
-                for (var j = 0; j < ((List<?>)rebateKeys).size(); j++)
+                for (var j = 0; j < rebateKeys.size(); j++)
                 {
                     if (java.util.Objects.equals((rebateKeys == null || j < 0 || j >= rebateKeys.size() ? null : rebateKeys.get(j)), (transactionKeys == null || i < 0 || i >= transactionKeys.size() ? null : transactionKeys.get(i))))
                     {

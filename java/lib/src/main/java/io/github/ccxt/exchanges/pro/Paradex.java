@@ -219,7 +219,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             for (var attempt = 0; (channelsLength != null && attempt < channelsLength); attempt++)
             {
                 List<Object> pending = (List<Object>) this.unsubscribedChannels(url, channels);
-                Integer pendingLength = ((List<?>)pending).size();
+                Integer pendingLength = pending.size();
                 if (((pendingLength == null || pendingLength < 2)))
                 {
                     break;
@@ -230,7 +230,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             // the last one goes with the watch, so that an update sent right after it is not missed
             List<Object> missing = (List<Object>) this.unsubscribedChannels(url, channels);
-            Integer missingLength = ((List<?>)missing).size();
+            Integer missingLength = missing.size();
             if (java.util.Objects.equals(missingLength, 0))
             {
                 return (this.watchMultiple((String) (url), messageHashes, null, channels, null)).join();
@@ -428,17 +428,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             Client client = this.client(url);
             List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
-                Object unsubHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-                if ((((String)unsubHash).indexOf("unsubscribe:") != 0))
+                String unsubHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+                if ((unsubHash.indexOf("unsubscribe:") != 0))
                 {
                     continue;
                 }
                 Map<String, Object> unsubscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, (Object) null);
                 List<Object> pendingHashes = (List<Object>) this.safeList(unsubscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
                 Boolean pending = false;
-                for (var j = 0; j < ((List<?>)pendingHashes).size(); j++)
+                for (var j = 0; j < pendingHashes.size(); j++)
                 {
                     if (this.inArray((pendingHashes == null || j < 0 || j >= pendingHashes.size() ? null : pendingHashes.get(j)), subscribeHashes))
                     {
@@ -449,7 +449,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     try
                     {
-                        client.future((String)unsubHash).getFuture().join();
+                        client.future(unsubHash).getFuture().join();
                     } catch(Exception e)
                     {
                         // the error of the unsubscribe belongs to the unwatch, the watch goes on with the subscriptions as the reply left them
@@ -489,8 +489,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String token = (this.authenticateRest(new HashMap<String, Object>() {{}})).join();
                 Long requestId = this.requestId();
@@ -589,17 +589,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         //     }
         //
         List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
-            Object unsubHash = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            if ((((String)unsubHash).indexOf("unsubscribe:") != 0))
+            String unsubHash = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
+            if ((unsubHash.indexOf("unsubscribe:") != 0))
             {
                 continue;
             }
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new HashMap<String, Object>() {{}});
             if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
             {
-                this.cleanUnsubscribed(client, (String) (unsubHash), subscription);
+                this.cleanUnsubscribed(client, unsubHash, subscription);
             }
         }
     }
@@ -607,7 +607,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public void cleanUnsubscribed(Client client, String unsubHash, Map<String, Object> subscription)
     {
         List<Object> subscribeHashes = (List<Object>) this.safeList(subscription, "subscribeHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)subscribeHashes).size(); j++)
+        for (var j = 0; j < subscribeHashes.size(); j++)
         {
             Object subscribeHash = ((String)(subscribeHashes == null || j < 0 || j >= subscribeHashes.size() ? null : subscribeHashes.get(j)));
             if (client.subscriptions.containsKey(subscribeHash))
@@ -623,7 +623,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         Boolean prefix = (Boolean) this.safeBool(subscription, "prefix", false);
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)subMessageHashes).size(); j++)
+        for (var j = 0; j < subMessageHashes.size(); j++)
         {
             this.cleanUnsubscription(client, (String) ((subMessageHashes == null || j < 0 || j >= subMessageHashes.size() ? null : subMessageHashes.get(j))), (String) (unsubHash), prefix);
         }
@@ -695,7 +695,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -765,7 +765,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 channels.add(("trades." + market.get("id")));
@@ -866,13 +866,13 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> parsedTrade = (Map<String, Object>) this.parseTrade(data, (Map<String, Object>) null);
-        Object symbol = parsedTrade.get("symbol");
+        String symbol = (String) parsedTrade.get("symbol");
         String messageHash = this.safeString(parameters, "channel");
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (java.util.Objects.equals(stored, null))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());
-            Helpers.addElementToObject(this.trades, ((String)symbol), stored);
+            this.trades.put(symbol, stored);
         }
         stored.append(parsedTrade);
         client.resolve(stored, messageHash);
@@ -886,7 +886,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (java.util.Objects.equals(liquidations, null))
             {
                 liquidations = new ArrayCache(((Number)this.safeInteger(this.options, "liquidationsLimit", 1000)).intValue());
-                Helpers.addElementToObject(caches, ((String)symbol), liquidations);
+                Helpers.addElementToObject(caches, symbol, liquidations);
                 this.options.put("liquidationsBySymbol", caches);
             }
             ((io.github.ccxt.ws.ArrayCache) liquidations).append(liquidation);
@@ -944,7 +944,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -1046,7 +1046,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Client client = this.client(url);
             List<Object> channels = new ArrayList<Object>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 // the feed the market is on, a market is on one of them at a time
@@ -1136,11 +1136,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
         // a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
         List<String> levelKeys = new ArrayList<String>(Arrays.asList("inserts", "updates", "deletes"));
-        for (var k = 0; k < ((List<?>)levelKeys).size(); k++)
+        for (var k = 0; k < levelKeys.size(); k++)
         {
             Boolean isDelete = (java.util.Objects.equals((levelKeys == null || k < 0 || k >= levelKeys.size() ? null : levelKeys.get(k)), "deletes"));
             List<Object> levels = (List<Object>) this.safeList(data, (levelKeys == null || k < 0 || k >= levelKeys.size() ? null : levelKeys.get(k)), new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)levels).size(); i++)
+            for (var i = 0; i < levels.size(); i++)
             {
                 Map<String, Object> level = (Map<String, Object>) this.safeDict(levels, i, (Object) null);
                 String price = this.safeString(level, "price");
@@ -1205,7 +1205,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
     public void handleBookSideDeltas(Object bookside, List<Object> deltas)
     {
         // a size of 0 removes the price level
-        for (var i = 0; i < ((List<?>)deltas).size(); i++)
+        for (var i = 0; i < deltas.size(); i++)
         {
             List<Object> bidAsk = (List<Object>) this.parseOrderBookBidAsk((deltas == null || i < 0 || i >= deltas.size() ? null : deltas.get(i)), 0, 1, 2);
             ((io.github.ccxt.ws.OrderBookSide) bookside).storeArray(bidAsk);
@@ -1291,11 +1291,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             String channel = "markets_summary";
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
@@ -1306,7 +1306,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     messageHashes.add(((channel + ".") + (((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i))));
                 }
-                newTicker = (this.subscribeMarketsSummary((List<String>)(symbolsNormalized), messageHashes, parameters)).join();
+                newTicker = (this.subscribeMarketsSummary(symbolsNormalized, messageHashes, parameters)).join();
             } else
             {
                 // every listed market, options included
@@ -1318,7 +1318,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 {
                     // a scoped subscription keeps its filter through a plain subscribe, it is unsubscribed first
                     List<Object> subscribeHashes = new ArrayList<Object>(client.subscriptions.keySet());
-                    for (var i = 0; i < ((List<?>)subscribeHashes).size(); i++)
+                    for (var i = 0; i < subscribeHashes.size(); i++)
                     {
                         if ((java.util.Objects.equals((subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i)), scopedHash)) || ((((String)(subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i))).indexOf((channel + ".")) == 0)))
                         {
@@ -1386,11 +1386,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             String channel = "markets_summary";
             String scopedHash = (channel + ":scoped");
@@ -1407,11 +1407,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                 subscribeHashes.add(((channel + ".") + marketId));
                 ((List<Object>)subMessageHashes).add(((channel + ".") + symbol));
             }
-            Object tickerSymbols = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<Object>(Arrays.asList()) : symbolsNormalized;
+            List<String> tickerSymbols = (((java.util.Objects.equals(symbolsNormalized, null)))) ? new ArrayList<String>(Arrays.asList()) : symbolsNormalized;
             if (((symbolsLength != null && symbolsLength > 0)) && (client.subscriptions.containsKey(channel)))
             {
                 // the all-markets subscription has no market filter to remove these from, their watchers are ended here
-                for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
+                for (var i = 0; i < subMessageHashes.size(); i++)
                 {
                     this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), ("unsubscribe:" + (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), false);
                 }
@@ -1424,7 +1424,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             // the markets left in the scoped subscription once these are removed
             long remaining = 0;
             List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 if (((((String)(keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))).indexOf((channel + ".")) == 0)) && !this.inArray((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), subscribeHashes))
                 {
@@ -1511,7 +1511,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
                     ((List<Object>)missingHashes).add((messageHashes == null || i < 0 || i >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(i)));
                 }
             }
-            Integer missingLength = ((List<?>)missing).size();
+            Integer missingLength = missing.size();
             if (java.util.Objects.equals(missingLength, 0))
             {
                 return (this.watchMultiple((String) (url), messageHashes, null, subscribeHashes, null)).join();
@@ -1602,11 +1602,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             String url = this.getWsUrl();
             List<String> channels = new ArrayList<String>(Arrays.asList());
@@ -1654,11 +1654,11 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             List<String> channels = new ArrayList<String>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
@@ -1705,8 +1705,8 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         Map<String, Object> parameters = (Map<String, Object>) this.safeDict(message, "params", new HashMap<String, Object>() {{}});
         Map<String, Object> data = (Map<String, Object>) this.safeDict(parameters, "data", new HashMap<String, Object>() {{}});
         Map<String, Object> bidAsk = (Map<String, Object>) this.parseWsBidAsk(data, (Map<String, Object>) null);
-        Object symbol = bidAsk.get("symbol");
-        Helpers.addElementToObject(this.bidsasks, ((String)symbol), bidAsk);
+        String symbol = (String) bidAsk.get("symbol");
+        this.bidsasks.put(symbol, bidAsk);
         client.resolve(bidAsk, ("bidask:" + symbol));
         // an SBE frame does not tell bbo.ALL from the per-market channel
         client.resolve(bidAsk, "bidask");
@@ -1943,7 +1943,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             if (java.util.Objects.equals(symbolsLength, 0))
             {
@@ -2009,7 +2009,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         // symbol and side, and the opposite side it still holds is flattened here
         String side = this.safeString(position, "side");
         List<Object> cached = this.filterBySymbolSinceLimit(cache, symbol, (Long) null, (Long) null, true);
-        for (var i = 0; i < ((List<?>)cached).size(); i++)
+        for (var i = 0; i < cached.size(); i++)
         {
             Object previous = (cached == null || i < 0 || i >= cached.size() ? null : cached.get(i));
             String previousSide = this.safeString(previous, "side");
@@ -2103,7 +2103,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         }
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
         List<String> keys = new ArrayList<String>(balance.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (this.inArray(key, reserved))
@@ -2259,10 +2259,10 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
-                    for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                    for (var i = 0; i < symbolsNormalized.size(); i++)
                     {
                         String messageHash = ((channel + ".") + (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                         ((List<Object>)messageHashes).add(messageHash);
@@ -2613,7 +2613,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -2655,7 +2655,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -2694,7 +2694,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
         List<String> sides = new ArrayList<String>(Arrays.asList("BUY", "SELL"));
         Long frameEnd = this.parseToInt(frameLength);
         Long position = this.parseToInt(this.sum(blockLength, 8));
-        for (var i = 0; i < ((List<?>)sides).size(); i++)
+        for (var i = 0; i < sides.size(); i++)
         {
             if (((frameEnd == null || (position + 4L) > frameEnd)))
             {
@@ -2718,7 +2718,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             }
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, position, 1, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -2751,7 +2751,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -2802,7 +2802,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -2834,7 +2834,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 4, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 4)))
         {
             return null;
@@ -2937,7 +2937,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 6, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 5)))
         {
             return null;
@@ -3002,7 +3002,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 2, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -3064,7 +3064,7 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             return null;
         }
         List<Object> strings = (List<Object>) this.sbeReadVarStrings(frameHex, this.sum(blockLength, 8), 1, frameLength);
-        Integer stringsLength = ((List<?>)strings).size();
+        Integer stringsLength = strings.size();
         if (((stringsLength == null || stringsLength < 1)))
         {
             return null;
@@ -3137,17 +3137,17 @@ public class Paradex extends io.github.ccxt.exchanges.Paradex
             if (!java.util.Objects.equals(requestId, null))
             {
                 List<Object> subscribeHashes = new ArrayList<Object>(client.subscriptions.keySet());
-                for (var i = 0; i < ((List<?>)subscribeHashes).size(); i++)
+                for (var i = 0; i < subscribeHashes.size(); i++)
                 {
-                    Object subscribeHash = (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
+                    String subscribeHash = (String) (subscribeHashes == null || i < 0 || i >= subscribeHashes.size() ? null : subscribeHashes.get(i));
                     Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, subscribeHash, (Object) null);
                     if (java.util.Objects.equals(this.safeString(subscription, "id"), requestId))
                     {
                         handled = true;
-                        client.subscriptions.remove((String)subscribeHash);
+                        client.subscriptions.remove(subscribeHash);
                         // watchMultiple subscribes per message hash, so the subscribe hash is what its watcher waits on
                         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList(subscribeHash)));
-                        for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+                        for (var j = 0; j < messageHashes.size(); j++)
                         {
                             client.reject(e, (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j)));
                         }

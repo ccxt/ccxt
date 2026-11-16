@@ -614,7 +614,7 @@ public class Bigone extends BigoneApi
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "binding_gateways", new ArrayList<Object>(Arrays.asList()));
         String currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "gateway_name");
@@ -650,7 +650,7 @@ public class Bigone extends BigoneApi
                 networks.put(networkCode, mapLiteral1);
             }
         }
-        Integer chainLength = ((List<?>)chains).size();
+        Integer chainLength = chains.size();
         String type = null;
         if (Boolean.TRUE.equals(this.safeBool(rawCurrency, "is_fiat", false)))
         {
@@ -764,7 +764,7 @@ public class Bigone extends BigoneApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Map<String, Object> baseAsset = (Map<String, Object>) this.safeDict(market, "base_asset", new HashMap<String, Object>() {{}});
@@ -829,7 +829,7 @@ public class Bigone extends BigoneApi
                     yield j39v2; } })));
             }
             List<Object> contractMarkets = this.toArray(contractResponse);
-            for (var i = 0; i < ((List<?>)contractMarkets).size(); i++)
+            for (var i = 0; i < contractMarkets.size(); i++)
             {
                 Object market = (contractMarkets == null || i < 0 || i >= contractMarkets.size() ? null : contractMarkets.get(i));
                 String baseId = this.safeString(market, "baseCurrency");
@@ -1238,7 +1238,7 @@ public class Bigone extends BigoneApi
     {
         List<String> bidsAsksKeys = new ArrayList<String>(bidsAsks.keySet());
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)bidsAsksKeys).size(); i++)
+        for (var i = 0; i < bidsAsksKeys.size(); i++)
         {
             String price = (bidsAsksKeys == null || i < 0 || i >= bidsAsksKeys.size() ? null : bidsAsksKeys.get(i));
             Object amount = (bidsAsks == null || price == null ? null : bidsAsks.get(price));
@@ -1597,7 +1597,7 @@ public class Bigone extends BigoneApi
             put( "datetime", null );
         }};
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String symbol = this.safeString(balance, "asset_symbol");
@@ -1997,7 +1997,7 @@ public class Bigone extends BigoneApi
             List<Object> cancelled = (List<Object>) this.safeList(data, "cancelled", new ArrayList<Object>(Arrays.asList()));
             List<Object> failed = (List<Object>) this.safeList(data, "failed", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)cancelled).size(); i++)
+            for (var i = 0; i < cancelled.size(); i++)
             {
                 Object orderId = (cancelled == null || i < 0 || i >= cancelled.size() ? null : cancelled.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -2006,7 +2006,7 @@ public class Bigone extends BigoneApi
                     put( "status", "canceled" );
                 }}, (Map<String, Object>) null));
             }
-            for (var i = 0; i < ((List<?>)failed).size(); i++)
+            for (var i = 0; i < failed.size(); i++)
             {
                 Object orderId = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
                 ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -2344,7 +2344,7 @@ public class Bigone extends BigoneApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             if (((dataLength == null || dataLength < 1)))
             {
                 throw new ExchangeError((this.id + " fetchDepositAddress() returned empty address response")) ;

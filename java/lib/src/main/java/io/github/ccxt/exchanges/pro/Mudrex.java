@@ -132,7 +132,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
             List<Object> assets = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     messageHashes.add(("ticker:" + market.get("symbol")));
@@ -290,7 +290,7 @@ public class Mudrex extends io.github.ccxt.exchanges.Mudrex
     public void handleTicker(Client client, Map<String, Object> message)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object t = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String s = this.safeString(t, "s");

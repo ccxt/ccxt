@@ -911,7 +911,7 @@ public class Upbit extends UpbitApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> orderbooks = this.toArray(response);
-            for (var i = 0; i < ((List<?>)orderbooks).size(); i++)
+            for (var i = 0; i < orderbooks.size(); i++)
             {
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(orderbooks, i, new HashMap<String, Object>() {{}});
                 String marketId = this.safeString(orderbook, "market");
@@ -1041,7 +1041,7 @@ public class Upbit extends UpbitApi
                 // ticker/all returns every market of the requested quote currencies with a single request
                 List<Object> quoteIds = new ArrayList<Object>(Arrays.asList());
                 List<String> marketSymbols = this.symbols;
-                for (var i = 0; i < ((List<?>)marketSymbols).size(); i++)
+                for (var i = 0; i < marketSymbols.size(); i++)
                 {
                     Map<String, Object> market = this.market((marketSymbols == null || i < 0 || i >= marketSymbols.size() ? null : marketSymbols.get(i)));
                     String quoteId = (String) market.get("quoteId");
@@ -1068,7 +1068,7 @@ public class Upbit extends UpbitApi
                 List<String> ids = this.marketIds(symbolsNormalized);
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
                 List<Object> queries = (List<Object>) this.idsQueryStrings(ids); // the url is limited to about 8000 characters once the commas are percent-encoded
-                for (var i = 0; i < ((List<?>)queries).size(); i++)
+                for (var i = 0; i < queries.size(); i++)
                 {
                     HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();
                     mapLiteral5.put("markets", this.safeString(queries, i, ""));
@@ -2320,7 +2320,7 @@ public class Upbit extends UpbitApi
             j39v1.put("order", id);
             j39v1.put("type", type);
             yield j39v1; } }));
-        Integer numTrades = ((List<?>)trades).size();
+        Integer numTrades = trades.size();
         if ((numTrades != null && numTrades > 0))
         {
             // the timestamp in fetchOrder trades is missing

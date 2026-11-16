@@ -1086,7 +1086,7 @@ public class Weex extends WeexApi
         String name = this.safeString(rawCurrency, "name");
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             String networkId = this.safeString(chain, "network");
@@ -1117,7 +1117,7 @@ public class Weex extends WeexApi
             }
         }
         List<String> networkKeys = new ArrayList<String>(networks.keySet());
-        Integer networksLength = ((List<?>)networkKeys).size();
+        Integer networksLength = networkKeys.size();
         Boolean emptyChains = java.util.Objects.equals(networksLength, 0); // non-functional coins
         Boolean valueForEmpty = ((Boolean.TRUE.equals(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
@@ -1371,7 +1371,7 @@ public class Weex extends WeexApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbolsLength, 1))
@@ -1474,7 +1474,7 @@ public class Weex extends WeexApi
                 response = new ArrayList<Object>(Arrays.asList(response));
             }
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -2259,7 +2259,7 @@ public class Weex extends WeexApi
             Integer symbolsLength = 0;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                symbolsLength = ((List<?>)symbolsNormalized).size();
+                symbolsLength = symbolsNormalized.size();
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(symbolsLength, 1))

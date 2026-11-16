@@ -175,7 +175,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             String url = this.safeString(wsUrls, "public", "");
             Client client = this.client(url);
             String kind = ((Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(bidAsk, false)))) ? "bidask" : "ticker";
-            for (var i = 0; i < ((List<?>)normalized).size(); i++)
+            for (var i = 0; i < normalized.size(); i++)
             {
                 Map<String, Object> market = this.market((normalized == null || i < 0 || i >= normalized.size() ? null : normalized.get(i)));
                 if ((java.util.Objects.equals(symbols, null)) && (Boolean.TRUE.equals(stock) || (java.util.Objects.equals(explicitSource, "External")) || (!java.util.Objects.equals(channel, null))) && (!java.util.Objects.equals(market.get("stock"), true)))
@@ -261,7 +261,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
                 client.subscriptions.put(subscriptionKey, subscriptions);
                 List<String> subscriptionHashes = new ArrayList<String>(subscriptions.keySet());
-                Integer subscriptionsLength = ((List<?>)subscriptionHashes).size();
+                Integer subscriptionsLength = subscriptionHashes.size();
                 if (!Boolean.TRUE.equals(java.util.Objects.requireNonNullElse(unwatch, false)) || (java.util.Objects.equals(subscriptionsLength, 0)))
                 {
                     if (!this.inArray(topic, topics))
@@ -271,7 +271,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 }
                 ((List<Object>)symbolsResolved).add(symbol);
             }
-            Integer symbolsResolvedLength = ((List<?>)symbolsResolved).size();
+            Integer symbolsResolvedLength = symbolsResolved.size();
             if (java.util.Objects.equals(symbolsResolvedLength, 0))
             {
                 throw new ArgumentsRequired((((this.id + " ") + methodName) + "() requires at least one matching market")) ;
@@ -427,10 +427,10 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     if (!java.util.Objects.equals(this.orders, null))
                     {
                         List<String> keys = new ArrayList<String>(((Map<String, Object>)cache).keySet());
-                        for (var j = 0; j < ((List<?>)keys).size(); j++)
+                        for (var j = 0; j < keys.size(); j++)
                         {
                             String symbol = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
-                            ((Map<String,Object>)cache).remove((String)symbol);
+                            ((Map<String,Object>)cache).remove(symbol);
                         }
                     }
                 } else
@@ -571,7 +571,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String stream = this.safeString(message, "stream", "");
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
-        Integer hashesLength = ((List<?>)hashes).size();
+        Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
         {
             String messageHash = (hashes == null || i < 0 || i >= hashes.size() ? null : hashes.get(i));
@@ -665,7 +665,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String stream = this.safeString(message, "stream", "");
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
-        Integer hashesLength = ((List<?>)hashes).size();
+        Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
         {
             String messageHash = (hashes == null || i < 0 || i >= hashes.size() ? null : hashes.get(i));
@@ -764,7 +764,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
         String stream = this.safeString(message, "stream", "");
         Map<String, Object> subscriptions = (Map<String, Object>) this.safeDict(client.subscriptions, ("marketData:" + stream), new HashMap<String, Object>() {{}});
         List<String> hashes = new ArrayList<String>(subscriptions.keySet());
-        Integer hashesLength = ((List<?>)hashes).size();
+        Integer hashesLength = hashes.size();
         for (var i = 0; (hashesLength != null && i < hashesLength); i++)
         {
             String messageHash = (hashes == null || i < 0 || i >= hashes.size() ? null : hashes.get(i));
@@ -1111,14 +1111,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -1162,14 +1162,14 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -1333,7 +1333,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("orderbook:" + symbol));
@@ -1396,7 +1396,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("unsubscribe:orderbook:" + symbol));
@@ -1761,7 +1761,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
                     put( "datetime", Backpack.this.safeString(balances, "datetime") );
                     put( "info", Backpack.this.safeDict(balances, "info", (Object) null) );
                 }};
-                for (var i = 0; i < ((List<?>)securities).size(); i++)
+                for (var i = 0; i < securities.size(); i++)
                 {
                     Map<String, Object> security = (Map<String, Object>) this.safeDict(securities, i, new HashMap<String, Object>() {{}});
                     String code = this.safeCurrencyCode(this.safeString(security, "asset"), (Map<String, Object>) null);
@@ -1968,7 +1968,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> topics = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add((("positions" + ":") + symbol));
@@ -2012,7 +2012,7 @@ public class Backpack extends io.github.ccxt.exchanges.Backpack
             List<String> topics = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add((("unsubscribe:positions" + ":") + symbol));

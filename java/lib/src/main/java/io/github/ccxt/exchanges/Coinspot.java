@@ -616,12 +616,12 @@ public class Coinspot extends CoinspotApi
         if ((balances instanceof List))
         {
             List<Object> rows = this.toArray(balances);
-            Integer numRows = ((List<?>)rows).size();
+            Integer numRows = rows.size();
             for (var i = 0; (numRows != null && i < numRows); i++)
             {
                 Map<String, Object> currencies = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
                 List<String> currencyIdsList = new ArrayList<String>(currencies.keySet());
-                for (var j = 0; j < ((List<?>)currencyIdsList).size(); j++)
+                for (var j = 0; j < currencyIdsList.size(); j++)
                 {
                     String currencyId = (currencyIdsList == null || j < 0 || j >= currencyIdsList.size() ? null : currencyIdsList.get(j));
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(currencies, currencyId, (Object) null);
@@ -637,7 +637,7 @@ public class Coinspot extends CoinspotApi
         } else
         {
             List<Object> currencyIdsMap = ((List<Object>) switch ((Object)(balances)) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-            for (var i = 0; i < ((List<?>)currencyIdsMap).size(); i++)
+            for (var i = 0; i < currencyIdsMap.size(); i++)
             {
                 Object currencyId = (currencyIdsMap == null || i < 0 || i >= currencyIdsMap.size() ? null : currencyIdsMap.get(i));
                 String code = this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null);
@@ -845,7 +845,7 @@ public class Coinspot extends CoinspotApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             Map<String, Object> prices = (Map<String, Object>) this.safeDict(response, "prices", new HashMap<String, Object>() {{}});
             List<String> ids = new ArrayList<String>(prices.keySet());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);
@@ -958,12 +958,12 @@ public class Coinspot extends CoinspotApi
             //      ]
             // }
             List<Object> buyTrades = (List<Object>) this.safeList(response, "buyorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)buyTrades).size(); i++)
+            for (var i = 0; i < buyTrades.size(); i++)
             {
                 ((Map<String, Object>)(buyTrades == null || i < 0 || i >= buyTrades.size() ? null : buyTrades.get(i))).put("side", "buy");
             }
             List<Object> sellTrades = (List<Object>) this.safeList(response, "sellorders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)sellTrades).size(); i++)
+            for (var i = 0; i < sellTrades.size(); i++)
             {
                 ((Map<String, Object>)(sellTrades == null || i < 0 || i >= sellTrades.size() ? null : sellTrades.get(i))).put("side", "sell");
             }

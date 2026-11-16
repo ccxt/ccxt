@@ -2521,7 +2521,7 @@ public class Okx extends OkxApi
         if (!java.util.Objects.equals(marketId, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)marketId).split(java.util.regex.Pattern.quote("-"))));
-            Integer partsLength = ((List<?>)parts).size();
+            Integer partsLength = parts.size();
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
             // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
@@ -2573,14 +2573,14 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             Map<String, Object> update = new HashMap<String, Object>();
             update.put("updated", null);
             update.put("status", (((java.util.Objects.equals(dataLength, 0)))) ? "ok" : "maintenance");
             update.put("eta", null);
             update.put("url", null);
             update.put("info", response);
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String state = this.safeString(eventVar, "state");
@@ -2689,7 +2689,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object account = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String accountId = this.safeString(account, "uid");
@@ -2745,12 +2745,12 @@ public class Okx extends OkxApi
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)types).size(); i++)
+            for (var i = 0; i < types.size(); i++)
             {
                 ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i, ""), parameters));
             }
             List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < ((List<?>)responses).size(); i++)
+            for (var i = 0; i < responses.size(); i++)
             {
                 result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
@@ -2962,7 +2962,7 @@ public class Okx extends OkxApi
             {
                 List<Object> optionsUnderlying = (List<Object>) this.safeList(this.options, "defaultUnderlying", new ArrayList<Object>(Arrays.asList("BTC-USD", "ETH-USD")));
                 List<Object> promises = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)optionsUnderlying).size(); i++)
+                for (var i = 0; i < optionsUnderlying.size(); i++)
                 {
                     Object underlying = (optionsUnderlying == null || i < 0 || i >= optionsUnderlying.size() ? null : optionsUnderlying.get(i));
                     request.put("uly", underlying);
@@ -2970,7 +2970,7 @@ public class Okx extends OkxApi
                 }
                 List<Object> promisesResult = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
                 List<Object> markets = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)promisesResult).size(); i++)
+                for (var i = 0; i < promisesResult.size(); i++)
                 {
                     Map<String, Object> res = (Map<String, Object>) this.safeDict(promisesResult, i, new HashMap<String, Object>() {{}});
                     List<Object> options = (List<Object>) this.safeList(res, "data", new ArrayList<Object>(Arrays.asList()));
@@ -3014,7 +3014,7 @@ public class Okx extends OkxApi
             //
             List<Object> dataResponse = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> marketsWithoutTest = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)dataResponse).size(); i++)
+            for (var i = 0; i < dataResponse.size(); i++)
             {
                 Object data = (dataResponse == null || i < 0 || i >= dataResponse.size() ? null : dataResponse.get(i));
                 String instId = this.safeString(data, "instId", "");
@@ -3993,7 +3993,7 @@ public class Okx extends OkxApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object rate = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(rate, "fundingTime");
@@ -4031,7 +4031,7 @@ public class Okx extends OkxApi
         Map<String, Object> first = (Map<String, Object>) this.safeDict(data, 0, new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(first, "uTime");
         List<Object> details = (List<Object>) this.safeList(first, "details", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)details).size(); i++)
+        for (var i = 0; i < details.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
             String currencyId = this.safeString(balance, "ccy");
@@ -4065,7 +4065,7 @@ public class Okx extends OkxApi
             put( "info", response );
         }};
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "ccy");
@@ -4675,7 +4675,7 @@ public class Okx extends OkxApi
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
             List<String> attachOrdKeys = new ArrayList<String>(attachAlgoOrd.keySet());
-            Integer attachOrdLen = ((List<?>)attachOrdKeys).size();
+            Integer attachOrdLen = attachOrdKeys.size();
             if ((attachOrdLen != null && attachOrdLen > 0))
             {
                 request.put("attachAlgoOrds", new ArrayList<Object>(Arrays.asList(attachAlgoOrd)));
@@ -5830,7 +5830,7 @@ public class Okx extends OkxApi
         Double takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx", (Object) null);
         // regular orders carry attached sl/tp inside attachAlgoOrds
         List<Object> attachAlgoOrds = (List<Object>) this.safeList(order, "attachAlgoOrds", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)attachAlgoOrds).size(); i++)
+        for (var i = 0; i < attachAlgoOrds.size(); i++)
         {
             Object attached = (attachAlgoOrds == null || i < 0 || i >= attachAlgoOrds.size() ? null : attachAlgoOrds.get(i));
             if (java.util.Objects.equals(stopLossPrice, null))
@@ -7065,7 +7065,7 @@ public class Okx extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -7131,8 +7131,8 @@ public class Okx extends OkxApi
             Map<String, Object> paramsOmitted = this.omit(parameters, "network");
             String codeValue = ((String)this.safeCurrencyCode((String) (code), (Map<String, Object>) null));
             String network = this.networkIdToCode(rawNetwork, codeValue);
-            Object responseRaw = (this.fetchDepositAddressesByNetwork(codeValue, paramsOmitted)).join();
-            Object response = responseRaw;
+            Map<String, Object> responseRaw = (this.fetchDepositAddressesByNetwork(codeValue, paramsOmitted)).join();
+            Map<String, Object> response = responseRaw;
             if (!java.util.Objects.equals(network, null))
             {
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, network, (Object) null);
@@ -7143,12 +7143,12 @@ public class Okx extends OkxApi
                 return result;
             }
             String codeNetwork = this.networkIdToCode(codeValue, codeValue);
-            if ((!java.util.Objects.equals(codeNetwork, null)) && (((Map<?, ?>)response).containsKey(codeNetwork)))
+            if ((!java.util.Objects.equals(codeNetwork, null)) && (response.containsKey(codeNetwork)))
             {
                 return this.safeDict(response, codeNetwork, (Object) null);
             }
             // if the network is not specified, return the first address
-            List<String> keys = new ArrayList<String>(((Map<String, Object>)response).keySet());
+            List<String> keys = new ArrayList<String>(response.keySet());
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first, (Object) null);
         }).thenApply(DepositAddress::new);
@@ -7878,7 +7878,7 @@ public class Okx extends OkxApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 Object marketIds = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < symbols.size(); i++)
                 {
                     String entry = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                     Map<String, Object> market = this.market(entry);
@@ -7948,7 +7948,7 @@ public class Okx extends OkxApi
             //
             List<Object> positions = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) ((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i))), (Map<String, Object>) null));
             }
@@ -8732,7 +8732,7 @@ public class Okx extends OkxApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     Map<String, Object> marketInfo = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -8859,7 +8859,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "ts");
@@ -8983,7 +8983,7 @@ public class Okx extends OkxApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Account> accounts = (this.fetchAccounts(new HashMap<String, Object>() {{}})).join();
-            Integer length = ((List<?>)accounts).size();
+            Integer length = accounts.size();
             Object selectedAccount = null;
             if ((length != null && length > 1))
             {
@@ -9149,7 +9149,7 @@ public class Okx extends OkxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             // code-keyed dict (CrossBorrowRates); base fetchCrossBorrowRate looks up by code
             Map<String, Object> rates = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> rate = (Map<String, Object>) this.parseBorrowRate((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
                 String code = this.safeString(rate, "currency");
@@ -9255,12 +9255,12 @@ public class Okx extends OkxApi
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
                 // GET /api/v5/finance/savings/lending-rate-history returns annualized rates, unlike the hourly cross-margin endpoint
                 borrowRateStructure.put("period", 31536000000L);
-                Object borrrowRateCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
-                ((List<Object>)borrrowRateCode).add(borrowRateStructure);
+                List<Object> borrrowRateCode = (List<Object>) ((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)));
+                borrrowRateCode.add(borrowRateStructure);
             }
         }
         List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             borrowRateHistories.put(code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
@@ -10409,7 +10409,7 @@ public class Okx extends OkxApi
             }
         }
         List<String> depositWithdrawCodes = new ArrayList<String>(depositWithdrawFees.keySet());
-        for (var i = 0; i < ((List<?>)depositWithdrawCodes).size(); i++)
+        for (var i = 0; i < depositWithdrawCodes.size(); i++)
         {
             String code = (depositWithdrawCodes == null || i < 0 || i >= depositWithdrawCodes.size() ? null : depositWithdrawCodes.get(i));
             Map<String, Object> currency = this.currency(code);
@@ -10550,7 +10550,7 @@ public class Okx extends OkxApi
             }
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 ((List<Object>)result).add(this.parseSettlement((Map<String, Object>) ((data == null || i < 0 || i >= data.size() ? null : data.get(i))), market));
             }
@@ -10615,7 +10615,7 @@ public class Okx extends OkxApi
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(settlements, i, (Object) null);
             Long timestamp = this.safeInteger(entry, "ts");
             List<Object> details = (List<Object>) this.safeList(entry, "details", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)details).size(); j++)
+            for (var j = 0; j < details.size(); j++)
             {
                 Map<String, Object> settlement = this.parseSettlement((Map<String, Object>) ((details == null || j < 0 || j >= details.size() ? null : details.get(j))), market);
                 ((List<Object>)result).add(this.extend(settlement, new HashMap<String, Object>() {{
@@ -10737,13 +10737,13 @@ public class Okx extends OkxApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String entryMarketId = this.safeString(entry, "instId");
                 if (java.util.Objects.equals(entryMarketId, marketId))
                 {
-                    return this.parseGreeks((Map<String, Object>) (entry), market);
+                    return this.parseGreeks(entry, market);
                 }
             }
             throw new NullResponse(((this.id + " fetchGreeks() could not find greeks for ") + symbol)) ;
@@ -10773,7 +10773,7 @@ public class Okx extends OkxApi
             }
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, true, true);
-            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
             if ((java.util.Objects.equals(symbolsNormalized, null)) || ((symbolsLength == null || symbolsLength != 1)))
             {
                 String uly = this.safeString(parameters, "uly");
@@ -11490,7 +11490,7 @@ public class Okx extends OkxApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(entry, "ccy");
@@ -11563,7 +11563,7 @@ public class Okx extends OkxApi
         {
             String feedback = ((this.id + " ") + body);
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> error = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 String errorCode = this.safeString(error, "sCode");
@@ -11734,7 +11734,7 @@ public class Okx extends OkxApi
             }};
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     Map<String, Object> market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));
@@ -11843,7 +11843,7 @@ public class Okx extends OkxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 List<Object> entry = (List<Object>) this.safeList(data, i, (Object) null);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{

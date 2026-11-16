@@ -825,10 +825,10 @@ public class Lighter extends LighterApi
     {
         this.checkRequiredCredentials(true);
         Map<String,Object> signature = ecdsa((hash == null ? null : ((String)hash).substring(Math.max(((String)hash).length() - 64, 0))), (privateKey == null ? null : ((String)privateKey).substring(Math.max(((String)privateKey).length() - 64, 0))), secp256k1(), null);
-        Object r = signature.get("r");
-        Object s = signature.get("s");
+        String r = (String) signature.get("r");
+        String s = (String) signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)s).length() >= 64 ? ((String)s).substring(((String)s).length() - 64) : String.format("%" + (64 - ((String)s).length()) + "s", "").replace(' ', '0') + ((String)s))) + v);
+        return ((("0x" + (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r)) + (s.length() >= 64 ? s.substring(s.length() - 64) : String.format("%" + (64 - s.length()) + "s", "").replace(' ', '0') + s)) + v);
     }
 
     public String signL1AndPrepareTxInfo(String txInfo, String message, String privateKey)
@@ -1281,7 +1281,7 @@ public class Lighter extends LighterApi
             Long groupingType = (Long) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(0);
             Map<String, Object> paramsGroupingType = (Map<String, Object>) ((List<Object>) groupingTypeparamsGroupingTypeVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             List<Object> orderRequests = this.createOrderRequest((String) (symbol), (String) (type), (String) (side), amount, price, paramsGroupingType);
-            Integer totalOrderRequests = ((List<?>)orderRequests).size();
+            Integer totalOrderRequests = orderRequests.size();
             if ((totalOrderRequests != null && totalOrderRequests > 1))
             {
                 // the signer replaces a -1 expiry with now + 28 days reading the clock once per leg, and rejects
@@ -1621,7 +1621,7 @@ public class Lighter extends LighterApi
             List<Object> swapMarkets = (List<Object>) this.safeList(response, "order_book_details", new ArrayList<Object>(Arrays.asList()));
             List<Object> markets = (List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
@@ -2252,7 +2252,7 @@ public class Lighter extends LighterApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "funding_rates", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 String exchange = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "exchange");
                 if (java.util.Objects.equals(exchange, "lighter"))
@@ -2343,13 +2343,13 @@ public class Lighter extends LighterApi
                 put( "info", response );
             }};
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            for (var i = 0; i < accounts.size(); i++)
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 if (java.util.Objects.equals(type, "spot"))
                 {
                     List<Object> assets = (List<Object>) this.safeList(account, "assets", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < ((List<?>)assets).size(); j++)
+                    for (var j = 0; j < assets.size(); j++)
                     {
                         Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, j, (Object) null);
                         String codeId = this.safeString(asset, "symbol");
@@ -2480,11 +2480,11 @@ public class Lighter extends LighterApi
             //
             List<Object> allPositions = new ArrayList<Object>(Arrays.asList());
             List<Object> accounts = (List<Object>) this.safeList(response, "accounts", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            for (var i = 0; i < accounts.size(); i++)
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 List<Object> positions = (List<Object>) this.safeList(account, "positions", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)positions).size(); j++)
+                for (var j = 0; j < positions.size(); j++)
                 {
                     ((List<Object>)allPositions).add((positions == null || j < 0 || j >= positions.size() ? null : positions.get(j)));
                 }
@@ -3690,7 +3690,7 @@ public class Lighter extends LighterApi
             //     }
             //
             List<Object> data = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Helpers.addElementToObject((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "account_index", accountIndex);
             }

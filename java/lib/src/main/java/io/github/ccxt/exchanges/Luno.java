@@ -642,7 +642,7 @@ public class Luno extends LunoApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> markets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "market_id");
@@ -758,7 +758,7 @@ public class Luno extends LunoApi
             Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             List<Object> wallets = (List<Object>) this.safeList(response, "balance", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)wallets).size(); i++)
+            for (var i = 0; i < wallets.size(); i++)
             {
                 Object account = (wallets == null || i < 0 || i >= wallets.size() ? null : wallets.get(i));
                 String accountId = this.safeString(account, "account_id");
@@ -784,7 +784,7 @@ public class Luno extends LunoApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < ((List<?>)wallets).size(); i++)
+        for (var i = 0; i < wallets.size(); i++)
         {
             Map<String, Object> wallet = (Map<String, Object>) this.safeDict(wallets, i, (Object) null);
             String currencyId = this.safeString(wallet, "asset");
@@ -1153,7 +1153,7 @@ public class Luno extends LunoApi
             Map<String,Object> tickers = this.indexBy(rawTickers, "pair");
             List<String> ids = new ArrayList<String>(tickers.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 Map<String, Object> market = this.safeMarket(id, (Map<String, Object>) null, (String) null, (String) null);

@@ -117,7 +117,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<Object> currencies = (List<Object>) this.safeList(this.options, "currencies", new ArrayList<Object>(Arrays.asList()));
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)currencies).size(); i++)
+            for (var i = 0; i < currencies.size(); i++)
             {
                 String currencyCode = this.safeString(currencies, i, "");
                 channels.add(("user.portfolio." + currencyCode));
@@ -260,7 +260,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String interval = this.safeString(parameters, "interval", "100ms");
             Map<String, Object> paramsOmitted = this.omit(parameters, "interval");
@@ -273,7 +273,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                 (this.authenticate(new HashMap<String, Object>() {{}})).join();
             }
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
                 channels.add(((("ticker." + this.safeString(market, "id", "")) + ".") + interval));
@@ -362,10 +362,10 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
+            List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)(List<String>)(symbolsNormalized)).size(); i++)
+            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
             {
                 Map<String, Object> market = this.market((((List<String>)(symbolsNormalized)) == null || i < 0 || i >= ((List<String>)(symbolsNormalized)).size() ? null : ((List<String>)(symbolsNormalized)).get(i)));
                 channels.add(("quote." + this.safeString(market, "id", "")));
@@ -536,7 +536,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             this.trades.put(symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             Map<String, Object> parsed = (Map<String, Object>) this.parseTrade(trade, market);
@@ -635,7 +635,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         }
         List<Object> parsed = this.parseTrades(trades, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
         Map<String, Object> marketIds = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)parsed).size(); i++)
+        for (var i = 0; i < parsed.size(); i++)
         {
             Object trade = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
             cachedTrades.append(trade);
@@ -767,7 +767,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         String channel = this.safeString(parameters, "channel");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)channel).split(java.util.regex.Pattern.quote("."))));
         String descriptor = "";
-        Integer partsLength = ((List<?>)parts).size();
+        Integer partsLength = parts.size();
         Boolean isDetailed = java.util.Objects.equals(partsLength, 5);
         if (Boolean.TRUE.equals(isDetailed))
         {
@@ -803,13 +803,13 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
         List<Object> bids = (List<Object>) this.safeList(data, "bids", new ArrayList<Object>(Arrays.asList()));
         List<Object> asks = (List<Object>) this.safeList(data, "asks", new ArrayList<Object>(Arrays.asList()));
         List<Object> cleanedBids = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)bids).size(); i++)
+        for (var i = 0; i < bids.size(); i++)
         {
             List<Object> bid = (List<Object>) this.safeList(bids, i, new ArrayList<Object>(Arrays.asList()));
             ((List<Object>)cleanedBids).add(new ArrayList<Object>(Arrays.asList((bid == null || 1 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(1)), (bid == null || 2 >= ((List<?>)bid).size() ? null : ((List<?>)bid).get(2)))));
         }
         List<Object> cleanedAsks = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)asks).size(); i++)
+        for (var i = 0; i < asks.size(); i++)
         {
             List<Object> ask = (List<Object>) this.safeList(asks, i, new ArrayList<Object>(Arrays.asList()));
             ((List<Object>)cleanedAsks).add(new ArrayList<Object>(Arrays.asList((ask == null || 1 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(1)), (ask == null || 2 >= ((List<?>)ask).size() ? null : ((List<?>)ask).get(2)))));
@@ -943,7 +943,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
             orders = new ArrayList<Object>(Arrays.asList(order));
         }
         io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        for (var i = 0; i < ((List<?>)orders).size(); i++)
+        for (var i = 0; i < orders.size(); i++)
         {
             cachedOrders.append((orders == null || i < 0 || i >= orders.size() ? null : orders.get(i)));
         }

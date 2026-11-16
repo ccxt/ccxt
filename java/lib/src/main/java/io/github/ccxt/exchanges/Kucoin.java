@@ -2325,7 +2325,7 @@ public class Kucoin extends KucoinApi
             List<Object> tickerItems = (List<Object>) this.safeList(this.safeDict(tickersResponse, "data", new HashMap<String, Object>() {{}}), "ticker", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> tickersById = this.indexBy(tickerItems, "symbol");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsData).size(); i++)
+            for (var i = 0; i < symbolsData.size(); i++)
             {
                 Object market = (symbolsData == null || i < 0 || i >= symbolsData.size() ? null : symbolsData.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2490,7 +2490,7 @@ public class Kucoin extends KucoinApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2681,7 +2681,7 @@ public class Kucoin extends KucoinApi
             List<Object> contractSymbolsData = (List<Object>) this.safeList(contractData, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> symbolsData = (List<Object>) this.arrayConcat(spotData, contractSymbolsData);
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsData).size(); i++)
+            for (var i = 0; i < symbolsData.size(); i++)
             {
                 Object market = (symbolsData == null || i < 0 || i >= symbolsData.size() ? null : symbolsData.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2923,7 +2923,7 @@ public class Kucoin extends KucoinApi
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<Object> chains = (List<Object>) this.safeList2(entry, "chains", "items", new ArrayList<Object>(Arrays.asList()));
-        Integer chainsLength = ((List<?>)chains).size();
+        Integer chainsLength = chains.size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
             Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
@@ -3044,7 +3044,7 @@ public class Kucoin extends KucoinApi
                 data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object account = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String accountId = this.safeString(account, "id");
@@ -3091,10 +3091,10 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
+                String _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
-                    request.put("chain", ((String)_netIdTmp).toLowerCase());
+                    request.put("chain", _netIdTmp.toLowerCase());
                 }
             }
             Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, paramsNetworkCode))).join();
@@ -3138,10 +3138,10 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
+                String _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
-                    request.put("chain", ((String)_netIdTmp).toLowerCase());
+                    request.put("chain", _netIdTmp.toLowerCase());
                 }
             }
             Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, paramsNetworkCode))).join();
@@ -3202,7 +3202,7 @@ public class Kucoin extends KucoinApi
                 put( "networks", new HashMap<String, Object>() {{}} );
             }};
             List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)chains).size(); i++)
+            for (var i = 0; i < chains.size(); i++)
             {
                 Map<String, Object> chain = (Map<String, Object>) this.safeDict(chains, i, (Object) null);
                 String chainId = this.safeString(chain, "chainId");
@@ -3625,7 +3625,7 @@ public class Kucoin extends KucoinApi
             List<Object> tickers = (List<Object>) this.safeList2(data, "ticker", "list", new ArrayList<Object>(Arrays.asList()));
             Long time = (Long) this.safeInteger2(data, "time", "ts");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Helpers.addElementToObject((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "time", time);
                 Map<String, Object> ticker = (Map<String, Object>) this.parseSpotOrUtaTicker((Map<String, Object>) ((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i))), (Map<String, Object>) null);
@@ -4356,10 +4356,10 @@ public class Kucoin extends KucoinApi
             paramsRequest = (Map<String, Object>) ((List<Object>) networkCodeparamsRequestVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
+                String _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
-                    request.put("chain", ((String)_netIdTmp).toLowerCase());
+                    request.put("chain", _netIdTmp.toLowerCase());
                 }
             }
             String version = this.getDepositAddressesVersion();
@@ -4471,7 +4471,7 @@ public class Kucoin extends KucoinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta) endpoint, defaults to false
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -4498,10 +4498,10 @@ public class Kucoin extends KucoinApi
                 paramsRequest = (Map<String, Object>) ((List<Object>) networkCodeparamsRequestVariable).get(1);
                 if (!java.util.Objects.equals(networkCode, null))
                 {
-                    Object _netIdTmp = this.networkCodeToId(networkCode, java.util.Objects.toString(code, null));
+                    String _netIdTmp = this.networkCodeToId(networkCode, java.util.Objects.toString(code, null));
                     if (!java.util.Objects.equals(_netIdTmp, null))
                     {
-                        request.put("chain", ((String)_netIdTmp).toLowerCase());
+                        request.put("chain", _netIdTmp.toLowerCase());
                     }
                 }
                 //
@@ -5224,8 +5224,8 @@ public class Kucoin extends KucoinApi
         {
             request.put("postOnly", true);
         }
-        Object hidden = this.safeValue(paramsOmitted, "hidden");
-        if (Boolean.TRUE.equals(postOnly) && (!java.util.Objects.equals(hidden, null)))
+        boolean hidden = (this.safeValue(paramsOmitted, "hidden")) != null;
+        if (Boolean.TRUE.equals(postOnly) && (hidden))
         {
             throw new BadRequest((this.id + " createOrder() does not support the postOnly parameter together with a hidden parameter")) ;
         }
@@ -5624,7 +5624,7 @@ public class Kucoin extends KucoinApi
             Boolean isSpot = false;
             Boolean isContract = false;
             List<Object> ordersList = this.toArray(orders);
-            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
+            for (var i = 0; i < ordersList.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String symbol = this.safeString(order, "symbol");
@@ -5683,7 +5683,7 @@ public class Kucoin extends KucoinApi
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             String symbol = null;
             List<Object> ordersList = this.toArray(orders);
-            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
+            for (var i = 0; i < ordersList.size(); i++)
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String marketId = this.safeString(rawOrder, "symbol");
@@ -5795,7 +5795,7 @@ public class Kucoin extends KucoinApi
             }
             List<Object> ordersRequests = new ArrayList<Object>(Arrays.asList());
             List<Object> ordersList = this.toArray(orders);
-            for (var i = 0; i < ((List<?>)ordersList).size(); i++)
+            for (var i = 0; i < ordersList.size(); i++)
             {
                 Map<String, Object> rawOrder = (Map<String, Object>) this.safeDict(ordersList, i, (Object) null);
                 String symbol = this.safeString(rawOrder, "symbol");
@@ -9088,10 +9088,10 @@ public class Kucoin extends KucoinApi
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             if (!java.util.Objects.equals(networkCode, null))
             {
-                Object _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
+                String _netIdTmp = this.networkCodeToId(networkCode, this.safeString(currency, "code"));
                 if (!java.util.Objects.equals(_netIdTmp, null))
                 {
-                    request.put("chain", ((String)_netIdTmp).toLowerCase());
+                    request.put("chain", _netIdTmp.toLowerCase());
                 }
             }
             String amountString = (String) this.currencyToPrecision((String) (code), amount, networkCode);
@@ -9198,7 +9198,7 @@ public class Kucoin extends KucoinApi
         if (!java.util.Objects.equals(txid, null))
         {
             List<Object> txidParts = new ArrayList<Object>(Arrays.asList(((String)txid).split(java.util.regex.Pattern.quote("@"))));
-            Integer numTxidParts = ((List<?>)txidParts).size();
+            Integer numTxidParts = txidParts.size();
             if ((numTxidParts != null && numTxidParts > 1))
             {
                 if (java.util.Objects.equals(address, null))
@@ -9839,16 +9839,15 @@ public class Kucoin extends KucoinApi
             //        }
             //    }
             //
-            Object result = (switch (0) { default -> { HashMap<String, Object> j39v9 = new HashMap<String, Object>();
-                j39v9.put("info", response);
-                j39v9.put("timestamp", null);
-                j39v9.put("datetime", null);
-                yield j39v9; } });
+            Map<String, Object> result = new HashMap<String, Object>();
+            result.put("info", response);
+            result.put("timestamp", null);
+            result.put("datetime", null);
             if (Boolean.TRUE.equals(isolated))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)assets).size(); i++)
+                for (var i = 0; i < assets.size(); i++)
                 {
                     Map<String, Object> entry = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
                     Map<String, Object> base = (Map<String, Object>) this.safeDict(entry, "baseAsset", new HashMap<String, Object>() {{}});
@@ -9857,31 +9856,31 @@ public class Kucoin extends KucoinApi
                     String quoteCode = this.safeCurrencyCode(this.safeString(quote, "currency"), (Map<String, Object>) null);
                     if (!java.util.Objects.equals(baseCode, null))
                     {
-                        result = this.mergeBalanceAccount((Map<String, Object>) (result), baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
+                        result = (Map<String, Object>) this.mergeBalanceAccount(result, baseCode, (Map<String, Object>) (this.parseBalanceHelper(base)));
                     }
                     if (!java.util.Objects.equals(quoteCode, null))
                     {
-                        result = this.mergeBalanceAccount((Map<String, Object>) (result), quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
+                        result = (Map<String, Object>) this.mergeBalanceAccount(result, quoteCode, (Map<String, Object>) (this.parseBalanceHelper(quote)));
                     }
                 }
             } else if (Boolean.TRUE.equals(cross))
             {
                 Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
                 List<Object> accounts = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)accounts).size(); i++)
+                for (var i = 0; i < accounts.size(); i++)
                 {
                     Object balance = (accounts == null || i < 0 || i >= accounts.size() ? null : accounts.get(i));
                     String currencyId = this.safeString(balance, "currency");
                     String codeInner = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(codeInner, null))
                     {
-                        ((Map<String, Object>)result).put(codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
+                        result.put(codeInner, this.parseBalanceHelper((Map<String, Object>) (balance)));
                     }
                 }
             } else
             {
                 List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)data).size(); i++)
+                for (var i = 0; i < data.size(); i++)
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                     String balanceType = this.safeString(balance, "type");
@@ -9895,7 +9894,7 @@ public class Kucoin extends KucoinApi
                         account.put("used", this.safeString(balance, "holds"));
                         if (!java.util.Objects.equals(codeInner2, null))
                         {
-                            ((Map<String, Object>)result).put(codeInner2, account);
+                            result.put(codeInner2, account);
                         }
                     }
                 }
@@ -10086,26 +10085,25 @@ public class Kucoin extends KucoinApi
             }
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "ts");
-            Object result = (switch (0) { default -> { HashMap<String, Object> j39v10 = new HashMap<String, Object>();
-                j39v10.put("info", response);
-                j39v10.put("timestamp", timestamp);
-                j39v10.put("datetime", this.iso8601(timestamp));
-                yield j39v10; } });
+            Map<String, Object> result = new HashMap<String, Object>();
+            result.put("info", response);
+            result.put("timestamp", timestamp);
+            result.put("datetime", this.iso8601(timestamp));
             List<Object> accounts = (List<Object>) this.safeList(data, "accounts", new ArrayList<Object>(Arrays.asList()));
             if (Boolean.TRUE.equals(isIsolated))
             {
-                for (var i = 0; i < ((List<?>)accounts).size(); i++)
+                for (var i = 0; i < accounts.size(); i++)
                 {
                     Map<String, Object> entry = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                     List<Object> currencies = (List<Object>) this.safeList(entry, "currencies", new ArrayList<Object>(Arrays.asList()));
-                    for (var j = 0; j < ((List<?>)currencies).size(); j++)
+                    for (var j = 0; j < currencies.size(); j++)
                     {
                         Map<String, Object> currencyEntry = (Map<String, Object>) this.safeDict(currencies, j, new HashMap<String, Object>() {{}});
                         String currencyId = this.safeString(currencyEntry, "currency");
                         String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(currencyCode, null))
                         {
-                            result = this.mergeBalanceAccount((Map<String, Object>) (result), currencyCode, (Map<String, Object>) (this.parseBalanceHelper(currencyEntry)));
+                            result = (Map<String, Object>) this.mergeBalanceAccount(result, currencyCode, (Map<String, Object>) (this.parseBalanceHelper(currencyEntry)));
                         }
                     }
                 }
@@ -10113,14 +10111,14 @@ public class Kucoin extends KucoinApi
             {
                 Map<String, Object> firstAccount = (Map<String, Object>) this.safeDict(accounts, 0, new HashMap<String, Object>() {{}});
                 List<Object> currencies = (List<Object>) this.safeList(firstAccount, "currencies", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)currencies).size(); i++)
+                for (var i = 0; i < currencies.size(); i++)
                 {
                     Map<String, Object> currencyEntry = (Map<String, Object>) this.safeDict(currencies, i, new HashMap<String, Object>() {{}});
                     String currencyId = this.safeString(currencyEntry, "currency");
                     String currencyCode = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                     if (!java.util.Objects.equals(currencyCode, null))
                     {
-                        ((Map<String, Object>)result).put(currencyCode, this.parseBalanceHelper(currencyEntry));
+                        result.put(currencyCode, this.parseBalanceHelper(currencyEntry));
                     }
                 }
             }
@@ -11395,12 +11393,12 @@ public class Kucoin extends KucoinApi
                     borrowRateHistories.put(code, new ArrayList<Object>(Arrays.asList()));
                 }
                 Map<String, Object> borrowRateStructure = (Map<String, Object>) this.parseBorrowRate(item, (Map<String, Object>) null);
-                Object borrowRateHistoriesCode = (borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code));
-                ((List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
+                List<Object> borrowRateHistoriesCode = (List<Object>) ((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)));
+                borrowRateHistoriesCode.add(borrowRateStructure);
             }
         }
         List<String> keys = new ArrayList<String>(borrowRateHistories.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String code = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             borrowRateHistories.put(code, this.filterByCurrencySinceLimit((borrowRateHistories == null || code == null ? null : borrowRateHistories.get(code)), code, since, limit, false));
@@ -12084,7 +12082,7 @@ public class Kucoin extends KucoinApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -12395,24 +12393,24 @@ public class Kucoin extends KucoinApi
                 dataList = (List<Object>) this.safeList(data, "dataList", new ArrayList<Object>(Arrays.asList()));
             }
             List<Object> fees = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)dataList).size(); i++)
+            for (var i = 0; i < dataList.size(); i++)
             {
                 Object listItem = (dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i));
                 Long timestamp = (Long) this.safeInteger2(listItem, "timePoint", "settlementTime");
                 String marketId = this.safeString(listItem, "symbol");
-                HashMap<String, Object> j39v11 = new HashMap<String, Object>();
-                j39v11.put("info", listItem);
-                j39v11.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
-                j39v11.put("code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency"), (Map<String, Object>) null));
-                j39v11.put("timestamp", timestamp);
-                j39v11.put("datetime", this.iso8601(timestamp));
-                j39v11.put("id", this.safeNumber(listItem, "id", (Object) null));
-                j39v11.put("amount", this.safeNumber2(listItem, "funding", "fundingFee", (Object) null));
-                j39v11.put("fundingRate", this.safeNumber(listItem, "fundingRate", (Object) null));
-                j39v11.put("markPrice", this.safeNumber(listItem, "markPrice", (Object) null));
-                j39v11.put("positionQty", this.safeNumber2(listItem, "positionQty", "size", (Object) null));
-                j39v11.put("positionCost", this.safeNumber2(listItem, "positionCost", "positionValue", (Object) null));
-                ((List<Object>)fees).add(j39v11);
+                HashMap<String, Object> j39v9 = new HashMap<String, Object>();
+                j39v9.put("info", listItem);
+                j39v9.put("symbol", this.safeSymbol(marketId, market, (String) null, (String) null));
+                j39v9.put("code", this.safeCurrencyCode(this.safeString(listItem, "settleCurrency"), (Map<String, Object>) null));
+                j39v9.put("timestamp", timestamp);
+                j39v9.put("datetime", this.iso8601(timestamp));
+                j39v9.put("id", this.safeNumber(listItem, "id", (Object) null));
+                j39v9.put("amount", this.safeNumber2(listItem, "funding", "fundingFee", (Object) null));
+                j39v9.put("fundingRate", this.safeNumber(listItem, "fundingRate", (Object) null));
+                j39v9.put("markPrice", this.safeNumber(listItem, "markPrice", (Object) null));
+                j39v9.put("positionQty", this.safeNumber2(listItem, "positionQty", "size", (Object) null));
+                j39v9.put("positionCost", this.safeNumber2(listItem, "positionCost", "positionValue", (Object) null));
+                ((List<Object>)fees).add(j39v9);
             }
             return fees;
         }).thenApply(res -> ((List<?>) res).stream().map(FundingHistory::new).collect(Collectors.toList()));
@@ -12612,7 +12610,7 @@ public class Kucoin extends KucoinApi
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (java.util.Objects.equals(length, 1))
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));
@@ -12990,7 +12988,7 @@ public class Kucoin extends KucoinApi
             List<Object> clientOrderIds = (List<Object>) this.safeList2(paramsRequest, "clientOrderIds", "clientOids", new ArrayList<Object>(Arrays.asList()));
             paramsRequest = this.omit(paramsRequest, new ArrayList<Object>(Arrays.asList("clientOrderIds", "clientOids")));
             Boolean useClientorderId = false;
-            for (var i = 0; i < ((List<?>)clientOrderIds).size(); i++)
+            for (var i = 0; i < clientOrderIds.size(); i++)
             {
                 useClientorderId = true;
                 if (java.util.Objects.equals(symbol, null))
@@ -13594,7 +13592,7 @@ public class Kucoin extends KucoinApi
         //
         Map<String, Object> marketCursor = market;
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v12 -> j39v12.size(); case String j39v13 -> j39v13.length(); case Object j39v14 -> j39v14.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v14) : 0; }); i++)
+        for (var i = 0; i < (switch ((Object)(info)) { case null -> 0; case List<?> j39v10 -> j39v10.size(); case String j39v11 -> j39v11.length(); case Object j39v12 -> j39v12.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v12) : 0; }); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(info, i, new HashMap<String, Object>() {{}});
             String marketId = this.safeString(tier, "symbol");
@@ -13683,7 +13681,7 @@ public class Kucoin extends KucoinApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> tiers = (List<Object>) this.parseMarketLeverageTiers(data, (Map<String, Object>) null);
-            for (var i = 0; i < ((List<?>)tiers).size(); i++)
+            for (var i = 0; i < tiers.size(); i++)
             {
                 Map<String, Object> tier = (Map<String, Object>) this.safeDict(tiers, i, (Object) null);
                 String symbol = this.safeString(tier, "symbol");
@@ -13723,7 +13721,7 @@ public class Kucoin extends KucoinApi
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer length = ((List<?>)symbolsNormalized).size();
+                Integer length = symbolsNormalized.size();
                 if (((length == null || length < 11)))
                 {
                     // the endpoint does not accept more than 10 symbols at a time

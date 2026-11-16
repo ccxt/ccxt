@@ -1436,7 +1436,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, query))).join();
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> rate = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Long timestamp = this.safeInteger(rate, "fundingTime");
@@ -1599,7 +1599,7 @@ public class Blofin extends BlofinApi
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(data, "ts");
         List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)details).size(); i++)
+        for (var i = 0; i < details.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -1645,7 +1645,7 @@ public class Blofin extends BlofinApi
             put( "info", response );
         }};
         List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -2751,7 +2751,7 @@ public class Blofin extends BlofinApi
                 {
                     Map<String, Object> networks = (Map<String, Object>) this.safeDict(currency, "networks", new HashMap<String, Object>() {{}});
                     List<String> networkKeys = new ArrayList<String>(networks.keySet());
-                    Integer networkKeysLength = ((List<?>)networkKeys).size();
+                    Integer networkKeysLength = networkKeys.size();
                     if (java.util.Objects.equals(networkKeysLength, 1))
                     {
                         networkCode = this.safeString(networkKeys, 0);
@@ -3551,7 +3551,7 @@ public class Blofin extends BlofinApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbols, null))
             {
-                Integer symbolsLength = ((List<?>)symbols).size();
+                Integer symbolsLength = symbols.size();
                 if (java.util.Objects.equals(symbolsLength, 0))
                 {
                     market = this.market((symbols == null || 0 >= ((List<?>)symbols).size() ? null : ((List<?>)symbols).get(0)));

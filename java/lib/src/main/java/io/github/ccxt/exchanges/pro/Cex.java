@@ -142,7 +142,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         this.balance.put("info", data);
         List<String> currencyIds = new ArrayList<String>(freeBalance.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Map<String, Object> account = this.account();
@@ -194,7 +194,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             if (!java.util.Objects.equals(client, null))
             {
                 List<Object> subscriptionKeys = new ArrayList<Object>(client.subscriptions.keySet());
-                for (var i = 0; i < ((List<?>)subscriptionKeys).size(); i++)
+                for (var i = 0; i < subscriptionKeys.size(); i++)
                 {
                     Object subscriptionKey = (subscriptionKeys == null || i < 0 || i >= subscriptionKeys.size() ? null : subscriptionKeys.get(i));
                     if (java.util.Objects.equals(subscriptionKey, subscriptionHash))
@@ -302,7 +302,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         Map<String, Object> market = this.market(symbol);
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         for (var i = 0; (dataLength != null && i < dataLength); i++)
         {
             Long index = ((((long) dataLength) - 1L) - ((long) i));
@@ -1096,7 +1096,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         io.github.ccxt.ws.ArrayCache myOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
-        for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
             Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             Map<String, Object> market = this.safeMarket(symbol, (Map<String, Object>) null, (String) null, (String) null);
@@ -1373,7 +1373,7 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), "unknown", stored);
         }
         List<Object> sorted = this.sortBy(data, 0);
-        for (var i = 0; i < ((List<?>)sorted).size(); i++)
+        for (var i = 0; i < sorted.size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((sorted == null || i < 0 || i >= sorted.size() ? null : sorted.get(i)), market);
             stored.append(parsed);
@@ -1445,12 +1445,12 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         String messageHash = ("ohlcv:" + symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<String, Object>)((Map<?, ?>)this.ohlcvs).get(symbol)).get("unknown");
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             List<Object> ohlcv = new ArrayList<Object>(Arrays.asList(this.safeTimestamp((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 0), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 1, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 2, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 3, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 4, (Object) null), this.safeNumber((data == null || i < 0 || i >= data.size() ? null : data.get(i)), 5, (Object) null)));
             stored.append(ohlcv);
         }
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if ((dataLength != null && dataLength > 0))
         {
             client.resolve(stored, messageHash);
@@ -1781,8 +1781,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
         } catch(Exception error)
         {
             String messageHash = this.safeString(message, "oid");
-            io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)this.safeValue(client.futures, messageHash);
-            if (!java.util.Objects.equals(future, null))
+            boolean future = (this.safeValue(client.futures, messageHash)) != null;
+            if (future)
             {
                 client.reject(error, messageHash);
                 return true;
@@ -1908,8 +1908,8 @@ public class Cex extends io.github.ccxt.exchanges.Cex
             Client client = this.client(url);
             String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 this.checkRequiredCredentials(true);
                 String nonce = String.valueOf(this.seconds());

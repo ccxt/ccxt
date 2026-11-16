@@ -378,10 +378,10 @@ public class Coincheck extends CoincheckApi
             put( "info", response );
         }};
         List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
-        for (var i = 0; i < ((List<?>)codes).size(); i++)
+        for (var i = 0; i < codes.size(); i++)
         {
-            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
-            Map<String, Object> currency = this.currency((String) (code));
+            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            Map<String, Object> currency = this.currency(code);
             String currencyId = (String) currency.get("id");
             String free = this.safeString(response, currencyId);
             if (!java.util.Objects.equals(free, null))
@@ -390,7 +390,7 @@ public class Coincheck extends CoincheckApi
                 String reserved = (currencyId + "_reserved");
                 account.put("free", free);
                 account.put("used", this.safeString(response, reserved));
-                result.put((String)code, account);
+                result.put(code, account);
             }
         }
         return this.safeBalance(result);
@@ -429,7 +429,7 @@ public class Coincheck extends CoincheckApi
             List<Object> exchangeStatuses = (List<Object>) this.safeList(response, "exchange_status", new ArrayList<Object>(Arrays.asList()));
             String status = "ok";
             Long updated = null;
-            for (var i = 0; i < ((List<?>)exchangeStatuses).size(); i++)
+            for (var i = 0; i < exchangeStatuses.size(); i++)
             {
                 Map<String, Object> exchangeStatus = (Map<String, Object>) this.safeDict(exchangeStatuses, i, (Object) null);
                 String rawStatus = this.safeString(exchangeStatus, "status");
@@ -508,7 +508,7 @@ public class Coincheck extends CoincheckApi
             List<Object> rawOrders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsedOrders).size(); i++)
+            for (var i = 0; i < parsedOrders.size(); i++)
             {
                 ((List<Object>)result).add(this.extend((parsedOrders == null || i < 0 || i >= parsedOrders.size() ? null : parsedOrders.get(i)), new HashMap<String, Object>() {{
                     put( "status", "open" );
@@ -912,7 +912,7 @@ public class Coincheck extends CoincheckApi
             {
                 return result;
             }
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);

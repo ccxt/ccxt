@@ -200,7 +200,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         //     }]
         //
         this.balance.put("info", balances);
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "a");
@@ -510,7 +510,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         Map<String, Object> markets = this.markets;
         List<String> symbols = new ArrayList<String>(markets.keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbolId = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Object candidate = this.safeValue(markets, symbolId);
@@ -740,7 +740,7 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             if (java.util.Objects.equals(stored, null))
             {

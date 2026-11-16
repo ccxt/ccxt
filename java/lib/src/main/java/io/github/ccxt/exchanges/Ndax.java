@@ -1568,7 +1568,7 @@ public class Ndax extends NdaxApi
             //     [ 449 ] // comma-separated list of account ids
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 String accountId = this.safeString(response, i);
                 ((List<Object>)result).add(new HashMap<String, Object>() {{

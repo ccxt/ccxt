@@ -909,7 +909,7 @@ public class Hitbtc extends HitbtcApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<String> ids = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)ids).size(); i++)
+            for (var i = 0; i < ids.size(); i++)
             {
                 String id = (ids == null || i < 0 || i >= ids.size() ? null : ids.get(i));
                 if ((id.endsWith(((String)"_BQX"))))
@@ -1091,7 +1091,7 @@ public class Hitbtc extends HitbtcApi
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
         List<Object> rawNetworks = (List<Object>) this.safeList(currency, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
+        for (var j = 0; j < rawNetworks.size(); j++)
         {
             Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
             String networkId = this.safeString2(rawNetwork, "protocol", "network");
@@ -1414,7 +1414,7 @@ public class Hitbtc extends HitbtcApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> keys = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1512,7 +1512,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             List<String> marketIds = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> marketInner = this.market(marketId);
@@ -1973,7 +1973,7 @@ public class Hitbtc extends HitbtcApi
             Map<String, Object> response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> marketIds = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
@@ -2338,7 +2338,7 @@ public class Hitbtc extends HitbtcApi
             }
             List<Object> parsed = this.parseOrders(response, market, since, limit, new HashMap<String, Object>() {{}});
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
                 String status = this.safeString((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)), "status");
                 if ((java.util.Objects.equals(status, "closed")) || (java.util.Objects.equals(status, "canceled")))
@@ -3417,7 +3417,7 @@ public class Hitbtc extends HitbtcApi
             //
             List<String> marketIds = new ArrayList<String>(response.keySet());
             Map<String, Object> fundingRates = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = this.safeString(marketIds, i);
                 if (java.util.Objects.equals(marketId, null))
@@ -3500,12 +3500,12 @@ public class Hitbtc extends HitbtcApi
             //
             List<String> contracts = new ArrayList<String>(response.keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)contracts).size(); i++)
+            for (var i = 0; i < contracts.size(); i++)
             {
                 String marketId = (contracts == null || i < 0 || i >= contracts.size() ? null : contracts.get(i));
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
                 List<Object> fundingRateData = (List<Object>) this.safeList(response, marketId, new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)fundingRateData).size(); j++)
+                for (var j = 0; j < fundingRateData.size(); j++)
                 {
                     Object entry = (fundingRateData == null || j < 0 || j >= fundingRateData.size() ? null : fundingRateData.get(j));
                     String symbolInner = this.safeSymbol(marketInner.get("symbol"), (Map<String, Object>) null, (String) null, (String) null);
@@ -3747,7 +3747,7 @@ public class Hitbtc extends HitbtcApi
         Double liquidationPrice = null;
         Double entryPrice = null;
         Double contracts = null;
-        for (var i = 0; i < ((List<?>)positions).size(); i++)
+        for (var i = 0; i < positions.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(positions, i, (Object) null);
             liquidationPrice = this.safeNumber(entry, "price_liquidation", (Object) null);
@@ -3756,7 +3756,7 @@ public class Hitbtc extends HitbtcApi
         }
         List<Object> currencies = (List<Object>) this.safeList(position, "currencies", new ArrayList<Object>(Arrays.asList()));
         Double collateral = null;
-        for (var i = 0; i < ((List<?>)currencies).size(); i++)
+        for (var i = 0; i < currencies.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(currencies, i, (Object) null);
             collateral = this.safeNumber(entry, "margin_balance", (Object) null);
@@ -3870,7 +3870,7 @@ public class Hitbtc extends HitbtcApi
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             List<String> markets = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 String marketId = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -4399,7 +4399,7 @@ public class Hitbtc extends HitbtcApi
         //
         List<Object> networks = (List<Object>) this.safeList(fee, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
-        for (var j = 0; j < ((List<?>)networks).size(); j++)
+        for (var j = 0; j < networks.size(); j++)
         {
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(networks, j, (Object) null);
             String networkId = this.safeString(networkEntry, "network");

@@ -444,7 +444,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> pairs = (Map<String, Object>) this.safeDict(response, "pairs", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(pairs.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(pairs, key, (Object) null);
@@ -608,7 +608,7 @@ public class Hollaex extends HollaexApi
         Map<String, Object> rawNetworks = (Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new HashMap<String, Object>() {{}});
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         List<String> networkIds = new ArrayList<String>(rawNetworks.keySet());
-        for (var j = 0; j < ((List<?>)networkIds).size(); j++)
+        for (var j = 0; j < networkIds.size(); j++)
         {
             String networkId = (networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j));
             Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(rawNetworks, networkId, (Object) null);
@@ -681,7 +681,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> marketIds = new ArrayList<String>(response.keySet());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Map<String, Object> orderbook = (Map<String, Object>) this.safeDict(response, marketId, new HashMap<String, Object>() {{}});
@@ -827,7 +827,7 @@ public class Hollaex extends HollaexApi
     {
         Map<String, Object> result = new HashMap<String, Object>() {{}};
         List<Object> keys = ((List<Object>) switch ((Object)(tickers)) { case Map<?, ?> j39v2 -> { synchronized (j39v2) { yield new ArrayList<Object>(j39v2.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(tickers, key, new HashMap<String, Object>() {{}});
@@ -1054,7 +1054,7 @@ public class Hollaex extends HollaexApi
             Map<String, Object> takerFees = (Map<String, Object>) this.safeDict(fees, "taker", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -1172,7 +1172,7 @@ public class Hollaex extends HollaexApi
         }
         Object currenciesById = this.currencies_by_id;
         List<String> currencyIds = new ArrayList<String>(((Map<String, Object>)currenciesById).keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = this.safeString(currencyIds, i, "");
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -2277,7 +2277,7 @@ public class Hollaex extends HollaexApi
         if (!java.util.Objects.equals(withdrawalFees, null))
         {
             List<String> keys = new ArrayList<String>(withdrawalFees.keySet());
-            Integer keysLength = ((List<?>)keys).size();
+            Integer keysLength = keys.size();
             for (var i = 0; (keysLength != null && i < keysLength); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));

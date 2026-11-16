@@ -680,7 +680,7 @@ public class Bitbank extends BitbankApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> pairs = (List<Object>) this.safeList(data, "pairs", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)pairs).size(); i++)
+            for (var i = 0; i < pairs.size(); i++)
             {
                 Object pair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
                 String marketId = this.safeString(pair, "name");
@@ -789,7 +789,7 @@ public class Bitbank extends BitbankApi
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> assets = (List<Object>) this.safeList(data, "assets", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)assets).size(); i++)
+        for (var i = 0; i < assets.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");

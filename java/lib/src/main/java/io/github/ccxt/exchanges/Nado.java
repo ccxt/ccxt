@@ -927,7 +927,7 @@ public class Nado extends NadoApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
+            for (var i = 0; i < cancelledOrders.size(); i++)
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
@@ -1037,7 +1037,7 @@ public class Nado extends NadoApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> cancelledOrders = (List<Object>) this.safeList(data, "cancelled_orders", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)cancelledOrders).size(); i++)
+            for (var i = 0; i < cancelledOrders.size(); i++)
             {
                 ((List<Object>)result).add(this.parseOrder(this.extend(new HashMap<String, Object>() {{
                     put( "status", "canceled" );
@@ -1427,7 +1427,7 @@ public class Nado extends NadoApi
             //
             List<Object> closedOrders = new ArrayList<Object>(Arrays.asList());
             List<Object> orders = (List<Object>) this.safeList(response, "orders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; i < orders.size(); i++)
             {
                 Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 if (this.isArchiveOrderClosed((Map<String, Object>) (order)))
@@ -1571,7 +1571,7 @@ public class Nado extends NadoApi
             List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> txsBySubmission = this.indexBy(txs, "submission_idx");
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)matches).size(); i++)
+            for (var i = 0; i < matches.size(); i++)
             {
                 Object match = (matches == null || i < 0 || i >= matches.size() ? null : matches.get(i));
                 String submissionIdx = this.safeString(match, "submission_idx");
@@ -1757,12 +1757,12 @@ public class Nado extends NadoApi
             List<Object> events = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
             List<Object> txs = (List<Object>) this.safeList(response, "txs", new ArrayList<Object>(Arrays.asList()));
             List<Object> transactions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)events).size(); i++)
+            for (var i = 0; i < events.size(); i++)
             {
                 Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
                 String submissionIdx = this.safeString(eventVar, "submission_idx");
                 Object tx = new HashMap<String, Object>() {{}};
-                for (var j = 0; j < ((List<?>)txs).size(); j++)
+                for (var j = 0; j < txs.size(); j++)
                 {
                     Object rawTx = (txs == null || j < 0 || j >= txs.size() ? null : txs.get(j));
                     String txSubmissionIdx = this.safeString(rawTx, "submission_idx");
@@ -1842,7 +1842,7 @@ public class Nado extends NadoApi
             List<Object> positions = (List<Object>) this.safeList(data, "perp_balances", new ArrayList<Object>(Arrays.asList()));
             List<Object> products = (List<Object>) this.safeList(data, "perp_products", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Object position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(position, "balance", new HashMap<String, Object>() {{}});
@@ -1853,7 +1853,7 @@ public class Nado extends NadoApi
                 }
                 String productId = this.safeString(position, "product_id");
                 Object product = new HashMap<String, Object>() {{}};
-                for (var j = 0; j < ((List<?>)products).size(); j++)
+                for (var j = 0; j < products.size(); j++)
                 {
                     Object rawProduct = (products == null || j < 0 || j >= products.size() ? null : products.get(j));
                     String rawProductId = this.safeString(rawProduct, "product_id");
@@ -1965,7 +1965,7 @@ public class Nado extends NadoApi
             // product_id is a JSON number: JS object keys are always strings but a Python
             // dict keeps int keys, so indexBy would never match the safeString lookups below
             Map<String, Object> pairsById = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)pairs).size(); i++)
+            for (var i = 0; i < pairs.size(); i++)
             {
                 Object rawPair = (pairs == null || i < 0 || i >= pairs.size() ? null : pairs.get(i));
                 String pairProductId = this.safeString(rawPair, "product_id");
@@ -1975,7 +1975,7 @@ public class Nado extends NadoApi
                 }
             }
             Map<String, Object> assetsById = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            for (var i = 0; i < assets.size(); i++)
             {
                 Object rawAsset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 String assetProductId = this.safeString(rawAsset, "product_id");
@@ -1985,7 +1985,7 @@ public class Nado extends NadoApi
                 }
             }
             Map<String, Object> assetsByCode = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            for (var i = 0; i < assets.size(); i++)
             {
                 Object rawAsset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 String assetSymbol = this.safeString(rawAsset, "symbol");
@@ -2011,7 +2011,7 @@ public class Nado extends NadoApi
                 }
             }
             List<Object> markets = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 Object market = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 String id = this.safeString(market, "product_id");
@@ -2132,7 +2132,7 @@ public class Nado extends NadoApi
             List<Object> response = (this.gatewayV2PublicGetAssets(parameters)).join();
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> assets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            for (var i = 0; i < assets.size(); i++)
             {
                 Object currency = this.safeValue(assets, i);
                 io.github.ccxt.types.CurrencyInterface parsed = this.parseCurrency(currency);
@@ -2345,7 +2345,7 @@ public class Nado extends NadoApi
             //
             List<Object> fundingPayments = (List<Object>) this.safeList(response, "funding_payments", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)fundingPayments).size(); i++)
+            for (var i = 0; i < fundingPayments.size(); i++)
             {
                 ((List<Object>)result).add(this.parseFundingHistory((Map<String, Object>) ((fundingPayments == null || i < 0 || i >= fundingPayments.size() ? null : fundingPayments.get(i))), market));
             }
@@ -2398,7 +2398,7 @@ public class Nado extends NadoApi
             //
             List<String> tickers = new ArrayList<String>(response.keySet());
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)rates).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
@@ -2503,7 +2503,7 @@ public class Nado extends NadoApi
             //
             List<String> tickers = new ArrayList<String>(response.keySet());
             List<Object> interests = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 String ticker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 ((List<Object>)interests).add(this.safeDict(response, ticker, new HashMap<String, Object>() {{}}));
@@ -3008,7 +3008,7 @@ public class Nado extends NadoApi
             put( "info", response );
         }};
         List<Object> balances = (List<Object>) this.safeList(response, "spot_balances", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(rawBalance, "product_id");
@@ -3704,7 +3704,7 @@ public class Nado extends NadoApi
         if (!java.util.Objects.equals(byQuery, null))
         {
             List<String> queryNames = new ArrayList<String>(byQuery.keySet());
-            for (var i = 0; i < ((List<?>)queryNames).size(); i++)
+            for (var i = 0; i < queryNames.size(); i++)
             {
                 String queryName = (queryNames == null || i < 0 || i >= queryNames.size() ? null : queryNames.get(i));
                 if ((switch ((Object)(parameters)) { case List<?> j39v4 -> ((Object)(queryName)) != null && j39v4.contains(queryName); case Map<?, ?> j39v3 -> ((Object)(queryName)) instanceof String && j39v3.containsKey(queryName); case null, default -> false; }))

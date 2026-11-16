@@ -604,7 +604,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic((String) (topic), message)).join();
+            Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -674,7 +674,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -713,7 +713,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object bidsasks = (this.watchPublic((String) (topic), message)).join();
+            Object bidsasks = (this.watchPublic(topic, message)).join();
             if (this.newUpdates)
             {
                 return bidsasks;
@@ -773,7 +773,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         Map<String, Object> result = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             if (java.util.Objects.equals(ticker, null))
@@ -1147,8 +1147,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String messageHash = "authenticated";
             String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String ts = String.valueOf(this.nonce());
                 String auth = ("|" + ts);
@@ -1599,7 +1599,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 {
                     throw new ArgumentsRequired((this.id + " watchPositions() symbols is required")) ;
                 }
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     if (java.util.Objects.equals(symbolsNormalized, null))
                     {
@@ -1616,9 +1616,9 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             String url = ((apiUrl + "/") + this.uid);
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized, (List<String>) null);
-            Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-            Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(this.positions, null)))
+            boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+            boolean awaitPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
+            if ((fetchPositionsSnapshot) && (awaitPositionsSnapshot) && (java.util.Objects.equals(this.positions, null)))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -1639,8 +1639,8 @@ public class Woo extends io.github.ccxt.exchanges.Woo
 
     public void setPositionsCache(Client client, Object type, List<String> symbols)
     {
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = "fetchPositionsSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -1662,7 +1662,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
@@ -1719,7 +1719,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)postitionsIds).size(); i++)
+        for (var i = 0; i < postitionsIds.size(); i++)
         {
             String marketId = (postitionsIds == null || i < 0 || i >= postitionsIds.size() ? null : postitionsIds.get(i));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1758,7 +1758,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchPrivate((String) (messageHash), message, new HashMap<String, Object>() {{}})).join();
+            return (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }
@@ -1800,7 +1800,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         this.balance.put("info", data);
         this.balance.put("timestamp", ts);
         this.balance.put("datetime", this.iso8601(ts));
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
@@ -1932,7 +1932,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
         Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, unsubscribeHash, new HashMap<String, Object>() {{}});
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> unsubMessageHashes = (List<Object>) this.safeList(subscription, "unsubMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)subMessageHashes).size(); i++)
+        for (var i = 0; i < subMessageHashes.size(); i++)
         {
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
             Object unsubHash = (unsubMessageHashes == null || i < 0 || i >= unsubMessageHashes.size() ? null : unsubMessageHashes.get(i));
@@ -2079,7 +2079,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
-            Integer splitLength = ((List<?>)splitTopic).size();
+            Integer splitLength = splitTopic.size();
             if (java.util.Objects.equals(splitLength, 2))
             {
                 String name = this.safeString(splitTopic, 1);
@@ -2142,7 +2142,7 @@ public class Woo extends io.github.ccxt.exchanges.Woo
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
-                Integer splitNameLength = ((List<?>)splitTopic).size();
+                Integer splitNameLength = splitTopic.size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     method = methods.get(this.safeString(splitName, 0));

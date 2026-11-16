@@ -439,7 +439,7 @@ public class Indodax extends IndodaxApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
                 Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
@@ -523,7 +523,7 @@ public class Indodax extends IndodaxApi
             put( "datetime", Indodax.this.iso8601(timestamp) );
         }};
         List<String> currencyIds = new ArrayList<String>(free.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -746,7 +746,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> tickers = (Map<String, Object>) this.safeDict(response, "tickers", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(tickers.keySet());
             Map<String, Object> parsedTickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object rawTicker = (tickers == null || key == null ? null : tickers.get(key));
@@ -1083,7 +1083,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> ordersDict = (Map<String, Object>) this.safeDict(openOrdersResult, "orders", new HashMap<String, Object>() {{}});
             List<String> marketIds = new ArrayList<String>(ordersDict.keySet());
             List<Object> exchangeOrders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
                 Object marketOrders = (ordersDict == null || marketId == null ? null : ordersDict.get(marketId));
@@ -1466,13 +1466,13 @@ public class Indodax extends IndodaxApi
             if (java.util.Objects.equals(code, null))
             {
                 List<String> withdrawKeys = new ArrayList<String>(withdraw.keySet());
-                for (var i = 0; i < ((List<?>)withdrawKeys).size(); i++)
+                for (var i = 0; i < withdrawKeys.size(); i++)
                 {
                     String key = (withdrawKeys == null || i < 0 || i >= withdrawKeys.size() ? null : withdrawKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (withdraw == null || key == null ? null : withdraw.get(key)));
                 }
                 List<String> depositKeys = new ArrayList<String>(deposit.keySet());
-                for (var i = 0; i < ((List<?>)depositKeys).size(); i++)
+                for (var i = 0; i < depositKeys.size(); i++)
                 {
                     String key = (depositKeys == null || i < 0 || i >= depositKeys.size() ? null : depositKeys.get(i));
                     transactions = (List<Object>) this.arrayConcat(transactions, (deposit == null || key == null ? null : deposit.get(key)));
@@ -1704,7 +1704,7 @@ public class Indodax extends IndodaxApi
             Map<String, Object> networks = (Map<String, Object>) this.safeDict(data, "network", new HashMap<String, Object>() {{}});
             List<String> addressKeys = new ArrayList<String>(addresses.keySet());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)addressKeys).size(); i++)
+            for (var i = 0; i < addressKeys.size(); i++)
             {
                 String marketId = (addressKeys == null || i < 0 || i >= addressKeys.size() ? null : addressKeys.get(i));
                 String code = this.safeCurrencyCode(marketId, (Map<String, Object>) null);
@@ -1728,7 +1728,7 @@ public class Indodax extends IndodaxApi
                                 throw new ExchangeError((this.id + " fetchDepositAddresses() missing networkId")) ;
                             }
                             List<Object> networkIds = new ArrayList<Object>(Arrays.asList(((String)networkId).split(java.util.regex.Pattern.quote(","))));
-                            for (var j = 0; j < ((List<?>)networkIds).size(); j++)
+                            for (var j = 0; j < networkIds.size(); j++)
                             {
                                 String _netIdTmp = this.networkIdToCode(java.util.Objects.toString((networkIds == null || j < 0 || j >= networkIds.size() ? null : networkIds.get(j)), null), code);
                                 if (!java.util.Objects.equals(_netIdTmp, null))

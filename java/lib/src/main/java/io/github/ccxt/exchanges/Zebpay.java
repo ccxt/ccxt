@@ -476,7 +476,7 @@ public class Zebpay extends ZebpayApi
             Map<String, Object> fetchMarketsOptions = (Map<String, Object>) this.safeDict(this.options, "fetchMarkets", (Object) null);
             List<String> defaultMarkets = new ArrayList<String>(Arrays.asList("spot", "swap"));
             List<Object> types = (List<Object>) this.safeList(fetchMarketsOptions, "types", defaultMarkets);
-            for (var i = 0; i < ((List<?>)types).size(); i++)
+            for (var i = 0; i < types.size(); i++)
             {
                 String type = this.safeString(types, i, "");
                 if (java.util.Objects.equals(type, "spot"))
@@ -562,7 +562,7 @@ public class Zebpay extends ZebpayApi
         String minDepositString = null;
         Boolean deposit = false;
         Boolean withdraw = false;
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chain = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String networkId = this.safeString(chain, "chainId");
@@ -770,7 +770,7 @@ public class Zebpay extends ZebpayApi
             //
             List<Object> fees = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
@@ -2038,7 +2038,7 @@ public class Zebpay extends ZebpayApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2128,7 +2128,7 @@ public class Zebpay extends ZebpayApi
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> markets = (List<Object>) this.safeList(data, "symbols", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -2187,7 +2187,7 @@ public class Zebpay extends ZebpayApi
             put( "datetime", null );
         }};
         List<Object> currencyList = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)currencyList).size(); i++)
+        for (var i = 0; i < currencyList.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(currencyList, i, (Object) null);
             Map<String, Object> account = this.account();

@@ -728,8 +728,8 @@ public class Alpaca extends io.github.ccxt.exchanges.Alpaca
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 Object request = new HashMap<String, Object>() {{
                     put( "action", "auth" );

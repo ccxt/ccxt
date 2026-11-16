@@ -528,7 +528,7 @@ public class Polymarket extends PolymarketApi
             List<Object> instruments = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> assets = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)instruments).size(); i++)
+            for (var i = 0; i < instruments.size(); i++)
             {
                 Object instrument = (instruments == null || i < 0 || i >= instruments.size() ? null : instruments.get(i));
                 String baseId = this.safeString(instrument, "base_asset");
@@ -573,7 +573,7 @@ public class Polymarket extends PolymarketApi
         put( "type", "fiat" );
         put( "networks", new HashMap<String, Object>() {{}} );
     }}));
-            for (var i = 0; i < ((List<?>)assets).size(); i++)
+            for (var i = 0; i < assets.size(); i++)
             {
                 Object asset = (assets == null || i < 0 || i >= assets.size() ? null : assets.get(i));
                 String currencyId = this.safeString(asset, "asset");
@@ -809,7 +809,7 @@ public class Polymarket extends PolymarketApi
             //
             Map<String, Object> merged = new HashMap<String, Object>() {{}};
             List<Object> statistics = (List<Object>) this.safeList(responses, 1, new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)statistics).size(); i++)
+            for (var i = 0; i < statistics.size(); i++)
             {
                 Object entry = (statistics == null || i < 0 || i >= statistics.size() ? null : statistics.get(i));
                 String instrumentId = this.safeString(entry, "instrument_id");
@@ -817,7 +817,7 @@ public class Polymarket extends PolymarketApi
                 merged.put((String)instrumentId, this.omit(entry, "klines"));
             }
             List<Object> bbos = (List<Object>) this.safeList(responses, 2, new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)bbos).size(); i++)
+            for (var i = 0; i < bbos.size(); i++)
             {
                 Object entry = (bbos == null || i < 0 || i >= bbos.size() ? null : bbos.get(i));
                 String instrumentId = this.safeString(entry, "instrument_id");
@@ -827,7 +827,7 @@ public class Polymarket extends PolymarketApi
             }
             List<Object> tickers = (List<Object>) this.safeList(responses, 0, new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Object entry = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 String instrumentId = this.safeString(entry, "instrument_id");
@@ -1315,7 +1315,7 @@ public class Polymarket extends PolymarketApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "timestamp");
@@ -1446,7 +1446,7 @@ public class Polymarket extends PolymarketApi
             //
             List<Object> schedule = (List<Object>) this.safeList(response, "fee_schedule", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> byCategory = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)schedule).size(); i++)
+            for (var i = 0; i < schedule.size(); i++)
             {
                 Object entry = (schedule == null || i < 0 || i >= schedule.size() ? null : schedule.get(i));
                 String category = this.safeString(entry, "category");
@@ -1490,8 +1490,8 @@ public class Polymarket extends PolymarketApi
     public Map<String, Object> createOrderRequest(Map<String, Object> market, String type, String side, Object amount, Object price, Map<String, Object> parameters)
     {
         String triggerPrice = this.safeStringN(parameters, new ArrayList<Object>(Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "trailingPercent", "trailingAmount")));
-        Object attached = this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")));
-        if ((!java.util.Objects.equals(triggerPrice, null)) || (!java.util.Objects.equals(attached, null)))
+        boolean attached = (this.safeValueN(parameters, new ArrayList<Object>(Arrays.asList("stopLoss", "takeProfit")))) != null;
+        if ((!java.util.Objects.equals(triggerPrice, null)) || (attached))
         {
             throw new NotSupported((this.id + " createOrder() does not support trigger or attached stop orders yet")) ;
         }
@@ -1669,7 +1669,7 @@ public class Polymarket extends PolymarketApi
             //     ]
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> ack = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 Object marketInner = (ordersMarkets == null || i < 0 || i >= ordersMarkets.size() ? null : ordersMarkets.get(i));
@@ -1780,7 +1780,7 @@ public class Polymarket extends PolymarketApi
             //     ]
             //
             List<Object> results = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> ack = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String status = this.safeString(ack, "status");
@@ -2146,7 +2146,7 @@ public class Polymarket extends PolymarketApi
             Long timestamp = this.safeInteger(response, "timestamp");
             List<Object> rows = (List<Object>) this.safeList(response, "positions", new ArrayList<Object>(Arrays.asList()));
             List<Object> positions = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 // the wrapper timestamp flows into the parser through the merged input
                 Map<String, Object> extended = this.extend((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), new HashMap<String, Object>() {{
@@ -2363,7 +2363,7 @@ public class Polymarket extends PolymarketApi
             List<Object> response = (this.privateGetAccountOrders(this.extend(request, parameters))).join();
             // select the requested row explicitly in case the documented
             // order_id filter is ever ignored the way the tickers one is
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> row = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String rowId = this.safeString(row, "order_id");
@@ -2504,7 +2504,7 @@ public class Polymarket extends PolymarketApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String marketId = this.safeString(entry, "instrument_id");
@@ -2825,7 +2825,7 @@ public class Polymarket extends PolymarketApi
             //
             // select the requested row explicitly in case the documented
             // instrument_id filter is ever ignored the way the tickers one is
-            for (var i = 0; i < ((List<?>)response).size(); i++)
+            for (var i = 0; i < response.size(); i++)
             {
                 Map<String, Object> row = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 String rowId = this.safeString(row, "instrument_id");
@@ -3074,10 +3074,10 @@ public class Polymarket extends PolymarketApi
     public String signHash(Object hash, Object privateKey)
     {
         Map<String,Object> signature = ecdsa(Helpers.slice(hash, -64, null), Helpers.slice(privateKey, -64, null), secp256k1(), null);
-        Object r = signature.get("r");
-        Object sVal = signature.get("s");
+        String r = (String) signature.get("r");
+        String sVal = (String) signature.get("s");
         String v = this.intToBase16(this.sum(27, signature.get("v")));
-        return ((("0x" + (((String)r).length() >= 64 ? ((String)r).substring(((String)r).length() - 64) : String.format("%" + (64 - ((String)r).length()) + "s", "").replace(' ', '0') + ((String)r))) + (((String)sVal).length() >= 64 ? ((String)sVal).substring(((String)sVal).length() - 64) : String.format("%" + (64 - ((String)sVal).length()) + "s", "").replace(' ', '0') + ((String)sVal))) + v);
+        return ((("0x" + (r.length() >= 64 ? r.substring(r.length() - 64) : String.format("%" + (64 - r.length()) + "s", "").replace(' ', '0') + r)) + (sVal.length() >= 64 ? sVal.substring(sVal.length() - 64) : String.format("%" + (64 - sVal.length()) + "s", "").replace(' ', '0') + sVal)) + v);
     }
 
     public String signMessage(Object message, Object privateKey)
@@ -3276,7 +3276,7 @@ public class Polymarket extends PolymarketApi
     public Object compactSignable(List<Object> row)
     {
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)row).size(); i++)
+        for (var i = 0; i < row.size(); i++)
         {
             if (!java.util.Objects.equals((row == null || i < 0 || i >= row.size() ? null : row.get(i)), null))
             {
@@ -3338,7 +3338,7 @@ public class Polymarket extends PolymarketApi
         {
             Map<String, Object> op = (Map<String, Object>) this.safeDict(parameters, "op", new HashMap<String, Object>() {{}});
             List<Object> args = (List<Object>) this.safeList(op, "args", new ArrayList<Object>(Arrays.asList()));
-            return this.sum(1, this.parseToInt((((double) ((List<?>)args).size()) / ((double) 20))));
+            return this.sum(1, this.parseToInt((((double) args.size()) / ((double) 20))));
         }
         if (java.util.Objects.equals(path, "info/book"))
         {
@@ -3380,7 +3380,7 @@ public class Polymarket extends PolymarketApi
             if (java.util.Objects.equals(java.util.Objects.requireNonNullElse(method, "GET"), "GET"))
             {
                 List<String> keys = new ArrayList<String>(((Map<String, Object>)query).keySet());
-                Integer keysLength = ((List<?>)keys).size();
+                Integer keysLength = keys.size();
                 if ((keysLength != null && keysLength > 0))
                 {
                     url = ((((baseUrl + "/") + implodedPath) + "?") + this.urlencode(query));

@@ -970,7 +970,7 @@ public class P2b extends P2bApi
             put( "info", response );
         }};
         List<String> keys = new ArrayList<String>(response.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String currencyId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(response, currencyId, (Object) null);
@@ -1438,7 +1438,7 @@ public class P2b extends P2bApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
             List<String> keys = new ArrayList<String>(result.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object marketOrders = (result == null || marketId == null ? null : result.get(marketId));

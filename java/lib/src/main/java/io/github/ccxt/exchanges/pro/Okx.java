@@ -127,9 +127,9 @@ public class Okx extends io.github.ccxt.exchanges.Okx
     public String getUrl(String channel, Object access)
     {
         // for context: https://www.okx.com/help-center/changes-to-v5-api-websocket-subscription-parameter-and-url
-        Object isSandbox = this.options.get("sandboxMode");
+        boolean isSandbox = Boolean.TRUE.equals(this.options.get("sandboxMode"));
         String sandboxSuffix = "";
-        if (java.util.Objects.equals(isSandbox, true))
+        if (isSandbox)
         {
             sandboxSuffix = "?brokerId=9999";
         }
@@ -168,7 +168,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 throw new ArgumentsRequired((this.id + " subscribeMultiple() symbols is required")) ;
             }
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 if (java.util.Objects.equals(symbolsNormalized, null))
                 {
@@ -276,7 +276,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTrades", "channel", "trades")).get(0);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((channel + ":") + symbol));
@@ -298,7 +298,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 mapLiteral1.put("access", access);
                 (this.authenticate(mapLiteral1)).join();
             }
-            String url = this.getUrl((String) (channel), access);
+            String url = this.getUrl(channel, access);
             List<Object> trades = (this.<List<Object>>watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
             Map<String, Object> first = (Map<String, Object>) this.safeDict(trades, 0, (Object) null);
             String tradeSymbol = this.safeString(first, "symbol");
@@ -334,7 +334,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTrades", "channel", "trades")).get(0);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((("unsubscribe:" + channel) + ":") + symbol));
@@ -356,7 +356,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 mapLiteral2.put("access", access);
                 (this.authenticate(mapLiteral2)).join();
             }
-            String url = this.getUrl((String) (channel), access);
+            String url = this.getUrl(channel, access);
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -420,7 +420,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
@@ -489,7 +489,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String channel = "funding-rate";
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((channel + ":") + symbol));
@@ -542,7 +542,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         // ]
         //
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> rawfr = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             Map<String, Object> fundingRate = (Map<String, Object>) this.parseFundingRate(rawfr, (Map<String, Object>) null);
@@ -726,7 +726,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String channel = (String) ((List<Object>)this.handleOptionStringAndParams((Map<String, Object>) (parameters), "watchTickers", "channel", "tickers")).get(0);
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("unsubscribe:ticker:" + symbol));
@@ -741,7 +741,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 put( "op", "unsubscribe" );
                 put( "args", topics );
             }};
-            String url = this.getUrl((String) (channel), "public");
+            String url = this.getUrl(channel, "public");
             return (this.watchMultiple((String) (url), messageHashes, request, messageHashes, null)).join();
         });
 
@@ -787,7 +787,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             this.tickers.put(symbol, ticker);
@@ -827,7 +827,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String url = this.getUrl(channel, "public");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String marketId = this.marketId((String) ((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i))));
                 Map<String, Object> arg = new HashMap<String, Object>() {{
@@ -975,7 +975,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(((messageHash + "::") + symbol));
@@ -1048,10 +1048,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //    }
         //
         List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
+        for (var i = 0; i < rawLiquidations.size(); i++)
         {
-            Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
-            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsLiquidation(rawLiquidation, (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1100,7 +1100,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(((messageHash + "::") + symbol));
@@ -1164,15 +1164,15 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         //    }
         //
         List<Object> rawLiquidations = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)rawLiquidations).size(); i++)
+        for (var i = 0; i < rawLiquidations.size(); i++)
         {
-            Object rawLiquidation = (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
+            Map<String, Object> rawLiquidation = (Map<String, Object>) (rawLiquidations == null || i < 0 || i >= rawLiquidations.size() ? null : rawLiquidations.get(i));
             String eventType = this.safeString(rawLiquidation, "eventType");
             if (!java.util.Objects.equals(eventType, "liquidation"))
             {
                 return;
             }
-            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsMyLiquidation((Map<String, Object>) (rawLiquidation), (Map<String, Object>) null);
+            Map<String, Object> liquidation = (Map<String, Object>) this.parseWsMyLiquidation(rawLiquidation, (Map<String, Object>) null);
             String symbol = this.safeString(liquidation, "symbol", "");
             if (java.util.Objects.equals(this.liquidations, null))
             {
@@ -1473,7 +1473,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String interval = channel.replaceFirst("candle", "");
         // use a reverse lookup in a static map instead
         String timeframe = this.findTimeframe(interval, (Object) null);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             this.ohlcvs.put(symbol, this.safeDict(this.ohlcvs, symbol, new HashMap<String, Object>() {{}}));
@@ -1573,7 +1573,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             }
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((depth + ":") + symbol));
@@ -1591,7 +1591,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> resyncTopics = new ArrayList<Object>(Arrays.asList());
             List<String> resyncHashes = new ArrayList<String>(Arrays.asList());
             Boolean resyncNeeded = false;
-            for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+            for (var i = 0; i < messageHashes.size(); i++)
             {
                 if (java.util.Objects.equals(this.safeString(client.subscriptions, (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), "resync"))
                 {
@@ -1661,7 +1661,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             List<Object> topics = new ArrayList<Object>(Arrays.asList());
             List<String> subMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 subMessageHashes.add(((depth + ":") + symbol));
@@ -1880,7 +1880,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         String messageHash = ((channel + ":") + symbol);
         if (java.util.Objects.equals(action, "snapshot"))
         {
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 // reset the existing orderbook instead of replacing it: a consumer
@@ -1909,7 +1909,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             if (((Map<?, ?>)this.orderbooks).containsKey(symbol))
             {
                 io.github.ccxt.ws.WsOrderBook updatedBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                for (var i = 0; i < ((List<?>)data).size(); i++)
+                for (var i = 0; i < data.size(); i++)
                 {
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     this.handleOrderBookMessage(client, (Map<String, Object>) (update), (io.github.ccxt.ws.WsOrderBook) (updatedBook), messageHash, market);
@@ -1934,7 +1934,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                     this.orderbooks.put(symbol, this.orderBook(new HashMap<String, Object>() {{}}, limit));
                 }
                 io.github.ccxt.ws.WsOrderBook bboBook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
-                for (var i = 0; i < ((List<?>)data).size(); i++)
+                for (var i = 0; i < data.size(); i++)
                 {
                     Object update = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                     Long timestamp = this.safeInteger(update, "ts");
@@ -1963,8 +1963,8 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String timestamp = String.valueOf(this.seconds());
                 String method = "GET";
@@ -2127,7 +2127,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         List<String> reserved = new ArrayList<String>(Arrays.asList("free", "used", "total"));
         List<String> keys = new ArrayList<String>(((Map<String, Object>)balance).keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (this.inArray(key, reserved))
@@ -2384,10 +2384,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Object rawPosition = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> rawPosition = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             Double contracts = this.safeNumber(position, "contracts", (Object) null);
             if ((contracts != null && contracts == 0) && java.util.Objects.equals(this.safeString(rawPosition, "posSide"), "net"))
             {
@@ -2480,7 +2480,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             {
                 channel = "orders-algo";
             }
-            List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, (String) (symbolResolved), this.extend(request, paramsMarginMode))).join();
+            List<Object> orders = (List<Object>) (this.subscribe("private", channel, channel, symbolResolved, this.extend(request, paramsMarginMode))).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -2551,7 +2551,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         Map<String, Object> arg = (Map<String, Object>) this.safeDict(message, "arg", new HashMap<String, Object>() {{}});
         String channel = this.safeString(arg, "channel");
         List<Object> orders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer ordersLength = ((List<?>)orders).size();
+        Integer ordersLength = orders.size();
         if ((ordersLength != null && ordersLength > 0))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2563,7 +2563,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((((java.util.Objects.equals(channel, "orders-algo")))) ? this.triggerOrders : this.orders);
             List<Object> marketIds = new ArrayList<Object>(Arrays.asList());
             List<Object> parsed = this.parseOrders(orders, (Map<String, Object>) null, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
                 Object order = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 stored.append(order);
@@ -2572,7 +2572,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((List<Object>)marketIds).add(market.get("id"));
             }
             client.resolve(stored, channel);
-            for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+            for (var i = 0; i < marketIds.size(); i++)
             {
                 if (!java.util.Objects.equals(channel, null))
                 {
@@ -2644,7 +2644,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         List<Object> rawOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> filteredOrders = new ArrayList<Object>(Arrays.asList());
         // filter orders with no last trade id
-        for (var i = 0; i < ((List<?>)rawOrders).size(); i++)
+        for (var i = 0; i < rawOrders.size(); i++)
         {
             Object rawOrder = (rawOrders == null || i < 0 || i >= rawOrders.size() ? null : rawOrders.get(i));
             String tradeId = this.safeString(rawOrder, "tradeId", "");
@@ -2654,7 +2654,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 ((List<Object>)filteredOrders).add(order);
             }
         }
-        Integer tradesLength = ((List<?>)filteredOrders).size();
+        Integer tradesLength = filteredOrders.size();
         if (java.util.Objects.equals(tradesLength, 0))
         {
             return;
@@ -2666,10 +2666,10 @@ public class Okx extends io.github.ccxt.exchanges.Okx
         }
         io.github.ccxt.ws.ArrayCache myTrades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)filteredOrders).size(); i++)
+        for (var i = 0; i < filteredOrders.size(); i++)
         {
-            Object rawTrade = (filteredOrders == null || i < 0 || i >= filteredOrders.size() ? null : filteredOrders.get(i));
-            Object trade = this.orderToTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
+            Map<String, Object> rawTrade = (Map<String, Object>) (filteredOrders == null || i < 0 || i >= filteredOrders.size() ? null : filteredOrders.get(i));
+            Object trade = this.orderToTrade(rawTrade, (Map<String, Object>) null);
             myTrades.append(trade);
             String symbol = this.safeString(trade, "symbol");
             if (!java.util.Objects.equals(symbol, null))
@@ -2682,7 +2682,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
             String messageHash = (channel + "::myTrades");
             client.resolve(this.myTrades, messageHash);
             List<Object> tradeSymbols = new ArrayList<Object>(symbols.keySet());
-            for (var i = 0; i < ((List<?>)tradeSymbols).size(); i++)
+            for (var i = 0; i < tradeSymbols.size(); i++)
             {
                 String symbolMessageHash = ((messageHash + "::") + (tradeSymbols == null || i < 0 || i >= tradeSymbols.size() ? null : tradeSymbols.get(i)));
                 client.resolve(this.myTrades, symbolMessageHash);
@@ -3092,7 +3092,7 @@ public class Okx extends io.github.ccxt.exchanges.Okx
                 } else
                 {
                     List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < ((List<?>)data).size(); i++)
+                    for (var i = 0; i < data.size(); i++)
                     {
                         Map<String, Object> d = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                         errorCode = this.safeString(d, "sCode");

@@ -150,7 +150,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // }
         //
         List<Object> parameters = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)parameters).size(); i++)
+        for (var i = 0; i < parameters.size(); i++)
         {
             Object data = (parameters == null || i < 0 || i >= parameters.size() ? null : parameters.get(i));
             String marketId = this.safeString(data, 7);
@@ -344,7 +344,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             Long id = this.incrementingNonce();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<Object> args = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 messageHashes.add(("ticker:" + market.get("symbol")));
@@ -394,10 +394,10 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         client.resolve(ticker, messageHash);
         // watchTickers
         List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object currentMessageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            if (((String)currentMessageHash).indexOf("tickers") >= 0 && ((String)currentMessageHash).indexOf(symbol) >= 0)
+            String currentMessageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            if (currentMessageHash.indexOf("tickers") >= 0 && currentMessageHash.indexOf(symbol) >= 0)
             {
                 // Example: user calls watchTickers with ['LTC/USDT', 'ETH/USDT']
                 // the associated messagehash will be: 'tickers:LTC/USDT:ETH/USDT'
@@ -489,7 +489,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         List<Object> data = (List<Object>) this.safeList(parameters, 1, new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        for (var j = 0; j < ((List<?>)parsedTrades).size(); j++)
+        for (var j = 0; j < parsedTrades.size(); j++)
         {
             stored.append((parsedTrades == null || j < 0 || j >= parsedTrades.size() ? null : parsedTrades.get(j)));
         }
@@ -909,7 +909,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             }
             // an empty params array subscribes to updates for all assets,
             // listing all tickers explicitly is rejected with "invalid argument"
-            return (this.watchPrivate(messageHash, (String) (method), new ArrayList<Object>(Arrays.asList()), paramsAwaitBalanceSnapshot)).join();
+            return (this.watchPrivate(messageHash, method, new ArrayList<Object>(Arrays.asList()), paramsAwaitBalanceSnapshot)).join();
         }).thenApply(Balances::new);
 
     }
@@ -920,8 +920,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         {
             return;
         }
-        Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        boolean fetchBalanceSnapshot = Boolean.TRUE.equals(this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
+        if (fetchBalanceSnapshot)
         {
             String messageHash = (type + ":fetchBalanceSnapshot");
             if (!(client.futures.containsKey(messageHash)))
@@ -998,7 +998,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         }
         Boolean isMargin = (((String)method).indexOf("Margin") >= 0);
         List<Object> data = (List<Object>) this.safeList(message, "params", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> balanceDict = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             this.balance.put("info", this.safeDict(data, i, new HashMap<String, Object>() {{}}));
@@ -1017,7 +1017,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
             } else
             {
                 List<String> keys = new ArrayList<String>(balanceDict.keySet());
-                for (var j = 0; j < ((List<?>)keys).size(); j++)
+                for (var j = 0; j < keys.size(); j++)
                 {
                     String currencyId = (keys == null || j < 0 || j >= keys.size() ? null : keys.get(j));
                     Map<String, Object> rawBalance = (Map<String, Object>) this.safeDict(balanceDict, currencyId, new HashMap<String, Object>() {{}});
@@ -1191,8 +1191,8 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
                 client.future(messageHash).getFuture().join();
                 return authorized;
             }
-            Object authenticated = this.safeValue(client.subscriptions, subscribeHash);
-            if (!java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, subscribeHash)) != null;
+            if (authenticated)
             {
                 // a previous flight already completed the handshake on the client
                 return authorized;
@@ -1350,7 +1350,7 @@ public class Whitebit extends io.github.ccxt.exchanges.Whitebit
         // as an object so we can't do indeById here
         Map<String, Object> subs = client.subscriptions;
         List<Object> values = new ArrayList<Object>(subs.values());
-        for (var i = 0; i < ((List<?>)values).size(); i++)
+        for (var i = 0; i < values.size(); i++)
         {
             Object subscription = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
             if (!java.util.Objects.equals(subscription, true))

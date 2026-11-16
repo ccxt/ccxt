@@ -401,7 +401,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             tradesCache = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, tradesCache);
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             tradesCache.append(trade);
@@ -887,8 +887,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         Long orderbookNonce = this.safeInteger(orderbook, "nonce", 0);
         if ((!java.util.Objects.equals(prevSeqNum, null)) && (prevSeqNum != null && (orderbookNonce == null || prevSeqNum > orderbookNonce)))
         {
-            Object checksum = this.handleOption("watchOrderBook", "checksum", true);
-            if (java.util.Objects.equals(checksum, true))
+            boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", true));
+            if (checksum)
             {
                 throw new ChecksumError(((this.id + " ") + this.orderbookChecksumMessage(symbol))) ;
             }
@@ -1075,7 +1075,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
+                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash(type, subType, market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 String orderMessageHash = this.safeString(channelAndMessageHash, 1);
                 // we will take advantage of the order messageHash because already handles stuff
@@ -1088,7 +1088,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            trades = (this.subscribePrivate((String) (channel), (String) (messageHash), (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            trades = (this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams)).join();
             if (java.util.Objects.equals(trades, null))
             {
                 throw new ArgumentsRequired((this.id + " watchMyTrades() trades is required")) ;
@@ -1251,14 +1251,14 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 paramsRequest = (Map<String, Object>) this.safeDict(channelAndMessageHashAndParams, 2, new HashMap<String, Object>() {{}});
             } else
             {
-                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash((String) (type), (String) (subType), market, paramsRequest);
+                List<Object> channelAndMessageHash = (List<Object>) this.getOrderChannelAndMessageHash(type, subType, market, paramsRequest);
                 channel = this.safeString(channelAndMessageHash, 0);
                 messageHash = this.safeString(channelAndMessageHash, 1);
             }
             Map<String, Object> subscriptionParams = new HashMap<String, Object>() {{
                 put( "isV5", isV5Linear );
             }};
-            List<Object> orders = (List<Object>) (this.subscribePrivate((String) (channel), messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            List<Object> orders = (List<Object>) (this.subscribePrivate(channel, messageHash, type, subType, paramsRequest, subscriptionParams)).join();
             Long limitResolved = limit;
             if (this.newUpdates)
             {
@@ -1485,7 +1485,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             // contract branch
             parsedOrder = this.parseWsOrder(message, market);
             List<Object> rawTrades = (List<Object>) this.safeList(message, "trade", new ArrayList<Object>(Arrays.asList()));
-            Integer tradesLength = ((List<?>)rawTrades).size();
+            Integer tradesLength = rawTrades.size();
             if ((tradesLength != null && tradesLength > 0))
             {
                 Map<String, Object> tradesObject = new HashMap<String, Object>();
@@ -1902,7 +1902,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             if (Boolean.TRUE.equals(isV5Linear))
             {
                 Map<String, Object> v5Market = null;
-                if ((!java.util.Objects.equals(symbolsNormalized, null)) && ((((List<?>)symbolsNormalized).size() == 1)))
+                if ((!java.util.Objects.equals(symbolsNormalized, null)) && ((symbolsNormalized.size() == 1)))
                 {
                     v5Market = market;
                 }
@@ -1913,7 +1913,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             Map<String, Object> subscriptionParams = new HashMap<String, Object>();
             subscriptionParams.put("isV5", isV5Linear);
             subscriptionParams.put("margin", marginMode);
-            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, (String) (type), (String) (subType), paramsRequest, subscriptionParams)).join();
+            List<Object> newPositions = (List<Object>) (this.subscribePrivate(channel, messageHash, type, (String) (subType), paramsRequest, subscriptionParams)).join();
             if (this.newUpdates)
             {
                 return newPositions;
@@ -2014,7 +2014,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         if (this.isEmpty(rawPositions))
         {
             List<String> prefixes = new ArrayList<String>(Arrays.asList("cross:positions", "isolated:positions"));
-            for (var i = 0; i < ((List<?>)prefixes).size(); i++)
+            for (var i = 0; i < prefixes.size(); i++)
             {
                 Object messageHashes = this.findMessageHashes(client, (prefixes == null || i < 0 || i >= prefixes.size() ? null : prefixes.get(i)));
                 for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
@@ -2027,10 +2027,10 @@ public class Htx extends io.github.ccxt.exchanges.Htx
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
         Map<String, Object> positionsByMarginMode = new HashMap<String, Object>() {{}};
         Long timestamp = this.safeInteger(message, "ts");
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             position.put("timestamp", timestamp);
             position.put("datetime", this.iso8601(timestamp));
             String marginMode = this.safeStringLower(position, "marginMode", defaultMarginMode);
@@ -2050,17 +2050,17 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             ((io.github.ccxt.ws.ArrayCache) cache).append(position);
         }
         List<String> marginModes = new ArrayList<String>(positionsByMarginMode.keySet());
-        for (var i = 0; i < ((List<?>)marginModes).size(); i++)
+        for (var i = 0; i < marginModes.size(); i++)
         {
             Object marginMode = (marginModes == null || i < 0 || i >= marginModes.size() ? null : marginModes.get(i));
             List<Object> marginModePositions = (List<Object>) this.safeList(positionsByMarginMode, marginMode, new ArrayList<Object>(Arrays.asList()));
             Object messageHashes = this.findMessageHashes(client, (marginMode + ":positions::"));
             for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
             {
-                Object messageHash = (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j));
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+                String messageHash = (String) (messageHashes == null || j < 0 || j >= ((List<?>)messageHashes).size() ? null : ((List<?>)messageHashes).get(j));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
                 String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-                List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+                List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
                 List<Object> positions = (List<Object>) this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!this.isEmpty(positions))
                 {
@@ -2364,7 +2364,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             {
                 Map<String, Object> accountData = (Map<String, Object>) this.safeDict(message, "data", new HashMap<String, Object>() {{}});
                 List<Object> details = (List<Object>) this.safeList(accountData, "details", new ArrayList<Object>(Arrays.asList()));
-                Integer detailsLength = ((List<?>)details).size();
+                Integer detailsLength = details.size();
                 for (var i = 0; (detailsLength != null && i < detailsLength); i++)
                 {
                     Map<String, Object> detail = (Map<String, Object>) this.safeDict(details, i, (Object) null);
@@ -2383,7 +2383,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 client.resolve(this.balance, "account");
                 return;
             }
-            Integer dataLength = ((List<?>)data).size();
+            Integer dataLength = data.size();
             if (java.util.Objects.equals(dataLength, 0))
             {
                 return;
@@ -2455,7 +2455,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 } else
                 {
                     // isolated margin
-                    for (var i = 0; i < ((List<?>)data).size(); i++)
+                    for (var i = 0; i < data.size(); i++)
                     {
                         Map<String, Object> isolatedBalance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                         Map<String, Object> account = this.account();
@@ -2473,7 +2473,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             } else
             {
                 // inverse branch
-                for (var i = 0; i < ((List<?>)data).size(); i++)
+                for (var i = 0; i < data.size(); i++)
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                     String currencyId = this.safeString(balance, "symbol");
@@ -2543,7 +2543,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
             Object unsubHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
             Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));
@@ -3116,7 +3116,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 if ((data instanceof List))
                 {
                     List<Object> dataList = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < ((List<?>)dataList).size(); i++)
+                    for (var i = 0; i < dataList.size(); i++)
                     {
                         Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) ((dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i))), market);
                         String symbol = this.safeString(parsed, "symbol");
@@ -3147,7 +3147,7 @@ public class Htx extends io.github.ccxt.exchanges.Htx
                 List<Object> rawTrades = (List<Object>) this.safeList(message, "trades", new ArrayList<Object>(Arrays.asList()));
                 String marketId = this.safeString(message, "symbol");
                 Map<String, Object> market = this.market(marketId);
-                for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+                for (var i = 0; i < rawTrades.size(); i++)
                 {
                     Object trade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
                     Object parsedTrade = this.parseTrade(trade, market);
@@ -3454,8 +3454,8 @@ public class Htx extends io.github.ccxt.exchanges.Htx
             String relativePath = Helpers.replace(url, (String)("wss://" + hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String timestamp = this.ymdhms(this.milliseconds(), "T");
                 Map<String, Object> signatureParams = null;

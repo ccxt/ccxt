@@ -147,8 +147,8 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
         Long timestamp = this.safeInteger(message, "ts");
         ticker.put("timestamp", timestamp);
         ticker.put("datetime", this.iso8601(timestamp));
-        Object symbol = ticker.get("symbol");
-        Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
+        String symbol = (String) ticker.get("symbol");
+        this.tickers.put(symbol, ticker);
         client.resolve(ticker, ch);
         return message;
     }
@@ -247,7 +247,7 @@ public class Bittrade extends io.github.ccxt.exchanges.Bittrade
             tradesCache = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, tradesCache);
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             tradesCache.append(trade);

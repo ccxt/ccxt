@@ -576,7 +576,7 @@ public class Coinone extends CoinoneApi
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "tickers", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(tickers, i, (Object) null);
                 String id = this.safeString(entry, "id");
@@ -651,7 +651,7 @@ public class Coinone extends CoinoneApi
         }};
         Map<String, Object> balances = this.omit(response, new ArrayList<Object>(Arrays.asList("errorCode", "result", "normalWallets")));
         List<String> currencyIds = new ArrayList<String>(balances.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, currencyId, (Object) null);
@@ -1525,7 +1525,7 @@ public class Coinone extends CoinoneApi
             Map<String, Object> walletAddress = (Map<String, Object>) this.safeDict(response, "walletAddress", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(walletAddress.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String value = this.safeString(walletAddress, key);
@@ -1533,7 +1533,7 @@ public class Coinone extends CoinoneApi
                 {
                     continue;
                 }
-                List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("_"))));
+                List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("_"))));
                 String currencyId = this.safeString(parts, 0);
                 String secondPart = this.safeString(parts, 1);
                 String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);

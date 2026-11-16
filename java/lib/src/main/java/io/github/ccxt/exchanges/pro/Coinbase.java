@@ -206,7 +206,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<Object> productIds = new ArrayList<Object>(Arrays.asList());
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -258,7 +258,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             List<String> watchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> unWatchMessageHashes = new ArrayList<String>(Arrays.asList());
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -535,11 +535,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         String datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
         List<Object> newTickers = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        for (var i = 0; i < events.size(); i++)
         {
             Map<String, Object> tickersObj = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> tickers = (List<Object>) this.safeList(tickersObj, "tickers", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)tickers).size(); j++)
+            for (var j = 0; j < tickers.size(); j++)
             {
                 Object ticker = (tickers == null || j < 0 || j >= tickers.size() ? null : tickers.get(j));
                 String wsMarketId = this.safeString(ticker, "product_id");
@@ -678,11 +678,11 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         //
         List<Object> events = (List<Object>) this.safeList(message, "events", new ArrayList<Object>(Arrays.asList()));
         String timeframe = "5m";
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        for (var i = 0; i < events.size(); i++)
         {
             Object eventVar = (events == null || i < 0 || i >= events.size() ? null : events.get(i));
             List<Object> candles = (List<Object>) this.safeList(eventVar, "candles", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)candles).size(); j++)
+            for (var j = 0; j < candles.size(); j++)
             {
                 Object candle = (candles == null || j < 0 || j >= candles.size() ? null : candles.get(j));
                 String marketId = this.safeString(candle, "product_id");
@@ -998,7 +998,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)tradesLimit).intValue());
             this.trades.put(symbol, tradesArray);
         }
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        for (var i = 0; i < events.size(); i++)
         {
             Map<String, Object> currentEvent = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> currentTrades = (List<Object>) this.safeList(currentEvent, "trades", (Object) null);
@@ -1007,7 +1007,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            Integer tradesLength = ((List<?>)currentTrades).size();
+            Integer tradesLength = currentTrades.size();
             for (var j = 0; (tradesLength != null && j < tradesLength); j++)
             {
                 Object item = (currentTrades == null || ((int) ((((long) tradesLength) - ((long) j)) - 1L)) < 0 || ((int) ((((long) tradesLength) - ((long) j)) - 1L)) >= currentTrades.size() ? null : currentTrades.get(((int) ((((long) tradesLength) - ((long) j)) - 1L))));
@@ -1059,7 +1059,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        for (var i = 0; i < events.size(); i++)
         {
             Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> responseOrders = (List<Object>) this.safeList(eventVar, "orders", (Object) null);
@@ -1067,10 +1067,10 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             {
                 continue;
             }
-            for (var j = 0; j < ((List<?>)responseOrders).size(); j++)
+            for (var j = 0; j < responseOrders.size(); j++)
             {
-                Object responseOrder = (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
-                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (responseOrder), (Map<String, Object>) null);
+                Map<String, Object> responseOrder = (Map<String, Object>) (responseOrders == null || j < 0 || j >= responseOrders.size() ? null : responseOrders.get(j));
+                Map<String, Object> parsed = (Map<String, Object>) this.parseWsOrder(responseOrder, (Map<String, Object>) null);
                 io.github.ccxt.ws.ArrayCache cachedOrders = (io.github.ccxt.ws.ArrayCache) this.orders;
                 String marketId = this.safeString(responseOrder, "product_id");
                 if (!java.util.Objects.equals(marketId, null))
@@ -1083,7 +1083,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
                 cachedOrders.append(parsed);
             }
         }
-        for (var i = 0; i < ((List<?>)marketIds).size(); i++)
+        for (var i = 0; i < marketIds.size(); i++)
         {
             Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
             String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1196,7 +1196,7 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
             return;
         }
         String datetime = this.safeString(message, "timestamp");
-        for (var i = 0; i < ((List<?>)events).size(); i++)
+        for (var i = 0; i < events.size(); i++)
         {
             Map<String, Object> eventVar = (Map<String, Object>) this.safeDict(events, i, (Object) null);
             List<Object> updates = (List<Object>) this.safeList(eventVar, "updates", new ArrayList<Object>(Arrays.asList()));
@@ -1267,13 +1267,13 @@ public class Coinbase extends io.github.ccxt.exchanges.Coinbase
         Map<String, Object> firstEvent = (Map<String, Object>) this.safeDict(events, 0, new HashMap<String, Object>() {{}});
         Boolean isUnsub = (firstEvent.containsKey("subscriptions"));
         List<Object> subKeys = ((List<Object>) switch ((Object)(firstEvent.get("subscriptions"))) { case Map<?, ?> j39v1 -> { synchronized (j39v1) { yield new ArrayList<Object>(j39v1.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer subKeysLength = ((List<?>)subKeys).size();
+        Integer subKeysLength = subKeys.size();
         if (Boolean.TRUE.equals(isUnsub) && java.util.Objects.equals(subKeysLength, 0))
         {
             Map<String, Object> unSubObject = (Map<String, Object>) this.safeDict(this.options, "unSubscription", new HashMap<String, Object>() {{}});
             List<Object> messageHashes = (List<Object>) this.safeList(unSubObject, "messageHashes", new ArrayList<Object>(Arrays.asList()));
             List<Object> subMessageHashes = (List<Object>) this.safeList(unSubObject, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+            for (var i = 0; i < messageHashes.size(); i++)
             {
                 Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                 Object subHash = (subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i));

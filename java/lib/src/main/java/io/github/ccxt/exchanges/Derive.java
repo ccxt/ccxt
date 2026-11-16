@@ -848,7 +848,7 @@ public class Derive extends DeriveApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> subaccountIds = (List<Object>) this.safeList(result, "subaccount_ids", new ArrayList<Object>(Arrays.asList()));
             List<Object> accounts = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)subaccountIds).size(); i++)
+            for (var i = 0; i < subaccountIds.size(); i++)
             {
                 String subaccountId = this.safeString(subaccountIds, i);
                 ((List<Object>)accounts).add(new HashMap<String, Object>() {{
@@ -1124,7 +1124,7 @@ public class Derive extends DeriveApi
                 allInstruments = (List<Object>) this.arrayConcat(allInstruments, data);
                 Map<String, Object> pagination = (Map<String, Object>) this.safeDict(result, "pagination", new HashMap<String, Object>() {{}});
                 Long totalCount = this.safeInteger(pagination, "count", 0); // not named count: that collides with the php builtin the length mapping expands to
-                Integer collected = ((List<?>)allInstruments).size();
+                Integer collected = allInstruments.size();
                 if ((totalCount == null || (collected != null && collected >= totalCount)))
                 {
                     break;
@@ -1965,7 +1965,7 @@ public class Derive extends DeriveApi
     {
         List<Object> tradesArray = this.toArray(trades);
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)tradesArray).size(); i++)
+        for (var i = 0; i < tradesArray.size(); i++)
         {
             Object rawTrade = (tradesArray == null || i < 0 || i >= tradesArray.size() ? null : tradesArray.get(i));
             Boolean isFetchTrades = !(((Map<?, ?>)rawTrade).containsKey("order_id"));
@@ -2224,7 +2224,7 @@ public class Derive extends DeriveApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> data = (List<Object>) this.safeList(result, "funding_rate_history", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 Long timestamp = this.safeInteger(entry, "timestamp");
@@ -4189,12 +4189,12 @@ public class Derive extends DeriveApi
         // margin requirements come as negative subaccount-level contributions in usd terms (initial_margin = collaterals_initial_margin + positions_initial_margin, verified on live data), so they are attributed to the usdc settlement currency and clamped by the usdc cash below; other collaterals stay total-only because the shared margin pool cannot be split per currency
         String usedUsd = "0";
         List<Object> subaccounts = this.toArray(response);
-        for (var i = 0; i < ((List<?>)subaccounts).size(); i++)
+        for (var i = 0; i < subaccounts.size(); i++)
         {
             Map<String, Object> subaccount = (Map<String, Object>) this.safeDict(subaccounts, i, (Object) null);
             usedUsd = Precise.stringSub(usedUsd, Precise.stringAdd(this.safeString(subaccount, "positions_initial_margin", "0"), this.safeString(subaccount, "open_orders_margin", "0")));
             List<Object> collaterals = (List<Object>) this.safeList(subaccount, "collaterals", new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)collaterals).size(); j++)
+            for (var j = 0; j < collaterals.size(); j++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(collaterals, j, (Object) null);
                 String code = this.safeCurrencyCode(this.safeString(balance, "currency"), (Map<String, Object>) null);
@@ -4406,7 +4406,7 @@ public class Derive extends DeriveApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> transfers = (List<Object>) this.safeList(result, "transfers", new ArrayList<Object>(Arrays.asList()));
             List<Object> parsed = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)transfers).size(); i++)
+            for (var i = 0; i < transfers.size(); i++)
             {
                 ((List<Object>)parsed).add(this.parseTransfer(this.safeDict(transfers, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null));
             }
@@ -4488,7 +4488,7 @@ public class Derive extends DeriveApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> rows = (List<Object>) this.safeList(result, "interest_rate_history", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rows).size(); i++)
+            for (var i = 0; i < rows.size(); i++)
             {
                 // the base history helper parses without a currency, while the rows carry none, so the rate entries are built here with the requested currency attached
                 ((List<Object>)rates).add(this.parseBorrowRate(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), currency));

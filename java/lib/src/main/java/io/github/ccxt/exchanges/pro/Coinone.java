@@ -478,7 +478,7 @@ public class Coinone extends io.github.ccxt.exchanges.Coinone
                 return;
             }
             List<String> keys = new ArrayList<String>(methods.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (((String)topic).indexOf(key) >= 0)

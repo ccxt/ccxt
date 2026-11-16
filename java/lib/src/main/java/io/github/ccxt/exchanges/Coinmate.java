@@ -527,7 +527,7 @@ public class Coinmate extends CoinmateApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Object market = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
                 String id = this.safeString(market, "name");
@@ -602,7 +602,7 @@ public class Coinmate extends CoinmateApi
             put( "info", response );
         }};
         List<String> currencyIds = new ArrayList<String>(balances.keySet());
-        for (var i = 0; i < ((List<?>)currencyIds).size(); i++)
+        for (var i = 0; i < currencyIds.size(); i++)
         {
             String currencyId = (currencyIds == null || i < 0 || i >= currencyIds.size() ? null : currencyIds.get(i));
             String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -759,7 +759,7 @@ public class Coinmate extends CoinmateApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(data.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 Map<String, Object> market = this.market((keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker(this.safeDict(data, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)), new HashMap<String, Object>() {{}}), market);

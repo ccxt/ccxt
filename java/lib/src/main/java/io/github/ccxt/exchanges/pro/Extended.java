@@ -332,7 +332,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             }
         }
         List<Object> spotBalances = (List<Object>) this.safeList(data, "spotBalances", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)spotBalances).size(); i++)
+        for (var i = 0; i < spotBalances.size(); i++)
         {
             Map<String, Object> spotBalance = (Map<String, Object>) this.safeDict(spotBalances, i, new HashMap<String, Object>() {{}});
             String currencyId = this.safeString(spotBalance, "asset");
@@ -436,7 +436,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(this.safeDict(rawTrades, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
             String symbol = this.safeString(trade, "symbol");
@@ -444,7 +444,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             stored.append(trade);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String messageHash = ("myTrades:" + key);
@@ -452,7 +452,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         client.resolve(stored, "myTrades");
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
+        for (var i = 0; i < subscriptions.size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if ((((String)messageHash).indexOf("myTrades:") == 0))
@@ -539,25 +539,25 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
             String marketId = this.safeString(rawPosition, "market");
             if (java.util.Objects.equals(marketId, null))
             {
                 continue;
             }
-            Map<String, Object> position = (Map<String, Object>) this.parsePosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> position = (Map<String, Object>) this.parsePosition(rawPosition, (Map<String, Object>) null);
             ((List<Object>)newPositions).add(position);
             stored.append(position);
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-            List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
             List<Object> filtered = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
             {
@@ -621,7 +621,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             orders.append(order);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String messageHash = ("orders:" + key);
@@ -629,7 +629,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         client.resolve(orders, "orders");
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)subscriptions).size(); i++)
+        for (var i = 0; i < subscriptions.size(); i++)
         {
             Object messageHash = (subscriptions == null || i < 0 || i >= subscriptions.size() ? null : subscriptions.get(i));
             if ((((String)messageHash).indexOf("orders:") == 0))
@@ -882,7 +882,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
             return;
         }
         Helpers.addElementToObject(subscription, "nonce", nonce);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(trade);
@@ -1007,7 +1007,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
         }
         Helpers.addElementToObject(subscription, "nonce", nonce);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             stored.append(parsed);
@@ -1018,7 +1018,7 @@ public class Extended extends io.github.ccxt.exchanges.Extended
     public Map<String, Object> findSubscription(Client client, String name)
     {
         List<Object> keys = new ArrayList<Object>(client.subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             Object key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> subscription = (Map<String, Object>) this.safeDict(client.subscriptions, key, (Object) null);

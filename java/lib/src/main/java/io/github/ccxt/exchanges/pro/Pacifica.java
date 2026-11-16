@@ -377,7 +377,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> results = (List<Object>) this.safeList(data, "results", new ArrayList<Object>(Arrays.asList()));
             List<Object> ordersToReturn = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)results).size(); i++)
+            for (var i = 0; i < results.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(results, i, (Object) null);
                 String error = this.safeString(order, "error");
@@ -974,7 +974,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         //
         List<Object> parsedTickers = new ArrayList<Object>(Arrays.asList());
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object info = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String marketId = this.safeString(info, "symbol");
@@ -1028,15 +1028,15 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.myTrades;
         Map<String, Object> symbols = new HashMap<String, Object>() {{}};
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
-            Object rawTrade = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
+            Map<String, Object> rawTrade = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             String symbol = (String) parsed.get("symbol");
             if (!java.util.Objects.equals(symbol, null))
             {
@@ -1045,7 +1045,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String currentMessageHash = ("myTrades:" + this.safeString(keys, i, ""));
             client.resolve(trades, currentMessageHash);
@@ -1190,7 +1190,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             this.trades.put(symbol, stored);
         }
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
-        for (var i = 0; i < ((List<?>)entry).size(); i++)
+        for (var i = 0; i < entry.size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(entry, i, new HashMap<String, Object>() {{}});
             Map<String, Object> trade = this.parseWsTrade(data, (Map<String, Object>) null);
@@ -1595,7 +1595,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Integer dataLength = ((List<?>)data).size();
+        Integer dataLength = data.size();
         if (java.util.Objects.equals(dataLength, 0))
         {
             return;
@@ -1603,7 +1603,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
         String messageHash = "order";
         Map<String, Object> marketSymbols = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object rawOrder = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Map<String, Object> order = (Map<String, Object>) this.parseOrder(rawOrder, (Map<String, Object>) null);
@@ -1615,7 +1615,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             }
         }
         List<String> keys = new ArrayList<String>(marketSymbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String symbol = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String innerMessageHash = ((messageHash + ":") + symbol);
@@ -1686,7 +1686,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
         String messageHash = ("unsubscribe:" + subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash, false);
         List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             this.tickers.remove((String)(symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
         }
@@ -1830,7 +1830,7 @@ public class Pacifica extends io.github.ccxt.exchanges.Pacifica
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)

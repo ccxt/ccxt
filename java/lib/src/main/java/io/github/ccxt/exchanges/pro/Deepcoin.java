@@ -931,7 +931,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
         List<Object> bids = new ArrayList<Object>(Arrays.asList());
         List<Object> asks = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)entries).size(); i++)
+        for (var i = 0; i < entries.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(entries, i, (Object) null);
             Map<String, Object> entryData = (Map<String, Object>) this.safeDict(entry, "d", new HashMap<String, Object>() {{}});
@@ -956,7 +956,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
         Map<String, Object> snapshot = (Map<String, Object>) this.parseOrderBook(orderedEntries, symbol, timestamp, "bids", "asks", 0, 1, 2);
         orderbook.reset(snapshot);
         List<Object> cachedMessages = ((List<Object>)(orderbook == null ? null : orderbook.get("cache")));
-        for (var j = 0; j < ((List<?>)cachedMessages).size(); j++)
+        for (var j = 0; j < cachedMessages.size(); j++)
         {
             Object cachedMessage = (cachedMessages == null || j < 0 || j >= cachedMessages.size() ? null : cachedMessages.get(j));
             this.handleOrderBookMessage(client, (Map<String, Object>) (cachedMessage), (io.github.ccxt.ws.WsOrderBook) (orderbook));
@@ -1290,7 +1290,7 @@ public class Deepcoin extends io.github.ccxt.exchanges.Deepcoin
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     String symbolMessageHash = ((messageHash + "::") + symbol);

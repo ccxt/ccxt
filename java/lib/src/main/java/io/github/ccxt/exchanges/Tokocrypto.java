@@ -886,7 +886,7 @@ public class Tokocrypto extends TokocryptoApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             List<Object> list = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)list).size(); i++)
+            for (var i = 0; i < list.size(); i++)
             {
                 Object market = (list == null || i < 0 || i >= list.size() ? null : list.get(i));
                 String baseId = this.safeString(market, "baseAsset");
@@ -907,7 +907,7 @@ public class Tokocrypto extends TokocryptoApi
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (java.util.Objects.equals(status, "1"));
                 List<Object> permissions = (List<Object>) this.safeList(market, "permissions", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)permissions).size(); j++)
+                for (var j = 0; j < permissions.size(); j++)
                 {
                     if (java.util.Objects.equals(this.safeString(permissions, j), "TRD_GRP_003"))
                     {
@@ -1800,7 +1800,7 @@ public class Tokocrypto extends TokocryptoApi
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<Object> balances = (List<Object>) this.safeList(data, "accountAssets", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
@@ -3006,10 +3006,10 @@ public class Tokocrypto extends TokocryptoApi
             List<Object> networkCodequeryVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (paramsWithdrawTag));
             String networkCode = (String) ((List<Object>) networkCodequeryVariable).get(0);
             Map<String, Object> query = (Map<String, Object>) ((List<Object>) networkCodequeryVariable).get(1);
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             if (!java.util.Objects.equals(networkId, null))
             {
-                request.put("network", ((String)networkId).toUpperCase());
+                request.put("network", networkId.toUpperCase());
             }
             Map<String, Object> response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
             //
@@ -3236,7 +3236,7 @@ public class Tokocrypto extends TokocryptoApi
         } else if (paramsDict.containsKey("limit"))
         {
             Long limit = this.safeInteger(paramsDict, "limit");
-            for (var i = 0; i < ((List<?>)byLimit).size(); i++)
+            for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long entryLimit = this.safeInteger(entry, 0);

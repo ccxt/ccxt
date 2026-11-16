@@ -372,11 +372,11 @@ public class Bit2c extends Bit2cApi
             put( "datetime", null );
         }};
         List<Object> codes = (this.currencies == null ? new ArrayList<Object>() : new ArrayList<Object>(this.currencies.keySet()));
-        for (var i = 0; i < ((List<?>)codes).size(); i++)
+        for (var i = 0; i < codes.size(); i++)
         {
-            Object code = (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
+            String code = (String) (codes == null || i < 0 || i >= codes.size() ? null : codes.get(i));
             Map<String, Object> account = this.account();
-            Map<String, Object> currency = this.currency((String) (code));
+            Map<String, Object> currency = this.currency(code);
             String currencyId = this.safeString(currency, "id", "");
             String uppercase = currencyId.toUpperCase();
             if (!java.util.Objects.equals(this.safeString(response, uppercase), null))
@@ -384,7 +384,7 @@ public class Bit2c extends Bit2cApi
                 account.put("free", this.safeString(response, ("AVAILABLE_" + uppercase)));
                 account.put("total", this.safeString(response, uppercase));
             }
-            result.put((String)code, account);
+            result.put(code, account);
         }
         return this.safeBalance(result);
     }
@@ -489,7 +489,7 @@ public class Bit2c extends Bit2cApi
             List<Object> rawAsks = (List<Object>) this.safeList(orderbook, "asks", new ArrayList<Object>(Arrays.asList()));
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawBids).size(); i++)
+            for (var i = 0; i < rawBids.size(); i++)
             {
                 Object bidRow = (rawBids == null || i < 0 || i >= rawBids.size() ? null : rawBids.get(i));
                 String bidAmount = this.safeString(bidRow, 1);
@@ -498,7 +498,7 @@ public class Bit2c extends Bit2cApi
                     ((List<Object>)bids).add(bidRow);
                 }
             }
-            for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
+            for (var i = 0; i < rawAsks.size(); i++)
             {
                 Object askRow = (rawAsks == null || i < 0 || i >= rawAsks.size() ? null : rawAsks.get(i));
                 String askAmount = this.safeString(askRow, 1);
@@ -676,7 +676,7 @@ public class Bit2c extends Bit2cApi
             Map<String, Object> fees = (Map<String, Object>) this.safeDict(response, "Fees", new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(fees.keySet());
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String marketId = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1070,7 +1070,7 @@ public class Bit2c extends Bit2cApi
     {
         String newString = "";
         List<Object> strParts = new ArrayList<Object>(Arrays.asList(((String)str).split(java.util.regex.Pattern.quote(","))));
-        for (var i = 0; i < ((List<?>)strParts).size(); i++)
+        for (var i = 0; i < strParts.size(); i++)
         {
             newString = (newString + (strParts == null || i < 0 || i >= strParts.size() ? null : strParts.get(i)));
         }

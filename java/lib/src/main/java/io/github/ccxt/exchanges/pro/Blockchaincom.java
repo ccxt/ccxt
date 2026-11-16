@@ -145,7 +145,7 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         // issue #26773)
         this.balance.put("info", message);
         List<Object> balances = (List<Object>) this.safeList(message, "balances", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(entry, "currency");
@@ -631,10 +631,10 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
         } else if (java.util.Objects.equals(eventVar, "snapshot"))
         {
             List<Object> orders = (List<Object>) this.safeList(message, "orders", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; i < orders.size(); i++)
             {
-                Object order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
-                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder((Map<String, Object>) (order), (Map<String, Object>) null);
+                Map<String, Object> order = (Map<String, Object>) (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
+                Map<String, Object> parsedOrder = (Map<String, Object>) this.parseWsOrder(order, (Map<String, Object>) null);
                 cachedOrders.append(parsedOrder);
             }
         } else if (java.util.Objects.equals(eventVar, "updated"))
@@ -917,8 +917,8 @@ public class Blockchaincom extends io.github.ccxt.exchanges.Blockchaincom
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object isAuthenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(isAuthenticated, null))
+            boolean isAuthenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!isAuthenticated)
             {
                 this.checkRequiredCredentials(true);
                 Map<String, Object> request = new HashMap<String, Object>() {{

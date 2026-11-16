@@ -2415,7 +2415,7 @@ public class Htx extends HtxApi
                 throw new ExchangeError((this.id + " markets not loaded")) ;
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsValue).size(); i++)
+            for (var i = 0; i < symbolsValue.size(); i++)
             {
                 String symbol = (symbolsValue == null || i < 0 || i >= symbolsValue.size() ? null : symbolsValue.get(i));
                 result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
@@ -2525,7 +2525,7 @@ public class Htx extends HtxApi
             List<Object> allMarkets = new ArrayList<Object>(Arrays.asList());
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             List<String> keys = new ArrayList<String>(((Map<String, Object>)types).keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 if (Boolean.TRUE.equals(this.safeBool(types, key, false)))
@@ -2544,7 +2544,7 @@ public class Htx extends HtxApi
                 }
             }
             List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < ((List<?>)responses).size(); i++)
+            for (var i = 0; i < responses.size(); i++)
             {
                 allMarkets = (List<Object>) this.arrayConcat(allMarkets, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
@@ -2684,13 +2684,13 @@ public class Htx extends HtxApi
             //     }
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer numMarkets = ((List<?>)markets).size();
+            Integer numMarkets = markets.size();
             if (((numMarkets == null || numMarkets < 1)))
             {
                 throw new OperationFailed(((this.id + " fetchMarkets() returned an empty response: ") + this.json(response))) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String marketType = null;
@@ -2853,7 +2853,7 @@ public class Htx extends HtxApi
                 if (!java.util.Objects.equals(createdDate, null))
                 {
                     List<String> createdArray = this.stringToCharsArray(createdDate);
-                    Integer createdLength = ((List<?>)createdArray).size();
+                    Integer createdLength = createdArray.size();
                     if (((createdLength != null && createdLength >= 8)))
                     {
                         String yearPart = (((this.safeString(createdArray, 0, "") + this.safeString(createdArray, 1, "")) + this.safeString(createdArray, 2, "")) + this.safeString(createdArray, 3, ""));
@@ -2949,7 +2949,7 @@ public class Htx extends HtxApi
             put( "quarter", "CQ" );
             put( "next_quarter", "NQ" );
         }};
-        for (var i = 0; i < ((List<?>)futureMarkets).size(); i++)
+        for (var i = 0; i < futureMarkets.size(); i++)
         {
             Map<String, Object> market = (Map<String, Object>) this.safeDict(futureMarkets, i, new HashMap<String, Object>() {{}});
             Map<String, Object> info = (Map<String, Object>) this.safeDict(market, "info", new HashMap<String, Object>() {{}});
@@ -4053,10 +4053,10 @@ public class Htx extends HtxApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)trades).size(); j++)
+                for (var j = 0; j < trades.size(); j++)
                 {
                     Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
@@ -4376,7 +4376,7 @@ public class Htx extends HtxApi
             {
                 marketId = this.marketId((String) (symbol));
             }
-            for (var i = 0; i < ((List<?>)accounts).size(); i++)
+            for (var i = 0; i < accounts.size(); i++)
             {
                 Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                 Map<String, Object> info = (Map<String, Object>) this.safeDict(account, "info", (Object) null);
@@ -4481,7 +4481,7 @@ public class Htx extends HtxApi
         }
         List<Object> chains = (List<Object>) this.safeList(rawCurrency, "chains", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Object chainEntry = (chains == null || j < 0 || j >= chains.size() ? null : chains.get(j));
             String uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
@@ -4556,7 +4556,7 @@ public class Htx extends HtxApi
             return null;
         }
         List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkNamesByChainIds"))) { case Map<?, ?> j39v6 -> { synchronized (j39v6) { yield new ArrayList<Object>(j39v6.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer keysLength = ((List<?>)keys).size();
+        Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkIdToCode() - markets need to be loaded at first")) ;
@@ -4565,7 +4565,7 @@ public class Htx extends HtxApi
         return (String) (super.networkIdToCode(networkTitle, currencyCode));
     }
 
-    public Object networkCodeToId(String networkCode, String currencyCode)
+    public String networkCodeToId(String networkCode, String currencyCode)
     {
         if (java.util.Objects.equals(networkCode, null))
         {
@@ -4576,7 +4576,7 @@ public class Htx extends HtxApi
             return super.networkCodeToId(networkCode, (String) null);
         }
         List<Object> keys = ((List<Object>) switch ((Object)(this.options.get("networkChainIdsByNames"))) { case Map<?, ?> j39v7 -> { synchronized (j39v7) { yield new ArrayList<Object>(j39v7.keySet()); } } case null, default -> new ArrayList<Object>(); });
-        Integer keysLength = ((List<?>)keys).size();
+        Integer keysLength = keys.size();
         if (java.util.Objects.equals(keysLength, 0))
         {
             throw new ExchangeError((this.id + " networkCodeToId() - markets need to be loaded at first")) ;
@@ -4584,7 +4584,7 @@ public class Htx extends HtxApi
         Map<String, Object> uniqueNetworkIds = (Map<String, Object>) this.safeDict(this.options.get("networkChainIdsByNames"), currencyCode, new HashMap<String, Object>() {{}});
         if (uniqueNetworkIds.containsKey(networkCode))
         {
-            return (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
+            return (String) (uniqueNetworkIds == null || networkCode == null ? null : uniqueNetworkIds.get(networkCode));
         } else
         {
             Object networkTitle = super.networkCodeToId(networkCode, currencyCode);
@@ -4818,14 +4818,14 @@ public class Htx extends HtxApi
             //     }
             //
             Map<String, Object> finalResponse = response;
-            Object result = new HashMap<String, Object>() {{
+            Map<String, Object> result = new HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }};
             Object data = this.safeValue(response, "data");
             if (Boolean.TRUE.equals(isMultiAssetMode) || (Boolean.TRUE.equals(linear) && (Boolean.TRUE.equals(swap) || Boolean.TRUE.equals(future))))
             {
                 List<Object> details = (List<Object>) this.safeList(data, "details", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)details).size(); i++)
+                for (var i = 0; i < details.size(); i++)
                 {
                     Map<String, Object> balance = (Map<String, Object>) this.safeDict(details, i, (Object) null);
                     String currencyId = this.safeString(balance, "currency");
@@ -4835,7 +4835,7 @@ public class Htx extends HtxApi
                     account.put("total", this.safeString(balance, "equity"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put(code, account);
+                        result.put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -4848,7 +4848,7 @@ public class Htx extends HtxApi
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                         List<Object> balances = (List<Object>) this.safeList(entry, "list", new ArrayList<Object>(Arrays.asList()));
                         Map<String, Object> subResult = new HashMap<String, Object>() {{}};
-                        for (var j = 0; j < ((List<?>)balances).size(); j++)
+                        for (var j = 0; j < balances.size(); j++)
                         {
                             Object balance = (balances == null || j < 0 || j >= balances.size() ? null : balances.get(j));
                             String currencyId = this.safeString(balance, "currency");
@@ -4859,24 +4859,24 @@ public class Htx extends HtxApi
                             }
                         }
                         List<String> subCodes = new ArrayList<String>(subResult.keySet());
-                        for (var j = 0; j < ((List<?>)subCodes).size(); j++)
+                        for (var j = 0; j < subCodes.size(); j++)
                         {
                             String subCode = (subCodes == null || j < 0 || j >= subCodes.size() ? null : subCodes.get(j));
-                            result = this.mergeBalanceAccount((Map<String, Object>) (result), subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
+                            result = (Map<String, Object>) this.mergeBalanceAccount(result, subCode, (Map<String, Object>) ((subResult == null || subCode == null ? null : subResult.get(subCode))));
                         }
                     }
                     result = this.safeBalance(result);
                 } else
                 {
                     List<Object> balances = (List<Object>) this.safeList(data, "list", new ArrayList<Object>(Arrays.asList()));
-                    for (var i = 0; i < ((List<?>)balances).size(); i++)
+                    for (var i = 0; i < balances.size(); i++)
                     {
                         Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
                         String currencyId = this.safeString(balance, "currency");
                         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
                         if (!java.util.Objects.equals(code, null))
                         {
-                            ((Map<String, Object>)result).put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, (Map<String, Object>) (result)));
+                            result.put(code, this.parseMarginBalanceHelper((Map<String, Object>) (balance), code, result));
                         }
                     }
                     result = this.safeBalance(result);
@@ -4893,7 +4893,7 @@ public class Htx extends HtxApi
                     account.put("used", this.safeString(balance, "margin_frozen"));
                     if (!java.util.Objects.equals(code, null))
                     {
-                        ((Map<String, Object>)result).put(code, account);
+                        result.put(code, account);
                     }
                 }
                 result = this.safeBalance(result);
@@ -7775,7 +7775,7 @@ public class Htx extends HtxApi
         List<Object> failed = (List<Object>) this.safeList2(orders, "errors", "failed", new ArrayList<Object>(Arrays.asList()));
         List<Object> data = (List<Object>) this.safeList(orders, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object order = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -7794,7 +7794,7 @@ public class Htx extends HtxApi
                 put( "status", "canceled" );
             }}, (Map<String, Object>) null));
         }
-        for (var i = 0; i < ((List<?>)failed).size(); i++)
+        for (var i = 0; i < failed.size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{
@@ -8012,7 +8012,7 @@ public class Htx extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public CompletableFuture<Object> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
+    public CompletableFuture<Map<String, Object>> fetchDepositAddressesByNetwork(Object code, Map<String, Object> parameters)
     {
 
         return BaseExchange.supplyAsync(() -> {
@@ -8068,8 +8068,8 @@ public class Htx extends HtxApi
             List<Object> networkCodeparamsOmitedVariable = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkCode = (String) ((List<Object>) networkCodeparamsOmitedVariable).get(0);
             Map<String, Object> paramsOmited = (Map<String, Object>) ((List<Object>) networkCodeparamsOmitedVariable).get(1);
-            Object indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
-            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, (Map<String, Object>) (indexedAddresses), true);
+            Map<String, Object> indexedAddresses = (this.fetchDepositAddressesByNetwork(code, paramsOmited)).join();
+            Object selectedNetworkCode = this.selectNetworkKeyFromNetworks(currency.get("code"), networkCode, indexedAddresses, true);
             return this.safeDict(indexedAddresses, selectedNetworkCode, (Object) null);
         }).thenApply(DepositAddress::new);
 
@@ -8941,7 +8941,7 @@ public class Htx extends HtxApi
             {
                 Object cursor = this.safeValue(data, "current_page");
                 List<Object> result = (List<Object>) this.safeList(data, "data", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)result).size(); i++)
+                for (var i = 0; i < result.size(); i++)
                 {
                     Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                     Helpers.addElementToObject(entry, "current_page", cursor);
@@ -9938,7 +9938,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);
@@ -9976,10 +9976,10 @@ public class Htx extends HtxApi
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "ts");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
-                Object position = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
-                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition((Map<String, Object>) (position), (Map<String, Object>) null);
+                Map<String, Object> position = (Map<String, Object>) (data == null || i < 0 || i >= data.size() ? null : data.get(i));
+                Map<String, Object> parsed = (Map<String, Object>) this.parsePosition(position, (Map<String, Object>) null);
                 ((List<Object>)result).add(this.extend(parsed, new HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
@@ -10066,7 +10066,7 @@ public class Htx extends HtxApi
             if (Boolean.TRUE.equals((this.safeBool(market, "future", false))) && Boolean.TRUE.equals((this.safeBool(market, "inverse", false))))
             {
                 String marketId = this.safeString(market, "id");
-                for (var i = 0; i < ((List<?>)positions).size(); i++)
+                for (var i = 0; i < positions.size(); i++)
                 {
                     Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                     if (java.util.Objects.equals(this.safeString(entry, "contract_code"), marketId))
@@ -10298,12 +10298,12 @@ public class Htx extends HtxApi
         String marketId = this.safeString(info, "contract_code");
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         List<Object> brackets = (List<Object>) this.safeList(info, "list", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)brackets).size(); i++)
+        for (var i = 0; i < brackets.size(); i++)
         {
             Map<String, Object> item = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
             String leverage = this.safeString(item, "lever_rate");
             List<Object> ladders = (List<Object>) this.safeList(item, "ladders", new ArrayList<Object>(Arrays.asList()));
-            for (var k = 0; k < ((List<?>)ladders).size(); k++)
+            for (var k = 0; k < ladders.size(); k++)
             {
                 Object bracket = (ladders == null || k < 0 || k >= ladders.size() ? null : ladders.get(k));
                 String adjustFactor = this.safeString(bracket, "adjust_factor");
@@ -10476,7 +10476,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);
@@ -11158,7 +11158,7 @@ public class Htx extends HtxApi
         List<Object> chains = (List<Object>) this.safeList(fee, "chains", new ArrayList<Object>(Arrays.asList()));
         String code = this.safeString(currency, "code");
         Map<String, Object> result = (Map<String, Object>) this.depositWithdrawFee(fee);
-        for (var j = 0; j < ((List<?>)chains).size(); j++)
+        for (var j = 0; j < chains.size(); j++)
         {
             Map<String, Object> chainEntry = (Map<String, Object>) this.safeDict(chains, j, (Object) null);
             String networkId = this.safeString(chainEntry, "chain");
@@ -11266,7 +11266,7 @@ public class Htx extends HtxApi
                     put( "timestamp", timestamp );
                     put( "datetime", Htx.this.iso8601(timestamp) );
                 }};
-                for (var j = 0; j < ((List<?>)list).size(); j++)
+                for (var j = 0; j < list.size(); j++)
                 {
                     Map<String, Object> item = (Map<String, Object>) this.safeDict(list, j, (Object) null);
                     Map<String, Object> parsedSettlement = this.parseSettlement(item, (Map<String, Object>) (market));
@@ -11625,7 +11625,7 @@ public class Htx extends HtxApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if ((symbolsLength != null && symbolsLength > 0))
                 {
                     String first = this.safeString(symbolsNormalized, 0);

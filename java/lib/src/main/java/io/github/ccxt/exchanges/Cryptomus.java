@@ -1048,7 +1048,7 @@ public class Cryptomus extends CryptomusApi
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             List<Object> orders = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 ((List<Object>)orders).add(this.parseOrder((result == null || i < 0 || i >= result.size() ? null : result.get(i)), market));
             }
@@ -1322,7 +1322,7 @@ public class Cryptomus extends CryptomusApi
             {
                 return result;
             }
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 HashMap<String, Object> mapLiteral5 = new HashMap<String, Object>();

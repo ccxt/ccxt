@@ -117,11 +117,11 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
         // private channels register a shared hash next to narrowed ones
-        Object hashesToCheck = (((java.util.Objects.equals(checkHashes, null)))) ? messageHashes : checkHashes;
+        List<Object> hashesToCheck = (List<Object>) ((((java.util.Objects.equals(checkHashes, null)))) ? messageHashes : checkHashes);
         Boolean willSend = false;
-        for (var i = 0; i < ((List<?>)hashesToCheck).size(); i++)
+        for (var i = 0; i < hashesToCheck.size(); i++)
         {
-            if (!(client.subscriptions.containsKey((hashesToCheck == null || i < 0 || i >= ((List<?>)hashesToCheck).size() ? null : ((List<?>)hashesToCheck).get(i)))))
+            if (!(client.subscriptions.containsKey((hashesToCheck == null || i < 0 || i >= hashesToCheck.size() ? null : hashesToCheck.get(i)))))
             {
                 willSend = true;
             }
@@ -322,7 +322,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                 channels.add("tickers::all");
             } else
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     messageHashes.add(("ticker:" + this.safeString(market, "symbol", "")));
@@ -401,7 +401,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             String url = this.safeString(this.urls.get("api"), "ws");
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> channels = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                 messageHashes.add(("bidask:" + this.safeString(market, "symbol", "")));
@@ -551,7 +551,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             ((List<Object>)rows).add(data);
         }
-        Integer rowsLength = ((List<?>)rows).size();
+        Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
         {
             return;
@@ -721,7 +721,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             return;
         }
         List<Object> rows = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer rowsLength = ((List<?>)rows).size();
+        Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
         {
             return;
@@ -737,7 +737,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
         io.github.ccxt.ws.ArrayCache ohlcv = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseOHLCV((rows == null || i < 0 || i >= rows.size() ? null : rows.get(i)), market);
             ohlcv.append(parsed);
@@ -764,8 +764,8 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             Client client = this.client(url);
             String messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 Long id = this.requestId();
                 Map<String, Object> pending = new HashMap<String, Object>() {{
@@ -866,7 +866,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             ((List<Object>)rows).add(data);
         }
-        Integer rowsLength = ((List<?>)rows).size();
+        Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
         {
             return;
@@ -891,7 +891,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         client.resolve(stored, "orders");
         List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
+        for (var i = 0; i < symbolKeys.size(); i++)
         {
             String symbol = this.safeString(symbolKeys, i, "");
             client.resolve(stored, ("orders:" + symbol));
@@ -976,7 +976,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             ((List<Object>)rows).add(data);
         }
-        Integer rowsLength = ((List<?>)rows).size();
+        Integer rowsLength = rows.size();
         if (java.util.Objects.equals(rowsLength, 0))
         {
             return;
@@ -1001,7 +1001,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         }
         client.resolve(stored, "myTrades");
         List<String> symbolKeys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)symbolKeys).size(); i++)
+        for (var i = 0; i < symbolKeys.size(); i++)
         {
             String symbol = this.safeString(symbolKeys, i, "");
             client.resolve(stored, ("myTrades:" + symbol));
@@ -1030,9 +1030,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             String url = this.safeString(this.urls.get("api"), "ws");
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
-            Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-            Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(this.positions, null)))
+            boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+            boolean awaitPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
+            if ((fetchPositionsSnapshot) && (awaitPositionsSnapshot) && (java.util.Objects.equals(this.positions, null)))
             {
                 // the portfolio channel pushes one snapshot at subscribe time and
                 // then only on changes, so the first call hydrates over rest
@@ -1057,8 +1057,8 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             return;
         }
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = "fetchPositionsSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -1080,7 +1080,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 cache.append((positions == null || i < 0 || i >= positions.size() ? null : positions.get(i)));
             }
@@ -1114,9 +1114,9 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
             String url = this.safeString(this.urls.get("api"), "ws");
             Client client = this.client(url);
             this.setBalanceCache(client);
-            Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
-            Object awaitBalanceSnapshot = this.handleOption("watchBalance", "awaitBalanceSnapshot", true);
-            if ((java.util.Objects.equals(fetchBalanceSnapshot, true)) && (java.util.Objects.equals(awaitBalanceSnapshot, true)) && !(((Map<?, ?>)this.balance).containsKey("info")))
+            boolean fetchBalanceSnapshot = Boolean.TRUE.equals(this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
+            boolean awaitBalanceSnapshot = Boolean.TRUE.equals(this.handleOption("watchBalance", "awaitBalanceSnapshot", true));
+            if ((fetchBalanceSnapshot) && (awaitBalanceSnapshot) && !(((Map<?, ?>)this.balance).containsKey("info")))
             {
                 // the portfolio channel pushes one snapshot at subscribe time and
                 // then only on changes, so the first call hydrates over rest
@@ -1136,8 +1136,8 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         {
             return;
         }
-        Object fetchBalanceSnapshot = this.handleOption("watchBalance", "fetchBalanceSnapshot", true);
-        if (java.util.Objects.equals(fetchBalanceSnapshot, true))
+        boolean fetchBalanceSnapshot = Boolean.TRUE.equals(this.handleOption("watchBalance", "fetchBalanceSnapshot", true));
+        if (fetchBalanceSnapshot)
         {
             String messageHash = "fetchBalanceSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -1215,7 +1215,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> rows = (List<Object>) this.safeList(data, "positions", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> row = (Map<String, Object>) this.safeDict(rows, i, new HashMap<String, Object>() {{}});
             Map<String, Object> extended = this.extend(row, new HashMap<String, Object>() {{
@@ -1323,7 +1323,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
         if (!java.util.Objects.equals(errorMessage, null))
         {
             var error = new ExchangeError(((this.id + " ") + errorMessage));
-            for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+            for (var i = 0; i < messageHashes.size(); i++)
             {
                 client.reject(error, (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i)));
                 // clearing the awaited hash lets a later call resend, and a
@@ -1382,7 +1382,7 @@ public class Polymarket extends io.github.ccxt.exchanges.Polymarket
                     }
                 }
             }
-            for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+            for (var i = 0; i < messageHashes.size(); i++)
             {
                 this.cleanUnsubscription(client, (String) ((subMessageHashes == null || i < 0 || i >= subMessageHashes.size() ? null : subMessageHashes.get(i))), (String) ((messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i))), false);
             }

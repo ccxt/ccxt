@@ -598,7 +598,7 @@ public class Latoken extends LatokenApi
             Map<String,Object> currenciesById = this.indexBy(currencies, "id");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
                 Map<String, Object> market = (Map<String, Object>) this.safeDict(rawMarkets, i, (Object) null);
                 String id = this.safeString(market, "id");
@@ -749,7 +749,7 @@ public class Latoken extends LatokenApi
             Map<String,Object> bindingsById = this.indexBy(bindingsResponse, "id");
             List<Object> rawCurrencies = this.toArray(response);
             List<Object> merged = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawCurrencies).size(); i++)
+            for (var i = 0; i < rawCurrencies.size(); i++)
             {
                 Map<String, Object> rawCurrency = (Map<String, Object>) this.safeDict(rawCurrencies, i, (Object) null);
                 Map<String, Object> bindingEntry = (Map<String, Object>) this.safeDict(bindingsById, this.safeString(rawCurrency, "id"), (Object) null);
@@ -777,7 +777,7 @@ public class Latoken extends LatokenApi
         Boolean isCrypto = (java.util.Objects.equals(currencyType, "CURRENCY_TYPE_CRYPTO") || java.util.Objects.equals(currencyType, "CURRENCY_TYPE_IEO"));
         List<Object> bindings = (List<Object>) this.safeList(currency, "bindings", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)bindings).size(); i++)
+        for (var i = 0; i < bindings.size(); i++)
         {
             Object binding = (bindings == null || i < 0 || i >= bindings.size() ? null : bindings.get(i));
             String networkId = this.safeString(binding, "providerName");
@@ -888,7 +888,7 @@ public class Latoken extends LatokenApi
             List<Object> balances = (List<Object>) this.safeList(balancesByType, accountType, new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> firstBalance = (Map<String, Object>) this.safeDict(balances, 0, (Object) null);
             Long maxTimestamp = this.safeInteger(firstBalance, "timestamp");
-            for (var i = 0; i < ((List<?>)balances).size(); i++)
+            for (var i = 0; i < balances.size(); i++)
             {
                 Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
                 String currencyId = this.safeString(balance, "currency");
@@ -973,7 +973,7 @@ public class Latoken extends LatokenApi
             List<Object> rawBids = (List<Object>) this.safeList(response, "bid", new ArrayList<Object>(Arrays.asList()));
             List<Object> asks = new ArrayList<Object>(Arrays.asList());
             List<Object> bids = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)rawAsks).size(); i++)
+            for (var i = 0; i < rawAsks.size(); i++)
             {
                 Object askEntry = (rawAsks == null || i < 0 || i >= rawAsks.size() ? null : rawAsks.get(i));
                 String askQuantity = this.safeString(askEntry, "quantity");
@@ -982,7 +982,7 @@ public class Latoken extends LatokenApi
                     ((List<Object>)asks).add(askEntry);
                 }
             }
-            for (var i = 0; i < ((List<?>)rawBids).size(); i++)
+            for (var i = 0; i < rawBids.size(); i++)
             {
                 Object bidEntry = (rawBids == null || i < 0 || i >= rawBids.size() ? null : rawBids.get(i));
                 String bidQuantity = this.safeString(bidEntry, "quantity");
@@ -1575,7 +1575,7 @@ public class Latoken extends LatokenApi
         if (!java.util.Objects.equals(orderSide, null))
         {
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)orderSide).split(java.util.regex.Pattern.quote("_"))));
-            Integer partsLength = ((List<?>)parts).size();
+            Integer partsLength = parts.size();
             side = this.safeStringLower(parts, (((long) partsLength) - 1L));
         }
         String type = this.parseOrderType(this.safeString(order, "type"));

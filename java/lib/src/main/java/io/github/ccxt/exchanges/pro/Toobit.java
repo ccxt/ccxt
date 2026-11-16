@@ -284,7 +284,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("trade::" + symbol));
@@ -344,7 +344,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) (symbol == null || this.trades == null ? null : ((Map<?, ?>)this.trades).get(symbol));
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         List<Object> parsedTrades = (List<Object>) this.arrayConcat(this.parseWsTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}}), new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)parsedTrades).size(); i++)
+        for (var i = 0; i < parsedTrades.size(); i++)
         {
             stored.append((parsedTrades == null || i < 0 || i >= parsedTrades.size() ? null : parsedTrades.get(i)));
         }
@@ -493,7 +493,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object parsed = this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), market);
             stored.append(parsed);
@@ -569,7 +569,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(("ticker::" + symbol));
@@ -639,7 +639,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             return;
         }
         Map<String, Object> newTickers = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = (Map<String, Object>) this.parseWsTicker(ticker, (Map<String, Object>) null);
@@ -712,7 +712,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             String channel = channelparamsChannelVariable.first();
             Map<String, Object> paramsChannel = channelparamsChannelVariable.second();
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 messageHashes.add(((("orderBook::" + symbol) + "::") + channel));
@@ -763,7 +763,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         String symbol = (String) market.get("symbol");
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String messageHash = ((("orderBook::" + symbol) + "::") + "diffDepth");
@@ -820,7 +820,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
     public void setOrderBookSnapshot(Client client, Map<String, Object> message, String channel)
     {
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer length = ((List<?>)data).size();
+        Integer length = data.size();
         if (java.util.Objects.equals(length, 0))
         {
             return;
@@ -964,7 +964,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", this.safeList(message, "B", new ArrayList<Object>(Arrays.asList())));
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
@@ -1310,8 +1310,8 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         {
             return;
         }
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
             if (!(client.futures.containsKey(messageHash)))
@@ -1335,7 +1335,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
             List<Position> positions = (this.fetchPositions((List<String>) null, parameters)).join();
             this.positionsByType.put(type, new ArrayCache.ArrayCacheBySymbolBySide());
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) (type == null || this.positionsByType == null ? null : ((Map<?, ?>)this.positionsByType).get(type));
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 cache.append(position);
@@ -1393,12 +1393,12 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, (accountType + ":positions::"));
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-            List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            List<Object> symbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
             List<Object> filtered = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
             if (!this.isEmpty(filtered))
             {
@@ -1530,7 +1530,7 @@ public class Toobit extends io.github.ccxt.exchanges.Toobit
                 String url = this.getUserStreamUrl();
                 Client client = this.client(url);
                 List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
-                for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+                for (var i = 0; i < messageHashes.size(); i++)
                 {
                     Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
                     client.reject(error, messageHash);

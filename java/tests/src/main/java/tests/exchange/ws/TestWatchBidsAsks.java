@@ -80,7 +80,7 @@ public class TestWatchBidsAsks extends BaseTest {
                     checkedSymbol = (argSymbols == null || 0 >= ((List<?>)argSymbols).size() ? null : ((List<?>)argSymbols).get(0));
                 }
                 TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (var i = 0; i < ((List<?>)values).size(); i++)
+                for (var i = 0; i < values.size(); i++)
                 {
                     Object ticker = (values == null || i < 0 || i >= values.size() ? null : values.get(i));
                     TestTicker.testTicker(exchange, skippedProperties, method, ticker, (String) (checkedSymbol));

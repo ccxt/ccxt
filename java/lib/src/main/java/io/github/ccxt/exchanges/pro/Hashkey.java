@@ -202,7 +202,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         }
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
             List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
@@ -370,7 +370,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
         if (!java.util.Objects.equals(data, null))
         {
             data = this.sortBy(data, "t");
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(data, i, (Object) null);
                 Map<String, Object> parsed = this.parseWsTrade(trade, market);
@@ -766,7 +766,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
                 messageHashes.add(messageHash);
             } else
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(((messageHash + ":") + symbol));
@@ -880,7 +880,7 @@ public class Hashkey extends io.github.ccxt.exchanges.Hashkey
             String messageHash = ("balance:" + typeMarketType);
             String url = this.getPrivateUrl((String) (listenKey));
             Client client = this.client(url);
-            this.setBalanceCache(client, (String) (typeMarketType), messageHash);
+            this.setBalanceCache(client, typeMarketType, messageHash);
             Pair<Boolean, Map<String, Object>> fetchBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.options), "watchBalance", "fetchBalanceSnapshot", true);
             Boolean fetchBalanceSnapshot = fetchBalanceSnapshotVariable.first();
             Pair<Boolean, Map<String, Object>> awaitBalanceSnapshotVariable = this.handleOptionBoolAndParams((Map<String, Object>) (this.options), "watchBalance", "awaitBalanceSnapshot", false);

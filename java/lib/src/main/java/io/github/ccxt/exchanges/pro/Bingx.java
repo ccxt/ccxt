@@ -1020,7 +1020,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), unifiedTimeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(unifiedTimeframe);
-        for (var i = 0; i < ((List<?>)candles).size(); i++)
+        for (var i = 0; i < candles.size(); i++)
         {
             Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
             List<Object> parsed = (List<Object>) this.parseWsOHLCV(candle, market);
@@ -1561,8 +1561,8 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         {
             return;
         }
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = (type + ":fetchPositionsSnapshot");
             if (!(client.futures.containsKey(messageHash)))
@@ -1587,7 +1587,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             }})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 Double contracts = this.safeNumber(position, "contracts", 0);
@@ -1704,10 +1704,10 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         }
         List<Object> rawPositions = (List<Object>) this.safeList(data, "P", new ArrayList<Object>(Arrays.asList()));
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
-            Object rawPosition = (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
-            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition((Map<String, Object>) (rawPosition), (Map<String, Object>) null);
+            Map<String, Object> rawPosition = (Map<String, Object>) (rawPositions == null || i < 0 || i >= rawPositions.size() ? null : rawPositions.get(i));
+            Map<String, Object> position = (Map<String, Object>) this.parseWsPosition(rawPosition, (Map<String, Object>) null);
             String symbol = this.safeString(position, "symbol");
             if (java.util.Objects.equals(symbol, null))
             {
@@ -1720,12 +1720,12 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             cache.append(position);
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "swap:positions::");
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
             String messageHash = this.safeString(messageHashes, i, "");
             List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = (String) (parts == null || 1 >= parts.size() ? null : parts.get(1));
-            List<Object> filteredSymbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
+            List<Object> filteredSymbols = new ArrayList<Object>(Arrays.asList(symbolsString.split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!this.isEmpty(positions))
             {
@@ -1780,7 +1780,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
             } catch(Exception error)
             {
                 List<String> types = new ArrayList<String>(Arrays.asList("spot", "linear", "inverse"));
-                for (var i = 0; i < ((List<?>)types).size(); i++)
+                for (var i = 0; i < types.size(); i++)
                 {
                     String type = (String) (types == null || i < 0 || i >= types.size() ? null : types.get(i));
                     String baseUrl = this.safeString(((Map<String, Object>)this.urls.get("api")).get("ws"), type);
@@ -1791,7 +1791,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
                     String url = ((baseUrl + "?listenKey=") + listenKey);
                     Client client = this.client(url);
                     List<Object> messageHashes = new ArrayList<Object>(client.futures.keySet());
-                    for (var j = 0; j < ((List<?>)messageHashes).size(); j++)
+                    for (var j = 0; j < messageHashes.size(); j++)
                     {
                         Object messageHash = (messageHashes == null || j < 0 || j >= messageHashes.size() ? null : messageHashes.get(j));
                         client.reject(error, messageHash);
@@ -2174,7 +2174,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", data);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "timestamp", timestamp);
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "datetime", this.iso8601(timestamp));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object balance = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             String currencyId = this.safeString(balance, "a");
@@ -2309,7 +2309,7 @@ public class Bingx extends io.github.ccxt.exchanges.Bingx
     {
         List<Object> messageHashes = (List<Object>) this.safeList(subscription, "messageHashes", new ArrayList<Object>(Arrays.asList()));
         List<Object> subMessageHashes = (List<Object>) this.safeList(subscription, "subMessageHashes", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
             String unsubHash = this.safeString(messageHashes, i, "");
             String subHash = this.safeString(subMessageHashes, i, "");

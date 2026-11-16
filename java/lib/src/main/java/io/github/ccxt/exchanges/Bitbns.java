@@ -401,7 +401,7 @@ public class Bitbns extends BitbnsApi
             //
             List<Object> result = new ArrayList<Object>(Arrays.asList());
             List<Object> rawMarkets = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+            for (var i = 0; i < rawMarkets.size(); i++)
             {
                 Object market = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                 String id = this.safeString(market, "id");
@@ -656,11 +656,11 @@ public class Bitbns extends BitbnsApi
         }};
         Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
         List<String> keys = new ArrayList<String>(data.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)key).split(java.util.regex.Pattern.quote("availableorder"))));
-            Integer numParts = ((List<?>)parts).size();
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(key.split(java.util.regex.Pattern.quote("availableorder"))));
+            Integer numParts = parts.size();
             if ((numParts != null && numParts > 1))
             {
                 String usedCurrencyId = this.safeString(parts, 1, "");

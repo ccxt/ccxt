@@ -332,7 +332,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic((String) (topic), message)).join();
+            Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -363,7 +363,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             String marketId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "symbol");
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -402,7 +402,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            Object tickers = (this.watchPublic((String) (topic), message)).join();
+            Object tickers = (this.watchPublic(topic, message)).join();
             return this.filterByArray(tickers, "symbol", symbolsNormalized, true);
         }).thenApply(Tickers::new);
 
@@ -429,7 +429,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> ticker = (Map<String, Object>) this.parseWsBidAsk((Map<String, Object>) (this.extend((data == null || i < 0 || i >= data.size() ? null : data.get(i)), new HashMap<String, Object>() {{
                 put( "ts", timestamp );
@@ -753,8 +753,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             String messageHash = "authenticated";
             String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 String ts = String.valueOf(this.nonce());
                 Object secret = this.secret;
@@ -1093,17 +1093,17 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         {
             // algoexecutionreport
             List<Object> dataList = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer dataListLength = ((List<?>)dataList).size();
+            Integer dataListLength = dataList.size();
             for (var i = 0; (dataListLength != null && i < dataListLength); i++)
             {
-                Object order = (dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i));
+                Map<String, Object> order = (Map<String, Object>) (dataList == null || i < 0 || i >= dataList.size() ? null : dataList.get(i));
                 String tradeIdStr = this.safeString(data, "tradeId");
                 Object tradeId = (((java.util.Objects.equals(tradeIdStr, null)))) ? null : this.omitZero(tradeIdStr);
                 if (!java.util.Objects.equals(tradeId, null))
                 {
-                    this.handleMyTrade(client, (Map<String, Object>) (order));
+                    this.handleMyTrade(client, order);
                 }
-                this.handleOrder(client, (Map<String, Object>) (order), (String) (topic));
+                this.handleOrder(client, order, (String) (topic));
             }
         } else
         {
@@ -1227,7 +1227,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
             if ((!java.util.Objects.equals(symbolsNormalized, null)) && !this.isEmpty(symbolsNormalized))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                     messageHashes.add(("positions::" + symbol));
@@ -1246,9 +1246,9 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             String url = ((wsUrl + "/") + this.accountId);
             Client client = this.client(url);
             this.setPositionsCache(client, symbolsNormalized);
-            Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", true);
-            Object awaitPositionsSnapshot = this.handleOption("watchPositions", "awaitPositionsSnapshot", true);
-            if ((java.util.Objects.equals(fetchPositionsSnapshot, true)) && (java.util.Objects.equals(awaitPositionsSnapshot, true)) && (java.util.Objects.equals(this.positions, null)))
+            boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", true));
+            boolean awaitPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "awaitPositionsSnapshot", true));
+            if ((fetchPositionsSnapshot) && (awaitPositionsSnapshot) && (java.util.Objects.equals(this.positions, null)))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized, since, limit, true);
@@ -1269,8 +1269,8 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
 
     public void setPositionsCache(Client client, List<String> symbols)
     {
-        Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
-        if (java.util.Objects.equals(fetchPositionsSnapshot, true))
+        boolean fetchPositionsSnapshot = Boolean.TRUE.equals(this.handleOption("watchPositions", "fetchPositionsSnapshot", false));
+        if (fetchPositionsSnapshot)
         {
             String messageHash = "fetchPositionsSnapshot";
             if (!(client.futures.containsKey(messageHash)))
@@ -1292,7 +1292,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             List<Position> positions = (this.fetchPositions((List<String>) null, new HashMap<String, Object>() {{}})).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
                 Position position = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String contracts = this.safeString(position, "contracts", "0");
@@ -1355,7 +1355,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         }
         io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
         List<Object> newPositions = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rawPositions).size(); i++)
+        for (var i = 0; i < rawPositions.size(); i++)
         {
             Map<String, Object> rawPosition = (Map<String, Object>) this.safeDict(rawPositions, i, (Object) null);
             String marketId = this.safeString(rawPosition, "symbol");
@@ -1470,7 +1470,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 put( "topic", topic );
             }};
             Map<String, Object> message = this.extend(request, parameters);
-            return (this.watchPrivate((String) (messageHash), message, new HashMap<String, Object>() {{}})).join();
+            return (this.watchPrivate(messageHash, message, new HashMap<String, Object>() {{}})).join();
         }).thenApply(Balances::new);
 
     }
@@ -1511,7 +1511,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
         this.balance.put("info", data);
         this.balance.put("timestamp", ts);
         this.balance.put("datetime", this.iso8601(ts));
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             Map<String, Object> value = (Map<String, Object>) this.safeDict(balances, key, (Object) null);
@@ -1611,7 +1611,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                 return;
             }
             List<Object> splitTopic = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("@"))));
-            Integer splitLength = ((List<?>)splitTopic).size();
+            Integer splitLength = splitTopic.size();
             if (java.util.Objects.equals(splitLength, 2))
             {
                 String name = this.safeString(splitTopic, 1);
@@ -1626,7 +1626,7 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
                     return;
                 }
                 List<Object> splitName = new ArrayList<Object>(Arrays.asList(((String)name).split(java.util.regex.Pattern.quote("_"))));
-                Integer splitNameLength = ((List<?>)splitTopic).size();
+                Integer splitNameLength = splitTopic.size();
                 if (java.util.Objects.equals(splitNameLength, 2))
                 {
                     String splitNameFirst = this.safeString(splitName, 0);

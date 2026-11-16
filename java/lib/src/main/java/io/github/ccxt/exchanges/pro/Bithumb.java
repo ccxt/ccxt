@@ -173,7 +173,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             Map<String, Object> paramsGeneration = (Map<String, Object>) ((List<Object>) generationparamsGenerationVariable).get(1);
             Boolean isGenerationTwo = ((generation != null && generation == 2));
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, true);
-            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = (((java.util.Objects.equals(symbolsNormalized, null)))) ? 0 : symbolsNormalized.size();
             if (Boolean.TRUE.equals(isGenerationTwo) && ((symbolsLength != null && symbolsLength == 0)))
             {
                 throw new ArgumentsRequired((this.id + " watchTickers() requires symbols for the generation 2 API")) ;
@@ -183,7 +183,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 symbolsResolved = symbolsNormalized;
             }
-            Integer symbolsLengthDefined = ((List<?>)symbolsResolved).size();
+            Integer symbolsLengthDefined = symbolsResolved.size();
             Map<String, Object> wsUrls = (Map<String, Object>) this.safeDict(this.safeDict(this.urls, "api", new HashMap<String, Object>() {{}}), "ws", new HashMap<String, Object>() {{}});
             String url = ((Boolean.TRUE.equals(isGenerationTwo))) ? this.safeString(wsUrls, "publicGen2", "") : this.safeString(wsUrls, "public", "");
             List<Object> streamMarketIds = new ArrayList<Object>(Arrays.asList());
@@ -590,7 +590,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         }
         List<Object> bidsSnapshot = new ArrayList<Object>(Arrays.asList());
         List<Object> asksSnapshot = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)units).size(); i++)
+        for (var i = 0; i < units.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(units, i, (Object) null);
             Double bidPrice = this.safeNumber(entry, "bid_price", (Object) null);
@@ -739,9 +739,9 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         //
         Map<String, Object> content = (Map<String, Object>) this.safeDict(message, "content", (Object) null);
         List<Object> rawTrades = (List<Object>) this.safeList(content, "list", new ArrayList<Object>(Arrays.asList(message)));
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
-            Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
+            Map<String, Object> rawTrade = (Map<String, Object>) (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             String marketId = this.safeString2(rawTrade, "symbol", "code");
             if (java.util.Objects.equals(marketId, null))
             {
@@ -757,7 +757,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
             {
                 fallbackSymbol = this.safeSymbol(marketId, (Map<String, Object>) null, "_", (String) null);
             }
-            Map<String, Object> parsed = this.parseWsTrade((Map<String, Object>) (rawTrade), (Map<String, Object>) null);
+            Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
             String symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!(((Map<?, ?>)this.trades).containsKey(symbol)))
             {
@@ -951,7 +951,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
         {
             this.balance = new HashMap<String, Object>() {{}};
         }
-        for (var i = 0; i < ((List<?>)assets).size(); i++)
+        for (var i = 0; i < assets.size(); i++)
         {
             Map<String, Object> asset = (Map<String, Object>) this.safeDict(assets, i, (Object) null);
             String currencyId = this.safeString(asset, "currency");
@@ -995,7 +995,7 @@ public class Bithumb extends io.github.ccxt.exchanges.Bithumb
     put( "ticket", "ccxt" );
 }}));
         List<String> keys = new ArrayList<String>(subscriptions.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             ((List<Object>)request).add(Helpers.GetValue(subscriptions, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))));
         }

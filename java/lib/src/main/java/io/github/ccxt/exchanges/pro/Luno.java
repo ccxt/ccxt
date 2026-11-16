@@ -124,7 +124,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         //     }
         //
         List<Object> rawTrades = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
-        Integer length = ((List<?>)rawTrades).size();
+        Integer length = rawTrades.size();
         if (java.util.Objects.equals(length, 0))
         {
             return;
@@ -140,7 +140,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbolValue, stored);
         }
-        for (var i = 0; i < ((List<?>)rawTrades).size(); i++)
+        for (var i = 0; i < rawTrades.size(); i++)
         {
             Object rawTrade = (rawTrades == null || i < 0 || i >= rawTrades.size() ? null : rawTrades.get(i));
             Map<String, Object> trade = (Map<String, Object>) this.parseTrade(rawTrade, market);
@@ -387,7 +387,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
         // trade updates are applied first, matching the ordering of the
         // reference luno streaming client
         List<Object> tradeUpdates = (List<Object>) this.safeList(message, "trade_updates", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)tradeUpdates).size(); i++)
+        for (var i = 0; i < tradeUpdates.size(); i++)
         {
             Object tradeUpdate = (tradeUpdates == null || i < 0 || i >= tradeUpdates.size() ? null : tradeUpdates.get(i));
             String makerOrderId = this.safeString(tradeUpdate, "maker_order_id");
@@ -527,7 +527,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
     public void handleMessage(Client client, Map<String, Object> message)
     {
         List<Object> subscriptions = new ArrayList<Object>(client.subscriptions.values());
-        Integer subscriptionsLength = ((List<?>)subscriptions).size();
+        Integer subscriptionsLength = subscriptions.size();
         if (java.util.Objects.equals(subscriptionsLength, 0))
         {
             // the subscription was dropped after a sequence gap, ignore the
@@ -535,7 +535,7 @@ public class Luno extends io.github.ccxt.exchanges.Luno
             return;
         }
         List<Object> handlers = new ArrayList<Object>(Arrays.asList("handleOrderBook", "handleTrades"));
-        for (var j = 0; j < ((List<?>)handlers).size(); j++)
+        for (var j = 0; j < handlers.size(); j++)
         {
             Object handler = (handlers == null || j < 0 || j >= handlers.size() ? null : handlers.get(j));
             Helpers.callDynamically(this, handler, new Object[] {client, message, (subscriptions == null || 0 >= ((List<?>)subscriptions).size() ? null : ((List<?>)subscriptions).get(0))});

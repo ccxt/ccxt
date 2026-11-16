@@ -1360,7 +1360,7 @@ public class Xt extends XtApi
             List<Object> currenciesData = (List<Object>) this.safeList(currenciesResult, "currencies", new ArrayList<Object>(Arrays.asList()));
             Map<String,Object> chainsDataIndexed = this.indexBy(chainsData, "currency");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)currenciesData).size(); i++)
+            for (var i = 0; i < currenciesData.size(); i++)
             {
                 Object entry = (currenciesData == null || i < 0 || i >= currenciesData.size() ? null : currenciesData.get(i));
                 String currencyId = this.safeString(entry, "currency");
@@ -1368,7 +1368,7 @@ public class Xt extends XtApi
                 Map<String, Object> networkEntry = (Map<String, Object>) this.safeDict(chainsDataIndexed, currencyId, new HashMap<String, Object>() {{}});
                 List<Object> rawNetworks = (List<Object>) this.safeList(networkEntry, "supportChains", new ArrayList<Object>(Arrays.asList()));
                 Map<String, Object> networks = new HashMap<String, Object>() {{}};
-                for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
+                for (var j = 0; j < rawNetworks.size(); j++)
                 {
                     Object rawNetwork = (rawNetworks == null || j < 0 || j >= rawNetworks.size() ? null : rawNetworks.get(j));
                     String networkId = this.safeString(rawNetwork, "chain");
@@ -1764,7 +1764,7 @@ public class Xt extends XtApi
         Double minPrice = null;
         Double maxPrice = null;
         Double amountPrecision = null;
-        for (var i = 0; i < ((List<?>)filters).size(); i++)
+        for (var i = 0; i < filters.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(filters, i, (Object) null);
             String filter = this.safeString(entry, "filter");
@@ -2351,7 +2351,7 @@ public class Xt extends XtApi
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), market);
                 String symbol = (String) ticker.get("symbol");
@@ -2450,7 +2450,7 @@ public class Xt extends XtApi
             //
             List<Object> tickers = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 Object rawTicker = (tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i));
                 // the spot and contract payloads share the same field names, so
@@ -5092,7 +5092,7 @@ public class Xt extends XtApi
             String networkCode = (String) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(0);
             Map<String, Object> paramsNetworkCode = (Map<String, Object>) ((List<Object>) networkCodeparamsNetworkCodeVariable).get(1);
             Map<String, Object> currency = this.currency((String) (code));
-            Object networkId = this.networkCodeToId(networkCode, code);
+            String networkId = this.networkCodeToId(networkCode, code);
             this.checkRequiredArgument("fetchDepositAddress", networkId, "network", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "currency", currency.get("id") );
@@ -5772,7 +5772,7 @@ public class Xt extends XtApi
         //
         List<Object> tiers = new ArrayList<Object>(Arrays.asList());
         List<Object> brackets = (List<Object>) this.safeList(info, "leverageBrackets", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)brackets).size(); i++)
+        for (var i = 0; i < brackets.size(); i++)
         {
             Map<String, Object> tier = (Map<String, Object>) this.safeDict(brackets, i, (Object) null);
             String marketId = this.safeString(info, "symbol");
@@ -5873,7 +5873,7 @@ public class Xt extends XtApi
             Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(result, "items", new ArrayList<Object>(Arrays.asList()));
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)items).size(); i++)
+            for (var i = 0; i < items.size(); i++)
             {
                 Object entry = (items == null || i < 0 || i >= items.size() ? null : items.get(i));
                 String marketId = this.safeString(entry, "symbol");
@@ -6174,12 +6174,12 @@ public class Xt extends XtApi
             Map<String, Object> fee = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
-                Object matchesSubType = ((Boolean.TRUE.equals(isInverse))) ? market.get("inverse") : market.get("linear");
-                if (Boolean.TRUE.equals((this.safeBool(market, "contract", false))) && (java.util.Objects.equals(matchesSubType, true)))
+                boolean matchesSubType = Boolean.TRUE.equals(((Boolean.TRUE.equals(isInverse))) ? market.get("inverse") : market.get("linear"));
+                if (Boolean.TRUE.equals((this.safeBool(market, "contract", false))) && (matchesSubType))
                 {
                     result.put(symbol, this.parseTradingFee(fee, market));
                 }
@@ -6273,7 +6273,7 @@ public class Xt extends XtApi
             Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});
             List<Object> items = (List<Object>) this.safeList(data, "items", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)items).size(); i++)
+            for (var i = 0; i < items.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(items, i, (Object) null);
                 ((List<Object>)result).add(this.parseFundingHistory(entry, market));
@@ -6320,7 +6320,7 @@ public class Xt extends XtApi
     public Map<String, Object> indexPositionBreakList(List<Object> breakList)
     {
         Map<String, Object> breakBySymbolSide = new HashMap<String, Object>() {{}};
-        for (var i = 0; i < ((List<?>)breakList).size(); i++)
+        for (var i = 0; i < breakList.size(); i++)
         {
             Object breakEntry = (breakList == null || i < 0 || i >= breakList.size() ? null : breakList.get(i));
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
@@ -6434,15 +6434,15 @@ public class Xt extends XtApi
             //
             List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
-                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
                 String positionSize = this.safeString(entry, "positionSize");
                 if (!java.util.Objects.equals(positionSize, "0"))
                 {
-                    Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), breakBySymbolSide);
+                    Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
                     return this.parsePosition((Map<String, Object>) (merged), marketInner);
                 }
             }
@@ -6531,12 +6531,12 @@ public class Xt extends XtApi
             List<Object> positions = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> breakBySymbolSide = this.indexPositionBreakList((List<Object>) (this.safeList(breakResponse, "result", new ArrayList<Object>(Arrays.asList()))));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)positions).size(); i++)
+            for (var i = 0; i < positions.size(); i++)
             {
-                Object entry = (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
+                Map<String, Object> entry = (Map<String, Object>) (positions == null || i < 0 || i >= positions.size() ? null : positions.get(i));
                 String marketId = this.safeString(entry, "symbol");
                 Map<String, Object> marketInner = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, "contract");
-                Object merged = this.mergePositionBreakInfo((Map<String, Object>) (entry), breakBySymbolSide);
+                Object merged = this.mergePositionBreakInfo(entry, breakBySymbolSide);
                 ((List<Object>)result).add(this.parsePosition((Map<String, Object>) (merged), marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols);
@@ -6567,7 +6567,7 @@ public class Xt extends XtApi
             Map<String, Object> market = null;
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+                Integer symbolsLength = symbolsNormalized.size();
                 if (java.util.Objects.equals(symbolsLength, 1))
                 {
                     market = this.market((symbolsNormalized == null || 0 >= ((List<?>)symbolsNormalized).size() ? null : ((List<?>)symbolsNormalized).get(0)));

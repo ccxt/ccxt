@@ -692,7 +692,7 @@ public class Bittrade extends BittradeApi
                 throw new ExchangeError((this.id + " markets not loaded")) ;
             }
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)symbolsResolved).size(); i++)
+            for (var i = 0; i < symbolsResolved.size(); i++)
             {
                 String symbol = (symbolsResolved == null || i < 0 || i >= symbolsResolved.size() ? null : symbolsResolved.get(i));
                 result.put(symbol, (this.fetchTradingLimitsById((String) (this.marketId(symbol)), parameters)).join());
@@ -820,13 +820,13 @@ public class Bittrade extends BittradeApi
             //    }
             //
             List<Object> markets = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer numMarkets = ((List<?>)markets).size();
+            Integer numMarkets = markets.size();
             if (((numMarkets == null || numMarkets < 1)))
             {
                 throw new NetworkError(((this.id + " fetchMarkets() returned empty response: ") + this.json(markets))) ;
             }
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String baseId = this.safeString(market, "base-currency");
@@ -1140,7 +1140,7 @@ public class Bittrade extends BittradeApi
             List<Object> tickers = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             Long timestamp = this.safeInteger(response, "ts");
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)tickers).size(); i++)
+            for (var i = 0; i < tickers.size(); i++)
             {
                 String marketId = this.safeString((tickers == null || i < 0 || i >= tickers.size() ? null : tickers.get(i)), "symbol");
                 Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
@@ -1371,10 +1371,10 @@ public class Bittrade extends BittradeApi
             //
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)data).size(); i++)
+            for (var i = 0; i < data.size(); i++)
             {
                 List<Object> trades = (List<Object>) this.safeList((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "data", new ArrayList<Object>(Arrays.asList()));
-                for (var j = 0; j < ((List<?>)trades).size(); j++)
+                for (var j = 0; j < trades.size(); j++)
                 {
                     Map<String, Object> trade = (Map<String, Object>) this.parseTrade((trades == null || j < 0 || j >= trades.size() ? null : trades.get(j)), market);
                     ((List<Object>)result).add(trade);
@@ -1583,7 +1583,7 @@ public class Bittrade extends BittradeApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Object balance = (balances == null || i < 0 || i >= balances.size() ? null : balances.get(i));
             String currencyId = this.safeString(balance, "currency");
@@ -2263,7 +2263,7 @@ public class Bittrade extends BittradeApi
                 put( "status", "canceled" );
             }}, (Map<String, Object>) null));
         }
-        for (var i = 0; i < ((List<?>)failed).size(); i++)
+        for (var i = 0; i < failed.size(); i++)
         {
             Object order = (failed == null || i < 0 || i >= failed.size() ? null : failed.get(i));
             ((List<Object>)result).add(this.safeOrder(new HashMap<String, Object>() {{

@@ -724,7 +724,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         Map<String, Object> market = this.market(symbol);
         List<Object> parsed = this.parseTrades(data, market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-        for (var i = 0; i < ((List<?>)parsed).size(); i++)
+        for (var i = 0; i < parsed.size(); i++)
         {
             stored.append((parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i)));
         }
@@ -774,7 +774,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        Integer ohlcvsLength = ((List<?>)data).size();
+        Integer ohlcvsLength = data.size();
         for (var i = 0; (ohlcvsLength != null && i < ohlcvsLength); i++)
         {
             Map<String, Object> candle = (Map<String, Object>) this.safeDict(data, i, (Object) null);
@@ -966,7 +966,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, true, false);
             List<String> unsubMessageHashes = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 unsubMessageHashes.add(("unsubscribe:" + this.getMessageHash("trade", (String) null, (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)))));
             }
@@ -1132,7 +1132,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 List<String> symbols = this.symbols; // do not cast `as string[]`: this.symbols is List<Object> in Java, and List<Object>->List<String> is an illegal cast
                 if (!java.util.Objects.equals(symbols, null))
                 {
-                    for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                    for (var i = 0; i < symbols.size(); i++)
                     {
                         String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                         Map<String, Object> market = this.market(symbol);
@@ -1283,8 +1283,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             // the level count of this snapshot: a thin market's snapshot can
             // carry fewer levels than the subscription and must not cap the book
             Long limit = this.parseToInt(this.safeInteger(subscription, "limit", 10));
-            Object asksLength = ((List<?>)a).size();
-            Long depth = this.parseToInt((((((limit == null || ((Number) asksLength).doubleValue() > limit))))) ? asksLength : limit);
+            Integer asksLength = a.size();
+            Long depth = this.parseToInt(((((asksLength != null && (limit == null || asksLength > limit))))) ? asksLength : limit);
             Map<String, Object> depths = (Map<String, Object>) this.safeDict(this.options, "wsOrderBookDepths", new HashMap<String, Object>() {{}});
             Long storedDepth = this.safeInteger(depths, symbol);
             if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)) || (!java.util.Objects.equals(storedDepth, depth)))
@@ -1300,12 +1300,12 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             orderbook = (io.github.ccxt.ws.WsOrderBook) ((Map<?, ?>)this.orderbooks).get(symbol);
             orderbook.reset(new HashMap<String, Object>() {{}});
             List<String> keys = new ArrayList<String>(Arrays.asList("asks", "bids"));
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String key = (String) (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
                 Object bookside = (orderbook == null || key == null || !orderbook.containsKey(key) ? null : orderbook.get(key));
                 List<Object> deltas = (List<Object>) this.safeList(first, key, new ArrayList<Object>(Arrays.asList()));
-                Integer deltasLength = ((List<?>)deltas).size();
+                Integer deltasLength = deltas.size();
                 if ((deltasLength != null && deltasLength > 0))
                 {
                     this.customHandleDeltas(bookside, deltas);
@@ -1315,8 +1315,8 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         }
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
-        Object checksum = this.handleOption("watchOrderBook", "checksum", false);
-        if (java.util.Objects.equals(checksum, true))
+        boolean checksum = Boolean.TRUE.equals(this.handleOption("watchOrderBook", "checksum", false));
+        if (checksum)
         {
             Object payloadArray = new ArrayList<Object>(Arrays.asList());
             if (!java.util.Objects.equals(c, null))
@@ -1328,7 +1328,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 for (var i = 0; i < 10; i++)
                 {
                     List<Object> currentAsk = (List<Object>) this.safeList(checkAsks, i, new ArrayList<Object>(Arrays.asList()));
-                    Integer currentAskLength = ((List<?>)currentAsk).size();
+                    Integer currentAskLength = currentAsk.size();
                     Object formattedAsk = "";
                     if ((currentAskLength != null && currentAskLength > 1))
                     {
@@ -1339,7 +1339,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 for (var i = 0; i < 10; i++)
                 {
                     List<Object> currentBid = (List<Object>) this.safeList(checkBids, i, new ArrayList<Object>(Arrays.asList()));
-                    Integer currentBidLength = ((List<?>)currentBid).size();
+                    Integer currentBidLength = currentBid.size();
                     Object formattedBid = "";
                     if ((currentBidLength != null && currentBidLength > 1))
                     {
@@ -1590,7 +1590,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         List<Object> allTrades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer allTradesLength = ((List<?>)allTrades).size();
+        Integer allTradesLength = allTrades.size();
         if ((allTradesLength != null && allTradesLength > 0))
         {
             if (java.util.Objects.equals(this.myTrades, null))
@@ -1600,7 +1600,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.myTrades;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)allTrades).size(); i++)
+            for (var i = 0; i < allTrades.size(); i++)
             {
                 Map<String, Object> trade = (Map<String, Object>) this.safeDict(allTrades, i, new HashMap<String, Object>() {{}});
                 Map<String, Object> parsed = this.parseWsTrade(trade, (Map<String, Object>) null);
@@ -1611,7 +1611,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             String name = "myTrades";
             client.resolve(this.myTrades, name);
             List<Object> keys = new ArrayList<Object>(symbols.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String messageHash = ((name + ":") + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
                 client.resolve(this.myTrades, messageHash);
@@ -1737,7 +1737,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         List<Object> allOrders = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        Integer allOrdersLength = ((List<?>)allOrders).size();
+        Integer allOrdersLength = allOrders.size();
         if ((allOrdersLength != null && allOrdersLength > 0))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1747,7 +1747,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             }
             io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.orders;
             Map<String, Object> symbols = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)allOrders).size(); i++)
+            for (var i = 0; i < allOrders.size(); i++)
             {
                 Map<String, Object> order = (Map<String, Object>) this.safeDict(allOrders, i, new HashMap<String, Object>() {{}});
                 String id = this.safeString(order, "order_id");
@@ -1781,7 +1781,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
             String name = "orders";
             client.resolve(this.orders, name);
             List<Object> keys = new ArrayList<Object>(symbols.keySet());
-            for (var i = 0; i < ((List<?>)keys).size(); i++)
+            for (var i = 0; i < keys.size(); i++)
             {
                 String messageHash = ((name + ":") + (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i)));
                 client.resolve(this.orders, messageHash);
@@ -1875,7 +1875,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
                 return null;
             }
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String eventTrigger = this.safeString(parameters, "event_trigger");
                 if (!java.util.Objects.equals(eventTrigger, null))
@@ -1968,7 +1968,7 @@ public class Kraken extends io.github.ccxt.exchanges.Kraken
         this.balance.put(type, this.safeDict(this.balance, type, new HashMap<String, Object>() {{}}));
         Helpers.addElementToObject((this.balance == null ? null : ((Map<?, ?>)this.balance).get(type)), "info", message);
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             String currencyId = this.safeString((data == null || i < 0 || i >= data.size() ? null : data.get(i)), "asset");
             Object code = ((String)this.safeCurrencyCode((String) (currencyId), (Map<String, Object>) null));

@@ -591,12 +591,12 @@ public class Deepcoin extends DeepcoinApi
             }
             List<Object> promises = new ArrayList<Object>(Arrays.asList());
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)types).size(); i++)
+            for (var i = 0; i < types.size(); i++)
             {
                 ((List<Object>)promises).add(this.fetchMarketsByType(this.safeString(types, i), parameters));
             }
             List<Object> responses = (((List<?>)(promises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            for (var i = 0; i < ((List<?>)responses).size(); i++)
+            for (var i = 0; i < responses.size(); i++)
             {
                 result = (List<Object>) this.arrayConcat(result, (responses == null || i < 0 || i >= responses.size() ? null : responses.get(i)));
             }
@@ -787,7 +787,7 @@ public class Deepcoin extends DeepcoinApi
     {
         Object result = super.setMarkets(markets, currencies);
         List<String> symbols = new ArrayList<String>(((Map<String, Object>)result).keySet());
-        for (var i = 0; i < ((List<?>)symbols).size(); i++)
+        for (var i = 0; i < symbols.size(); i++)
         {
             String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
             Map<String, Object> market = (Map<String, Object>) this.safeDict(result, symbol, new HashMap<String, Object>() {{}});
@@ -1256,7 +1256,7 @@ public class Deepcoin extends DeepcoinApi
             put( "datetime", null );
         }};
         List<Object> balances = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String symbol = this.safeString(balance, "ccy");
@@ -1551,7 +1551,7 @@ public class Deepcoin extends DeepcoinApi
             }
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(network, null)))) ? this.omit(parameters, "network") : parameters;
             List<DepositAddress> addressess = (this.fetchDepositAddresses(new ArrayList<Object>(Arrays.asList(code)), paramsOmitted)).join();
-            Integer length = ((List<?>)addressess).size();
+            Integer length = addressess.size();
             Object index = 0;
             if ((!java.util.Objects.equals(network, null)) && ((length != null && length > 1)))
             {
@@ -2371,7 +2371,7 @@ public class Deepcoin extends DeepcoinApi
             }};
             Map<String, Object> response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
             List<Object> data = (List<Object>) this.safeList(response, "data", new ArrayList<Object>(Arrays.asList()));
-            Integer length = ((List<?>)data).size();
+            Integer length = data.size();
             if (java.util.Objects.equals(length, 0))
             {
                 throw new OrderNotFound(((this.id + " fetchOpenOrder() could not find order id ") + id)) ;
@@ -3815,7 +3815,7 @@ public class Deepcoin extends DeepcoinApi
         List<Object> errorList = (List<Object>) this.safeList(data, "errorList", (Object) null);
         if (!java.util.Objects.equals(errorList, null))
         {
-            for (var i = 0; i < ((List<?>)errorList).size(); i++)
+            for (var i = 0; i < errorList.size(); i++)
             {
                 Map<String, Object> entry = (Map<String, Object>) this.safeDict(errorList, i, new HashMap<String, Object>() {{}});
                 errorCode = this.safeString(entry, "errorCode");

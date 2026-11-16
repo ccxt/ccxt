@@ -396,7 +396,7 @@ public class Kalshi extends KalshiApi
         return BaseExchange.supplyAsync(() -> {
 
             List<Object> queries = this.parseSearchQueries(parameters);
-            Integer queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = queries.size();
             // kalshi's public markets endpoint has no free-text search, so a query would otherwise
             // force a client-side scan of every open market (thousands, paged 1000 at a time, which
             // hangs). Resolve the query against the events endpoint instead — it is bounded by
@@ -406,12 +406,12 @@ public class Kalshi extends KalshiApi
             {
                 Map<String, Object> eventParams = this.omit(parameters, new ArrayList<Object>(Arrays.asList("limit")));
                 List<PredictionEvent> events = (this.fetchEvents(eventParams)).join();
-                Integer eventsLength = ((List<?>)events).size();
+                Integer eventsLength = events.size();
                 List<Object> queryMarkets = new ArrayList<Object>(Arrays.asList());
                 for (var ei = 0; (eventsLength != null && ei < eventsLength); ei++)
                 {
                     List<Object> eventMarkets = (List<Object>) this.safeList((events == null || ei < 0 || ei >= events.size() ? null : events.get(ei)), "markets", new ArrayList<Object>(Arrays.asList()));
-                    Integer eventMarketsLength = ((List<?>)eventMarkets).size();
+                    Integer eventMarketsLength = eventMarkets.size();
                     for (var mi = 0; (eventMarketsLength != null && mi < eventMarketsLength); mi++)
                     {
                         ((List<Object>)queryMarkets).add((eventMarkets == null || mi < 0 || mi >= eventMarkets.size() ? null : eventMarkets.get(mi)));
@@ -448,14 +448,14 @@ public class Kalshi extends KalshiApi
                 }
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, rest))).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-                Integer rawMarketsLength = ((List<?>)rawMarkets).size();
-                for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+                Integer rawMarketsLength = rawMarkets.size();
+                for (var i = 0; i < rawMarkets.size(); i++)
                 {
-                    Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
-                    List<Object> parsed = this.parseBinaryMarketToOutcomes((Map<String, Object>) (raw));
+                    Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                    List<Object> parsed = this.parseBinaryMarketToOutcomes(raw);
                     String eventTicker = this.safeString(raw, "event_ticker");
                     String eventTitle = this.safeString(raw, "title", eventTicker);
-                    for (var j = 0; j < ((List<?>)parsed).size(); j++)
+                    for (var j = 0; j < parsed.size(); j++)
                     {
                         Object m = (parsed == null || j < 0 || j >= parsed.size() ? null : parsed.get(j));
                         ((List<Object>)flatMarkets).add(m);
@@ -483,14 +483,14 @@ public class Kalshi extends KalshiApi
                     }
                 }
                 cursor = this.safeString(response, "cursor");
-                Integer collectedLength = ((List<?>)flatMarkets).size();
+                Integer collectedLength = flatMarkets.size();
                 if ((java.util.Objects.equals(cursor, null) || java.util.Objects.equals(cursor, "")) || (limit != null && (rawMarketsLength == null || rawMarketsLength < limit)) || (maxMarkets == null || (collectedLength != null && collectedLength >= maxMarkets)))
                 {
                     break;
                 }
             }
             this.events = eventsDict;
-            Integer flatMarketsLength = ((List<?>)flatMarkets).size();
+            Integer flatMarketsLength = flatMarkets.size();
             if ((flatMarketsLength != null && (maxMarkets == null || flatMarketsLength > maxMarkets)))
             {
                 return this.arraySlice(flatMarkets, 0, maxMarkets);
@@ -649,7 +649,7 @@ public class Kalshi extends KalshiApi
                 this.markets = this.createSafeDictionary();
             }
             Long chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
-            Integer tickersLength = ((List<?>)tickers).size();
+            Integer tickersLength = tickers.size();
             Long lastTickerIndex = (((long) tickersLength) - 1L);
             Object chunk = new ArrayList<Object>(Arrays.asList());
             // flush a request every chunkSize tickers and once more for the trailing partial chunk
@@ -667,7 +667,7 @@ public class Kalshi extends KalshiApi
                 chunk = new ArrayList<Object>(Arrays.asList());
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(request)).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+                for (var i = 0; i < rawMarkets.size(); i++)
                 {
                     Map<String, Object> parsed = (Map<String, Object>) this.parseMarket((rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i)));
                     if (java.util.Objects.equals(parsed, null))
@@ -809,7 +809,7 @@ public class Kalshi extends KalshiApi
         if ((!java.util.Objects.equals(eventTicker, null)) && (!java.util.Objects.equals(eventTicker, "")))
         {
             List<Object> eventParts = new ArrayList<Object>(Arrays.asList(((String)eventTicker).split(java.util.regex.Pattern.quote("-"))));
-            Integer eventPartsLength = ((List<?>)eventParts).size();
+            Integer eventPartsLength = eventParts.size();
             if ((eventPartsLength != null && eventPartsLength > 1))
             {
                 Object seriesParts = this.arraySlice(eventParts, 0, (((long) eventPartsLength) - 1L));
@@ -842,7 +842,7 @@ public class Kalshi extends KalshiApi
         List<String> outcomeIds = new ArrayList<String>(Arrays.asList(ticker, (ticker + "-NO")));
         List<Object> outcomes = new ArrayList<Object>(Arrays.asList());
         String resolvedOutcome = null;
-        for (var oi = 0; oi < ((List<?>)outcomeLabels).size(); oi++)
+        for (var oi = 0; oi < outcomeLabels.size(); oi++)
         {
             String label = (String) (outcomeLabels == null || oi < 0 || oi >= outcomeLabels.size() ? null : outcomeLabels.get(oi));
             String outcomeHandle = this.slugToOutcomeSymbol((String) (eventTicker), subtitleOrTicker, label);
@@ -1306,7 +1306,7 @@ public class Kalshi extends KalshiApi
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Integer tickersLength = ((List<?>)tickers).size();
+            Integer tickersLength = tickers.size();
             Long lastTickerIndex = (((long) tickersLength) - 1L);
             Object chunk = new ArrayList<Object>(Arrays.asList());
             // flush a request every chunkSize tickers and once more for the trailing partial chunk
@@ -1324,9 +1324,9 @@ public class Kalshi extends KalshiApi
                 chunk = new ArrayList<Object>(Arrays.asList());
                 Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, parameters))).join();
                 List<Object> rawMarkets = (List<Object>) this.safeList(response, "markets", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+                for (var i = 0; i < rawMarkets.size(); i++)
                 {
-                    Object raw = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
+                    Map<String, Object> raw = (Map<String, Object>) (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
                     String marketTicker = this.safeString(raw, "ticker");
                     if ((java.util.Objects.equals(marketTicker, null)) || !(outcomesByTicker.containsKey(marketTicker)))
                     {
@@ -1335,7 +1335,7 @@ public class Kalshi extends KalshiApi
                     Object grouped = (outcomesByTicker == null || marketTicker == null ? null : outcomesByTicker.get(marketTicker));
                     for (var j = 0; j < (switch ((Object)(grouped)) { case null -> 0; case List<?> j39v4 -> j39v4.size(); case String j39v5 -> j39v5.length(); case Object j39v6 -> j39v6.getClass().isArray() ? java.lang.reflect.Array.getLength(j39v6) : 0; }); j++)
                     {
-                        Map<String, Object> ticker = this.parsePredictionTicker((Map<String, Object>) (raw), ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
+                        Map<String, Object> ticker = this.parsePredictionTicker(raw, ((Map<String, Object>) (switch ((Object) (Helpers.GetValue(grouped, j))) { case null -> (Map<String, Object>) null; case Map<?, ?> hx4J40v7 -> (Map<String, Object>) hx4J40v7; case Object hx4J40v7 -> throw new ClassCastException("ccxt: expected a dictionary, got " + hx4J40v7.getClass().getName()); })));
                         String symbolKey = this.safeString(ticker, "outcome");
                         if (!java.util.Objects.equals(symbolKey, null))
                         {
@@ -1394,12 +1394,12 @@ public class Kalshi extends KalshiApi
             if (Boolean.TRUE.equals(isNo))
             {
                 // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
-                for (var bi = 0; bi < ((List<?>)rawNo).size(); bi++)
+                for (var bi = 0; bi < rawNo.size(); bi++)
                 {
                     Double price = this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 0, (Object) null);
                     ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawNo == null || bi < 0 || bi >= rawNo.size() ? null : rawNo.get(bi)), 1, (Object) null))));
                 }
-                for (var ai = 0; ai < ((List<?>)rawYes).size(); ai++)
+                for (var ai = 0; ai < rawYes.size(); ai++)
                 {
                     Double yesPrice = this.safeNumber((rawYes == null || ai < 0 || ai >= rawYes.size() ? null : rawYes.get(ai)), 0, (Object) null);
                     Object price = (((!java.util.Objects.equals(yesPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
@@ -1408,12 +1408,12 @@ public class Kalshi extends KalshiApi
             } else
             {
                 // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
-                for (var bi = 0; bi < ((List<?>)rawYes).size(); bi++)
+                for (var bi = 0; bi < rawYes.size(); bi++)
                 {
                     Double price = this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 0, (Object) null);
                     ((List<Object>)bids).add(new ArrayList<Object>(Arrays.asList(price, this.safeNumber((rawYes == null || bi < 0 || bi >= rawYes.size() ? null : rawYes.get(bi)), 1, (Object) null))));
                 }
-                for (var ai = 0; ai < ((List<?>)rawNo).size(); ai++)
+                for (var ai = 0; ai < rawNo.size(); ai++)
                 {
                     Double noPrice = this.safeNumber((rawNo == null || ai < 0 || ai >= rawNo.size() ? null : rawNo.get(ai)), 0, (Object) null);
                     Object price = (((!java.util.Objects.equals(noPrice, null)))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
@@ -1548,7 +1548,7 @@ public class Kalshi extends KalshiApi
             //
             List<Object> candles = (List<Object>) this.safeList(response, "candlesticks", new ArrayList<Object>(Arrays.asList()));
             List<Object> usableCandles = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)candles).size(); i++)
+            for (var i = 0; i < candles.size(); i++)
             {
                 Object candle = (candles == null || i < 0 || i >= candles.size() ? null : candles.get(i));
                 Map<String, Object> priceObj = (Map<String, Object>) this.safeDict(candle, "price", new HashMap<String, Object>() {{}});
@@ -1651,7 +1651,7 @@ public class Kalshi extends KalshiApi
             Map<String, Object> response = (this.kalshiPublicGetMarketsTrades(this.extend(request, parameters))).join();
             List<Object> trades = (List<Object>) this.safeList(response, "trades", new ArrayList<Object>(Arrays.asList()));
             List<Object> filteredTrades = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 String tradeTicker = this.safeString2(trade, "ticker", "market_ticker");
@@ -1768,7 +1768,7 @@ public class Kalshi extends KalshiApi
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters))).join();
             List<Object> fills = (List<Object>) this.safeList(response, "fills", new ArrayList<Object>(Arrays.asList()));
-            Integer fillsLength = ((List<?>)fills).size();
+            Integer fillsLength = fills.size();
             List<Object> trades = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (fillsLength != null && i < fillsLength); i++)
             {
@@ -1777,7 +1777,7 @@ public class Kalshi extends KalshiApi
             Object wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
             String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)trades).size(); i++)
+            for (var i = 0; i < trades.size(); i++)
             {
                 Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
                 if ((java.util.Objects.equals(wantedOutcome, null)) || (java.util.Objects.equals(this.safeString(trade, "outcome"), wantedOutcome)))
@@ -2017,7 +2017,7 @@ public class Kalshi extends KalshiApi
             }
             Map<String, Object> response = (this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters))).join();
             List<Object> rawSettlements = (List<Object>) this.safeList(response, "settlements", new ArrayList<Object>(Arrays.asList()));
-            Integer rawSettlementsLength = ((List<?>)rawSettlements).size();
+            Integer rawSettlementsLength = rawSettlements.size();
             List<Object> parsed = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (rawSettlementsLength != null && i < rawSettlementsLength); i++)
             {
@@ -2026,7 +2026,7 @@ public class Kalshi extends KalshiApi
             Object wantedOutcomeObj = (((!java.util.Objects.equals(outcome, null)))) ? this.outcome((String) (outcome)) : new HashMap<String, Object>() {{}};
             String wantedOutcome = this.safeString(wantedOutcomeObj, "outcome");
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)parsed).size(); i++)
+            for (var i = 0; i < parsed.size(); i++)
             {
                 Object settlement = (parsed == null || i < 0 || i >= parsed.size() ? null : parsed.get(i));
                 if ((java.util.Objects.equals(wantedOutcome, null)) || (java.util.Objects.equals(this.safeString(settlement, "outcome"), wantedOutcome)))
@@ -2070,7 +2070,7 @@ public class Kalshi extends KalshiApi
         {
             heldTicker = ((ticker + "-NO"));
         }
-        Map<String, Object> mkt = this.safeOutcome((String) (heldTicker), market);
+        Map<String, Object> mkt = this.safeOutcome(heldTicker, market);
         // which leg won; market_result is yes or no
         String marketResult = this.safeStringUpper(settlement, "market_result");
         Boolean won = (java.util.Objects.equals(marketResult, heldLabel));
@@ -2278,7 +2278,7 @@ public class Kalshi extends KalshiApi
             // both executed and canceled, so fetch every order and keep the non-open ones client-side
             List<PredictionOrder> orders = (this.fetchOrders(outcome, (Long) null, (Long) null, parameters)).join();
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)orders).size(); i++)
+            for (var i = 0; i < orders.size(); i++)
             {
                 PredictionOrder order = (orders == null || i < 0 || i >= orders.size() ? null : orders.get(i));
                 String status = this.safeString(order, "status");
@@ -2660,11 +2660,11 @@ public class Kalshi extends KalshiApi
             }
             Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             List<Object> restingOrders = (List<Object>) this.safeList(restingResponse, "orders", new ArrayList<Object>(Arrays.asList()));
-            Integer restingOrdersLength = ((List<?>)restingOrders).size();
+            Integer restingOrdersLength = restingOrders.size();
             List<Object> canceledOrders = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; (restingOrdersLength != null && i < restingOrdersLength); i++)
             {
-                Object restingOrder = (restingOrders == null || i < 0 || i >= restingOrders.size() ? null : restingOrders.get(i));
+                Map<String, Object> restingOrder = (Map<String, Object>) (restingOrders == null || i < 0 || i >= restingOrders.size() ? null : restingOrders.get(i));
                 String orderId = this.safeString(restingOrder, "order_id");
                 if (!java.util.Objects.equals(orderId, null))
                 {
@@ -2673,7 +2673,7 @@ public class Kalshi extends KalshiApi
                     (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(mapLiteral11, parameters))).join();
                     // the DELETE body is minimal — parse the already-fetched resting order instead, which
                     // carries the true side/outcome/price/count, then mark it canceled
-                    Object parsed = this.parsePredictionOrder((Map<String, Object>) (restingOrder), (Map<String, Object>) null);
+                    Object parsed = this.parsePredictionOrder(restingOrder, (Map<String, Object>) null);
                     Helpers.addElementToObject(parsed, "status", "canceled");
                     ((List<Object>)canceledOrders).add(parsed);
                 }
@@ -2708,7 +2708,7 @@ public class Kalshi extends KalshiApi
             {
                 throw new ExchangeError((this.id + " fetchEvents() missing queries")) ;
             }
-            Integer queriesLength = ((List<?>)queries).size();
+            Integer queriesLength = queries.size();
             Object paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("query", "queries")));
             Long userLimit = this.safeInteger(paramsOmitted, "limit");
             // bound how many events are actually FETCHED (not just returned) so a broad scope like
@@ -2814,7 +2814,7 @@ public class Kalshi extends KalshiApi
                 mapLiteral12.put("page_size", pageSize);
                 Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(mapLiteral12)).join();
                 List<Object> page = (List<Object>) this.safeList(searchResponse, "current_page", new ArrayList<Object>(Arrays.asList()));
-                Integer pageLength = ((List<?>)page).size();
+                Integer pageLength = page.size();
                 for (var pi = 0; (pageLength != null && pi < pageLength); pi++)
                 {
                     String et = this.safeString((page == null || pi < 0 || pi >= page.size() ? null : page.get(pi)), "event_ticker");
@@ -2830,13 +2830,13 @@ public class Kalshi extends KalshiApi
                 }
             }
             List<Object> rawEvents = new ArrayList<Object>(Arrays.asList());
-            Integer eventTickersLength = ((List<?>)eventTickers).size();
+            Integer eventTickersLength = eventTickers.size();
             Boolean hasLimit = (!java.util.Objects.equals(limit, null));
             Object limitOrZero = ((Boolean.TRUE.equals(hasLimit))) ? limit : 0;
             Long limitValue = this.parseToInt(limitOrZero);
             for (var ei = 0; (eventTickersLength != null && ei < eventTickersLength); ei++)
             {
-                Integer collectedLength = ((List<?>)rawEvents).size();
+                Integer collectedLength = rawEvents.size();
                 if (Boolean.TRUE.equals(hasLimit) && ((limitValue == null || (collectedLength != null && collectedLength >= limitValue))))
                 {
                     break;
@@ -2905,14 +2905,14 @@ public class Kalshi extends KalshiApi
             List<Object> collected = new ArrayList<Object>(Arrays.asList());
             // tags / category -> documented /series listing
             List<Object> tags = (List<Object>) this.safeList(parameters, "tags", new ArrayList<Object>(Arrays.asList()));
-            Integer tagsLength = ((List<?>)tags).size();
+            Integer tagsLength = tags.size();
             for (var ti = 0; (tagsLength != null && ti < tagsLength); ti++)
             {
                 HashMap<String, Object> mapLiteral13 = new HashMap<String, Object>();
                 mapLiteral13.put("tags", (tags == null || ti < 0 || ti >= tags.size() ? null : tags.get(ti)));
                 Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral13)).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
-                Integer seriesListLength = ((List<?>)seriesList).size();
+                Integer seriesListLength = seriesList.size();
                 for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
                 {
                     String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
@@ -2929,7 +2929,7 @@ public class Kalshi extends KalshiApi
                 mapLiteral14.put("category", category);
                 Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(mapLiteral14)).join();
                 List<Object> seriesList = (List<Object>) this.safeList(seriesResponse, "series", new ArrayList<Object>(Arrays.asList()));
-                Integer seriesListLength = ((List<?>)seriesList).size();
+                Integer seriesListLength = seriesList.size();
                 for (var si = 0; (seriesListLength != null && si < seriesListLength); si++)
                 {
                     String st = this.safeString((seriesList == null || si < 0 || si >= seriesList.size() ? null : seriesList.get(si)), "ticker");
@@ -2944,7 +2944,7 @@ public class Kalshi extends KalshiApi
             if (!java.util.Objects.equals(seriesParam, null))
             {
                 List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)seriesParam).split(java.util.regex.Pattern.quote(","))));
-                Integer partsLength = ((List<?>)parts).size();
+                Integer partsLength = parts.size();
                 for (var pi = 0; (partsLength != null && pi < partsLength); pi++)
                 {
                     ((List<Object>)collected).add((parts == null || pi < 0 || pi >= parts.size() ? null : parts.get(pi)));
@@ -2953,7 +2953,7 @@ public class Kalshi extends KalshiApi
             // deduplicate preserving order
             Map<String, Object> seen = new HashMap<String, Object>() {{}};
             List<Object> ordered = new ArrayList<Object>(Arrays.asList());
-            Integer collectedLength = ((List<?>)collected).size();
+            Integer collectedLength = collected.size();
             for (var ci = 0; (collectedLength != null && ci < collectedLength); ci++)
             {
                 String st = this.safeString(collected, ci);
@@ -2994,7 +2994,7 @@ public class Kalshi extends KalshiApi
             Long limitValue = this.parseToInt(limitOrZero);
             for (var si = 0; (seriesTickersLength != null && si < seriesTickersLength); si++)
             {
-                Integer collectedLength = ((List<?>)rawEvents).size();
+                Integer collectedLength = rawEvents.size();
                 if (Boolean.TRUE.equals(hasLimit) && ((limitValue == null || (collectedLength != null && collectedLength >= limitValue))))
                 {
                     break;
@@ -3005,7 +3005,7 @@ public class Kalshi extends KalshiApi
                     Long reqLimit = pageLimit;
                     if (Boolean.TRUE.equals(hasLimit) && (!java.util.Objects.equals(limitValue, null)))
                     {
-                        Integer collectedSoFar = ((List<?>)rawEvents).size();
+                        Integer collectedSoFar = rawEvents.size();
                         Long remaining = this.parseToInt((limitValue - ((long) collectedSoFar)));
                         if ((reqLimit != null && (remaining == null || remaining < reqLimit)))
                         {
@@ -3027,13 +3027,13 @@ public class Kalshi extends KalshiApi
                     }
                     Map<String, Object> response = (this.kalshiPublicGetEvents(this.extend(request, rest))).join();
                     List<Object> pageEvents = (List<Object>) this.safeList(response, "events", new ArrayList<Object>(Arrays.asList()));
-                    Integer pageEventsLength = ((List<?>)pageEvents).size();
+                    Integer pageEventsLength = pageEvents.size();
                     for (var ei = 0; (pageEventsLength != null && ei < pageEventsLength); ei++)
                     {
                         ((List<Object>)rawEvents).add((pageEvents == null || ei < 0 || ei >= pageEvents.size() ? null : pageEvents.get(ei)));
                     }
                     cursor = this.safeString(response, "cursor");
-                    Integer collectedAfterPage = ((List<?>)rawEvents).size();
+                    Integer collectedAfterPage = rawEvents.size();
                     if (Boolean.TRUE.equals(hasLimit) && ((limitValue == null || (collectedAfterPage != null && collectedAfterPage >= limitValue))))
                     {
                         break;
@@ -3158,7 +3158,7 @@ public class Kalshi extends KalshiApi
         Boolean anyActive = false;
         Boolean allResolved = true;
         Long latestClose = this.parse8601(this.safeString(firstMarket, "close_time"));
-        for (var i = 0; i < ((List<?>)rawMarkets).size(); i++)
+        for (var i = 0; i < rawMarkets.size(); i++)
         {
             Object rawMarket = (rawMarkets == null || i < 0 || i >= rawMarkets.size() ? null : rawMarkets.get(i));
             MarketInterface parsed = this.parseMarket(rawMarket);
@@ -3188,7 +3188,7 @@ public class Kalshi extends KalshiApi
             }
         }
         // the aggregates only mean something when the payload nested any markets at all
-        Integer marketsCount = ((List<?>)marketsList).size();
+        Integer marketsCount = marketsList.size();
         Boolean active = null;
         if ((marketsCount != null && marketsCount > 0))
         {
@@ -3284,8 +3284,8 @@ public class Kalshi extends KalshiApi
             String pathForSigning = ((versionPrefix + "/") + implodedPath);
             String payload = ((timestamp + java.util.Objects.requireNonNullElse(method, "GET")) + pathForSigning);
             // RSA-PSS SHA-256 signature with the private key PEM
-            Object keyParts = new ArrayList<Object>(Arrays.asList(((String)this.privateKey).split(java.util.regex.Pattern.quote("\\n"))));
-            String cleanPrivateKey = String.join("\n", (List<String>)keyParts);
+            List<String> keyParts = new ArrayList<String>(Arrays.asList(((String)this.privateKey).split(java.util.regex.Pattern.quote("\\n"))));
+            String cleanPrivateKey = String.join("\n", keyParts);
             String signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             HashMap<String, Object> mapLiteral16 = new HashMap<String, Object>();
             mapLiteral16.put("KALSHI-ACCESS-KEY", this.apiKey);

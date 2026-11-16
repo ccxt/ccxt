@@ -360,20 +360,20 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
         Boolean channelStartsWithSpot = channel.startsWith(((String)"spot"));
         Boolean marketIdIsUndefined = java.util.Objects.equals(marketId, null);
-        Object isSpot = ((Boolean.TRUE.equals(marketIdIsUndefined))) ? channelStartsWithSpot : market.get("spot");
+        boolean isSpot = Boolean.TRUE.equals(((Boolean.TRUE.equals(marketIdIsUndefined))) ? channelStartsWithSpot : market.get("spot"));
         String spotPrefix = "spot:";
         String messageHashPrefix = "";
-        if (java.util.Objects.equals(isSpot, true))
+        if (isSpot)
         {
             messageHashPrefix = spotPrefix;
         }
         String topic = (messageHashPrefix + "ticker");
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Object entry = (data == null || i < 0 || i >= data.size() ? null : data.get(i));
             Object ticker = null;
-            if (java.util.Objects.equals(isSpot, true))
+            if (isSpot)
             {
                 ticker = this.parseWsTicker(entry, market);
             } else
@@ -487,7 +487,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
@@ -930,7 +930,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         //
         String msg = this.safeString(message, "msg", "");
         List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)msg).split(java.util.regex.Pattern.quote("@"))));
-        Integer partsLength = ((List<?>)parts).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        Integer partsLength = parts.size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         String marketId = this.safeString(parts, (((long) partsLength) - 1L));
         String symbol = this.safeSymbol(marketId, (Map<String, Object>) null, (String) null, (String) null);
         if (!(((Map<?, ?>)this.orderbooks).containsKey(symbol)))
@@ -1244,7 +1244,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
         {
             trades = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         }
-        for (var j = 0; j < ((List<?>)trades).size(); j++)
+        for (var j = 0; j < trades.size(); j++)
         {
             Object parsedTrade = null;
             if (Boolean.TRUE.equals(this.safeBool(market, "spot", false)))
@@ -2102,7 +2102,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             }
             List<String> messageHashes = new ArrayList<String>(Arrays.asList());
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 if (Boolean.TRUE.equals(isSpot))
                 {
@@ -2274,7 +2274,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
                 {
                     // unWatchTickers
                     List<Object> symbols = (this.tickers == null ? new ArrayList<Object>() : new ArrayList<Object>(this.tickers.keySet()));
-                    for (var j = 0; j < ((List<?>)symbols).size(); j++)
+                    for (var j = 0; j < symbols.size(); j++)
                     {
                         this.tickers.remove((String)(symbols == null || j < 0 || j >= symbols.size() ? null : symbols.get(j)));
                     }
@@ -2293,7 +2293,7 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             {
                 List<Object> splitHashes = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote(":"))));
                 String candlesSymbol = this.safeString(splitHashes, 2, "");
-                Integer splitHashesLength = ((List<?>)splitHashes).size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                Integer splitHashesLength = splitHashes.size(); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if ((splitHashesLength != null && splitHashesLength > 4))
                 {
                     candlesSymbol = (candlesSymbol + (":" + this.safeString(splitHashes, 3, "")));
@@ -2447,13 +2447,13 @@ public class Mexc extends io.github.ccxt.exchanges.Mexc
             var error = new ExchangeError(((this.id + " ") + msg));
             List<Object> subscriptionHashes = new ArrayList<Object>(client.subscriptions.keySet());
             Boolean rejected = false;
-            for (var i = 0; i < ((List<?>)subscriptionHashes).size(); i++)
+            for (var i = 0; i < subscriptionHashes.size(); i++)
             {
-                Object subscriptionHash = (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
+                String subscriptionHash = (String) (subscriptionHashes == null || i < 0 || i >= subscriptionHashes.size() ? null : subscriptionHashes.get(i));
                 String subscribedChannel = this.safeString((client.subscriptions == null || subscriptionHash == null ? null : client.subscriptions.get(subscriptionHash)), "channel");
                 if ((!java.util.Objects.equals(subscribedChannel, null)) && (((String)msg).indexOf((("[" + subscribedChannel) + "]")) >= 0))
                 {
-                    client.subscriptions.remove((String)subscriptionHash);
+                    client.subscriptions.remove(subscriptionHash);
                     client.reject(error, subscriptionHash);
                     rejected = true;
                 }

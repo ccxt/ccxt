@@ -1771,7 +1771,7 @@ public class Bullish extends BullishApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> result = this.toArray(response);
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Object entry = (result == null || i < 0 || i >= result.size() ? null : result.get(i));
                 String datetime = this.safeString(entry, "updatedAtDatetime");
@@ -2719,7 +2719,7 @@ public class Bullish extends BullishApi
             {
                 List<Object> response = (this.privateGetV1AccountsTradingAccounts(paramsTradingAccountId)).join();
                 List<Object> accounts = this.toArray(response);
-                for (var i = 0; i < ((List<?>)accounts).size(); i++)
+                for (var i = 0; i < accounts.size(); i++)
                 {
                     Map<String, Object> account = (Map<String, Object>) this.safeDict(accounts, i, (Object) null);
                     String name = this.safeString(account, "tradingAccountName");
@@ -2880,7 +2880,7 @@ public class Bullish extends BullishApi
             //     ]
             //
             List<Object> safeResponse = this.toArray(response);
-            Integer length = ((List<?>)safeResponse).size();
+            Integer length = safeResponse.size();
             Object data = this.safeDict(safeResponse, 0, new HashMap<String, Object>() {{}});
             List<Object> networkAndParams = (List<Object>) this.handleNetworkCodeAndParams((Map<String, Object>) (parameters));
             String networkParam = (String) ((List<Object>)networkAndParams).get(0);
@@ -2897,7 +2897,7 @@ public class Bullish extends BullishApi
                 if (!java.util.Objects.equals(network, null))
                 {
                     // find the entry that matches the network or return first entry if not found and user did not specify a network
-                    for (var i = 0; i < ((List<?>)safeResponse).size(); i++)
+                    for (var i = 0; i < safeResponse.size(); i++)
                     {
                         Map<String, Object> entry = (Map<String, Object>) this.safeDict(safeResponse, i, new HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
@@ -3004,7 +3004,7 @@ public class Bullish extends BullishApi
             put( "info", response );
         }};
         List<Object> rows = this.toArray(response);
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String symbol = this.safeString(balance, "assetSymbol");
@@ -3639,9 +3639,9 @@ public class Bullish extends BullishApi
         return BaseExchange.supplyAsync(() -> {
 
             Long now = this.milliseconds();
-            Object token = this.token;
+            boolean token = (this.token) != null;
             Long tokenExpires = this.safeInteger(this.options, "tokenExpires");
-            if ((java.util.Objects.equals(token, null)) || (java.util.Objects.equals(tokenExpires, null)) || ((now != null && (tokenExpires == null || now > tokenExpires))))
+            if ((!token) || (java.util.Objects.equals(tokenExpires, null)) || ((now != null && (tokenExpires == null || now > tokenExpires))))
             {
                 return (this.signIn(new HashMap<String, Object>() {{}})).join();
             } else

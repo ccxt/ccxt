@@ -977,7 +977,7 @@ public class Bitopro extends BitoproApi
             Double maker = this.safeNumber(first, "makerFee", (Object) null);
             Double taker = this.safeNumber(first, "takerFee", (Object) null);
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 result.put(symbol, new HashMap<String, Object>() {{
@@ -1070,7 +1070,7 @@ public class Bitopro extends BitoproApi
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        Integer length = ((List<?>)candles).size();
+        Integer length = candles.size();
         if (java.util.Objects.equals(length, 0))
         {
             return candles;
@@ -1087,7 +1087,7 @@ public class Bitopro extends BitoproApi
             timestamp = since;
         }
         Object i = 0;
-        Integer candleLength = ((List<?>)candles).size();
+        Integer candleLength = candles.size();
         Integer resultLength = 0;
         while ((((java.util.function.BiPredicate<Object, Object>) (j38a, j38b) -> { java.util.function.Predicate<Object> j38n = j38o -> { if (j38o == null) return false; try { Double.parseDouble(String.valueOf(j38o)); return true; } catch (Exception j38x) { return false; } }; java.util.function.ToDoubleFunction<Object> j38d = j38o -> { if (j38o instanceof Double || j38o instanceof Float || j38o instanceof Long || j38o instanceof Integer || j38o instanceof java.math.BigDecimal) return ((Number) j38o).doubleValue(); try { return Double.parseDouble(String.valueOf(j38o)); } catch (NumberFormatException j38x) { return 0.0; } }; boolean j38g; if (j38a != null && j38b == null) j38g = true; else if (j38a == null || j38b == null) j38g = false; else { Object j38p = (j38a instanceof Integer) ? (Object) Long.valueOf(((Integer) j38a).longValue()) : j38a; Object j38q = (j38b instanceof Integer) ? (Object) Long.valueOf(((Integer) j38b).longValue()) : j38b; if (j38p instanceof Long && j38q instanceof Long) j38g = ((Long) j38p) > ((Long) j38q); else if (j38n.test(j38p) || j38n.test(j38q)) j38g = j38d.applyAsDouble(j38p) > j38d.applyAsDouble(j38q); else if (j38p instanceof String && j38q instanceof String) j38g = ((String) j38p).compareTo((String) j38q) > 0; else j38g = false; } java.util.function.Predicate<Object> j38i = j38o -> { if (j38o instanceof Byte || j38o instanceof Short || j38o instanceof Integer || j38o instanceof Long || j38o instanceof java.util.concurrent.atomic.AtomicInteger || j38o instanceof java.util.concurrent.atomic.AtomicLong) return true; return (j38o instanceof Float || j38o instanceof Double || j38o instanceof java.math.BigDecimal) && new java.math.BigDecimal(String.valueOf(j38o)).stripTrailingZeros().scale() <= 0; }; java.util.function.ToLongFunction<Object> j38l = j38o -> (j38o instanceof Long || j38o instanceof Integer || j38o instanceof Double || j38o instanceof Float || j38o instanceof java.math.BigDecimal) ? ((Number) j38o).longValue() : Long.parseLong(String.valueOf(j38o)); boolean j38e; try { if (j38a == null || j38b == null) j38e = j38a == j38b; else if (!j38a.getClass().equals(j38b.getClass()) && !(j38n.test(j38a) && j38n.test(j38b))) j38e = false; else if (j38i.test(j38a) && j38i.test(j38b)) j38e = j38l.applyAsLong(j38a) == j38l.applyAsLong(j38b); else if (j38a instanceof Double || j38b instanceof Double) j38e = j38d.applyAsDouble(j38a) == j38d.applyAsDouble(j38b); else if (j38a instanceof Float || j38b instanceof Float) j38e = (float) j38d.applyAsDouble(j38a) == (float) j38d.applyAsDouble(j38b); else if (j38a instanceof String && j38b instanceof String) j38e = j38a.equals(j38b); else if (j38a instanceof Boolean && j38b instanceof Boolean) j38e = j38a.equals(j38b); else if (j38n.test(j38a) && j38n.test(j38b)) j38e = new java.math.BigDecimal(String.valueOf(j38a)).compareTo(new java.math.BigDecimal(String.valueOf(j38b))) == 0; else j38e = false; } catch (Exception j38x) { j38e = false; } return !j38g && !j38e; }).test(resultLength, limit)) && (((candleLength != null && !(((Number) i).doubleValue() >= candleLength)))))
         {
@@ -1103,7 +1103,7 @@ public class Bitopro extends BitoproApi
                 ((List<Object>)result).add(new ArrayList<Object>(Arrays.asList(timestamp, closeValue, closeValue, closeValue, closeValue, this.parseNumber("0"))));
             }
             timestamp = this.sum(timestamp, distanceInMs);
-            resultLength = ((List<?>)result).size();
+            resultLength = result.size();
             copyFrom = (List<Object>) this.safeList(result, (((long) resultLength) - 1L), (Object) null);
         }
         return result;
@@ -1124,7 +1124,7 @@ public class Bitopro extends BitoproApi
             put( "info", response );
         }};
         List<Object> rows = this.toArray(response);
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(rows, i, (Object) null);
             String currencyId = this.safeString(balance, "currency");
@@ -1415,11 +1415,11 @@ public class Bitopro extends BitoproApi
     {
         List<String> dataKeys = new ArrayList<String>(data.keySet());
         List<Object> orders = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)dataKeys).size(); i++)
+        for (var i = 0; i < dataKeys.size(); i++)
         {
             String marketId = (dataKeys == null || i < 0 || i >= dataKeys.size() ? null : dataKeys.get(i));
             List<Object> orderIds = (List<Object>) this.safeList(data, marketId, new ArrayList<Object>(Arrays.asList()));
-            for (var j = 0; j < ((List<?>)orderIds).size(); j++)
+            for (var j = 0; j < orderIds.size(); j++)
             {
                 ((List<Object>)orders).add(this.safeOrder((switch (0) { default -> { HashMap<String, Object> j39v1 = new HashMap<String, Object>();
                     j39v1.put("info", (orderIds == null || j < 0 || j >= orderIds.size() ? null : orderIds.get(j)));

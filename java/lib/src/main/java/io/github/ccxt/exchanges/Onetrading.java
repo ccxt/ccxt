@@ -831,7 +831,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> firstFuturesTier = (Map<String, Object>) this.safeDict(futuresTiers, 0, new HashMap<String, Object>() {{}});
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -907,7 +907,7 @@ public class Onetrading extends OnetradingApi
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             // const tiers = this.parseFeeTiers (feeTiers);
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -1091,7 +1091,7 @@ public class Onetrading extends OnetradingApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> rawTickers = this.toArray(response);
-            for (var i = 0; i < ((List<?>)rawTickers).size(); i++)
+            for (var i = 0; i < rawTickers.size(); i++)
             {
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((rawTickers == null || i < 0 || i >= rawTickers.size() ? null : rawTickers.get(i)), (Map<String, Object>) null);
                 String symbol = (String) ticker.get("symbol");
@@ -1395,7 +1395,7 @@ public class Onetrading extends OnetradingApi
         Map<String, Object> result = new HashMap<String, Object>() {{
             put( "info", response );
         }};
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "currency_code");

@@ -122,7 +122,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             {
                 endPart = ((marketIdValue + ":") + this.numberToString(limit));
             }
-            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, (String) (endPart))).join();
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) (this.watchPublic("order-books", messageHash, endPart)).join();
             return orderbook.limit();
         }).thenApply(OrderBook::new);
 
@@ -237,7 +237,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
         }
-        for (var i = 0; i < ((List<?>)trades).size(); i++)
+        for (var i = 0; i < trades.size(); i++)
         {
             Object trade = (trades == null || i < 0 || i >= trades.size() ? null : trades.get(i));
             tradesCache.append(trade);
@@ -609,7 +609,7 @@ public class Bitopro extends io.github.ccxt.exchanges.Bitopro
         this.balance.put("info", data);
         this.balance.put("timestamp", timestamp);
         this.balance.put("datetime", datetime);
-        for (var i = 0; i < ((List<?>)currencies).size(); i++)
+        for (var i = 0; i < currencies.size(); i++)
         {
             String currency = this.safeString(currencies, i);
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(data, currency, new HashMap<String, Object>() {{}});

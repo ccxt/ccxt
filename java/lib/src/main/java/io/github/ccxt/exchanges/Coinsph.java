@@ -798,7 +798,7 @@ public class Coinsph extends CoinsphApi
         Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney", false);
         List<Object> networkList = (List<Object>) this.safeList(rawCurrency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        for (var j = 0; j < ((List<?>)networkList).size(); j++)
+        for (var j = 0; j < networkList.size(); j++)
         {
             Object networkItem = (networkList == null || j < 0 || j >= networkList.size() ? null : networkList.get(j));
             String network = this.safeString(networkItem, "network");
@@ -858,9 +858,9 @@ public class Coinsph extends CoinsphApi
         } else if ((config.containsKey("byNumberOfSymbols")) && Boolean.TRUE.equals(hasSymbolsParam))
         {
             List<Object> symbols = (List<Object>) this.safeList(parameters, "symbols", new ArrayList<Object>(Arrays.asList()));
-            Integer symbolsAmount = ((List<?>)symbols).size();
+            Integer symbolsAmount = symbols.size();
             List<Object> byNumberOfSymbols = (List<Object>) this.safeList(config, "byNumberOfSymbols", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)byNumberOfSymbols).size(); i++)
+            for (var i = 0; i < byNumberOfSymbols.size(); i++)
             {
                 Object entry = (byNumberOfSymbols == null || i < 0 || i >= byNumberOfSymbols.size() ? null : byNumberOfSymbols.get(i));
                 Long threshold = this.safeInteger(entry, 0);
@@ -872,7 +872,7 @@ public class Coinsph extends CoinsphApi
         } else if ((config.containsKey("byLimit")) && (!java.util.Objects.equals(limit, null)))
         {
             List<Object> byLimit = (List<Object>) this.safeList(config, "byLimit", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)byLimit).size(); i++)
+            for (var i = 0; i < byLimit.size(); i++)
             {
                 Object entry = (byLimit == null || i < 0 || i >= byLimit.size() ? null : byLimit.get(i));
                 Long threshold = this.safeInteger(entry, 0);
@@ -1007,7 +1007,7 @@ public class Coinsph extends CoinsphApi
             //
             List<Object> markets = (List<Object>) this.safeList(response, "symbols", new ArrayList<Object>(Arrays.asList()));
             List<Object> result = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)markets).size(); i++)
+            for (var i = 0; i < markets.size(); i++)
             {
                 Object market = (markets == null || i < 0 || i >= markets.size() ? null : markets.get(i));
                 String id = this.safeString(market, "symbol");
@@ -1105,7 +1105,7 @@ public class Coinsph extends CoinsphApi
             if (!java.util.Objects.equals(symbols, null))
             {
                 List<Object> ids = new ArrayList<Object>(Arrays.asList());
-                for (var i = 0; i < ((List<?>)symbols).size(); i++)
+                for (var i = 0; i < symbols.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i)));
                     String id = (String) market.get("id");
@@ -1655,7 +1655,7 @@ public class Coinsph extends CoinsphApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < ((List<?>)balances).size(); i++)
+        for (var i = 0; i < balances.size(); i++)
         {
             Map<String, Object> balance = (Map<String, Object>) this.safeDict(balances, i, (Object) null);
             String currencyId = this.safeString(balance, "asset");
@@ -2257,7 +2257,7 @@ public class Coinsph extends CoinsphApi
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
             List<Object> fees = this.toArray(response);
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Map<String, Object> fee = this.parseTradingFee((Map<String, Object>) ((fees == null || i < 0 || i >= fees.size() ? null : fees.get(i))), (Map<String, Object>) null);
                 String symbol = (String) fee.get("symbol");
@@ -2680,7 +2680,7 @@ public class Coinsph extends CoinsphApi
         String encodedArrayParams = "";
         Map<String, Object> remainingQuery = query;
         List<String> keys = new ArrayList<String>(query.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (((query == null || key == null ? null : query.get(key)) instanceof List))

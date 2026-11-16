@@ -1222,7 +1222,7 @@ public class Deribit extends DeribitApi
                 //     }
                 //
                 List<Object> currenciesResult = (List<Object>) this.safeList(currenciesResponse, "result", new ArrayList<Object>(Arrays.asList()));
-                for (var i = 0; i < ((List<?>)currenciesResult).size(); i++)
+                for (var i = 0; i < currenciesResult.size(); i++)
                 {
                     String currencyId = this.safeString((currenciesResult == null || i < 0 || i >= currenciesResult.size() ? null : currenciesResult.get(i)), "currency");
                     Map<String, Object> request = new HashMap<String, Object>() {{
@@ -1305,10 +1305,10 @@ public class Deribit extends DeribitApi
                     ((List<Object>)instrumentsResponses).add(instrumentsResponse);
                 }
             }
-            for (var i = 0; i < ((List<?>)instrumentsResponses).size(); i++)
+            for (var i = 0; i < instrumentsResponses.size(); i++)
             {
                 List<Object> instrumentsResult = (List<Object>) this.safeList((instrumentsResponses == null || i < 0 || i >= instrumentsResponses.size() ? null : instrumentsResponses.get(i)), "result", new ArrayList<Object>(Arrays.asList()));
-                for (var k = 0; k < ((List<?>)instrumentsResult).size(); k++)
+                for (var k = 0; k < instrumentsResult.size(); k++)
                 {
                     Object market = (instrumentsResult == null || k < 0 || k >= instrumentsResult.size() ? null : instrumentsResult.get(k));
                     String kind = this.safeString(market, "kind");
@@ -1460,7 +1460,7 @@ public class Deribit extends DeribitApi
         {
             summaries = new ArrayList<Object>(Arrays.asList(balance));
         }
-        for (var i = 0; i < ((List<?>)summaries).size(); i++)
+        for (var i = 0; i < summaries.size(); i++)
         {
             Map<String, Object> data = (Map<String, Object>) this.safeDict(summaries, i, (Object) null);
             String currencyId = this.safeString(data, "currency");
@@ -1823,7 +1823,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> paramsOmitted = this.omit(parameters, new ArrayList<Object>(Arrays.asList("code")));
             if (!java.util.Objects.equals(symbolsNormalized, null))
             {
-                for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+                for (var i = 0; i < symbolsNormalized.size(); i++)
                 {
                     Map<String, Object> market = this.market((symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i)));
                     String marketBase = this.safeString(market, "base");
@@ -1892,7 +1892,7 @@ public class Deribit extends DeribitApi
             //
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
             Map<String, Object> tickers = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Map<String, Object> ticker = (Map<String, Object>) this.parseTicker((result == null || i < 0 || i >= result.size() ? null : result.get(i)), (Map<String, Object>) null);
                 String symbol = (String) ticker.get("symbol");
@@ -2251,7 +2251,7 @@ public class Deribit extends DeribitApi
             Map<String, Object> perpetualFee = new HashMap<String, Object>() {{}};
             Map<String, Object> futureFee = new HashMap<String, Object>() {{}};
             Map<String, Object> optionFee = new HashMap<String, Object>() {{}};
-            for (var i = 0; i < ((List<?>)fees).size(); i++)
+            for (var i = 0; i < fees.size(); i++)
             {
                 Object feeEntry = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
                 String instrumentType = this.safeString(feeEntry, "instrument_type");
@@ -2280,7 +2280,7 @@ public class Deribit extends DeribitApi
             }
             Map<String, Object> parsedFees = new HashMap<String, Object>() {{}};
             List<String> symbols = this.symbols;
-            for (var i = 0; i < ((List<?>)symbols).size(); i++)
+            for (var i = 0; i < symbols.size(); i++)
             {
                 String symbol = (symbols == null || i < 0 || i >= symbols.size() ? null : symbols.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -3619,7 +3619,7 @@ public class Deribit extends DeribitApi
         //
         List<Object> volatilityResult = (List<Object>) this.safeList(volatility, "result", new ArrayList<Object>(Arrays.asList()));
         List<Object> result = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)volatilityResult).size(); i++)
+        for (var i = 0; i < volatilityResult.size(); i++)
         {
             Long timestamp = this.safeInteger((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 0);
             Double volatilityObj = this.safeNumber((volatilityResult == null || i < 0 || i >= volatilityResult.size() ? null : volatilityResult.get(i)), 1, (Object) null);
@@ -4066,7 +4066,7 @@ public class Deribit extends DeribitApi
             //
             List<Object> rates = new ArrayList<Object>(Arrays.asList());
             List<Object> result = (List<Object>) this.safeList(response, "result", new ArrayList<Object>(Arrays.asList()));
-            for (var i = 0; i < ((List<?>)result).size(); i++)
+            for (var i = 0; i < result.size(); i++)
             {
                 Map<String, Object> fr = (Map<String, Object>) this.safeDict(result, i, (Object) null);
                 Map<String, Object> rate = (Map<String, Object>) this.parseFundingRate(fr, market);

@@ -399,7 +399,7 @@ public class Btcturk extends BtcturkApi
         Double minAmount = null;
         Double maxAmount = null;
         Double minCost = null;
-        for (var j = 0; j < ((List<?>)filters).size(); j++)
+        for (var j = 0; j < filters.size(); j++)
         {
             Map<String, Object> filter = (Map<String, Object>) this.safeDict(filters, j, (Object) null);
             String filterType = this.safeString(filter, "filterType");
@@ -472,7 +472,7 @@ public class Btcturk extends BtcturkApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, (Object) null);
             String currencyId = this.safeString(entry, "asset");
@@ -933,7 +933,7 @@ public class Btcturk extends BtcturkApi
             List<Object> close = (List<Object>) this.safeList(response, "c", new ArrayList<Object>(Arrays.asList()));
             List<Object> volume = (List<Object>) this.safeList(response, "v", new ArrayList<Object>(Arrays.asList()));
             List<Object> rows = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)timestamp).size(); i++)
+            for (var i = 0; i < timestamp.size(); i++)
             {
                 HashMap<String, Object> mapLiteral8 = new HashMap<String, Object>();
                 mapLiteral8.put("timestamp", this.safeInteger(timestamp, i));
@@ -953,7 +953,7 @@ public class Btcturk extends BtcturkApi
     {
         List<Object> rows = this.toArray(ohlcvs);
         List<Object> results = new ArrayList<Object>(Arrays.asList());
-        for (var i = 0; i < ((List<?>)rows).size(); i++)
+        for (var i = 0; i < rows.size(); i++)
         {
             ((List<Object>)results).add(this.parseOHLCV(this.safeDict(rows, i, new HashMap<String, Object>() {{}}), market));
         }

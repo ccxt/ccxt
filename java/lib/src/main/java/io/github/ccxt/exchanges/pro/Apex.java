@@ -120,7 +120,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -128,7 +128,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String url = this.getWsPublicUrl();
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -185,7 +185,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             stored = new ArrayCache(((Number)limit).intValue());
             this.trades.put(symbol, stored);
         }
-        Integer length = ((List<?>)trades).size();
+        Integer length = trades.size();
         for (var j = 0; (length != null && j < length); j++)
         {
             Long index = ((((long) length) - ((long) j)) - 1L);
@@ -276,7 +276,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             List<String> symbolsNormalized = this.marketSymbols(symbols, (Object) null, true, false, false);
-            Integer symbolsLength = ((List<?>)symbolsNormalized).size();
+            Integer symbolsLength = symbolsNormalized.size();
             if (java.util.Objects.equals(symbolsLength, 0))
             {
                 throw new ArgumentsRequired((this.id + " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -285,7 +285,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<String> topics = new ArrayList<String>(Arrays.asList());
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             Long limitValue = (((java.util.Objects.equals(limit, null)))) ? 25 : limit;
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -319,7 +319,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                     ((List<Object>)newTopics).add((topics == null || i < 0 || i >= ((List<?>)topics).size() ? null : ((List<?>)topics).get(i)));
                 }
             }
-            Integer newTopicsLength = ((List<?>)newTopics).size();
+            Integer newTopicsLength = newTopics.size();
             Map<String, Object> message = null;
             if ((newTopicsLength != null && newTopicsLength > 0))
             {
@@ -494,7 +494,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> messageHashes = new ArrayList<Object>(Arrays.asList());
             String url = this.getWsPublicUrl();
             List<String> topics = new ArrayList<String>(Arrays.asList());
-            for (var i = 0; i < ((List<?>)symbolsNormalized).size(); i++)
+            for (var i = 0; i < symbolsNormalized.size(); i++)
             {
                 String symbol = (symbolsNormalized == null || i < 0 || i >= symbolsNormalized.size() ? null : symbolsNormalized.get(i));
                 Map<String, Object> market = this.market(symbol);
@@ -554,7 +554,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         } else if (java.util.Objects.equals(updateType, "delta"))
         {
             List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
-            Integer topicLength = ((List<?>)topicParts).size();
+            Integer topicLength = topicParts.size();
             String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
             Map<String, Object> market = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, (String) null);
             symbol = this.safeString(market, "symbol");
@@ -671,7 +671,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         List<Object> data = (List<Object>) this.safeList(message, "data", new ArrayList<Object>(Arrays.asList()));
         String topic = this.safeString(message, "topic");
         List<Object> topicParts = new ArrayList<Object>(Arrays.asList(((String)topic).split(java.util.regex.Pattern.quote("."))));
-        Integer topicLength = ((List<?>)topicParts).size();
+        Integer topicLength = topicParts.size();
         String timeframeId = this.safeString(topicParts, 1);
         String timeframe = this.findTimeframe(timeframeId, (Object) null);
         String marketId = this.safeString(topicParts, (((long) topicLength) - 1L));
@@ -691,7 +691,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(((Map<?, ?>)this.ohlcvs).get(symbol), timeframe, stored);
         }
-        for (var i = 0; i < ((List<?>)data).size(); i++)
+        for (var i = 0; i < data.size(); i++)
         {
             List<Object> parsed = (List<Object>) this.parseWsOHLCV((data == null || i < 0 || i >= data.size() ? null : data.get(i)), (Map<String, Object>) null);
             stored.append(parsed);
@@ -783,7 +783,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String messageHash = "";
-            Object symbolsNormalized2 = null;
+            List<String> symbolsNormalized2 = null;
             if (this.isEmpty(symbols))
             {
                 symbolsNormalized2 = symbols;
@@ -793,18 +793,18 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
             if (!this.isEmpty(symbols))
             {
-                messageHash = ("::" + String.join(",", (List<String>)(List<String>)(symbolsNormalized2)));
+                messageHash = ("::" + String.join(",", (List<String>)symbolsNormalized2));
             }
             String url = this.getWsPrivateUrl();
             messageHash = ("positions" + messageHash);
             Client client = this.client(url);
             (this.authenticate((String) (url), new HashMap<String, Object>() {{}})).join();
-            this.setPositionsCache(client, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v2 -> (List<String>) hx4J40v2; case Object hx4J40v2 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v2.getClass().getName()); })));
+            this.setPositionsCache(client, symbolsNormalized2);
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
             if (java.util.Objects.equals(cache, null))
             {
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
-                return this.filterBySymbolsSinceLimit(snapshot, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v1 -> (List<String>) hx4J40v1; case Object hx4J40v1 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v1.getClass().getName()); })), since, limit, true);
+                return this.filterBySymbolsSinceLimit(snapshot, symbolsNormalized2, since, limit, true);
             }
             List<String> topics = new ArrayList<String>(Arrays.asList("positions"));
             List<Object> newPositions = (List<Object>) (this.watchTopics((String) (url), new ArrayList<Object>(Arrays.asList(messageHash)), topics, parameters)).join();
@@ -812,7 +812,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             {
                 return newPositions;
             }
-            return this.filterBySymbolsSinceLimit(cache, ((List<String>) (switch ((Object) (symbolsNormalized2)) { case null -> (List<String>) null; case List<?> hx4J40v0 -> (List<String>) hx4J40v0; case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a list of strings, got " + hx4J40v0.getClass().getName()); })), since, limit, true);
+            return this.filterBySymbolsSinceLimit(cache, symbolsNormalized2, since, limit, true);
         }).thenApply(res -> ((List<?>) res).stream().map(Position::new).collect(Collectors.toList()));
 
     }
@@ -888,12 +888,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         {
             Map<String, Object> rawTrade = (Map<String, Object>) this.safeDict(lists, i, new HashMap<String, Object>() {{}});
             Map<String, Object> parsed = this.parseWsTrade(rawTrade, (Map<String, Object>) null);
-            Object symbol = parsed.get("symbol");
-            symbols.put((String)((String)symbol), true);
+            String symbol = (String) parsed.get("symbol");
+            symbols.put((String)symbol, true);
             trades.append(parsed);
         }
         List<String> keys = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             String currentMessageHash = ("myTrades:" + key);
@@ -945,12 +945,12 @@ public class Apex extends io.github.ccxt.exchanges.Apex
         for (var i = 0; i < ((List<?>)lists).size(); i++)
         {
             Map<String, Object> parsed = (Map<String, Object>) this.parseOrder(this.safeDict(lists, i, new HashMap<String, Object>() {{}}), (Map<String, Object>) null);
-            Object symbol = parsed.get("symbol");
-            symbols.put((String)((String)symbol), true);
+            String symbol = (String) parsed.get("symbol");
+            symbols.put((String)symbol, true);
             orders.append(parsed);
         }
         List<String> symbolsArray = new ArrayList<String>(symbols.keySet());
-        for (var i = 0; i < ((List<?>)symbolsArray).size(); i++)
+        for (var i = 0; i < symbolsArray.size(); i++)
         {
             String orderKey = (symbolsArray == null || i < 0 || i >= symbolsArray.size() ? null : symbolsArray.get(i));
             String currentMessageHash = ("orders:" + orderKey);
@@ -984,7 +984,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             List<Object> promises = (((List<?>)(fetchFunctions)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             io.github.ccxt.ws.ArrayCache cache = (io.github.ccxt.ws.ArrayCache) this.positions;
-            for (var i = 0; i < ((List<?>)promises).size(); i++)
+            for (var i = 0; i < promises.size(); i++)
             {
                 Object positions = (promises == null || i < 0 || i >= promises.size() ? null : promises.get(i));
                 for (var ii = 0; ii < ((List<?>)positions).size(); ii++)
@@ -1058,10 +1058,10 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             }
         }
         List<Object> messageHashes = (List<Object>) this.findMessageHashes(client, "positions::");
-        for (var i = 0; i < ((List<?>)messageHashes).size(); i++)
+        for (var i = 0; i < messageHashes.size(); i++)
         {
-            Object messageHash = (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
-            List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)messageHash).split(java.util.regex.Pattern.quote("::"))));
+            String messageHash = (String) (messageHashes == null || i < 0 || i >= messageHashes.size() ? null : messageHashes.get(i));
+            List<Object> parts = new ArrayList<Object>(Arrays.asList(messageHash.split(java.util.regex.Pattern.quote("::"))));
             String symbolsString = this.safeString(parts, 1, "");
             List<Object> symbols = new ArrayList<Object>(Arrays.asList(((String)symbolsString).split(java.util.regex.Pattern.quote(","))));
             List<Object> positions = (List<Object>) this.filterByArray(newPositions, "symbol", symbols, false);
@@ -1087,8 +1087,8 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture(messageHash);
-            Object authenticated = this.safeValue(client.subscriptions, messageHash);
-            if (java.util.Objects.equals(authenticated, null))
+            boolean authenticated = (this.safeValue(client.subscriptions, messageHash)) != null;
+            if (!authenticated)
             {
                 // auth sign
                 Map<String, Object> message = new HashMap<String, Object>();
@@ -1245,7 +1245,7 @@ public class Apex extends io.github.ccxt.exchanges.Apex
             return;
         }
         List<String> keys = new ArrayList<String>(methods.keySet());
-        for (var i = 0; i < ((List<?>)keys).size(); i++)
+        for (var i = 0; i < keys.size(); i++)
         {
             String key = (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i));
             if (Helpers.getIndexOf(topic, (keys == null || i < 0 || i >= keys.size() ? null : keys.get(i))) >= 0)
