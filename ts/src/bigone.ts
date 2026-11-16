@@ -1267,17 +1267,15 @@ export default class bigone extends Exchange {
         if (makerFeeCost !== undefined) {
             const makerCode = makerCurrencyCode;
             if (takerFeeCost !== undefined) {
-                const takerCode = takerCurrencyCode;
                 result['fees'] = [
                     { 'cost': makerFeeCost, 'currency': makerCode },
-                    { 'cost': takerFeeCost, 'currency': takerCode },
+                    { 'cost': takerFeeCost, 'currency': takerCurrencyCode },
                 ];
             } else {
                 result['fee'] = { 'cost': makerFeeCost, 'currency': makerCode };
             }
         } else if (takerFeeCost !== undefined) {
-            const takerCode2 = takerCurrencyCode;
-            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCode2 };
+            result['fee'] = { 'cost': takerFeeCost, 'currency': takerCurrencyCode };
         } else {
             result['fee'] = undefined;
         }

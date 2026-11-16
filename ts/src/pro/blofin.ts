@@ -363,8 +363,7 @@ export default class blofin extends blofinRest {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const symbolsNormalized = this.marketSymbols (symbols, undefined, false);
-        const symbolsList = symbolsNormalized as string[];
+        const symbolsList: string[] = this.marketSymbols (symbols, undefined, false);
         const firstMarket = this.market (symbolsList[0]);
         const channel = 'tickers';
         const [ marketType, paramsMarketType ] = this.handleMarketTypeAndParams ('watchBidsAsks', firstMarket, params);
@@ -390,7 +389,7 @@ export default class blofin extends blofinRest {
             }
             return tickers;
         }
-        return this.filterByArray (this.bidsasks, 'symbol', symbolsNormalized);
+        return this.filterByArray (this.bidsasks, 'symbol', symbolsList);
     }
 
     handleBidAsk (client: Client, message: Dict) {
@@ -620,7 +619,10 @@ export default class blofin extends blofinRest {
      */
     override async watchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
         params['callerMethodName'] = 'watchOrders';
-        const symbolsArray = (symbol !== undefined) ? [ symbol ] : [];
+        const symbolsArray: string[] = [];
+        if (symbol !== undefined) {
+            symbolsArray.push (symbol);
+        }
         return await this.watchOrdersForSymbols (symbolsArray, since, limit, params);
     }
 
@@ -878,10 +880,9 @@ export default class blofin extends blofinRest {
             const market = this.market (this.safeString (symbols, i));
             let channel = channelName;
             if (isOHLCV) {
-                const tfArray = symbolsArray[i];
-                const tf = tfArray[1];
+                const tf = this.safeString (this.safeList (symbolsArray, i), 1);
                 const interval = this.safeString (this.timeframes, tf, tf);
-                channel += interval;
+                channel = channel + interval;
             }
             const topic: Dict = {
                 'channel': channel,
