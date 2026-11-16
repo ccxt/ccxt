@@ -1,14 +1,6 @@
-// Struct returns for the Go row builders (parseTicker / safeTicker / ...).
-//
-// Post-print text pass over every generated Go file (run from overwriteFileAndFolder). For each
-// struct in GO_STRUCT_RETURN_TYPES it
-//   1. retypes EVERY declaration of the listed names (`map[string]any` -> T; the Go interface
-//      method sets are invariant, so all overrides move together);
-//   2. makes their function-level returns T: a call of a listed name is an identity, anything
-//      else is built with `<T>FromMap(expr)`;
-//   3. boxes every other call site back to the map shape with `<T>ToMap(call)`, so untyped
-//      code (and the tests) never see the struct.
-// HOWTO add a type: see NOTES.md ("HOWTO add a type"); names are all-or-nothing.
+// Struct returns for the Go row builders (parseTicker / safeTicker / ...), a post-print pass over every
+// generated Go file: retypes every declaration of a listed name to its struct, builds non-identity returns
+// with <T>FromMap, and boxes every other call site back with <T>ToMap. HOWTO add a type: NOTES.md.
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -318,20 +310,6 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const got2 = goStructReturnsPass (src2);
-    if (got2 !== want2) {
-        problems.push ('GOSTRUCT U30 self-test mismatch:\n' + got2);
-    }
-    if (goStructReturnsPass (got2) !== got2) {
-        problems.push ('GOSTRUCT U30 not idempotent');
-    }
-    const got = goStructReturnsPass (src);
-    if (got !== want) {
-        problems.push ('GOSTRUCT self-test mismatch:\n' + got);
-    }
-    if (goStructReturnsPass (got) !== got) {
-        problems.push ('GOSTRUCT not idempotent');
-    }
     const posSrc = [
         'package ccxt',
         '',
@@ -368,13 +346,6 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const posGot = goStructReturnsPass (posSrc);
-    if (posGot !== posWant) {
-        problems.push ('GOSTRUCT Position self-test mismatch:\n' + posGot);
-    }
-    if (goStructReturnsPass (posGot) !== posGot) {
-        problems.push ('GOSTRUCT Position not idempotent');
-    }
     // FundingRate / OpenInterest (package ccxt: unqualified helpers)
     const fundingOpenInterestSrc = [
         'package ccxt',
@@ -420,12 +391,14 @@ export function goStructReturnsSelfTest (): string[] {
         '}',
         '',
     ].join ('\n');
-    const got31 = goStructReturnsPass (fundingOpenInterestSrc);
-    if (got31 !== want31) {
-        problems.push ('GOSTRUCT U31 self-test mismatch:\n' + got31);
-    }
-    if (goStructReturnsPass (got31) !== got31) {
-        problems.push ('GOSTRUCT U31 not idempotent');
+    for (const [ label, input, expected ] of [ [ 'U30 ', src2, want2 ], [ '', src, want ], [ 'Position ', posSrc, posWant ], [ 'U31 ', fundingOpenInterestSrc, want31 ] ]) {
+        const got = goStructReturnsPass (input);
+        if (got !== expected) {
+            problems.push ('GOSTRUCT ' + label + 'self-test mismatch:\n' + got);
+        }
+        if (goStructReturnsPass (got) !== got) {
+            problems.push ('GOSTRUCT ' + label + 'not idempotent');
+        }
     }
     // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct
     const chan = 'package ccxt\n\nfunc (this *X) f(ch chan AsyncResult[Order]) any {\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(this.ParseOrder(a), b))}\n\treturn nil\n}\n';
