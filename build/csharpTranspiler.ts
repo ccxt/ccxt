@@ -9066,24 +9066,30 @@ function declaredGetValueSelfTest (): string[] {
 // Retypes `object` numeric locals whose every read hands the box to a helper blind to the typed spelling,
 // so typed twins / native operators apply: (A) `safeInteger(..) - N` read only by multiply/divide -> Int64?;
 // (B) `s = this.sum(s, C)` counters -> Int64 and `for` counters -> `i++`; (C) guarded negation -> `(x = -x)`.
-export function csharpObjectNumericLocalRetype (content: string): string {
-    if (!/(?<![\w.])(?:postFixIncrement|prefixUnaryNeg|multiply|divide)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
+// the whole-region rewrite driver: `body` edits lines through `set`; `region ()` re-reads the declarations
+// after edits; a changed file goes through csharpNativeArithmetic
+function csharpRegionEdits (content: string, trigger: RegExp, body: (r: { start: number, end: number, params: any, lines: string[], masked: string[], set: (i: number, next: string) => void, region: () => CsharpRegion }) => void): string {
+    if (!trigger.test (content) || /^namespace Tests\b/m.test (content)) {
         return content;
     }
-    const compare = [ 'isLessThan', 'isGreaterThan', 'isLessThanOrEqual', 'isGreaterThanOrEqual', 'isEqual' ];
-    const intKinds = [ 'int', 'Int64', 'Int64?' ];
     const lines = content.split ('\n');
     const masked = lines.map (csharpHelperMaskLine);
     let changed = false;
     const set = (i: number, next: string) => {
         if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
     };
-    for (const { start, end } of csharpRegions (masked)) {
+    for (const { start, end, params } of csharpRegions (masked)) {
+        const region = () => ({ start, end, params, declarations: csharpRegionDeclarations (masked, start, end), lines: masked });
+        body ({ start, end, params, lines, masked, set, region });
+    }
+    return changed ? csharpNativeArithmetic (lines.join ('\n')) : content;
+}
+
+export function csharpObjectNumericLocalRetype (content: string): string {
+    const compare = [ 'isLessThan', 'isGreaterThan', 'isLessThanOrEqual', 'isGreaterThanOrEqual', 'isEqual' ];
+    const intKinds = [ 'int', 'Int64', 'Int64?' ];
+    return csharpRegionEdits (content, /(?<![\w.])(?:postFixIncrement|prefixUnaryNeg|multiply|divide)\(/, ({ start, end, lines, masked, set, region }) => {
         const nameRe = (name: string) => new RegExp ('(?<![\\w.])' + name + '(?![\\w])', 'g');
-        const region = () => {
-            const declarations = csharpRegionDeclarations (masked, start, end);
-            return { start, end, params: csharpHelperSignatureParams (masked, start), declarations, lines: masked };
-        };
         // every occurrence of `name` after its declaration line: [line, column]
         const uses = (name: string, decl: number) => {
             const at: [number, number][] = [];
@@ -9170,8 +9176,7 @@ export function csharpObjectNumericLocalRetype (content: string): string {
                 if (masked[k].includes (site)) set (k, lines[k].split (site).join ('(' + x + ' = -' + x + ')'));
             }
         }
-    }
-    return changed ? csharpNativeArithmetic (lines.join ('\n')) : content;
+    });
 }
 
 // snippet checks (run from csharpNativeEmissionSelfTest)
@@ -9584,21 +9589,8 @@ function arithmeticNullableCompareSelfTest (): string[] {
 // (B) divide by the hand-written `double this.rateLimit`; (C) mod(<Int64[?] name>, <positive int literal>)
 // -> the twin's double modulo, cast back; (D) arraySlice(a, prefixUnaryNeg(ref x)) on non-null x -> -Convert.ToInt64(x).
 export function csharpNonNullDivModNegate (content: string): string {
-    if (!/(?<![\w.])(?:prefixUnaryNeg|subtract|divide|mod)\(/.test (content) || /^namespace Tests\b/m.test (content)) {
-        return content;
-    }
-    const lines = content.split ('\n');
-    const masked = lines.map (csharpHelperMaskLine);
-    let changed = false;
-    const set = (i: number, next: string) => {
-        if (next !== lines[i]) { lines[i] = next; masked[i] = csharpHelperMaskLine (next); changed = true; }
-    };
     const DOUBLE_FIELDS: { [name: string]: string } = { 'this.rateLimit': 'double' }; // cs/ccxt/base/Exchange.Options.cs
-    for (const { start, end, params } of csharpRegions (masked)) {
-        const region = () => {
-            const declarations = csharpRegionDeclarations (masked, start, end);
-            return { start, end, params, declarations, lines: masked };
-        };
+    return csharpRegionEdits (content, /(?<![\w.])(?:prefixUnaryNeg|subtract|divide|mod)\(/, ({ start, end, params, lines, masked, set, region }) => {
         const bound = new Set<string> ();
         for (let i = start + 1; i < end; i++) {
             for (const b of masked[i].matchAll (/(?:\bfor(?:each)?[ ]*\([ ]*[A-Za-z_][\w<>?,]*[ ]+|\bout[ ]+[A-Za-z_][\w<>?]*[ ]+|\bis[ ]+[A-Za-z_][\w<>?]*[ ]+)([A-Za-z_]\w*)/g)) bound.add (b[1]);
@@ -9745,8 +9737,7 @@ export function csharpNonNullDivModNegate (content: string): string {
             if (!proven || (col < 0)) continue;
             set (i, lines[i].slice (0, col) + '-System.Convert.ToInt64(' + x + ')' + lines[i].slice (col + ('prefixUnaryNeg(ref ' + x + ')').length));
         }
-    }
-    return changed ? csharpNativeArithmetic (lines.join ('\n')) : content;
+    });
 }
 
 // snippet checks (run from the --self-test path)
