@@ -157,7 +157,6 @@
         "php": ">=8.1.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
-        "ext-iconv": "*",
         "ext-pcre": "*",
         "ext-json": "*",
         "ext-openssl": "*",
