@@ -252,7 +252,7 @@ export default class gemini extends geminiRest {
         const tradesLimit = this.safeInteger (this.options, 'tradesLimit', 1000);
         const storesForSymbols: Dict = {};
         for (let i = 0; i < trades.length; i++) {
-            const rawTrade = this.safeValue (trades, i);
+            const rawTrade = this.safeDict (trades, i, {});
             const marketId = this.safeString (rawTrade, 'symbol', '').toLowerCase ();
             const market = this.safeMarket (marketId);
             const symbol = this.safeString (market, 'symbol', '');
@@ -368,8 +368,7 @@ export default class gemini extends geminiRest {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
-            const index = changesLength - i - 1;
-            const parsed = this.parseOHLCV (this.safeValue (changes, index), market);
+            const parsed = this.parseOHLCV (this.safeValue (changes, changesLength - i - 1), market);
             stored.append (parsed);
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -955,7 +954,7 @@ export default class gemini extends geminiRest {
             const collectedEventsOfTrades: Dict[] = [];
             const eventsLength = events.length;
             for (let i = 0; i < events.length; i++) {
-                const event = this.safeValue (events, i);
+                const event = this.safeDict (events, i, {});
                 const eventType = this.safeString (event, 'type');
                 const side = this.safeString (event, 'side');
                 const isOrderBook = (eventType === 'change') && (side !== undefined) && this.inArray (side, [ 'ask', 'bid' ]);
