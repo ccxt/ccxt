@@ -1645,8 +1645,8 @@ public partial class coinbase : Exchange
                         { "type", "spot" },
                         { "spot", true },
                         { "margin", false },
-                        { "swap", true },
-                        { "future", true },
+                        { "swap", false },
+                        { "future", false },
                         { "option", false },
                         { "active", null },
                         { "contract", false },
@@ -1796,8 +1796,6 @@ public partial class coinbase : Exchange
         IDictionary<string, object> fees = this.safeDict(promises, 1, new Dictionary<string, object>() {});
         IDictionary<string, object> expiringFutures = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
         IDictionary<string, object> perpetualFutures = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
-        IDictionary<string, object> expiringFees = this.safeDict(contractPromises, 0, new Dictionary<string, object>() {});
-        IDictionary<string, object> perpetualFees = this.safeDict(contractPromises, 1, new Dictionary<string, object>() {});
         //
         //     {
         //         "total_volume": 0,
@@ -1818,8 +1816,6 @@ public partial class coinbase : Exchange
         //     }
         //
         IDictionary<string, object> feeTier = this.safeDict(fees, "fee_tier", new Dictionary<string, object>() {});
-        IDictionary<string, object> expiringFeeTier = this.safeDict(expiringFees, "fee_tier", new Dictionary<string, object>() {}); // fee tier null?
-        IDictionary<string, object> perpetualFeeTier = this.safeDict(perpetualFees, "fee_tier", new Dictionary<string, object>() {}); // fee tier null?
         List<object> data = this.safeList(spot, "products", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; i < data.Count; i++)
@@ -1833,7 +1829,7 @@ public partial class coinbase : Exchange
         List<object> futureData = this.safeList(expiringFutures, "products", new List<object>() {});
         for (int i = 0; i < futureData.Count; i++)
         {
-            Dictionary<string, object> futureMarket = this.parseContractMarket(futureData[i], expiringFeeTier);
+            Dictionary<string, object> futureMarket = this.parseContractMarket(futureData[i]);
             if ((futureMarket != null))
             {
                 result.Add(futureMarket);
@@ -1842,7 +1838,7 @@ public partial class coinbase : Exchange
         List<object> perpetualData = this.safeList(perpetualFutures, "products", new List<object>() {});
         for (int i = 0; i < perpetualData.Count; i++)
         {
-            Dictionary<string, object> perpetualMarket = this.parseContractMarket(perpetualData[i], perpetualFeeTier);
+            Dictionary<string, object> perpetualMarket = this.parseContractMarket(perpetualData[i]);
             if ((perpetualMarket != null))
             {
                 result.Add(perpetualMarket);
@@ -1972,7 +1968,7 @@ public partial class coinbase : Exchange
         });
     }
 
-    public virtual Dictionary<string, object> parseContractMarket(object market, IDictionary<string, object> feeTier)
+    public virtual Dictionary<string, object> parseContractMarket(object market, IDictionary<string, object>? feeTier = null)
     {
         // expiring
         //
@@ -2129,8 +2125,9 @@ public partial class coinbase : Exchange
         }
         double? takerFeeRate = this.safeNumber(feeTier, "taker_fee_rate");
         double? makerFeeRate = this.safeNumber(feeTier, "maker_fee_rate");
-        double? taker = ((takerFeeRate != null) && (takerFeeRate != null) && (takerFeeRate != 0)) ? takerFeeRate : this.parseNumber("0.06");
-        double? maker = ((makerFeeRate != null) && (makerFeeRate != null) && (makerFeeRate != 0)) ? makerFeeRate : this.parseNumber("0.04");
+        // CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
+        double? taker = ((takerFeeRate != null) && (takerFeeRate != null) && (takerFeeRate != 0)) ? takerFeeRate : this.parseNumber("0.0002");
+        double? maker = ((makerFeeRate != null) && (makerFeeRate != null) && (makerFeeRate != 0)) ? makerFeeRate : this.parseNumber("0.0002");
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
             { "symbol", symbol },

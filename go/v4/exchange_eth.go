@@ -277,23 +277,11 @@ func ethEncodeStructuredData(primaryType string, domain apitypes.TypedDataDomain
 		Message:     messageData,
 	}
 
-	encodedDomain, err := typedData.HashStruct("EIP712Domain", domain.Map())
+	rawData, err := encodeTypedDataDigest(typedData)
 	if err != nil {
 		return "", err
 	}
-
-	encodedData, err := typedData.HashStruct(typedData.PrimaryType, typedData.Message)
-	if err != nil {
-		return "", err
-	}
-
-	domainHex := hexutil.Encode(encodedDomain) // comes with 0x, remove
-	domainHex = strings.TrimPrefix(domainHex, "0x")
-	dataHex := hexutil.Encode(encodedData)
-	dataHex = strings.TrimPrefix(dataHex, "0x")
-
-	encodedHex := "1901" + domainHex + dataHex
-	return encodedHex, nil
+	return hex.EncodeToString(rawData), nil
 }
 
 func (this *BaseExchange) EthEncodeStructuredData(domain2 any, messageTypes2 any, messageData2 any) []uint8 {
@@ -1440,6 +1428,10 @@ func BuildTypedDataFromJS(primaryType string, domain map[string]any, rawTypes ma
 
 // EncodeTypedData returns the EIP-712 digest "\x19\x01" + domainSeparator + hashStruct(message)
 func (this *BaseExchange) EncodeTypedData(td apitypes.TypedData) ([]byte, error) {
+	return encodeTypedDataDigest(td)
+}
+
+func encodeTypedDataDigest(td apitypes.TypedData) ([]byte, error) {
 	domainSeparator, err := td.HashStruct("EIP712Domain", td.Domain.Map())
 	if err != nil {
 		return []byte{}, err

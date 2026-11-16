@@ -18,7 +18,7 @@ import io.github.ccxt.base.JsonHelper;
 @SuppressWarnings({"unchecked", "rawtypes"})
 public class Helpers {
 
-    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final ObjectMapper mapper = JsonHelper.mapper();
 
     /** Object literal `{ k1: v1, k2: v2 }` as a mutable map; args alternate key, value. */
     public static HashMap<String, Object> newMap(Object... keysAndValues) {

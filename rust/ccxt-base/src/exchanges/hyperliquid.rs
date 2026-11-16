@@ -6474,7 +6474,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     m.insert("type".to_string(), Value::Str("vaultTransfer".into()));
                     m.insert("vaultAddress".to_string(), Value::Str(format!("{}{}", "0x", vaultAddress.as_deref().unwrap_or("null")).into()));
                     m.insert("isDeposit".to_string(), Value::Bool(false));
-                    m.insert("usd".to_string(), amount.clone());
+                    m.insert("usd".to_string(), self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".into()))));
                 m
             });
             sig = self.sign_l1_action(Value::Map(action.clone()), Value::from(nonce), None, None);

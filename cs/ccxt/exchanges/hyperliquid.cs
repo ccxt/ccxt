@@ -5038,7 +5038,7 @@ public partial class hyperliquid : Exchange
                 { "type", "vaultTransfer" },
                 { "vaultAddress", ("0x" + vaultAddress) },
                 { "isDeposit", false },
-                { "usd", amount },
+                { "usd", this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000")) },
             };
             sig = this.signL1Action(action, nonce);
         } else
