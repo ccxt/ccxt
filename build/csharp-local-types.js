@@ -10694,10 +10694,190 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context) ?? calleeDeclaredResultLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
+}
+
+// ===== 77c6: locals typed from the callee's declared C# result =====
+//
+// Three shapes whose callee signature the printer itself names, decided from the TS AST and the
+// checker (never from printed text):
+//   (A) `const p = this.<m> (...)` NOT awaited, where the checker types the call as a Promise: the
+//       C# call returns the Task itself, so the local is `Task<T>` with T the callee's declared result
+//       (a typed core's configured type, a generated api wrapper's Task<T>, a registered awaited type
+//       or a same-file concrete Task<T>). The task is the same object the `object` local held.
+//   (B) `const xs = await this.<typed core> (...)` for a core whose funnel helper is the identity
+//       (List<string> / Int64 / string): the awaited value IS the core's declared T.
+//   (D) `const x = await this.<m> (...)` for an async method declared once in ts/src, in this file,
+//       whose every return path proves one box: the box is named behind the exact cast back.
+//   (C) `const x = this.<m> (...)` where the SAME file declares the (sync) method and its printed C#
+//       return is concrete: the call's static type IS that return, no cast.
+// Every candidate goes through csharpLocalIsSafeToRetype, so a later write or a use the type cannot
+// take keeps the local `object`.
+const CALLEE_RESULT_IDENTITY_CORES = [ 'List<string>', 'Int64', 'string' ];
+const CALLEE_RESULT_BOXES = [ 'Dictionary<string, object>', 'List<object>' ];
+const CALLEE_RESULT_SOURCE_ROOT = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'ts', 'src');
+let calleeResultDeclarationCounts;
+
+// how many ts/src sources declare a method of this name (any tier): an override anywhere means the
+// awaited box depends on the runtime class, so only a single declaration is provable
+function tsSourceMethodDeclarationCount (name) {
+    if (calleeResultDeclarationCounts === undefined) {
+        calleeResultDeclarationCounts = new Map ();
+        const walk = (dir) => {
+            let entries = [];
+            try {
+                entries = fs.readdirSync (dir, { withFileTypes: true });
+            } catch (e) {
+                return;
+            }
+            for (const entry of entries) {
+                const full = path.join (dir, entry.name);
+                if (entry.isDirectory ()) {
+                    if (entry.name !== 'test' && entry.name !== 'static') {
+                        walk (full);
+                    }
+                } else if (entry.name.endsWith ('.ts') && !entry.name.includes ('.nooverloads.')) {
+                    const source = ts.createSourceFile (full, fs.readFileSync (full, 'utf8'), ts.ScriptTarget.Latest, false);
+                    const visit = (node) => {
+                        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier) {
+                            const key = node.name.text;
+                            calleeResultDeclarationCounts.set (key, (calleeResultDeclarationCounts.get (key) ?? 0) + 1);
+                        }
+                        node.forEachChild (visit);
+                    };
+                    visit (source);
+                }
+            }
+        };
+        walk (CALLEE_RESULT_SOURCE_ROOT);
+    }
+    return calleeResultDeclarationCounts.get (name) ?? 0;
+}
+
+function singleDeclarationAwaitedBox (csharp, call, name) {
+    const sourceFile = call.getSourceFile?.();
+    if (sourceFile === undefined || tsSourceMethodDeclarationCount (name) !== 1) {
+        return undefined;
+    }
+    let found;
+    const visit = (node) => {
+        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === name) {
+            found = node;
+        }
+        node?.forEachChild (visit);
+    };
+    visit (sourceFile);
+    if (found === undefined || found.body === undefined || (typeof csharp.isAsyncFunction === 'function' && !csharp.isAsyncFunction (found))) {
+        return undefined;
+    }
+    const box = awaitedCoreBoxType (csharp, found);
+    return CALLEE_RESULT_BOXES.includes (box) ? box : undefined;
+}
+
+function qualifiedTypedCoreResult (type) {
+    if (type.startsWith ('ccxt.') || [ 'Int64', 'string', 'bool', 'List<string>', 'Dictionary<string, object>', 'List<Dictionary<string, object>>', 'List<object>' ].includes (type)) {
+        return type;
+    }
+    if (/^List<[A-Za-z]+>$/.test (type)) {
+        return 'List<ccxt.' + type.slice (5, -1) + '>';
+    }
+    return /^[A-Za-z]+$/.test (type) ? ('ccxt.' + type) : undefined;
+}
+
+function callIsCheckerPromise (csharp, call) {
+    if (typeof csharp.getChecker !== 'function') {
+        return false;
+    }
+    try {
+        const type = csharp.getChecker ().getTypeAtLocation (call);
+        const symbol = type?.getSymbol?.() ?? type?.symbol;
+        return symbol?.name === 'Promise' || symbol?.escapedName === 'Promise';
+    } catch (e) {
+        return false;
+    }
+}
+
+function sameFileSyncReturnType (csharp, call, methodName) {
+    const sourceFile = call.getSourceFile?.();
+    if (sourceFile === undefined || typeof csharp.printFunctionType !== 'function') {
+        return undefined;
+    }
+    let found;
+    let count = 0;
+    const visit = (node) => {
+        if (node.kind === ts.SyntaxKind.MethodDeclaration && node.name?.kind === ts.SyntaxKind.Identifier && node.name.text === methodName) {
+            count++;
+            found = node;
+        }
+        node?.forEachChild (visit);
+    };
+    visit (sourceFile);
+    if (count !== 1 || found.body === undefined || (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (found))) {
+        return undefined;
+    }
+    let printed;
+    try {
+        printed = csharp.printFunctionType (found);
+    } catch (e) {
+        return undefined;
+    }
+    if (typeof printed !== 'string' || printed === '' || printed === 'object' || printed === 'void' || printed.startsWith ('Task')) {
+        return undefined;
+    }
+    return /^[A-Za-z][\w<>,.? ]*$/.test (printed) ? printed : undefined;
+}
+
+function calleeDeclaredResultType (csharp, declaration) {
+    const initializer = declaration.initializer;
+    const awaited = initializer?.kind === ts.SyntaxKind.AwaitExpression;
+    const call = awaited ? initializer.expression : initializer;
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.name?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    const name = callee.name.text;
+    if (callee.expression?.kind !== ts.SyntaxKind.ThisKeyword) {
+        return undefined;
+    }
+    if (awaited) {
+        // (B) a typed core whose consuming funnel is the identity (List<string> / Int64 / string):
+        // the awaited value's static type is the core's own T, funneled or not
+        const core = (typeof csharp.csharpTypedCoreType === 'function') ? csharp.csharpTypedCoreType (call, name) : '';
+        if (CALLEE_RESULT_IDENTITY_CORES.includes (core)) {
+            return { type: core };
+        }
+        // (D) a same-file async method declared once in all of ts/src whose every return path
+        // proves one box (awaitedCoreBoxType): its signature stays Task<object>, so the awaited
+        // value is named behind the exact cast back to that box
+        const box = singleDeclarationAwaitedBox (csharp, call, name);
+        return (box === undefined) ? undefined : { type: box, cast: box };
+    }
+    if (callIsCheckerPromise (csharp, call)) {
+        // (A) the un-awaited task: typed core first (its signature is retyped after printing)
+        const core = (typeof csharp.csharpTypedCoreType === 'function') ? csharp.csharpTypedCoreType (call, name) : '';
+        const result = (core !== '' && core !== undefined) ? qualifiedTypedCoreResult (core) : thisCallResultType (csharp, call);
+        return (result === undefined || result === 'object') ? undefined : { type: 'Task<' + result + '>' };
+    }
+    // (C) a same-file sync declaration whose printed return is concrete
+    const sync = sameFileSyncReturnType (csharp, call, name);
+    return (sync === undefined) ? undefined : { type: sync };
+}
+
+function calleeDeclaredResultLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1 || declaration.type !== undefined) {
+        return undefined;
+    }
+    const result = calleeDeclaredResultType (csharp, declaration);
+    if (result === undefined) {
+        return undefined;
+    }
+    const type = result.type;
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: result.cast } : undefined;
 }
 
 // ===== the `as any` receiver copies of the safeList* producers =====

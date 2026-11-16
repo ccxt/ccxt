@@ -183,3 +183,17 @@ describe ('cs-string-annotated-param-copy', () => {
         assert.doesNotMatch (out, /object channelKey = channel;/);
     });
 });
+
+describe ('cs-77c6-callee-declared-result-locals', () => {
+    test('un-awaited endpoint task, sync same-file return, single-declaration awaited box', () => {
+        const transpiler = new Transpiler (cfg);
+        setupCsharpPrinter (transpiler);
+        const grvt = (transpiler as any).transpileCSharpByPath ('./ts/src/grvt.ts').content as string;
+        assert.match (grvt, /Task<Dictionary<string, object>> marketsPromise = this\.publicMarketPostFullV1AllInstruments\(/);
+        const kraken = (transpiler as any).transpileCSharpByPath ('./ts/src/krakenfutures.ts').content as string;
+        assert.match (kraken, /string\? accountName = this\.parseKrakenAccountName\(type\);/);
+        const poly = (transpiler as any).transpileCSharpByPath ('./ts/src/polymarket.ts').content as string;
+        assert.match (poly, /Dictionary<string, object> signed = \(\(Dictionary<string, object>\)await this\.signPerpsOp\(/);
+        assert.doesNotMatch (poly, /object signed = await this\.signPerpsOp\(/);
+    });
+});
