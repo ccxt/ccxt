@@ -101957,7 +101957,14 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gateway',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2,
+            'byType': {
+                'status': 1,
+                'contracts': 1,
+                'order': 1,
+                'subaccount_orders': 2,
+                'subaccount_info': 2
+            }
         });
     }
     gatewayPublicGetEdgeQuery(params = {}) {
@@ -101973,7 +101980,14 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gateway',
             'public'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2,
+            'byType': {
+                'status': 1,
+                'contracts': 1,
+                'order': 1,
+                'subaccount_orders': 2,
+                'subaccount_info': 2
+            }
         });
     }
     gatewayPublicPostEdgeQuery(params = {}) {
@@ -102005,7 +102019,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'gatewayV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     gatewayV2PublicGetOrderbook(params = {}) {
@@ -102020,7 +102034,28 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
         return this.request('', [
             'archive'
         ], 'POST', params, {
-            'cost': 1
+            'cost': 2,
+            'byQuery': {
+                'candlesticks': [
+                    2,
+                    100
+                ],
+                'events': [
+                    2,
+                    10
+                ],
+                'matches': [
+                    2,
+                    10
+                ],
+                'orders': [
+                    2,
+                    20
+                ],
+                'interest_and_funding': [
+                    5
+                ]
+            }
         });
     }
     archiveV2PublicGetTickers(params = {}) {
@@ -102028,7 +102063,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     archiveV2PublicGetContracts(params = {}) {
@@ -102036,7 +102071,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     archiveV2PublicGetTrades(params = {}) {
@@ -102044,7 +102079,11 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 4,
+            'byRows': [
+                2,
+                50
+            ]
         });
     }
     archiveV2PublicGetSymbols(params = {}) {
@@ -102052,7 +102091,7 @@ class Exchange extends _base_Exchange_js__rspack_import_0/* .Exchange */.k5 {
             'archiveV2',
             'public'
         ], 'GET', params, {
-            'cost': 1
+            'cost': 2
         });
     }
     triggerPrivatePostExecute(params = {}) {
@@ -213011,7 +213050,7 @@ class binance extends _abstract_binance_js__rspack_import_0/* ["default"] */.A {
         const request = {};
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const defaultType = this.safeString2(this.options, 'fetchFundingRateHistory', 'defaultType', 'swap');
         const type = this.safeString(paramsPaginate, 'type', defaultType);
@@ -224082,7 +224121,20 @@ class bingx extends _abstract_bingx_js__rspack_import_0/* ["default"] */.A {
         //
         } else {
             const isTwapOrder = this.safeBool(paramsStandard, 'twap', false);
-            const paramsOmitted = this.omit(paramsStandard, 'twap');
+            let paramsOmitted = this.omit(paramsStandard, 'twap');
+            if (!isTwapOrder) {
+                if (limit !== undefined) {
+                    request['limit'] = Math.min(limit, 1000);
+                }
+                if (since !== undefined) {
+                    request['startTime'] = since;
+                }
+                const until = this.safeInteger(paramsOmitted, 'until');
+                if (until !== undefined) {
+                    request['endTime'] = until;
+                    paramsOmitted = this.omit(paramsOmitted, 'until');
+                }
+            }
             if (isTwapOrder) {
                 request['pageIndex'] = 1;
                 request['pageSize'] = limit === undefined ? 100 : limit;
@@ -269921,11 +269973,12 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 }
             },
             'fees': {
+                // https://bitvavo.com/en/fees
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
                     'taker': this.parseNumber('0.0025'),
-                    'maker': this.parseNumber('0.002'),
+                    'maker': this.parseNumber('0.0015'),
                     'tiers': {
                         'taker': [
                             [
@@ -269938,31 +269991,35 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('250000'),
-                                this.parseNumber('0.0016')
+                                this.parseNumber('0.0018')
                             ],
                             [
                                 this.parseNumber('500000'),
-                                this.parseNumber('0.0012')
+                                this.parseNumber('0.0016')
                             ],
                             [
                                 this.parseNumber('1000000'),
-                                this.parseNumber('0.0010')
+                                this.parseNumber('0.0014')
                             ],
                             [
                                 this.parseNumber('2500000'),
-                                this.parseNumber('0.0008')
+                                this.parseNumber('0.0012')
                             ],
                             [
                                 this.parseNumber('5000000'),
-                                this.parseNumber('0.0006')
+                                this.parseNumber('0.0010')
                             ],
                             [
                                 this.parseNumber('10000000'),
-                                this.parseNumber('0.0005')
+                                this.parseNumber('0.0008')
                             ],
                             [
                                 this.parseNumber('25000000'),
                                 this.parseNumber('0.0004')
+                            ],
+                            [
+                                this.parseNumber('100000000'),
+                                this.parseNumber('0.0002')
                             ]
                         ],
                         'maker': [
@@ -269976,11 +270033,11 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('250000'),
-                                this.parseNumber('0.0008')
+                                this.parseNumber('0.0009')
                             ],
                             [
                                 this.parseNumber('500000'),
-                                this.parseNumber('0.0006')
+                                this.parseNumber('0.0008')
                             ],
                             [
                                 this.parseNumber('1000000'),
@@ -269988,21 +270045,39 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                             ],
                             [
                                 this.parseNumber('2500000'),
-                                this.parseNumber('0.0004')
+                                this.parseNumber('0.0003')
                             ],
                             [
                                 this.parseNumber('5000000'),
-                                this.parseNumber('0.0004')
+                                this.parseNumber('0.0001')
                             ],
                             [
                                 this.parseNumber('10000000'),
-                                this.parseNumber('0.0003')
+                                this.parseNumber('0')
                             ],
                             [
                                 this.parseNumber('25000000'),
-                                this.parseNumber('0.0003')
+                                this.parseNumber('0')
+                            ],
+                            [
+                                this.parseNumber('100000000'),
+                                this.parseNumber('0')
                             ]
                         ]
+                    }
+                },
+                'byCategory': {
+                    'B': {
+                        'maker': this.parseNumber('0.0005'),
+                        'taker': this.parseNumber('0.0005')
+                    },
+                    'C': {
+                        'maker': this.parseNumber('0.001'),
+                        'taker': this.parseNumber('0.001')
+                    },
+                    'D': {
+                        'maker': this.parseNumber('0'),
+                        'taker': this.parseNumber('0.0001')
                     }
                 }
             },
@@ -270225,6 +270300,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
     }
     parseMarkets(markets) {
         const result = [];
+        const defaultFees = this.safeDict(this.fees, 'trading', {});
+        const feesByCategory = this.safeDict(this.fees, 'byCategory', {});
         for(let i = 0; i < markets.length; i++){
             const market = this.safeDict(markets, i);
             const id = this.safeString(market, 'market');
@@ -270236,6 +270313,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 continue;
             }
             const status = this.safeString(market, 'status');
+            const feeCategory = this.safeString(market, 'feeCategory');
+            const fees = this.safeDict(feesByCategory, feeCategory, defaultFees);
             result.push(this.safeMarketStructure({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -270260,8 +270339,8 @@ class bitvavo extends _abstract_bitvavo_js__rspack_import_0/* ["default"] */.A {
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
-                'taker': this.safeNumber(this.fees['trading'], 'taker'),
-                'maker': this.safeNumber(this.fees['trading'], 'maker'),
+                'taker': this.safeNumber(fees, 'taker'),
+                'maker': this.safeNumber(fees, 'maker'),
                 'precision': {
                     'amount': this.parseNumber(this.parsePrecision(this.safeString(market, 'quantityDecimals'))),
                     'price': this.safeNumber(market, 'tickSize'),
@@ -361363,7 +361442,7 @@ class gate extends _abstract_gate_js__rspack_import_0/* ["default"] */.A {
         }
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchFundingRateHistory', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchFundingRateHistory', symbol, since, limit, '8h', paramsPaginate);
+            return await this.fetchPaginatedCallDynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 1000);
         }
         const market = this.market(symbol);
         if (!this.safeBool(market, 'swap', false)) {
@@ -451209,7 +451288,14 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                                 'cost': 2
                             },
                             'query': {
-                                'cost': 1
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2
+                                }
                             },
                             'edge/query': {
                                 'cost': 1
@@ -451217,7 +451303,14 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                         },
                         'post': {
                             'query': {
-                                'cost': 1
+                                'cost': 2,
+                                'byType': {
+                                    'status': 1,
+                                    'contracts': 1,
+                                    'order': 1,
+                                    'subaccount_orders': 2,
+                                    'subaccount_info': 2
+                                }
                             },
                             'edge/query': {
                                 'cost': 1
@@ -451239,7 +451332,7 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                                 'cost': 2
                             },
                             'pairs': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'orderbook': {
                                 'cost': 1
@@ -451250,7 +451343,29 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                 'archive': {
                     'post': {
                         '': {
-                            'cost': 1
+                            'cost': 2,
+                            // [ base weight, rows per extra weight unit ]
+                            'byQuery': {
+                                'candlesticks': [
+                                    2,
+                                    100
+                                ],
+                                'events': [
+                                    2,
+                                    10
+                                ],
+                                'matches': [
+                                    2,
+                                    10
+                                ],
+                                'orders': [
+                                    2,
+                                    20
+                                ],
+                                'interest_and_funding': [
+                                    5
+                                ]
+                            }
                         }
                     }
                 },
@@ -451258,16 +451373,20 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
                     'public': {
                         'get': {
                             'tickers': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'contracts': {
-                                'cost': 1
+                                'cost': 2
                             },
                             'trades': {
-                                'cost': 1
+                                'cost': 4,
+                                'byRows': [
+                                    2,
+                                    50
+                                ]
                             },
                             'symbols': {
-                                'cost': 1
+                                'cost': 2
                             }
                         }
                     }
@@ -454385,6 +454504,48 @@ class nado extends _abstract_nado_js__rspack_import_0/* ["default"] */.A {
             return marketId.slice(0, -5);
         }
         return marketId;
+    }
+    calculateRateLimiterCost(api, method, path, params, config = {}) {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if ('byType' in config && 'type' in params) {
+            const queryType = params['type'];
+            const byType = config['byType'];
+            if (queryType in byType) {
+                return byType[queryType];
+            }
+        }
+        const byQuery = this.safeDict(config, 'byQuery');
+        if (byQuery !== undefined) {
+            const queryNames = Object.keys(byQuery);
+            for(let i = 0; i < queryNames.length; i++){
+                const queryName = queryNames[i];
+                if (queryName in params) {
+                    const weights = this.safeList(byQuery, queryName, []);
+                    const baseWeight = this.safeInteger(weights, 0, 2);
+                    const rowsPerWeight = this.safeInteger(weights, 1);
+                    if (rowsPerWeight === undefined) {
+                        return baseWeight;
+                    }
+                    const query = this.safeDict(params, queryName, {});
+                    let rows = this.safeInteger(query, 'limit', 100); // the archive default page
+                    const nestedLimit = this.safeDict(query, 'limit'); // the events query sends { 'raw': 100 }
+                    if (nestedLimit !== undefined) {
+                        rows = this.safeInteger(nestedLimit, 'raw', 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt(rows / rowsPerWeight));
+                }
+            }
+        }
+        const byRows = this.safeList(config, 'byRows');
+        if (byRows !== undefined) {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            const rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            const rowsDivisor = this.safeInteger(byRows, 1, 50);
+            const rowCount = this.safeInteger(params, 'limit', 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt(rowCount / rowsDivisor));
+        }
+        return this.safeValue(config, 'cost', 1);
     }
     sign(path, api = [], method = 'GET', params = {}) {
         let requestBody = undefined;
@@ -461088,14 +461249,15 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const market = this.market(symbol);
         const [paginate, paramsPaginate] = this.handleOptionBoolAndParams(params, 'fetchOHLCV', 'paginate', false);
-        if (paginate) {
-            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, 200);
-        }
         const priceType = this.safeString(paramsPaginate, 'price');
         const isMarkOrIndex = this.inArray(priceType, [
             'mark',
             'index'
         ]);
+        if (paginate) {
+            const maxEntriesPerRequest = isMarkOrIndex ? 100 : 200;
+            return await this.fetchPaginatedCallDeterministic('fetchOHLCV', symbol, since, limit, timeframe, paramsPaginate, maxEntriesPerRequest);
+        }
         const paramsPrice = this.omit(paramsPaginate, 'price');
         const options = this.safeDict(this.options, 'fetchOHLCV', {});
         const timezone = this.safeString(options, 'timezone', 'UTC');
@@ -461135,7 +461297,10 @@ class okx extends _abstract_okx_js__rspack_import_0/* ["default"] */.A {
         }
         const until = this.safeInteger(paramsPrice, 'until');
         if (until !== undefined) {
-            request['after'] = until;
+            const afterSince = this.safeInteger(request, 'after');
+            if (afterSince === undefined || until < afterSince) {
+                request['after'] = until;
+            }
         }
         const paramsUntil = until !== undefined ? this.omit(paramsPrice, 'until') : paramsPrice;
         defaultType = this.safeString(options, 'type', defaultType); // Candles or HistoryCandles
@@ -489592,7 +489757,7 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */ async fetchOrderBook(symbol, limit = undefined, params = {}) {
@@ -489602,16 +489767,15 @@ class poloniex extends _abstract_poloniex_js__rspack_import_0/* ["default"] */.A
             'symbol': market['id']
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (this.safeBool(market, 'contract', false)) {
-                request['limit'] = this.findNearestCeiling([
-                    5,
-                    10,
-                    20,
-                    100,
-                    150
-                ], limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = this.findNearestCeiling([
+                5,
+                10,
+                20,
+                50,
+                100,
+                150
+            ], limit);
         }
         if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
@@ -657157,10 +657321,20 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
         const marketResolved = this.safeMarket(marketId, market, undefined, marketType);
         const symbol = this.safeSymbol(marketId, marketResolved, undefined, marketType);
         const timestamp = this.safeInteger2(order, 'time', 'createdTime');
-        const quantity = this.safeNumber(order, 'origQty');
-        const amount = marketType === 'spot' ? quantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(quantity), this.numberToString(marketResolved['contractSize']));
-        const filledQuantity = this.safeNumber(order, 'executedQty');
-        const filled = marketType === 'spot' ? filledQuantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(this.numberToString(filledQuantity), this.numberToString(marketResolved['contractSize']));
+        const contractSize = this.safeString(marketResolved, 'contractSize');
+        const quantity = this.safeString(order, 'origQty');
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        const filledQuantity = this.safeString2(order, 'tradeBase', 'executedQty');
+        const amount = marketType === 'spot' ? quantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(quantity, contractSize);
+        const filled = marketType === 'spot' ? filledQuantity : _base_Precise_js__rspack_import_3/* .Precise.stringMul */.Y.stringMul(filledQuantity, contractSize);
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        let remaining = undefined;
+        if (quantity !== undefined) {
+            remaining = this.safeString(order, 'leavingQty');
+        }
         const lastUpdatedTimestamp = this.safeInteger(order, 'updatedTime');
         let timeInForce = this.safeString(order, 'timeInForce');
         let postOnly = undefined;
@@ -657202,7 +657376,11 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'lastTradeTimestamp': lastUpdatedTimestamp,
             'lastUpdateTimestamp': lastUpdatedTimestamp,
             'symbol': symbol,
-            'type': this.safeStringLower2(order, 'type', 'orderType'),
+            'type': this.parseOrderType(this.safeStringLowerN(order, [
+                'type',
+                'orderType',
+                'entrustType'
+            ])),
             'timeInForce': timeInForce,
             'postOnly': postOnly,
             'side': side,
@@ -657212,8 +657390,8 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             'takeProfitPrice': this.safeNumber(order, 'triggerProfitPrice'),
             'amount': amount,
             'filled': filled,
-            'remaining': this.safeNumber(order, 'leavingQty'),
-            'cost': undefined,
+            'remaining': remaining,
+            'cost': this.safeString(order, 'tradeQuote'),
             'average': this.safeNumber(order, 'avgPrice'),
             'status': this.parseOrderStatus(this.safeString(order, 'state')),
             'fee': {
@@ -657222,6 +657400,16 @@ class xt extends _abstract_xt_js__rspack_import_0/* ["default"] */.A {
             },
             'trades': undefined
         }, marketResolved);
+    }
+    parseOrderType(type) {
+        const types = {
+            'stop': 'limit',
+            'stop_market': 'market',
+            'take_profit': 'limit',
+            'take_profit_market': 'market',
+            'trailing_stop_market': 'market'
+        };
+        return this.safeString(types, type, type);
     }
     parseOrderStatus(status) {
         const statuses = {
