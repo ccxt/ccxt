@@ -233,7 +233,6 @@ dependencies = [
  "sha1",
  "sha2",
  "sha3",
- "thiserror 1.0.69",
  "tokio",
  "tokio-tungstenite",
  "url",

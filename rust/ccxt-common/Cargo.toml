@@ -40,7 +40,6 @@ rand = "0.8"
 hex = "0.4"
 chrono = { version = "0.4", features = ["serde"] }
 futures = "0.3"
-thiserror = "1"
 async-trait = "0.1"
 indexmap = { version = "2", features = ["serde"] }
 ed25519-dalek = "2"
