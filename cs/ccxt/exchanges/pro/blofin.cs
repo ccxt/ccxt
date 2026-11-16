@@ -402,8 +402,7 @@ public partial class blofin : ccxt.blofin
         {
             await this.loadMarkets();
         }
-        IList<object> symbolsNormalized = this.marketSymbols(this.toArray(symbols), null, false);
-        IList<object> symbolsList = symbolsNormalized;
+        IList<object> symbolsList = this.marketSymbols(this.toArray(symbols), null, false);
         Dictionary<string, object> firstMarket = this.market((symbolsList != null && 0 < symbolsList.Count ? symbolsList[0] : null));
         string channel = "tickers";
         IList<object> marketTypeparamsMarketTypeVariable = (IList<object>)this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -434,7 +433,7 @@ public partial class blofin : ccxt.blofin
             }
             return ccxt.BaseExchange.ToTickers(tickers);
         }
-        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsNormalized));
+        return ccxt.BaseExchange.ToTickers(this.filterByArray(this.bidsasks, "symbol", symbolsList));
     }
 
     public virtual void handleBidAsk(WebSocketClient client, Dictionary<string, object> message)
@@ -698,7 +697,11 @@ public partial class blofin : ccxt.blofin
     {
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "watchOrders";
-        List<object> symbolsArray = ((symbol != null)) ? new List<object>() {symbol} : new List<object>() {};
+        List<object> symbolsArray = new List<object>() {};
+        if ((symbol != null))
+        {
+            symbolsArray.Add(symbol);
+        }
         return await this.WatchOrdersForSymbols(symbolsArray, since, limit, parameters);
     }
 
@@ -1013,10 +1016,9 @@ public partial class blofin : ccxt.blofin
             object channel = channelName;
             if (isOHLCV)
             {
-                object tfArray = getValue(symbolsArray, i);
-                object tf = getValue(tfArray, 1);
+                string? tf = this.safeString(this.safeList(symbolsArray, i), 1);
                 string? interval = this.safeString(this.timeframes, tf, tf);
-                channel = ((object)(channel == null ? null : channel + interval));
+                channel = (channel + interval);
             }
             Dictionary<string, object> topic = new Dictionary<string, object>() {
                 { "channel", channel },

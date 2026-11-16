@@ -4100,11 +4100,8 @@ public partial class woofipro : Exchange
             string auth = "";
             string ts = this.nonce().ToString();
             url = url + pathWithParams;
-            string? apiKey = this.apiKey;
-            if (this.apiKey.IndexOf("ed25519:", StringComparison.Ordinal) < 0)
-            {
-                apiKey = ("ed25519:" + this.apiKey);
-            }
+            bool hasKeyPrefix = this.apiKey.IndexOf("ed25519:", StringComparison.Ordinal) >= 0;
+            object apiKey = hasKeyPrefix ? this.apiKey : (("ed25519:" + this.apiKey));
             Dictionary<string, object> authHeaders = new Dictionary<string, object>() {
                 { "orderly-account-id", this.accountId },
                 { "orderly-key", apiKey },

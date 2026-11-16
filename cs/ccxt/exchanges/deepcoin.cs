@@ -516,14 +516,13 @@ public partial class deepcoin : Exchange
         string? instType = this.safeString(parameters, "instType");
         object paramsOmitted = this.omit(parameters, "instType");
         string? type = this.safeString(paramsOmitted, "type");
-        object paramsExtended = paramsOmitted;
         if (((type == null)) && ((instType != null)))
         {
-            paramsExtended = this.extend(paramsOmitted, new Dictionary<string, object>() {
+            return base.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, new Dictionary<string, object>() {
                 { "type", instType },
-            });
+            }), defaultValue);
         }
-        return base.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return base.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
 
     public virtual string? convertToInstrumentType(object type)
@@ -863,7 +862,11 @@ public partial class deepcoin : Exchange
             request["after"] = until;
         }
         bool? calculateUntil = this.safeBool(paramsPaginate, "calculateUntil", false);
-        List<object> keysToOmit = calculateUntil == true ? new List<object>() {"price", "until", "calculateUntil"} : new List<object>() {"price", "until"};
+        List<object> keysToOmit = new List<object>() {"price", "until"};
+        if ((calculateUntil == true))
+        {
+            keysToOmit.Add("calculateUntil");
+        }
         Dictionary<string, object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
         if ((calculateUntil == true))
         {
@@ -2090,19 +2093,17 @@ public partial class deepcoin : Exchange
         IList<object> postOnlyparamsPostOnlyVariable = (IList<object>)this.handlePostOnly((type == "market"), (type == "post_only"), parameters);
         bool postOnly = (bool)postOnlyparamsPostOnlyVariable[0];
         IDictionary<string, object> paramsPostOnly = ((IDictionary<string, object>)postOnlyparamsPostOnlyVariable[1]);
-        string? typePostOnly = type;
-        if (postOnly)
-        {
-            typePostOnly = "post_only";
-        }
         string? timeInForce = this.handleTimeInForce(paramsPostOnly);
         Dictionary<string, object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
-        object typeValue = typePostOnly;
         if (timeInForce == "IOC")
         {
-            typeValue = "ioc";
+            return new List<object>() {"ioc", paramsOmitted};
         }
-        return new List<object>() {typeValue, paramsOmitted};
+        if (postOnly)
+        {
+            return new List<object>() {"post_only", paramsOmitted};
+        }
+        return new List<object>() {type, paramsOmitted};
     }
 
     /**

@@ -1614,7 +1614,7 @@ public partial class coinsph : Exchange
         string? orderType = this.safeString(paramsOmitted, "type", type);
         orderType = this.encodeOrderType(orderType);
         Dictionary<string, object> paramsType = this.omit(paramsOmitted, "type");
-        object paramsQuote = null;
+        object paramsQuote = paramsType;
         string? orderSide = this.encodeOrderSide(side);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
@@ -1684,8 +1684,7 @@ public partial class coinsph : Exchange
             request["stopPrice"] = this.priceToPrecision(symbol, triggerPrice);
         }
         request["newOrderRespType"] = newOrderRespType;
-        object paramsBase = ((paramsQuote != null)) ? paramsQuote : paramsType;
-        object paramsRequest = this.omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
+        object paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
         Dictionary<string, object> response = new Dictionary<string, object>() {};
         if ((testOrder == true))
         {

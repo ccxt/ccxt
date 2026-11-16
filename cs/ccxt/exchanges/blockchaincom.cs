@@ -693,7 +693,7 @@ public partial class blockchaincom : Exchange
             { "orderQty", this.amountToPrecision(symbol, amount) },
             { "clOrdId", clientOrderId },
         };
-        object triggerPrice = this.safeValueN(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
+        string? triggerPrice = this.safeStringN(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         Dictionary<string, object> paramsOmitted2 = this.omit(paramsOmitted, new List<object>() {"triggerPrice", "stopPx", "stopPrice"});
         if (uppercaseOrderType == "STOP" || uppercaseOrderType == "STOPLIMIT")
         {

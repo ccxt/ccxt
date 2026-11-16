@@ -1388,12 +1388,11 @@ public partial class whitebit : Exchange
         {
             throw new ExchangeError ((this.id + " markets not loaded")) ;
         }
-        IDictionary<string, object> markets = this.markets;
-        List<object> marketIds = new List<object>(markets.Keys);
+        List<object> marketIds = new List<object>(this.markets.Keys);
         for (int i = 0; i < marketIds.Count; i++)
         {
             string? marketId = ((string)marketIds[i]);
-            object market = this.safeValue(markets, marketId);
+            IDictionary<string, object> market = this.safeDict(this.markets, marketId);
             string? marketSymbol = this.safeString(market, "symbol");
             if (((market == null)) || ((market == null)) || ((marketSymbol == null)) || (marketSymbol == ""))
             {
@@ -3701,7 +3700,7 @@ public partial class whitebit : Exchange
         }
         if (this.isFiat(code))
         {
-            object provider = this.safeValue(paramsWithdrawTag, "provider");
+            string? provider = this.safeString(paramsWithdrawTag, "provider");
             if ((provider == null))
             {
                 throw new ArgumentsRequired ((this.id + " withdraw() requires a provider when the ticker is fiat")) ;
@@ -4958,16 +4957,11 @@ public partial class whitebit : Exchange
         {
             requestBody = privateBody;
         }
-        Dictionary<string, object> requestHeaders = publicHeaders;
-        if (isPrivate)
-        {
-            requestHeaders = privateHeaders;
-        }
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", requestBody },
-            { "headers", requestHeaders },
+            { "headers", isPrivate ? privateHeaders : publicHeaders },
         };
     }
 

@@ -2472,8 +2472,7 @@ public partial class bittrade : Exchange
             {
                 request = this.extend(request, query);
             }
-            Dictionary<string, object> requestSorted = this.keysort(request);
-            string auth = this.urlencode(requestSorted);
+            string auth = this.urlencode(this.keysort(request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             string payload = ((((((method + "\n") + this.hostname) + "\n") + url) + "\n") + auth);

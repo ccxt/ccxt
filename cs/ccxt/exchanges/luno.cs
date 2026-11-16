@@ -1513,12 +1513,11 @@ public partial class luno : Exchange
         parameters ??= new Dictionary<string, object>();
         object entryValue = ((entry == null)) ? -1 : entry;
         Int64? limitValue = ((limit == null)) ? 1 : limit;
-        Int64? since = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "min_row", entryValue },
             { "max_row", this.sum(entryValue, limitValue) },
         };
-        return await this.FetchLedger(code, since, limitValue, this.extend(request, parameters));
+        return await this.FetchLedger(code, null, limitValue, this.extend(request, parameters));
     }
 
     /**

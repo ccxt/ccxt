@@ -1856,11 +1856,7 @@ public partial class cex : Exchange
         }
         Dictionary<string, object> currency = this.currency(code);
         bool fromMain = ((fromAccount == ""));
-        string targetAccount = fromAccount;
-        if (fromMain)
-        {
-            targetAccount = toAccount;
-        }
+        object targetAccount = fromMain ? toAccount : fromAccount;
         string? guid = this.safeString(parameters, "guid", this.uuid());
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", (currency.ContainsKey("id") ? currency["id"] : null) },

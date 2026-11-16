@@ -181,11 +181,8 @@ public partial class poloniex : ccxt.poloniex
             marketIds = this.marketIds(this.toArray(symbols));
         }
         string symbolsSuffix = ((symbols == null)) ? "" : String.Join(",", ((IList<object>)symbols).ToArray());
-        object symbolsHash = null;
-        if (this.isEmpty(symbols))
-        {
-            symbolsHash = messageHash;
-        } else
+        object symbolsHash = messageHash;
+        if (!this.isEmpty(symbols))
         {
             symbolsHash = add(add(messageHash, "::"), symbolsSuffix);
         }

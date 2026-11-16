@@ -685,8 +685,7 @@ public partial class mercado : Exchange
                 }
                 string? amountString = this.numberToString(amount);
                 string? priceString = this.numberToString(price);
-                object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                request["cost"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), cost);
+                request["cost"] = this.priceToPrecision((market.ContainsKey("symbol") ? market["symbol"] : null), this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 response = await this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters));
             } else
             {

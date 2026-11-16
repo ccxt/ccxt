@@ -662,8 +662,8 @@ public partial class coincheck : Exchange
         string? priceString = this.safeString(trade, "rate");
         string? marketId = this.safeString(trade, "pair");
         Dictionary<string, object> marketResolved = this.safeMarket(marketId, market, "_");
-        string? baseId = ((string)(marketResolved != null && marketResolved.ContainsKey("baseId") ? marketResolved["baseId"] : null));
-        string? quoteId = ((string)(marketResolved != null && marketResolved.ContainsKey("quoteId") ? marketResolved["quoteId"] : null));
+        string? baseId = this.safeString(marketResolved, "baseId");
+        string? quoteId = this.safeString(marketResolved, "quoteId");
         string? symbol = ((string)(marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null));
         string? takerOrMaker = null;
         string? amountString = null;

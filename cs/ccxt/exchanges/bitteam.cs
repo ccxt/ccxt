@@ -2628,14 +2628,12 @@ public partial class bitteam : Exchange
             {
                 if ((url.IndexOf("/ccxt/order/", StringComparison.Ordinal) >= 0) && ((method == "GET")))
                 {
-                    List<object> parts = url.Split(new [] {"/order/"}, StringSplitOptions.None).ToList<object>();
-                    string? orderId = this.safeString(parts, 1, "");
+                    string? orderId = this.safeString(url.Split(new [] {"/order/"}, StringSplitOptions.None).ToList<object>(), 1, "");
                     throw new OrderNotFound ((((this.id + " order ") + orderId) + " not found")) ;
                 }
                 if (url.IndexOf("/cmc/orderbook/", StringComparison.Ordinal) >= 0)
                 {
-                    List<object> parts = url.Split(new [] {"/cmc/orderbook/"}, StringSplitOptions.None).ToList<object>();
-                    string? symbolId = this.safeString(parts, 1, "");
+                    string? symbolId = this.safeString(url.Split(new [] {"/cmc/orderbook/"}, StringSplitOptions.None).ToList<object>(), 1, "");
                     throw new BadSymbol ((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }

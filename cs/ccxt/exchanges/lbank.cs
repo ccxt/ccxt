@@ -638,8 +638,8 @@ public partial class lbank : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> marketsPromises = new List<object> {this.FetchSpotMarkets(parameters), this.FetchSwapMarkets(parameters)};
         List<object> resolvedMarkets = await promiseAll(marketsPromises);
-        object spotMarkets = this.safeValue(resolvedMarkets, 0);
-        object swapMarkets = this.safeValue(resolvedMarkets, 1);
+        List<object> spotMarkets = this.safeList(resolvedMarkets, 0, new List<object>() {});
+        List<object> swapMarkets = this.safeList(resolvedMarkets, 1, new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(spotMarkets, swapMarkets));
     }
 

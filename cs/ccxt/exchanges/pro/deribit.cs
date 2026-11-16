@@ -1029,7 +1029,7 @@ public partial class deribit : ccxt.deribit
                 throw new ArgumentsRequired ((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
             }
             IDictionary<string, object> market = null;
-            object currentDescriptor = null;
+            object currentDescriptor = "";
             if (isOHLCV)
             {
                 List<object> currentPair = this.safeList(symbolsArray, i, new List<object>() {});

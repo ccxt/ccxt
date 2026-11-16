@@ -1436,8 +1436,7 @@ public partial class cryptocom : ccxt.cryptocom
             } },
             { "nonce", id },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes);
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes);
     }
 
     public async virtual Task<object> unWatchPublicMultiple(string topic, IList<object> symbols, IList<object> messageHashes, object subMessageHashes, IList<object> topics, object parameters = null, IDictionary<string, object>? subExtend = null)
@@ -1461,8 +1460,7 @@ public partial class cryptocom : ccxt.cryptocom
             { "subMessageHashes", subMessageHashes },
             { "messageHashes", messageHashes },
         };
-        Dictionary<string, object> message = this.deepExtend(request, parameters);
-        return await this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend));
+        return await this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, this.extend(subscription, subExtend));
     }
 
     public async virtual Task<object> watchPrivateRequest(object nonce, IDictionary<string, object>? parameters = null)

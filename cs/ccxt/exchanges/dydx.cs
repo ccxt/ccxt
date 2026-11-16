@@ -2221,7 +2221,7 @@ public partial class dydx : Exchange
         Dictionary<string, object> account = await this.FetchDydxAccount();
         Int64? usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
         Dictionary<string, object> payload = null;
-        Dictionary<string, object> signingPayload = null;
+        Dictionary<string, object> signingPayload = new Dictionary<string, object>() {};
         if ((fromAccount == "main"))
         {
             // deposit to subaccount

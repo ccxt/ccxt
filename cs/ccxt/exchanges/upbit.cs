@@ -2126,7 +2126,7 @@ public partial class upbit : Exchange
         string? type = this.safeString(order, "ord_type");
         Int64? timestamp = this.parse8601(this.safeString(order, "created_at"));
         string? status = this.parseOrderStatus(this.safeString(order, "state"));
-        object lastTradeTimestamp = null;
+        Int64? lastTradeTimestamp = null;
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "volume");
         string? remaining = this.safeString(order, "remaining_volume");
@@ -2152,7 +2152,7 @@ public partial class upbit : Exchange
         {
             // the timestamp in fetchOrder trades is missing
             IDictionary<string, object> lastTrade = this.safeDict(trades, (numTrades - 1), new Dictionary<string, object>() {});
-            lastTradeTimestamp = (lastTrade != null && lastTrade.ContainsKey("timestamp") ? lastTrade["timestamp"] : null);
+            lastTradeTimestamp = this.safeInteger(lastTrade, "timestamp");
             bool getFeesFromTrades = false;
             if ((feeCost == null))
             {
@@ -2748,12 +2748,11 @@ public partial class upbit : Exchange
             string token = jwt(request, this.encode(this.secret), sha256);
             headers["Authorization"] = ("Bearer " + token);
         }
-        Dictionary<string, object> requestHeaders = (apiName == "private") ? headers : null;
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },
             { "body", requestBody },
-            { "headers", requestHeaders },
+            { "headers", (apiName == "private") ? headers : null },
         };
     }
 

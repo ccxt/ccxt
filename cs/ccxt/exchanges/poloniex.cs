@@ -1497,11 +1497,10 @@ public partial class poloniex : Exchange
 
     public override Dictionary<string, object> parseCurrency(object currency)
     {
-        object entry = currency;
-        string? id = this.safeString(entry, "coin");
+        string? id = this.safeString(currency, "coin");
         string? code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        List<object> chains = this.safeList(entry, "networkList", new List<object>() {});
+        List<object> chains = this.safeList(currency, "networkList", new List<object>() {});
         int chainsLength = chains.Count;
         for (int j = 0; j < chainsLength; j++)
         {
@@ -1535,18 +1534,18 @@ public partial class poloniex : Exchange
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
-            { "name", this.safeString(entry, "name") },
+            { "name", this.safeString(currency, "name") },
             { "code", code },
             { "type", null },
             { "precision", null },
-            { "info", entry },
+            { "info", currency },
             { "networks", networks },
             { "deposit", null },
             { "withdraw", null },
             { "active", null },
             { "fee", null },
             { "limits", null },
-            { "margin", this.safeBool(entry, "supportBorrow") },
+            { "margin", this.safeBool(currency, "supportBorrow") },
         });
     }
 
@@ -4020,8 +4019,8 @@ public partial class poloniex : Exchange
         Int64? timestamp = this.safeTimestamp(transactionValue, "timestamp");
         string? currencyId = this.safeString(transactionValue, "currency");
         string? code = this.safeCurrencyCode(currencyId);
-        string? status = this.safeString(transactionValue, "status", "pending");
-        status = this.parseTransactionStatus(status);
+        string? rawStatus = this.safeString(transactionValue, "status", "pending");
+        string? status = this.parseTransactionStatus(rawStatus);
         string? txid = this.safeString(transactionValue, "txid");
         string type = "deposit";
         if ((this.safeString(transactionValue, "withdrawalRequestsId") != null))

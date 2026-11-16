@@ -1418,16 +1418,12 @@ public partial class digifinex : Exchange
         //
         Int64? date = this.safeInteger(response, "date");
         List<object> tickers = this.safeList(response, "ticker", new List<object>() {});
-        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         IDictionary<string, object> firstTicker = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
-        IDictionary<string, object> result = data;
         if (!(this.safeBool(market, "swap", false) == true))
         {
-            result = this.extend(new Dictionary<string, object>() {
-                { "date", date },
-            }, firstTicker);
+            return this.parseTicker(this.extend(new Dictionary<string, object>() {                 { "date", date },             }, firstTicker), market);
         }
-        return this.parseTicker(result, market);
+        return this.parseTicker(this.safeDict(response, "data", new Dictionary<string, object>() {}), market);
     }
 
     public override ccxt.Ticker parseTicker(object ticker, object market = null)
@@ -2227,13 +2223,10 @@ public partial class digifinex : Exchange
             bool? createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item1;
             IDictionary<string, object> paramsRequiresPrice = ((IDictionary<string, object>)createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.Item2);
             bool isMarketBuy = isMarketOrder && ((side is "buy"));
-            List<object> keysToOmit = null;
+            List<object> keysToOmit = new List<object>() {"postOnly"};
             if (isMarketBuy)
             {
-                keysToOmit = new List<object>() {"cost", "postOnly"};
-            } else
-            {
-                keysToOmit = new List<object>() {"postOnly"};
+                keysToOmit.Add("cost");
             }
             paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
             if (isMarketBuy)

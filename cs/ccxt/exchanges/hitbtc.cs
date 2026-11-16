@@ -1037,8 +1037,7 @@ public partial class hitbtc : Exchange
     {
         string? currencyId = this.safeString(currency, "_coin_id");
         string? code = this.safeCurrencyCode(currencyId);
-        object entry = currency;
-        List<object> rawNetworks = this.safeList(entry, "networks", new List<object>() {});
+        List<object> rawNetworks = this.safeList(currency, "networks", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; j < rawNetworks.Count; j++)
         {
@@ -1075,14 +1074,14 @@ public partial class hitbtc : Exchange
             }
         }
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
-            { "info", entry },
+            { "info", currency },
             { "code", code },
             { "id", currencyId },
-            { "precision", this.safeNumber(entry, "precision_transfer") },
-            { "name", this.safeString(entry, "full_name") },
-            { "active", !(this.safeBool(entry, "delisted", false) == true) },
-            { "deposit", this.safeBool(entry, "payin_enabled") },
-            { "withdraw", this.safeBool(entry, "payout_enabled") },
+            { "precision", this.safeNumber(currency, "precision_transfer") },
+            { "name", this.safeString(currency, "full_name") },
+            { "active", !(this.safeBool(currency, "delisted", false) == true) },
+            { "deposit", this.safeBool(currency, "payin_enabled") },
+            { "withdraw", this.safeBool(currency, "payout_enabled") },
             { "networks", networks },
             { "fee", null },
             { "limits", new Dictionary<string, object>() {

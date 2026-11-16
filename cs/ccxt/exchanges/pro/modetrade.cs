@@ -699,14 +699,13 @@ public partial class modetrade : ccxt.modetrade
         if ((authenticated == null))
         {
             string ts = this.nonce().ToString();
-            string auth = ts;
             object secret = this.secret;
             if (this.secret.IndexOf("ed25519:", StringComparison.Ordinal) >= 0)
             {
                 List<object> parts = this.secret.Split(new [] {"ed25519:"}, StringSplitOptions.None).ToList<object>();
                 secret = (parts != null && 1 < parts.Count ? parts[1] : null);
             }
-            string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(this.encode(ts), this.base58ToBinary(secret), ed25519);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", eventVar },
                 { "params", new Dictionary<string, object>() {

@@ -426,9 +426,11 @@ public partial class delta : Exchange
         List<object> optionParts = ((string)symbol).Split(new [] {"-"}, StringSplitOptions.None).ToList<object>();
         List<object> symbolBase = ((string)symbol).Split(new [] {"/"}, StringSplitOptions.None).ToList<object>();
         bool hasSlash = ((string)symbol).IndexOf("/", StringComparison.Ordinal) > -1;
-        List<object> partSource = hasSlash ? symbolBase : optionParts;
-        int baseIndex = hasSlash ? 0 : 1;
-        string bs = this.safeString(partSource, baseIndex, "");
+        object bs = this.safeString(optionParts, 1, "");
+        if (hasSlash)
+        {
+            bs = this.safeString(symbolBase, 0, "");
+        }
         string optionType = this.safeString(optionParts, hasSlash ? 3 : 0, "");
         string? rawExpiry = this.safeString(optionParts, hasSlash ? 1 : 3, "");
         string expiry = ((((rawExpiry == null) ? null : rawExpiry.Substring(Math.Min(4, rawExpiry.Length))) + ((rawExpiry == null) ? null : rawExpiry.Substring(Math.Min(2, rawExpiry.Length), Math.Min(4, rawExpiry.Length) - Math.Min(2, rawExpiry.Length)))) + ((rawExpiry == null) ? null : rawExpiry.Substring(0, Math.Min(2, rawExpiry.Length))));
@@ -442,7 +444,7 @@ public partial class delta : Exchange
             optionTypeUnified = "call";
         }
         return this.safeMarketStructure(new Dictionary<string, object>() {
-            { "id", ((((((optionType + "-") + bs) + "-") + strike) + "-") + expiry) },
+            { "id", ((((((optionType + "-") + (bs)) + "-") + strike) + "-") + expiry) },
             { "symbol", ((((((((((bs + "/") + quote) + ":") + settle) + "-") + expiry) + "-") + strike) + "-") + optionType) },
             { "base", bs },
             { "quote", quote },

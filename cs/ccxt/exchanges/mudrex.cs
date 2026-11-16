@@ -1372,7 +1372,7 @@ public partial class mudrex : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         string? positionId = this.safeString(parameters, "position_id");
-        object amount = this.safeValue(parameters, "amount");
+        string? amount = this.safeString(parameters, "amount");
         if ((positionId == null))
         {
             List<object> positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));

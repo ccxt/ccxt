@@ -1403,7 +1403,7 @@ public partial class weex : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; i < (response?.Count ?? 0); i++)
         {
-            object rawTicker = this.safeValue(response, i);
+            IDictionary<string, object> rawTicker = this.safeDict(response, i, new Dictionary<string, object>() {});
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             string? marketId = this.safeString(rawTicker, "symbol");
             Dictionary<string, object> tickerMarket = this.safeMarket(marketId, null, null, marketType);
@@ -2029,7 +2029,7 @@ public partial class weex : Exchange
             tradeMarketType = "swap";
         }
         Dictionary<string, object> marketResolved = this.safeMarket(((market == null)) ? tradeMarketId : null, market, null, tradeMarketType);
-        object isSpot = null;
+        object isSpot = false;
         if ((market == null))
         {
             isSpot = tradeMarketType == "spot";

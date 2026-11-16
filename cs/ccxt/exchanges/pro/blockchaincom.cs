@@ -159,13 +159,13 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string messageHash = ("ohlcv:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "prices" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
             { "granularity", this.parseNumber(interval) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         ccxt.pro.ArrayCacheByTimestamp ohlcv = ((ccxt.pro.ArrayCacheByTimestamp)await this.watch(url, messageHash, request, messageHash, request));
         Int64? limitResolved = limit;
@@ -246,12 +246,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string messageHash = ("ticker:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "ticker" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         return ccxt.BaseExchange.ToTicker(await this.watch(url, messageHash, request, messageHash));
     }
 
@@ -366,12 +366,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         string? symbolValue = this.safeString(market, "symbol", "");
         string? url = this.safeString((this.urls != null && this.urls.ContainsKey("api") ? this.urls["api"] : null), "ws", "");
         string messageHash = ("trades:" + symbolValue);
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "action", "subscribe" },
             { "channel", "trades" },
             { "symbol", (market.ContainsKey("id") ? market["id"] : null) },
         };
-        request = this.deepExtend(request, parameters);
+        Dictionary<string, object> request = this.deepExtend(subscribe, parameters);
         object trades = await this.watch(url, messageHash, request, messageHash, request);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(this.toArray(trades), since, limit, "timestamp", true));
     }

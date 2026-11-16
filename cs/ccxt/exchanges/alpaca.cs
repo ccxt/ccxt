@@ -1274,8 +1274,7 @@ public partial class alpaca : Exchange
         string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
-        string? clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
-        return clientOrderId;
+        return this.safeString(parameters, "clientOrderId", defaultClientId);
     }
 
     /**
@@ -2062,12 +2061,9 @@ public partial class alpaca : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> currency = this.currency(code);
-        string addressValue = address;
         string? tagSuffix = this.safeString(parameters, "tag", "");
-        if (tagSuffix != "")
-        {
-            addressValue = ((address + ":") + tagSuffix);
-        }
+        string taggedAddress = ((address + ":") + tagSuffix);
+        object addressValue = (tagSuffix != "") ? taggedAddress : address;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset", (currency.ContainsKey("id") ? currency["id"] : null) },
             { "address", addressValue },

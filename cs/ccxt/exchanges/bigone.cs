@@ -1349,13 +1349,12 @@ public partial class bigone : Exchange
             string? makerCode = makerCurrencyCode;
             if ((takerFeeCost != null))
             {
-                string? takerCode = takerCurrencyCode;
                 result["fees"] = new List<object>() {new Dictionary<string, object>() {
     { "cost", makerFeeCost },
     { "currency", makerCode },
 }, new Dictionary<string, object>() {
     { "cost", takerFeeCost },
-    { "currency", takerCode },
+    { "currency", takerCurrencyCode },
 }};
             } else
             {
@@ -1366,10 +1365,9 @@ public partial class bigone : Exchange
             }
         } else if ((takerFeeCost != null))
         {
-            string? takerCode2 = takerCurrencyCode;
             result["fee"] = new Dictionary<string, object>() {
                 { "cost", takerFeeCost },
-                { "currency", takerCode2 },
+                { "currency", takerCurrencyCode },
             };
         } else
         {

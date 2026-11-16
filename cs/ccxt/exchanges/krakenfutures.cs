@@ -2620,7 +2620,7 @@ public partial class krakenfutures : Exchange
                     executions.Add(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                object orderTrigger = this.safeValue(item, "orderTrigger");
+                IDictionary<string, object> orderTrigger = this.safeDict(item, "orderTrigger");
                 if ((details == null))
                 {
                     details = this.safeValue2(item, "new", "order", orderTrigger);

@@ -4247,8 +4247,6 @@ public partial class predictfun : PredictionExchange
                 url = url + ("?" + this.urlencode(query));
             }
         }
-        Dictionary<string, object> existingHeaders = new Dictionary<string, object>() {};
-        Dictionary<string, object> headersValue = existingHeaders;
         Dictionary<string, object> authHeaders = new Dictionary<string, object>() {};
         if (((apiKey != null)) && (sandboxMode != true))
         {
@@ -4281,7 +4279,7 @@ public partial class predictfun : PredictionExchange
             authHeaders["Content-Type"] = "application/json";
             bodyValue = this.json(parameters);
         }
-        Dictionary<string, object> headersExtended = this.extend(headersValue, authHeaders);
+        Dictionary<string, object> headersExtended = this.extend(new Dictionary<string, object>() {}, authHeaders);
         return new Dictionary<string, object>() {
             { "url", url },
             { "method", method },

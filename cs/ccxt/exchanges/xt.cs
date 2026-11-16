@@ -5959,7 +5959,7 @@ public partial class xt : Exchange
 
     public virtual Dictionary<string, object> parseTradingFee(IDictionary<string, object> fee, IDictionary<string, object>? market = null)
     {
-        object symbol = ((market != null)) ? (market != null && market.ContainsKey("symbol") ? market["symbol"] : null) : null;
+        string? symbol = this.safeString(market, "symbol");
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },

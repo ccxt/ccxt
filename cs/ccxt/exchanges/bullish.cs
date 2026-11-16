@@ -1270,14 +1270,12 @@ public partial class bullish : Exchange
             await this.loadMarkets();
         }
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object paramsExtended = parameters;
+        Dictionary<string, object> orderIdParams = new Dictionary<string, object>() {};
         if ((clientOrderId == null))
         {
-            paramsExtended = this.extend(new Dictionary<string, object>() {
-                { "orderId", id },
-            }, parameters);
+            orderIdParams["orderId"] = id;
         }
-        return await this.FetchMyTrades(symbol, since, limit, paramsExtended);
+        return await this.FetchMyTrades(symbol, since, limit, this.extend(orderIdParams, parameters));
     }
 
     public override ccxt.Trade parseTrade(object trade, object market = null)

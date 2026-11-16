@@ -713,8 +713,13 @@ public partial class lbank : ccxt.lbank
         string? key = await this.authenticate(parameters);
         string? url = ((string)(this.urlsApi != null && this.urlsApi.ContainsKey("ws") ? this.urlsApi["ws"] : null));
         string? messageHash = null;
-        string pair = "all";
         string? symbolResolved = ((symbol == null)) ? null : this.symbol(symbol);
+        Dictionary<string, object> message = new Dictionary<string, object>() {
+            { "action", "subscribe" },
+            { "subscribe", "orderUpdate" },
+            { "subscribeKey", key },
+            { "pair", "all" },
+        };
         if ((symbol == null))
         {
             messageHash = "orders:all";
@@ -722,14 +727,8 @@ public partial class lbank : ccxt.lbank
         {
             Dictionary<string, object> market = this.market(symbol);
             messageHash = ("orders:" + ((market.ContainsKey("symbol") ? market["symbol"] : null)));
-            pair = ((string)(market.ContainsKey("id") ? market["id"] : null));
+            message["pair"] = (market.ContainsKey("id") ? market["id"] : null);
         }
-        Dictionary<string, object> message = new Dictionary<string, object>() {
-            { "action", "subscribe" },
-            { "subscribe", "orderUpdate" },
-            { "subscribeKey", key },
-            { "pair", pair },
-        };
         Dictionary<string, object> request = this.deepExtend(message, parameters);
         object orders = await this.watch(url, messageHash, request, messageHash, request);
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(this.toArray(orders), symbolResolved, since, limit, true));

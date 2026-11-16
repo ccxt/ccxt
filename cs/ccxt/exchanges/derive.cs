@@ -1046,9 +1046,8 @@ public partial class derive : Exchange
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)pageSizeparamsOmittedVariable.Item2);
         for (int i = 0; (i < maxPages); i++)
         {
-            Int64 page = (i + 1L);
             Dictionary<string, object> requestExtension = new Dictionary<string, object>() {
-                { "page", page },
+                { "page", (i + 1L) },
                 { "page_size", pageSize },
             };
             Dictionary<string, object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only

@@ -838,7 +838,6 @@ public partial class blofin : Exchange
         string? maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         bool isActive = ((this.safeString(market, "state") == "live"));
-        bool isMargin = spot && (Precise.stringGt(maxLeverage, "1"));
         string? contractType = this.safeString(market, "contractType");
         double? maxLimitAmount = this.safeNumber(market, "maxLimitSize");
         double? maxSpotCost = this.safeNumber(market, "maxMarketSize"); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -854,7 +853,7 @@ public partial class blofin : Exchange
             { "type", type },
             { "spot", spot },
             { "option", option },
-            { "margin", isMargin },
+            { "margin", (spot && Precise.stringGt(maxLeverage, "1")) },
             { "swap", swap },
             { "future", future },
             { "active", isActive },
@@ -2546,9 +2545,8 @@ public partial class blofin : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override Dictionary<string, object> parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object chains)
     {
-        object chains = currency;
         IDictionary<string, object> firstChain = this.safeDict(chains, 0, new Dictionary<string, object>() {});
         string? currencyId = this.safeString(firstChain, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -2784,7 +2782,7 @@ public partial class blofin : Exchange
         int dataLength = (data?.Count ?? 0);
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = this.safeValue(data, i);
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             if ((this.safeString(entry, "depositId") == id))
             {
                 return ccxt.BaseExchange.ToTransaction(this.parseTransaction(entry, currency));
@@ -2831,7 +2829,7 @@ public partial class blofin : Exchange
         int dataLength = (data?.Count ?? 0);
         for (int i = 0; i < dataLength; i++)
         {
-            object entry = this.safeValue(data, i);
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             bool matches = false;
             if ((id != null))
             {
@@ -3533,7 +3531,7 @@ public partial class blofin : Exchange
         string? entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
         string? unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         string? leverageString = this.safeString(position, "leverage");
-        object initialMarginPercentage = null;
+        string? initialMarginPercentageString = null;
         string? collateralString = null;
         string? marginString = null;
         if (marginMode == "cross")
@@ -3542,7 +3540,7 @@ public partial class blofin : Exchange
             collateralString = ((unrealizedPnlString != null)) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (marginMode == "isolated")
         {
-            initialMarginPercentage = Precise.stringDiv("1", leverageString);
+            initialMarginPercentageString = Precise.stringDiv("1", leverageString);
             string? isolatedMarginString = ((string)this.omitZero(this.safeString2(position, "margin", "initialMargin")));
             if ((isolatedMarginString != null))
             {
@@ -3554,12 +3552,11 @@ public partial class blofin : Exchange
         string? maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         double? maintenanceMargin = this.parseNumber(maintenanceMarginString);
         string? maintenanceMarginPercentageString = Precise.stringDiv(maintenanceMarginString, notionalString);
-        if ((initialMarginPercentage == null))
+        if ((initialMarginPercentageString == null))
         {
-            initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
+            initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString, 4);
         } else if ((initialMarginString == null))
         {
-            string? initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         string rounder = "0.00005"; // round to closest 0.01%
@@ -3609,7 +3606,7 @@ public partial class blofin : Exchange
             { "positionMargin", this.parseNumber(marginString) },
             { "collateral", this.parseNumber(collateralString) },
             { "initialMargin", this.parseNumber(initialMarginString) },
-            { "initialMarginPercentage", this.parseNumber(initialMarginPercentage) },
+            { "initialMarginPercentage", this.parseNumber(initialMarginPercentageString) },
             { "leverage", this.parseNumber(leverageString) },
             { "marginRatio", marginRatio },
             { "stopLossPrice", null },

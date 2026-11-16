@@ -434,8 +434,6 @@ public partial class foxbit : Exchange
             string? networkCode = this.networkIdToCode(networkId, code);
             IDictionary<string, object> networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             IDictionary<string, object> networkDepositInfo = this.safeDict(network, "deposit_info");
-            bool isWithdrawEnabled = (this.safeString(networkWithdrawInfo, "status") == "ENABLED");
-            bool isDepositEnabled = (this.safeString(networkDepositInfo, "status") == "ENABLED");
             if ((networkCode != null))
             {
                 parsedNetworks[(string)networkCode] = new Dictionary<string, object>() {
@@ -443,8 +441,8 @@ public partial class foxbit : Exchange
                     { "id", networkId },
                     { "network", networkCode },
                     { "name", this.safeString(network, "name") },
-                    { "deposit", isDepositEnabled },
-                    { "withdraw", isWithdrawEnabled },
+                    { "deposit", ((this.safeString(networkDepositInfo, "status") == "ENABLED")) },
+                    { "withdraw", ((this.safeString(networkWithdrawInfo, "status") == "ENABLED")) },
                     { "active", true },
                     { "precision", null },
                     { "fee", this.safeNumber(networkWithdrawInfo, "fee") },

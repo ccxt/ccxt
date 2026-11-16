@@ -2498,7 +2498,7 @@ public partial class bitstamp : Exchange
         {
             await this.loadMarkets();
         }
-        object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
+        string? clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((clientOrderId != null))
         {
@@ -2534,7 +2534,7 @@ public partial class bitstamp : Exchange
         {
             market = this.market(symbol);
         }
-        object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
+        string? clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if ((clientOrderId != null))
         {

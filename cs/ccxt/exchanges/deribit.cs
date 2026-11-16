@@ -2140,28 +2140,28 @@ public partial class deribit : Exchange
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
         for (int i = 0; i < fees.Count; i++)
         {
-            object fee = fees[i];
-            string? instrumentType = this.safeString(fee, "instrument_type");
+            object feeEntry = fees[i];
+            string? instrumentType = this.safeString(feeEntry, "instrument_type");
             if (instrumentType == "future")
             {
                 futureFee = new Dictionary<string, object>() {
-                    { "info", fee },
-                    { "maker", this.safeNumber(fee, "maker_fee") },
-                    { "taker", this.safeNumber(fee, "taker_fee") },
+                    { "info", feeEntry },
+                    { "maker", this.safeNumber(feeEntry, "maker_fee") },
+                    { "taker", this.safeNumber(feeEntry, "taker_fee") },
                 };
             } else if (instrumentType == "perpetual")
             {
                 perpetualFee = new Dictionary<string, object>() {
-                    { "info", fee },
-                    { "maker", this.safeNumber(fee, "maker_fee") },
-                    { "taker", this.safeNumber(fee, "taker_fee") },
+                    { "info", feeEntry },
+                    { "maker", this.safeNumber(feeEntry, "maker_fee") },
+                    { "taker", this.safeNumber(feeEntry, "taker_fee") },
                 };
             } else if (instrumentType == "option")
             {
                 optionFee = new Dictionary<string, object>() {
-                    { "info", fee },
-                    { "maker", this.safeNumber(fee, "maker_fee") },
-                    { "taker", this.safeNumber(fee, "taker_fee") },
+                    { "info", feeEntry },
+                    { "maker", this.safeNumber(feeEntry, "maker_fee") },
+                    { "taker", this.safeNumber(feeEntry, "taker_fee") },
                 };
             }
         }
