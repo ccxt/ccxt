@@ -1525,7 +1525,7 @@ public class OrderRouterTest
             this.features = new dict() { { "spot", new dict() { { "createOrder", new dict() { { "timeInForce", new list() { "GTC", "IOC" } } } } } } };
         }
 
-        public override async Task<ccxt.Order> FetchOrder(string id, string symbol = null, object parameters = null)
+        public override async Task<ccxt.Order> FetchOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
         {
             this.calls.Add("fetchOrder:" + id);
             await Task.CompletedTask;
@@ -1542,7 +1542,7 @@ public class OrderRouterTest
             return new ccxt.Order(new dict() { { "id", id }, { "status", "closed" }, { "filled", 0.0 }, { "average", 0.0 }, { "cost", 0.0 } });
         }
 
-        public override async Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
+        public override async Task<ccxt.Order> CancelOrder(string id, string symbol = null, IDictionary<string, object> parameters = null)
         {
             this.calls.Add("cancelOrder:" + id);
             await Task.CompletedTask;
