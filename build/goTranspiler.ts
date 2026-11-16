@@ -7748,6 +7748,9 @@ function scanCoreBody (body: string[]): CoreBodyScan | null {
             } else {
                 continue;
             }
+            if (funcLiteral.length < 0) {
+                return null;
+            }
         }
         closesTo.push (closed);
     }
@@ -7923,7 +7926,7 @@ function nativeAppendWriteBack (content: string): string {
 // from the declaration above it by exactly one blank line, a declaration without one is emitted adjacent to it.
 function joinGoDeclarations (decls: string[]): string {
     return decls.filter (decl => decl !== '').map ((decl, index) =>
-        (index === 0 ? '' : '\n') + decl).join ('');
+        (index === 0 ? '' : (/^\s*\/[/*]/.test (decl.split ('\n')[0]) ? '\n\n' : '\n')) + decl).join ('');
 }
 
 // The Go printer emits gofmt-clean text; `--check-gofmt [paths…]` is the gate (`gofmt -l` over go/v4 and go/tests, exit 1 on
@@ -9102,6 +9105,15 @@ function goGuardedReadInRangeClause (clause: string, container: string, key: str
         if (new RegExp ('^' + t + '>' + k + '$').test (text)) {
             return true;                                      // len > key
         }
+        if (new RegExp ('^' + t + '>=' + k + '\\+1$').test (text)) {
+            return true;                                      // len >= key + 1
+        }
+        if (new RegExp ('^' + k + '<' + t + '$').test (text)) {
+            return true;                                      // key < len
+        }
+        if (new RegExp ('^' + k + '<=' + t + '\\-1$').test (text)) {
+            return true;                                      // key <= len - 1
+        }
         if (/^\d+$/.test (key)) {
             // a literal bound: len > L / len >= L / len == L, and the mirror forms
             const above = new RegExp ('^' + t + '(>|>=|==)(\\d+)$').exec (text);
@@ -9293,6 +9305,10 @@ function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: strin
     const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
     if (direct) {
         return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + swExpr + '}';
+    }
+    const wsIface: { [want: string]: string } = { 'OrderBookInterface': 'OrderBookTyped', 'ArrayCacheInterface': 'AsArrayCache', 'ClientInterface': 'AsClient' };
+    if (wsIface[want] !== undefined) {
+        return 'var ' + v + ' ' + q + want + ' = ' + q + wsIface[want] + '(' + expr + ')\n' + ind + 'ch <- ' + q + 'AsyncResult[' + q + want + ']{Value: ' + v + '}';
     }
     const box = v + 'Box';
     // extra coercion arms after `case <want>:`. A map[string]any coercion has no `case *sync.Map:` arm: no *sync.Map
@@ -9637,6 +9653,12 @@ function goLevel45OperatorText (content: string, index: number): string | null {
         }
         return (next === '^') ? '&^' : '&';
     }
+    if ((char === '<') || (char === '>')) {
+        if (next !== char) {
+            return null;                  // a comparison, or the `<-` receive operator
+        }
+        return (content[index + 2] === '=') ? null : char + char;
+    }
     return null;
 }
 
@@ -9887,7 +9909,8 @@ function goTightenedOperatorText (content: string, index: number, operator: stri
         end += 1;
     }
     const right = content[end] ?? '';
-    if ((right === '') || (right === '\n')) {
+    const pair = operator + right;
+    if ((right === '') || (right === '\n') || [ '/*', '//', '&&', '&^', '++', '--' ].includes (pair)) {
         return null;
     }
     return { 'start': start, 'end': end };
@@ -11307,11 +11330,28 @@ class NewTranspiler {
             // --- Generic fixes for WS transpilation (Go) ---
             // Instantiate REST class pointer correctly (e.g., new hitbtcRest() -> &ccxt.hitbtcRest{})
             [/New(\w+)Rest\(\)/g, '&ccxt.$1{}'],
+            [/return await (\w+);/g, 'return <-$1'],
+            [/new\s*getValue\((\w+),\s*(\w+)\)\((\w+)\)/g, 'this.NewException(GetValue($1, $2), $3)'],
             // Casted access to subscriptions/futures/clients → exported Go field/prop
             [/client\.subscriptions/g, 'client.(*WSClient).Subscriptions'],
+            [/Dictionary<string,object>\)client\.futures/g, 'client.(*WSClient).Futures'],
+            [/this\.safeValue\(client\.futures,/g, 'this.SafeValue(client.(*WSClient).Futures,'],
+            [/Dictionary<string,object>\)this\.clients/g, 'this.Clients'],
+            [/(\w+)(\.cache)/g, '$1.Cache'],
+            [/((\w+)(\.hashmap))/g, '$1.Hashmap'],
+            [/(countedBookSide)\.store\(/g, '$1.Store('],
+            [/(\w+)\.(store|storeArray)\(/g, '$1.$2('],
+            [/(\w+)\.call\(this,(.+)\)/g, 'this.CallDynamically($1, $2)'],
+            [/(\w+)\.limit\(\)/g, '$1.Limit()'],
+            [/future\.resolve/g, 'future.(*Future).Resolve'],
+            [/(\w+)\.(resolve|reject)/g, '$1.$2'],
+            [/this\.spawn\((this\.\w+),(.+)\)/g, 'this.Spawn($1, $2)'],
+            [/this\.delay\(([^,]+),([^,]+),(.+)\)/g, 'this.Delay($1, $2, $3)'],
+            [/(((?:this\.)?\w+))\.(append|resolve|getLimit)\(/g, 'ccxt.CallDynamically($1, "$3", '],
             // callDynamically array wrapper removal
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
+            [/Future\)/g, ''],
             
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
@@ -11325,6 +11365,7 @@ class NewTranspiler {
             // Futures
             [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
+            [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
             // GetsLimit
             [/([a-zA-Z]\w*)\.GetLimit/g, 'ToGetsLimit($1).GetLimit'],
@@ -11339,11 +11380,15 @@ class NewTranspiler {
             // asserting the wrong one panics (e.g. handlePositions during ws static tests)
             [/FindMessageHashes\(client/g, 'FindMessageHashes\(ccxt.AsClient(client)'],
             [/CleanUnsubscription\(([a-zA-Z0-9]+),/g, 'CleanUnsubscription(ccxt.AsClient($1),'],
+            [/client\.Subscriptions/g, 'client.(ClientInterface).GetSubscriptions()'],
             [/client\.Rejections/g, 'client.(ClientInterface).GetRejections()'],
             [/client\.(Url)/g, 'client.(ClientInterface).Get$1()'],
             [/client\.LastPong\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetLastPong($1)'],
+            [/client\.LastPong/g, 'client.(ClientInterface).GetLastPong()'],
             [/client\.KeepAlive\s*=(?!=)\s*(.*)/g, 'client.(ClientInterface).SetKeepAlive($1)'],
+            [/client\.KeepAlive/g, 'client.(ClientInterface).GetKeepAlive()'],
             [/client\.ReusableFuture\(([^\)]*)\)/g, 'client.(ClientInterface).ReusableFuture($1)'],
+            [/(retRes\d+)\s+:=\s+<-future.\(<-chan any\)/g, '$1 := <-future.(*ccxt.Future).Await()'],
             // a discarded `await future` is received straight inside PanicOnError
             [/PanicOnError\(\(?<-future\.\(<-chan any\)\)?\)/g, 'PanicOnError(<-future.(*ccxt.Future).Await())'],
             [/<-client\.Future\(([^\)]*)\)/g, '<-client.(ClientInterface).Future($1)'],
@@ -11351,7 +11396,11 @@ class NewTranspiler {
             [/client\.(Send|Reset|OnPong|Reject|Future|Resolve)/g, 'client.(ClientInterface).$1'],
             // Error constructors
             [/NewInvalidNonce/g, 'InvalidNonce'],
+            [/NewOrderBook/g, 'NewWsOrderBook'],
+            [/NewNotSupported/g, 'NotSupported'],
             [/NewRequestTimeout/g, 'RequestTimeout'],
+            [/restInstance := NewBinance/g, 'restInstance := &NewBinance'],
+            [/GetDescribeForExtendedWsExchange\(&ccxt.(\w+){}, &ccxt.(\w+){}/g, 'GetDescribeForExtendedWsExchange(ccxt.New$1(nil), ccxt.New$2(nil)'],
             [/restInstance := &ccxt.(\w+){}/g, 'restInstance := ccxt.New$1(nil)'],
             // Nonce
         ];
@@ -11581,6 +11630,7 @@ class NewTranspiler {
 
         // inferred inline object literal types (`{ info: any; hedged: boolean; }`) map to a plain dictionary
         if (wrappedType !== undefined && wrappedType.trim().startsWith('{')) {
+            isList = wrappedType.trim().endsWith('[]');   // `{ id: Str; ... }[]` → []map[string]any
             return addTaskIfNeeded('map[string]any');
         }
 
@@ -11592,7 +11642,9 @@ class NewTranspiler {
         }
 
         function addTaskIfNeeded(type: string) {
-            if (isList) {
+            if (type == 'void') {
+                return '<-chan';
+            } else if (isList) {
                 return isPromise ? `<-chan []${type}` : `[]${type}`;
             }
             return isPromise ? `<-chan ${type}` : type;
@@ -11611,6 +11663,11 @@ class NewTranspiler {
 
         if (wrappedType === undefined || wrappedType === 'Undefined') {
             return addTaskIfNeeded('any'); // default if type is unknown;
+        }
+
+        // `List` is an alias for `Array<any>`: route it through the array branch (no `List` type in the Go runtime)
+        if (wrappedType === 'List') {
+            wrappedType = 'any[]';
         }
 
         if (wrappedType === 'string[][]') {
@@ -11847,6 +11904,13 @@ class NewTranspiler {
         if (unwrappedType === 'map[string]map[string][]OHLCV') {
             // watchOHLCVForSymbols cores send nested map[string]any (createOHLCVObject), never the struct shape
             return `NewOHLCVForSymbolsMap(res)`;
+        }
+
+        // struct-valued dictionaries hold map[string]any values at runtime: convert via the generated NewXMap
+        // (MarketInterface keeps the plain assertion; LoadMarkets uses the hand-written NewMarketsMap)
+        const mapValueType = unwrappedType.startsWith('map[string]') ? unwrappedType.substring('map[string]'.length) : '';
+        if (/^[A-Z]\w*$/.test(mapValueType) && mapValueType !== 'MarketInterface') {
+            return `New${capitalize(mapValueType)}Map(res)`;
         }
 
         const needsToInstantiate = !unwrappedType.startsWith('List<') &&
@@ -12332,19 +12396,33 @@ ${constStatements.join('\n')}
             [/currentRestInstance any,/g, "currentRestInstance Exchange,"],
             [/parentRestInstance any,/g, "parentRestInstance Exchange,"],
             [/client any,/g, "client *Client,"],
+            [/this.Number = String/g, 'this.Number = "string"'],
             [/(\w+)(\.StoreArray\(.+\))/gm, '($1.(*OrderBookSide))$2'], // tmp fix for c#
             [/ch <- nil\s+\/\/.+/g, ''],
 
             [/currentRestInstance Exchange, parentRestInstance Exchange/g, 'currentRestInstance *Exchange, parentRestInstance *Exchange'],
+            ["client.futures", "client.Futures"],
+            ["((object)this).number = String;", "this.Number = \"string\""],
+            ["((object)this).number = float;", "this.Number = 0"],
             // --- WebSocket related fixes specific to **Go** ----------------------
             // 3) Promise-style resolver calls don't exist in Go – comment them.
             ["client.resolve", "// client.resolve"],
+            ["this.number = Number;", "this.number = typeof(float);"],
+            ["throw NewGetValue(broad, broadKey)(((string)message));", "ThrowDynamicException(getValue(broad, broadKey), message)"],
+            ["throw NewGetValue(exact, str)(((string)message));", "ThrowDynamicException(getValue(exact, str), message)"],
+            ["throw NewGetValue(exact, str)(message);", "ThrowDynamicException(getValue(exact, str), message)"],
+            [/NewNotSupported/g, 'NotSupported'],
+            [/NewInvalidNonce/g, 'InvalidNonce'],
+            [/\(object client,/gm, '(WebSocketClient client,'],
+            [/Dictionary<string,object>\)client\.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
+            [/(\b\w*)RestInstance.describe/g, "(\(Exchange\)$1RestInstance).describe"],
             // WS fixes
             [/GetDescribeForExtendedWsExchange\(currentRestInstance \*Exchange, parentRestInstance \*Exchange/g, 'GetDescribeForExtendedWsExchange(currentRestInstance Describer, parentRestInstance Describer'],
             [/(var \w+ any) = client.Futures/g, '$1 = (client.(Client)).Futures'], // tmp fix for go not needed after ws-merge
             // Symbols is a typed []string field on BaseExchange; TS `this.symbols = []` transpiles
             // to an untyped []any{} literal which cannot be assigned to the typed field.
             [/this\.Symbols = \[\]any\{\}/g, 'this.Symbols = []string{}'],
+            [/(\breturn )DerefScalar\(marketValues\[i\]\)/g, '$1MarketTyped(marketValues[i])'],
             // setMarkets indexes each parsed row pointer-free (markets_by_id keeps the row itself)
             [/\bvalues = append\(values, market\)/g, 'values = append(values, MarketTyped(market))'],
             // ParseToInt delegates to the hand-written int64 ParseInt and never returns nil
@@ -12354,6 +12432,7 @@ ${constStatements.join('\n')}
             // Drop the generated Exchange struct + NewExchange: both are hand-written in exchange.go.
             [/type Exchange struct \{\s*BaseExchange\s*\}/g, ''],
             [/func NewExchange\(\) \*Exchange \{[\s\S]*?\n\}/g, ''],
+            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
             // loadOrderBook is hand-written on *Exchange in exchange.go: drop the transpiled
             // trampoline + body pair, up to the next EXPORTED *Exchange method
             [new RegExp(`func\\s+\\(this \\*Exchange\\)\\s+LoadOrderBook${GO_ASYNC_SUFFIX}\\([\\s\\S]*?(?=\\nfunc\\s+\\(this \\*Exchange\\)\\s+[A-Z])`, 'g'), ''],
@@ -12453,6 +12532,10 @@ ${constStatements.join('\n')}
         }
         let baseClass = this.dispatchVirtualBaseCalls (baseFile.content);
         baseClass = this.regexAll (baseClass, [
+            [/\=\snew\s/gm, "= "],
+            [/callDynamically\(/gm, 'this.CallDynamically('],
+            [/throwDynamicException\(/gm, 'ThrowDynamicException('],
+            [/NewNotSupported/g, 'NotSupported'],
             // super.method() in the outcome-stub overrides → the embedded BaseExchange
             [/\bbase\./gm, 'this.BaseExchange.'],
             // the base parse loops (parsePredictionTrades→parsePredictionTrade, etc.) must reach the
@@ -12464,6 +12547,7 @@ ${constStatements.join('\n')}
             // AsyncResult[Order], prediction venues as the map of a prediction order): the prediction
             // base reaches the venue through the prediction-shaped per-method interface
             [/this\.DerivedExchange\.(CreateOrder|CancelOrder)Async\(/g, 'this.DerivedExchange.(IPrediction$1).$1Async('],
+            [/(var \w+ any = )(this\.SafeBool(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1DerefScalar($2)'],
         ]);
         // outcome/safeOutcome (: PredictionOutcomeMarket) and parseSearchQueries (: string[]) have no venue override
         baseClass = this.retypeGoMapMethod (baseClass, 'PredictionExchange', 'Outcome', undefined, true);
@@ -12657,6 +12741,9 @@ ${caseStatements.join('\n')}
 
         let inputExchanges =  process.argv.slice (2).filter (x => !x.startsWith ('--'));
         const scopedRun = inputExchanges.length > 0;
+        if (inputExchanges === undefined) {
+            inputExchanges = exchanges.ws;
+        }
         if (prediction && (!inputExchanges || !inputExchanges.length)) {
             inputExchanges = predictionWsIds;
         }
@@ -12791,7 +12878,7 @@ ${caseStatements.join('\n')}
         // Order-preserving flatten: Promise.all is in input order; each task returns one file.
         const flatResult = [];
         for (const res of workerResult) {
-            for (const f of res.files) {
+            for (const f of (res.files ?? [res.file])) {
                 flatResult.push(f);
             }
             this.mergeWorkerGoComments(res.goComments);
@@ -13541,8 +13628,12 @@ ${caseStatements.join('\n')}
         if (!isWs) {
             content = this.regexAll(content, [
                 [/base\.(\w+)\(/gm, "this.Exchange.$1("],
+                [/base\.Describe/gm, "this.Exchange.Describe"],
+                [/var (precise|preciseAmount) any = /gm, "$1 := "],
+                [/binaryMessage.ByteLength/gm, 'GetValue(binaryMessage, "byteLength")'],
                 [/ToString\((precise\w*)\)/gm, "$1.ToString()"],
                 [/<\-callDynamically/gm, '<-this.CallDynamically'],
+                [/callDynamically\(/gm, 'this.CallDynamically('],
                 [/toFixed/gm, 'ToFixed'],
                 [/throwDynamicException/gm, 'ThrowDynamicException'],
                 // for-loops initialized from a transpiled (any-typed) variable need a
@@ -13792,13 +13883,20 @@ func (this *${className}) Init(userConfig map[string]any) {
                     const indent = statementIndent (whole, offset);
                     return `${varName} := ccxt.NewExchange().(*ccxt.Exchange)\n${indent}${varName}.DerivedExchange = ${varName}\n${indent}${varName}.InitParent(${args}, map[string]any{}, ${varName})`;
                 }],
+                [/(\w+) := NewCcxt\.(\w+)\(([\S\s]+?)\)/gm, (match: string, varName: string, className: string, args: string, offset: number, whole: string) => {
+                    const indent = statementIndent (whole, offset);
+                    return `${varName} := ccxt.New${className}Core()\n${indent}${varName}.Init(${args})`;
+                }],
                 [/exchange any, /g,'exchange *ccxt.Exchange, '], // in arguments
+                [/ any(?= \= map\[string\]any )/g, ' map[string]any'],
+                [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ],
                 [/Precise\.String/gm, 'ccxt.Precise.String'],
                 // Base-test helpers and the Safe* accessors return `any`/typed pointers, so the
                 // printer's inlined `call == literal` is either a compile error or an
                 // interface-vs-untyped-constant mismatch that is always false. Route the whole
                 // family (Safe*, PrecisionFromString, Crc32, Rsa, Jwt, ...) back through IsEqual.
                 [/(?<![.\w])((?:exchange\.)?[A-Z]\w*\((?:[^()]|\([^()]*\))*\)) == (("(?:[^"\\]|\\.)*")|(?:ccxt\.)?OpNeg\([^()]*\)|-?\d+(?:\.\d+)?)/g, 'IsEqual($1, $2)'],
+                [/(var \w+ any = )(exchange\.Safe(?:Bool|String(?:Lower|Upper)?|Integer(?:Product)?|Timestamp|Float|Number)(?:2|N)?\((?:[^()]|\([^()]*\))*\))/g, '$1ccxt.DerefScalar($2)'],
                 [ /testSharedMethods\./gm, '' ], // no need of class reference
                 [ /func Equals\(.+\n.*\n.*\n.*\}/gm, '' ], // remove equals
                 // the markers sit inside `// ` comments: drop the marker text and the space
@@ -13809,8 +13907,11 @@ func (this *${className}) Init(userConfig map[string]any) {
                 [/(\w*ArrayCacheBySymbolBySide\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolBySide).Hashmap'],
                 [/(\w*ArrayCacheByTimestamp\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheByTimestamp).Hashmap'],
                 [/(\w*ArrayCacheBySymbolById\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCacheBySymbolById).Hashmap'],
+                [/(\w+ArrayCache(?!BySymbolBySide|ByTimestamp|BySymbolById)\w*)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
                 // Match stored/cached/orders patterns - explicit patterns for common variable names
                 [/\bstored\.Hashmap/g, 'stored.(*ccxt.ArrayCache).Hashmap'],
+                [/\bcached\.Hashmap/g, 'cached.(*ccxt.ArrayCache).Hashmap'],
+                [/\b([Oo]rders)\.Hashmap/g, '$1.(*ccxt.ArrayCache).Hashmap'],
 
             ]).trim ();
 
@@ -13846,6 +13947,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             // rewrite the annotation in the SOURCE: rewriting the printed `[]any` instead would
             // land after the printer has already aligned the struct fields (go/printer pads the
             // type column of the tag-carrying fields) and leave the padding stale.
+            [ /\'use strict\';?\s+/g, '' ],
             [ /onlySpecificTests: string\[\]/g, 'onlySpecificTests: any' ],
         ]);
 
@@ -13862,6 +13964,7 @@ func (this *${className}) Init(userConfig map[string]any) {
             [/exchange\.(\w+)(,|;|\)|\s)/g, 'exchange.Get$1()$2'],
             [/InitOfflineExchange\(exchangeName any, optionalArgs \.\.\.any\) any\s+{/g, 'InitOfflineExchange(exchangeName any, optionalArgs ...any) ccxt.ICoreExchange {'],
             [/assert\(/g, 'Assert('],
+            [ /any\sfunc\sEquals.+\n.*\n.+\n.+/gm, '' ],
         ]);
 
         const file = [
@@ -13938,6 +14041,8 @@ func (this *${className}) Init(userConfig map[string]any) {
             let contentIndentend = file.content;
 
             let regexes = [
+                [/exchange := (?:&)?ccxt\.Exchange\{\}/g, 'exchange := ccxt.NewExchange()'],
+                [/exchange := (?:&)?ccxt\.Coinbase\{\}/g, 'exchange := ccxt.NewCoinbase()'],
                 ...this.goTestExchangeRegexes (),
                 [/testSharedMethods\./g, ''], // no need of class reference
                 [/assert/gm, 'Assert'],
@@ -13947,8 +14052,12 @@ func (this *${className}) Init(userConfig map[string]any) {
                 // the spawned helper is an async test function, i.e. a suffixed channel trampoline
                 [/Spawn\(createOrderAfterDelay/g, `Spawn(CreateOrderAfterDelay${GO_ASYNC_SUFFIX}`],
                 [/(<-exchange.Watch\w+\(.+\))/g, 'UnWrapType($1)'],
+                [/(any\sfunc\sEquals.+\n.*\n.+\n.+|func Equals\(.+\n.*\n.*\n.*\})/gm, ''],
+                [/(\s+)(if IsTrue\(IsEqual\(success, true\)\) \{\s*\n[\s\S]*?)(\s+now = exchange\.Milliseconds\(\)\s*\n\s*\})/gm, '$1$2$1now = exchange.Milliseconds()$3'],
                 // apply 'getPreTranspilationRegexes' here, bcz in GO we don't have pre-transpilation regexes
                 [/exchange.JsonStringifyWithNull/g, 'JsonStringify'],
+                [/await exchange.watchOrderBook\(symbol\)/g, '((IOrderBook)(await exchange.watchOrderBook(symbol))).Copy()'],
+                [/await exchange.watchOrderBookForSymbols\((.*?)\)/g, '((IOrderBook)(await exchange.watchOrderBookForSymbols($1))).Copy()'],
             ];
 
             contentIndentend = this.regexAll (contentIndentend, regexes);
@@ -15152,6 +15261,9 @@ function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (nam
     if (/^\d+$/.test (key)) {
         return true;
     }
+    if (typeAt (key, k) === 'int') {
+        return true;
+    }
     const n = goAccessEscape (key);
     return (maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + n + '\\s*(?:,[^=\\n]*)?:=|\\bvar\\s+' + n + '\\b|[(,]\\s*' + n + '\\s+\\w', 'gm')) ?? []).length === 1
         && new RegExp ('\\bfor ' + n + ' := \\d+; ').test (maskedFunc);
@@ -15162,6 +15274,9 @@ function goDerefIntKey (key: string, k: number, maskedFunc: string, typeAt: (nam
 function goDerefGuardedListReads (lines: string[], masked: string[], start: number, k: number,
     typeAt: (name: string, k: number) => string | undefined, maskedFunc: string, head: string) {
     const m = masked[k];
+    if (m.indexOf ('GetValue(') < 0) {
+        return;
+    }
     const indent = lines[k].substring (0, lines[k].length - lines[k].trimStart ().length);
     const consumerTail = new RegExp ('(?:' + head + ')$');
     const rx = /(?<![\w.])(?:ccxt\.)?GetValue\((\w+), (\w+)\)/g;
@@ -15499,6 +15614,9 @@ function goStringOperandKind (arg: string, maskedFunc: string): string | undefin
     }
     if (GO_SMALL_INT_LITERAL_RX ().test (arg)) {
         return 'const-int';
+    }
+    if (/^OpNeg\((\d{1,9})\)$/.test (arg.replace (/^ccxt\./, '').replace (/\(ccxt\./, '('))) {
+        return 'const-neg';
     }
     return goStringOperandDeclaredType (maskedFunc, arg);
 }
@@ -16225,7 +16343,7 @@ function goTypedBoundOnceKind (masked: string, name: string, file: string): stri
     const first = new RegExp ('^' + n + '(?:,|\\s)').test (bind[0][0].trim ());
     const call = bind[0][1];
     const tuple = /^this\.(HandleOptionInteger(?:AndParams|AndParams2))\(/.exec (call);
-    if (first && (tuple !== null)) {
+    if (first && (tuple !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + tuple[1] + '\\(', 'm').test (file)) {
         return 'int64';
     }
     if ((new RegExp ('^' + n + ' := ').test (bind[0][0].trim ())) && /^(?:ccxt\.)?NewPrecise\(/.test (call)) {
@@ -16279,7 +16397,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
             return undefined;
         }
         const call = /^this\.(\w+)\(/.exec (init);
-        if (call === null) {
+        if ((call === null) || new RegExp ('^func \\(this \\*\\w+\\) ' + call[1] + '\\(', 'm').test (file)) {
             return undefined;
         }
         const initMasked = goTextMaskLiteralsAndComments (init);
@@ -16336,7 +16454,7 @@ function goTypedStrOperand (arg: string, func: string, masked: string, file: str
         return { kind: 'string', text: arg };
     }
     const clock = /^this\.(Milliseconds|Seconds|Microseconds)\(\)$/.exec (arg);
-    if (clock !== null) {
+    if ((clock !== null) && !new RegExp ('^func \\(this \\*\\w+\\) ' + clock[1] + '\\(', 'm').test (file)) {
         return { kind: 'int64', text: arg };
     }
     // Nonce () and IncrementingNonce () are int64 in the interface, the base and every override (ast goNonceReturnType)
