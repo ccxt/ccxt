@@ -1598,9 +1598,6 @@ class bybit extends \ccxt\async\bybit {
         $spot = $topic === 'ticketInfo';
         $executionFast = $topic === 'execution.fast';
         $data = $this->safe_list($message, 'data', array());
-        if ((gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data)))) {
-            $data = $this->safe_list($data, 'result', array());
-        }
         if ($this->myTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $this->myTrades = new ArrayCacheBySymbolById($limit);
@@ -2193,12 +2190,6 @@ class bybit extends \ccxt\async\bybit {
         }
         $orders = $this->orders;
         $rawOrders = $this->safe_list($message, 'data', array());
-        $first = $this->safe_dict($rawOrders, 0, array());
-        $category = $this->safe_string($first, 'category');
-        $isSpot = $category === 'spot';
-        if (!$isSpot) {
-            $rawOrders = $this->safe_value($rawOrders, 'result', $rawOrders);
-        }
         $symbols = array();
         for ($i = 0; $i < count($rawOrders); $i++) {
             $parsed = $this->parse_order($rawOrders[$i]);

@@ -139,11 +139,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         if (($eventId !== null) || ($slug !== null)) {
             $filtered = array();
             for ($i = 0; $i < count($result); $i++) {
-                $event = $this->safe_value($result, $i);
+                $event = $this->safe_dict($result, $i);
                 $idMatch = ($eventId !== null) && ($this->safe_string($event, 'id') === $eventId);
                 $slugMatch = ($slug !== null) && ($this->safe_string($event, 'slug') === $slug);
                 if ($idMatch || $slugMatch) {
-                    $filtered[] = $event;
+                    $filtered[] = $this->safe_value($result, $i);
                 }
             }
             $result = $filtered;
@@ -201,11 +201,11 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $wantActive = ($status === 'active');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $isActive = $this->safe_bool($event, 'active');
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (($isActive === null) || ($isActive === $wantActive)) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;
@@ -225,7 +225,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         $checkDescription = ($searchIn === 'description') || ($searchIn === 'both');
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $title = $this->safe_string_lower($event, 'title', '');
             $description = $this->safe_string_lower($event, 'description', '');
             $matched = false;
@@ -247,7 +247,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             if ($matched) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;
@@ -299,7 +299,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
         }
         $result = array();
         for ($i = 0; $i < count($events); $i++) {
-            $event = $this->safe_value($events, $i);
+            $event = $this->safe_dict($events, $i);
             $eventTags = $this->safe_list($event, 'tags', array());
             $matched = false;
             for ($ti = 0; $ti < count($eventTags); $ti++) {
@@ -324,7 +324,7 @@ class PredictionExchange extends \ccxt\async\BaseExchange {
                 }
             }
             if ($matched) {
-                $result[] = $event;
+                $result[] = $this->safe_value($events, $i);
             }
         }
         return $result;

@@ -4119,11 +4119,7 @@ class hyperliquid extends Exchange {
         );
         $vaultAddress = null;
         list($vaultAddress, $params2) = $this->handle_option_string_and_params_2($params2, 'setMarginMode', 'vaultAddress', 'subAccountAddress');
-        if ($vaultAddress !== null) {
-            if (str_starts_with($vaultAddress, '0x')) {
-                $vaultAddress = str_replace('0x', '', $vaultAddress);
-            }
-        }
+        $vaultAddress = $this->format_vault_address($vaultAddress);
         $signature = $this->sign_l1_action($updateAction, $nonce, $vaultAddress);
         $request = array(
             'action' => $updateAction,
@@ -5291,12 +5287,11 @@ class hyperliquid extends Exchange {
         }
         $url = $this->implode_hostname($apiUrl) . '/' . $path;
         $isPost = ($method === 'POST');
-        $postHeaders = array(
-            'Content-Type' => 'application/json',
-        );
         $requestHeaders = null;
         if ($isPost) {
-            $requestHeaders = $postHeaders;
+            $requestHeaders = array(
+                'Content-Type' => 'application/json',
+            );
         }
         $requestBody = null;
         if ($isPost) {

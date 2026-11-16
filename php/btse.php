@@ -3719,14 +3719,14 @@ class btse extends Exchange {
             $row = $this->safe_dict($rows, $i);
             $status = $this->safe_string($row, 'status');
             if ($status !== null) {
-                $message = $this->safe_string($row, 'message');
-                $embedded = $this->parse_json($message);
+                $rowMessage = $this->safe_string($row, 'message');
+                $embedded = $this->parse_json($rowMessage);
                 if ($embedded !== null) {
-                    $message = $this->safe_string($embedded, 'default_msg', $message);
+                    $rowMessage = $this->safe_string($embedded, 'default_msg', $rowMessage);
                 }
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $status, $feedback);
-                $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $rowMessage, $feedback);
             }
         }
         return null;

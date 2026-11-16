@@ -3350,8 +3350,8 @@ class polymarket extends Exchange {
             $bidsLength = count($bids);
         }
         if (($bids !== null) && ($bidsLength > 0)) {
-            $bestBid = $bids[0][0];
-            $bestBidVolume = $bids[0][1];
+            $bestBid = $this->safe_number($bids[0], 0);
+            $bestBidVolume = $this->safe_number($bids[0], 1);
         }
         $bestAsk = null;
         $bestAskVolume = null;
@@ -3360,8 +3360,8 @@ class polymarket extends Exchange {
             $asksLength = count($asks);
         }
         if (($asks !== null) && ($asksLength > 0)) {
-            $bestAsk = $asks[0][0];
-            $bestAskVolume = $asks[0][1];
+            $bestAsk = $this->safe_number($asks[0], 0);
+            $bestAskVolume = $this->safe_number($asks[0], 1);
         }
         $mid = null;
         if (($bestBid !== null) && ($bestAsk !== null)) {

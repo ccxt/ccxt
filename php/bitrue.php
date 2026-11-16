@@ -3275,19 +3275,19 @@ class bitrue extends Exchange {
             $this->check_required_credentials();
             $recvWindow = $this->safe_integer($this->options, 'recvWindow', 5000);
             if ($type === 'spot' || $type === 'open') {
-                $query = $this->urlencode($this->extend(array(
+                $unsignedQuery = $this->urlencode($this->extend(array(
                     'timestamp' => $this->nonce(),
                     'recvWindow' => $recvWindow,
                 ), $paramsOmitted));
-                $signature = $this->hmac($this->encode($query), $this->encode($this->secret), 'sha256');
-                $query .= '&' . 'signature=' . $signature;
+                $signature = $this->hmac($this->encode($unsignedQuery), $this->encode($this->secret), 'sha256');
+                $signedQuery = $unsignedQuery . '&' . 'signature=' . $signature;
                 if (($method === 'GET') || ($method === 'DELETE')) {
-                    $url .= '?' . $query;
+                    $url .= '?' . $signedQuery;
                     $requestHeaders = array(
                         'X-MBX-APIKEY' => $this->apiKey,
                     );
                 } else {
-                    $requestBody = $query;
+                    $requestBody = $signedQuery;
                     $requestHeaders = array(
                         'X-MBX-APIKEY' => $this->apiKey,
                         'Content-Type' => 'application/x-www-form-urlencoded',

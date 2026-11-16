@@ -4188,7 +4188,6 @@ class bingx extends Exchange {
         //         "workingType": ""
         //     }
         //
-        $info = $order;
         $newOrder = $this->safe_dict_2($order, 'newOrderResponse', 'orderOpenResponse');
         $orderData = ($newOrder !== null) ? $newOrder : $order;
         $positionSide = $this->safe_string_2($orderData, 'positionSide', 'ps');
@@ -4261,7 +4260,7 @@ class bingx extends Exchange {
             }
         }
         return $this->safe_order(array(
-            'info' => $info,
+            'info' => $order,
             'id' => $this->safe_string_n($orderData, array( 'orderId', 'i', 'mainOrderId' )),
             'clientOrderId' => $this->safe_string_n($orderData, array( 'clientOrderID', 'clientOrderId', 'origClientOrderId', 'c' )),
             'symbol' => $this->safe_symbol($marketId, $marketResolved, '-', $marketType),
@@ -7615,9 +7614,7 @@ class bingx extends Exchange {
                 $url .= '?' . $query . '&' . 'signature=' . $signature;
             }
         }
-        $bodyResult = $requestBody;
-        $headersResult = $requestHeaders;
-        return array( 'url' => $url, 'method' => $method, 'body' => $bodyResult, 'headers' => $headersResult );
+        return array( 'url' => $url, 'method' => $method, 'body' => $requestBody, 'headers' => $requestHeaders );
     }
 
     public function nonce(): int {

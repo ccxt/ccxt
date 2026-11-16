@@ -2965,9 +2965,9 @@ class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        $trades = $this->safe_value($response, 'data');
-        if ((gettype($trades) !== 'array' || array_keys($trades) !== array_keys(array_keys($trades)))) {
-            $trades = $this->safe_list($trades, 'trades');
+        $trades = $this->safe_list($response, 'data');
+        if ($trades === null) {
+            $trades = $this->safe_list($this->safe_dict($response, 'data'), 'trades', array());
         }
         return $this->parse_trades($trades, $market, $since, $limit);
     }
@@ -3999,8 +3999,10 @@ class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        $rawOrder = $this->safe_value($response, 'data');
-        $order = (gettype($rawOrder) === 'array' && array_keys($rawOrder) === array_keys(array_keys($rawOrder))) ? $this->safe_dict($rawOrder, 0) : $rawOrder;
+        $order = $this->safe_dict($response, 'data');
+        if ($order === null) {
+            $order = $this->safe_dict($this->safe_list($response, 'data', array()), 0, array());
+        }
         return $this->parse_order($order, $market);
     }
 
@@ -4270,8 +4272,10 @@ class htx extends Exchange {
                 }
             }
         }
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -4835,8 +4839,10 @@ class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        $rawOrders = $this->safe_value($response, 'data');
-        $orders = (gettype($rawOrders) === 'array' && array_keys($rawOrders) === array_keys(array_keys($rawOrders))) ? $rawOrders : $this->safe_list($rawOrders, 'orders', array());
+        $orders = $this->safe_list($response, 'data');
+        if ($orders === null) {
+            $orders = $this->safe_list($this->safe_dict($response, 'data'), 'orders', array());
+        }
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
@@ -5913,8 +5919,8 @@ class htx extends Exchange {
         if ($this->safe_bool($market, 'spot', false)) {
             $result = $this->safe_list($response, 'data', array());
         } else {
-            $data = $this->safe_value($response, 'data');
-            if ((gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data)))) {
+            $data = $this->safe_list($response, 'data');
+            if ($data !== null) {
                 $result = $data;
             } else {
                 $batchData = $this->safe_dict($response, 'data', array());

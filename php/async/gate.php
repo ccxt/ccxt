@@ -3110,7 +3110,7 @@ class gate extends Exchange {
         if ($this->safe_bool($market, 'option', false)) {
             $optionMarketId = $this->safe_string($market, 'id');
             for ($i = 0; $i < count($response); $i++) {
-                $entry = $response[$i];
+                $entry = $this->safe_dict($response, $i);
                 $entryName = $this->safe_string($entry, 'name');
                 if ($entryName === $optionMarketId) {
                     $ticker = $entry;

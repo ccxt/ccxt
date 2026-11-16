@@ -1629,7 +1629,7 @@ class kucoin extends Exchange {
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
          * @return {array[]} an array of objects representing $market data
          */
-        $fetchTickersFees = null;
+        $fetchTickersFees = true;
         $paramsRequest = null;
         list($fetchTickersFees, $paramsRequest) = $this->handle_option_bool_and_params($params, 'fetchMarkets', 'fetchTickersFees', true);
         $uta = false;

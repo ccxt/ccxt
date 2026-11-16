@@ -11204,8 +11204,8 @@ class binance extends Exchange {
             $linearFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = $this->safe_value($this->safe_value($this->safe_value($this->fees, 'linear'), 'trading'), 'tiers');
-            $maker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
-            $taker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
+            $maker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
+            $taker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];
@@ -11239,8 +11239,8 @@ class binance extends Exchange {
             $inverseFees = array();
             $feeTier = $this->safe_integer($response, 'feeTier');
             $feeTiers = $this->safe_value($this->safe_value($this->safe_value($this->fees, 'inverse'), 'trading'), 'tiers');
-            $maker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
-            $taker = $this->safe_value($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
+            $maker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'maker'), $feeTier), 1);
+            $taker = $this->safe_number($this->safe_value($this->safe_value($feeTiers, 'taker'), $feeTier), 1);
             for ($i = 0; $i < count($symbols); $i++) {
                 $symbol = $symbols[$i];
                 $market = $markets[$symbol];

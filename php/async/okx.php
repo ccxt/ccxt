@@ -2136,16 +2136,15 @@ class okx extends Exchange {
     }
 
     public function parse_currency(array $currency): array {
-        $chains = $currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        $firstChain = $this->safe_dict($chains, 0, array());
+        $firstChain = $this->safe_dict($currency, 0, array());
         $currencyId = $this->safe_string($firstChain, 'ccy');
         $code = $this->safe_currency_code($currencyId);
         $networks = array();
         $type = 'crypto';
-        $chainsLength = count($chains);
+        $chainsLength = count($currency);
         for ($j = 0; $j < $chainsLength; $j++) {
-            $chain = $this->safe_dict($chains, $j);
+            $chain = $this->safe_dict($currency, $j);
             // allow empty string for rare fiat-currencies, e.g. TRY
             $networkId = $this->safe_string($chain, 'chain', ''); // USDT-BEP20, USDT-Avalance-C, etc
             if ($networkId === '') {
@@ -2176,7 +2175,7 @@ class okx extends Exchange {
             }
         }
         return $this->safe_currency_structure(array(
-            'info' => $chains,
+            'info' => $currency,
             'code' => $code,
             'id' => $currencyId,
             'name' => $this->safe_string($firstChain, 'name'),

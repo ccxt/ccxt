@@ -2294,7 +2294,6 @@ class aster extends Exchange {
         //            "orderListId": "-1"
         //        }
         //
-        $info = $order;
         $positionSide = $this->safe_string($order, 'positionSide');
         $defaultType = 'spot';
         if ($positionSide !== null) {
@@ -2309,7 +2308,7 @@ class aster extends Exchange {
         $stopPriceString = $this->safe_string($order, 'stopPrice');
         $triggerPrice = $this->parse_number($this->omit_zero($stopPriceString));
         return $this->safe_order(array(
-            'info' => $info,
+            'info' => $order,
             'id' => $this->safe_string($order, 'orderId'),
             'clientOrderId' => $this->safe_string($order, 'clientOrderId'),
             'symbol' => $this->safe_symbol($marketId, $marketResolved),

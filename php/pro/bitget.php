@@ -1709,7 +1709,7 @@ class bitget extends \ccxt\async\bitget {
         $percentage = Precise::string_mul($percentageDecimal, '100');
         $contractSize = null;
         if ($market !== null) {
-            $contractSize = $market['contractSize'];
+            $contractSize = $this->safe_number($market, 'contractSize');
         }
         return $this->safe_position(array(
             'info' => $position,

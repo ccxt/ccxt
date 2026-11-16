@@ -1981,11 +1981,11 @@ class mexc extends Exchange {
             $priceType = $this->safe_string($paramsUntil, 'price', 'default');
             $paramsOmitted = $this->omit($paramsUntil, 'price');
             if ($priceType === 'default') {
-                $response = Async\await($this->contractPublicGetKlineSymbol($this->extend($request, $paramsOmitted)));
+                $swapResponse = Async\await($this->contractPublicGetKlineSymbol($this->extend($request, $paramsOmitted)));
             } elseif ($priceType === 'index') {
-                $response = Async\await($this->contractPublicGetKlineIndexPriceSymbol($this->extend($request, $paramsOmitted)));
+                $swapResponse = Async\await($this->contractPublicGetKlineIndexPriceSymbol($this->extend($request, $paramsOmitted)));
             } elseif ($priceType === 'mark') {
-                $response = Async\await($this->contractPublicGetKlineFairPriceSymbol($this->extend($request, $paramsOmitted)));
+                $swapResponse = Async\await($this->contractPublicGetKlineFairPriceSymbol($this->extend($request, $paramsOmitted)));
             } else {
                 throw new NotSupported($this->id . ' fetchOHLCV() not support this price type, [default, index, mark]');
             }
@@ -2004,7 +2004,7 @@ class mexc extends Exchange {
             //         }
             //     }
             //
-            $data = $this->safe_dict($response, 'data');
+            $data = $this->safe_dict($swapResponse, 'data');
             $candles = $this->convert_trading_view_to_ohlcv($data, 'time', 'open', 'high', 'low', 'close', 'vol');
         }
         return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
@@ -3010,9 +3010,9 @@ class mexc extends Exchange {
                 if ($marginMode !== 'isolated') {
                     throw new BadRequest($this->id . ' fetchOrders() does not support marginMode ' . $marginMode . ' for spot-margin trading');
                 }
-                $response = Async\await($this->spotPrivateGetMarginAllOrders($this->extend($request, $queryInner)));
+                $spotResponse = Async\await($this->spotPrivateGetMarginAllOrders($this->extend($request, $queryInner)));
             } else {
-                $response = Async\await($this->spotPrivateGetAllOrders($this->extend($request, $queryInner)));
+                $spotResponse = Async\await($this->spotPrivateGetAllOrders($this->extend($request, $queryInner)));
             }
             //
             // spot
@@ -3062,7 +3062,7 @@ class mexc extends Exchange {
             //         }
             //     ]
             //
-            return $this->parse_orders($response, $market, $since, $limit);
+            return $this->parse_orders($spotResponse, $market, $since, $limit);
         } else {
             if ($since !== null) {
                 $request['start_time'] = $since;
@@ -3635,11 +3635,11 @@ class mexc extends Exchange {
             // the Planorder endpoints work not only for stop-market orders but also for stop-limit orders that are supposed to have separate endpoint
             $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
             $method = $this->safe_string($paramsMarketType, 'method', $method);
-            $response = array();
+            $swapResponse = array();
             if ($method === 'contractPrivatePostOrderCancelAll') {
-                $response = Async\await($this->contractPrivatePostOrderCancelAll($this->extend($request, $paramsMarketType)));
+                $swapResponse = Async\await($this->contractPrivatePostOrderCancelAll($this->extend($request, $paramsMarketType)));
             } elseif ($method === 'contractPrivatePostPlanorderCancelAll') {
-                $response = Async\await($this->contractPrivatePostPlanorderCancelAll($this->extend($request, $paramsMarketType)));
+                $swapResponse = Async\await($this->contractPrivatePostPlanorderCancelAll($this->extend($request, $paramsMarketType)));
             }
             //
             //     {
@@ -3647,7 +3647,7 @@ class mexc extends Exchange {
             //         "code": "0"
             //     }
             //
-            $data = $this->safe_list($response, 'data', array());
+            $data = $this->safe_list($swapResponse, 'data', array());
             return $this->parse_orders($data, $market);
         }
     }
@@ -6702,18 +6702,18 @@ class mexc extends Exchange {
             } else {
                 $this->check_required_credentials();
                 $timestamp = (string) $this->nonce();
-                $auth = '';
+                $payload = '';
                 if ($method === 'POST') {
-                    $auth = $this->json($paramsOmitted);
-                    $requestBody = $auth;
+                    $payload = $this->json($paramsOmitted);
+                    $requestBody = $payload;
                 } else {
                     $paramsSorted = $this->keysort($paramsOmitted);
                     if (count($paramsSorted) > 0) {
-                        $auth .= $this->urlencode($paramsSorted);
-                        $url .= '?' . $auth;
+                        $payload = $this->urlencode($paramsSorted);
+                        $url .= '?' . $payload;
                     }
                 }
-                $auth = $this->apiKey . $timestamp . $auth;
+                $auth = $this->apiKey . $timestamp . $payload;
                 $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
                 $requestHeaders = array(
                     'ApiKey' => $this->apiKey,

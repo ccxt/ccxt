@@ -318,6 +318,7 @@ class hyperliquid extends Exchange {
                     $thresholdsLength = count($thresholds);
                     $index = $this->parse_to_int($indexStr);
                     if ($thresholdsLength > 0) {
+                        $bucketLabel = '';
                         if ($index <= 0) {
                             $bucketLabel = 'BELOW_' . $thresholds[0];
                         } elseif ($index >= $thresholdsLength) {

@@ -651,8 +651,8 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'candles:' . $symbolValue . ':' . $timeframe;
         $ohlcv = null;
         if ($this->safe_bool($market, 'spot', false)) {
-            $channel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
-            $ohlcv = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+            $spotChannel = 'spot@public.kline.v3.api.pb@' . $this->safe_string($market, 'id', '') . '@' . $timeframeId;
+            $ohlcv = Async\await($this->watch_spot_public($spotChannel, $messageHash, $params));
         } else {
             $channel = 'sub.kline';
             $requestParams = array(
@@ -852,8 +852,8 @@ class mexc extends \ccxt\async\mexc {
         $orderbook = null;
         if ($this->safe_bool($market, 'spot', false)) {
             list($frequency, $paramsFrequency) = $this->handle_option_string_and_params($params, 'watchOrderBook', 'frequency', '100ms');
-            $channel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
-            $orderbook = Async\await($this->watch_spot_public($channel, $messageHash, $paramsFrequency));
+            $spotChannel = 'spot@public.aggre.depth.v3.api.pb@' . $frequency . '@' . $this->safe_string($market, 'id', '');
+            $orderbook = Async\await($this->watch_spot_public($spotChannel, $messageHash, $paramsFrequency));
         } else {
             $channel = 'sub.depth';
             $requestParams = array(
@@ -1075,8 +1075,8 @@ class mexc extends \ccxt\async\mexc {
         $messageHash = 'trades:' . $symbolValue;
         $trades = null;
         if ($this->safe_bool($market, 'spot', false)) {
-            $channel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
-            $trades = Async\await($this->watch_spot_public($channel, $messageHash, $params));
+            $spotChannel = 'spot@public.aggre.deals.v3.api.pb@100ms@' . $this->safe_string($market, 'id', '');
+            $trades = Async\await($this->watch_spot_public($spotChannel, $messageHash, $params));
         } else {
             $channel = 'sub.deal';
             $requestParams = array(

@@ -2457,7 +2457,7 @@ class BaseExchange extends \ccxt\BaseExchange {
             // we parse trades as strings here!
             // i don't think this is needed anymore
             // (this as any).number = String;
-            $firstTrade = $this->safe_value($rawTrades, 0);
+            $firstTrade = $this->safe_dict($rawTrades, 0);
             // parse trades if they haven't already been parsed
             $tradesAreParsed = (($firstTrade !== null) && (is_array($firstTrade) && array_key_exists('info' ?? '', $firstTrade)) && (is_array($firstTrade) && array_key_exists('id' ?? '', $firstTrade)));
             if (!$tradesAreParsed) {
@@ -4484,7 +4484,7 @@ class BaseExchange extends \ccxt\BaseExchange {
                 );
             } else {
                 // still processing the same timeframe -> update opening trade
-                $prevCandle = $this->safe_value($ohlcvs, $candle);
+                $prevCandle = $this->safe_list($ohlcvs, $candle);
                 $prevHigh = $this->safe_value($prevCandle, $i_high);
                 $prevLow = $this->safe_value($prevCandle, $i_low);
                 $ohlcvs[$candle][$i_high] = max(($prevHigh === null) ? $price : $prevHigh, $price);
