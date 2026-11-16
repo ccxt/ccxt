@@ -22026,3 +22026,261 @@ export function installJavaR84j2MapConditionalLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
 }
+
+// ===== 84j6. reader / handle* results compared only against `true` (R1) or only against undefined (R2) =====
+// R2: every use is `x === undefined` / `x !== undefined` (or `== null`): the local prints
+// `boolean x = (<init>) != null;` and each test prints `!x` / `x` (Objects.equals (o, null) is o == null).
+// `const x = this.handleOption (..)` (any reader result) whose every use is `x === true` / `x !== true`
+// (either operand order) and which is never written: `Objects.equals (o, true)` is exactly
+// `Boolean.TRUE.equals (o)`, so the local prints `boolean x = Boolean.TRUE.equals (<init>);` (the
+// initializer still runs once, at the same place) and each compare prints the native `x` / `!x`.
+// Decided from the TS AST: one binding, no write, every reference the operand of a strict / loose
+// equality whose other operand is the `true` keyword.
+function j84j6TrueCompare (node) {
+    const parent = node.parent;
+    if (parent === undefined || !ts.isBinaryExpression (parent)) {
+        return undefined;
+    }
+    const op = parent.operatorToken.kind;
+    const negated = op === ts.SyntaxKind.ExclamationEqualsToken || op === ts.SyntaxKind.ExclamationEqualsEqualsToken;
+    if (!negated && op !== ts.SyntaxKind.EqualsEqualsToken && op !== ts.SyntaxKind.EqualsEqualsEqualsToken) {
+        return undefined;
+    }
+    const other = parent.left === node ? parent.right : (parent.right === node ? parent.left : undefined);
+    if (other === undefined) {
+        return undefined;
+    }
+    if (other.kind === ts.SyntaxKind.TrueKeyword) {
+        return { negated, mode: 'true' };
+    }
+    // `x === undefined` / `x == null` (either operand order): the local holds `<init> != null`
+    return isNullishInitializer (other) ? { negated: !negated, mode: 'defined' } : undefined;
+}
+
+// R3: a TS annotation (`const x: Bool = this.handleOption (..)`) leaves the printed declaration `Object`;
+// accept boolean / number / string scalar annotations (aliases resolved by the checker), whose value the
+// boolean local's `Boolean.TRUE.equals` / `!= null` reads exactly as the Object compare did
+function j84j6AnnotationIsScalar (printer, typeNode) {
+    const type = printer.getChecker ().getTypeFromTypeNode (typeNode);
+    if (type === undefined) {
+        return false;
+    }
+    const parts = type.isUnionType () ? ts.typeParts (type) : [ type ];
+    const scalar = ts.TypeFlags.BooleanLike | ts.TypeFlags.NumberLike | ts.TypeFlags.StringLike | ts.TypeFlags.Undefined | ts.TypeFlags.Null;
+    return parts.length > 0 && parts.every ((t) => (t.flags & scalar) !== 0);
+}
+
+function j84j6TrueOnlyLocal (printer, declaration) {
+    // the mode ('true' | 'defined') every use agrees on, else undefined
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined || isNullishInitializer (declaration.initializer)
+        || (declaration.type !== undefined && !j84j6AnnotationIsScalar (printer, declaration.type))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, 'boolean')) {
+        return undefined;
+    }
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let uses = 0;
+    let mode;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name) {
+            continue;
+        }
+        if (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n) {
+            continue; // `obj.<name>` member read
+        }
+        if (ts.isPropertyAssignment (n.parent) && n.parent.name === n) {
+            continue; // `{ <name>: .. }` key
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol) {
+            return undefined;
+        }
+        const compare = j84j6TrueCompare (n);
+        if (compare === undefined || (mode !== undefined && compare.mode !== mode)) {
+            return undefined;
+        }
+        mode = compare.mode;
+        uses++;
+    }
+    return uses > 0 ? mode : undefined;
+}
+
+export function installJ84j6TrueOnlyLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function'
+        || typeof printer.printNativeEqualityIfProvable !== 'function' || printer._j84j6TrueOnlyLocalsPatched) {
+        return;
+    }
+    printer._j84j6TrueOnlyLocalsPatched = true;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let mode;
+        try {
+            mode = j84j6TrueOnlyLocal (printer, declaration);
+        } catch (e) {
+            mode = undefined;
+        }
+        if (mode === undefined) {
+            return printed;
+        }
+        const rest = printed.slice (marker.length);
+        const semi = rest.endsWith (';') ? ';' : '';
+        const value = semi === '' ? rest : rest.slice (0, -1);
+        typed.add (declaration);
+        const test = mode === 'true' ? `Boolean.TRUE.equals(${value})` : `(${value}) != null`;
+        return marker.replace (/Object (\S+) = $/, 'boolean $1 = ') + test + semi;
+    };
+    const upstreamEquality = printer.printNativeEqualityIfProvable.bind (printer);
+    printer.printNativeEqualityIfProvable = function (node, leftText, rightText) {
+        try {
+            for (const [ side, text ] of [ [ node.left, leftText ], [ node.right, rightText ] ]) {
+                if (!ts.isIdentifier (side) || text !== side.text) {
+                    continue;
+                }
+                const compare = j84j6TrueCompare (side);
+                const declaration = compare === undefined ? undefined : printer.getChecker ().getSymbolAtLocation (side)?.valueDeclaration?.resolve ();
+                if (declaration !== undefined && typed.has (declaration)) {
+                    return compare.negated ? `!${text}` : text;
+                }
+            }
+        } catch (e) {
+            // fall through to the upstream compare
+        }
+        return upstreamEquality (node, leftText, rightText);
+    };
+}
+
+// R4: `const x: Strings | string[] = this.safeList* (..)` (base reader, no / nullish default, never written)
+// whose every use is a nullish compare or the receiver of `x.join (sep)`: prints
+// `java.util.List<String> x = (java.util.List<String>) this.safeList2 (..);` (an erased checkcast that cannot
+// fail) and each `x.join (sep)` prints `String.join (sep, x)` with no receiver cast. A non-String element
+// fails inside String.join exactly as it did under the old `(java.util.List<String>) x` receiver cast.
+const J84J6_STRING_LIST_TYPE = 'java.util.List<String>';
+function j84j6StringListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.type === undefined || declaration.initializer === undefined) {
+        return false;
+    }
+    const checker = printer.getChecker ();
+    const annotated = checker.getTypeFromTypeNode (declaration.type);
+    const parts = (annotated.isUnionType () ? ts.typeParts (annotated) : [ annotated ])
+        .filter ((t) => (t.flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) === 0);
+    if (parts.length === 0 || !parts.every ((t) => checker.isArrayType (t)
+        && (checker.getTypeArguments (t)[0]?.flags & ts.TypeFlags.StringLike) !== 0)) {
+        return false;
+    }
+    const value = unwrapParens (declaration.initializer);
+    if (!isThisCall (value) || value.arguments.some ((a) => ts.isSpreadElement (a))) {
+        return false;
+    }
+    const reader = String (value.expression.name.text);
+    const defaultAt = J6_READER_FAMILIES.list.accessors.get (reader);
+    if (defaultAt === undefined || value.arguments.length > defaultAt + 1
+        || (value.arguments.length === defaultAt + 1 && !isNullishInitializer (value.arguments[defaultAt]))
+        || !resolvesToBaseOrStrippedAccessor (printer, value, reader)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name)) {
+        return false;
+    }
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    let joins = 0;
+    for (const n of identifierIndex (scope).get (name) ?? []) {
+        if (n === declaration.name || (ts.isPropertyAccessExpression (n.parent) && n.parent.name === n)
+            || (ts.isPropertyAssignment (n.parent) && n.parent.name === n)) {
+            continue;
+        }
+        if (checker.getSymbolAtLocation (n) !== symbol) {
+            return false;
+        }
+        const compare = j84j6TrueCompare (n);
+        if (compare !== undefined && compare.mode === 'defined') {
+            continue;
+        }
+        if (j84j6JoinReceiver (n)) {
+            joins++;
+            continue;
+        }
+        return false;
+    }
+    return joins > 0;
+}
+
+function j84j6JoinReceiver (n) {
+    const access = n.parent;
+    return access !== undefined && ts.isPropertyAccessExpression (access) && access.expression === n
+        && access.name.text === 'join' && access.parent !== undefined && ts.isCallExpression (access.parent)
+        && access.parent.expression === access && access.parent.arguments.length === 1;
+}
+
+export function installJ84j6StringListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function'
+        || typeof printer.printJoinCall !== 'function' || printer._j84j6StringListLocalsPatched) {
+        return;
+    }
+    printer._j84j6StringListLocalsPatched = true;
+    const typed = new WeakSet ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        if (!printed.startsWith (marker) || printed.indexOf ('\n') !== -1) {
+            return printed;
+        }
+        let ok = false;
+        try {
+            ok = j84j6StringListLocal (printer, declaration);
+        } catch (e) {
+            ok = false;
+        }
+        if (!ok) {
+            return printed;
+        }
+        typed.add (declaration);
+        return marker.replace (/Object (\S+) = $/, `${J84J6_STRING_LIST_TYPE} $1 = (${J84J6_STRING_LIST_TYPE}) `) + printed.slice (marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? J84J6_STRING_LIST_TYPE : undefined));
+    const upstreamJoin = printer.printJoinCall.bind (printer);
+    printer.printJoinCall = function (node, identation, name, parsedArg) {
+        const out = upstreamJoin (node, identation, name, parsedArg);
+        try {
+            const receiver = node?.expression?.expression;
+            const declaration = receiver !== undefined && ts.isIdentifier (receiver) && name === receiver.text
+                ? printer.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve () : undefined;
+            const cast = `, (java.util.List<String>)${name})`;
+            if (declaration !== undefined && typed.has (declaration) && typeof out === 'string' && out.startsWith ('String.join(') && out.endsWith (cast)) {
+                return out.slice (0, -cast.length) + `, ${name})`;
+            }
+        } catch (e) {
+            // keep the upstream print
+        }
+        return out;
+    };
+}

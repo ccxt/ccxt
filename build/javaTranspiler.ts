@@ -42,6 +42,8 @@ import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
 import { installJ6ReaderLocals } from './java-local-types.js';
+import { installJ84j6TrueOnlyLocals } from './java-local-types.js';
+import { installJ84j6StringListLocals } from './java-local-types.js';
 import { isTsIndexSource, readTsIndexSource } from './csharp-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 import { typeCoreReturns, typedReturnTable, JAVA_ASYNC_SUPPLIER, JAVA_ASYNC_SUPPLIER_IMPORT, isAsyncLambdaClose, javaTypedCoreDirectReturnSelfTest } from "./javaTypedCore.js";
@@ -2494,6 +2496,8 @@ class NewTranspiler {
         installJavaR84j2ContainerLocals(this.transpiler);
         installJavaR84j2GuardedListLocals(this.transpiler);
         installJavaR84j2MapConditionalLocals(this.transpiler);
+        installJ84j6TrueOnlyLocals(this.transpiler);
+        installJ84j6StringListLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5821,7 +5825,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -9916,6 +9920,42 @@ function javaR84j4NullSeedSelfTest (): string[] {
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j6: a reader / handleOption local compared only against `true` prints `boolean x = Boolean.TRUE.equals(..)`
+// and native `x` / `!x` tests; a local with any other use or a write keeps Object
+function j84j6TrueOnlyLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zz84j6selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';", "import type { Strings } from './base/types.js';",
+        `export default class zz84j6selftest${process.pid} extends Exchange {`,
+        "    pos (params = {}) { const qq = this.handleOption ('createOrder', 'quoteOrderQty', true); const ff = this.safeValue (params, 'f'); const r = {}; if (qq === true) { r['x'] = 1; } if (true !== ff) { r['y'] = 1; } return r; }",
+        "    def (params = {}) { const dd = this.safeValue (params, 'd'); const r = {}; if (dd !== undefined) { r['x'] = 1; } if (undefined === dd) { r['y'] = 1; } const mm = this.safeValue (params, 'm'); if (mm === undefined || mm === true) { r['z'] = 1; } return r; }",
+        "    ann (params = {}) { const aa: boolean = this.handleOption ('watchPositions', 'fetchPositionsSnapshot', true); const md: any[] = this.safeValue (params, 'md'); const r = {}; if (aa === true) { r['x'] = 1; } if (md !== undefined) { r['y'] = 1; } return r; }",
+        "    sl (params = {}) { const r = {}; const ss: Strings = this.safeList2 (params, 'a', 'b'); if (ss !== undefined) { r['s'] = ss.join (','); } const bb: Strings = this.safeList (params, 'c', []); if (bb !== undefined) { r['b'] = bb.join (','); } return r; }",
+        "    neg (params = {}) { const nn = this.handleOption ('createOrder', 'x', false); let ww = this.handleOption ('createOrder', 'w', false); const r = {}; if (nn === true) { r['n'] = nn; } if (ww === true) { ww = false; } return [ r, ww ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/boolean qq = Boolean\.TRUE\.equals\(this\.handleOption\(/.test(out) || !/if \(qq\)/.test(out)) problems.push("ral-84j6: 'qq' (handleOption compared only to true) must print boolean with a native test");
+        if (!/boolean ff = Boolean\.TRUE\.equals\(this\.safeValue\(/.test(out) || !/if \(!ff\)/.test(out)) problems.push("ral-84j6: 'ff' (`true !== ff`) must print boolean with a native negated test");
+        if (!/boolean dd = \(this\.safeValue\(parameters, "d"\)\) != null;/.test(out) || !/if \(dd\)/.test(out) || !/if \(!dd\)/.test(out)) problems.push("ral-84j6: 'dd' (compared only to undefined) must print `boolean dd = (..) != null` with native tests");
+        if (!/\bObject mm = /.test(out)) problems.push("ral-84j6: 'mm' mixes an undefined and a true compare and must stay Object");
+        if (!/boolean aa = Boolean\.TRUE\.equals\(this\.handleOption\(/.test(out) || !/if \(aa\)/.test(out)) problems.push("ral-84j6: 'aa' (a `boolean`-annotated handleOption result compared only to true) must print boolean");
+        if (!/\bObject md = /.test(out)) problems.push("ral-84j6: 'md' (a list-annotated local) must stay Object");
+        if (!/java\.util\.List<String> ss = \(java\.util\.List<String>\) this\.safeList2\(/.test(out) || !/String\.join\(",", ss\)/.test(out)) problems.push("ral-84j6: 'ss' (Strings reader, nullish tests + join) must print List<String> with a cast-free String.join");
+        if (!/\bObject bb = /.test(out)) problems.push("ral-84j6: 'bb' (non-null list default) must stay Object");
+        if (!/\bObject nn = /.test(out)) problems.push("ral-84j6: 'nn' has a value use and must stay Object");
+        if (!/\bObject ww = /.test(out)) problems.push("ral-84j6: 'ww' is written and must stay Object");
+    } catch (e: any) {
+        problems.push(`ral-84j6 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
