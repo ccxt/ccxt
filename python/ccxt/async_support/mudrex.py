@@ -1074,7 +1074,7 @@ class mudrex(Exchange, ImplicitAPI):
             await self.load_markets()
         market = self.market(symbol)
         positionId = self.safe_string(params, 'position_id')
-        amount = self.safe_value(params, 'amount')
+        amount = self.safe_string(params, 'amount')
         if positionId is None:
             positions = await self.fetch_positions([symbol], params)
             candidates = self.filter_by(positions, 'symbol', market['symbol'])

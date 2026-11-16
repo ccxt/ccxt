@@ -642,7 +642,7 @@ class blockchaincom(Exchange, ImplicitAPI):
             'orderQty': self.amount_to_precision(symbol, amount),
             'clOrdId': clientOrderId,
         }
-        triggerPrice = self.safe_value_n(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
+        triggerPrice = self.safe_string_n(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
         paramsOmitted2 = self.omit(paramsOmitted, ['triggerPrice', 'stopPx', 'stopPrice'])
         if uppercaseOrderType == 'STOP' or uppercaseOrderType == 'STOPLIMIT':
             if triggerPrice is None:

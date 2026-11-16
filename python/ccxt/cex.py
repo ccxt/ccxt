@@ -1576,9 +1576,7 @@ class cex(Exchange, ImplicitAPI):
             self.load_markets()
         currency = self.currency(code)
         fromMain = (fromAccount == '')
-        targetAccount = fromAccount
-        if fromMain:
-            targetAccount = toAccount
+        targetAccount = toAccount if (fromMain) else fromAccount
         guid = self.safe_string(params, 'guid', self.uuid())
         request = {
             'currency': currency['id'],

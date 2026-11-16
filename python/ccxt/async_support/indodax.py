@@ -940,8 +940,8 @@ class indodax(Exchange, ImplicitAPI):
         response = await self.privatePostOrderHistory(self.extend(request, params))
         historyResult = self.safe_dict(response, 'return', {})
         orders = self.parse_orders(historyResult['orders'], market)
-        orders = self.filter_by(orders, 'status', 'closed')
-        return self.filter_by_symbol_since_limit(orders, symbol, since, limit)
+        closedOrders = self.filter_by(orders, 'status', 'closed')
+        return self.filter_by_symbol_since_limit(closedOrders, symbol, since, limit)
 
     async def create_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params: dict = {}) -> Order:
         """

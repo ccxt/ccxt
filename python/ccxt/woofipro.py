@@ -3321,9 +3321,8 @@ class woofipro(Exchange, ImplicitAPI):
             auth = ''
             ts = str(self.nonce())
             url += pathWithParams
-            apiKey = self.apiKey
-            if self.apiKey.find('ed25519:') < 0:
-                apiKey = 'ed25519:' + self.apiKey
+            hasKeyPrefix = self.apiKey.find('ed25519:') >= 0
+            apiKey = self.apiKey if (hasKeyPrefix) else ('ed25519:' + self.apiKey)
             authHeaders = {
                 'orderly-account-id': self.accountId,
                 'orderly-key': apiKey,

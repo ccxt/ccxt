@@ -541,8 +541,8 @@ class coincheck(Exchange, ImplicitAPI):
         priceString = self.safe_string(trade, 'rate')
         marketId = self.safe_string(trade, 'pair')
         marketResolved = self.safe_market(marketId, market, '_')
-        baseId = marketResolved['baseId']
-        quoteId = marketResolved['quoteId']
+        baseId = self.safe_string(marketResolved, 'baseId')
+        quoteId = self.safe_string(marketResolved, 'quoteId')
         symbol = marketResolved['symbol']
         takerOrMaker = None
         amountString = None

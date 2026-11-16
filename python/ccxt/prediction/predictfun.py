@@ -3601,8 +3601,6 @@ class predictfun(PredictionExchange, ImplicitAPI):
         if method == 'GET':
             if len(query) > 0:
                 url += '?' + self.urlencode(query)
-        existingHeaders = {}
-        headersValue = existingHeaders
         authHeaders = {}
         if (apiKey is not None) and (not sandboxMode):
             # the php transpiler prefixes every standalone 'api' with a $, string literals included,
@@ -3641,5 +3639,5 @@ class predictfun(PredictionExchange, ImplicitAPI):
                 self.check_required_credentials()
             authHeaders['Content-Type'] = 'application/json'
             bodyValue = self.json(params)
-        headersExtended = self.extend(headersValue, authHeaders)
+        headersExtended = self.extend({}, authHeaders)
         return {'url': url, 'method': method, 'body': bodyValue, 'headers': headersExtended}

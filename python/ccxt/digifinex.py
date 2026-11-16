@@ -1169,12 +1169,10 @@ class digifinex(Exchange, ImplicitAPI):
         #
         date = self.safe_integer(response, 'date')
         tickers = self.safe_list(response, 'ticker', [])
-        data = self.safe_dict(response, 'data', {})
         firstTicker = self.safe_dict(tickers, 0, {})
-        result = data
         if not self.safe_bool(market, 'swap', False):
-            result = self.extend({'date': date}, firstTicker)
-        return self.parse_ticker(result, market)
+            return self.parse_ticker(self.extend({'date': date}, firstTicker), market)
+        return self.parse_ticker(self.safe_dict(response, 'data', {}), market)
 
     def parse_ticker(self, ticker: dict, market: Market = None) -> Ticker:
         #
@@ -1833,11 +1831,9 @@ class digifinex(Exchange, ImplicitAPI):
             quantity = None
             createMarketBuyOrderRequiresPrice, paramsRequiresPrice = self.handle_option_bool_and_params(paramsMarginMode, 'createOrderRequest', 'createMarketBuyOrderRequiresPrice', True)
             isMarketBuy = isMarketOrder and (side == 'buy')
-            keysToOmit = None
+            keysToOmit = ['postOnly']
             if isMarketBuy:
-                keysToOmit = ['cost', 'postOnly']
-            else:
-                keysToOmit = ['postOnly']
+                keysToOmit.append('cost')
             paramsRequest = self.omit(paramsRequiresPrice, keysToOmit)
             if isMarketBuy:
                 cost = self.safe_number(paramsRequiresPrice, 'cost')

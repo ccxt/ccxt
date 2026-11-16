@@ -402,16 +402,14 @@ class foxbit(Exchange, ImplicitAPI):
             networkCode = self.network_id_to_code(networkId, code)
             networkWithdrawInfo = self.safe_dict(network, 'withdraw_info')
             networkDepositInfo = self.safe_dict(network, 'deposit_info')
-            isWithdrawEnabled = self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'
-            isDepositEnabled = self.safe_string(networkDepositInfo, 'status') == 'ENABLED'
             if networkCode is not None:
                 parsedNetworks[networkCode] = {
                     'info': rawCurrency,
                     'id': networkId,
                     'network': networkCode,
                     'name': self.safe_string(network, 'name'),
-                    'deposit': isDepositEnabled,
-                    'withdraw': isWithdrawEnabled,
+                    'deposit': (self.safe_string(networkDepositInfo, 'status') == 'ENABLED'),
+                    'withdraw': (self.safe_string(networkWithdrawInfo, 'status') == 'ENABLED'),
                     'active': True,
                     'precision': None,
                     'fee': self.safe_number(networkWithdrawInfo, 'fee'),

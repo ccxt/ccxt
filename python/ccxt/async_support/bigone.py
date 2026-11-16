@@ -1231,16 +1231,14 @@ class bigone(Exchange, ImplicitAPI):
         if makerFeeCost is not None:
             makerCode = makerCurrencyCode
             if takerFeeCost is not None:
-                takerCode = takerCurrencyCode
                 result['fees'] = [
                     {'cost': makerFeeCost, 'currency': makerCode},
-                    {'cost': takerFeeCost, 'currency': takerCode},
+                    {'cost': takerFeeCost, 'currency': takerCurrencyCode},
                 ]
             else:
                 result['fee'] = {'cost': makerFeeCost, 'currency': makerCode}
         elif takerFeeCost is not None:
-            takerCode2 = takerCurrencyCode
-            result['fee'] = {'cost': takerFeeCost, 'currency': takerCode2}
+            result['fee'] = {'cost': takerFeeCost, 'currency': takerCurrencyCode}
         else:
             result['fee'] = None
         return self.safe_trade(result, marketResolved)

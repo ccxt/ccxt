@@ -1767,7 +1767,7 @@ class bitstamp(Exchange, ImplicitAPI):
     def fetch_order_status(self, id: str, symbol: Str = None, params: dict = {}):
         if self.markets is None:
             self.load_markets()
-        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         request = {}
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
@@ -1793,7 +1793,7 @@ class bitstamp(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
+        clientOrderId = self.safe_string_2(params, 'client_order_id', 'clientOrderId')
         request = {}
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId

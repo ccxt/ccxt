@@ -1067,11 +1067,10 @@ class whitebit(Exchange, ImplicitAPI):
         # Process all markets from the loaded markets cache
         if self.markets is None:
             raise ExchangeError(self.id + ' markets not loaded')
-        markets = self.markets
-        marketIds = list(markets.keys())
+        marketIds = list(self.markets.keys())
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
-            market = self.safe_value(markets, marketId)
+            market = self.safe_dict(self.markets, marketId)
             marketSymbol = self.safe_string(market, 'symbol')
             if (market is None) or (market is None) or (marketSymbol is None) or (marketSymbol == ''):
                 continue  # Skip invalid markets silently
@@ -2971,7 +2970,7 @@ class whitebit(Exchange, ImplicitAPI):
         if tag is not None:
             request['memo'] = tag
         if self.is_fiat(code):
-            provider = self.safe_value(paramsWithdrawTag, 'provider')
+            provider = self.safe_string(paramsWithdrawTag, 'provider')
             if provider is None:
                 raise ArgumentsRequired(self.id + ' withdraw() requires a provider when the ticker is fiat')
             request['provider'] = provider
@@ -4060,10 +4059,7 @@ class whitebit(Exchange, ImplicitAPI):
         requestBody = None
         if isPrivate:
             requestBody = privateBody
-        requestHeaders = publicHeaders
-        if isPrivate:
-            requestHeaders = privateHeaders
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': privateHeaders if (isPrivate) else publicHeaders}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if (code == 418) or (code == 429):

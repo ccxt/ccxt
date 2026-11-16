@@ -1160,8 +1160,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             },
             'nonce': id,
         }
-        message = self.deep_extend(request, params)
-        return await self.watch_multiple(url, messageHashes, message, messageHashes)
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes)
 
     async def un_watch_public_multiple(self, topic: str, symbols: list[str], messageHashes: list[str], subMessageHashes: list[str], topics: list[str], params: dict = {}, subExtend: dict = {}):
         url = self.urls['api']['ws']['public']
@@ -1181,8 +1180,7 @@ class cryptocom(ccxt.async_support.cryptocom):
             'subMessageHashes': subMessageHashes,
             'messageHashes': messageHashes,
         }
-        message = self.deep_extend(request, params)
-        return await self.watch_multiple(url, messageHashes, message, messageHashes, self.extend(subscription, subExtend))
+        return await self.watch_multiple(url, messageHashes, self.deep_extend(request, params), messageHashes, self.extend(subscription, subExtend))
 
     async def watch_private_request(self, nonce: float, params: dict = {}):
         await self.authenticate()

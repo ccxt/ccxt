@@ -4813,7 +4813,7 @@ class xt(Exchange, ImplicitAPI):
         return result
 
     def parse_trading_fee(self, fee: dict, market: Market = None) -> TradingFeeInterface:
-        symbol = market['symbol'] if (market is not None) else None
+        symbol = self.safe_string(market, 'symbol')
         return {
             'info': fee,
             'symbol': symbol,

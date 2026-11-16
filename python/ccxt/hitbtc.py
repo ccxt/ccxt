@@ -989,8 +989,7 @@ class hitbtc(Exchange, ImplicitAPI):
     def parse_currency(self, currency: dict) -> CurrencyInterface:
         currencyId = self.safe_string(currency, '_coin_id')
         code = self.safe_currency_code(currencyId)
-        entry = currency
-        rawNetworks = self.safe_list(entry, 'networks', [])
+        rawNetworks = self.safe_list(currency, 'networks', [])
         networks = {}
         for j in range(0, len(rawNetworks)):
             rawNetwork = rawNetworks[j]
@@ -1020,14 +1019,14 @@ class hitbtc(Exchange, ImplicitAPI):
                     },
                 }
         return self.safe_currency_structure({
-            'info': entry,
+            'info': currency,
             'code': code,
             'id': currencyId,
-            'precision': self.safe_number(entry, 'precision_transfer'),
-            'name': self.safe_string(entry, 'full_name'),
-            'active': not self.safe_bool(entry, 'delisted', False),
-            'deposit': self.safe_bool(entry, 'payin_enabled'),
-            'withdraw': self.safe_bool(entry, 'payout_enabled'),
+            'precision': self.safe_number(currency, 'precision_transfer'),
+            'name': self.safe_string(currency, 'full_name'),
+            'active': not self.safe_bool(currency, 'delisted', False),
+            'deposit': self.safe_bool(currency, 'payin_enabled'),
+            'withdraw': self.safe_bool(currency, 'payout_enabled'),
             'networks': networks,
             'fee': None,
             'limits': {

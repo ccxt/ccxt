@@ -631,20 +631,19 @@ class lbank(ccxt.async_support.lbank):
         key = await self.authenticate(params)
         url = self.urls['api']['ws']
         messageHash = None
-        pair = 'all'
         symbolResolved = None if (symbol is None) else self.symbol(symbol)
+        message = {
+            'action': 'subscribe',
+            'subscribe': 'orderUpdate',
+            'subscribeKey': key,
+            'pair': 'all',
+        }
         if symbol is None:
             messageHash = 'orders:all'
         else:
             market = self.market(symbol)
             messageHash = 'orders:' + market['symbol']
-            pair = market['id']
-        message = {
-            'action': 'subscribe',
-            'subscribe': 'orderUpdate',
-            'subscribeKey': key,
-            'pair': pair,
-        }
+            message['pair'] = market['id']
         request = self.deep_extend(message, params)
         orders = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_symbol_since_limit(orders, symbolResolved, since, limit, True)

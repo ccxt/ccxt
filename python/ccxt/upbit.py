@@ -1828,7 +1828,7 @@ class upbit(Exchange, ImplicitAPI):
         if numTrades > 0:
             # the timestamp in fetchOrder trades is missing
             lastTrade = self.safe_dict(trades, numTrades - 1, {})
-            lastTradeTimestamp = lastTrade['timestamp']
+            lastTradeTimestamp = self.safe_integer(lastTrade, 'timestamp')
             getFeesFromTrades = False
             if feeCost is None:
                 getFeesFromTrades = True
@@ -2313,8 +2313,7 @@ class upbit(Exchange, ImplicitAPI):
                 request['query_hash_alg'] = 'SHA512'
             token = self.jwt(request, self.encode(self.secret), 'sha256')
             headers['Authorization'] = 'Bearer ' + token
-        requestHeaders = headers if (apiName == 'private') else None
-        return {'url': url, 'method': method, 'body': requestBody, 'headers': requestHeaders}
+        return {'url': url, 'method': method, 'body': requestBody, 'headers': headers if (apiName == 'private') else None}
 
     def handle_errors(self, code: int, reason: str, url: str, method: str, headers: dict, body: str, response: object, requestHeaders: dict, requestBody: Str):
         if response is None:

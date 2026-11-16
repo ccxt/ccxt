@@ -149,13 +149,13 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         symbolValue = self.safe_string(market, 'symbol', '')
         interval = self.safe_string(self.timeframes, timeframe, timeframe)
         messageHash = 'ohlcv:' + symbolValue
-        request = {
+        subscribe = {
             'action': 'subscribe',
             'channel': 'prices',
             'symbol': market['id'],
             'granularity': self.parse_number(interval),
         }
-        request = self.deep_extend(request, params)
+        request = self.deep_extend(subscribe, params)
         url = self.safe_string(self.urls['api'], 'ws', '')
         ohlcv = await self.watch(url, messageHash, request, messageHash, request)
         limitResolved = limit
@@ -221,12 +221,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         symbolValue = self.safe_string(market, 'symbol', '')
         url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'ticker:' + symbolValue
-        request = {
+        subscribe = {
             'action': 'subscribe',
             'channel': 'ticker',
             'symbol': market['id'],
         }
-        request = self.deep_extend(request, params)
+        request = self.deep_extend(subscribe, params)
         return await self.watch(url, messageHash, request, messageHash)
 
     def handle_ticker(self, client: Client, message: dict):
@@ -328,12 +328,12 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         symbolValue = self.safe_string(market, 'symbol', '')
         url = self.safe_string(self.urls['api'], 'ws', '')
         messageHash = 'trades:' + symbolValue
-        request = {
+        subscribe = {
             'action': 'subscribe',
             'channel': 'trades',
             'symbol': market['id'],
         }
-        request = self.deep_extend(request, params)
+        request = self.deep_extend(subscribe, params)
         trades = await self.watch(url, messageHash, request, messageHash, request)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 

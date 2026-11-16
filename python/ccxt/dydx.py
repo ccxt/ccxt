@@ -1850,7 +1850,7 @@ class dydx(Exchange, ImplicitAPI):
         account = self.fetch_dydx_account()
         usd = self.parse_to_int(Precise.string_mul(self.number_to_string(amount), '1000000'))
         payload = None
-        signingPayload = None
+        signingPayload = {}
         if fromAccount == 'main':
             # deposit to subaccount
             if toSubaccountId is None:

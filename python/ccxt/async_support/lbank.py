@@ -539,8 +539,8 @@ class lbank(Exchange, ImplicitAPI):
             self.fetch_swap_markets(params),
         ]
         resolvedMarkets = await asyncio.gather(*marketsPromises)
-        spotMarkets = self.safe_value(resolvedMarkets, 0)
-        swapMarkets = self.safe_value(resolvedMarkets, 1)
+        spotMarkets = self.safe_list(resolvedMarkets, 0, [])
+        swapMarkets = self.safe_list(resolvedMarkets, 1, [])
         return self.array_concat(spotMarkets, swapMarkets)
 
     async def fetch_spot_markets(self, params: dict = {}) -> list[Market]:

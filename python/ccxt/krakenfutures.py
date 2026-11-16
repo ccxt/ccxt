@@ -2252,7 +2252,7 @@ class krakenfutures(Exchange, ImplicitAPI):
                 if self.safe_string(item, 'type') == 'EXECUTION':
                     executions.append(item)
                 # Final order (after placement / editing / execution / canceling)
-                orderTrigger = self.safe_value(item, 'orderTrigger')
+                orderTrigger = self.safe_dict(item, 'orderTrigger')
                 if details is None:
                     details = self.safe_value_2(item, 'new', 'order', orderTrigger)
                     if details is not None:

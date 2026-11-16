@@ -1085,10 +1085,10 @@ class bullish(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         clientOrderId = self.safe_string(params, 'clientOrderId')
-        paramsExtended = params
+        orderIdParams = {}
         if clientOrderId is None:
-            paramsExtended = self.extend({'orderId': id}, params)
-        return await self.fetch_my_trades(symbol, since, limit, paramsExtended)
+            orderIdParams['orderId'] = id
+        return await self.fetch_my_trades(symbol, since, limit, self.extend(orderIdParams, params))
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
         #

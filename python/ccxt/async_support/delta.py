@@ -357,9 +357,9 @@ class delta(Exchange, ImplicitAPI):
         optionParts = symbol.split('-')
         symbolBase = symbol.split('/')
         hasSlash = symbol.find('/') > -1
-        partSource = symbolBase if hasSlash else optionParts
-        baseIndex = 0 if hasSlash else 1
-        base = self.safe_string(partSource, baseIndex, '')
+        base = self.safe_string(optionParts, 1, '')
+        if hasSlash:
+            base = self.safe_string(symbolBase, 0, '')
         optionType = self.safe_string(optionParts, 3 if hasSlash else 0, '')
         rawExpiry = self.safe_string(optionParts, 1 if hasSlash else 3, '')
         expiry = rawExpiry[4:] + rawExpiry[2:4] + rawExpiry[0:2]

@@ -1723,25 +1723,25 @@ class deribit(Exchange, ImplicitAPI):
         futureFee = {}
         optionFee = {}
         for i in range(0, len(fees)):
-            fee = fees[i]
-            instrumentType = self.safe_string(fee, 'instrument_type')
+            feeEntry = fees[i]
+            instrumentType = self.safe_string(feeEntry, 'instrument_type')
             if instrumentType == 'future':
                 futureFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
             elif instrumentType == 'perpetual':
                 perpetualFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
             elif instrumentType == 'option':
                 optionFee = {
-                    'info': fee,
-                    'maker': self.safe_number(fee, 'maker_fee'),
-                    'taker': self.safe_number(fee, 'taker_fee'),
+                    'info': feeEntry,
+                    'maker': self.safe_number(feeEntry, 'maker_fee'),
+                    'taker': self.safe_number(feeEntry, 'taker_fee'),
                 }
         parsedFees = {}
         symbols = self.symbols

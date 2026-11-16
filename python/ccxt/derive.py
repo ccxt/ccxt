@@ -783,9 +783,8 @@ class derive(Exchange, ImplicitAPI):
         maxPages, paramsMaxPages = self.handle_option_integer_and_params(params, 'getMarketsPaginated', 'maxMarketPages', 25)
         pageSize, paramsOmitted = self.handle_option_integer_and_params(paramsMaxPages, 'getMarketsPaginated', 'maxMarketsPerPage', 1000)
         for i in range(0, maxPages):
-            page = i + 1
             requestExtension = {
-                'page': page,
+                'page': i + 1,
                 'page_size': pageSize,
             }
             requestExtended = self.extend(self.extend(request, requestExtension), paramsOmitted)  # nested because the csharp base defines extend with two arguments only

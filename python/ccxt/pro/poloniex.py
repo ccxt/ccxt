@@ -176,10 +176,8 @@ class poloniex(ccxt.async_support.poloniex):
                 raise ArgumentsRequired(self.id + ' subscribe() symbols is required')
             marketIds = self.market_ids(symbols)
         symbolsSuffix = '' if (symbols is None) else ','.join(symbols)
-        symbolsHash = None
-        if self.is_empty(symbols):
-            symbolsHash = messageHash
-        else:
+        symbolsHash = messageHash
+        if not self.is_empty(symbols):
             symbolsHash = messageHash + '::' + symbolsSuffix
         if name != 'balances':
             subscribe['symbols'] = marketIds

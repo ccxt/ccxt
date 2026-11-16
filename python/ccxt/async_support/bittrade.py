@@ -1956,8 +1956,7 @@ class bittrade(Exchange, ImplicitAPI):
             }
             if method != 'POST':
                 request = self.extend(request, query)
-            requestSorted = self.keysort(request)
-            auth = self.urlencode(requestSorted)
+            auth = self.urlencode(self.keysort(request))
             # unfortunately, PHP demands double quotes for the escaped newline symbol
             # eslint-disable-next-line quotes
             payload = method + "\n" + self.hostname + "\n" + url + "\n" + auth

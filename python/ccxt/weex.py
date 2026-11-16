@@ -1223,7 +1223,7 @@ class weex(Exchange, ImplicitAPI):
             response = [response]
         results = []
         for i in range(0, len(response)):
-            rawTicker = self.safe_value(response, i)
+            rawTicker = self.safe_dict(response, i, {})
             # book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
             marketId = self.safe_string(rawTicker, 'symbol')
             tickerMarket = self.safe_market(marketId, None, None, marketType)
@@ -1736,7 +1736,7 @@ class weex(Exchange, ImplicitAPI):
         if realizedPnl is not None:
             tradeMarketType = 'swap'
         marketResolved = self.safe_market(tradeMarketId if (market is None) else None, market, None, tradeMarketType)
-        isSpot = None
+        isSpot = False
         if market is None:
             isSpot = tradeMarketType == 'spot'
         else:

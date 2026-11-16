@@ -2583,9 +2583,8 @@ class toobit(Exchange, ImplicitAPI):
         # }
         #
         result = {}
-        entry = response
-        marketResolved = self.safe_market(self.safe_string(entry, 'symbol'), market)
-        fee = self.parse_trading_fee(entry, marketResolved)
+        marketResolved = self.safe_market(self.safe_string(response, 'symbol'), market)
+        fee = self.parse_trading_fee(response, marketResolved)
         result[marketResolved['symbol']] = fee
         return result
 

@@ -974,9 +974,7 @@ class hibachi(Exchange, ImplicitAPI):
         market = self.market(symbol)
         takerFee = self.safe_number(market, 'taker', 0)
         makerFee = self.safe_number(market, 'maker', 0)
-        takerFeeValue = 0 if (takerFee is None) else takerFee
-        makerFeeValue = 0 if (makerFee is None) else makerFee
-        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFeeValue), self.number_to_string(makerFeeValue)))
+        feeRate = self.parse_number(Precise.string_max(self.number_to_string(takerFee), self.number_to_string(makerFee)))
         message = self.order_message(market, nonce, feeRate, type, side, amount, price)
         signature = self.sign_message(message, self.privateKey)
         request = {

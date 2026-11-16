@@ -334,8 +334,7 @@ class blofin(ccxt.async_support.blofin):
         """
         if self.markets is None:
             await self.load_markets()
-        symbolsNormalized = self.market_symbols(symbols, None, False)
-        symbolsList = symbolsNormalized
+        symbolsList = self.market_symbols(symbols, None, False)
         firstMarket = self.market(symbolsList[0])
         channel = 'tickers'
         marketType, paramsMarketType = self.handle_market_type_and_params('watchBidsAsks', firstMarket, params)
@@ -358,7 +357,7 @@ class blofin(ccxt.async_support.blofin):
             if tickerSymbol is not None:
                 tickers[tickerSymbol] = ticker
             return tickers
-        return self.filter_by_array(self.bidsasks, 'symbol', symbolsNormalized)
+        return self.filter_by_array(self.bidsasks, 'symbol', symbolsList)
 
     def handle_bid_ask(self, client: Client, message: dict):
         data = self.safe_list(message, 'data')
@@ -564,7 +563,9 @@ class blofin(ccxt.async_support.blofin):
         :returns dict[]: a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure
         """
         params['callerMethodName'] = 'watchOrders'
-        symbolsArray = [symbol] if (symbol is not None) else []
+        symbolsArray = []
+        if symbol is not None:
+            symbolsArray.append(symbol)
         return await self.watch_orders_for_symbols(symbolsArray, since, limit, params)
 
     async def watch_orders_for_symbols(self, symbols: list[str], since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
@@ -789,10 +790,9 @@ class blofin(ccxt.async_support.blofin):
             market = self.market(self.safe_string(symbols, i))
             channel = channelName
             if isOHLCV:
-                tfArray = symbolsArray[i]
-                tf = tfArray[1]
+                tf = self.safe_string(self.safe_list(symbolsArray, i), 1)
                 interval = self.safe_string(self.timeframes, tf, tf)
-                channel += interval
+                channel = channel + interval
             topic = {
                 'channel': channel,
                 'instId': market['id'],
