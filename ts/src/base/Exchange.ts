@@ -9035,12 +9035,8 @@ export class BaseExchange {
         const uniqueResult: Dict = {};
         for (let i = 0; i < input.length; i++) {
             const entry = input[i];
-            const rawId = this.safeString (entry, 'id');
-            if (rawId !== undefined) {
-                if (!(rawId in uniqueResult)) {
-                    uniqueResult[rawId] = entry;
-                }
-            } else {
+            let id = this.safeString (entry, 'id');
+            if (id === undefined) {
                 const price = this.safeString (entry, 'price', '');
                 const amount = this.safeString (entry, 'amount', '');
                 const timestamp = this.safeString (entry, 'timestamp');
@@ -9050,10 +9046,11 @@ export class BaseExchange {
                     throw new ExchangeError (this.id + ' removeRepeatedTradesFromArray() missing timestamp');
                 }
                 // optional parts are empty when absent, separators keep positions distinct
-                const id = 't_' + timestamp.toString () + '_' + side + '_' + price + '_' + amount;
-                if (!(id in uniqueResult)) {
-                    uniqueResult[id] = entry;
-                }
+                id = 't_' + timestamp.toString () + '_' + side + '_';
+                id = id + (price + '_' + amount);
+            }
+            if (id !== undefined && !(id in uniqueResult)) {
+                uniqueResult[id] = entry;
             }
         }
         const values = Object.values (uniqueResult);
