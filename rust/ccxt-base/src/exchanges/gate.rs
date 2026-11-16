@@ -1461,7 +1461,7 @@ impl crate::exchange::DerivedExchange for Gate {
         let mut type_var: Option<String> = None;
         let mut amountString: Option<String> = self.safe_string_k_opt(transaction.clone(), "amount", &[]);
         if (id.is_some()) {
-            if (id.as_deref().unwrap_or("").starts_with("b")) {
+            if (id.as_deref().unwrap_or_default().starts_with("b")) {
                 // GateCode handling
                 type_var = (if crate::precise::Precise::stringGt(&amountString, &Value::Str("0".into())).as_bool() == Some(true) { Some("deposit".to_string()) } else { Some("withdrawal".to_string()) });
                 amountString = crate::precise::Precise::stringAbs(&amountString).as_str().map(str::to_owned);

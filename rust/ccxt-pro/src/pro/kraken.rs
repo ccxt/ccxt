@@ -920,12 +920,12 @@ impl Kraken {
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
         let mut trade: crate::value::Dict = self.safe_dict(&data, Value::Int(0), &[]).into_dict();
         let mut symbol: Option<String> = self.safe_string_k_opt(&trade, "symbol", &[]);
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
-        let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("trade".into()), &[Value::Null, Value::from(symbol.as_deref())]);
+        let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
         if (stored.is_none()) {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             stored = Some(ArrayCache::new(Value::from(limit)));
-            CacheStore::put(&mut self.trades, &symbol.clone().map(Value::from).unwrap_or(Value::Null), stored.clone());
+            CacheStore::put(&mut self.trades, &symbol, stored.clone());
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut parsed: crate::value::List = self.parse_trades(&data, Some(&market), &[]).into_list();
@@ -1584,10 +1584,10 @@ impl Kraken {
         let mut a: crate::value::List = self.safe_list_k(&first, "asks", &[Value::from(vec![])]).into_list();
         let mut b: crate::value::List = self.safe_list_k(&first, "bids", &[Value::from(vec![])]).into_list();
         let mut c: Option<i64> = self.safe_integer_k(&first, "checksum", &[]).as_i64();
-        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, symbol.clone().map(Value::from).unwrap_or(Value::Null)]);
+        let mut messageHash: Option<String> = self.get_message_hash(Value::Str("orderbook".into()), &[Value::Null, Value::from(symbol.as_deref())]);
         let mut orderbook: Option<crate::pro::order_book::Book> = None;
         if (type_var.as_deref() == Some("update")) {
-            orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook = self.orderbooks.at(&symbol);
             let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
             let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
             if (true) {
@@ -1597,7 +1597,7 @@ impl Kraken {
                 self.custom_handle_deltas(storedBids, Value::Arr(b));
             }
             let mut datetime: Option<String> = self.safe_string_k_opt(&first, "timestamp", &[]);
-            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
             orderbook.set_book_meta("timestamp", Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
             orderbook.set_book_meta("datetime", datetime.map(Value::from).unwrap_or(Value::Null));
         }  else {
@@ -1612,24 +1612,24 @@ impl Kraken {
             let mut limit: Option<i64> = self.parse_to_int(self.safe_integer_k(&subscription, "limit", &[Value::Int(10)]));
             let mut asksLength: i64 = a.len() as i64;
             let mut depth: Option<i64> = self.parse_to_int((if ((limit.is_some() && Some(asksLength) > limit)) { Value::from(asksLength) } else { Value::from(limit) }));
-            let mut depths: Value = self.safe_dict_k(self.options.clone(), "wsOrderBookDepths", &[Value::Map({
+            let mut depths: indexmap::IndexMap<String, Value> = self.safe_dict_k(self.options.clone(), "wsOrderBookDepths", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
-            })]);
-            let mut storedDepth: Option<i64> = self.safe_integer(depths.clone(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[]).as_i64();
-            if !(self.orderbooks.has(&symbol.clone().map(Value::from).unwrap_or(Value::Null))) || (storedDepth != depth) {
+            })]).as_map().cloned().unwrap_or_default();
+            let mut storedDepth: Option<i64> = self.safe_integer(&depths, Value::from(symbol.as_deref()), &[]).as_i64();
+            if !(self.orderbooks.has(&symbol)) || (storedDepth != depth) {
                 // rebuild only on the first snapshot or when the depth changes,
                 // e.g. a re-subscription with a different limit
                 { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-}), Value::from(depth)]); CacheStore::put(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
-                if let Value::Dict(__d) = &mut depths { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(depth)); }
-                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsOrderBookDepths".into(), depths); }
+}), Value::from(depth)]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
+                depths.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(depth));
+                if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("wsOrderBookDepths".into(), Value::Map(depths)); }
             }
             // reset in place so that references held by users keep receiving
             // updates after a reconnect snapshot (a new object would orphan them)
-            orderbook = self.orderbooks.at(&symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook = self.orderbooks.at(&symbol);
             orderbook.reset(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1648,7 +1648,7 @@ impl Kraken {
                 }
             }
             }
-            orderbook.set_book_meta("symbol", symbol.clone().map(Value::from).unwrap_or(Value::Null));
+            orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
         }
         orderbook.limit();
         // checksum temporarily disabled because the exchange checksum was not reliable
@@ -1688,9 +1688,9 @@ impl Kraken {
             let mut payload: String = payloadArray.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join("");
             let mut localChecksum: i64 = self.crc32(&[Value::from(payload), Value::Bool(false)]);
             if (Some(localChecksum) != c) {
-                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(symbol.clone().map(Value::from).unwrap_or(Value::Null)))));
+                let mut error: crate::ExchangeError = (crate::exchange_errors::checksum_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), self.orderbook_checksum_message(Value::from(symbol.as_deref())))));
                 __ch.remove_subscription(messageHash.as_deref());
-                CacheStore::forget(&mut self.orderbooks, &symbol.clone().map(Value::from).unwrap_or(Value::Null));
+                CacheStore::forget(&mut self.orderbooks, &symbol);
                 client.reject(error, messageHash.as_deref());
                 return;
             }

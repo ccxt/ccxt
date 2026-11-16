@@ -2811,8 +2811,8 @@ impl Nado {
 }
 
     pub fn ping(&mut self, mut client: Value) -> Value {
-        let mut gatewayUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), Value::Str("gateway".into()), &[]);
-        if (client.url().as_str() == gatewayUrl.as_deref()) {
+        let mut gatewayUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "gateway", &[]);
+        if ((client.url().as_str() == gatewayUrl.as_deref())) {
             return Value::Null;
         }
         return Value::Map({

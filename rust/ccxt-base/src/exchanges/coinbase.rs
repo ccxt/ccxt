@@ -4051,18 +4051,10 @@ if _try_result.is_err() {
             let mut code: Option<String> = self.safe_currency_code(id.clone().map(Value::from).unwrap_or(Value::Null), None);
             let mut name: Option<String> = self.safe_string_k_opt(&currency, "name", &[]);
             if (code.is_some()) {
-                if let Value::Dict(__bf03d0) = &mut self.options {
-                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networks".to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
-                    }
-                }
+                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networks".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)); } }
             }
             if (code.is_some()) {
-                if let Value::Dict(__bf03d0) = &mut self.options {
-                    let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networksById".to_string()).or_insert(Value::Null);
-                    if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null }));
-                    }
-                }
+                if let Value::Dict(__bf03d0) = &mut self.options { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("networksById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(code.as_deref().unwrap_or("null").to_string(), name.as_deref().map(str::to_lowercase).map(Value::from).unwrap_or(Value::Null)); } }
             }
             let mut type_var: String = "fiat".to_string();
             if (assetId.is_some()) {
@@ -4105,11 +4097,11 @@ if _try_result.is_err() {
 })));
             }
             if (assetId.is_some()) {
-                let mut lowerCaseName: Value = (if let Some(__s) = name.as_deref() { Value::Str(__s.to_lowercase().into()) } else { Value::Null });
+                let mut lowerCaseName: Option<String> = name.as_deref().map(str::to_lowercase);
                 if (code.is_some()) {
-                    networks.insert(code.as_deref().unwrap_or("null").to_string(), lowerCaseName.clone());
+                    networks.insert(code.as_deref().unwrap_or("null").to_string(), Value::from(lowerCaseName.as_deref()));
                 }
-                networksById.insert(crate::runtime::stringify_param(&lowerCaseName), code.map(Value::from).unwrap_or(Value::Null));
+                networksById.insert(lowerCaseName.as_deref().unwrap_or("null").to_string(), code.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }

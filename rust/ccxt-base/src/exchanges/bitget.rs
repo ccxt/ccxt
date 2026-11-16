@@ -10241,12 +10241,12 @@ if _try_result.is_err() {
                 while { if !__for_first_375 { i += 1; } __for_first_375 = false; i < (rows.len() as i64) } {
                 let mut entry: crate::value::Dict = rows.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut entryMarketId: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
-                if (entryMarketId.is_none()) || (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, &entryMarketId.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if (entryMarketId.is_none()) || (self.markets_by_id.clone() == Value::Null) || !(matches!((&self.markets_by_id, entryMarketId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                     continue;
                 }
                 let mut entryMarket: crate::types::Market = self.safe_market(entryMarketId.clone().map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, marketType.clone().map(Value::from).unwrap_or(Value::Null)]);
                 let mut entrySymbol: Option<String> = self.safe_string_k_opt(&entryMarket, "symbol", &[]);
-                if (entrySymbol.is_none()) || ((entrySymbol.as_deref() == entryMarketId.as_deref())) {
+                if (entrySymbol.is_none()) || (entrySymbol == entryMarketId) {
                     continue;
                 }
                 utaResult.insert(entrySymbol.as_deref().unwrap_or("null").to_string(), self.parse_trading_fee(&entry, Some(&entryMarket)));

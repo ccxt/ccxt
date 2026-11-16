@@ -1408,12 +1408,11 @@ impl Predictfun {
                 let mut rawMarket: crate::value::Dict = rawMarkets.get(mi as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut marketSlug: Option<String> = self.safe_string_k_opt(&rawMarket, "categorySlug", &[]);
                 if (marketSlug.is_some()) {
-                    if (matches!(&marketSlug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if orphanMarkets.contains_key(__k.as_ref()))) {
+                    if (matches!(marketSlug.as_deref(), Some(__k) if orphanMarkets.contains_key(__k))) {
                         // push through a local and write the slice back - the go transpiler's
                         // AppendToArray reassigns only a local copy of a map-stored array
                         let mut bucket: Value = orphanMarkets.get(marketSlug.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
-                        if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(Value::from(&rawMarket)); };
-                        if let Some(__k) = marketSlug.as_deref() { orphanMarkets.insert(__k.to_string(), bucket.clone()); }
+                        if let Value::Arr(__a) = &mut bucket { std::sync::Arc::make_mut(__a).push(Value::from(&rawMarket)); } if let Some(__k) = marketSlug.as_deref() { orphanMarkets.insert(__k.to_string(), bucket.clone()); }
                         orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), bucket);
                     }  else {
                         orphanMarkets.insert(marketSlug.as_deref().unwrap_or("null").to_string(), Value::from(vec![Value::Dict(rawMarket)]));
@@ -4664,13 +4663,13 @@ impl Predictfun {
             let mut isYesOutcome: bool = self.safe_integer_k(&outcomeInfo, "indexSet", &[]).as_f64() == Some(1.0);
             let mut outcomeHandle: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcome", &[]);
             if (outcomeHandle.is_some()) {
-                if !(self.orderbooks.has(&outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null))) {
+                if !(self.orderbooks.has(&outcomeHandle)) {
                     { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]); CacheStore::put(&mut self.orderbooks.clone(), &outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null), __cv); }
+})]); CacheStore::put(&mut self.orderbooks.clone(), &outcomeHandle, __cv); }
                 }
-                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcomeHandle.clone().map(Value::from).unwrap_or(Value::Null));
+                let mut orderbook: Option<crate::pro::order_book::Book> = self.orderbooks.at(&outcomeHandle);
                 let mut bids: Value = yesBids.clone();
                 let mut asks: Value = yesAsks.clone();
                 if !isYesOutcome {
@@ -4689,7 +4688,7 @@ impl Predictfun {
                         m.insert("nonce".to_string(), self.safe_integer_k(&data, "version", &[]));
                     m
                 }));
-                client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", "orderbook::", outcomeHandle.map(Value::from).unwrap_or(Value::Null)).into())));
+                client.resolve(Value::from(&orderbook), &(Value::Str(format!("{}{}", "orderbook::", outcomeHandle.as_deref().unwrap_or("null")).into())));
             }
         }
         }

@@ -3593,7 +3593,7 @@ impl Polymarket {
     m
 })]).into_dict();
             let mut rowId: Option<String> = self.safe_string_k_opt(&row, "instrument_id", &[]);
-            if (rowId.as_deref() == Value::from((market).id.as_deref()).as_str()) {
+            if ((rowId.as_deref() == Value::from((market).id.as_deref()).as_str())) {
                 return <Self as crate::exchange::DerivedExchange>::parse_leverage(self, &row, Some(&market));
             }
         }

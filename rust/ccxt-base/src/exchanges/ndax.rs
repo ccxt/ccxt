@@ -3456,7 +3456,7 @@ impl Ndax {
         if (template.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find a withdraw template for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }
-        let mut withdrawTemplate: Value = json_parse(&template.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut withdrawTemplate: Value = json_parse(&template.map(Value::from).unwrap_or(Value::Null));
         add_element_to_object(&mut withdrawTemplate, &Value::Str("ExternalAddress".into()), address);
         if (tagWithdrawTag.is_some()) {
             if (in_op(&withdrawTemplate, &Value::Str("Memo".into()))) {

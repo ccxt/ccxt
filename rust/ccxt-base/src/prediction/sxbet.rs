@@ -1004,7 +1004,7 @@ impl Sxbet {
             if (sportXeventId.is_none()) {
                 continue;
             }
-            if !(matches!(&sportXeventId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if grouped.contains_key(__k.as_ref()))) {
+            if !(matches!(sportXeventId.as_deref(), Some(__k) if grouped.contains_key(__k))) {
                 grouped.insert(sportXeventId.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 order.push(sportXeventId.clone().map(Value::from).unwrap_or(Value::Null));
             }

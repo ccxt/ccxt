@@ -3086,13 +3086,13 @@ if _try_result.is_err() {
         if (false) {
             self.trades = crate::pro::cache::CacheMap::new();
         }
-        if (self.trades.lookup(&sym.clone().map(Value::from).unwrap_or(Value::Null)).is_none()) {
+        if (self.trades.lookup(&sym).is_none()) {
             let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
-            CacheStore::put(&mut self.trades, &sym.clone().map(Value::from).unwrap_or(Value::Null), ArrayCache::new(Value::from(tradesLimit)));
+            CacheStore::put(&mut self.trades, &sym, ArrayCache::new(Value::from(tradesLimit)));
         }
-        let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut stored: Option<crate::pro::cache::Cache> = self.trades.at(&sym);
         stored.append(trade);
-        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "trades::", sym.map(Value::from).unwrap_or(Value::Null)).into())));
+        client.resolve(Value::from(&stored), &(Value::Str(format!("{}{}", "trades::", sym.as_deref().unwrap_or("null")).into())));
 }
 
 /*

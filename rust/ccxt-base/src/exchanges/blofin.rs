@@ -3819,8 +3819,8 @@ impl Blofin {
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = chainId.as_str() { __s.split("(").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut tail: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut tailParts: crate::value::List = Value::Array(tail.split(")").map(Value::from).collect()).into_list();
-            let mut suffix: Value = self.safe_string(&tailParts, Value::Int(0), &[]);
-            let mut suffixCode: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone(), &[]);
+            let mut suffix: Option<String> = self.safe_string_opt(&tailParts, Value::Int(0), &[]);
+            let mut suffixCode: Option<String> = self.safe_string_opt(self.options.as_map().and_then(|__m| __m.get("networkCodesBySuffix")).cloned().unwrap_or(Value::Null), suffix.clone().map(Value::from).unwrap_or(Value::Null), &[]);
             if (suffixCode.is_some()) {
                 return suffixCode.map(Value::from).unwrap_or(Value::Null);
             }
@@ -3828,8 +3828,8 @@ impl Blofin {
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
-            if (suffix != Value::Null) && (matches!(&suffix, Value::Str(__k) if prefixes.contains_key(__k.as_ref()))) {
-                return suffix;
+            if (suffix.is_some()) && (matches!(suffix.as_deref(), Some(__k) if prefixes.contains_key(__k))) {
+                return suffix.map(Value::from).unwrap_or(Value::Null);
             }
             // the suffix is not always a chain: 'Optimism (USDT0)' carries
             // the token name (verified live 2026-09-30), resolve by prefix

@@ -716,13 +716,13 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         let mut rawCurrency: Value = rawCurrency.into();
         // const id = i;
         let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "index", &[]);
-        let mut name: Value = self.safe_string_k(rawCurrency.clone(), "name", &[]);
-        let mut code: Option<String> = self.safe_currency_code(name.clone(), None);
-        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cachedCurrenciesById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(id.as_deref().unwrap_or("null").to_string(), name.clone()); } }
+        let mut name: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "name", &[]);
+        let mut code: Option<String> = self.safe_currency_code(Value::from(name.as_deref()), None);
+        if let Value::Dict(__bf03d0) = unsafe { crate::runtime::coerce_value_to_mut(&self.options) } { let __bf03e1 = std::sync::Arc::make_mut(__bf03d0).entry("cachedCurrenciesById".to_string()).or_insert(Value::Null); if let Value::Dict(__r05d) = __bf03e1 { std::sync::Arc::make_mut(__r05d).insert(id.as_deref().unwrap_or("null").to_string(), Value::from(name.as_deref())); } }
         let mut result: Value = self.safe_currency_structure(Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
-                m.insert("name".to_string(), name.clone());
+                m.insert("name".to_string(), Value::from(name.as_deref()));
                 m.insert("code".to_string(), code.clone().map(Value::from).unwrap_or(Value::Null));
                 m.insert("precision".to_string(), self.parse_precision(&[self.safe_string_k(rawCurrency.clone(), "weiDecimals", &[])]));
                 m.insert("info".to_string(), rawCurrency.clone());
@@ -752,10 +752,10 @@ impl crate::exchange::DerivedExchange for Hyperliquid {
         }));
         // add in wrapped map
         let mut fullName: Option<String> = self.safe_string_k_opt(rawCurrency, "fullName", &[]);
-        if (fullName.is_some()) && (name != Value::Null) {
-            let mut isWrapped: bool = (fullName.as_deref().unwrap_or_default().starts_with("Unit ")) && (name.as_str().unwrap_or("").starts_with("U"));
+        if (fullName.is_some()) && (name.is_some()) {
+            let mut isWrapped: bool = (fullName.as_deref().unwrap_or_default().starts_with("Unit ")) && (name.as_deref().unwrap_or_default().starts_with("U"));
             if isWrapped {
-                let mut parts: Vec<Value> = Value::Array(if let Some(__s) = name.as_str() { __s.split("U").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+                let mut parts: Vec<Value> = Value::Array(if let Some(__s) = name.as_deref() { __s.split("U").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
                 let mut nameWithoutU: String = "".to_string();
                 {
                                         let mut j: i64 = 0;
@@ -5458,7 +5458,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut entry: crate::value::Dict = self.safe_dict_k(&rawOrder, "order", &[Value::from(&rawOrder)]).into_dict();
             let mut oid: Option<String> = self.safe_string_k_opt(&entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!(&oid.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if deduplicatedByOid.contains_key(__k.as_ref()))) {
+                if !(matches!(oid.as_deref(), Some(__k) if deduplicatedByOid.contains_key(__k))) {
                     deduplicatedByOid.insert(oid.as_deref().unwrap_or("null").to_string(), Value::from(&rawOrder));
                 }  else {
                     let mut existingTimestamp: Option<i64> = self.safe_integer(deduplicatedByOid.get(oid.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("statusTimestamp".into()), &[]).as_i64();

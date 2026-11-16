@@ -4655,9 +4655,9 @@ impl Coinbaseinternational {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut accessToken: Value = self.safe_string_k(&result, "access_token", &[]);
+        let mut accessToken: Option<String> = self.safe_string_k_opt(&result, "access_token", &[]);
         let mut expiresIn: Option<i64> = self.safe_integer_k(&result, "expires_in", &[]).as_i64();
-        if (accessToken == Value::Null) {
+        if (accessToken.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " public/auth did not return an access token")));
         }
         if (expiresIn.is_none()) {
@@ -4666,10 +4666,10 @@ impl Coinbaseinternational {
         let mut ratio: Option<f64> = self.safe_number_k(self.options.clone(), "accessTokenRefreshRatio", &[]).as_f64();
         let mut refreshRatio: f64 = ratio.unwrap_or(0.8);
         let mut tokenRefreshInMilliseconds: Option<i64> = self.parse_to_int(Value::from((if let Some(__l) = ((if let Some(__l) = expiresIn { Some(__l * 1000) } else { None })) { Some((__l as f64) * refreshRatio) } else { None })));
-        self.token = accessToken.clone();
-        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone()); }
+        self.token = accessToken.clone().map(Value::from).unwrap_or(Value::Null);
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2AccessToken".into(), accessToken.clone().map(Value::from).unwrap_or(Value::Null)); }
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("v2TokenExpires".into(), Value::from((if let Some(__m1) = tokenRefreshInMilliseconds { Some((now + __m1)) } else { None }))); }
-        return accessToken;
+        return accessToken.map(Value::from).unwrap_or(Value::Null);
 
     Value::Null
 }

@@ -1572,7 +1572,7 @@ impl Poloniex {
                     // update the newUpdates count
                     orders.append(previousOrder);
                 }
-                marketIds.push(marketId.clone().map(Value::from).unwrap_or(Value::Null));
+                marketIds.push(marketId.map(Value::from).unwrap_or(Value::Null));
             }
         }
         }

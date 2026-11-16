@@ -486,7 +486,7 @@ impl crate::exchange::DerivedExchange for Kucoin {
         //
         //     "{\"symbol\":\"ETH-USDT\",\"orderId\":\"617adcd1eb3fa20001dd29a1\",\"tradeId\":\"617adcd12e113d2b91222ff9\"}"
         //
-        let mut referenceId: Value = Value::Null;
+        let mut referenceId: Option<String> = None;
         if (context.is_some()) && (context.as_deref() != Some("")) {
             let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
                 let mut parsed: Value = json_parse(&context.clone().map(Value::from).unwrap_or(Value::Null));
@@ -494,13 +494,13 @@ impl crate::exchange::DerivedExchange for Kucoin {
                 let mut tradeId: Option<String> = self.safe_string_k_opt(parsed, "tradeId", &[]);
                 // transactions only have an orderId but for trades we wish to use tradeId
                 if (tradeId.is_some()) {
-                    referenceId = tradeId.map(Value::from).unwrap_or(Value::Null);
+                    referenceId = tradeId;
                 }  else {
-                    referenceId = orderId.map(Value::from).unwrap_or(Value::Null);
+                    referenceId = orderId;
                 }
              #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
-                referenceId = context.map(Value::from).unwrap_or(Value::Null);
+                referenceId = context;
             }
         }
         let mut fee: Option<crate::value::Dict> = None;
@@ -523,7 +523,7 @@ if _try_result.is_err() {
         m.insert("id".to_string(), id.map(Value::from).unwrap_or(Value::Null));
         m.insert("direction".to_string(), self.parse_ledger_direction(direction.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("account".to_string(), account.clone().map(Value::from).unwrap_or(Value::Null));
-        m.insert("referenceId".to_string(), referenceId);
+        m.insert("referenceId".to_string(), referenceId.map(Value::from).unwrap_or(Value::Null));
         m.insert("referenceAccount".to_string(), account.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("type".to_string(), type_var.map(Value::from).unwrap_or(Value::Null));
         m.insert("currency".to_string(), code.map(Value::from).unwrap_or(Value::Null));
@@ -4979,7 +4979,7 @@ impl Kucoin {
                 continue;
             }
             // const quoteIncrement = this.safeNumber (market, 'quoteIncrement');
-            let mut ticker: crate::value::Dict = self.safe_dict(&tickersById, id.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+            let mut ticker: crate::value::Dict = self.safe_dict(&tickersById, Value::from(id.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]).into_dict();
@@ -4987,8 +4987,8 @@ impl Kucoin {
             let mut takerFeeRate: Option<String> = self.safe_string_k_opt(&ticker, "takerFeeRate", &[]);
             let mut makerCoefficient: Option<String> = self.safe_string_k_opt(&ticker, "makerCoefficient", &[]);
             let mut takerCoefficient: Option<String> = self.safe_string_k_opt(&ticker, "takerCoefficient", &[]);
-            let mut hasCrossMargin: Value = (Value::Bool(matches!(&id.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if crossById.contains_key(__k.as_ref()))));
-            let mut hasIsolatedMargin: Value = (Value::Bool(matches!(&id.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if isolatedById.contains_key(__k.as_ref()))));
+            let mut hasCrossMargin: Value = (Value::Bool(matches!(id.as_deref(), Some(__k) if crossById.contains_key(__k))));
+            let mut hasIsolatedMargin: Value = (Value::Bool(matches!(id.as_deref(), Some(__k) if isolatedById.contains_key(__k))));
             let mut isMarginable: Value = Value::Bool(self.safe_bool_k(&market, "isMarginEnabled", &[Value::Bool(false)]).as_bool() == Some(true) || matches!(&hasCrossMargin, Value::Bool(true)) || matches!(&hasIsolatedMargin, Value::Bool(true)));
             std::sync::Arc::make_mut(&mut result).push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -15757,7 +15757,7 @@ impl Kucoin {
             let mut tier: Value = self.safe_dict(&tiers, Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(tier.clone(), "symbol", &[]);
             if (symbol.is_some()) {
-                if !(matches!(&symbol.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if result.contains_key(__k.as_ref()))) {
+                if !(matches!(symbol.as_deref(), Some(__k) if result.contains_key(__k))) {
                     result.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }
                 if let Some(__k) = symbol.as_deref() { if let Value::Arr(__a) = result.entry(__k.to_string()).or_insert_with(|| Value::Array(Vec::new())) { std::sync::Arc::make_mut(__a).push(tier); } }

@@ -2271,7 +2271,7 @@ impl Polymarket {
             while { if !__for_first_1430 { i += 1; } __for_first_1430 = false; i < (targets.len() as i64) } {
             let mut outcomeObj: Option<crate::types::Market> = self.outcome(targets.get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
-            if (tokenId.is_some()) && !(matches!(&tokenId.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTokenId.contains_key(__k.as_ref()))) {
+            if (tokenId.is_some()) && !(matches!(tokenId.as_deref(), Some(__k) if outcomesByTokenId.contains_key(__k))) {
                 outcomesByTokenId.insert(tokenId.as_deref().unwrap_or("null").to_string(), crate::Value::from(outcomeObj.as_ref()));
                 if let Value::Arr(__a) = &mut tokenIds { std::sync::Arc::make_mut(__a).push(tokenId.map(Value::from).unwrap_or(Value::Null)); }
             }

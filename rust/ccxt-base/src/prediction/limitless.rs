@@ -2259,7 +2259,7 @@ impl Limitless {
             if (slug.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " fetchTickers() missing slug")));
             }
-            if !(matches!(&slug.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesBySlug.contains_key(__k.as_ref()))) {
+            if !(matches!(slug.as_deref(), Some(__k) if outcomesBySlug.contains_key(__k))) {
                 if (slug.is_some()) {
                     outcomesBySlug.insert(slug.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 }

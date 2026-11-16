@@ -561,7 +561,7 @@ impl Derive {
             if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             let mut bidAsk: Value = self.safe_ticker(Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("symbol".to_string(), tickerSymbol.clone().map(Value::from).unwrap_or(Value::Null));
+                    m.insert("symbol".to_string(), Value::from(tickerSymbol.as_deref()));
                     m.insert("timestamp".to_string(), self.safe_integer_k(&ticker, "timestamp", &[]));
                     m.insert("datetime".to_string(), self.safe_string_k(&ticker, "datetime", &[]));
                     m.insert("bid".to_string(), self.safe_number_k(&ticker, "bid", &[]));
@@ -572,7 +572,7 @@ impl Derive {
                 m
             }), Some(&market));
             if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), bidAsk.clone()); }
-            client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.map(Value::from).unwrap_or(Value::Null)).into())));
+            client.resolve(bidAsk, &(Value::Str(format!("{}{}", "bidask:", tickerSymbol.as_deref().unwrap_or("null")).into())));
         }
         client.resolve(Value::Dict(ticker), topic.as_str());
         return message;
@@ -1561,7 +1561,7 @@ impl Derive {
                 m
             });
         }
-        let mut subBalance: Value = self.safe_dict(self.balance.clone(), subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
+        let mut subBalance: Value = self.safe_dict(self.balance.clone(), Value::from(subaccountIdKey.as_deref()), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);
@@ -1578,8 +1578,8 @@ impl Derive {
             let mut name: String = self.safe_string_k(&entry, "name", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             if name.contains("-") {
                 // position deltas carry instrument names and do not belong into the balance structure
-                if (self.positionsByType.has(&subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null))) {
-                    let mut position: crate::value::Dict = self.handle_position_delta(subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &entry).into_dict();
+                if (self.positionsByType.has(&subaccountIdKey)) {
+                    let mut position: crate::value::Dict = self.handle_position_delta(Value::from(subaccountIdKey.as_deref()), &entry).into_dict();
                     std::sync::Arc::make_mut(&mut positionUpdates).push(Value::Dict(position));
                 }
                 continue;
@@ -1603,7 +1603,7 @@ impl Derive {
         }
         if updated {
             { let __be_tmp = self.safe_balance(subBalance); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert(subaccountIdKey.as_deref().unwrap_or("null").to_string(), __be_tmp); } }
-            client.resolve(self.safe_value(self.balance.clone(), subaccountIdKey.clone().map(Value::from).unwrap_or(Value::Null), &[]), topic.as_str());
+            client.resolve(self.safe_value(self.balance.clone(), subaccountIdKey.map(Value::from).unwrap_or(Value::Null), &[]), topic.as_str());
         }
         let mut positionUpdatesLength: i64 = positionUpdates.len() as i64;
         if positionUpdatesLength > 0 {

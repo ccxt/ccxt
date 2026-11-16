@@ -3290,7 +3290,7 @@ impl crate::exchange::DerivedExchange for Binance {
             let mut messageNew: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
             if (messageNew.is_some()) {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    parsedMessage = json_parse(&messageNew.clone().map(Value::from).unwrap_or(Value::Null));
+                    parsedMessage = json_parse(&messageNew.map(Value::from).unwrap_or(Value::Null));
                  #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
                     // do nothing

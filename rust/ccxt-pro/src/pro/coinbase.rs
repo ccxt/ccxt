@@ -1315,7 +1315,7 @@ impl Coinbase {
                 let mut cachedOrders: Option<crate::pro::cache::Cache> = self.orders.clone();
                 let mut marketId: Option<String> = self.safe_string_k_opt(&responseOrder, "product_id", &[]);
                 if (marketId.is_some()) {
-                    if !(in_op(&marketIds, &marketId.clone().map(Value::from).unwrap_or(Value::Null))) {
+                    if !(in_op(&marketIds, &Value::from(&marketId))) {
                         if let Value::Arr(__a) = &mut marketIds { std::sync::Arc::make_mut(__a).push(marketId.map(Value::from).unwrap_or(Value::Null)); }
                     }
                 }

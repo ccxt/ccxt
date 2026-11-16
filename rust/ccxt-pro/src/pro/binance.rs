@@ -7589,7 +7589,7 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
                         // hashmap rows are wired by reference, so this
                         // assignment reaches the cached row (and is a no-op
                         // in the reference-semantics runtimes)
-                        add_element_to_object(&mut orders, &orderId.clone().map(Value::from).unwrap_or(Value::Null), order);
+                        add_element_to_object(&mut orders, &orderId.map(Value::from).unwrap_or(Value::Null), order);
                     }
                 }
             }

@@ -2516,7 +2516,7 @@ impl Hyperliquid {
             }
             let mut oid: Option<String> = self.safe_string_k_opt(entry, "oid", &[]);
             if (oid.is_some()) {
-                if !(matches!((&deduped, &oid.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                if !(matches!((&deduped, oid.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                     if let Value::Dict(__d) = &mut deduped { std::sync::Arc::make_mut(__d).insert(oid.as_deref().unwrap_or("null").to_string(), raw.clone()); }
                 }  else {
                     let mut existingTs: Option<i64> = self.safe_integer((if let (Some(__m), Some(__k)) = (deduped.as_map(), oid.as_deref()) { __m.get(__k).cloned().unwrap_or(Value::Null) } else { Value::Null }), Value::Str("statusTimestamp".into()), &[]).as_i64();

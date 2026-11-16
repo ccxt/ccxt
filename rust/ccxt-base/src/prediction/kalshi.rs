@@ -2057,7 +2057,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if (ticker.is_none()) {
                 continue;
             }
-            if !(matches!(&ticker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTicker.contains_key(__k.as_ref()))) {
+            if !(matches!(ticker.as_deref(), Some(__k) if outcomesByTicker.contains_key(__k))) {
                 outcomesByTicker.insert(ticker.as_deref().unwrap_or("null").to_string(), Value::from(vec![]));
                 tickers.push(ticker.clone().map(Value::from).unwrap_or(Value::Null));
             }
@@ -2100,7 +2100,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 while { if !__for_first_1270 { i += 1; } __for_first_1270 = false; i < (rawMarkets.len() as i64) } {
                 let mut raw: crate::value::Dict = rawMarkets.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
                 let mut marketTicker: Option<String> = self.safe_string_k_opt(&raw, "ticker", &[]);
-                if (marketTicker.is_none()) || !(matches!(&marketTicker.clone().map(Value::from).unwrap_or(Value::Null), Value::Str(__k) if outcomesByTicker.contains_key(__k.as_ref()))) {
+                if (marketTicker.is_none()) || !(matches!(marketTicker.as_deref(), Some(__k) if outcomesByTicker.contains_key(__k))) {
                     continue;
                 }
                 let mut grouped: Value = outcomesByTicker.get(marketTicker.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null);
@@ -3548,7 +3548,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut si: i64 = 0;
                 let mut __for_first_1291: bool = true;
                 while { if !__for_first_1291 { si += 1; } __for_first_1291 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
+                let mut st: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), "ticker", &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3569,7 +3569,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                                 let mut si: i64 = 0;
                 let mut __for_first_1293: bool = true;
                 while { if !__for_first_1293 { si += 1; } __for_first_1293 = false; si < seriesListLength } {
-                let mut st: Option<String> = self.safe_string_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), Value::Str("ticker".into()), &[]);
+                let mut st: Option<String> = self.safe_string_k_opt(crate::value::KeyRead::read(&&seriesList, &Value::Int(si)), "ticker", &[]);
                 if (st.is_some()) {
                     std::sync::Arc::make_mut(&mut collected).push(st.map(Value::from).unwrap_or(Value::Null));
                 }
@@ -3601,9 +3601,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             let mut __for_first_1295: bool = true;
             while { if !__for_first_1295 { ci += 1; } __for_first_1295 = false; ci < collectedLength } {
             let mut st: Option<String> = self.safe_string_opt(&collected, Value::Int(ci), &[]);
-            let mut already: Option<String> = self.safe_string_opt(&seen, st.clone().map(Value::from).unwrap_or(Value::Null), &[]);
+            let mut already: Option<String> = self.safe_string_opt(&seen, Value::from(st.as_deref()), &[]);
             if (st.is_some()) && (st.as_deref() != Some("")) && (already.is_none()) {
-                seen.insert(st.as_deref().unwrap_or("null").to_string(), st.clone().map(Value::from).unwrap_or(Value::Null));
+                seen.insert(st.as_deref().unwrap_or("null").to_string(), Value::from(st.as_deref()));
                 ordered.push(st.map(Value::from).unwrap_or(Value::Null));
             }
         }

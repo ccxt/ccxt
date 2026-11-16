@@ -2195,7 +2195,7 @@ impl Coinbaseinternational {
                 if (__ch.has_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)))) {
                     __ch.remove_subscription(&(channel.clone().map(Value::from).unwrap_or(Value::Null)));
                 }
-                client.reject(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " order book update has a nonce mismatch")), &channel.clone().map(Value::from).unwrap_or(Value::Null));
+                client.reject(crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " order book update has a nonce mismatch")), channel.as_deref());
                 self.spawn(&[Value::Str("resubscribe_order_book".into()).clone(), channel.clone().map(Value::from).unwrap_or(Value::Null)]);
                 return;
             }
@@ -2208,7 +2208,7 @@ impl Coinbaseinternational {
         orderbook.set_book_meta("datetime", self.iso8601(timestamp));
         CacheStore::put(&mut self.orderbooks, &symbol, orderbook.clone());
         if (channel.is_some()) {
-            client.resolve(Value::from(&orderbook), &channel.clone().map(Value::from).unwrap_or(Value::Null));
+            client.resolve(Value::from(&orderbook), channel.as_deref());
         }
 }
 

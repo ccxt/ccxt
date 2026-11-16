@@ -723,7 +723,7 @@ impl crate::exchange::DerivedExchange for Tokocrypto {
             let mut messageInner: Option<String> = self.safe_string_k_opt(response.clone(), "msg", &[]);
             if (messageInner.is_some()) {
                 let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    responseParsed = json_parse(&messageInner.clone().map(Value::from).unwrap_or(Value::Null));
+                    responseParsed = json_parse(&messageInner.map(Value::from).unwrap_or(Value::Null));
                  #[allow(unreachable_code)] { Value::Null }}));
 if _try_result.is_err() {
                     // do nothing

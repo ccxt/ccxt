@@ -713,7 +713,7 @@ impl Bittrade {
          #[allow(unreachable_code)] { Value::Null }})).await;
 match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { return __try_ok; } return Value::Null; } Err(_try_err) => { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err); 
             __ch.remove_subscription(&(messageHash.clone().map(Value::from).unwrap_or(Value::Null)));
-            client.reject(e, &messageHash.clone().map(Value::from).unwrap_or(Value::Null));
+            client.reject(e, messageHash.as_deref());
          } }
         return Value::Null;
 

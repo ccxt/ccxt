@@ -2404,7 +2404,7 @@ impl Binance {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), "createOrder requires price for limit order")));
             }
-            commonRequest.insert("priceLimit".into(), Value::from(self.price_to_precision(marketSymbol.clone().map(Value::from).unwrap_or(Value::Null), price.clone())));
+            commonRequest.insert("priceLimit".into(), Value::from(self.price_to_precision(Value::from(marketSymbol.as_deref()), price.clone())));
             defaultTif = "GTC".to_string();
         }
         if (sideUpper == "BUY") {
