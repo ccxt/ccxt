@@ -5410,7 +5410,6 @@ class NewTranspiler {
             [/NewGetValue\(([A-Za-z0-9]+), ([A-Za-z0-9]+)\)\(([A-Za-z0-9]+)\)/g, 'ccxt.CallDynamically(GetValue($1, $2), $3)'],
             [/([a-zA-Z0-9]+)\.Call\(this, /g, 'ccxt.CallDynamically($1, '],
             
-            [/Future\)/g, ''],  // Remove C# generics / casts that are invalid in Go
             [/;\s*\n/g, '\n'],  // Remove stray semicolons that leak from TS/CS syntax
             
             [/(stored|cached)?([Oo]rders)?\.Hashmap/g, '$1$2.(*ArrayCache).Hashmap'],
@@ -5421,7 +5420,7 @@ class NewTranspiler {
             // the *read* local (`this.trades[symbol]`), never on this one.
             [/stored := NewArrayCache\(limit\)/g, 'var stored *ArrayCache = NewArrayCache(limit)'],
             // Futures
-            [/future\.(Resolve|Reject)/g, 'future.(*Future).$1'],
+            // `future.(Resolve|Reject)` on a boxed future: the printer prints the assertion (84g3)
             [/\(<\-future\)/g, '<-future.(<-chan any)'],
             [/<-spawaned/g, '<-spawaned.(<-chan any)'],
             [/promise\.Resolve\(([^)]+)\)/g, 'promise.(*Future).Resolve(ToGetsLimit($1))'],
