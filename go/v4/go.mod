@@ -8,7 +8,6 @@ require (
 	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.4.0
 	github.com/elliottech/lighter-go v1.0.6
 	github.com/ethereum/go-ethereum v1.17.0
-	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/vmihailenco/msgpack/v5 v5.4.1
 	golang.org/x/crypto v0.54.0
