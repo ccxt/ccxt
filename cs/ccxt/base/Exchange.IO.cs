@@ -8,14 +8,23 @@ public partial class BaseExchange
         return tmp.EndsWith(Path.DirectorySeparatorChar.ToString()) ? tmp : tmp + Path.DirectorySeparatorChar;
     }
 
-    public void ensureWhitelistedFile(object filePath)
+    // .ccxtfile (cache files) can be read and written, but only inside the temp dir
+    // .pem (user-supplied keys, e.g. the ibkr oauth keys) can be read from any location, but never written
+    public void ensureWhitelistedFile(object filePath, bool isWrite = false)
     {
         var sanitized = Path.GetFullPath(filePath as string);
-        var allowedExtensions = new string[] { ".ccxtfile", ".pem" };
-        if (Array.Exists(allowedExtensions, ext => sanitized.EndsWith(ext))) {
+        if (sanitized.EndsWith(".ccxtfile"))
+        {
+            if (sanitized.StartsWith(getTempDir()))
+            {
+                return;
+            }
+        }
+        else if (sanitized.EndsWith(".pem") && !isWrite)
+        {
             return;
         }
-        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed extensions are: {string.Join(", ", allowedExtensions)}");
+        throw new InvalidOperationException($"invalid file path: {filePath as string}, allowed are .ccxtfile (inside the temp dir) and read-only .pem");
     }
 
     // file IO is synchronous in .NET, nothing to load before the first readFile call
@@ -36,7 +45,7 @@ public partial class BaseExchange
 
     public bool writeFile(object filePath, object data)
     {
-        ensureWhitelistedFile(filePath);
+        ensureWhitelistedFile(filePath, true);
         var directory = Path.GetDirectoryName(filePath as string);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
         {

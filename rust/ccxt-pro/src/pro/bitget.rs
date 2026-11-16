@@ -1393,7 +1393,8 @@ impl BitgetCore {
         let mut incrementalFeed: bool = true;
         if (limit.as_f64() == Some(1.0)) || (limit.as_f64() == Some(5.0)) || (limit.as_f64() == Some(15.0)) || (limit.as_f64() == Some(50.0)) {
             channel = Value::Str(format!("{}{}", channel, Value::Str(format!("{}", limit).into())).into());
-            incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = limit.as_f64() == Some(50.0);
         }
         let mut topics: Vec<Value> = Vec::new();
         let mut messageHashes: Vec<Value> = Vec::new();
@@ -1507,7 +1508,7 @@ impl BitgetCore {
             return;
         }
         let mut timestamp: Value = self.safe_integer_k(rawOrderBook.clone(), "ts", &[]);
-        let mut incrementalBook: bool = channel.as_deref() == Some("books");
+        let mut incrementalBook: bool = (channel.as_deref() == Some("books")) || (channel.as_deref() == Some("books50"));
         if incrementalBook {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if !(matches!((&self.orderbooks, &symbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {

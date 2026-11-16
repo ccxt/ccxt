@@ -81,7 +81,7 @@ class cryptomus extends Exchange {
                 'fetchConvertTradeHistory' => false,
                 'fetchCrossBorrowRate' => false,
                 'fetchCrossBorrowRates' => false,
-                'fetchCurrencies' => true,
+                'fetchCurrencies' => false, // v1/exchange/market/assets is nginx 404
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => false,
                 'fetchDepositsWithdrawals' => false,
@@ -122,7 +122,7 @@ class cryptomus extends Exchange {
                 'fetchOption' => false,
                 'fetchOptionChain' => false,
                 'fetchOrder' => true,
-                'fetchOrderBook' => true,
+                'fetchOrderBook' => false, // v1/exchange/market/order-book is nginx 404
                 'fetchOrders' => false,
                 'fetchOrderTrades' => false,
                 'fetchPosition' => false,
@@ -135,10 +135,10 @@ class cryptomus extends Exchange {
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchSettlementHistory' => false,
                 'fetchStatus' => false,
-                'fetchTicker' => false,
-                'fetchTickers' => true,
+                'fetchTicker' => true,
+                'fetchTickers' => false, // v1/exchange/market/tickers is nginx 404; price is per symbol
                 'fetchTime' => false,
-                'fetchTrades' => true,
+                'fetchTrades' => false, // v1/exchange/market/trades is nginx 404
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => true,
                 'fetchTransactions' => false,
@@ -173,12 +173,10 @@ class cryptomus extends Exchange {
                 'public' => array(
                     'get' => array(
                         'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
-                        'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
-                        'v2/user-api/exchange/markets/price' => array( 'cost' => 1 ),
-                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
-                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
-                        'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
-                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // done
+                        'v2/user-api/exchange/markets/price' => array( 'cost' => 1 ), // done
+                        'v1/exchange/market/assets' => array( 'cost' => 1 ), // nginx 404
+                        'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // nginx 404
+                        'v1/exchange/market/trades/{currencyPair}' => array( 'cost' => 1 ), // nginx 404
                     ),
                 ),
                 'private' => array(
@@ -273,7 +271,9 @@ class cryptomus extends Exchange {
                     // {"message":"Minimum amount 15 USDT","state":1}
                     // {"message":"Insufficient funds. USDT wallet balance is 35.21617400.","state":1}
                 ),
-                'broad' => array(),
+                'broad' => array(
+                    'Market ' => '\\ccxt\\BadSymbol', // {"code":1,"message":"Market NOPE_USDT doesn't exist."}
+                ),
             ),
             'precisionMode' => TICK_SIZE,
             'requiredCredentials' => array(
@@ -292,7 +292,7 @@ class cryptomus extends Exchange {
         /**
          * retrieves data on all markets for the exchange
          *
-         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} an array of objects representing market data
@@ -489,53 +489,44 @@ class cryptomus extends Exchange {
         ));
     }
 
-    public function fetch_tickers(?array $symbols = null, $params = array()): PromiseInterface {
-        return Async\async(self::do_fetch_tickers(...))($symbols, $params);
+    public function fetch_ticker(string $symbol, $params = array()): PromiseInterface {
+        return Async\async(self::do_fetch_ticker(...))($symbol, $params);
     }
 
-    private function do_fetch_tickers(?array $symbols = null, $params = array()) {
+    private function do_fetch_ticker(string $symbol, $params = array()) {
         /**
-         * fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          *
-         * @see https://doc.cryptomus.com/personal/market-cap/tickers
+         * @see https://doc.cryptomus.com/methods/exchange/get-current-$market-price
          *
-         * @param {string[]} [$symbols] unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $symbolsNormalized = $this->market_symbols($symbols);
-        $response = Async\await($this->publicGetV1ExchangeMarketTickers($params));
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = Async\await($this->publicGetV2UserApiExchangeMarketsPrice($this->extend($request, $params)));
         //
         //     {
-        //         "data": [
-        //         {
-        //             "currency_pair": "MATIC_USDT",
-        //             "last_price": "0.342",
-        //             "base_volume": "1676.84092771",
-        //             "quote_volume": "573.48033609043"
-        //         },
-        //         ...
+        //         "price": "78450.4"
         //     }
         //
-        $data = $this->safe_list($response, 'data');
-        return $this->parse_tickers($data, $symbolsNormalized);
+        return $this->parse_ticker($response, $market);
     }
 
     public function parse_ticker(array $ticker, ?array $market = null): array {
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        $marketId = $this->safe_string($ticker, 'currency_pair');
-        $marketResolved = $this->safe_market($marketId, $market);
-        $last = $this->safe_string($ticker, 'last_price');
+        $marketResolved = $this->safe_market(null, $market);
+        $last = $this->safe_string($ticker, 'price');
         return $this->safe_ticker(array(
             'symbol' => $marketResolved['symbol'],
             'timestamp' => null,
@@ -554,8 +545,8 @@ class cryptomus extends Exchange {
             'change' => null,
             'percentage' => null,
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'base_volume'),
-            'quoteVolume' => $this->safe_string($ticker, 'quote_volume'),
+            'baseVolume' => null,
+            'quoteVolume' => null,
             'info' => $ticker,
         ), $marketResolved);
     }
@@ -1274,6 +1265,7 @@ class cryptomus extends Exchange {
         if ($codeError !== null) {
             $feedback = $this->id . ' ' . $body;
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $codeError, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback);
         } elseif ($message !== null) {
             //

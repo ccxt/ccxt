@@ -2173,6 +2173,7 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2275,6 +2276,7 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchBidsAsks() requires a symbols argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2301,6 +2303,7 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchLastPrices() requires a symbols argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2339,6 +2342,7 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMarkPrices() requires a symbols argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2363,6 +2367,7 @@ export default class interactivebrokers extends Exchange {
         if (symbols === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOpenInterests() requires a symbols argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2520,6 +2525,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     override async fetchOHLCV (symbol: string, timeframe: string = '1m', since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<OHLCV[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2848,6 +2854,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Order> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2868,6 +2875,7 @@ export default class interactivebrokers extends Exchange {
     }
 
     async createTestOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params: Dict = {}): Promise<Dict> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3046,6 +3054,7 @@ export default class interactivebrokers extends Exchange {
         if (amount === undefined) {
             throw new ArgumentsRequired (this.id + ' editOrder() requires an amount argument');
         }
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3077,6 +3086,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async cancelOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3107,6 +3117,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrder (id: string, symbol: Str = undefined, params: Dict = {}): Promise<Order> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3172,6 +3183,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3249,6 +3261,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async fetchCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3282,6 +3295,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async fetchOrdersByStatusFilter (status: string, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Order[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3305,6 +3319,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} the raw orders
      */
     async fetchLiveOrdersRaw (params: Dict = {}): Promise<Dict[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3506,6 +3521,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params: Dict = {}): Promise<Trade[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3756,6 +3772,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositions (symbols: Strings = undefined, params: Dict = {}): Promise<Position[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3801,6 +3818,7 @@ export default class interactivebrokers extends Exchange {
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
     override async fetchPositionsForSymbol (symbol: string, params: Dict = {}): Promise<Position[]> {
+        await this.authenticate ();
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3963,7 +3981,7 @@ export default class interactivebrokers extends Exchange {
     /**
      * @method
      * @name interactivebrokers#ibkrCheckOauthCredentials
-     * @description throws an AuthenticationError when the oauth 1.0a credentials are missing, requiredCredentials can not be used for this, because the client portal gateway mode needs no credentials
+     * @description throws an AuthenticationError when the oauth 1.0a credentials (apiKey, secret and options.consumer_key) are missing, requiredCredentials can not be used for this, because the client portal gateway mode needs no credentials
      * @ignore
      * @returns {boolean} true if the oauth credentials are set
      */

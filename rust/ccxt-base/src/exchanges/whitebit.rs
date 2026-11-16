@@ -1363,7 +1363,6 @@ impl WhitebitCore {
         let mut swap: Value = Value::Bool((typeId.as_deref() == Some("futures")) || (typeId.as_deref() == Some("tradfiFutures")));
         let mut margin: Value = Value::Bool(isCollateral && !(matches!(&swap, Value::Bool(true))));
         let mut contract: Value = Value::Bool(false);
-        let mut amountPrecision: Value = self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "stockPrec", &[])]), &[]);
         let mut linear: Value = Value::Null;
         let mut inverse: Value = Value::Null;
         if matches!(&swap, Value::Bool(true)) {
@@ -1411,8 +1410,8 @@ impl WhitebitCore {
         m.insert("optionType".to_string(), Value::Null);
         m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("amount".to_string(), amountPrecision);
-        m.insert("price".to_string(), self.parse_number(self.parse_precision(&[self.safe_string_k(market.clone(), "moneyPrec", &[])]), &[]));
+        m.insert("amount".to_string(), self.safe_number_k(market.clone(), "stepSize", &[]));
+        m.insert("price".to_string(), self.safe_number_k(market.clone(), "tickSize", &[]));
     m
 }));
         m.insert("limits".to_string(), Value::Map({

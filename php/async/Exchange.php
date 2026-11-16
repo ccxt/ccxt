@@ -380,6 +380,11 @@ class BaseExchange extends \ccxt\BaseExchange {
         });
     }
 
+    public function init_file_system() {
+        // file io is synchronous in php, nothing to load before the first read_file call
+        return Promise\resolve(null);
+    }
+
     public function init_throttler() {
         $this->throttler = new Throttler($this->tokenBucket);
     }

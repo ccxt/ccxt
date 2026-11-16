@@ -5330,6 +5330,76 @@
                 }
             },
             {
+                "description": "spot ticker from the v2 quote/ticker endpoint (numeric values)",
+                "method": "fetchTicker",
+                "input": [
+                    "BTC/USDT"
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1794568295096,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895096,
+                            "closeTime": 1794568295096,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "symbol": "BTC/USDT",
+                    "timestamp": 1794568295096,
+                    "datetime": "2026-11-13T11:11:35.096Z",
+                    "high": 73457.51,
+                    "low": 67641.97,
+                    "bid": 69323.35,
+                    "bidVolume": 0.002238,
+                    "ask": 69323.37,
+                    "askVolume": 0.001918,
+                    "vwap": 70297.2977145724,
+                    "open": 73451.71,
+                    "close": 69323.36,
+                    "last": 69323.36,
+                    "previousClose": null,
+                    "change": -4128.35,
+                    "percentage": -5.62,
+                    "average": 71387.53,
+                    "baseVolume": 3169.21,
+                    "quoteVolume": 222786898.89,
+                    "markPrice": null,
+                    "indexPrice": null,
+                    "info": {
+                        "symbol": "BTC-USDT",
+                        "openPrice": 73451.71,
+                        "highPrice": 73457.51,
+                        "lowPrice": 67641.97,
+                        "lastPrice": 69323.36,
+                        "priceChange": -4128.35,
+                        "priceChangePercent": "-5.62%",
+                        "volume": 3169.21,
+                        "quoteVolume": 222786898.89,
+                        "openTime": 1794481895096,
+                        "closeTime": 1794568295096,
+                        "askPrice": 69323.37,
+                        "askQty": 0.001918,
+                        "bidPrice": 69323.35,
+                        "bidQty": 0.002238
+                    }
+                }
+            },
+            {
                 "description": "swap ticker",
                 "method": "fetchTicker",
                 "input": [
@@ -5662,6 +5732,138 @@
             }
         ],
         "fetchTickers": [
+            {
+                "description": "spot tickers from the v2 quote/ticker endpoint",
+                "method": "fetchTickers",
+                "input": [
+                    [
+                        "BTC/USDT",
+                        "ETH/USDT"
+                    ]
+                ],
+                "httpResponse": {
+                    "code": 0,
+                    "timestamp": 1794568295928,
+                    "data": [
+                        {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        },
+                        {
+                            "symbol": "ETH-USDT",
+                            "openPrice": 2043.84,
+                            "highPrice": 2044.13,
+                            "lowPrice": 1896.7,
+                            "lastPrice": 1953.3,
+                            "priceChange": -90.54,
+                            "priceChangePercent": "-4.43%",
+                            "volume": 36807.67,
+                            "quoteVolume": 72789651.3,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 1953.24,
+                            "askQty": 0.2485,
+                            "bidPrice": 1953.22,
+                            "bidQty": 0.1359
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USDT": {
+                        "symbol": "BTC/USDT",
+                        "timestamp": 1794568295927,
+                        "datetime": "2026-11-13T11:11:35.927Z",
+                        "high": 73457.51,
+                        "low": 67641.97,
+                        "bid": 69323.35,
+                        "bidVolume": 0.002238,
+                        "ask": 69323.37,
+                        "askVolume": 0.001918,
+                        "vwap": 70297.2977145724,
+                        "open": 73451.71,
+                        "close": 69323.36,
+                        "last": 69323.36,
+                        "previousClose": null,
+                        "change": -4128.35,
+                        "percentage": -5.62,
+                        "average": 71387.53,
+                        "baseVolume": 3169.21,
+                        "quoteVolume": 222786898.89,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "BTC-USDT",
+                            "openPrice": 73451.71,
+                            "highPrice": 73457.51,
+                            "lowPrice": 67641.97,
+                            "lastPrice": 69323.36,
+                            "priceChange": -4128.35,
+                            "priceChangePercent": "-5.62%",
+                            "volume": 3169.21,
+                            "quoteVolume": 222786898.89,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 69323.37,
+                            "askQty": 0.001918,
+                            "bidPrice": 69323.35,
+                            "bidQty": 0.002238
+                        }
+                    },
+                    "ETH/USDT": {
+                        "symbol": "ETH/USDT",
+                        "timestamp": 1794568295927,
+                        "datetime": "2026-11-13T11:11:35.927Z",
+                        "high": 2044.13,
+                        "low": 1896.7,
+                        "bid": 1953.22,
+                        "bidVolume": 0.1359,
+                        "ask": 1953.24,
+                        "askVolume": 0.2485,
+                        "vwap": 1977.5674825382862,
+                        "open": 2043.84,
+                        "close": 1953.3,
+                        "last": 1953.3,
+                        "previousClose": null,
+                        "change": -90.54,
+                        "percentage": -4.43,
+                        "average": 1998.57,
+                        "baseVolume": 36807.67,
+                        "quoteVolume": 72789651.3,
+                        "markPrice": null,
+                        "indexPrice": null,
+                        "info": {
+                            "symbol": "ETH-USDT",
+                            "openPrice": 2043.84,
+                            "highPrice": 2044.13,
+                            "lowPrice": 1896.7,
+                            "lastPrice": 1953.3,
+                            "priceChange": -90.54,
+                            "priceChangePercent": "-4.43%",
+                            "volume": 36807.67,
+                            "quoteVolume": 72789651.3,
+                            "openTime": 1794481895927,
+                            "closeTime": 1794568295927,
+                            "askPrice": 1953.24,
+                            "askQty": 0.2485,
+                            "bidPrice": 1953.22,
+                            "bidQty": 0.1359
+                        }
+                    }
+                }
+            },
             {
                 "description": "Coin-M tickers respect different contract sizes",
                 "method": "fetchTickers",

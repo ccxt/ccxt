@@ -293,10 +293,12 @@ func (e *BaseExchange) IntToBase16(number any) string {
 		return fmt.Sprintf("%x", uint64(v))
 	case uint64:
 		return fmt.Sprintf("%x", v)
-	case *big.Int, big.Int, string:
-		// big integers: ConvertToBigInt / ModPow return decimal strings, values above 2^64 do not fit the int branches
-		if bigValue := parseStarknetBigInt(v); bigValue != nil {
-			return bigValue.Text(16)
+	case *big.Int:
+		return v.Text(16)
+	case string:
+		// decimal string of a big integer, e.g. the result of ModPow
+		if n, ok := new(big.Int).SetString(v, 10); ok {
+			return n.Text(16)
 		}
 		return ""
 	default:

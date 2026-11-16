@@ -10,13 +10,13 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
-bitmex = ccxt.bitmex()
+exchange = ccxt.binance()
 
 # fetch 5m OHLCV
 
-symbol = 'BTC/USD'
+symbol = 'BTC/USDT'
 
-ohlcv5 = bitmex.fetch_ohlcv(symbol, '5m')
+ohlcv5 = exchange.fetch_ohlcv(symbol, '5m')
 ohlcv15 = []
 
 # OHLCV key indexes

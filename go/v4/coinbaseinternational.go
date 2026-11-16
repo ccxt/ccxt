@@ -2341,29 +2341,32 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 	_ = market
 	var instrumentName *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(instrumentName, market)
-	var side *string = this.SafeString(position, "direction")
-	if side != nil && *side == "buy" {
+	var direction *string = this.SafeString(position, "direction")
+	var side *string = nil
+	if direction != nil && *direction == "buy" {
 		side = SafeStringPtr("long")
-	} else if side != nil && *side == "sell" {
+	} else if direction != nil && *direction == "sell" {
 		side = SafeStringPtr("short")
 	}
-	var notional *string = this.SafeString(position, "size_currency")
 	var initialMargin *string = this.SafeString(position, "initial_margin")
 	var maintenanceMargin *string = this.SafeString(position, "maintenance_margin")
-	var contracts *float64 = this.SafeNumber(position, "size")
-	if this.IsNativeDeribitCredentials() {
-		var size *string = this.SafeString(position, "size")
-		if !(*this.SafeBool(marketResolved, "option", false)) {
-			notional = size
-			if *this.SafeBool(marketResolved, "linear", false) {
-				size = this.SafeString(position, "size_currency")
-			}
-		} else {
-			notional = Precise.StringMul(size, this.SafeString(position, "mark_price"))
-		}
-		var contractsString *string = this.SafeString(position, "contracts", Precise.StringDiv(size, this.SafeString(marketResolved, "contractSize")))
-		contracts = this.ParseNumber(Precise.StringAbs(contractsString))
+	// size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+	// size_currency is in the base currency, futures only
+	// contractSize is in USD for inverse futures and in the base currency otherwise
+	var size *string = this.SafeString(position, "size")
+	var amount *string = size // `contract_size` converts between `amount` and `contracts`
+	var notional *string = nil
+	if *this.SafeBool(marketResolved, "option", false) {
+		// For options, "size" is the base currency (e.g. BTC) instead of quote currency
+		notional = Precise.StringMul(size, this.SafeString(position, "mark_price"))
+	} else if *this.SafeBool(marketResolved, "linear", false) {
+		amount = this.SafeString(position, "size_currency") // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+		notional = size
+	} else {
+		// Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+		notional = this.SafeString(position, "size_currency")
 	}
+	var contractsString *string = Precise.StringDiv(amount, this.SafeString(marketResolved, "contractSize"))
 	return this.SafePosition(map[string]any{
 		"info":                        position,
 		"id":                          nil,
@@ -2374,7 +2377,7 @@ func (this *Coinbaseinternational) ParsePosition(position any, optionalArgs ...a
 		"collateral":                  nil,
 		"unrealizedPnl":               this.SafeNumber(position, "floating_profit_loss"),
 		"side":                        side,
-		"contracts":                   contracts,
+		"contracts":                   this.ParseNumber(Precise.StringAbs(contractsString)),
 		"contractSize":                this.SafeNumber(marketResolved, "contractSize"),
 		"timestamp":                   nil,
 		"datetime":                    nil,
@@ -2658,11 +2661,11 @@ func (this *Coinbaseinternational) fetchWithdrawalsBody(ch chan AsyncResult[[]Tr
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes203615 []any = TransactionsToList(r1.Value)
-	if retRes203615 == nil {
+	var retRes203915 []any = TransactionsToList(r1.Value)
+	if retRes203915 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203615)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes203915)}
 	}
 	return nil
 }
@@ -2713,11 +2716,11 @@ func (this *Coinbaseinternational) fetchDepositsBody(ch chan AsyncResult[[]Trans
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
-	var retRes205915 []any = TransactionsToList(r1.Value)
-	if retRes205915 == nil {
+	var retRes206215 []any = TransactionsToList(r1.Value)
+	if retRes206215 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes205915)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes206215)}
 	}
 	return nil
 }

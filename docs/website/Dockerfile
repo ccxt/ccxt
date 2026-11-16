@@ -18,7 +18,10 @@ ENV NEXT_SERVER_ACTIONS_ENCRYPTION_KEY=$NEXT_SERVER_ACTIONS_ENCRYPTION_KEY
 ENV NEXT_PUBLIC_SITE_URL=https://docs.ccxt.com \
     NEXT_PUBLIC_AI_ENABLED=true \
     NODE_OPTIONS=--max-old-space-size=4096
-RUN npm run build
+# Drop the copy of public/ that output tracing puts into the standalone bundle (a dynamic
+# readFile path makes Turbopack trace the whole project). The runner stage copies public/
+# on its own below, so keeping both would ship every pre-rendered OG card (public/og) twice.
+RUN npm run build && rm -rf .next/standalone/public
 
 FROM node:24-slim AS runner
 WORKDIR /app
@@ -31,7 +34,8 @@ ENV NODE_ENV=production \
 # standalone bundle (flat, thanks to outputFileTracingRoot) + static assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
-# public/ holds the CCXT logo assets used by the homepage hero
+# public/ holds the CCXT logo assets used by the homepage hero, plus the OG cards that
+# `npm run build` renders into public/og (served as static files, with Content-Length)
 COPY --from=builder /app/public ./public
 EXPOSE 3005
 CMD ["node", "server.js"]

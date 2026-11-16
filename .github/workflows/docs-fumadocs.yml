@@ -166,7 +166,7 @@ jobs:
           # hero renders.
           # Root build (no /v2): the app serves at /. nginx proxies `location / -> :3005`.
           smoke() {
-            local port="$1" html n
+            local port="$1" html n hdr og
             for i in $(seq 1 30); do curl -fsS -o /dev/null "http://127.0.0.1:${port}/docs/install" 2>/dev/null && break; sleep 2; done
             html=$(curl -fsS --max-time 25 "http://127.0.0.1:${port}/docs/exchanges/binance") || { echo "smoke: binance not 200"; return 1; }
             echo "$html" | grep -q "fetchTicker" || { echo "smoke: binance content missing"; return 1; }
@@ -174,6 +174,12 @@ jobs:
             [ "$n" -le 1 ] || { echo "smoke: content-overlap regression (grid-area:main x$n)"; return 1; }
             echo "$html" | grep -qi "couldn.t load" && { echo "smoke: error boundary rendered"; return 1; }
             curl -fsS --max-time 25 "http://127.0.0.1:${port}/" | grep -q "Connect to any exchange" || { echo "smoke: homepage hero missing"; return 1; }
+            # og:image must carry a Content-Length (Telegram won't fetch a chunked one). The
+            # cards are static files in public/og; Next strips the header from route handlers.
+            # (headers captured first so a non-2xx fails: -D - still prints an error page's headers)
+            for og in og/home.png og/docs/exchanges/binance/image.png; do
+              hdr=$(curl -fsS --max-time 25 -D - -o /dev/null "http://127.0.0.1:${port}/${og}") && echo "$hdr" | grep -qi '^content-length:' || { echo "smoke: /${og} missing or has no Content-Length"; return 1; }
+            done
             echo "smoke: OK (grid-area:main x$n)"
           }
 

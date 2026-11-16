@@ -1,9 +1,9 @@
 <?php
 
-$root = dirname(dirname(dirname(dirname(__FILE__))));
+$root = dirname(dirname(dirname(__FILE__)));
 include $root . '/ccxt.php';
 
-$id = 'aax';
+$id = 'binance';
 $exchange_class = '\\ccxt\\pro\\' . $id;
 $exchange = new $exchange_class(array(
     'enableRateLimit' => true,

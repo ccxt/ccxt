@@ -312,6 +312,15 @@ public partial class BaseExchange
         RSACryptoServiceProvider rsa = DecodeRSAPrivateKey(der);
         if (rsa == null)
         {
+            // "BEGIN PRIVATE KEY" (PKCS#8, the openssl 3 default) wraps the PKCS#1 key in an OCTET STRING
+            var pkcs1 = UnwrapPkcs8RsaPrivateKey(der);
+            if (pkcs1 != null)
+            {
+                rsa = DecodeRSAPrivateKey(pkcs1);
+            }
+        }
+        if (rsa == null)
+        {
             throw new ArgumentException(this.id + " decryptPrivateKey() could not read an RSA private key from the PEM");
         }
         var cipherText = Convert.FromBase64String(encryptionSecret as string);
@@ -522,6 +531,77 @@ public partial class BaseExchange
         var result = ~arrayOfBytes.Aggregate(0xFFFFFFFF, (checksumRegister, currentByte) =>
                       (m_checksumTable[(checksumRegister & 0xFF) ^ Convert.ToByte(currentByte)] ^ (checksumRegister >> 8)));
         return (!signed) ? Convert.ToInt64(result) : Convert.ToInt64((int)result);
+    }
+
+    // reads the length of a DER element at pos (after its tag), advances pos, returns -1 when malformed
+    private static int ReadDerLength(byte[] der, ref int pos)
+    {
+        if (pos >= der.Length)
+        {
+            return -1;
+        }
+        int first = der[pos++];
+        if (first < 0x80)
+        {
+            return first;
+        }
+        int count = first & 0x7F;
+        if (count == 0 || count > 4 || pos + count > der.Length)
+        {
+            return -1;
+        }
+        int length = 0;
+        for (int i = 0; i < count; i++)
+        {
+            length = (length << 8) | der[pos++];
+        }
+        return length;
+    }
+
+    // PKCS#8 PrivateKeyInfo: SEQUENCE { INTEGER version, SEQUENCE algorithm, OCTET STRING privateKey (PKCS#1) }
+    // returns the inner PKCS#1 key, or null when the DER is not a PKCS#8 key
+    private static byte[] UnwrapPkcs8RsaPrivateKey(byte[] der)
+    {
+        int pos = 0;
+        if (der == null || der.Length < 2 || der[pos++] != 0x30 || ReadDerLength(der, ref pos) < 0)
+        {
+            return null;
+        }
+        // version
+        if (pos >= der.Length || der[pos++] != 0x02)
+        {
+            return null;
+        }
+        int versionLength = ReadDerLength(der, ref pos);
+        if (versionLength < 0)
+        {
+            return null;
+        }
+        pos += versionLength;
+        // algorithm identifier
+        if (pos >= der.Length || der[pos++] != 0x30)
+        {
+            return null;
+        }
+        int algorithmLength = ReadDerLength(der, ref pos);
+        if (algorithmLength < 0)
+        {
+            return null;
+        }
+        pos += algorithmLength;
+        // private key
+        if (pos >= der.Length || der[pos++] != 0x04)
+        {
+            return null;
+        }
+        int keyLength = ReadDerLength(der, ref pos);
+        if (keyLength < 0 || pos + keyLength > der.Length)
+        {
+            return null;
+        }
+        var key = new byte[keyLength];
+        Array.Copy(der, pos, key, 0, keyLength);
+        return key;
     }
 
     private static RSACryptoServiceProvider DecodeRSAPrivateKey(byte[] privkey)

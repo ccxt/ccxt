@@ -13,7 +13,7 @@ Useful for reaching back more than 100 myTrades, the same works
 for fetchClosedOrders
 '''
 
-exchange = ccxt.coinbasepro({
+exchange = ccxt.coinbaseexchange({
     "apiKey": "123456",
     "secret": "/abcdefghijklmnop/w==",
     "password": "987654321",

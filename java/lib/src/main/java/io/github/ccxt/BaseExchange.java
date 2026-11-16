@@ -919,18 +919,24 @@ public class BaseExchange {
     }
 
     // ------------------------------------------------------------------------
-    // file io (whitelisted extensions only, same as the other ports)
+    // file io (read-only in java, same whitelist as the other ports):
+    // .ccxtfile (cache files) only inside the temp dir, .pem (user-supplied keys, e.g. the ibkr oauth keys) from any location
 
-    private static final String[] ALLOWED_FILE_EXTENSIONS = new String[] { ".ccxtfile", ".pem" };
+    public String getTempDir() {
+        String tmp = java.nio.file.Paths.get(System.getProperty("java.io.tmpdir")).toAbsolutePath().normalize().toString();
+        return tmp.endsWith(java.io.File.separator) ? tmp : tmp + java.io.File.separator;
+    }
 
     public String ensureWhitelistedFile(Object filePath) {
         String resolved = java.nio.file.Paths.get((String) filePath).toAbsolutePath().normalize().toString();
-        for (String ext : ALLOWED_FILE_EXTENSIONS) {
-            if (resolved.endsWith(ext)) {
+        if (resolved.endsWith(".ccxtfile")) {
+            if (resolved.startsWith(this.getTempDir())) {
                 return resolved;
             }
+        } else if (resolved.endsWith(".pem")) {
+            return resolved;
         }
-        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed extensions are: " + String.join(", ", ALLOWED_FILE_EXTENSIONS));
+        throw new IllegalArgumentException("invalid file path: " + filePath + ", allowed are .ccxtfile (inside the temp dir) and read-only .pem");
     }
 
     // file io is synchronous in java, nothing to load before the first readFile call
@@ -1651,10 +1657,8 @@ public class BaseExchange {
     public String readDhParam(Object path) {
         String pem;
         try {
-            pem = java.nio.file.Files.readString(java.nio.file.Path.of(String.valueOf(path)), StandardCharsets.UTF_8);
-        } catch (java.io.IOException e) {
-        //     pem = this.readFile(path); // goes through the file whitelist like every other port
-        // } catch (IllegalArgumentException e) {
+            pem = this.readFile(String.valueOf(path)); // goes through the file whitelist
+        } catch (IllegalArgumentException e) {
             throw new ExchangeError(this.id + " readDhParam() could not read the DH_param file: " + path);
         }
         byte[] der = java.util.Base64.getDecoder().decode(pem.replaceAll("-----[^-]+-----|\\s", ""));

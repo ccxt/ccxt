@@ -1125,9 +1125,6 @@
                 "cost": "same",
                 "amount": "sometimes not present, only cost present sometimes",
                 "sideSequence": "second-precision timestamps served newest-first, intra-second order is not execution order"
-            },
-            "fetchTickers": {
-                "checkActiveSymbols": "todo"
             }
         }
     },
@@ -1726,9 +1723,6 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "asset/currencies lists deposit coins only, inverse USD quotes and tokenized stocks are missing"
-            },
-            "fetchOHLCV": {
-                "compareTimestampToLimit": "todo"
             }
         }
     },
@@ -1755,10 +1749,6 @@
             }
         }
     },
-    "interactivebrokers": {
-        "skip": "loadMarkets requires an authenticated session: a logged-in local client portal gateway (options.useGateway) or oauth 1.0a credentials with the PEM keys, neither is available in ci",
-        "skipWs": "the websocket requires the same authenticated session as the REST API (local client portal gateway or oauth 1.0a), not available in ci"
-    },
     "independentreserve": {
         "skipWs": "timeouts",
         "skipMethods": {
@@ -1778,6 +1768,10 @@
                 "compareToZero": "https://app.travis-ci.com/github/ccxt/ccxt/builds/263629640#L2165"
             }
         }
+    },
+    "interactivebrokers": {
+        "skip": "all methods private",
+        "skipWs": "all methods private"
     },
     "kalshi": {
         "until": "2026-12-31",
