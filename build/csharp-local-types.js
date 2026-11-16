@@ -10694,7 +10694,7 @@ export function csharpLocalDeclaration (csharp, declaration, context) {
     }
     classifyInProgress.add (declaration);
     try {
-        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context);
+        return csharpLocalTypeOf (csharp, declaration, context) ?? integerLiteralArithmeticLocal (csharp, declaration, context) ?? int64CounterLocal (csharp, declaration, context) ?? omitParamsLocal (csharp, declaration, context) ?? nullSeedParamsSlotLocal (csharp, declaration, context);
     } finally {
         classifyInProgress.delete (declaration);
     }
@@ -11694,6 +11694,9 @@ export function recordDestructuredWriteType (scope, printedName, csharpType, isU
 
 // is `[ ..., x, ... ] = this.helper (...)` a write the cast makes type-correct?
 function destructuredWriteIsCastable (csharp, scope, index, declaration, idNode, assignment, csharpType, context) {
+    if (csharpType === NULL_SEED_PARAMS_SLOT_TYPE && nullSeedParamsSlotWrite (csharp, index, declaration, idNode, assignment)) {
+        return true; // 77c4 (see nullSeedParamsSlotLocal)
+    }
     // `[ x, params ] = await this.helper (...)` prints the same element reads (`var tmp = await ...;
     // x = tmp[0];`), so the awaited pair is the same tuple the proof below names (e.g. handleUTAAndParams);
     // only handleAccountIndex / handleApiKeyIndex among the proven helpers are async.
@@ -16045,6 +16048,9 @@ function csharpArgumentType (csharp, argument, expected) {
                 const own = csharpParameterDecision (csharp, declaration, expected);
                 return (own === undefined) ? 'object' : own;
             }
+            if (nullSeedParamsSlotShape (declaration)) {
+                return 'object'; // 77c4: typing these locals must not retype a called signature (lane 77c1)
+            }
             const reference = referenceDeclaredType (csharp, declaration);
             if (reference !== undefined) {
                 return reference;
@@ -18698,3 +18704,209 @@ function registerListProducerReturnTypes () {
     }
 }
 registerListProducerReturnTypes ();
+
+// ===== 77c4: null-seeded params slot (`let p = undefined; [ v, p ] = this.handleXAndParams (…)`) =====
+// The local's only non-null writes are element 1 of the base params-tuple helpers (the same
+// CSHARP_ELEMENT_1_PARAMS / tupleDictSlotCall proof the `const [ v, p ]` family uses: the slot is
+// the caller's params, its omit or an extend — a dict box), self omits (`p = this.omit (p, k)`,
+// a fresh Dictionary) and null writes. The declaration then names IDictionary<string, object>
+// and each element read is cast back to it (installDestructuredCasts), exactly the box the
+// object local held; every other read and write still passes csharpLocalIsSafeToRetype.
+const NULL_SEED_PARAMS_SLOT_TYPE = 'IDictionary<string, object>';
+
+function nullSeedElement1Call (csharp, declaration, call) {
+    if (call?.kind !== ts.SyntaxKind.CallExpression || call.questionDotToken !== undefined || typeof csharp.getChecker !== 'function') {
+        return false;
+    }
+    const name = destructuredHandleCallName (call);
+    if (name !== undefined && CSHARP_ELEMENT_1_PARAMS.has (name)) {
+        try {
+            const checker = csharp.getChecker ();
+            const signature = checker.getResolvedSignature (call)?.declaration?.resolve ();
+            const argument = call.arguments?.[0];
+            // a self read passes the running IDictionary box (or null) straight through
+            if (argument !== undefined && !isSelfRead (csharp, argument, declaration)) {
+                const argType = checker.getTypeAtLocation (argument);
+                if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+                    return false;
+                }
+                const argDeclaration = checker.getSymbolAtLocation (argument)?.valueDeclaration?.resolve ();
+                if (argDeclaration?.kind === ts.SyntaxKind.BindingElement && argDeclaration.parent?.elements?.indexOf (argDeclaration) === 1
+                        && destructuredHandleCallName (argDeclaration.parent.parent?.initializer) !== undefined
+                        && !element1ParamsBinding (csharp, argDeclaration)) {
+                    return false;
+                }
+            }
+            if (CSHARP_ELEMENT_1_BASE_FILE.test (signature?.getSourceFile?.()?.fileName ?? '')) {
+                return true;
+            }
+        } catch (e) {
+            return false;
+        }
+    }
+    return tupleDictSlotCall (csharp, call);
+}
+
+// `[ v, p ] = await this.<venue helper> (…)`: every ts/src declaration of the name is an async
+// method declaring `Promise<[T, Dict]>` whose every return proves slot 1 a dict built from its own
+// params (tupleDictExpression / tupleDictCallSlot, the sync family's own proof); the params it can
+// hand back are bound at this site to a statically Dict argument, a self read or their `{}` default.
+// The awaited C# value is that very tuple (callAsync), so element 1 is the same dict box.
+const nullSeedAsyncSlotProofs = new Map ();
+
+function nullSeedAsyncSlot (method) {
+    if (nullSeedAsyncSlotProofs.has (method)) {
+        return nullSeedAsyncSlotProofs.get (method);
+    }
+    nullSeedAsyncSlotProofs.set (method, undefined);
+    const type = method.type;
+    const tuple = (type?.kind === ts.SyntaxKind.TypeReference && type.typeName?.text === 'Promise') ? type.typeArguments?.[0] : undefined;
+    const slot = (tuple?.kind === ts.SyntaxKind.TupleType && tuple.elements?.length === 2) ? tuple.elements[1] : undefined;
+    let result;
+    if (tupleDictIsAsync (method) && method.body !== undefined && slot?.kind === ts.SyntaxKind.TypeReference && slot.typeName?.text === 'Dict') {
+        const sets = [];
+        const visit = (node) => {
+            if (node !== method && isFunctionScope (node)) {
+                return;
+            }
+            if (node.kind === ts.SyntaxKind.ReturnStatement) {
+                const value = unwrapPassthroughExpression (node.expression);
+                sets.push ((value?.kind === ts.SyntaxKind.ArrayLiteralExpression && value.elements.length === 2 && value.elements[1].kind !== ts.SyntaxKind.SpreadElement)
+                    ? tupleDictExpression (method, value.elements[1], new Set ()) : undefined);
+                return;
+            }
+            node.forEachChild (visit);
+        };
+        method.body.forEachChild (visit);
+        result = (sets.length === 0) ? undefined : tupleDictUnion (sets);
+    }
+    nullSeedAsyncSlotProofs.set (method, result);
+    return result;
+}
+
+function nullSeedAwaitedSlotCall (csharp, declaration, call) {
+    const callee = (call?.kind === ts.SyntaxKind.CallExpression) ? call.expression : undefined;
+    if (callee?.kind !== ts.SyntaxKind.PropertyAccessExpression || callee.expression?.kind !== ts.SyntaxKind.ThisKeyword
+            || call.questionDotToken !== undefined || typeof csharp.getChecker !== 'function'
+            || (call.arguments ?? []).some ((a) => a.kind === ts.SyntaxKind.SpreadElement)) {
+        return false;
+    }
+    const declarations = tupleDictDeclarations (callee.name?.text ?? '');
+    if (declarations === undefined) {
+        return false;
+    }
+    try {
+        const checker = csharp.getChecker ();
+        const resolved = checker.getResolvedSignature (call)?.declaration?.resolve ();
+        const file = (resolved?.getSourceFile?.()?.fileName ?? '').replace (/\\/g, '/');
+        if (resolved?.name?.text !== callee.name.text || !file.includes ('ts/src/') || file.includes ('ts/src/test/')) {
+            return false;
+        }
+        for (const method of declarations) {
+            const passed = nullSeedAsyncSlot (method);
+            if (passed === undefined) {
+                return false;
+            }
+            for (const index of passed) {
+                const argument = call.arguments?.[index];
+                if (argument === undefined) {
+                    if (unwrapPassthroughExpression (method.parameters[index]?.initializer)?.kind !== ts.SyntaxKind.ObjectLiteralExpression) {
+                        return false;
+                    }
+                    continue;
+                }
+                if (isSelfRead (csharp, argument, declaration)) {
+                    continue;
+                }
+                const argType = checker.getTypeAtLocation (argument);
+                if (argType === undefined || (argType.flags & (ts.TypeFlags.Any | ts.TypeFlags.NonPrimitive | ts.TypeFlags.Unknown)) !== 0) {
+                    return false;
+                }
+                const argDeclaration = checker.getSymbolAtLocation (argument)?.valueDeclaration?.resolve ();
+                if (argDeclaration?.kind === ts.SyntaxKind.BindingElement && argDeclaration.parent?.elements?.indexOf (argDeclaration) === 1
+                        && argDeclaration.parent.parent?.initializer !== undefined && !element1ParamsBinding (csharp, argDeclaration)) {
+                    return false;
+                }
+            }
+        }
+    } catch (e) {
+        return false;
+    }
+    return true;
+}
+
+// is `[ …, p ] = <call>` (p in slot 1 of a two-slot pattern) an audited element-1 write of p?
+function nullSeedParamsSlotWrite (csharp, index, declaration, idNode, assignment) {
+    const pattern = idNode?.parent;
+    if (pattern?.kind !== ts.SyntaxKind.ArrayLiteralExpression || pattern.elements.length !== 2 || pattern.elements[1] !== idNode
+            || !isNullInit (declaration) || declaration.type !== undefined) {
+        return false;
+    }
+    const right = stripParens (assignment?.right);
+    const awaited = (right?.kind === ts.SyntaxKind.AwaitExpression) ? stripParens (right.expression) : undefined;
+    if (right === undefined || !((awaited === undefined) ? nullSeedElement1Call (csharp, declaration, right) : nullSeedAwaitedSlotCall (csharp, declaration, awaited))) {
+        return false;
+    }
+    if (enclosingFunction (idNode) !== enclosingFunction (declaration) || assignment.getStart () <= declaration.getStart ()) {
+        return false;
+    }
+    return (index.bindingCounts.get (csharp.printNode (idNode, 0)) ?? 0) === 1;
+}
+
+// the declaration shape the family starts from (no proof): used to keep the called-parameter proof off it
+// (a slot-1 destructuring write: before this family no such local could be typed, so the guard
+// keeps every called-parameter proof exactly where it was)
+function nullSeedParamsSlotShape (declaration) {
+    if (!(declaration?.kind === ts.SyntaxKind.VariableDeclaration && declaration.name?.kind === ts.SyntaxKind.Identifier
+            && isNullInit (declaration) && declaration.type === undefined && isBlockScopedDeclaration (declaration))) {
+        return false;
+    }
+    const name = declaration.name.text;
+    let found = false;
+    const visit = (node) => {
+        if (found) {
+            return;
+        }
+        if (node.kind === ts.SyntaxKind.ArrayLiteralExpression && node.elements.length === 2 && node.elements[1].kind === ts.SyntaxKind.Identifier
+                && node.elements[1].text === name && node.parent?.kind === ts.SyntaxKind.BinaryExpression && node.parent.left === node) {
+            found = true;
+            return;
+        }
+        node.forEachChild (visit);
+    };
+    enclosingFunction (declaration)?.forEachChild (visit);
+    return found;
+}
+
+function nullSeedParamsSlotLocal (csharp, declaration, context) {
+    if (declaration.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || !isNullInit (declaration) || declaration.type !== undefined) {
+        return undefined;
+    }
+    const scope = context?.scope ?? ((typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration));
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    const name = declaration.name.text;
+    let slotWrites = 0;
+    for (const n of (index.identifiers.get (name) ?? [])) {
+        if (n === declaration.name || isNotAUse (n) || useRefersToDeclaration (csharp, scope, declaration, n) === false) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent?.kind === ts.SyntaxKind.ArrayLiteralExpression && parent.parent?.kind === ts.SyntaxKind.BinaryExpression
+                && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            if (!nullSeedParamsSlotWrite (csharp, index, declaration, n, parent.parent)) {
+                return undefined;
+            }
+            slotWrites++;
+        }
+    }
+    if (slotWrites === 0) {
+        return undefined;
+    }
+    const ctx = context ?? { scope, stack: new Set (), depth: 0 };
+    return csharpLocalIsSafeToRetype (csharp, scope, declaration, name, NULL_SEED_PARAMS_SLOT_TYPE, ctx) ? { type: NULL_SEED_PARAMS_SLOT_TYPE } : undefined;
+}
+

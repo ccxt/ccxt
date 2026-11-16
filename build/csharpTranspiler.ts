@@ -8650,7 +8650,7 @@ class NewTranspiler {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12624,5 +12624,36 @@ export function tupleSlotReadSnippetChecks (): string[] {
     check ('slot 1 keeps helper', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);', '        object t = getValue(this.handleMarketTypeAndParams("f", null, p), 1);');
     check ('other producer keeps helper', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);', '        object t = getValue(this.handleTriggerPricesAndParams(s, p), 0);');
     if (csharpTupleSlotRead (false, wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) !== wrap ('        object t = getValue(this.handleOptionAndParams(p, "f", "o"), 0);')) problems.push ('tuple-slot: fired in a non-final pass');
+    return problems;
+}
+
+// 77c4 (run from the --self-test path): a null-seeded local whose writes are all element 1 of the
+// params-tuple helpers (base handle*AndParams, the awaited bitget handleUTAAndParams) and self omits
+// is declared IDictionary<string, object>; every slot read takes the exact cast back
+export function nullSeedParamsSlotChecks (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const method = (file: string, name: string) => {
+        const out: string = (transpiler as any).transpileCSharpByPath (file).content;
+        const start = out.indexOf (' ' + name + '(');
+        return (start < 0) ? '' : out.slice (start, out.indexOf ('\n    }\n', start));
+    };
+    const expect = (label: string, body: string, wanted: string[]) => {
+        for (const w of wanted) {
+            if (!body.includes (w)) problems.push (`null-seed params slot: ${label}: missing ${w}`);
+        }
+    };
+    expect ('binance fetchOrder (base element 1)', method ('./ts/src/binance.ts', 'fetchOrder'), [
+        'IDictionary<string, object> paramsStock = null;',
+        'paramsStock = (IDictionary<string, object>)stockparamsStockVariable[1];',
+        'paramsStock = (IDictionary<string, object>)typeparamsStockVariable[1];',
+        'paramsStock = this.omit(paramsStock, ',
+    ]);
+    expect ('bitget fetchMarketLeverageTiers (awaited venue tuple)', method ('./ts/src/bitget.ts', 'fetchMarketLeverageTiers'), [
+        'IDictionary<string, object> paramsMarginMode = null;',
+        'paramsMarginMode = (IDictionary<string, object>)((IList<object>)utaparamsMarginModeVariable)[1];',
+    ]);
     return problems;
 }
