@@ -9412,12 +9412,18 @@ export function csharpNativeEmissionSelfTest (): string[] {
         check ('77c2 omit ternary on a written params keeps object',
             omitHost + ' fetchLedger (code: string = undefined, params = {}) { params = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : params; return p; }',
             'object p = ');
+        // stack-77c: with 77c1 (fetchLedger's params bag is IDictionary) and 77c5 (copies/extend of a typed bag)
+        // `q` is a proven Dictionary, so this arm pair is now typed; the untyped-other-local guard is the next case.
         check ('77c2 omit ternary over another local keeps object',
             omitHost + ' fetchLedger (code: string = undefined, params = {}) { const q = this.extend (params, {}); const p = (code !== undefined) ? this.omit (params, "x") : q; return p; }',
+            'Dictionary<string, object> q = this.extend(parameters, ');
+        check ('77c2 omit ternary over an untyped local keeps object (stack-77c)',
+            omitHost + ' fetchLedger (code: string = undefined, params = {}) { const q = code; const p = (code !== undefined) ? this.omit (params, "x") : q; return p; }',
             'object p = ');
+        // stack-77c: 77c5's core-parameter copy rule answers first with the core `string` type of `symbol`
         check ('77c2 c ? "lit" : <string parameter> -> string?',
             'async fetchTicker (symbol: string, params = {}) { const s = (symbol === undefined) ? "BTC/USDT" : symbol; return s; }',
-            'string? s = ((symbol == null)) ? "BTC/USDT" : symbol;');
+            'string s = ((symbol == null)) ? "BTC/USDT" : symbol;', 'object s = ');
         check ('77c2 c ? this.omit (<Dictionary local>, k) : <same local> -> Dictionary',
             omitHost + ' f (o) { const d = this.extend (o, {}); const p = (o !== undefined) ? this.omit (d, "x") : d; return p; }',
             'Dictionary<string, object> p = ((o != null)) ? this.omit(d, "x") : d;');
