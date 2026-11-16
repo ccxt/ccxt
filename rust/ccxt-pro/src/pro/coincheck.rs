@@ -325,9 +325,9 @@ impl Coincheck {
         //
         let mut symbol: String = self.symbol(self.safe_string(trade.clone(), Value::Int(2), &[]));
         let mut timestamp: Option<i64> = self.safe_timestamp(trade.clone(), Value::Int(0), &[]).as_i64();
-        let mut side: Option<String> = self.safe_string(trade.clone(), Value::Int(5), &[]).as_str().map(str::to_owned);
-        let mut priceString: Option<String> = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut amountString: Option<String> = self.safe_string(trade.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(5), &[]);
+        let mut priceString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
+        let mut amountString: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(4), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string(trade.clone(), Value::Int(1), &[]));

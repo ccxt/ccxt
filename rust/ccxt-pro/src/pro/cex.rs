@@ -356,7 +356,7 @@ impl Cex {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut currentSymbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut currentSymbol: Option<String> = self.safe_string_k_opt(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), "symbol", &[]);
         if (currentSymbol.is_some()) && (currentSymbol.as_deref() != Some(symbol.as_str().unwrap_or_default().to_string().as_str())) {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " : this exchange only supports watching trades for one symbol per instance. You should either set .options[\"watchTrades\"][\"symbol\"] to new symbol, or create a new instance")));
         }
@@ -430,11 +430,11 @@ impl Cex {
         if !(matches!(&trade, Value::Arr(_))) {
             tradeParts = split(&trade, &Value::Str(":".into()));
         }
-        let mut side: Option<String> = self.safe_string(tradeParts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_opt(tradeParts.clone(), Value::Int(0), &[]);
         let mut timestamp: Option<i64> = self.safe_integer(tradeParts.clone(), Value::Int(1), &[]).as_i64();
-        let mut amount: Option<String> = self.safe_string(tradeParts.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
-        let mut price: Option<String> = self.safe_string(tradeParts.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
-        let mut id: Option<String> = self.safe_string(tradeParts.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.safe_string_opt(tradeParts.clone(), Value::Int(2), &[]);
+        let mut price: Option<String> = self.safe_string_opt(tradeParts.clone(), Value::Int(3), &[]);
+        let mut id: Option<String> = self.safe_string_opt(tradeParts.clone(), Value::Int(4), &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), tradeParts);
@@ -473,7 +473,7 @@ impl Cex {
         let message = message.as_map().unwrap_or(&__message_empty);
         // elements are 'side:ts:amount:price:id' strings (history) or lists (history-update), never dicts
         let mut data: crate::value::List = message.get("data").cloned().unwrap_or_default().into_list();
-        let mut symbol: Option<String> = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), Value::Str("symbol".into()), &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k_opt(self.options.as_map().and_then(|__m| __m.get("watchTrades")).cloned().unwrap_or(Value::Null), "symbol", &[]);
         if (symbol.is_none()) {
             return;
         }
@@ -526,7 +526,7 @@ impl Cex {
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut url: String = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "ticker:", symbolValue);
-        let mut method: Option<String> = self.safe_string_k(params.clone(), "method", &[Value::Str("private".into())]).as_str().map(str::to_owned); // default to private because the specified ticker is received quicker
+        let mut method: Option<String> = self.safe_string_k_opt(params.clone(), "method", &[Value::Str("private".into())]); // default to private because the specified ticker is received quicker
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("e".to_string(), Value::Str("subscribe".into()));
@@ -585,7 +585,7 @@ impl Cex {
         });
         let mut request: crate::value::Dict = self.deep_extend(Value::Map(message), &[params.clone()]).into_dict();
         let mut ticker: Value = self.watch(url.as_str(), &messageHash[..], &request, &messageHash[..], Value::Null).await;
-        let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
         if (symbolsNormalized != Value::Null) && !self.in_array(&tickerSymbol, symbolsNormalized.clone()) {
             return crate::types::IntoRaw::into_raw(Box::pin(self.watch_tickers(symbolsNormalized.to_opt_str_vec(), params)).await);
         }
@@ -699,13 +699,13 @@ impl Cex {
         //        "pair": ["BTC", "USDT"]
         //    }
         let mut pair: crate::value::List = self.safe_list_k(ticker.clone(), "pair", &[Value::from(vec![])]).into_list();
-        let mut baseId: Option<String> = self.safe_string_k(ticker.clone(), "symbol1", &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol1", &[]);
         if (baseId.is_none()) {
-            baseId = self.safe_string(&pair, Value::Int(0), &[]).as_str().map(str::to_owned);
+            baseId = self.safe_string_opt(&pair, Value::Int(0), &[]);
         }
-        let mut quoteId: Option<String> = self.safe_string_k(ticker.clone(), "symbol2", &[]).as_str().map(str::to_owned);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol2", &[]);
         if (quoteId.is_none()) {
-            quoteId = self.safe_string(&pair, Value::Int(1), &[]).as_str().map(str::to_owned);
+            quoteId = self.safe_string_opt(&pair, Value::Int(1), &[]);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
@@ -892,7 +892,7 @@ impl Cex {
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &message { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut symbol2: Option<String> = self.safe_string_k(&data, "symbol2", &[]).as_str().map(str::to_owned);
+        let mut symbol2: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
         if (symbol2.is_none()) {
             return;
         }
@@ -983,11 +983,11 @@ impl Cex {
         //     }
         // Note symbol and symbol2 are inverse on sell and amount is in symbol currency.
         //
-        let mut side: Option<String> = self.safe_string_k(trade.clone(), "type", &[]).as_str().map(str::to_owned);
-        let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut datetime: Option<String> = self.safe_string_k(trade.clone(), "time", &[]).as_str().map(str::to_owned);
-        let mut baseId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_k(trade.clone(), "symbol2", &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "type", &[]);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut datetime: Option<String> = self.safe_string_k_opt(trade.clone(), "time", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol2", &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         let mut symbol: Option<String> = None;
@@ -997,7 +997,7 @@ impl Cex {
                 symbol = Some(format!("{}{}", Value::Str(format!("{}{}", quote.as_deref().unwrap_or("null"), "/").into()), base.as_deref().unwrap_or("null")));
             }
         }
-        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         if (side.as_deref() == Some("sell")) {
             amount = crate::precise::Precise::stringDiv(&amount, &price).as_str().map(str::to_owned); // due to rounding errors amount in not exact to trade
         }
@@ -1018,7 +1018,7 @@ impl Cex {
                 m.insert("fee".to_string(), Value::Null);
             m
         });
-        let mut fee: Option<String> = self.safe_string_k(trade, "fee_amount", &[]).as_str().map(str::to_owned);
+        let mut fee: Option<String> = self.safe_string_k_opt(trade, "fee_amount", &[]);
         if (fee.is_some()) {
             parsedTrade.insert("fee".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1106,14 +1106,14 @@ impl Cex {
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut isTransaction: bool = (match message.get("e") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str() == Some("tx");
-        let mut orderId: Option<String> = self.safe_string2(&data, Value::Str("id".into()), Value::Str("order".into()), &[]).as_str().map(str::to_owned);
-        let mut remains: Option<String> = self.safe_string_k(&data, "remains", &[]).as_str().map(str::to_owned);
-        let mut baseId: Option<String> = self.safe_string_k(&data, "symbol", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_k(&data, "symbol2", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string2_opt(&data, Value::Str("id".into()), Value::Str("order".into()), &[]);
+        let mut remains: Option<String> = self.safe_string_k_opt(&data, "remains", &[]);
+        let mut baseId: Option<String> = self.safe_string_k_opt(&data, "symbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(&data, "symbol2", &[]);
         let mut pair: Option<crate::value::Dict> = self.safe_dict_k(&data, "pair", &[]).into_opt_dict();
         if (pair.is_some()) {
-            baseId = self.safe_string_k(&pair, "symbol1", &[]).as_str().map(str::to_owned);
-            quoteId = self.safe_string_k(&pair, "symbol2", &[]).as_str().map(str::to_owned);
+            baseId = self.safe_string_k_opt(&pair, "symbol1", &[]);
+            quoteId = self.safe_string_k_opt(&pair, "symbol2", &[]);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1202,7 +1202,7 @@ impl Cex {
         //       }
         //
         let mut isTransaction: bool = self.safe_string_k(order.clone(), "d", &[]) != Value::Null;
-        let mut remainsPrecision: Option<String> = self.safe_string_k(order.clone(), "remains", &[]).as_str().map(str::to_owned);
+        let mut remainsPrecision: Option<String> = self.safe_string_k_opt(order.clone(), "remains", &[]);
         let mut remaining: Option<String> = None;
         if (remainsPrecision.is_some()) {
             if (market.is_none()) {
@@ -1210,19 +1210,19 @@ impl Cex {
             }
             remaining = self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), remainsPrecision.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut amount: Option<String> = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut amount: Option<String> = self.safe_string_k_opt(order.clone(), "amount", &[]);
         if !isTransaction {
             if (market.is_none()) {
                 return Value::Null;
             }
             self.currency_from_precision(crate::value::KeyRead::key_read(&market, "base"), amount.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
         }
-        let mut baseId: Option<String> = self.safe_string_k(order.clone(), "symbol", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_k(order.clone(), "symbol2", &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
         let mut pair: Option<crate::value::Dict> = self.safe_dict_k(order.clone(), "pair", &[]).into_opt_dict();
         if (pair.is_some()) {
-            baseId = self.safe_string_k(order.clone(), "symbol1", &[]).as_str().map(str::to_owned);
-            quoteId = self.safe_string_k(order.clone(), "symbol2", &[]).as_str().map(str::to_owned);
+            baseId = self.safe_string_k_opt(order.clone(), "symbol1", &[]);
+            quoteId = self.safe_string_k_opt(order.clone(), "symbol2", &[]);
         }
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
@@ -1420,7 +1420,7 @@ impl Cex {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut pair: Option<String> = self.safe_string_k(&data, "pair", &[]).as_str().map(str::to_owned);
+        let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
         let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;
@@ -1456,8 +1456,8 @@ impl Cex {
     pub fn pair_to_symbol(&self, pair: impl Into<crate::Value>) -> Value {
         let mut pair: Value = pair.into();
         let mut parts: Value = split(&pair, &Value::Str(":".into()));
-        let mut baseId: Option<String> = self.safe_string(parts.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_opt(parts.clone(), Value::Int(0), &[]);
+        let mut quoteId: Option<String> = self.safe_string_opt(parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -1609,8 +1609,8 @@ impl Cex {
             return;
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = pair.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut baseId: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
+        let mut quoteId: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut base: Option<String> = self.safe_currency_code(baseId.map(Value::from).unwrap_or(Value::Null), None);
         let mut quote: Option<String> = self.safe_currency_code(quoteId.map(Value::from).unwrap_or(Value::Null), None);
         if (base.is_none()) || (quote.is_none()) {
@@ -1669,7 +1669,7 @@ impl Cex {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut pair: Option<String> = self.safe_string_k(&data, "pair", &[]).as_str().map(str::to_owned);
+        let mut pair: Option<String> = self.safe_string_k_opt(&data, "pair", &[]);
         let mut symbol: Option<String> = self.pair_to_symbol(pair.map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         if (symbol.as_deref() == Some("")) {
             return;

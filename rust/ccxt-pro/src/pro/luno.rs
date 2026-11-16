@@ -231,7 +231,7 @@ impl Luno {
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
             m
         });
-        let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
         }
@@ -337,7 +337,7 @@ impl Luno {
                 m.insert("symbol".to_string(), Value::from(symbolValue.as_str()));
             m
         });
-        let mut wsUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut wsUrl: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         if (wsUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchOrderBook() has no websocket url")));
         }
@@ -535,8 +535,8 @@ impl Luno {
             let mut __for_first_481: bool = true;
             while { if !__for_first_481 { i += 1; } __for_first_481 = false; i < (tradeUpdates.len() as i64) } {
             let mut tradeUpdate: crate::value::Dict = tradeUpdates.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut makerOrderId: Option<String> = self.safe_string_k(&tradeUpdate, "maker_order_id", &[]).as_str().map(str::to_owned);
-            let mut tradedAmount: Option<String> = self.safe_string_k(&tradeUpdate, "base", &[]).as_str().map(str::to_owned);
+            let mut makerOrderId: Option<String> = self.safe_string_k_opt(&tradeUpdate, "maker_order_id", &[]);
+            let mut tradedAmount: Option<String> = self.safe_string_k_opt(&tradeUpdate, "base", &[]);
             if (makerOrderId.is_some()) && (tradedAmount.is_some()) {
                 // the message does not carry the side of the maker order and
                 // order ids are unique across the book, so try the bids first
@@ -551,7 +551,7 @@ impl Luno {
         let mut createUpdate: Option<crate::value::Dict> = self.safe_dict_k(message.clone(), "create_update", &[]).into_opt_dict();
         if (createUpdate.is_some()) {
             let mut bidAskArray: crate::value::List = self.custom_parse_bid_ask(&createUpdate, &[Value::Str("price".into()), Value::Str("volume".into()), Value::Str("order_id".into())]).into_list();
-            let mut type_var: Option<String> = self.safe_string_k(&createUpdate, "type", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k_opt(&createUpdate, "type", &[]);
             if (type_var.as_deref() == Some("ASK")) {
                 asksOrderSide.store_array(Value::from(&bidAskArray));
             }  else if (type_var.as_deref() == Some("BID")) {
@@ -560,7 +560,7 @@ impl Luno {
         }
         let mut deleteUpdate: Option<crate::value::Dict> = self.safe_dict_k(message, "delete_update", &[]).into_opt_dict();
         if (deleteUpdate.is_some()) {
-            let mut orderId: Option<String> = self.safe_string_k(&deleteUpdate, "order_id", &[]).as_str().map(str::to_owned);
+            let mut orderId: Option<String> = self.safe_string_k_opt(&deleteUpdate, "order_id", &[]);
             asksOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.clone().map(Value::from).unwrap_or(Value::Null)]));
             bidsOrderSide.store_array(Value::from(vec![Value::Int(0), Value::Int(0), orderId.map(Value::from).unwrap_or(Value::Null)]));
         }
@@ -583,10 +583,10 @@ impl Luno {
             let mut __for_first_482: bool = true;
             while { if !__for_first_482 { i += 1; } __for_first_482 = false; i < sideLength } {
             let mut order: Value = orderSide.level(&Value::Int(i));
-            let mut entryId: Option<String> = self.safe_string(order.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+            let mut entryId: Option<String> = self.safe_string_opt(order.clone(), Value::Int(2), &[]);
             if ((entryId.as_deref() == orderId.as_str())) {
                 let mut price: Option<f64> = self.safe_number(order.clone(), Value::Int(0), &[]).as_f64();
-                let mut currentAmount: Option<String> = self.safe_string(order, Value::Int(1), &[]).as_str().map(str::to_owned);
+                let mut currentAmount: Option<String> = self.safe_string_opt(order, Value::Int(1), &[]);
                 let mut remainingAmount: Option<String> = crate::precise::Precise::stringSub(&currentAmount, &tradedAmount).as_str().map(str::to_owned);
                 if crate::precise::Precise::stringLe(&remainingAmount, &Value::Str("0".into())).as_bool() == Some(true) {
                     // fully filled, storing a zero amount deletes the order

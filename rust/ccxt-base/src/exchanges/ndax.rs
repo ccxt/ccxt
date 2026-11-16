@@ -102,18 +102,18 @@ impl crate::exchange::DerivedExchange for Ndax {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(ticker.clone(), "TimeStamp", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "InstrumentId", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "InstrumentId", &[]);
         if (marketId.is_none()) {
-            marketId = self.safe_string_k(ticker.clone(), "trading_pairs", &[]).as_str().map(str::to_owned);
+            marketId = self.safe_string_k_opt(ticker.clone(), "trading_pairs", &[]);
         }
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.clone().map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), Some(&marketResolved), &[]).as_str().map(str::to_owned);
-        let mut last: Option<String> = self.safe_string2(ticker.clone(), Value::Str("LastTradedPx".into()), Value::Str("last_price".into()), &[]).as_str().map(str::to_owned);
-        let mut percentage: Option<String> = self.safe_string2(ticker.clone(), Value::Str("Rolling24HrPxChangePercent".into()), Value::Str("price_change_percent_24h".into()), &[]).as_str().map(str::to_owned);
-        let mut change: Option<String> = self.safe_string_k(ticker.clone(), "Rolling24HrPxChange", &[]).as_str().map(str::to_owned);
-        let mut open: Option<String> = self.safe_string_k(ticker.clone(), "SessionOpen", &[]).as_str().map(str::to_owned);
-        let mut baseVolume: Option<String> = self.safe_string2(ticker.clone(), Value::Str("Rolling24HrVolume".into()), Value::Str("base_volume".into()), &[]).as_str().map(str::to_owned);
-        let mut quoteVolume: Option<String> = self.safe_string2(ticker.clone(), Value::Str("Rolling24HrNotional".into()), Value::Str("quote_volume".into()), &[]).as_str().map(str::to_owned);
+        let mut last: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("LastTradedPx".into()), Value::Str("last_price".into()), &[]);
+        let mut percentage: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("Rolling24HrPxChangePercent".into()), Value::Str("price_change_percent_24h".into()), &[]);
+        let mut change: Option<String> = self.safe_string_k_opt(ticker.clone(), "Rolling24HrPxChange", &[]);
+        let mut open: Option<String> = self.safe_string_k_opt(ticker.clone(), "SessionOpen", &[]);
+        let mut baseVolume: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("Rolling24HrVolume".into()), Value::Str("base_volume".into()), &[]);
+        let mut quoteVolume: Option<String> = self.safe_string2_opt(ticker.clone(), Value::Str("Rolling24HrNotional".into()), Value::Str("quote_volume".into()), &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.map(Value::from).unwrap_or(Value::Null));
@@ -266,32 +266,32 @@ impl crate::exchange::DerivedExchange for Ndax {
         });
         let mut type_var: Option<String> = None;
         if (matches!(&trade, Value::Arr(_))) {
-            priceString = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
-            amountString = self.safe_string(trade.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+            priceString = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
+            amountString = self.safe_string_opt(trade.clone(), Value::Int(2), &[]);
             timestamp = self.safe_integer(trade.clone(), Value::Int(6), &[]).as_i64();
-            id = self.safe_string(trade.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-            marketId = self.safe_string(trade.clone(), Value::Int(1), &[]).as_str().map(str::to_owned);
+            id = self.safe_string_opt(trade.clone(), Value::Int(0), &[]);
+            marketId = self.safe_string_opt(trade.clone(), Value::Int(1), &[]);
             let mut takerSide: Option<i64> = self.safe_integer(trade.clone(), Value::Int(8), &[]).as_i64();
             if (takerSide == Some(0)) {
                 side = Some("buy".to_string());
             }  else if (takerSide == Some(1)) {
                 side = Some("sell".to_string());
             }
-            orderId = self.safe_string(trade.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
+            orderId = self.safe_string_opt(trade.clone(), Value::Int(4), &[]);
         }  else {
             timestamp = self.safe_integer2(trade.clone(), Value::Str("TradeTimeMS".into()), Value::Str("ReceiveTime".into()), &[]).as_i64();
-            id = self.safe_string_k(trade.clone(), "TradeId", &[]).as_str().map(str::to_owned);
-            orderId = self.safe_string2(trade.clone(), Value::Str("OrderId".into()), Value::Str("OrigOrderId".into()), &[]).as_str().map(str::to_owned);
-            marketId = self.safe_string2(trade.clone(), Value::Str("InstrumentId".into()), Value::Str("Instrument".into()), &[]).as_str().map(str::to_owned);
-            priceString = self.safe_string_k(trade.clone(), "Price", &[]).as_str().map(str::to_owned);
-            amountString = self.safe_string_k(trade.clone(), "Quantity", &[]).as_str().map(str::to_owned);
-            costString = self.safe_string2(trade.clone(), Value::Str("Value".into()), Value::Str("GrossValueExecuted".into()), &[]).as_str().map(str::to_owned);
-            takerOrMaker = self.safe_string_lower_k(trade.clone(), "MakerTaker", &[]).as_str().map(str::to_owned);
-            side = self.safe_string_lower_k(trade.clone(), "Side", &[]).as_str().map(str::to_owned);
-            type_var = self.safe_string_lower_k(trade.clone(), "OrderType", &[]).as_str().map(str::to_owned);
-            let mut feeCostString: Option<String> = self.safe_string_k(trade.clone(), "Fee", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k_opt(trade.clone(), "TradeId", &[]);
+            orderId = self.safe_string2_opt(trade.clone(), Value::Str("OrderId".into()), Value::Str("OrigOrderId".into()), &[]);
+            marketId = self.safe_string2_opt(trade.clone(), Value::Str("InstrumentId".into()), Value::Str("Instrument".into()), &[]);
+            priceString = self.safe_string_k_opt(trade.clone(), "Price", &[]);
+            amountString = self.safe_string_k_opt(trade.clone(), "Quantity", &[]);
+            costString = self.safe_string2_opt(trade.clone(), Value::Str("Value".into()), Value::Str("GrossValueExecuted".into()), &[]);
+            takerOrMaker = self.safe_string_lower_k_opt(trade.clone(), "MakerTaker", &[]);
+            side = self.safe_string_lower_k_opt(trade.clone(), "Side", &[]);
+            type_var = self.safe_string_lower_k_opt(trade.clone(), "OrderType", &[]);
+            let mut feeCostString: Option<String> = self.safe_string_k_opt(trade.clone(), "Fee", &[]);
             if (feeCostString.is_some()) {
-                let mut feeCurrencyId: Option<String> = self.safe_string_k(trade.clone(), "FeeProductId", &[]).as_str().map(str::to_owned);
+                let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(trade.clone(), "FeeProductId", &[]);
                 let mut feeCurrencyCode: Option<String> = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
                 fee = ({
                     let mut m = indexmap::IndexMap::new();
@@ -392,7 +392,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "ReceiveTime", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(order.clone(), "Instrument", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "Instrument", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), self.safe_string2(order.clone(), Value::Str("ReplacementOrderId".into()), Value::Str("OrderId".into()), &[]));
@@ -423,16 +423,16 @@ impl crate::exchange::DerivedExchange for Ndax {
 }
     fn parse_market(&self, market: impl Into<crate::Value>) -> Value {
         let mut market: Value = market.into();
-        let mut id: Option<String> = self.safe_string_k(market.clone(), "InstrumentId", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(market.clone(), "InstrumentId", &[]);
         // const lowercaseId = this.safeStringLower (market, 'symbol');
-        let mut baseId: Option<String> = self.safe_string_k(market.clone(), "Product1", &[]).as_str().map(str::to_owned);
-        let mut quoteId: Option<String> = self.safe_string_k(market.clone(), "Product2", &[]).as_str().map(str::to_owned);
+        let mut baseId: Option<String> = self.safe_string_k_opt(market.clone(), "Product1", &[]);
+        let mut quoteId: Option<String> = self.safe_string_k_opt(market.clone(), "Product2", &[]);
         let mut base: Option<String> = self.safe_currency_code(self.safe_string_k(market.clone(), "Product1Symbol", &[]), None);
         let mut quote: Option<String> = self.safe_currency_code(self.safe_string_k(market.clone(), "Product2Symbol", &[]), None);
         if (base.is_none()) || (quote.is_none()) {
             return Value::Null;
         }
-        let mut sessionStatus: Option<String> = self.safe_string_k(market.clone(), "SessionStatus", &[]).as_str().map(str::to_owned);
+        let mut sessionStatus: Option<String> = self.safe_string_k_opt(market.clone(), "SessionStatus", &[]);
         let mut isDisable: bool = self.safe_bool_k(market.clone(), "IsDisable", &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut sessionRunning: bool = sessionStatus.as_deref() == Some("Running");
         return self.safe_market_structure(&[Value::Map({
@@ -580,11 +580,11 @@ impl crate::exchange::DerivedExchange for Ndax {
         let mut depositInfoLength: i64 = get_array_length(&depositInfo).as_i64().unwrap_or_default();
         let mut lastString: String = self.safe_string(depositInfo, Value::Int((depositInfoLength - 1)), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut parts: crate::value::List = Value::Array(lastString.split("?memo=").map(Value::from).collect()).into_list();
-        let mut address: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut tag: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
+        let mut tag: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut code: Option<String> = None;
         if (currency.is_some()) {
-            code = self.safe_string_k(&currency, "code", &[]).as_str().map(str::to_owned);
+            code = self.safe_string_k_opt(&currency, "code", &[]);
         }
         self.check_address(&[address.clone().map(Value::from).unwrap_or(Value::Null)]);
         return Value::Map({
@@ -617,10 +617,10 @@ impl crate::exchange::DerivedExchange for Ndax {
         //         "TimeStamp": 1607532331591
         //     }
         //
-        let mut currencyId: Option<String> = self.safe_string_k(item.clone(), "ProductId", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(item.clone(), "ProductId", &[]);
         let mut currencyResolved: crate::types::Currency = self.safe_currency(currencyId.clone().map(Value::from).unwrap_or(Value::Null), currency);
-        let mut credit: Option<String> = self.safe_string_k(item.clone(), "CR", &[]).as_str().map(str::to_owned);
-        let mut debit: Option<String> = self.safe_string_k(item.clone(), "DR", &[]).as_str().map(str::to_owned);
+        let mut credit: Option<String> = self.safe_string_k_opt(item.clone(), "CR", &[]);
+        let mut debit: Option<String> = self.safe_string_k_opt(item.clone(), "DR", &[]);
         let mut amount: Option<String> = None;
         let mut direction: Option<String> = None;
         if crate::precise::Precise::stringLt(&credit, &Value::Str("0".into())).as_bool() == Some(true) {
@@ -631,7 +631,7 @@ impl crate::exchange::DerivedExchange for Ndax {
             direction = Some("out".to_string());
         }
         let mut before: Option<String> = None;
-        let mut after: Option<String> = self.safe_string_k(item.clone(), "Balance", &[]).as_str().map(str::to_owned);
+        let mut after: Option<String> = self.safe_string_k_opt(item.clone(), "Balance", &[]);
         if (direction.as_deref() == Some("out")) {
             before = crate::precise::Precise::stringAdd(&after, &amount.clone().map(Value::from).unwrap_or(Value::Null)).as_str().map(str::to_owned);
         }  else if (direction.as_deref() == Some("in")) {
@@ -662,9 +662,9 @@ impl crate::exchange::DerivedExchange for Ndax {
 }
     fn parse_currency(&self, rawCurrency: impl Into<crate::Value>) -> Value {
         let mut rawCurrency: Value = rawCurrency.into();
-        let mut id: Option<String> = self.safe_string_k(rawCurrency.clone(), "ProductId", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "ProductId", &[]);
         let mut code: Option<String> = self.safe_currency_code(self.safe_string_k(rawCurrency.clone(), "Product", &[]), None);
-        let mut ProductType: Option<String> = self.safe_string_k(rawCurrency.clone(), "ProductType", &[]).as_str().map(str::to_owned);
+        let mut ProductType: Option<String> = self.safe_string_k_opt(rawCurrency.clone(), "ProductType", &[]);
         let mut type_var: String = "crypto".to_string();
         if (ProductType.as_deref() == Some("NationalCurrency")) {
             type_var = "fiat".to_string();
@@ -763,14 +763,14 @@ impl crate::exchange::DerivedExchange for Ndax {
         //         "NotionalProductId": 0
         //     }
         //
-        let mut id: Option<String> = self.safe_string_k(transaction.clone(), "DepositId", &[]).as_str().map(str::to_owned);
-        let mut currencyId: Option<String> = self.safe_string_k(transaction.clone(), "ProductId", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(transaction.clone(), "DepositId", &[]);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(transaction.clone(), "ProductId", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), currency);
         let mut type_var: Option<String> = None;
         if (id.is_some()) {
             type_var = Some("deposit".to_string());
         }  else {
-            id = self.safe_string_k(transaction.clone(), "WithdrawId", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k_opt(transaction.clone(), "WithdrawId", &[]);
             if (id.is_some()) {
                 type_var = Some("withdrawal".to_string());
             }
@@ -780,10 +780,10 @@ impl crate::exchange::DerivedExchange for Ndax {
         if (templateForm != Value::Null) {
             updated = self.safe_integer_k(templateForm.clone(), "LastUpdated", &[Value::from(updated)]).as_i64();
         }
-        let mut address: Option<String> = self.safe_string2(templateForm.clone(), Value::Str("ExternalAddress".into()), Value::Str("ToAddress".into()), &[]).as_str().map(str::to_owned);
+        let mut address: Option<String> = self.safe_string2_opt(templateForm.clone(), Value::Str("ExternalAddress".into()), Value::Str("ToAddress".into()), &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(templateForm.clone(), "TimeSubmitted", &[]).as_i64();
         let mut feeCost: Option<f64> = self.safe_number_k(transaction.clone(), "FeeAmount", &[]).as_f64();
-        let mut transactionStatus: Option<String> = self.safe_string_k(transaction.clone(), "TicketStatus", &[]).as_str().map(str::to_owned);
+        let mut transactionStatus: Option<String> = self.safe_string_k_opt(transaction.clone(), "TicketStatus", &[]);
         let mut fee: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -836,7 +836,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         let mut apiName: Option<&str> = api.get(0).and_then(Value::as_str);
         let mut bodySigned: Option<String> = None;
         let mut headersSigned: Option<crate::value::Dict> = None;
-        let mut apiUrl: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]).as_str().map(str::to_owned);
+        let mut apiUrl: Option<String> = self.safe_string_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::from(apiName.as_deref()), &[]);
         if (apiUrl.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " sign() has no API URL for this endpoint")));
         }
@@ -852,7 +852,7 @@ impl crate::exchange::DerivedExchange for Ndax {
                     m
                 }));
             }  else if (path.as_str() == Some("Authenticate2FA")) {
-                let mut pending2faToken: Option<String> = self.safe_string_k(self.options.clone(), "pending2faToken", &[]).as_str().map(str::to_owned);
+                let mut pending2faToken: Option<String> = self.safe_string_k_opt(self.options.clone(), "pending2faToken", &[]);
                 if (pending2faToken.is_some()) {
                     headersSigned = Some(crate::value::Dict::new({
                         let mut m = indexmap::IndexMap::new();
@@ -867,7 +867,7 @@ impl crate::exchange::DerivedExchange for Ndax {
             }
         }  else if (apiName.as_deref() == Some("private")) {
             self.check_required_credentials(&[]);
-            let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
+            let mut sessionToken: Option<String> = self.safe_string_k_opt(self.options.clone(), "sessionToken", &[]);
             let mut isPost: bool = method.as_str() == Some("POST");
             if (sessionToken.is_none()) {
                 let mut nonce: String = format!("{}", <Self as crate::exchange_generated::ExchangeBase>::nonce(self));
@@ -939,7 +939,7 @@ impl crate::exchange::DerivedExchange for Ndax {
         //     {"status":"Rejected","errormsg":"Not_Enough_Funds","errorcode":101}
         //     {"result":false,"errormsg":"Server Error","errorcode":102,"detail":null}
         //
-        let mut message: Option<String> = self.safe_string_k(response, "errormsg", &[]).as_str().map(str::to_owned);
+        let mut message: Option<String> = self.safe_string_k_opt(response, "errormsg", &[]);
         if (message.is_some()) && (message.as_deref() != Some("")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), body);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), message.map(Value::from).unwrap_or(Value::Null), Value::from(feedback.clone()));
@@ -1908,7 +1908,7 @@ impl Ndax {
         //         "msg":"PONG"
         //     }
         //
-        let mut message: Option<String> = self.safe_string_k(&response, "msg", &[]).as_str().map(str::to_owned);
+        let mut message: Option<String> = self.safe_string_k_opt(&response, "msg", &[]);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), (if (message.as_deref() == Some("PONG")) { Value::Str("ok".into()) } else { Value::Str("error".into()) }));
@@ -1960,7 +1960,7 @@ impl Ndax {
             if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("sessionToken".into(), sessionToken.clone().map(Value::from).unwrap_or(Value::Null)); }
             return Value::from(&response);
         }
-        let mut pending2faToken: Option<String> = self.safe_string_k(&response, "Pending2FaToken", &[]).as_str().map(str::to_owned);
+        let mut pending2faToken: Option<String> = self.safe_string_k_opt(&response, "Pending2FaToken", &[]);
         if (pending2faToken.is_some()) {
             if (self.twofa.clone() == Value::Null) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " signIn() requires exchange.twofa credentials")));
@@ -2338,7 +2338,7 @@ impl Ndax {
                         let mut i: i64 = 0;
             let mut __for_first_997: bool = true;
             while { if !__for_first_997 { i += 1; } __for_first_997 = false; i < (response.len() as i64) } {
-            let mut accountId: Option<String> = self.safe_string(&response, Value::Int(i), &[]).as_str().map(str::to_owned);
+            let mut accountId: Option<String> = self.safe_string_opt(&response, Value::Int(i), &[]);
             result.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("id".to_string(), accountId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -2368,7 +2368,7 @@ impl Ndax {
             let mut __for_first_998: bool = true;
             while { if !__for_first_998 { i += 1; } __for_first_998 = false; i < (response.len() as i64) } {
             let mut balance: crate::value::Dict = self.safe_dict(response.clone(), Value::Int(i), &[]).into_dict();
-            let mut currencyId: Option<String> = self.safe_string_k(&balance, "ProductId", &[]).as_str().map(str::to_owned);
+            let mut currencyId: Option<String> = self.safe_string_k_opt(&balance, "ProductId", &[]);
             if (currencyId.is_some()) && (self.currencies_by_id.clone() != Value::Null) && (matches!((&self.currencies_by_id, currencyId.as_deref()), (Value::Dict(__d), Some(__k)) if __d.contains_key(__k))) {
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
@@ -2443,7 +2443,7 @@ impl Ndax {
                 m.insert("MarginQuoteHold".to_string(), Value::Str("trade".into()));
             m
         });
-        return self.safe_string(&types, type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&types, type_var.clone(), &[type_var.clone()]);
 }
 
 
@@ -2532,7 +2532,7 @@ impl Ndax {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
 
@@ -2578,7 +2578,7 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::from(self.capitalize(type_var.clone())), &[]).as_i64();
-        let mut triggerPrice: Option<String> = self.safe_string_k(params.clone(), "triggerPrice", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k_opt(params.clone(), "triggerPrice", &[]);
         if (triggerPrice.is_some()) {
             if (type_var.as_str() == Some("market")) {
                 orderType = Some(3);
@@ -3376,7 +3376,7 @@ impl Ndax {
         if (status == Value::Null) {
             return None;
         }
-        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
 
@@ -3404,10 +3404,10 @@ impl Ndax {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut tagWithdrawTag: Option<String> = self.safe_string_k(params.clone(), "tag", &[]).as_str().map(str::to_owned);
+        let mut tagWithdrawTag: Option<String> = self.safe_string_k_opt(params.clone(), "tag", &[]);
         let mut paramsWithdrawTag: crate::value::Dict = self.omit(params, Value::Str("tag".into()), &[]).into_dict();
         // this method required login, password and twofa key
-        let mut sessionToken: Option<String> = self.safe_string_k(self.options.clone(), "sessionToken", &[]).as_str().map(str::to_owned);
+        let mut sessionToken: Option<String> = self.safe_string_k_opt(self.options.clone(), "sessionToken", &[]);
         if (sessionToken.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " call signIn() method to obtain a session token")));
         }
@@ -3449,7 +3449,7 @@ impl Ndax {
         if (firstTemplateType.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " withdraw() could not find a withdraw template type for ").into()), crate::value::KeyRead::key_read(&&currency, "code"))));
         }
-        let mut templateName: Option<String> = self.safe_string_k(&firstTemplateType, "TemplateName", &[]).as_str().map(str::to_owned);
+        let mut templateName: Option<String> = self.safe_string_k_opt(&firstTemplateType, "TemplateName", &[]);
         let mut withdrawTemplateRequest: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("omsId".to_string(), Value::from(omsId));

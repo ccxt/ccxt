@@ -297,7 +297,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframeId: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "fetchOHLCV:", Value::from((market).symbol.clone())).into()), ":").into()), timeframeId.as_deref().unwrap_or("null"));
         let mut message: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -360,7 +360,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframeId: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[timeframe.clone()]);
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "ohlcv:", Value::from((market).symbol.clone())).into()), ":").into()), timeframeId.as_deref().unwrap_or("null"));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         let mut subscribe: indexmap::IndexMap<String, Value> = ({
@@ -417,7 +417,7 @@ if _try_result.is_err() {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut timeframeId: Option<String> = self.safe_string(&timeframes, timeframe.clone(), &[]).as_str().map(str::to_owned);
+        let mut timeframeId: Option<String> = self.safe_string_opt(&timeframes, timeframe.clone(), &[]);
         if (timeframeId.is_none()) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " unWatchOHLCV() does not support the ").into()), timeframe).into()), " timeframe")));
         }
@@ -535,7 +535,7 @@ if _try_result.is_err() {
             stored.append(parsed);
         }  else {
             let mut rawOHLCV: crate::value::Dict = message.get("kbar").cloned().unwrap_or_default().into_dict();
-            let mut datetime: Option<String> = self.safe_string_k(&rawOHLCV, "t", &[]).as_str().map(str::to_owned);
+            let mut datetime: Option<String> = self.safe_string_k_opt(&rawOHLCV, "t", &[]);
             let mut parsed: Value = Value::from(vec![Value::from(self.parse8601(datetime.map(Value::from).unwrap_or(Value::Null))), self.safe_number_k(&rawOHLCV, "o", &[]), self.safe_number_k(&rawOHLCV, "h", &[]), self.safe_number_k(&rawOHLCV, "l", &[]), self.safe_number_k(&rawOHLCV, "c", &[]), self.safe_number_k(&rawOHLCV, "v", &[])]);
             stored.append(parsed);
         }
@@ -680,9 +680,9 @@ if _try_result.is_err() {
         //         "TS":"2019-07-01T11:33:55.188"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "pair", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "pair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]).as_str().map(str::to_owned);
-        let mut datetime: Option<String> = self.safe_string_k(ticker.clone(), "TS", &[]).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.safe_string_k_opt(ticker.clone(), "TS", &[]);
         let mut tickerData: crate::value::Dict = self.safe_dict_k(ticker.clone(), "tick", &[]).into_dict();
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -928,15 +928,15 @@ if _try_result.is_err() {
         if (timestamp.is_some()) {
             datetime = self.iso8601(timestamp).as_str().map(str::to_owned);
         }  else {
-            datetime = self.safe_string_k(trade.clone(), "TS", &[]).as_str().map(str::to_owned);
+            datetime = self.safe_string_k_opt(trade.clone(), "TS", &[]);
         }
         if (timestamp.is_none()) {
             timestamp = self.parse8601(Value::from(datetime.as_deref()));
         }
-        let mut rawSide: Option<String> = self.safe_string2(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]).as_str().map(str::to_owned);
+        let mut rawSide: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("direction".into()), Value::Int(3), &[]);
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = rawSide.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut firstPart: Option<String> = self.safe_string(&parts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut secondPart: Option<String> = self.safe_string(&parts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut firstPart: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
+        let mut secondPart: Option<String> = self.safe_string_opt(&parts, Value::Int(1), &[]);
         let mut side: Option<String> = firstPart;
         // reverse if it was 'maker'
         if (secondPart.is_some()) && (secondPart.as_deref() == Some("maker")) {
@@ -1101,17 +1101,17 @@ if _try_result.is_err() {
         })]).into_dict();
         let mut rawType: String = self.safe_string_k(&orderUpdate, "type", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut typeParts: crate::value::List = Value::Array(rawType.split("_").map(Value::from).collect()).into_list();
-        let mut side: Option<String> = self.safe_string(&typeParts, Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut exchangeType: Option<String> = self.safe_string(&typeParts, Value::Int(1), &[]).as_str().map(str::to_owned);
+        let mut side: Option<String> = self.safe_string_opt(&typeParts, Value::Int(0), &[]);
+        let mut exchangeType: Option<String> = self.safe_string_opt(&typeParts, Value::Int(1), &[]);
         let mut type_var: Option<String> = None;
         if (rawType != "buy") && (rawType != "sell") {
             type_var = (if (exchangeType.as_deref() == Some("market")) { Some("market".to_string()) } else { Some("limit".to_string()) });
         }
-        let mut marketId: Option<String> = self.safe_string_k(order.clone(), "pair", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "pair", &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[Value::Str("_".into())]).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.safe_integer_k(&orderUpdate, "updateTime", &[]).as_i64();
-        let mut status: Option<String> = self.safe_string_k(&orderUpdate, "orderStatus", &[]).as_str().map(str::to_owned);
-        let mut orderAmount: Option<String> = self.safe_string_k(&orderUpdate, "orderAmt", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k_opt(&orderUpdate, "orderStatus", &[]);
+        let mut orderAmount: Option<String> = self.safe_string_k_opt(&orderUpdate, "orderAmt", &[]);
         let mut cost: Option<String> = None;
         if (type_var.as_deref() == Some("market")) && (side.as_deref() == Some("buy")) {
             cost = orderAmount.take();
@@ -1154,7 +1154,7 @@ if _try_result.is_err() {
                 m.insert("4".to_string(), Value::Str("closed".into()));
             m
         });
-        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
 /*
@@ -1218,7 +1218,7 @@ if _try_result.is_err() {
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), Value::from(&data)); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("timestamp".into(), Value::from(timestamp)); }
         if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("datetime".into(), datetime.map(Value::from).unwrap_or(Value::Null)); }
-        let mut currencyId: Option<String> = self.safe_string_k(&data, "assetCode", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(&data, "assetCode", &[]);
         let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
         account.insert("free".into(), self.safe_string_k(&data, "free", &[]));
@@ -1451,7 +1451,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             self.handle_error_message(client.clone(), message.clone());
             return;
         }
-        let mut type_var: Option<String> = self.safe_string2(message.clone(), Value::Str("type".into()), Value::Str("action".into()), &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string2_opt(message.clone(), Value::Str("type".into()), Value::Str("action".into()), &[]);
         if (type_var.as_deref() == Some("ping")) {
             self.spawn(&[Value::Str("handle_ping".into()).clone(), client.clone(), message.clone()]);
             return;
@@ -1525,7 +1525,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                     //
                     //    {"result": "true"}
                     //
-                    let mut result: Option<String> = self.safe_string_k(&response, "result", &[]).as_str().map(str::to_owned);
+                    let mut result: Option<String> = self.safe_string_k_opt(&response, "result", &[]);
                     if (result.as_deref() != Some("true")) {
                         panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " failed to refresh the SubscribeKey")));
                     }

@@ -163,7 +163,7 @@ impl Mudrex {
  * @description injects the broker Partner-Id into the websocket connection headers
  */
     pub fn set_broker_headers(&mut self) {
-        let mut brokerId: Option<String> = self.safe_string_k(self.options.clone(), "broker", &[]).as_str().map(str::to_owned);
+        let mut brokerId: Option<String> = self.safe_string_k_opt(self.options.clone(), "broker", &[]);
         if (brokerId.is_none()) {
             return;
         }
@@ -271,7 +271,7 @@ impl Mudrex {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -301,9 +301,9 @@ impl Mudrex {
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
-        let mut priceType: Option<String> = self.safe_string_k(params.clone(), "price", &[]).as_str().map(str::to_owned);
+        let mut priceType: Option<String> = self.safe_string_k_opt(params.clone(), "price", &[]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("price".into()), &[]).into_dict();
-        let mut interval: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         if (interval.as_deref() != Some("1s")) && (interval.as_deref() != Some("1m")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " watchOHLCV() supports 1s and 1m timeframes only")));
         }
@@ -360,7 +360,7 @@ impl Mudrex {
         let __message_empty = indexmap::IndexMap::new();
         let message = message.as_map().unwrap_or(&__message_empty);
         let mut error: crate::value::Dict = message.get("error").cloned().unwrap_or_default().into_dict();
-        let mut code: Option<String> = self.safe_string_k(&error, "code", &[]).as_str().map(str::to_owned);
+        let mut code: Option<String> = self.safe_string_k_opt(&error, "code", &[]);
         let mut msg: String = self.safe_string_k(&error, "msg", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), msg);
         if (code.as_deref() == Some("429")) {
@@ -380,7 +380,7 @@ impl Mudrex {
         let mut interval: Option<String> = parts.get(1).and_then(Value::as_str).map(str::to_owned);
         let mut tf: Option<String> = self.find_timeframe(interval.map(Value::from).unwrap_or(Value::Null), &[]);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut s: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
+        let mut s: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         if (s.is_none()) {
             return;
         }
@@ -410,7 +410,7 @@ impl Mudrex {
             let mut __for_first_501: bool = true;
             while { if !__for_first_501 { i += 1; } __for_first_501 = false; i < (data.len() as i64) } {
             let mut t: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut s: Option<String> = self.safe_string_k(&t, "s", &[]).as_str().map(str::to_owned);
+            let mut s: Option<String> = self.safe_string_k_opt(&t, "s", &[]);
             if (s.is_none()) {
                 continue;
             }

@@ -351,7 +351,7 @@ impl Bitstamp {
             return;
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(3), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut storedOrderBook: Value = Value::from(self.orderbooks.lookup(&symbol));
         let mut nonce: Option<i64> = self.safe_integer_k(storedOrderBook.clone(), "nonce", &[]).as_i64();
@@ -532,10 +532,10 @@ impl Bitstamp {
         //     }
         //
         let mut microtimestamp: i64 = self.safe_integer_k(trade.clone(), "microtimestamp", &[Value::Int(0)]).as_i64().unwrap_or(0);
-        let mut id: Option<String> = self.safe_string_k(trade.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "id", &[]);
         let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
-        let mut price: Option<String> = self.safe_string_k(trade.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "amount", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "price", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "amount", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut sideRaw: Option<i64> = self.safe_integer_k(trade.clone(), "type", &[]).as_i64();
@@ -592,7 +592,7 @@ impl Bitstamp {
             return;
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut messageHash: String = format!("{}{}", "trades:", symbol);
@@ -673,7 +673,7 @@ impl Bitstamp {
             return;
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
@@ -761,7 +761,7 @@ impl Bitstamp {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         self.authenticate(&[]).await;
-        let mut userId: Option<String> = self.safe_string_k(self.options.clone(), "userId", &[]).as_str().map(str::to_owned);
+        let mut userId: Option<String> = self.safe_string_k_opt(self.options.clone(), "userId", &[]);
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " unWatchOrders() requires a userId from authenticate()")));
         }
@@ -852,7 +852,7 @@ impl Bitstamp {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = self.safe_string_k(&market, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         self.authenticate(&[]).await;
-        let mut userId: Option<String> = self.safe_string_k(self.options.clone(), "userId", &[]).as_str().map(str::to_owned);
+        let mut userId: Option<String> = self.safe_string_k_opt(self.options.clone(), "userId", &[]);
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " unWatchMyTrades() requires a userId from authenticate()")));
         }
@@ -886,7 +886,7 @@ impl Bitstamp {
         let mut channel: Option<String> = (match message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
-        let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
         }
@@ -923,7 +923,7 @@ impl Bitstamp {
         let mut timestamp: Option<i64> = self.parse_to_int(Value::Float(((microtimestamp as f64) / 1000.0)));
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut feeCost: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (feeCost.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -990,7 +990,7 @@ impl Bitstamp {
     m
 }) }).as_map().cloned().unwrap_or_default();
         let mut subscription: Option<crate::value::Dict> = (if (channel.is_none()) { Value::Null } else { self.safe_dict(__ch.subscriptions.clone(), channel.clone().map(Value::from).unwrap_or(Value::Null), &[]) }).into_opt_dict();
-        let mut symbol: Option<String> = self.safe_string_k(&subscription, "symbol", &[]).as_str().map(str::to_owned);
+        let mut symbol: Option<String> = self.safe_string_k_opt(&subscription, "symbol", &[]);
         if (symbol.is_none()) {
             return;
         }
@@ -1029,13 +1029,13 @@ impl Bitstamp {
         //        "trade_account_id": 0
         //    }
         //
-        let mut id: Option<String> = self.safe_string_k(order.clone(), "id_str", &[]).as_str().map(str::to_owned);
-        let mut orderTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_type", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id_str", &[]);
+        let mut orderTypeRaw: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_type", &[]);
         let mut side: String = "buy".to_string();
         if (orderTypeRaw.as_deref() == Some("1")) {
             side = "sell".to_string();
         }
-        let mut orderSubTypeRaw: Option<String> = self.safe_string_lower_k(order.clone(), "order_subtype", &[]).as_str().map(str::to_owned); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        let mut orderSubTypeRaw: Option<String> = self.safe_string_lower_k_opt(order.clone(), "order_subtype", &[]); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
         let mut orderType: Option<String> = None;
         let mut timeInForce: Option<String> = None;
         if (orderSubTypeRaw.as_deref() == Some("0")) {
@@ -1052,9 +1052,9 @@ impl Bitstamp {
             orderType = Some("limit".to_string());
             timeInForce = Some("GTD".to_string());
         }
-        let mut price: Option<String> = self.safe_string_k(order.clone(), "price_str", &[]).as_str().map(str::to_owned);
-        let mut amountLeft: Option<String> = self.safe_string_k(order.clone(), "amount_str", &[]).as_str().map(str::to_owned);
-        let mut amountAtCreate: Option<String> = self.safe_string_k(order.clone(), "amount_at_create", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price_str", &[]);
+        let mut amountLeft: Option<String> = self.safe_string_k_opt(order.clone(), "amount_str", &[]);
+        let mut amountAtCreate: Option<String> = self.safe_string_k_opt(order.clone(), "amount_at_create", &[]);
         // amount_str carries the amount left to be executed, while
         // amount_at_create is the original order amount - older messages
         // do not carry amount_at_create, so fall back to the old behaviour
@@ -1064,15 +1064,15 @@ impl Bitstamp {
             amount = amountAtCreate;
             remaining = amountLeft.take();
         }
-        let mut filled: Option<String> = self.safe_string_k(order.clone(), "amount_traded", &[]).as_str().map(str::to_owned);
-        let mut event: Option<String> = self.safe_string_k(order.clone(), "event", &[]).as_str().map(str::to_owned);
+        let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "amount_traded", &[]);
+        let mut event: Option<String> = self.safe_string_k_opt(order.clone(), "event", &[]);
         let mut status: Option<String> = None;
         if crate::precise::Precise::stringEq(&filled, &amount).as_bool() == Some(true) {
             status = Some("closed".to_string());
         }  else if (event.as_deref() == Some("order_deleted")) {
             status = Some("canceled".to_string());
         }
-        let mut triggerPrice: Option<String> = self.safe_string_k(order.clone(), "stop_price", &[]).as_str().map(str::to_owned);
+        let mut triggerPrice: Option<String> = self.safe_string_k_opt(order.clone(), "stop_price", &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "datetime", &[]).as_i64();
         let mut marketResolved: crate::types::Market = self.safe_market(Value::Null, market, &[]);
         let mut symbol: String = self.safe_string_k(&marketResolved, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1114,7 +1114,7 @@ impl Bitstamp {
             return;
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split("_").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut marketId: Option<String> = self.safe_string(&parts, Value::Int(3), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&parts, Value::Int(3), &[]);
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         if !(self.orderbooks.has(&symbol)) {
             { let __cv = self.order_book(&[]); CacheStore::put(&mut self.orderbooks, &symbol, __cv); }
@@ -1168,8 +1168,8 @@ impl Bitstamp {
         if (subscription == Value::Null) {
             return;
         }
-        let mut subHash: Option<String> = self.safe_string_k(subscription.clone(), "subHash", &[]).as_str().map(str::to_owned);
-        let mut topic: Option<String> = self.safe_string_k(subscription.clone(), "topic", &[]).as_str().map(str::to_owned);
+        let mut subHash: Option<String> = self.safe_string_k_opt(subscription.clone(), "subHash", &[]);
+        let mut topic: Option<String> = self.safe_string_k_opt(subscription.clone(), "topic", &[]);
         let mut symbols: crate::value::List = self.safe_list_k(subscription.clone(), "symbols", &[Value::from(vec![])]).into_list();
         // the base cleanCache only prunes trades/orderbooks per symbol and
         // would wipe the whole orders/myTrades cache - rebuild those without
@@ -1207,7 +1207,7 @@ impl Bitstamp {
             let mut __for_first_139: bool = true;
             while { if !__for_first_139 { i += 1; } __for_first_139 = false; i < (entries.len() as i64) } {
             let mut entry: Option<crate::value::Dict> = entries.get(i as usize).cloned().unwrap_or(Value::Null).into_opt_dict();
-            let mut entrySymbol: Option<String> = self.safe_string_k(&entry, "symbol", &[]).as_str().map(str::to_owned);
+            let mut entrySymbol: Option<String> = self.safe_string_k_opt(&entry, "symbol", &[]);
             if !self.in_array(&entrySymbol, symbols.clone()) {
                 newCache.append(entry.map_or(Value::Null, Value::Dict));
             }
@@ -1297,7 +1297,7 @@ impl Bitstamp {
         if (event.as_deref() == Some("bts:error")) {
             let mut feedback: String = format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&message));
             let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
-            let mut code: Option<String> = self.safe_string_k(&data, "code", &[]).as_str().map(str::to_owned);
+            let mut code: Option<String> = self.safe_string_k_opt(&data, "code", &[]);
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), code.map(Value::from).unwrap_or(Value::Null), Value::from(feedback));
         }
         return Value::Bool(true);
@@ -1394,7 +1394,7 @@ impl Bitstamp {
                 if (sessionToken.is_none()) {
                     panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty token")));
                 }
-                let mut userId: Option<String> = self.safe_string_k(&response, "user_id", &[]).as_str().map(str::to_owned);
+                let mut userId: Option<String> = self.safe_string_k_opt(&response, "user_id", &[]);
                 let mut validity: Option<i64> = self.safe_integer_product_k(&response, "valid_sec", Value::Int(1000), &[]).as_i64();
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("expiresIn".into(), Value::from((if let Some(__m1) = validity { Some((time + __m1)) } else { None }))); }
                 if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("userId".into(), userId.map(Value::from).unwrap_or(Value::Null)); }
@@ -1423,7 +1423,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 }));
         let mut url: Option<String> = self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
         self.authenticate(&[]).await;
-        let mut userId: Option<String> = self.safe_string_k(self.options.clone(), "userId", &[]).as_str().map(str::to_owned);
+        let mut userId: Option<String> = self.safe_string_k_opt(self.options.clone(), "userId", &[]);
         if (userId.is_none()) {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " subscribePrivate() requires a userId from authenticate()")));
         }

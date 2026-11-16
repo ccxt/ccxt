@@ -329,12 +329,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(operationType.clone().map(Value::from).unwrap_or(Value::Null), Value::Dict(request)).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wsRequest, "id", &[]);
         if (operationType.as_deref() == Some("create_stop_order")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " createOrderWs() do not support stop order type of order. Check provided arguments correctly!")));
         }  else if (operationType.as_deref() == Some("set_position_tpsl")) {
@@ -383,8 +383,8 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k_opt(&order, "i", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "I", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -451,12 +451,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), &request).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wsRequest, "id", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         // {
         //   "code": 200,
@@ -484,8 +484,8 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k_opt(&order, "i", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "I", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -547,12 +547,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(batchOperationType), &request).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wsRequest, "id", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         // {
@@ -588,12 +588,12 @@ impl Pacifica {
             let mut __for_first_573: bool = true;
             while { if !__for_first_573 { i += 1; } __for_first_573 = false; i < (results.len() as i64) } {
             let mut order: crate::value::Dict = self.safe_dict(&results, Value::Int(i), &[]).into_dict();
-            let mut error: Option<String> = self.safe_string_k(&order, "error", &[]).as_str().map(str::to_owned);
+            let mut error: Option<String> = self.safe_string_k_opt(&order, "error", &[]);
             let mut success: bool = self.safe_bool_k(&order, "success", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-            let mut marketId: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
-            let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
-            let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
+            let mut orderId: Option<String> = self.safe_string_k_opt(&order, "i", &[]);
+            let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "I", &[]);
             let mut status: Option<String> = None;
             if (error.is_some()) || (!success) {
                 status = Some("closed".to_string());
@@ -664,12 +664,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), &request).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wsRequest, "id", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         //
         //  {
@@ -699,8 +699,8 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut orderId: Option<String> = self.safe_string_k(&order, "i", &[]).as_str().map(str::to_owned);
-        let mut clientOrderId: Option<String> = self.safe_string_k(&order, "I", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k_opt(&order, "i", &[]);
+        let mut clientOrderId: Option<String> = self.safe_string_k_opt(&order, "I", &[]);
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), orderId.map(Value::from).unwrap_or(Value::Null));
@@ -756,12 +756,12 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
         let mut wsRequest: crate::value::Dict = self.wrap_as_post_action(Value::from(operationType), &request).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wsRequest, "id", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wsRequest, "id", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -817,7 +817,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -883,7 +883,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -942,7 +942,7 @@ impl Pacifica {
         // }
         //
         let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut marketId: Option<String> = self.safe_string_k(&entry, "s", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut levels: crate::value::List = self.safe_list_k(&entry, "l", &[Value::from(vec![])]).into_list();
@@ -1033,7 +1033,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1096,7 +1096,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1166,7 +1166,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1236,7 +1236,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1287,7 +1287,7 @@ impl Pacifica {
             let mut __for_first_574: bool = true;
             while { if !__for_first_574 { i += 1; } __for_first_574 = false; i < (data.len() as i64) } {
             let mut info: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
-            let mut marketId: Option<String> = self.safe_string_k(&info, "symbol", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&info, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(Value::Dict(info), Some(&market)).into_dict();
@@ -1419,7 +1419,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1485,7 +1485,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1531,7 +1531,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut marketId: Option<String> = self.safe_string_k(&first, "s", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&first, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut messageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
@@ -1593,14 +1593,14 @@ impl Pacifica {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "t", &[]).as_i64();
-        let mut price: Option<String> = self.safe_string_k(trade.clone(), "p", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "a", &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "s", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "p", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "a", &[]);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "s", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        let mut id: Option<String> = self.safe_string_k(trade.clone(), "h", &[]).as_str().map(str::to_owned);
-        let mut fee: Option<String> = self.safe_string_k(trade.clone(), "f", &[]).as_str().map(str::to_owned);
-        let mut side: Option<String> = self.safe_string2(trade.clone(), Value::Str("ts".into()), Value::Str("d".into()), &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "h", &[]);
+        let mut fee: Option<String> = self.safe_string_k_opt(trade.clone(), "f", &[]);
+        let mut side: Option<String> = self.safe_string2_opt(trade.clone(), Value::Str("ts".into()), Value::Str("d".into()), &[]);
         if (side.as_deref() == Some("open_long")) {
             side = Some("buy".to_string());
         }  else if (side.as_deref() == Some("close_long")) {
@@ -1610,12 +1610,12 @@ impl Pacifica {
         }  else if (side.as_deref() == Some("close_short")) {
             side = Some("buy".to_string());
         }
-        let mut eventType: Option<String> = self.safe_string_k(trade.clone(), "te", &[]).as_str().map(str::to_owned);
+        let mut eventType: Option<String> = self.safe_string_k_opt(trade.clone(), "te", &[]);
         let mut takerOrMaker: Option<String> = None;
         if (eventType.is_some()) {
             takerOrMaker = (if (eventType.as_deref() == Some("fulfill_maker")) { Some("maker".to_string()) } else { Some("taker".to_string()) });
         }
-        let mut orderId: Option<String> = self.safe_string_k(trade.clone(), "i", &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_k_opt(trade.clone(), "i", &[]);
         // public trades have no orderId
         if (orderId.is_none()) {
             takerOrMaker = None;
@@ -1678,7 +1678,7 @@ impl Pacifica {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbolValue: String = (market).symbol.clone();
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
-        let mut parsedTf: Option<String> = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]).as_str().map(str::to_owned);
+        let mut parsedTf: Option<String> = self.safe_string_opt(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
         let mut urlKey: String = "api".to_string();
         if isTestnet {
             urlKey = "test".to_string();
@@ -1691,7 +1691,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1759,7 +1759,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1804,10 +1804,10 @@ impl Pacifica {
         // }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut marketId: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
-        let mut timeframe: Option<String> = self.safe_string_k(&data, "i", &[]).as_str().map(str::to_owned);
+        let mut timeframe: Option<String> = self.safe_string_k_opt(&data, "i", &[]);
         if (timeframe.is_none()) {
             return;
         }
@@ -1862,7 +1862,7 @@ impl Pacifica {
         let mut symbolResolved: Option<String> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            symbolResolved = self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned);
+            symbolResolved = self.safe_string_k_opt(&market, "symbol", &[]);
             messageHash = format!("{}{}", Value::Str(format!("{}{}", messageHash, ":").into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
         let mut isTestnet: bool = self.isSandboxModeEnabled.as_bool() == Some(true);
@@ -1878,7 +1878,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -1945,7 +1945,7 @@ impl Pacifica {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut url: Option<String> = self.safe_string_k(&wsUrls, "public", &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(&wsUrls, "public", &[]);
         if (url.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " has no websocket url for this endpoint")));
         }
@@ -2021,7 +2021,7 @@ impl Pacifica {
             let mut rawOrder: crate::value::Dict = data.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut order: crate::value::Dict = self.parse_order(Value::Dict(rawOrder), None).into_dict();
             stored.append(Value::from(&order));
-            let mut symbol: Option<String> = self.safe_string_k(&order, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&order, "symbol", &[]);
             if (symbol.is_some()) {
                 marketSymbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -2052,7 +2052,7 @@ impl Pacifica {
         let mut data: crate::value::Dict = __pro_message.get("data").cloned().unwrap_or_default().into_dict();
         let mut id: Option<String> = (match __pro_message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
         if (id.is_none()) {
-            id = self.safe_string_k(&data, "id", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k_opt(&data, "id", &[]);
         }
         let mut wsOptions: crate::value::Dict = self.safe_dict_k(self.options.clone(), "ws", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2083,7 +2083,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_order_book_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
         let mut subscription: Value = subscription.into();
-        let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string2_opt(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut subMessageHash: String = format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null"));
@@ -2096,7 +2096,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 
     pub fn handle_trades_unsubscription(&mut self, mut client: Value, subscription: impl Into<crate::Value>) {
         let mut subscription: Value = subscription.into();
-        let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string2_opt(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut subMessageHash: String = format!("{}{}", "trade:", symbol.as_deref().unwrap_or("null"));
@@ -2126,7 +2126,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut subscription: Value = subscription.into();
         let __pro_message_arc: std::sync::Arc<indexmap::IndexMap<String, Value>> = (if let Value::Dict(__d) = &subscription { __d.clone() } else { std::sync::Arc::new(indexmap::IndexMap::new()) });
         let __pro_message: &indexmap::IndexMap<String, Value> = &__pro_message_arc;
-        let mut marketId: Option<String> = self.safe_string2(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string2_opt(subscription, Value::Str("symbol".into()), Value::Str("s".into()), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut interval: Option<String> = (match __pro_message.get("interval") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
@@ -2198,7 +2198,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut type_var: Option<String> = self.safe_string_k(&subscription, "source", &[]).as_str().map(str::to_owned);
+            let mut type_var: Option<String> = self.safe_string_k_opt(&subscription, "source", &[]);
             if (type_var.as_deref() == Some("book")) {
                 self.handle_order_book_unsubscription(client.clone(), &subscription);
             }  else if (type_var.as_deref() == Some("trades")) {

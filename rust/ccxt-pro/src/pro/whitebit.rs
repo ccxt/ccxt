@@ -292,7 +292,7 @@ impl Whitebit {
             let mut __for_first_704: bool = true;
             while { if !__for_first_704 { i += 1; } __for_first_704 = false; i < (params.len() as i64) } {
             let mut data: Value = params.get(i as usize).cloned().unwrap_or(Value::Null);
-            let mut marketId: Option<String> = self.safe_string(data.clone(), Value::Int(7), &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_opt(data.clone(), Value::Int(7), &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
             let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "candles", ":").into()), symbol.as_deref().unwrap_or("null"));
@@ -345,7 +345,7 @@ impl Whitebit {
         let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", "orderbook", ":").into()), Value::from((market).symbol.clone()));
         let mut method: String = "depth_subscribe".to_string();
         let mut defaultPriceInterval: String = self.safe_string(self.options.as_map().and_then(|__m| __m.get("watchOrderBook")).cloned().unwrap_or(Value::Null), Value::Str("priceInterval".into()), &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
-        let mut priceInterval: Option<String> = self.safe_string_k(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]).as_str().map(str::to_owned);
+        let mut priceInterval: Option<String> = self.safe_string_k_opt(params.clone(), "priceInterval", &[Value::from(defaultPriceInterval)]);
         let mut paramsOmitted: crate::value::Dict = self.omit(params, Value::Str("priceInterval".into()), &[]).into_dict();
         let mut reqParams: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitValue), priceInterval.map(Value::from).unwrap_or(Value::Null), Value::Bool(true)]);
         let mut orderbook: Value = self.watch_public(messageHash.as_str(), method.as_str(), &[reqParams, Value::Dict(paramsOmitted)]).await;
@@ -396,7 +396,7 @@ impl Whitebit {
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
         let mut isSnapshot: bool = self.safe_bool(&params, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut marketId: Option<String> = self.safe_string(&params, Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(2), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut data: Option<crate::value::Dict> = self.safe_dict(&params, Value::Int(1), &[]).into_opt_dict();
@@ -496,7 +496,7 @@ impl Whitebit {
         }
         let mut symbolsNormalized: crate::value::List = self.market_symbols(&[symbols, Value::Null, Value::Bool(false)]).into_list();
         let mut method: String = "market_subscribe".to_string();
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut id: i64 = self.incrementing_nonce();
         let mut messageHashes: crate::value::List = std::sync::Arc::new(Vec::new());
         let mut args: Vec<Value> = Vec::new();
@@ -547,7 +547,7 @@ impl Whitebit {
         //   }
         //
         let mut tickers: crate::value::List = __pro_message.get("params").cloned().unwrap_or_default().into_list();
-        let mut marketId: Option<String> = self.safe_string(&tickers, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&tickers, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Value = crate::value::KeyRead::key_read(&&market, "symbol");
         let mut rawTicker: crate::value::Dict = self.safe_dict(&tickers, Value::Int(1), &[Value::Map({
@@ -655,7 +655,7 @@ impl Whitebit {
         //    }
         //
         let mut params: crate::value::List = message.get("params").cloned().unwrap_or_default().into_list();
-        let mut marketId: Option<String> = self.safe_string(&params, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_opt(&params, Value::Int(0), &[]);
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
         let mut stored: Option<crate::pro::cache::Cache> = self.trades.lookup(&symbol);
@@ -775,17 +775,17 @@ impl Whitebit {
         //         "LTC" // fee asset
         //    ]
         //
-        let mut orderId: Option<String> = self.safe_string(trade.clone(), Value::Int(3), &[]).as_str().map(str::to_owned);
+        let mut orderId: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(3), &[]);
         let mut timestamp: Option<i64> = self.safe_timestamp(trade.clone(), Value::Int(1), &[]).as_i64();
-        let mut id: Option<String> = self.safe_string(trade.clone(), Value::Int(0), &[]).as_str().map(str::to_owned);
-        let mut price: Option<String> = self.safe_string(trade.clone(), Value::Int(4), &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = self.safe_string(trade.clone(), Value::Int(5), &[]).as_str().map(str::to_owned);
-        let mut marketId: Option<String> = self.safe_string(trade.clone(), Value::Int(2), &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(0), &[]);
+        let mut price: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(4), &[]);
+        let mut amount: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(5), &[]);
+        let mut marketId: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(2), &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut fee: Option<crate::value::Dict> = None;
-        let mut feeCost: Option<String> = self.safe_string(trade.clone(), Value::Int(6), &[]).as_str().map(str::to_owned);
+        let mut feeCost: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(6), &[]);
         if (feeCost.is_some()) {
-            let mut feeCurrencyId: Option<String> = self.safe_string(trade.clone(), Value::Int(10), &[]).as_str().map(str::to_owned);
+            let mut feeCurrencyId: Option<String> = self.safe_string_opt(trade.clone(), Value::Int(10), &[]);
             let mut feeCurrencyCode: Option<String> = None;
             if (feeCurrencyId.is_some()) {
                 feeCurrencyCode = self.safe_currency_code(feeCurrencyId.map(Value::from).unwrap_or(Value::Null), None);
@@ -954,24 +954,24 @@ impl Whitebit {
         //    }
         //
         let mut status: Option<i64> = self.safe_integer_k(order.clone(), "status", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(order.clone(), "market", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "market", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
-        let mut id: Option<String> = self.safe_string_k(order.clone(), "id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(order.clone(), "id", &[]);
         let mut clientOrderId: Option<String> = self.omit_zero(self.safe_string_k(order.clone(), "client_order_id", &[]));
-        let mut price: Option<String> = self.safe_string_k(order.clone(), "price", &[]).as_str().map(str::to_owned);
-        let mut filled: Option<String> = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
-        let mut cost: Option<String> = self.safe_string_k(order.clone(), "deal_money", &[]).as_str().map(str::to_owned);
-        let mut stopPrice: Option<String> = self.safe_string_k(order.clone(), "activation_price", &[]).as_str().map(str::to_owned);
-        let mut rawType: Option<String> = self.safe_string_k(order.clone(), "type", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k_opt(order.clone(), "price", &[]);
+        let mut filled: Option<String> = self.safe_string_k_opt(order.clone(), "deal_stock", &[]);
+        let mut cost: Option<String> = self.safe_string_k_opt(order.clone(), "deal_money", &[]);
+        let mut stopPrice: Option<String> = self.safe_string_k_opt(order.clone(), "activation_price", &[]);
+        let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
         let mut type_var: Option<String> = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null));
         let mut amount: Option<String> = None;
         let mut remaining: Option<String> = None;
         if (type_var.as_deref() == Some("market")) {
-            amount = self.safe_string_k(order.clone(), "deal_stock", &[]).as_str().map(str::to_owned);
+            amount = self.safe_string_k_opt(order.clone(), "deal_stock", &[]);
             remaining = Some("0".to_string());
         }  else {
-            remaining = self.safe_string_k(order.clone(), "left", &[]).as_str().map(str::to_owned);
-            amount = self.safe_string_k(order.clone(), "amount", &[]).as_str().map(str::to_owned);
+            remaining = self.safe_string_k_opt(order.clone(), "left", &[]);
+            amount = self.safe_string_k_opt(order.clone(), "amount", &[]);
         }
         let mut timestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "ctime", &[]).as_i64();
         let mut lastTradeTimestamp: Option<i64> = self.safe_timestamp_k(order.clone(), "mtime", &[]).as_i64();
@@ -981,7 +981,7 @@ impl Whitebit {
         if (rawSide == Some(1)) {
             side = "sell".to_string();
         }
-        let mut dealFee: Option<String> = self.safe_string_k(order.clone(), "deal_fee", &[]).as_str().map(str::to_owned);
+        let mut dealFee: Option<String> = self.safe_string_k_opt(order.clone(), "deal_fee", &[]);
         let mut fee: Option<crate::value::Dict> = None;
         if (dealFee.is_some()) {
             fee = Some(crate::value::Dict::new({
@@ -1045,7 +1045,7 @@ impl Whitebit {
                 m.insert("10".to_string(), Value::Str("market".into()));
             m
         });
-        return self.safe_string(&statuses, status.clone(), &[status.clone()]).as_str().map(str::to_owned);
+        return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
 /*
@@ -1085,7 +1085,7 @@ impl Whitebit {
             method = Some("balanceMargin_subscribe".to_string());
             messageHash.push_str("margin");
         }
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         self.set_balance_cache(client.as_value(), type_var.clone().map(Value::from).unwrap_or(Value::Null), Value::from(messageHash.clone()));
         let fetchBalanceSnapshotparamsFetchBalanceSnapshotVariable: Vec<Value> = self.handle_option_bool_and_params(&paramsMarketType, Value::Str("watchBalance".into()), Value::Str("fetchBalanceSnapshot".into()), &[Value::Bool(true)]).as_array().cloned().unwrap_or_default();
@@ -1193,7 +1193,7 @@ impl Whitebit {
     m
 })]); if let Value::Dict(__d) = &mut self.balance { std::sync::Arc::make_mut(__d).insert("info".into(), __be_tmp); } }
             if isMargin {
-                let mut currencyId: Option<String> = self.safe_string_k(&balanceDict, "a", &[]).as_str().map(str::to_owned);
+                let mut currencyId: Option<String> = self.safe_string_k_opt(&balanceDict, "a", &[]);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 let mut account: crate::value::Dict = self.account().into_dict();
                 std::sync::Arc::make_mut(&mut account).insert("free".into(), self.safe_string_k(&balanceDict, "av", &[]));
@@ -1242,7 +1242,7 @@ impl Whitebit {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut id: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1268,7 +1268,7 @@ impl Whitebit {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut id: i64 = self.incrementing_nonce();
         let mut client: Value = self.safe_value(self.clients.clone(), url.clone().map(Value::from).unwrap_or(Value::Null), &[]);
         let mut __ch = crate::pro::ws_client::ClientHandle::from_value(client.clone());
@@ -1347,7 +1347,7 @@ impl Whitebit {
 }));
         self.check_required_credentials(&[]);
         self.authenticate(&[]).await;
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut id: i64 = self.incrementing_nonce();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -1368,7 +1368,7 @@ impl Whitebit {
     m
 }));
         self.check_required_credentials(&[]);
-        let mut url: Option<String> = self.safe_string(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), Value::Str("ws".into()), &[]).as_str().map(str::to_owned);
+        let mut url: Option<String> = self.safe_string_k_opt(self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null), "ws", &[]);
         let mut client: crate::pro::ws_client::ClientHandle = crate::pro::ws_client::ClientHandle::from_value(self.client(url.as_deref()));
         let mut subscribeHash: String = "authenticated".to_string();
         // handleAuthenticate () resolves the handshake future with 1, so 1 is
@@ -1406,7 +1406,7 @@ impl Whitebit {
             //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"
             //   }
             //
-            let mut token: Option<String> = self.safe_string_k(&authToken, "websocket_token", &[]).as_str().map(str::to_owned);
+            let mut token: Option<String> = self.safe_string_k_opt(&authToken, "websocket_token", &[]);
             if (token.is_none()) {
                 panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " authenticate() received an empty websocket_token")));
             }

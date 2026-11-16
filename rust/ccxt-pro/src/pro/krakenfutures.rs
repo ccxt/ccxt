@@ -430,7 +430,7 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -467,7 +467,7 @@ impl Krakenfutures {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tickerSymbol: Option<String> = self.safe_string_k(ticker.clone(), "symbol", &[]).as_str().map(str::to_owned);
+            let mut tickerSymbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
             if (tickerSymbol.is_some()) {
                 result.insert(tickerSymbol.as_deref().unwrap_or("null").to_string(), ticker);
             }
@@ -533,7 +533,7 @@ impl Krakenfutures {
 }));
         let mut trades: Value = self.watch_multi_helper("trade", "trade", &[symbols, Value::Null, params]).await;
         let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
-        let mut tradeSymbol: Option<String> = self.safe_string_k(&first, "symbol", &[]).as_str().map(str::to_owned);
+        let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
@@ -703,9 +703,9 @@ impl Krakenfutures {
         //            pnl_currency: 'USD'
         //        }
         //
-        let mut marketId: Option<String> = self.safe_string_k(position.clone(), "instrument", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(position.clone(), "instrument", &[]);
         let mut hedged: String = "both".to_string();
-        let mut balanceString: Option<String> = self.safe_string_k(position.clone(), "balance", &[]).as_str().map(str::to_owned);
+        let mut balanceString: Option<String> = self.safe_string_k_opt(position.clone(), "balance", &[]);
         let mut side: Option<String> = None;
         if crate::precise::Precise::stringGt(&balanceString, &Value::Str("0".into())).as_bool() == Some(true) {
             side = Some("long".to_string());
@@ -781,7 +781,7 @@ impl Krakenfutures {
             name = Some("open_orders_verbose".to_string());
             messageHash = "orders:verbose".to_string();
         }
-        let mut feed: Option<String> = self.safe_string_k(&paramsVerbose, "feed", &[]).as_str().map(str::to_owned);
+        let mut feed: Option<String> = self.safe_string_k_opt(&paramsVerbose, "feed", &[]);
         if (feed.is_some()) {
             name = feed.clone();
             messageHash = "orders".to_string();
@@ -988,7 +988,7 @@ impl Krakenfutures {
         //         "reduce_only": false
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "product_id", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
         return self.safe_trade(Value::Map({
@@ -1049,7 +1049,7 @@ impl Krakenfutures {
         //    }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "tradeTime", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "symbol", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "symbol", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -1155,14 +1155,14 @@ impl Krakenfutures {
         let mut orders: Value = Value::from(&self.orders);
         let mut order: Option<crate::value::Dict> = __pro_message.get("order").cloned().unwrap_or_default().into_opt_dict();
         if (order.is_some()) {
-            let mut marketId: Option<String> = self.safe_string_k(&order, "instrument", &[]).as_str().map(str::to_owned);
+            let mut marketId: Option<String> = self.safe_string_k_opt(&order, "instrument", &[]);
             let mut feed: Option<String> = (match __pro_message.get("feed") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
             let mut messageHash: String = "orders".to_string();
             if (feed.as_deref() == Some("open_orders_verbose")) {
                 messageHash = "orders:verbose".to_string();
             }
             let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
-            let mut orderId: Option<String> = self.safe_string_k(&order, "order_id", &[]).as_str().map(str::to_owned);
+            let mut orderId: Option<String> = self.safe_string_k_opt(&order, "order_id", &[]);
             let mut previousOrders: crate::value::Dict = self.safe_dict(orders.hashmap(), symbol.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
@@ -1201,7 +1201,7 @@ impl Krakenfutures {
                 let mut stringOrderFilled: String = self.safe_string_k(previousOrder.clone(), "filled", &[Value::Str("0".into())]).as_str().unwrap_or("0").to_string();
                 let mut totalFilled: Option<String> = crate::precise::Precise::stringAdd(&stringOrderFilled, &filledString).as_str().map(str::to_owned);
                 add_element_to_object(&mut previousOrder, &Value::Str("filled".into()), totalFilled.clone().map(Value::from).unwrap_or(Value::Null));
-                let mut prevAmountString: Option<String> = self.safe_string_k(previousOrder.clone(), "amount", &[]).as_str().map(str::to_owned);
+                let mut prevAmountString: Option<String> = self.safe_string_k_opt(previousOrder.clone(), "amount", &[]);
                 let mut remaining: Option<String> = crate::precise::Precise::stringSub(&prevAmountString, &totalFilled).as_str().map(str::to_owned);
                 add_element_to_object(&mut previousOrder, &Value::Str("remaining".into()), remaining.map(Value::from).unwrap_or(Value::Null));
                 if (previousOrder.as_map().and_then(|__m| __m.get("fee")).cloned().unwrap_or(Value::Null) == Value::Null) {
@@ -1251,7 +1251,7 @@ impl Krakenfutures {
                     let mut __for_first_435: bool = true;
                     while { if !__for_first_435 { i += 1; } __for_first_435 = false; (i as f64) < get_array_length(&orders).as_f64().unwrap_or(f64::NAN) } {
                     let mut currentOrder: Value = get_value(&orders, &Value::Int(i));
-                    let mut currentOrderId: Option<String> = self.safe_string_k(currentOrder.clone(), "id", &[]).as_str().map(str::to_owned);
+                    let mut currentOrderId: Option<String> = self.safe_string_k_opt(currentOrder.clone(), "id", &[]);
                     if (currentOrderId == cancelledOrderId) {
                         let __ws_arg_0 = self.safe_dict_k(currentOrder.clone(), "info", &[Value::Map({
                             let mut m = indexmap::IndexMap::new();
@@ -1358,11 +1358,11 @@ impl Krakenfutures {
             while { if !__for_first_436 { i += 1; } __for_first_436 = false; i < (orders.len() as i64) } {
             let mut order: crate::value::Dict = orders.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsed: crate::value::Dict = self.parse_ws_order(&order, None).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k(&parsed, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&parsed, "symbol", &[]);
             if (symbol.is_some()) {
                 symbols.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
-            let mut parsedId: Option<String> = self.safe_string_k(&parsed, "id", &[]).as_str().map(str::to_owned);
+            let mut parsedId: Option<String> = self.safe_string_k_opt(&parsed, "id", &[]);
             if (parsedId.is_some()) {
                 snapshotIds.insert(parsedId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -1395,7 +1395,7 @@ impl Krakenfutures {
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]);
-                    let mut cachedStatus: Option<String> = self.safe_string_k(cachedOrder.clone(), "status", &[]).as_str().map(str::to_owned);
+                    let mut cachedStatus: Option<String> = self.safe_string_k_opt(cachedOrder.clone(), "status", &[]);
                     // parseWsOrder leaves status undefined for snapshot and
                     // non-cancel updates, so undefined means open here
                     if (cachedStatus.is_none()) || (cachedStatus.as_deref() == Some("open")) {
@@ -1476,8 +1476,8 @@ impl Krakenfutures {
                 status = Some("cancelled".to_string());
             }
         }
-        let mut marketId: Option<String> = self.safe_string_k(unparsedOrder.clone(), "instrument", &[]).as_str().map(str::to_owned);
-        let mut timestamp: Option<String> = self.safe_string_k(unparsedOrder.clone(), "time", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(unparsedOrder.clone(), "instrument", &[]);
+        let mut timestamp: Option<String> = self.safe_string_k_opt(unparsedOrder.clone(), "time", &[]);
         let mut direction: Option<i64> = self.safe_integer_k(unparsedOrder.clone(), "direction", &[]).as_i64();
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1552,7 +1552,7 @@ impl Krakenfutures {
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (marketId.is_some()) {
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(message, None).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.tickers { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
@@ -1583,7 +1583,7 @@ impl Krakenfutures {
         let mut marketId: Option<String> = (match __pro_message.get("product_id").cloned() { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (marketId.is_some()) {
             let mut ticker: crate::value::Dict = self.parse_ws_ticker(message, None).into_dict();
-            let mut symbol: Option<String> = self.safe_string_k(&ticker, "symbol", &[]).as_str().map(str::to_owned);
+            let mut symbol: Option<String> = self.safe_string_k_opt(&ticker, "symbol", &[]);
             if (symbol.is_some()) {
                 if let Value::Dict(__d) = &mut self.bidsasks { std::sync::Arc::make_mut(__d).insert(symbol.as_deref().unwrap_or("null").to_string(), Value::from(&ticker)); }
             }
@@ -1641,11 +1641,11 @@ impl Krakenfutures {
         //        "volumeQuote": 6899673.0
         //    }
         //
-        let mut marketId: Option<String> = self.safe_string_k(ticker.clone(), "product_id", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "product_id", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(self.safe_string_k(ticker.clone(), "lastTime", &[]));
-        let mut last: Option<String> = self.safe_string_k(ticker.clone(), "last", &[]).as_str().map(str::to_owned);
+        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), ticker.clone());
@@ -1990,7 +1990,7 @@ impl Krakenfutures {
                 let mut symbol: Option<String> = self.safe_symbol(Value::from(key.as_deref()), None, &[]).as_str().map(str::to_owned);
                 let mut newAccount: crate::value::Dict = self.account().into_dict();
                 let mut future: crate::value::Dict = self.safe_dict(&futures, Value::from(key.as_deref()), &[]).into_dict();
-                let mut currencyId: Option<String> = self.safe_string_k(&future, "unit", &[]).as_str().map(str::to_owned);
+                let mut currencyId: Option<String> = self.safe_string_k_opt(&future, "unit", &[]);
                 let mut code: Option<String> = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), None);
                 std::sync::Arc::make_mut(&mut newAccount).insert("free".into(), self.safe_string_k(&future, "available", &[]));
                 std::sync::Arc::make_mut(&mut newAccount).insert("used".into(), self.safe_string_k(&future, "initial_margin", &[]));
@@ -2137,7 +2137,7 @@ impl Krakenfutures {
             while { if !__for_first_444 { i += 1; } __for_first_444 = false; i < (trades.len() as i64) } {
             let mut trade: crate::value::Dict = trades.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut parsedTrade: crate::value::Dict = self.parse_ws_my_trade(Value::Dict(trade), None).into_dict();
-            let mut tradeSymbol: Option<String> = self.safe_string_k(&parsedTrade, "symbol", &[]).as_str().map(str::to_owned);
+            let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&parsedTrade, "symbol", &[]);
             if (tradeSymbol.is_some()) {
                 tradeSymbols.insert(tradeSymbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
             }
@@ -2177,10 +2177,10 @@ impl Krakenfutures {
         //    }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
-        let mut marketId: Option<String> = self.safe_string_k(trade.clone(), "instrument", &[]).as_str().map(str::to_owned);
+        let mut marketId: Option<String> = self.safe_string_k_opt(trade.clone(), "instrument", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut isBuy: bool = self.safe_bool_k(trade.clone(), "buy", &[Value::Bool(false)]).as_bool().unwrap_or(false);
-        let mut feeCurrencyId: Option<String> = self.safe_string_k(trade.clone(), "fee_currency", &[]).as_str().map(str::to_owned);
+        let mut feeCurrencyId: Option<String> = self.safe_string_k_opt(trade.clone(), "fee_currency", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());

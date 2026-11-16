@@ -301,7 +301,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wrapped, "requestId", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
         let mut responseOjb: crate::value::Dict = self.safe_dict_k(response, "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -422,7 +422,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wrapped, "requestId", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &request, (&requestId).as_deref(), Value::Null).await;
         // response is the same as in this.editOrder
         let mut responseObject: crate::value::Dict = self.safe_dict_k(response, "response", &[Value::Map({
@@ -479,7 +479,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut requestId: Option<String> = self.safe_string_k(&wrapped, "requestId", &[]).as_str().map(str::to_owned);
+        let mut requestId: Option<String> = self.safe_string_k_opt(&wrapped, "requestId", &[]);
         let mut response: Value = self.watch(url.as_deref(), (&requestId).as_deref(), &wsRequest, (&requestId).as_deref(), Value::Null).await;
         let mut responseObj: crate::value::Dict = self.safe_dict_k(response, "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -664,7 +664,7 @@ impl Hyperliquid {
         //     }
         //
         let mut entry: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut coin: Option<String> = self.safe_string_k(&entry, "coin", &[]).as_str().map(str::to_owned);
+        let mut coin: Option<String> = self.safe_string_k_opt(&entry, "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = (market).symbol.clone();
@@ -818,14 +818,14 @@ impl Hyperliquid {
 }));
             m
         });
-        let mut defaultDex: Option<String> = self.safe_string_k(params.clone(), "dex", &[]).as_str().map(str::to_owned);
-        let mut firstSymbol: Option<String> = self.safe_string(&symbolsNormalized, Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut defaultDex: Option<String> = self.safe_string_k_opt(params.clone(), "dex", &[]);
+        let mut firstSymbol: Option<String> = self.safe_string_opt(&symbolsNormalized, Value::Int(0), &[]);
         if (firstSymbol.is_some()) {
             let mut market: crate::types::Market = (match self.market(firstSymbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            let mut dexName: Option<String> = self.safe_string(self.safe_dict_k(&market, "info", &[Value::Map({
+            let mut dexName: Option<String> = self.safe_string_k_opt(self.safe_dict_k(&market, "info", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), Value::Str("dex".into()), &[]).as_str().map(str::to_owned);
+})]), "dex", &[]);
             if (dexName.is_some()) {
                 defaultDex = dexName;
             }
@@ -916,7 +916,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchMyTrades", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchMyTrades", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("watchMyTrades", params.clone()), Value::Int(1), &[params]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1010,7 +1010,7 @@ impl Hyperliquid {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("watchMyLiquidationsForSymbols", params.clone()), Value::Int(1), &[params]).into_dict();
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
@@ -1083,7 +1083,7 @@ impl Hyperliquid {
         if (symbol != Value::Null) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", self.id.clone(), " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")));
         }
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("unWatchMyTrades", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("unWatchMyTrades", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("unWatchMyTrades", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut messageHash: String = "unsubscribe:myTrades".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
@@ -1146,7 +1146,7 @@ impl Hyperliquid {
             }
             }
             let mut messageHash: String = "tickers".to_string();
-            let mut dexMessage: Option<String> = self.safe_string_k(&data, "dex", &[]).as_str().map(str::to_owned);
+            let mut dexMessage: Option<String> = self.safe_string_k_opt(&data, "dex", &[]);
             if (dexMessage.is_some()) {
                 messageHash.push_str(&format!("{}{}", ":", dexMessage.as_deref().unwrap_or("null")));
             }
@@ -1183,7 +1183,7 @@ impl Hyperliquid {
         // "circulatingSupply" instead of the swap-only fields
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut coin: Option<String> = self.safe_string_k(&data, "coin", &[]).as_str().map(str::to_owned);
+        let mut coin: Option<String> = self.safe_string_k_opt(&data, "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&market, "symbol").as_str().map(str::to_owned);
@@ -1298,7 +1298,7 @@ impl Hyperliquid {
             let mut limit: i64 = self.safe_integer_k(self.options.clone(), "myLiquidationsLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
             self.myLiquidations = Some(ArrayCache::new(Value::from(limit)));
         }
-        let mut user: Option<String> = self.safe_string_lower_k(&entry, "user", &[]).as_str().map(str::to_owned);
+        let mut user: Option<String> = self.safe_string_lower_k_opt(&entry, "user", &[]);
         let mut fills: crate::value::List = self.safe_list_k(&entry, "fills", &[Value::from(vec![])]).into_list();
         let mut newLiquidations: crate::value::List = std::sync::Arc::new(Vec::new());
         {
@@ -1474,7 +1474,7 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut coin: Option<String> = self.safe_string_k(&first, "coin", &[]).as_str().map(str::to_owned);
+        let mut coin: Option<String> = self.safe_string_k_opt(&first, "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let mut symbol: String = (market).symbol.clone();
@@ -1536,18 +1536,18 @@ impl Hyperliquid {
         //     }
         //
         let mut timestamp: Option<i64> = self.safe_integer_k(trade.clone(), "time", &[]).as_i64();
-        let mut price: Option<String> = self.safe_string_k(trade.clone(), "px", &[]).as_str().map(str::to_owned);
-        let mut amount: Option<String> = self.safe_string_k(trade.clone(), "sz", &[]).as_str().map(str::to_owned);
-        let mut coin: Option<String> = self.safe_string_k(trade.clone(), "coin", &[]).as_str().map(str::to_owned);
+        let mut price: Option<String> = self.safe_string_k_opt(trade.clone(), "px", &[]);
+        let mut amount: Option<String> = self.safe_string_k_opt(trade.clone(), "sz", &[]);
+        let mut coin: Option<String> = self.safe_string_k_opt(trade.clone(), "coin", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(coin.as_deref());
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
         let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&marketResolved, "symbol").as_str().map(str::to_owned);
-        let mut id: Option<String> = self.safe_string_k(trade.clone(), "tid", &[]).as_str().map(str::to_owned);
-        let mut side: Option<String> = self.safe_string_k(trade.clone(), "side", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(trade.clone(), "tid", &[]);
+        let mut side: Option<String> = self.safe_string_k_opt(trade.clone(), "side", &[]);
         if (side.is_some()) {
             side = (if (side.as_deref() == Some("A")) { Some("sell".to_string()) } else { Some("buy".to_string()) });
         }
-        let mut fee: Option<String> = self.safe_string_k(trade.clone(), "fee", &[]).as_str().map(str::to_owned);
+        let mut fee: Option<String> = self.safe_string_k_opt(trade.clone(), "fee", &[]);
         return self.safe_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), trade.clone());
@@ -1700,7 +1700,7 @@ impl Hyperliquid {
         //     }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut base: Option<String> = self.safe_string_k(&data, "s", &[]).as_str().map(str::to_owned);
+        let mut base: Option<String> = self.safe_string_k_opt(&data, "s", &[]);
         let mut marketId: Option<String> = self.parent.coin_to_market_id(base.as_deref());
         let mut symbol: Option<String> = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]).as_str().map(str::to_owned);
         let mut timeframe: String = self.safe_string_k(&data, "i", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
@@ -1732,7 +1732,7 @@ impl Hyperliquid {
         //         }
         //    }
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut id: Option<String> = self.safe_string_k(&data, "id", &[]).as_str().map(str::to_owned);
+        let mut id: Option<String> = self.safe_string_k_opt(&data, "id", &[]);
         let mut response: crate::value::Dict = self.safe_dict_k(&data, "response", &[]).into_dict();
         let mut payload: Option<crate::value::Dict> = self.safe_dict_k(&response, "payload", &[]).into_opt_dict();
         client.resolve(&payload, id.as_deref());
@@ -1760,7 +1760,7 @@ impl Hyperliquid {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchBalance", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchBalance", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: Value = self.safe_dict(self.parent.handle_public_address("watchBalance", params.clone()), Value::Int(1), &[params]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("watchBalance".into()), None, &[paramsValue]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1768,7 +1768,7 @@ impl Hyperliquid {
         let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("watchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
         let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
-        let mut dex: Option<String> = self.safe_string_k(&paramsValue2, "dex", &[]).as_str().map(str::to_owned);
+        let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
         if isSpot {
@@ -1824,7 +1824,7 @@ impl Hyperliquid {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("unWatchBalance", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("unWatchBalance", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: Value = self.safe_dict(self.parent.handle_public_address("unWatchBalance", params.clone()), Value::Int(1), &[params]);
         let type_varparamsMarketTypeVariable: Vec<Value> = self.handle_market_type_and_params(Value::Str("unWatchBalance".into()), None, &[paramsValue]).as_array().cloned().unwrap_or_default();
         let mut type_var: Option<String> = type_varparamsMarketTypeVariable.get(0).and_then(Value::as_str).map(str::to_owned);
@@ -1832,7 +1832,7 @@ impl Hyperliquid {
         let mut unifiedResult: crate::value::List = self.parent.is_unified_enabled("unWatchBalance", userAddress.as_deref(), &[Value::Bool(false), Value::from(&paramsMarketType)]).await.into_list();
         let mut isUnifiedEnabled: bool = self.safe_bool(&unifiedResult, Value::Int(0), &[Value::Bool(false)]).as_bool().unwrap_or(false);
         let mut paramsValue2: crate::value::Dict = self.safe_dict(&unifiedResult, Value::Int(1), &[Value::Dict(paramsMarketType)]).into_dict();
-        let mut dex: Option<String> = self.safe_string_k(&paramsValue2, "dex", &[]).as_str().map(str::to_owned);
+        let mut dex: Option<String> = self.safe_string_k_opt(&paramsValue2, "dex", &[]);
         let mut isSpot: bool = (((type_var.as_deref() == Some("spot")) || isUnifiedEnabled) && (dex.is_none()));
         let mut topic: String = "clearinghouseState".to_string();
         if isSpot {
@@ -1992,7 +1992,7 @@ impl Hyperliquid {
         //     }
         //
         let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
-        let mut currencyId: Option<String> = self.safe_string_k(balance.clone(), "coin", &[]).as_str().map(str::to_owned);
+        let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "coin", &[]);
         let mut code: Option<String> = None;
         if (currencyId.is_none()) {
             code = Some("USDC".to_string());
@@ -2053,7 +2053,7 @@ impl Hyperliquid {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("watchPositions", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut topic: String = "clearinghouseState".to_string();
         let mut messageHash: String = format!("{}{}", topic, "::positions");
@@ -2139,7 +2139,7 @@ impl Hyperliquid {
             while { if !__for_first_408 { i += 1; } __for_first_408 = false; i < (messageHashes.len() as i64) } {
             let mut messageHash: Option<String> = messageHashes.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             let mut parts: crate::value::List = Value::Array(if let Some(__s) = messageHash.as_deref() { __s.split("::").map(Value::from).collect() } else { Vec::new() }).into_list();
-            let mut symbolsString: Option<String> = self.safe_string(&parts, Value::Int(2), &[]).as_str().map(str::to_owned);
+            let mut symbolsString: Option<String> = self.safe_string_opt(&parts, Value::Int(2), &[]);
             if (symbolsString.is_none()) {
                 continue;
             }
@@ -2181,7 +2181,7 @@ impl Hyperliquid {
         }
         let mut messageHash: String = "unsubscribe:clearinghouseState".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("unWatchPositions", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("unWatchPositions", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("unWatchPositions", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2228,7 +2228,7 @@ impl Hyperliquid {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("watchOrders", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("watchOrders", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("watchOrders", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut market: Option<crate::types::Market> = None;
         let mut messageHash: String = "order".to_string();
@@ -2236,7 +2236,7 @@ impl Hyperliquid {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             messageHash = format!("{}{}", Value::Str("order:".into()), self.safe_string_k(&market, "symbol", &[Value::Str("".into())]));
         }
-        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k(&market, "symbol", &[]).as_str().map(str::to_owned) } else { symbol.as_str().map(str::to_owned) });
+        let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2301,7 +2301,7 @@ impl Hyperliquid {
         }
         let mut messageHash: String = "unsubscribe:order".to_string();
         let mut url: Option<String> = crate::value::get_value_k(&self.urls.as_map().and_then(|__m| __m.get("api")).cloned().unwrap_or(Value::Null).as_map().and_then(|__m| __m.get("ws")).cloned().unwrap_or(Value::Null), "public").as_str().map(str::to_owned);
-        let mut userAddress: Option<String> = self.safe_string(self.parent.handle_public_address("unWatchOrders", params.clone()), Value::Int(0), &[]).as_str().map(str::to_owned);
+        let mut userAddress: Option<String> = self.safe_string_opt(self.parent.handle_public_address("unWatchOrders", params.clone()), Value::Int(0), &[]);
         let mut paramsValue: crate::value::Dict = self.safe_dict(self.parent.handle_public_address("unWatchOrders", params.clone()), Value::Int(1), &[params]).into_dict();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -2437,7 +2437,7 @@ impl Hyperliquid {
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
         let mut id: Option<String> = (match message.get("id") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
         if (id.is_none()) {
-            id = self.safe_string_k(&data, "id", &[]).as_str().map(str::to_owned);
+            id = self.safe_string_k_opt(&data, "id", &[]);
         }
         let mut response: crate::value::Dict = self.safe_dict_k(&data, "response", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2447,13 +2447,13 @@ impl Hyperliquid {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut status: Option<String> = self.safe_string_k(&payload, "status", &[]).as_str().map(str::to_owned);
+        let mut status: Option<String> = self.safe_string_k_opt(&payload, "status", &[]);
         if (status.is_some()) && (status.as_deref() != Some("ok")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
             client.reject(error.clone(), id.as_deref());
             return Value::Bool(true);
         }
-        let mut type_var: Option<String> = self.safe_string_k(&payload, "type", &[]).as_str().map(str::to_owned);
+        let mut type_var: Option<String> = self.safe_string_k_opt(&payload, "type", &[]);
         if (type_var.as_deref() == Some("error")) {
             let mut error = Value::from(crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), json_stringify(&payload))));
             client.reject(error.clone(), id.as_deref());
@@ -2615,7 +2615,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.clean_unsubscription(client, Value::from(subHash), Value::from(unSubHash), &[Value::Bool(true)]);
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        let mut user: Option<String> = self.safe_string_lower_k(subscription, "user", &[]).as_str().map(str::to_owned);
+        let mut user: Option<String> = self.safe_string_lower_k_opt(subscription, "user", &[]);
         if (user.is_some()) {
             let mut subscribeHash: String = format!("{}{}", "subscribe:orderUpdates::", user.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(subscribeHash.as_str())) {
@@ -2640,7 +2640,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         self.myLiquidations = None;
         // the prefix sweep above can't see the per-user dedup key (prefix-disjoint by design);
         // clear it for the user echoed in the ack so a later watch re-subscribes
-        let mut user: Option<String> = self.safe_string_lower_k(subscription, "user", &[]).as_str().map(str::to_owned);
+        let mut user: Option<String> = self.safe_string_lower_k_opt(subscription, "user", &[]);
         if (user.is_some()) {
             let mut subscribeHash: String = format!("{}{}", "subscribe:userFills::", user.as_deref().unwrap_or("null"));
             if (__ch.has_subscription(subscribeHash.as_str())) {
@@ -2708,7 +2708,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //  }
         //
         let mut data: crate::value::Dict = message.get("data").cloned().unwrap_or_default().into_dict();
-        let mut method: Option<String> = self.safe_string_k(&data, "method", &[]).as_str().map(str::to_owned);
+        let mut method: Option<String> = self.safe_string_k_opt(&data, "method", &[]);
         if (method.as_deref() == Some("unsubscribe")) {
             let mut subscription: crate::value::Dict = self.safe_dict_k(&data, "subscription", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
