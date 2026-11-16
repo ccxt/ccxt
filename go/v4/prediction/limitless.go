@@ -1775,12 +1775,12 @@ func (this *Limitless) fetchOHLCVBody(ch chan ccxt.AsyncResult[[]ccxt.OHLCV], ou
 	var history any = rawHistory
 	var rawHistoryLength int = ccxt.GetArrayLength(rawHistory)
 	if rawHistoryLength > 0 {
-		var first any = this.SafeDict(rawHistory, 0, map[string]any{})
+		var first map[string]any = this.SafeDictMap(rawHistory, 0, map[string]any{})
 		var firstPrices []any = ccxt.SafeListTyped(first, "prices")
 		if firstPrices != nil {
 			var selectedSeries any = first
 			for i := 0; i < rawHistoryLength; i++ {
-				var series any = this.SafeDict(rawHistory, i, map[string]any{})
+				var series map[string]any = this.SafeDictMap(rawHistory, i, map[string]any{})
 				var title *string = this.SafeStringUpper(series, "title", "")
 				if title == nil {
 					panic(ccxt.ExchangeError(this.Id + " fetchOHLCV() missing title"))
@@ -2377,7 +2377,7 @@ func (this *Limitless) ParsePredictionOrder(order any, optionalArgs ...any) map[
 	var data map[string]any = ccxt.SafeMapTyped(order, "data")
 	var rawOrder any = this.SafeDict(data, "order", order)
 	// createOrder returns the order nested under an 'order' key
-	var wrappedOrder any = this.SafeDict(rawOrder, "order")
+	var wrappedOrder map[string]any = this.SafeDictMap(rawOrder, "order")
 	if wrappedOrder != nil {
 		rawOrder = wrappedOrder
 	}

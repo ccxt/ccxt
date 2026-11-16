@@ -1151,18 +1151,18 @@ func (this *Polymarket) ParseEventToMarkets(event any) any {
 				"info":    market,
 			})
 		}
-		var baseId *string = func() *string {
-			if conditionId != nil {
-				return conditionId
-			}
-			return marketId
-		}()
-		var marketType string = func() string {
-			if outcomeLabelsLength > 2 {
-				return "categorical"
-			}
-			return "binary"
-		}()
+		var baseId *string
+		if conditionId != nil {
+			baseId = conditionId
+		} else {
+			baseId = marketId
+		}
+		var marketType string
+		if outcomeLabelsLength > 2 {
+			marketType = "categorical"
+		} else {
+			marketType = "binary"
+		}
 		// effectively-final copy for the market object literal below (reassigned in the loop)
 		var marketResolvedOutcome any = resolvedOutcome
 		result = append(result, map[string]any{
@@ -2414,7 +2414,7 @@ func (this *Polymarket) ParsePredictionTrade(trade any, optionalArgs ...any) any
 		side = rawSide
 	}
 	var assetId *string = this.SafeString2(trade, "asset", "asset_id")
-	var mkt any = nil
+	var mkt map[string]any = nil
 	if market != nil {
 		mkt = market
 	} else {
@@ -2976,7 +2976,7 @@ func (this *Polymarket) createOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	var requests []any = []any{}
 	for i := 0; i < len(orders); i++ {
 		var o map[string]any = ccxt.SafeMapTyped(orders, i)
-		var orderParams any = this.SafeDict(o, "params", map[string]any{})
+		var orderParams map[string]any = this.SafeDictMap(o, "params", map[string]any{})
 		if this.SafeString(orderParams, "salt") == nil {
 			// a distinct salt per order so two identical orders don't collide, within a batch or across calls
 			var orderSalt int64 = this.IncrementingNonce() // hoisted to a named local: nesting the &mut self call inside numberToString breaks the Rust borrow checker
@@ -3730,15 +3730,15 @@ func (this *Polymarket) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.Predicti
 	// shared applyEventFetchParams then caches (setEvents) and applies the unified
 	// eventId/slug/status/tags/searchIn/sort/limit filters, so all five venues behave the same
 	this.PopulateOutcomes()
-	var effectiveParams any = params
+	var effectiveParams map[string]any = params
 	if queriesLength > 0 {
 		// the gamma search endpoint is fuzzy, so default to refining by active status and a
 		// title match (the caller can override); the other venues search exactly and need no
 		// such default. inject the defaults as explicit params so the shared pipeline stays
 		// the single behaviour definition
 		effectiveParams = this.Extend(map[string]any{}, params)
-		ccxt.AddElementToObject(effectiveParams, "status", this.SafeString(params, "status", "active"))
-		ccxt.AddElementToObject(effectiveParams, "searchIn", this.SafeString(params, "searchIn", "title"))
+		effectiveParams["status"] = this.SafeString(params, "status", "active")
+		effectiveParams["searchIn"] = this.SafeString(params, "searchIn", "title")
 	}
 
 	ch <- ccxt.AsyncResult[[]ccxt.PredictionEvent]{Value: ccxt.PredictionEventsFromList(this.ApplyEventFetchParams(result, effectiveParams, queries))}

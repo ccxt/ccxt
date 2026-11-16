@@ -786,15 +786,15 @@ func (this *Bitbank) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var windowLimit any = func() any {
-		if limit == nil {
-			return 1000
-		}
-		return limit
-	}()
-	var limitResolved any = func() any {
+	var windowLimit int64
+	if limit == nil {
+		windowLimit = 1000
+	} else {
+		windowLimit = *limit
+	}
+	var limitResolved *int64 = func() *int64 {
 		if since == nil {
-			return windowLimit
+			return Int64PtrTyped(windowLimit)
 		}
 		return limit
 	}()

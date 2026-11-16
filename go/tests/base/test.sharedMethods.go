@@ -21,12 +21,12 @@ func LogTemplate(exchange ccxt.ICoreExchange, method any, entry any) any {
 		}
 		return "undefined"
 	}()
-	var entryString any = func() any {
-		if !IsEqual(exchange, nil) && (entry != nil) {
-			return exchange.Json(entry)
-		}
-		return ""
-	}()
+	var entryString string
+	if !IsEqual(exchange, nil) && (entry != nil) {
+		entryString = exchange.Json(entry)
+	} else {
+		entryString = ""
+	}
 	return Add(Add(Add(Add(Add(Add(" <<< ", id), " "), methodString), " ::: "), entryString), " >>> ")
 }
 func IsTemporaryFailure(e any) any {
@@ -399,18 +399,18 @@ func AssertTimestampOrder(exchange ccxt.ICoreExchange, method any, codeOrSymbol 
 			var currentTs any = GetValue(GetValue(items, i-1), "timestamp")
 			var nextTs any = GetValue(GetValue(items, i), "timestamp")
 			if (currentTs != nil) && (nextTs != nil) {
-				var ascendingOrDescending string = func() string {
-					if ascending == true {
-						return "ascending"
-					}
-					return "descending"
-				}()
-				var comparison bool = func() bool {
-					if ascending == true {
-						return (IsLessThanOrEqual(currentTs, nextTs))
-					}
-					return (IsGreaterThanOrEqual(currentTs, nextTs))
-				}()
+				var ascendingOrDescending string
+				if ascending == true {
+					ascendingOrDescending = "ascending"
+				} else {
+					ascendingOrDescending = "descending"
+				}
+				var comparison bool
+				if ascending == true {
+					comparison = (IsLessThanOrEqual(currentTs, nextTs))
+				} else {
+					comparison = (IsGreaterThanOrEqual(currentTs, nextTs))
+				}
 				Assert(comparison, Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(exchange.GetId(), " "), method), " "), StringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ToString(currentTs)), " is opposite with its next "), ToString(nextTs)), " "), exchange.Json(items)))
 			}
 		}

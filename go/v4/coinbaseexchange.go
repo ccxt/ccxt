@@ -2239,9 +2239,9 @@ func (this *Coinbaseexchange) createOrderBody(ch chan AsyncResult[Order], symbol
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "time_in_force", "stopPrice", "stop_price", "clientOrderId", "client_oid", "postOnly", "post_only", "triggerPrice"})
 	var costParam *float64 = this.SafeNumber2(paramsOmitted, "cost", "funds")
 	var omitCost bool = (typeVar == "market") && (costParam != nil)
-	var paramsCost any = paramsOmitted
+	var paramsCost map[string]any = paramsOmitted
 	if omitCost {
-		paramsCost = this.Omit(paramsOmitted, []any{"cost", "funds"})
+		paramsCost = this.OmitDict(paramsOmitted, []any{"cost", "funds"})
 	}
 	if typeVar == "limit" {
 		request["price"] = this.PriceToPrecision(symbol, price)

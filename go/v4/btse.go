@@ -1186,7 +1186,7 @@ func (this *Btse) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRateH
 		panic(BadRequest(this.Id + " fetchFundingRateHistory() supports contract markets only"))
 	}
 	var period *string = nil
-	var paramsPeriod any = nil
+	var paramsPeriod map[string]any = nil
 	period, paramsPeriod = this.HandleOptionStringAndParams(params, "fetchFundingRateHistory", "period")
 	if period == nil {
 		period = SafeStringPtr("7D")

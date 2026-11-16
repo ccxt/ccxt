@@ -4106,12 +4106,12 @@ func (this *Grvt) ParseOrder(order any, optionalArgs ...any) Order {
 	var primaryOrderIndex int = 0
 	var firstLeg map[string]any = SafeMapTyped(legs, primaryOrderIndex)
 	var legMarketId *string = this.SafeString(firstLeg, "instrument")
-	var marketResolved any = func() any {
-		if firstLeg != nil {
-			return this.SafeMarket(legMarketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if firstLeg != nil {
+		marketResolved = this.SafeMarket(legMarketId, market)
+	} else {
+		marketResolved = market
+	}
 	if firstLeg != nil {
 		size = this.SafeString(firstLeg, "size")
 		var isBuyingAsset *bool = this.SafeBool(firstLeg, "is_buying_asset", false)
@@ -4377,12 +4377,12 @@ func (this *Grvt) CreateSignedRequest(request map[string]any, structureType stri
 	var definitions map[string]any = this.EipDefinitions()
 	var ethEncodedMessage []uint8 = this.EthEncodeStructuredData(domainData, definitions[structureType], messageData)
 	var usesPrivKey bool = this.UsesPrivateKey() // py transpiler needs this line separated
-	var secretOrPrivkey any = func() any {
-		if usesPrivKey {
-			return this.PrivateKey
-		}
-		return this.Secret
-	}()
+	var secretOrPrivkey string
+	if usesPrivKey {
+		secretOrPrivkey = this.PrivateKey
+	} else {
+		secretOrPrivkey = this.Secret
+	}
 	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
 	var signature map[string]any = Ecdsa(this.Hash(ethEncodedMessage, keccak, "hex"), privateKeyWithoutZero, secp256k1, nil)
 	request["signature"] = map[string]any{

@@ -978,18 +978,18 @@ func (this *Onetrading) fetchPrivateTradingFeesBody(ch chan AsyncResult[map[stri
 	for i := 0; i < len(symbols); i++ {
 		var symbol string = symbols[i]
 		var market map[string]any = this.Market(symbol)
-		var makerFee *string = func() *string {
-			if *this.SafeBool(market, "spot", false) {
-				return spotMakerFee
-			}
-			return futuresMakerFee
-		}()
-		var takerFee *string = func() *string {
-			if *this.SafeBool(market, "spot", false) {
-				return spotTakerFee
-			}
-			return futuresTakerFee
-		}()
+		var makerFee *string
+		if *this.SafeBool(market, "spot", false) {
+			makerFee = spotMakerFee
+		} else {
+			makerFee = futuresMakerFee
+		}
+		var takerFee *string
+		if *this.SafeBool(market, "spot", false) {
+			takerFee = spotTakerFee
+		} else {
+			takerFee = futuresTakerFee
+		}
 		result[symbol] = map[string]any{
 			"info":       response,
 			"symbol":     symbol,
@@ -1791,18 +1791,18 @@ func (this *Onetrading) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if clientOrderId != nil {
 		request["client_id"] = clientOrderId
 	}
-	var triggerKeys any = func() any {
-		if triggerPrice != nil {
-			return []any{"triggerPrice", "trigger_price", "stopPrice"}
-		}
-		return []any{}
-	}()
-	var clientOrderIdKeys any = func() any {
-		if clientOrderId != nil {
-			return []any{"clientOrderId", "client_id"}
-		}
-		return []any{}
-	}()
+	var triggerKeys []any
+	if triggerPrice != nil {
+		triggerKeys = []any{"triggerPrice", "trigger_price", "stopPrice"}
+	} else {
+		triggerKeys = []any{}
+	}
+	var clientOrderIdKeys []any
+	if clientOrderId != nil {
+		clientOrderIdKeys = []any{"clientOrderId", "client_id"}
+	} else {
+		clientOrderIdKeys = []any{}
+	}
 	var paramsOmitted map[string]any = this.OmitDict(params, this.ArrayConcat(this.ArrayConcat(triggerKeys, clientOrderIdKeys), []any{"timeInForce"}))
 	var timeInForce *string = this.SafeString2(params, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED")
 	request["time_in_force"] = timeInForce

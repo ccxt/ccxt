@@ -1158,12 +1158,12 @@ func (this *Backpack) ParseMarket(market any) map[string]any {
 	}
 	var orderBookState *string = this.SafeString(market, "orderBookState")
 	// RFQ active means listed, not currently in session; an explicit order book state takes precedence.
-	var active any = func() any {
-		if rfq && (orderBookState == nil) {
-			return ((id != nil) || (this.SafeString(security, "asset") != nil))
-		}
-		return (orderBookState != nil && *orderBookState == "Open")
-	}()
+	var active bool
+	if rfq && (orderBookState == nil) {
+		active = ((id != nil) || (this.SafeString(security, "asset") != nil))
+	} else {
+		active = (orderBookState != nil && *orderBookState == "Open")
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -1452,12 +1452,12 @@ func (this *Backpack) fetchConvertQuoteBody(ch chan AsyncResult[Conversion], fro
 	}
 	var market map[string]any = MapTyped(this.RfqConversionMarket(fromCode, toCode))
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
-	var side string = func() string {
-		if fromIsBase {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string
+	if fromIsBase {
+		side = "sell"
+	} else {
+		side = "buy"
+	}
 	if !fromIsBase {
 
 		r1 := <-this.FetchStockIndicativeQuoteAsync(market["symbol"], side, 1, map[string]any{
@@ -1610,12 +1610,12 @@ func (this *Backpack) createConvertTradeBody(ch chan AsyncResult[Conversion], id
 		panic(ArgumentsRequired(this.Id + " createConvertTrade() requires a positive amount"))
 	}
 	var fromIsBase bool = (this.SafeString(market, "base") != nil && *this.SafeString(market, "base") == fromCode)
-	var side string = func() string {
-		if fromIsBase {
-			return "sell"
-		}
-		return "buy"
-	}()
+	var side string
+	if fromIsBase {
+		side = "sell"
+	} else {
+		side = "buy"
+	}
 	var quantity *string = this.NumberToString(amount)
 	var price *float64 = this.SafeNumber(query, "price")
 	if !fromIsBase {
@@ -1905,12 +1905,12 @@ func (this *Backpack) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], o
 		} else if marketIsRfq {
 			var underlyingId string = *this.SafeString(market, "baseId", "") + "_" + *this.SafeString(market, "quoteId", "")
 			var useExternal bool = (source == "External") || needsExternalRfqTickers
-			var tickerSource map[string]any = func() map[string]any {
-				if useExternal {
-					return externalResponseById
-				}
-				return responseById
-			}()
+			var tickerSource map[string]any
+			if useExternal {
+				tickerSource = externalResponseById
+			} else {
+				tickerSource = responseById
+			}
 			var underlyingTicker map[string]any = SafeMapTyped(tickerSource, underlyingId)
 			if underlyingTicker != nil {
 				result[marketSymbol] = TickerToMap(this.ParseTicker(underlyingTicker, market))
@@ -1983,12 +1983,12 @@ func (this *Backpack) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
-	var marketResolved any = func() any {
-		if market == nil {
-			return this.SafeMarket(marketId)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if market == nil {
+		marketResolved = this.SafeMarket(marketId)
+	} else {
+		marketResolved = market
+	}
 	var open *string = this.SafeString(ticker, "firstPrice")
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var high *string = this.SafeString(ticker, "high")

@@ -1180,12 +1180,12 @@ func (this *Krakenfutures) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol s
 		"interval":   this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	var paramsOmitted map[string]any = this.OmitDict(paramsPaginate, "price")
-	var windowLimit any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 2000) {
-			return 2000
-		}
-		return limit
-	}()
+	var windowLimit int64
+	if (limit == nil) || (limit != nil && *limit > 2000) {
+		windowLimit = 2000
+	} else {
+		windowLimit = *limit
+	}
 	var windowSize int64 = this.ParseToInt(windowLimit)
 	var limitResolved any = nil
 	if (since != nil) || (limit != nil) {

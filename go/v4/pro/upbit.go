@@ -746,12 +746,12 @@ func (this *Upbit) ParseWsOrder(order any, optionalArgs ...any) map[string]any {
 	// when state is trade the price and volume fields describe the fill, not the order:
 	// fall back to the average fill price and let the order volume derive from filled + remaining
 	var isTrade bool = (rawStatus != nil && *rawStatus == "trade")
-	var price *string = func() *string {
-		if isTrade {
-			return this.SafeString(order, "avg_price")
-		}
-		return this.SafeString(order, "price")
-	}()
+	var price *string
+	if isTrade {
+		price = this.SafeString(order, "avg_price")
+	} else {
+		price = this.SafeString(order, "price")
+	}
 	var amount *string = func() *string {
 		if isTrade {
 			return nil

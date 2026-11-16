@@ -4783,12 +4783,12 @@ func (this *Mexc) ParseOrder(order any, optionalArgs ...any) Order {
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var isContract *bool = SafeBoolPtr(marketResolved["contract"])
 	var sideRaw *string = this.SafeString(order, "side")
-	var side *string = func() *string {
-		if isContract != nil && *isContract == true {
-			return this.ParseContractOrderSide(sideRaw)
-		}
-		return this.ParseOrderSide(sideRaw)
-	}()
+	var side *string
+	if isContract != nil && *isContract == true {
+		side = this.ParseContractOrderSide(sideRaw)
+	} else {
+		side = this.ParseOrderSide(sideRaw)
+	}
 	var timestamp *int64 = this.SafeIntegerN(order, []any{"time", "createTime", "transactTime"})
 	var fee map[string]any = nil
 	var feeCurrency *string = this.SafeString(order, "feeCurrency")
@@ -5212,7 +5212,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	}
 	var marketType any = nil
 	var request map[string]any = map[string]any{}
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	var marketTypePtr *string = nil
 	marketTypePtr, paramsMarketType = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	if marketTypePtr != nil {
@@ -5220,7 +5220,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 	}
 	var marginMode *string = this.SafeString(paramsMarketType, "marginMode")
 	var isMargin *bool = this.SafeBool(paramsMarketType, "margin", false)
-	var paramsOmitted2 any = this.Omit(paramsMarketType, []any{"margin", "marginMode"})
+	var paramsOmitted2 map[string]any = this.OmitDict(paramsMarketType, []any{"margin", "marginMode"})
 	var response map[string]any = nil
 	if (marginMode != nil) || (isMargin != nil && *isMargin) || (marketType == "margin") {
 		var parsedSymbols any = nil
@@ -5238,7 +5238,7 @@ func (this *Mexc) fetchBalanceBody(ch chan AsyncResult[Balances], optionalArgs .
 		this.CheckRequiredArgument("fetchBalance", parsedSymbols, "symbol or symbols")
 		marketType = "margin"
 		request["symbols"] = parsedSymbols
-		var paramsOmitted any = this.Omit(paramsOmitted2, []any{"symbol", "symbols"})
+		var paramsOmitted map[string]any = this.OmitDict(paramsOmitted2, []any{"symbol", "symbols"})
 
 		r1 := <-this.SpotPrivateGetMarginIsolatedAccount(this.Extend(request, paramsOmitted))
 		if r1.Err != nil {
@@ -6709,12 +6709,12 @@ func (this *Mexc) ParseTransaction(transaction any, optionalArgs ...any) Transac
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var id *string = this.SafeString2(transaction, "id", "tranId")
-	var typeVar string = func() string {
-		if id == nil {
-			return "deposit"
-		}
-		return "withdrawal"
-	}()
+	var typeVar string
+	if id == nil {
+		typeVar = "deposit"
+	} else {
+		typeVar = "withdrawal"
+	}
 	var timestamp *int64 = this.SafeInteger2(transaction, "insertTime", "applyTime")
 	var updated *int64 = this.SafeInteger(transaction, "updateTime")
 	var currencyId any = nil
@@ -7022,19 +7022,19 @@ func (this *Mexc) ParsePosition(position any, optionalArgs ...any) Position {
 	var initialMargin any = this.OmitZero(this.SafeString(position, "im"))
 	var unrealizedPnl *string = this.SafeString(position, "unRealizedPnl")
 	var rawSide *string = this.SafeString(position, "positionType")
-	var side string = func() string {
-		if rawSide != nil && *rawSide == "1" {
-			return "long"
-		}
-		return "short"
-	}()
+	var side string
+	if rawSide != nil && *rawSide == "1" {
+		side = "long"
+	} else {
+		side = "short"
+	}
 	var openType *string = this.SafeString2(position, "openType", "margin_mode")
-	var marginType string = func() string {
-		if openType != nil && *openType == "1" {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginType string
+	if openType != nil && *openType == "1" {
+		marginType = "isolated"
+	} else {
+		marginType = "cross"
+	}
 	var collateralString any = nil
 	var marginString any = nil
 	if (marginType == "isolated") && (initialMargin != nil) {
@@ -7330,9 +7330,9 @@ func (this *Mexc) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		var market map[string]any = this.Market(symbol)
 		request["symbol"] = market["id"]
 	}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isIsolatedMargin {
-		paramsOmitted = this.Omit(params, "symbol")
+		paramsOmitted = this.OmitDict(params, "symbol")
 	}
 
 	r1 := <-this.SpotPrivatePostCapitalTransfer(this.Extend(request, paramsOmitted))

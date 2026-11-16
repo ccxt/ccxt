@@ -897,7 +897,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 			continue
 		}
 		ccxt.AddElementToObject(ticker, "ts", timestamp)
-		var parsedTicker any = this.ParseWsBidAsk(ticker)
+		var parsedTicker map[string]any = this.ParseWsBidAsk(ticker)
 		var symbol *string = this.SafeString(parsedTicker, "symbol")
 		if symbol != nil {
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedTicker)
@@ -908,7 +908,7 @@ func (this *Woo) HandleBidAsk(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Woo) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Woo) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -1323,7 +1323,7 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
@@ -1341,7 +1341,7 @@ func (this *Woo) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 		this.Watch(url, messageHash, message, messageHash, message)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1854,8 +1854,8 @@ func (this *Woo) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 	var url string = apiUrl + "/" + this.Uid
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 
 		r1 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -1889,7 +1889,7 @@ func (this *Woo) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 func (this *Woo) SetPositionsCache(client any, typeVar any, optionalArgs ...any) {
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {

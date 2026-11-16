@@ -547,12 +547,12 @@ func (this *Polymarket) fetchCurrenciesBody(ch chan AsyncResult[map[string]any],
 			// crypto ones are unified as crypto, equities, commodities and
 			// indices map onto the other currency type
 			var category *string = this.SafeString(instrument, "category")
-			var currencyType string = func() string {
-				if category != nil && *category == "crypto" {
-					return "crypto"
-				}
-				return "other"
-			}()
+			var currencyType string
+			if category != nil && *category == "crypto" {
+				currencyType = "crypto"
+			} else {
+				currencyType = "other"
+			}
 			if code != nil {
 				result[*code] = this.SafeCurrencyStructure(map[string]any{
 					"id":        baseId,
@@ -1247,12 +1247,12 @@ func (this *Polymarket) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 		// the venue requires an explicit range start - the window covers
 		// exactly the requested number of candle bins including the
 		// current one, so the newest candle never falls off the range
-		var end int64 = func() int64 {
-			if until != nil {
-				return *until
-			}
-			return this.Milliseconds()
-		}()
+		var end int64
+		if until != nil {
+			end = *until
+		} else {
+			end = this.Milliseconds()
+		}
 		var requestedLimit int64 = func() int64 {
 			if limit != nil {
 				return *limit
@@ -2085,12 +2085,12 @@ func (this *Polymarket) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []str
 	for i := 0; i < len(response); i++ {
 		var ack map[string]any = this.SafeDictMap(response, i, map[string]any{})
 		var status *string = this.SafeString(ack, "status")
-		var unified string = func() string {
-			if status != nil && *status == "err" {
-				return "rejected"
-			}
-			return "canceled"
-		}()
+		var unified string
+		if status != nil && *status == "err" {
+			unified = "rejected"
+		} else {
+			unified = "canceled"
+		}
 		var merged map[string]any = map[string]any{
 			"oid":    this.SafeInteger(ack, "oid"),
 			"coid":   this.SafeString(ack, "coid"),
@@ -3093,12 +3093,12 @@ func (this *Polymarket) ParseTransaction(transaction any, optionalArgs ...any) T
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
 	var withdrawId *string = this.SafeString(transaction, "withdraw_id")
-	var typeVar string = func() string {
-		if withdrawId != nil {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string
+	if withdrawId != nil {
+		typeVar = "withdrawal"
+	} else {
+		typeVar = "deposit"
+	}
 	var currencyId *string = this.SafeString(transaction, "asset")
 	var code *string = this.SafeCurrencyCode(currencyId, currency)
 	var timestamp *int64 = this.SafeInteger(transaction, "created_timestamp")

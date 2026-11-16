@@ -198,18 +198,18 @@ func (this *Bybit) getUrlByMarketTypeBody(ch chan ccxt.AsyncResult[*string], opt
 	_ = method
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var accessibility string = func() string {
-		if isPrivate == true {
-			return "private"
-		}
-		return "public"
-	}()
-	var methodValue string = func() string {
-		if method == nil {
-			return ""
-		}
-		return *method
-	}()
+	var accessibility string
+	if isPrivate == true {
+		accessibility = "private"
+	} else {
+		accessibility = "public"
+	}
+	var methodValue string
+	if method == nil {
+		methodValue = ""
+	} else {
+		methodValue = *method
+	}
 	var isUsdcSettled bool
 	var isSpot bool
 	var typeVar *string = nil
@@ -909,7 +909,7 @@ func (this *Bybit) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ti
 	ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Bidsasks, symbolsValue)}
 	return nil
 }
-func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) any {
+func (this *Bybit) ParseWsBidAsk(orderbook any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(orderbook, "timestamp")
@@ -1562,7 +1562,7 @@ func (this *Bybit) HandleOrderBook(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	if limit != nil && *limit == "1" {
-		var bidask any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
+		var bidask map[string]any = this.ParseWsBidAsk(ccxt.UnWrapType(this.Orderbooks[*symbol]), market)
 		var newBidsAsks map[string]any = map[string]any{}
 		if symbol != nil {
 			newBidsAsks[*symbol] = bidask
@@ -2276,8 +2276,8 @@ func (this *Bybit) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 	}
 	this.SetPositionsCache(client, symbolsNormalized)
 	var cache ccxt.WsArrayCache = this.Positions
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
 		r3 := <-client.(ccxt.ClientInterface).Future("fetchPositionsSnapshot")
@@ -2321,7 +2321,7 @@ func (this *Bybit) SetPositionsCache(client any, optionalArgs ...any) {
 	if this.Positions != nil {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -3440,7 +3440,7 @@ func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, 
 	this.CheckRequiredCredentials()
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var expiresInt int64 = this.Milliseconds() + 10000
@@ -3456,7 +3456,7 @@ func (this *Bybit) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, 
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

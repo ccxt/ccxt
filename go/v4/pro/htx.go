@@ -647,7 +647,7 @@ func (this *Htx) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInter
 	}
 	var url any = this.GetUrlByMarketType(market["type"], market["linear"], false, true)
 	var method any = this.HandleOrderBookSubscription
-	var paramsExtended any = params
+	var paramsExtended map[string]any = params
 	if !(*this.SafeBool(market, "spot", false)) {
 		paramsExtended = this.Extend(params, map[string]any{
 			"data_type": "incremental",
@@ -1168,12 +1168,12 @@ func (this *Htx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], optio
 		subType = (*this.SafeString2(this.Options, "subType", "defaultSubType", "linear"))
 		subType = ccxt.DerefScalar(this.SafeString(params, "subType", subType))
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	var paramsRequest any = func() any {
 		if symbol != nil {
 			return params
@@ -2064,12 +2064,12 @@ func (this *Htx) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], o
 		}
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols)
-	var paramsPositions map[string]any = func() map[string]any {
-		if !ccxt.IsEqual(market, nil) {
-			return params
-		}
-		return paramsSubType
-	}()
+	var paramsPositions map[string]any
+	if !ccxt.IsEqual(market, nil) {
+		paramsPositions = params
+	} else {
+		paramsPositions = paramsSubType
+	}
 	marginMode, paramsMarginMode := this.HandleMarginModeAndParams("watchPositions", paramsPositions, "cross")
 	var paramsRequest any = paramsMarginMode
 	var linear bool = (subType == "linear")
@@ -3661,7 +3661,7 @@ func (this *Htx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var messageHash string = "auth"
 	var relativePath string = strings.Replace(*url, "wss://"+*hostname, "", 1)
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = this.Ymdhms(this.Milliseconds(), "T")
@@ -3720,7 +3720,7 @@ func (this *Htx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 		this.Watch(url, messageHash, request, messageHash, subscription)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

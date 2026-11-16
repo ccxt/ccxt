@@ -3522,12 +3522,12 @@ func (this *Toobit) fetchDepositsOrWithdrawalsHelperBody(ch chan AsyncResult[[]T
 		}
 		response = r2.Raw
 	}
-	var transactType string = func() string {
-		if typeVar == "deposits" {
-			return "deposit"
-		}
-		return "withdrawal"
-	}()
+	var transactType string
+	if typeVar == "deposits" {
+		transactType = "deposit"
+	} else {
+		transactType = "withdrawal"
+	}
 	var results []any = []any{}
 	for i := 0; i < GetArrayLength(response); i++ {
 		results = append(results, this.Extend(this.ParseTransactionWithType(GetValue(response, i), currency, transactType), paramsUntil))
@@ -3615,12 +3615,12 @@ func (this *Toobit) ParseTransaction(transaction any, optionalArgs ...any) Trans
 	var addressTo *string = this.SafeString(transaction, "address")
 	var addressFrom *string = this.SafeString(transaction, "fromAddress")
 	var isWithdraw bool = (InOp(transaction, "arriveQuantity")) || (InOp(transaction, "success"))
-	var typeVar string = func() string {
-		if isWithdraw {
-			return "withdrawal"
-		}
-		return "deposit"
-	}()
+	var typeVar string
+	if isWithdraw {
+		typeVar = "withdrawal"
+	} else {
+		typeVar = "deposit"
+	}
 	return TransactionFromMap(map[string]any{
 		"info":        transaction,
 		"id":          this.SafeString(transaction, "id"),
@@ -3971,12 +3971,12 @@ func (this *Toobit) ParseLeverage(leverage any, optionalArgs ...any) Leverage {
 	var marketId *string = this.SafeString2(leverage, "symbolId", "symbol")
 	var leverageValue *int64 = this.SafeInteger(leverage, "leverage")
 	var marginType *string = this.SafeStringLower(leverage, "marginType")
-	var marginMode string = func() string {
-		if marginType != nil && *marginType == "cross" {
-			return "cross"
-		}
-		return "isolated"
-	}()
+	var marginMode string
+	if marginType != nil && *marginType == "cross" {
+		marginMode = "cross"
+	} else {
+		marginMode = "isolated"
+	}
 	return LeverageFromMap(map[string]any{
 		"info":          leverage,
 		"symbol":        this.SafeSymbol(marketId, market),

@@ -631,12 +631,12 @@ func (this *Lbank) fetchTradesWsBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], sym
 	this.CheckContractMarket(market, "fetchTradesWs")
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash *string = ccxt.SafeStringPtr("fetchTrades:" + market["symbol"].(string))
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 10
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 10
+	} else {
+		limitResolved = *limit
+	}
 	var message map[string]any = map[string]any{
 		"action":  "request",
 		"request": "trade",
@@ -1187,12 +1187,12 @@ func (this *Lbank) fetchOrderBookWsBody(ch chan ccxt.AsyncResult[ccxt.OrderBookI
 	this.CheckContractMarket(market, "fetchOrderBookWs")
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash *string = ccxt.SafeStringPtr("fetchOrderbook:" + market["symbol"].(string))
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var subscribe map[string]any = map[string]any{
 		"action":  "request",
 		"request": "depth",
@@ -1245,12 +1245,12 @@ func (this *Lbank) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInt
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash *string = ccxt.SafeStringPtr("orderbook:" + market["symbol"].(string))
 	var paramsOmitted map[string]any = this.OmitDict(params, "aggregation")
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var subscribe map[string]any = map[string]any{
 		"action":    "subscribe",
 		"subscribe": "depth",
@@ -1458,7 +1458,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.SafeDict(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "authenticated"), "key")}
 		return nil
 	}
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 	{
 		func(this *Lbank) (ret_ any) {
@@ -1528,7 +1528,7 @@ func (this *Lbank) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 	// rethrows a rejected flight to the leader and attaches the handler
 	// that keeps an alone leader from crashing on an unhandled rejection
 
-	r3 := <-future.(*ccxt.Future).Await()
+	r3 := <-future.Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}

@@ -1992,12 +1992,12 @@ func (this *Derive) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, op
 	}
 	if limit != nil {
 		// the venue lists every match twice (a maker row and a taker row) and parseTrades drops the maker duplicates, so twice the limit is requested to return close to the asked amount
-		var pageSize any = func() any {
-			if limit != nil && *limit > 500 {
-				return 1000
-			}
-			return *limit * 2
-		}() // default 100, max 1000
+		var pageSize int64
+		if limit != nil && *limit > 500 {
+			pageSize = 1000
+		} else {
+			pageSize = *limit * 2
+		} // default 100, max 1000
 		request["page_size"] = pageSize
 	}
 	if since != nil {
@@ -2708,12 +2708,12 @@ func (this *Derive) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		panic(InvalidOrder(this.Id + " createOrder() accepts only one of triggerPrice, stopLossPrice or takeProfitPrice"))
 	}
 	var triggerPriceType *string = this.SafeString(paramsDeriveWalletAddress, "trigger_price_type", "mark")
-	var stopPrice *string = func() *string {
-		if triggerPrice != nil {
-			return triggerPrice
-		}
-		return stopLossPrice
-	}()
+	var stopPrice *string
+	if triggerPrice != nil {
+		stopPrice = triggerPrice
+	} else {
+		stopPrice = stopLossPrice
+	}
 	if stopPrice != nil {
 		request["trigger_price"] = stopPrice
 		request["trigger_type"] = "stoploss"
@@ -3669,12 +3669,12 @@ func (this *Derive) ParseOrder(rawOrder any, optionalArgs ...any) Order {
 	var timestamp *int64 = this.SafeInteger(rawOrder, "creation_timestamp") // the nonce is no longer a usable fallback: v3 nonces are nanosecond-scale values with a random suffix
 	var orderId *string = this.SafeString(order, "order_id")
 	var marketId *string = this.SafeString(order, "instrument_name")
-	var marketResolved any = func() any {
-		if marketId != nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if marketId != nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	var symbol *string = this.SafeString(marketResolved, "symbol")
 	var price *string = this.SafeString(order, "limit_price")
 	var average *string = this.SafeString(order, "average_price")
@@ -5155,12 +5155,12 @@ func (this *Derive) withdrawBody(ch chan AsyncResult[Transaction], code string, 
 	subaccountId := subaccountIdparamsDeriveSubaccountIdVariable[0]
 	var paramsDeriveSubaccountId map[string]any = subaccountIdparamsDeriveSubaccountIdVariable[1].(map[string]any)
 	var forceBatch *bool = this.SafeBool2(paramsDeriveSubaccountId, "force_batch", "forceBatch", false)
-	var defaultMaxFee string = func() string {
-		if forceBatch != nil && *forceBatch {
-			return "10"
-		}
-		return "1"
-	}()
+	var defaultMaxFee string
+	if forceBatch != nil && *forceBatch {
+		defaultMaxFee = "10"
+	} else {
+		defaultMaxFee = "1"
+	}
 	var maxFeeUsd *string = this.SafeString2(paramsDeriveSubaccountId, "max_fee_usd", "maxFeeUsd", defaultMaxFee)
 	var paramsOmitted map[string]any = this.OmitDict(paramsDeriveSubaccountId, []any{"max_fee_usd", "maxFeeUsd", "force_batch", "forceBatch"})
 	// excess decimals are truncated away: a fractional scaled amount cannot be encoded, and the signature must commit to the exact wire amount
@@ -5545,12 +5545,12 @@ func (this *Derive) Sign(path string, optionalArgs ...any) map[string]any {
 			var signature string = this.SignMessage(now, this.PrivateKey)
 			var configuredWalletAddress *string = this.SafeString(this.Options, "deriveWalletAddress")
 			// v3: the owner wallet is the user's own EOA
-			var deriveWalletAddress any = func() any {
-				if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
-					return this.WalletAddress
-				}
-				return configuredWalletAddress
-			}()
+			var deriveWalletAddress string
+			if (configuredWalletAddress == nil) || (configuredWalletAddress != nil && *configuredWalletAddress == "") {
+				deriveWalletAddress = this.WalletAddress
+			} else {
+				deriveWalletAddress = *configuredWalletAddress
+			}
 			postHeaders["X-DeriveWallet"] = deriveWalletAddress
 			postHeaders["X-DeriveTimestamp"] = now
 			postHeaders["X-DeriveSignature"] = signature

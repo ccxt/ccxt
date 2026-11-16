@@ -1073,12 +1073,12 @@ func (this *Apex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		"symbol":   this.SafeString(market, "id2"),
 	}
 	// default is 200 when requested with `since`, max 200
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 200) {
-			return 200
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 200) {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	request["limit"] = limitResolved
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params, 0.001)
 	if since != nil {
@@ -1233,12 +1233,12 @@ func (this *Apex) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opti
 	var request map[string]any = map[string]any{
 		"symbol": this.SafeString(market, "id2"),
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 500
-		}
-		return *limit
-	}() // default is 50
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 500
+	} else {
+		limitResolved = *limit
+	} // default is 50
 	request["limit"] = limitResolved
 
 	r1 := <-this.PublicGetV3Trades(this.Extend(request, params))

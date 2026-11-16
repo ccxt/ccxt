@@ -2147,7 +2147,7 @@ func (this *Gate) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], 
 		market = this.GetMarketFromSymbols(symbolsNormalized)
 	}
 	var typeVar any = nil
-	var query any = nil
+	var query map[string]any = nil
 	var typeVarPtr *string = nil
 	typeVarPtr, query = this.HandleMarketTypeAndParams("watchPositions", market, params)
 	if typeVarPtr != nil {
@@ -2412,7 +2412,7 @@ func (this *Gate) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], option
 		symbolResolved = market["symbol"]
 	}
 	var typeVar any = nil
-	var query any = nil
+	var query map[string]any = nil
 	var typeVarPtr *string = nil
 	typeVarPtr, query = this.HandleMarketTypeAndParams("watchOrders", market, params)
 	if typeVarPtr != nil {
@@ -2655,7 +2655,7 @@ func (this *Gate) watchMyLiquidationsForSymbolsBody(ch chan ccxt.AsyncResult[[]c
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true)
 	var market map[string]any = this.GetMarketFromSymbols(symbolsNormalized)
 	var typeVar any = nil
-	var query any = nil
+	var query map[string]any = nil
 	var typeVarPtr *string = nil
 	typeVarPtr, query = this.HandleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, params)
 	if typeVarPtr != nil {
@@ -3178,12 +3178,12 @@ func (this *Gate) HandleMessage(client any, message map[string]any) {
 }
 func (this *Gate) GetUrlByMarket(market any) any {
 	if *this.SafeBool(market, "contract", false) {
-		var settleKey string = func() string {
-			if *this.SafeBool(market, "linear", false) {
-				return "usdt"
-			}
-			return "btc"
-		}()
+		var settleKey string
+		if *this.SafeBool(market, "linear", false) {
+			settleKey = "usdt"
+		} else {
+			settleKey = "btc"
+		}
 		return this.SafeString(ccxt.GetValue(this.Urls["api"], ccxt.GetValue(market, "type")), settleKey, "")
 	} else {
 		return this.SafeString(this.Urls["api"], ccxt.GetValue(market, "type"), "")
@@ -3205,12 +3205,12 @@ func (this *Gate) GetUrlByMarketType(typeVar any, optionalArgs ...any) *string {
 	var isInverse bool = ccxt.GetArgBool(optionalArgs, 0, false)
 	_ = isInverse
 	if (ccxt.IsEqual(typeVar, "swap")) || (ccxt.IsEqual(typeVar, "future")) {
-		var settleKey string = func() string {
-			if isInverse == true {
-				return "btc"
-			}
-			return "usdt"
-		}()
+		var settleKey string
+		if isInverse == true {
+			settleKey = "btc"
+		} else {
+			settleKey = "usdt"
+		}
 		return this.SafeString(this.SafeDict(this.Urls["api"], typeVar), settleKey)
 	} else {
 		return this.SafeString(this.Urls["api"], typeVar)
@@ -3476,12 +3476,12 @@ func (this *Gate) subscribePrivateBody(ch chan ccxt.AsyncResult[any], url any, m
 		}
 	}
 	var idArray []any = []any{this.Uid}
-	var payloadWithUid any = func() any {
-		if ccxt.IsEqual(payload, nil) {
-			return idArray
-		}
-		return this.ArrayConcat(idArray, payload)
-	}()
+	var payloadWithUid []any
+	if ccxt.IsEqual(payload, nil) {
+		payloadWithUid = idArray
+	} else {
+		payloadWithUid = this.ArrayConcat(idArray, payload)
+	}
 	var payloadValue any = payload
 	if requiresUid == true {
 		payloadValue = payloadWithUid

@@ -1954,12 +1954,12 @@ func (this *Kalshi) fetchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Prediction
 	for i := 0; i < fillsLength; i++ {
 		trades = append(trades, this.ParseMyTrade(fills[i], outcomeObj))
 	}
-	var wantedOutcomeObj any = func() any {
-		if outcome != nil {
-			return this.Outcome(outcome)
-		}
-		return map[string]any{}
-	}()
+	var wantedOutcomeObj map[string]any
+	if outcome != nil {
+		wantedOutcomeObj = this.Outcome(outcome)
+	} else {
+		wantedOutcomeObj = map[string]any{}
+	}
 	var wantedOutcome *string = this.SafeString(wantedOutcomeObj, "outcome")
 	var result []any = []any{}
 	for i := 0; i < len(trades); i++ {
@@ -2235,12 +2235,12 @@ func (this *Kalshi) fetchSettlementsBody(ch chan ccxt.AsyncResult[[]ccxt.Predict
 	for i := 0; i < rawSettlementsLength; i++ {
 		parsed = append(parsed, this.ParseSettlement(rawSettlements[i]))
 	}
-	var wantedOutcomeObj any = func() any {
-		if outcome != nil {
-			return this.Outcome(outcome)
-		}
-		return map[string]any{}
-	}()
+	var wantedOutcomeObj map[string]any
+	if outcome != nil {
+		wantedOutcomeObj = this.Outcome(outcome)
+	} else {
+		wantedOutcomeObj = map[string]any{}
+	}
 	var wantedOutcome *string = this.SafeString(wantedOutcomeObj, "outcome")
 	var result []any = []any{}
 	for i := 0; i < len(parsed); i++ {
@@ -2769,12 +2769,12 @@ func (this *Kalshi) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 			return "bid"
 		}()
 	}
-	var yesPrice *float64 = func() *float64 {
-		if isNo && (price != nil) {
-			return this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price)))
-		}
-		return price
-	}()
+	var yesPrice *float64
+	if isNo && (price != nil) {
+		yesPrice = this.ParseNumber(ccxt.Precise.StringSub("1", this.NumberToString(price)))
+	} else {
+		yesPrice = price
+	}
 	var isMarket bool = (typeVar == "market")
 	// accept the unified `timeInForce` and map it onto kalshi's vocabulary; the native
 	// `time_in_force` param (handled below) still overrides

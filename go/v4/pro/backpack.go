@@ -182,12 +182,12 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 	var wsUrls map[string]any = ccxt.SafeMapTyped(apiUrls, "ws")
 	var url *string = this.SafeString(wsUrls, "public", "")
 	var client ccxt.ClientInterface = this.Client(url)
-	var kind string = func() string {
-		if bidAsk == true {
-			return "bidask"
-		}
-		return "ticker"
-	}()
+	var kind string
+	if bidAsk == true {
+		kind = "bidask"
+	} else {
+		kind = "ticker"
+	}
 	for i := 0; i < len(normalized); i++ {
 		var market map[string]any = this.Market(normalized[i])
 		if (symbols == nil) && ((stock != nil && *stock) || (explicitSource != nil && *explicitSource == "External") || (channel != nil)) && (market["stock"] != true) {
@@ -230,12 +230,12 @@ func (this *Backpack) subscribeWsTickersBody(ch chan ccxt.AsyncResult[any], meth
 				}
 				var baseId *string = this.SafeString(market, "baseId", "")
 				var ticker string = strings.Replace(*baseId, ".US", "", 1)
-				var quoteChannel string = func() string {
-					if source != nil && *source == "External" {
-						return "stockPrice"
-					}
-					return "stockIndicativeQuote"
-				}()
+				var quoteChannel string
+				if source != nil && *source == "External" {
+					quoteChannel = "stockPrice"
+				} else {
+					quoteChannel = "stockIndicativeQuote"
+				}
 				topic = quoteChannel + "." + ticker
 			} else {
 				this.WsVenueMarketId(methodName, market, query)
@@ -852,7 +852,7 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 			continue
 		}
 		var market map[string]any = this.Market(symbol)
-		var parsedBidAsk any = this.ParseWsBidAsk(data, market)
+		var parsedBidAsk map[string]any = this.ParseWsBidAsk(data, market)
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedBidAsk)
 		client.(ccxt.ClientInterface).Resolve(parsedBidAsk, messageHash)
 	}
@@ -862,14 +862,14 @@ func (this *Backpack) HandleBidAsk(client any, message map[string]any) {
 	var marketId *string = this.SafeString(data, "s")
 	var fallbackMarket map[string]any = this.SafeMarket(marketId)
 	var fallbackSymbol *string = this.SafeSymbol(marketId, fallbackMarket)
-	var fallbackBidAsk any = this.ParseWsBidAsk(data, fallbackMarket)
+	var fallbackBidAsk map[string]any = this.ParseWsBidAsk(data, fallbackMarket)
 	var fallbackHash string = "bidask" + ":" + *fallbackSymbol
 	if fallbackSymbol != nil {
 		this.Bidsasks[*fallbackSymbol] = ccxt.TickerFromMap(fallbackBidAsk)
 	}
 	client.(ccxt.ClientInterface).Resolve(fallbackBidAsk, fallbackHash)
 }
-func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         A: '0.4087',
@@ -1879,12 +1879,12 @@ func (this *Backpack) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], op
 		market = this.Market(symbol)
 		this.HandleStockParams("watchOrders", query, market)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	var topic string = "account.orderUpdate"
 	var messageHash string = "orders"
 	if market != nil {
@@ -2497,17 +2497,17 @@ func (this *Backpack) HandlePositions(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolById()
 	}
 	var cache ccxt.WsArrayCache = this.Positions
-	var parsedPosition any = this.ParseWsPosition(data)
+	var parsedPosition map[string]any = this.ParseWsPosition(data)
 	var microseconds int64 = *this.SafeInteger(data, "E", 0)
 	var timestamp int64 = this.ParseToInt(float64(microseconds) / 1000)
-	ccxt.AddElementToObject(parsedPosition, "timestamp", timestamp)
+	parsedPosition["timestamp"] = timestamp
 	ccxt.AddElementToObject(parsedPosition, "datetime", this.Iso8601(timestamp))
 	cache.Append(parsedPosition)
 	var symbolSpecificMessageHash string = messageHash + ":" + *this.SafeString(parsedPosition, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, messageHash)
 	client.(ccxt.ClientInterface).Resolve([]any{parsedPosition}, symbolSpecificMessageHash)
 }
-func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Backpack) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         B: '4236.36',

@@ -1134,12 +1134,12 @@ func (this *Cryptocom) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 			contract = true
 		} else if inst_type != nil && *inst_type == "WARRANT" {
 			typeVar = SafeStringPtr("option")
-			var symbolOptionType string = func() string {
-				if optionType != nil && *optionType == "call" {
-					return "C"
-				}
-				return "P"
-			}()
+			var symbolOptionType string
+			if optionType != nil && *optionType == "call" {
+				symbolOptionType = "C"
+			} else {
+				symbolOptionType = "P"
+			}
 			symbol = *base + "/" + *quote + ":" + *quote + "-" + this.Yymmdd(expiry) + "-" + *this.SafeString(market, "strike", "") + "-" + symbolOptionType
 			contract = true
 		}
@@ -1933,7 +1933,7 @@ func (this *Cryptocom) CreateOrderRequest(symbol string, typeVar string, side st
 	marketType, paramsMarketType := this.HandleMarketTypeAndParams("createOrder", market, params)
 	marginModeparamsValueVariable := this.CustomHandleMarginModeAndParams("createOrder", paramsMarketType)
 	var marginMode *string = SafeStringPtr(marginModeparamsValueVariable[0])
-	var paramsValue map[string]any = MapTyped(marginModeparamsValueVariable[1])
+	var paramsValue map[string]any = marginModeparamsValueVariable[1].(map[string]any)
 	if (marketType != nil && *marketType == "margin") || (marginMode != nil) {
 		request["spot_margin"] = "MARGIN"
 	} else if marketType != nil && *marketType == "spot" {
@@ -2278,13 +2278,13 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 		request["type"] = uppercaseType
 	}
 	var isMarketBuy bool = (side != nil && *side == "buy") && ((uppercaseType == "MARKET") || (uppercaseType == "STOP_LOSS") || (uppercaseType == "TAKE_PROFIT"))
-	var paramsMarketBuy any = params
+	var paramsMarketBuy map[string]any = params
 	if isMarketBuy {
 		// use createmarketBuy logic here
 		var quoteAmount any = nil
 		createMarketBuyOrderRequiresPrice, paramsCreateMarketBuy := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber2(paramsCreateMarketBuy, "cost", "notional")
-		paramsMarketBuy = this.Omit(paramsCreateMarketBuy, "cost")
+		paramsMarketBuy = this.OmitDict(paramsCreateMarketBuy, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2303,7 +2303,7 @@ func (this *Cryptocom) CreateAdvancedOrderRequest(symbol *string, typeVar *strin
 	} else {
 		request["quantity"] = this.AmountToPrecision(symbol, amount)
 	}
-	var paramsOmitted any = this.Omit(paramsMarketBuy, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
+	var paramsOmitted map[string]any = this.OmitDict(paramsMarketBuy, []any{"postOnly", "clientOrderId", "timeInForce", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice"})
 	return this.Extend(request, paramsOmitted)
 }
 
@@ -3597,7 +3597,7 @@ func (this *Cryptocom) CustomHandleMarginModeAndParams(methodName string, option
 	var isMargin *bool = this.SafeBool(params, "margin", false)
 	var paramsOmitted map[string]any = this.OmitDict(params, "margin")
 	var marginMode *string = nil
-	var paramsMarginMode any = nil
+	var paramsMarginMode map[string]any = nil
 	marginMode, paramsMarginMode = this.HandleMarginModeAndParams(methodName, paramsOmitted)
 	if marginMode != nil {
 		if marginMode == nil || *marginMode != "cross" {
@@ -4032,7 +4032,7 @@ func (this *Cryptocom) fetchSettlementHistoryBody(ch chan AsyncResult[[]map[stri
 		market = this.Market(symbol)
 	}
 	var typeVar *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	typeVar, paramsMarketType = this.HandleMarketTypeAndParams("fetchSettlementHistory", market, params)
 	this.CheckRequiredArgument("fetchSettlementHistory", typeVar, "type", []any{"future", "option", "WARRANT", "FUTURE"})
 	if typeVar != nil && *typeVar == "option" {

@@ -1397,12 +1397,12 @@ func (this *Aster) ParseMarket(market any) map[string]any {
 	if pricePrecision == nil {
 		pricePrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "pricePrecision")))
 	}
-	var amountPrecision *float64 = func() *float64 {
-		if filterLotSize != nil {
-			return this.SafeNumber(filterLotSize, "stepSize")
-		}
-		return this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
-	}()
+	var amountPrecision *float64
+	if filterLotSize != nil {
+		amountPrecision = this.SafeNumber(filterLotSize, "stepSize")
+	} else {
+		amountPrecision = this.ParseNumber(this.ParsePrecision(this.SafeString(market, "quantityPrecision")))
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":       id,
 		"symbol":   symbol,
@@ -2838,12 +2838,12 @@ func (this *Aster) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 		panic(ArgumentsRequired(this.Id + " setMarginMode() requires a symbol argument"))
 	}
 	var marginModeUpper string = strings.ToUpper(marginMode)
-	var marginModeValue string = func() string {
-		if marginModeUpper == "CROSS" {
-			return "CROSSED"
-		}
-		return marginModeUpper
-	}()
+	var marginModeValue string
+	if marginModeUpper == "CROSS" {
+		marginModeValue = "CROSSED"
+	} else {
+		marginModeValue = marginModeUpper
+	}
 	if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
 		panic(BadRequest(this.Id + " marginMode must be either isolated or cross"))
 	}
@@ -3803,7 +3803,7 @@ func (this *Aster) CreateOrderRequest(symbol *string, typeVar *string, side *str
 	request["type"] = uppercaseType
 	if uppercaseType == "MARKET" {
 		if *this.SafeBool(market, "spot", false) {
-			var quoteOrderQty any = this.HandleOption("createOrder", "quoteOrderQty", true)
+			var quoteOrderQty bool = this.HandleOption("createOrder", "quoteOrderQty", true) == true
 			if quoteOrderQty == true {
 				var quoteOrderQtyNew *string = this.SafeString2(params, "quoteOrderQty", "cost")
 				var marketPrecision map[string]any = SafeMapTyped(market, "precision")
@@ -5856,12 +5856,12 @@ func (this *Aster) EncodeValuesWithJson(values map[string]any) string {
 		var key string = keys[i]
 		var value any = values[key]
 		var isObj bool = IsArray(value) || this.IsDictionary(value)
-		var valueJsonified string = func() string {
-			if isObj {
-				return this.Json(value)
-			}
-			return ToString(value)
-		}()
+		var valueJsonified string
+		if isObj {
+			valueJsonified = this.Json(value)
+		} else {
+			valueJsonified = ToString(value)
+		}
 		var encoded string = this.EncodeURIComponent(valueJsonified)
 		encodedString += key + "=" + encoded + "&"
 	}

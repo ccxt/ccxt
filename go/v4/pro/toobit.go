@@ -1430,7 +1430,7 @@ func (this *Toobit) SetPositionsCache(client any, typeVar string, optionalArgs .
 	if this.PositionsByType[typeVar] != nil {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = typeVar + ":fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1503,7 +1503,7 @@ func (this *Toobit) HandlePositions(client any, message map[string]any) {
 	}
 	var cache ccxt.WsArrayCache = this.PositionsByType[accountType]
 	// handleMessage's fallback dispatches one item at a time
-	var position any = this.ParseWsPosition(message)
+	var position map[string]any = this.ParseWsPosition(message)
 	var newPositions []any = []any{position}
 	cache.Append(position)
 	// no local may be named `positions` in this method: build/transpile.ts
@@ -1528,7 +1528,7 @@ func (this *Toobit) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
 }
-func (this *Toobit) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Toobit) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
@@ -1597,7 +1597,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Toobit) (ret_ any) {
@@ -1641,7 +1641,7 @@ func (this *Toobit) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 
 		}
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

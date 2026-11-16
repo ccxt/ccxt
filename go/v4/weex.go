@@ -4367,18 +4367,18 @@ func (this *Weex) ParseOrderType(typeVar *string) *string {
 	return this.SafeString(types, typeVar, typeVar)
 }
 func (this *Weex) HandleOrderOrPositionError(errorCode *string, errorMessage *string, order any) {
-	var errorCodeValue string = func() string {
-		if errorCode == nil {
-			return ""
-		}
-		return *errorCode
-	}()
-	var errorMessageValue string = func() string {
-		if errorMessage == nil {
-			return ""
-		}
-		return *errorMessage
-	}()
+	var errorCodeValue string
+	if errorCode == nil {
+		errorCodeValue = ""
+	} else {
+		errorCodeValue = *errorCode
+	}
+	var errorMessageValue string
+	if errorMessage == nil {
+		errorMessageValue = ""
+	} else {
+		errorMessageValue = *errorMessage
+	}
 	if ((errorCode == nil) || (errorCode != nil && *errorCode == "")) && ((errorMessage == nil) || (errorMessage != nil && *errorMessage == "")) {
 		// some endpoints could return an empty string if there is no error
 		return

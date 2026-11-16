@@ -218,12 +218,12 @@ func (this *Poloniex) subscribeBody(ch chan ccxt.AsyncResult[any], name any, mes
 		}
 		marketIds = this.MarketIds(symbols)
 	}
-	var symbolsSuffix any = func() any {
-		if symbols == nil {
-			return ""
-		}
-		return ccxt.Join(symbols, ",")
-	}()
+	var symbolsSuffix string
+	if symbols == nil {
+		symbolsSuffix = ""
+	} else {
+		symbolsSuffix = ccxt.Join(symbols, ",")
+	}
 	var symbolsHash any = messageHash
 	if !this.IsEmpty(symbols) {
 		symbolsHash = ccxt.Add(ccxt.Add(messageHash, "::"), symbolsSuffix)
@@ -384,12 +384,12 @@ func (this *Poloniex) createOrderWsBody(ch chan ccxt.AsyncResult[ccxt.Order], sy
 		"type":   strings.ToUpper(typeVar),
 	}
 	var isMarketBuy bool = (uppercaseType == "MARKET") && (uppercaseSide == "BUY")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isMarketBuy {
 		var quoteAmount any = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(params, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
-		paramsOmitted = this.Omit(paramsRequiresPrice, "cost")
+		paramsOmitted = this.OmitDict(paramsRequiresPrice, "cost")
 		if cost != nil {
 			quoteAmount = this.CostToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -1426,7 +1426,7 @@ func (this *Poloniex) ParseStatus(status *string) *string {
 	}
 	return this.SafeString(statuses, status, status)
 }
-func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Poloniex) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "symbol": "BTC_USDT",
@@ -1647,7 +1647,7 @@ func (this *Poloniex) ParseWsOrder(order any, optionalArgs ...any) map[string]an
 	var trades []any = nil
 	if !ccxt.Precise.StringEq(filledAmount, "0") {
 		trades = []any{}
-		var trade any = this.ParseWsOrderTrade(order)
+		var trade map[string]any = this.ParseWsOrderTrade(order)
 		trades = append(trades, trade)
 	}
 	return ccxt.OrderToMap(this.SafeOrder(map[string]any{

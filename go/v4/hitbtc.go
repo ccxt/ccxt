@@ -1175,9 +1175,9 @@ func (this *Hitbtc) createDepositAddressBody(ch chan AsyncResult[DepositAddress]
 			request["currency"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(params, "network")
+		paramsOmitted = this.OmitDict(params, "network")
 	}
 
 	r1 := <-this.PrivatePostWalletCryptoAddress(this.Extend(request, paramsOmitted))
@@ -1244,9 +1244,9 @@ func (this *Hitbtc) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress],
 			request["currency"] = parsedNetwork
 		}
 	}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if (network != nil) && (code == "USDT") {
-		paramsOmitted = this.Omit(params, "network")
+		paramsOmitted = this.OmitDict(params, "network")
 	}
 
 	r1 := <-this.PrivateGetWalletCryptoAddress(this.Extend(request, paramsOmitted))
@@ -4071,12 +4071,12 @@ func (this *Hitbtc) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		}
 	}
 	var sorted []any = this.SortBy(rates, "timestamp")
-	var symbolResolved *string = func() *string {
-		if market == nil {
-			return symbol
-		}
-		return this.SafeString(market, "symbol")
-	}()
+	var symbolResolved *string
+	if market == nil {
+		symbolResolved = symbol
+	} else {
+		symbolResolved = this.SafeString(market, "symbol")
+	}
 
 	ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(this.FilterBySymbolSinceLimit(sorted, symbolResolved, since, limit))}
 	return nil

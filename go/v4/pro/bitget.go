@@ -588,7 +588,7 @@ func (this *Bitget) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 	return nil
 }
 func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
-	var ticker any = this.ParseWsBidAsk(message)
+	var ticker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -596,7 +596,7 @@ func (this *Bitget) HandleBidAsk(client any, message map[string]any) {
 	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsBidAsk(message map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var arg map[string]any = ccxt.SafeMapTyped(message, "arg")
@@ -1270,7 +1270,7 @@ func (this *Bitget) HandleOrderBook(client any, message map[string]any) {
 		this.HandleDeltas(storedOrderBook.GetBids(), bids)
 		storedOrderBook.SetTimestamp(timestamp)
 		storedOrderBook.SetDatetime(this.Iso8601(timestamp))
-		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		// UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
 		// so only validate the checksum when the exchange actually sends one
 		var responseChecksum *int64 = this.SafeInteger(rawOrderBook, "checksum")
@@ -1951,7 +1951,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 		var rawPosition any = rawPositions[i]
 		var marketId *string = this.SafeString2(rawPosition, "instId", "symbol")
 		var market map[string]any = this.SafeMarket(marketId, nil, nil, "contract")
-		var position any = this.ParseWsPosition(rawPosition, market)
+		var position map[string]any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
@@ -1973,7 +1973,7 @@ func (this *Bitget) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, instType+":positions")
 }
-func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Bitget) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "posId": "926036334386778112",
@@ -3373,7 +3373,7 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var url *string = this.SafeString(params, "url", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
@@ -3393,7 +3393,7 @@ func (this *Bitget) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

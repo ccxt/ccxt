@@ -574,7 +574,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	var url any = this.GetWsUrl()
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 
@@ -598,7 +598,7 @@ func (this *Paradex) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 		this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription)
 	}
 
-	r1 := <-future.(*ccxt.Future).Await()
+	r1 := <-future.Await()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -2122,8 +2122,8 @@ func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
 	//
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var bidAsk any = this.ParseWsBidAsk(data)
-	var symbol *string = ccxt.SafeStringPtr(ccxt.GetValue(bidAsk, "symbol"))
+	var bidAsk map[string]any = this.ParseWsBidAsk(data)
+	var symbol *string = ccxt.SafeStringPtr(bidAsk["symbol"])
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(bidAsk)
 	}
@@ -2131,7 +2131,7 @@ func (this *Paradex) HandleBidAsk(client any, message map[string]any) {
 	// an SBE frame does not tell bbo.ALL from the per-market channel
 	client.(ccxt.ClientInterface).Resolve(bidAsk, "bidask")
 }
-func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) any {
+func (this *Paradex) ParseWsBidAsk(data map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(data, "market")

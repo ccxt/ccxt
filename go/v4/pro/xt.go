@@ -135,7 +135,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 		}
 		// client.futures is the same registry ccxt.Exchange.watch () dedupes on, so registering
 		// the flight here, before any suspension point, makes concurrent callers wait
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Xt) (ret_ any) {
@@ -211,7 +211,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 
 		}
 
-		r3 := <-future.(*ccxt.Future).Await()
+		r3 := <-future.Await()
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
@@ -1151,8 +1151,8 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 	var url string = *this.SafeString(apiUrls, "contract", "") + "/" + "user"
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && this.IsEmpty(cache) {
 
@@ -1310,7 +1310,7 @@ func (this *Xt) SetPositionsCache(client any) {
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot")
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot") == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1846,7 +1846,7 @@ func (this *Xt) HandleOrderBook(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(orderbook, messageHash)
 	}
 }
-func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Xt) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "s": "btc_usdt",                         // symbol

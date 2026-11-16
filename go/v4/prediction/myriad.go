@@ -1289,12 +1289,12 @@ func (this *Myriad) createOrderbookOrderBody(ch chan ccxt.AsyncResult[ccxt.Predi
 		}
 		return ccxt.SafeStringPtr(ccxt.ToLower(side))
 	}()
-	var typeStr string = func() string {
-		if ccxt.IsEqual(typeVar, nil) {
-			return "limit"
-		}
-		return ccxt.ToLower(typeVar)
-	}()
+	var typeStr string
+	if ccxt.IsEqual(typeVar, nil) {
+		typeStr = "limit"
+	} else {
+		typeStr = ccxt.ToLower(typeVar)
+	}
 	if this.SafeString(parsed, "side") == nil {
 		parsed["side"] = sideStr
 	}
@@ -1339,12 +1339,12 @@ func (this *Myriad) BuildOrderbookOrder(outcome any, typeVar any, side any, amou
 	var marketId *string = this.SafeString(info, "marketId")
 	var outcomeId *int64 = this.SafeInteger(info, "outcomeId", 0)
 	var trader string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
-	var typeStr string = func() string {
-		if ccxt.IsEqual(typeVar, nil) {
-			return "limit"
-		}
-		return ccxt.ToLower(typeVar)
-	}()
+	var typeStr string
+	if ccxt.IsEqual(typeVar, nil) {
+		typeStr = "limit"
+	} else {
+		typeStr = ccxt.ToLower(typeVar)
+	}
 	var sideStr string = ccxt.ToLower(side)
 	var sideInt int = func() int {
 		if sideStr == "buy" {
@@ -1913,7 +1913,7 @@ func (this *Myriad) ParsePredictionOrder(order any, optionalArgs ...any) map[str
 	} else {
 		outcome = this.SafeString(market, "outcome")
 	}
-	var outcomeObj any = market
+	var outcomeObj map[string]any = market
 	if outcome == nil {
 		// the REST order has no top-level networkId; order book lives on the default network
 		var networkId *string = this.SafeString2(order, "networkId", "network_id", this.SafeString(this.Options, "defaultNetworkId", "56"))
@@ -2214,11 +2214,17 @@ func (this *Myriad) cancelOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrde
 		fetched = r.Raw
 	}
 	var fetchedInfo map[string]any = ccxt.SafeMapTyped(fetched, "info")
-	var rawOrder any = this.SafeDict(fetched, "order", map[string]any{})
-	var rawOrderKeys []string = ccxt.ObjectKeys(rawOrder)
+	var rawOrder map[string]any = this.SafeDictMap(fetched, "order", map[string]any{})
+	var rawOrderKeys []string = nil
+	if rawOrder != nil {
+		rawOrderKeys = make([]string, 0, len(rawOrder))
+		for objectKey := range rawOrder {
+			rawOrderKeys = append(rawOrderKeys, objectKey)
+		}
+	}
 	var rawOrderKeysLength int = len(rawOrderKeys)
 	if rawOrderKeysLength == 0 {
-		rawOrder = this.SafeDict(fetchedInfo, "order", map[string]any{})
+		rawOrder = this.SafeDictMap(fetchedInfo, "order", map[string]any{})
 	}
 	var networkId *string = this.SafeStringN(fetched, []any{"networkId", "network_id"})
 	if networkId == nil {
@@ -2375,7 +2381,7 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 	if this.PrivateKey == "" {
 		panic(ccxt.ArgumentsRequired(this.Id + " cancelOrders() requires a privateKey to sign the cancellations"))
 	}
-	var paramsForLookup any = params
+	var paramsForLookup map[string]any = params
 	var networkIdParam *string = this.SafeString2(params, "networkId", "network_id")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"orderResponse", "orderResponses", "rawOrder", "networkId", "network_id"})
 	var idsLength int = len(ids)
@@ -2396,11 +2402,17 @@ func (this *Myriad) cancelOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionO
 			fetched = r.Raw
 		}
 		var fetchedInfo map[string]any = ccxt.SafeMapTyped(fetched, "info")
-		var rawOrder any = this.SafeDict(fetched, "order", map[string]any{})
-		var rawOrderKeys []string = ccxt.ObjectKeys(rawOrder)
+		var rawOrder map[string]any = this.SafeDictMap(fetched, "order", map[string]any{})
+		var rawOrderKeys []string = nil
+		if rawOrder != nil {
+			rawOrderKeys = make([]string, 0, len(rawOrder))
+			for objectKey := range rawOrder {
+				rawOrderKeys = append(rawOrderKeys, objectKey)
+			}
+		}
 		var rawOrderKeysLength int = len(rawOrderKeys)
 		if rawOrderKeysLength == 0 {
-			rawOrder = this.SafeDict(fetchedInfo, "order", map[string]any{})
+			rawOrder = this.SafeDictMap(fetchedInfo, "order", map[string]any{})
 		}
 		var fetchedNetworkId *string = this.SafeStringN(fetched, []any{"networkId", "network_id"})
 		if fetchedNetworkId == nil {
@@ -5149,7 +5161,7 @@ func (this *Myriad) HandleTicker(client any, data any) {
 	var ts *int64 = this.SafeInteger(data, "ts")
 	var outcomes []any = ccxt.SafeListTyped(data, "outcomes")
 	var outcomesLength int = len(outcomes)
-	var cachedTickers any = this.SafeDict(this.Options, "wsTickers", map[string]any{})
+	var cachedTickers map[string]any = this.SafeDictMap(this.Options, "wsTickers", map[string]any{})
 	for i := 0; i < outcomesLength; i++ {
 		var oc any = outcomes[i]
 		var outcomeId *string = this.SafeString(oc, "outcome")
@@ -5466,7 +5478,7 @@ func (this *Myriad) HandlePosition(client any, data any) {
 	var posId *string = nil
 	if (networkId != nil) && (marketId != nil) && (outcomeId != nil) {
 		posId = ccxt.SafeStringPtr(*networkId + ":" + *marketId + "/" + *outcomeId)
-		var balances any = this.SafeDict(this.Options, "positionBalances", map[string]any{})
+		var balances map[string]any = this.SafeDictMap(this.Options, "positionBalances", map[string]any{})
 		var prior *string = this.SafeString(balances, posId, "0")
 		var updated *string = ccxt.Precise.StringAdd(prior, deltaShares)
 		if posId != nil {

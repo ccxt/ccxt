@@ -1368,7 +1368,7 @@ func (this *Extended) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1477,7 +1477,7 @@ func (this *Extended) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHisto
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -1837,7 +1837,7 @@ func (this *Extended) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingR
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2246,7 +2246,7 @@ func (this *Extended) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], option
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2410,7 +2410,7 @@ func (this *Extended) fetchTransactionsBody(ch chan AsyncResult[[]Transaction], 
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -2679,7 +2679,7 @@ func (this *Extended) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], o
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -3394,7 +3394,7 @@ func (this *Extended) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position],
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,
@@ -3680,7 +3680,7 @@ func (this *Extended) createExtendedOrderRequestBody(ch chan AsyncResult[map[str
 			builderId = this.SafeString2(params, "builderId", "defaultBuilderId")
 			paramsBuilder = this.Omit(params, []any{"builderFeeRate", "defaultBuilderFeeRate", "builderId", "defaultBuilderId"})
 		} else {
-			var paramsBuilderFeeRate any = nil
+			var paramsBuilderFeeRate map[string]any = nil
 			builderFeeRate, paramsBuilderFeeRate = this.HandleOptionStringAndParams(params, "createOrder", "builderFeeRate", "0.0001")
 			builderId, paramsBuilder = this.HandleOptionStringAndParams(paramsBuilderFeeRate, "createOrder", "builderId")
 		}
@@ -4572,7 +4572,7 @@ func (this *Extended) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs
 	var result []any = []any{}
 	var dataLength int = len(data)
 	for i := 0; i < dataLength; i++ {
-		var entry any = this.SafeDict(data, i, map[string]any{})
+		var entry map[string]any = this.SafeDictMap(data, i, map[string]any{})
 		if (cursor != nil) && (i == dataLength-1) {
 			entry = this.Extend(entry, map[string]any{
 				"cursor": cursor,

@@ -1082,7 +1082,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	var market map[string]any = this.SafeMarket(marketId)
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var ticker map[string]any = this.SafeDictMap(data, 0, map[string]any{})
-	var parsedTicker any = this.ParseWsBidAsk(ticker, market)
+	var parsedTicker map[string]any = this.ParseWsBidAsk(ticker, market)
 	var symbol *string = this.SafeString(parsedTicker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(parsedTicker)
@@ -1090,7 +1090,7 @@ func (this *Okx) HandleBidAsk(client any, message map[string]any) {
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("bidask::", symbol))
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Okx) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instId")
@@ -1975,7 +1975,7 @@ func (this *Okx) unWatchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[bool], 
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, false)
 	var depth any = nil
-	var paramsDepth any = nil
+	var paramsDepth map[string]any = nil
 	var depthPtr *string = nil
 	depthPtr, paramsDepth = this.HandleOptionStringAndParams(params, "watchOrderBook", "depth", "books")
 	if depthPtr != nil {
@@ -2310,7 +2310,7 @@ func (this *Okx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 	var url string = this.GetUrl("users", access)
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp string = strconv.FormatInt(this.Seconds(), 10)
@@ -2335,7 +2335,7 @@ func (this *Okx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalArg
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

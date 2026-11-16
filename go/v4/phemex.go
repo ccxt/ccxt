@@ -3344,12 +3344,12 @@ func (this *Phemex) createOrderBody(ch chan AsyncResult[Order], symbol string, t
 		var posSide *string = this.SafeStringLower(orderParams, "posSide")
 		// a hedged reduceOnly order without posSide closes the opposite side
 		var flipSide bool = (posSide == nil) && (hedged != nil && *hedged) && (*this.SafeBool(orderParams, "reduceOnly", false))
-		var oppositeSide string = func() string {
-			if side == "buy" {
-				return "sell"
-			}
-			return "buy"
-		}()
+		var oppositeSide string
+		if side == "buy" {
+			oppositeSide = "sell"
+		} else {
+			oppositeSide = "buy"
+		}
 		var sideResolved string = side
 		if flipSide {
 			sideResolved = oppositeSide
@@ -5613,12 +5613,12 @@ func (this *Phemex) ParseMarginModification(data any, optionalArgs ...any) map[s
 	_ = market
 	var marketResolved map[string]any = this.SafeMarket(nil, market)
 	var inverse *bool = this.SafeBool(marketResolved, "inverse", false)
-	var codeCurrency string = func() string {
-		if inverse != nil && *inverse {
-			return "base"
-		}
-		return "quote"
-	}()
+	var codeCurrency string
+	if inverse != nil && *inverse {
+		codeCurrency = "base"
+	} else {
+		codeCurrency = "quote"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     this.SafeSymbol(nil, marketResolved),
@@ -6050,18 +6050,18 @@ func (this *Phemex) setLeverageBody(ch chan AsyncResult[map[string]any], leverag
 		if (!(isHedged != nil && *isHedged)) && (longLeverageRr == nil) && (shortLeverageRr == nil) {
 			request["leverageRr"] = leverage
 		} else {
-			var longVar int64 = func() int64 {
-				if longLeverageRr != nil {
-					return *longLeverageRr
-				}
-				return leverage
-			}()
-			var shortVar int64 = func() int64 {
-				if shortLeverageRr != nil {
-					return *shortLeverageRr
-				}
-				return leverage
-			}()
+			var longVar int64
+			if longLeverageRr != nil {
+				longVar = *longLeverageRr
+			} else {
+				longVar = leverage
+			}
+			var shortVar int64
+			if shortLeverageRr != nil {
+				shortVar = *shortLeverageRr
+			} else {
+				shortVar = leverage
+			}
 			request["longLeverageRr"] = longVar
 			request["shortLeverageRr"] = shortVar
 		}

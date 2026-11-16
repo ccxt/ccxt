@@ -947,14 +947,14 @@ func (this *Hashkey) HandlePosition(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var positions ccxt.WsArrayCache = this.Positions
-	var parsed any = this.ParseWsPosition(message)
+	var parsed map[string]any = this.ParseWsPosition(message)
 	positions.Append(parsed)
 	var messageHash string = "positions"
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash)
 	var symbol string = *this.SafeString(parsed, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(parsed, messageHash+":"+symbol)
 }
-func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Hashkey) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(position, "s")
@@ -1178,7 +1178,7 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	}
 	// register the flight BEFORE the first await, so a caller arriving
 	// during the fetch below finds it and waits instead of re-leading
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 	{
 		func(this *Hashkey) (ret_ any) {
@@ -1225,7 +1225,7 @@ func (this *Hashkey) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	r2 := <-future.(*ccxt.Future).Await()
+	r2 := <-future.Await()
 	if r2.Err != nil {
 		panic(r2.Err)
 	}

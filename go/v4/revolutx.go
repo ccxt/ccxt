@@ -473,12 +473,12 @@ func (this *Revolutx) ParseCurrency(currency any) map[string]any {
 	var status *string = this.SafeString(currency, "status")
 	var active bool = (status != nil && *status == "active")
 	var assetType *string = this.SafeString(currency, "asset_type")
-	var typeVar string = func() string {
-		if assetType != nil && *assetType == "crypto" {
-			return "crypto"
-		}
-		return "fiat"
-	}()
+	var typeVar string
+	if assetType != nil && *assetType == "crypto" {
+		typeVar = "crypto"
+	} else {
+		typeVar = "fiat"
+	}
 	var precision any = func() any {
 		if scale != nil {
 			return math.Pow(10, float64((-*scale)))
@@ -1878,12 +1878,12 @@ func (this *Revolutx) ParseMyTrade(trade map[string]any, optionalArgs ...any) an
 	var side *string = this.SafeStringLower(trade, "s")
 	var timestamp *int64 = this.SafeInteger2(trade, "tdt", "pdt")
 	var isMaker *bool = this.SafeBool(trade, "im", false)
-	var takerOrMaker string = func() string {
-		if isMaker != nil && *isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker string
+	if isMaker != nil && *isMaker {
+		takerOrMaker = "maker"
+	} else {
+		takerOrMaker = "taker"
+	}
 	var cost *float64 = nil
 	if (priceString != nil) && (amountString != nil) {
 		cost = this.ParseNumber(Precise.StringMul(priceString, amountString))

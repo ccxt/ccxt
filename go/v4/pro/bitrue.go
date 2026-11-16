@@ -1266,7 +1266,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		}
 		// register before the first await, so a concurrent caller entering
 		// authenticate () while this one is inside the fetch sees the flight
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bitrue) (ret_ any) {
@@ -1320,7 +1320,7 @@ func (this *Bitrue) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// rethrows to the leader on failure and attaches the handler that
 		// keeps an alone leader's rejection from crashing the process
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

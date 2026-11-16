@@ -4226,12 +4226,12 @@ func (this *Coinbaseinternational) authenticateV2Body(ch chan AsyncResult[any], 
 		panic(AuthenticationError(this.Id + " public/auth did not return an expiry"))
 	}
 	var ratio *float64 = this.SafeNumber(this.Options, "accessTokenRefreshRatio")
-	var refreshRatio float64 = func() float64 {
-		if ratio == nil {
-			return 0.8
-		}
-		return *ratio
-	}()
+	var refreshRatio float64
+	if ratio == nil {
+		refreshRatio = 0.8
+	} else {
+		refreshRatio = *ratio
+	}
 	var tokenRefreshInMilliseconds int64 = this.ParseToInt(float64((*expiresIn * 1000)) * refreshRatio)
 	this.Token = accessToken
 	this.Options["v2AccessToken"] = DerefScalar(accessToken)

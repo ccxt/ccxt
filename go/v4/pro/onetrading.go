@@ -1628,7 +1628,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture("authenticated")
 	var authenticated map[string]any = client.(ccxt.ClientInterface).SubscriptionDict(messageHash)
 	if authenticated == nil {
 		this.CheckRequiredCredentials()
@@ -1639,7 +1639,7 @@ func (this *Onetrading) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

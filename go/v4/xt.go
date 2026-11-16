@@ -5271,12 +5271,12 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(order, "symbol")
-	var marketType string = func() string {
-		if (InOp(order, "result")) || (InOp(order, "positionSide")) {
-			return "contract"
-		}
-		return "spot"
-	}()
+	var marketType string
+	if (InOp(order, "result")) || (InOp(order, "positionSide")) {
+		marketType = "contract"
+	} else {
+		marketType = "spot"
+	}
 	var marketResolved map[string]any = this.SafeMarket(marketId, market, nil, marketType)
 	var symbol *string = this.SafeSymbol(marketId, marketResolved, nil, marketType)
 	var timestamp *int64 = this.SafeInteger2(order, "time", "createdTime")
@@ -5285,18 +5285,18 @@ func (this *Xt) ParseOrder(order any, optionalArgs ...any) Order {
 	// on spot market buy orders executedQty is denominated in the quote
 	// currency, so the filled base amount is only correct in tradeBase
 	var filledQuantity *string = this.SafeString2(order, "tradeBase", "executedQty")
-	var amount *string = func() *string {
-		if marketType == "spot" {
-			return quantity
-		}
-		return Precise.StringMul(quantity, contractSize)
-	}()
-	var filled *string = func() *string {
-		if marketType == "spot" {
-			return filledQuantity
-		}
-		return Precise.StringMul(filledQuantity, contractSize)
-	}()
+	var amount *string
+	if marketType == "spot" {
+		amount = quantity
+	} else {
+		amount = Precise.StringMul(quantity, contractSize)
+	}
+	var filled *string
+	if marketType == "spot" {
+		filled = filledQuantity
+	} else {
+		filled = Precise.StringMul(filledQuantity, contractSize)
+	}
 	// leavingQty follows executedQty and is quote-denominated on the same
 	// spot market buy shape, so it is only read when the order carries a
 	// base-denominated origQty - otherwise safeOrder derives it from filled
@@ -5895,12 +5895,12 @@ func (this *Xt) ParseTransaction(transaction any, optionalArgs ...any) Transacti
 	//
 	var currency map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = currency
-	var typeVar string = func() string {
-		if this.SafeString(transaction, "fromAddr") != nil {
-			return "deposit"
-		}
-		return "withdraw"
-	}()
+	var typeVar string
+	if this.SafeString(transaction, "fromAddr") != nil {
+		typeVar = "deposit"
+	} else {
+		typeVar = "withdraw"
+	}
 	var timestamp *int64 = this.SafeInteger(transaction, "createdTime")
 	var address *string = this.SafeString(transaction, "address")
 	var memo *string = this.SafeString(transaction, "memo")
@@ -7602,12 +7602,12 @@ func (this *Xt) setMarginModeBody(ch chan AsyncResult[map[string]any], marginMod
 	if (marginModeLower != "isolated") && (marginModeLower != "cross") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}
-	var positionType string = func() string {
-		if marginModeLower == "cross" {
-			return "CROSSED"
-		}
-		return "ISOLATED"
-	}()
+	var positionType string
+	if marginModeLower == "cross" {
+		positionType = "CROSSED"
+	} else {
+		positionType = "ISOLATED"
+	}
 	var posSide *string = this.SafeStringUpper(params, "positionSide")
 	this.CheckRequiredArgument("setMarginMode", posSide, "positionSide", []any{"LONG", "SHORT"})
 	var paramsOmitted map[string]any = this.OmitDict(params, "positionSide")

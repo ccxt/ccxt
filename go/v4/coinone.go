@@ -1355,12 +1355,12 @@ func (this *Coinone) ParseOrder(order any, optionalArgs ...any) Order {
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 	}
-	var marketResolved any = func() any {
-		if symbol != nil {
-			return this.SafeMarket(symbol, market, "/")
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if symbol != nil {
+		marketResolved = this.SafeMarket(symbol, market, "/")
+	} else {
+		marketResolved = market
+	}
 	var timestamp *int64 = this.SafeTimestamp2(order, "timestamp", "updatedAt")
 	if timestamp == nil {
 		timestamp = this.SafeInteger2(order, "ordered_at", "updated_at") // v2.1 sends milliseconds

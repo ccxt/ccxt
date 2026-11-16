@@ -1765,12 +1765,12 @@ func (this *Bingx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, o
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchOHLCV", "paginate", false)
 	if paginate {
 		// klines return up to 1440 candles only for 1m, 1000 for 5m and above
-		var paginationLimit int = func() int {
-			if timeframe == "1m" {
-				return maxLimit
-			}
-			return 1000
-		}()
+		var paginationLimit int
+		if timeframe == "1m" {
+			paginationLimit = maxLimit
+		} else {
+			paginationLimit = 1000
+		}
 
 		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchOHLCV", symbol, since, limit, timeframe, paramsPaginate, paginationLimit)
 		if r1.Err != nil {
@@ -2170,12 +2170,12 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	// Spot execution reports distinguish the last fill from the original order's p/q.
 	var isSpotExecution bool = (this.SafeString(trade, "e") != nil && *this.SafeString(trade, "e") == "executionReport") && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE")
-	var cost *string = func() *string {
-		if isSpotExecution {
-			return this.SafeString(trade, "Y")
-		}
-		return this.SafeString(trade, "quoteQty")
-	}()
+	var cost *string
+	if isSpotExecution {
+		cost = this.SafeString(trade, "Y")
+	} else {
+		cost = this.SafeString(trade, "quoteQty")
+	}
 	// const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
 	var currencyId *string = this.SafeStringN(trade, []any{"currency", "N", "commissionAsset"})
 	var currencyCode *string = this.SafeCurrencyCode(currencyId)
@@ -2222,27 +2222,23 @@ func (this *Bingx) ParseTrade(trade any, optionalArgs ...any) Trade {
 			return "taker"
 		}())
 	}
-	var amount any = func() any {
-		if isSpotExecution {
-			return this.SafeString(trade, "l")
-		}
-		return this.SafeStringN(trade, []any{"qty", "amount", "q"})
-	}()
+	var amount *string
+	if isSpotExecution {
+		amount = this.SafeString(trade, "l")
+	} else {
+		amount = this.SafeStringN(trade, []any{"qty", "amount", "q"})
+	}
 	if (market != nil) && (*this.SafeBool(market, "swap", false)) && (InOp(trade, "volume")) {
 		// Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
 		// safeTrade applies contractSize when calculating inverse cost.
-		if derefPtr := this.SafeString(trade, "volume"); derefPtr != nil {
-			amount = *derefPtr
-		} else {
-			amount = nil
-		}
+		amount = this.SafeString(trade, "volume")
 	}
-	var price any = func() any {
-		if isSpotExecution {
-			return this.SafeString(trade, "L")
-		}
-		return this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
-	}()
+	var price *string
+	if isSpotExecution {
+		price = this.SafeString(trade, "L")
+	} else {
+		price = this.SafeStringN(trade, []any{"price", "p", "tradePrice"})
+	}
 	if (market != nil) && (*this.SafeBool(market, "linear", false)) && (this.SafeString(trade, "x") != nil && *this.SafeString(trade, "x") == "TRADE") {
 		var lastAmount *string = this.SafeString(trade, "l")
 		var lastPrice *string = this.SafeString(trade, "L")
@@ -2752,13 +2748,13 @@ func (this *Bingx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory]
 		market = this.Market(symbol)
 	}
 	subType, paramsSubType := this.HandleSubTypeAndParams("fetchFundingHistory", market, params)
-	var isInverse any = func() any {
-		if market != nil {
-			return (market["inverse"] == true)
-		}
-		return (subType != nil && *subType == "inverse")
-	}()
-	if isInverse == true {
+	var isInverse bool
+	if market != nil {
+		isInverse = (market["inverse"] == true)
+	} else {
+		isInverse = (subType != nil && *subType == "inverse")
+	}
+	if isInverse {
 		panic(NotSupported(this.Id + " fetchFundingHistory() is not supported for inverse swap markets"))
 	}
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(paramsSubType, "fetchFundingHistory", "paginate", false)
@@ -3121,12 +3117,12 @@ func (this *Bingx) fetchBidsAsksBody(ch chan AsyncResult[map[string]Ticker], opt
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchBidsAsks", market, params)
 	var request map[string]any = map[string]any{}
 	var rows []any = []any{}
-	var symbolsLength int = func() int {
-		if symbolsNormalized == nil {
-			return 0
-		}
-		return len(symbolsNormalized)
-	}()
+	var symbolsLength int
+	if symbolsNormalized == nil {
+		symbolsLength = 0
+	} else {
+		symbolsLength = len(symbolsNormalized)
+	}
 	if typeVar != nil && *typeVar == "spot" {
 		if (market != nil) && (symbolsLength == 1) {
 			request["symbol"] = this.SafeString(market, "id")
@@ -4394,12 +4390,12 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				var slTriggerPrice *string = this.SafeString2(stopLossDict, "triggerPrice", "stopPrice")
 				var slWorkingType *string = this.SafeString2(stopLossDict, "triggerPriceType", "workingType", "MARK_PRICE")
 				var slPrice *string = this.SafeString(stopLossDict, "price")
-				var slDefaultType string = func() string {
-					if slPrice != nil {
-						return "STOP"
-					}
-					return "STOP_MARKET"
-				}()
+				var slDefaultType string
+				if slPrice != nil {
+					slDefaultType = "STOP"
+				} else {
+					slDefaultType = "STOP_MARKET"
+				}
 				var slType *string = this.SafeString(stopLossDict, "type", slDefaultType)
 				var slRequest map[string]any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, slTriggerPrice)),
@@ -4421,12 +4417,12 @@ func (this *Bingx) CreateOrderRequest(symbol any, typeVar any, side any, amount 
 				var tkTriggerPrice *string = this.SafeString2(takeProfitDict, "triggerPrice", "stopPrice")
 				var tkWorkingType *string = this.SafeString2(takeProfitDict, "triggerPriceType", "workingType", "MARK_PRICE")
 				var tpPrice *string = this.SafeString(takeProfitDict, "price")
-				var tpDefaultType string = func() string {
-					if tpPrice != nil {
-						return "TAKE_PROFIT"
-					}
-					return "TAKE_PROFIT_MARKET"
-				}()
+				var tpDefaultType string
+				if tpPrice != nil {
+					tpDefaultType = "TAKE_PROFIT"
+				} else {
+					tpDefaultType = "TAKE_PROFIT_MARKET"
+				}
 				var tpType *string = this.SafeString(takeProfitDict, "type", tpDefaultType)
 				var tpRequest map[string]any = map[string]any{
 					"stopPrice":   this.ParseToNumeric(this.PriceToPrecision(symbol, tkTriggerPrice)),
@@ -5184,12 +5180,12 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 				feeCurrencyCode = this.SafeString(marketResolved, "quote")
 			}
 		} else {
-			var feeKey string = func() string {
-				if *this.SafeBool(marketResolved, "inverse", false) {
-					return "settle"
-				}
-				return "quote"
-			}()
+			var feeKey string
+			if *this.SafeBool(marketResolved, "inverse", false) {
+				feeKey = "settle"
+			} else {
+				feeKey = "quote"
+			}
 			feeCurrencyCode = this.SafeString(marketResolved, feeKey)
 		}
 	}
@@ -6440,12 +6436,12 @@ func (this *Bingx) transferBody(ch chan AsyncResult[TransferEntry], code string,
 	subType, paramsSubType := this.HandleSubTypeAndParams("transfer", nil, params)
 	var fromIdMapped *string = this.SafeString(accountsByType, fromAccount, fromAccount)
 	var toIdMapped *string = this.SafeString(accountsByType, toAccount, toAccount)
-	var swapId string = func() string {
-		if subType != nil && *subType == "inverse" {
-			return "coinMPerp"
-		}
-		return "USDTMPerp"
-	}()
+	var swapId string
+	if subType != nil && *subType == "inverse" {
+		swapId = "coinMPerp"
+	} else {
+		swapId = "USDTMPerp"
+	}
 	var request map[string]any = map[string]any{
 		"fromAccount": func() any {
 			if fromAccount == "swap" {
@@ -7131,12 +7127,12 @@ func (this *Bingx) setMarginModeBody(ch chan AsyncResult[map[string]any], margin
 		panic(BadSymbol(this.Id + " setMarginMode() supports swap contracts only"))
 	}
 	var marginModeUpper string = strings.ToUpper(marginMode)
-	var marginModeValue string = func() string {
-		if marginModeUpper == "CROSS" {
-			return "CROSSED"
-		}
-		return marginModeUpper
-	}()
+	var marginModeValue string
+	if marginModeUpper == "CROSS" {
+		marginModeValue = "CROSSED"
+	} else {
+		marginModeValue = marginModeUpper
+	}
 	if (marginModeValue != "ISOLATED") && (marginModeValue != "CROSSED") {
 		panic(BadRequest(this.Id + " setMarginMode() marginMode argument should be isolated or cross"))
 	}

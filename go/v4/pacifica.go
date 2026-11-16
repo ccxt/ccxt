@@ -1715,12 +1715,12 @@ func (this *Pacifica) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 			sinceValue = (nowMs - (limitValue * duration))
 		}
 		var windowEnd int64 = this.ParseToInt(this.Sum(Subtract(sinceValue, 1), (limitValue * duration)))
-		var until int64 = func() int64 {
-			if windowEnd > nowMs {
-				return nowMs
-			}
-			return windowEnd
-		}()
+		var until int64
+		if windowEnd > nowMs {
+			until = nowMs
+		} else {
+			until = windowEnd
+		}
 		requestUntil["end_time"] = until
 	} else {
 		if IsEqual(sinceValue, nil) {
@@ -3803,12 +3803,12 @@ func (this *Pacifica) ParsePosition(position any, optionalArgs ...any) Position 
 	if rawIsolated != nil {
 		isIsolated = (rawIsolated != nil && *rawIsolated == true)
 	}
-	var marginMode string = func() string {
-		if isIsolated {
-			return "isolated"
-		}
-		return "cross"
-	}()
+	var marginMode string
+	if isIsolated {
+		marginMode = "isolated"
+	} else {
+		marginMode = "cross"
+	}
 	var side *string = this.SafeString(position, "side")
 	if side != nil {
 		side = SafeStringPtr(func() string {
@@ -4259,12 +4259,12 @@ func (this *Pacifica) ParseOpenInterest(interest any, optionalArgs ...any) OpenI
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(interest, "symbol")
-	var marketResolved any = func() any {
-		if marketId != nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if marketId != nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	var symbol *string = nil
 	if marketId != nil {
 		symbol = this.SafeString(marketResolved, "symbol")

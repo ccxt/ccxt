@@ -1332,12 +1332,12 @@ func (this *Upbit) fetchTradesBody(ch chan AsyncResult[[]Trade], symbol any, opt
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 200
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"market": market["id"],
 		"count":  limitResolved,

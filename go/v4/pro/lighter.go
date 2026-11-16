@@ -978,7 +978,7 @@ func (this *Lighter) unWatchTradesBody(ch chan ccxt.AsyncResult[bool], symbol st
 	ch <- ccxt.AsyncResult[bool]{Value: r1.Value}
 	return nil
 }
-func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Lighter) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "trade_id": 526801155,
@@ -1154,7 +1154,7 @@ func (this *Lighter) HandleMyTrades(client any, message map[string]any) bool {
 			var jReversed any = (int64(tradesLength) - 1) - int64(j)
 			var tradeRaw map[string]any = this.SafeDictMap(trades, jReversed, map[string]any{})
 			tradeRaw["accountIndex"] = accountIndex
-			var trade any = this.ParseWsOrderTrade(tradeRaw, market)
+			var trade map[string]any = this.ParseWsOrderTrade(tradeRaw, market)
 			stored.Append(trade)
 			var symbol *string = this.SafeString(trade, "symbol")
 			if symbol != nil {

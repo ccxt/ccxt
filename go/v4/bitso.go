@@ -1435,7 +1435,7 @@ func (this *Bitso) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalArgs 
 		panic(ExchangeError(this.Id + " fetchMyTrades() does not support fetching trades starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally
-	var paramsMarker any = params
+	var paramsMarker map[string]any = params
 	if markerInParams {
 		paramsMarker = this.Extend(params, map[string]any{
 			"marker": this.ParseToInt(params["marker"]),
@@ -1778,7 +1778,7 @@ func (this *Bitso) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		panic(ExchangeError(this.Id + " fetchOpenOrders() does not support fetching orders starting from a timestamp with the `since` argument, use the `marker` extra param to filter starting from an integer trade id"))
 	}
 	// convert it to an integer unconditionally
-	var paramsMarker any = params
+	var paramsMarker map[string]any = params
 	if markerInParams {
 		paramsMarker = this.Extend(params, map[string]any{
 			"marker": this.ParseToInt(params["marker"]),

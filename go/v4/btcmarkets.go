@@ -1364,11 +1364,11 @@ func (this *Btcmarkets) createOrderBody(ch chan AsyncResult[Order], symbol strin
 	if clientOrderId != nil {
 		request["clientOrderId"] = clientOrderId
 	}
-	var paramsTriggerPrice any = params
+	var paramsTriggerPrice map[string]any = params
 	if triggerPriceIsRequired {
-		paramsTriggerPrice = this.Omit(params, "triggerPrice")
+		paramsTriggerPrice = this.OmitDict(params, "triggerPrice")
 	}
-	var paramsOmitted any = this.Omit(paramsTriggerPrice, "clientOrderId")
+	var paramsOmitted map[string]any = this.OmitDict(paramsTriggerPrice, "clientOrderId")
 
 	r1 := <-this.PrivatePostOrders(this.Extend(request, paramsOmitted))
 	if r1.Err != nil {

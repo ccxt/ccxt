@@ -1368,7 +1368,7 @@ func (this *Coinbaseinternational) HandleTicker(client any, message map[string]a
 func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]any) {
 	var params map[string]any = ccxt.SafeMapTyped(message, "params")
 	var data map[string]any = this.SafeDictMap(params, "data", map[string]any{})
-	var ticker any = this.ParseWsBidAsk(data)
+	var ticker map[string]any = this.ParseWsBidAsk(data)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -1376,7 +1376,7 @@ func (this *Coinbaseinternational) HandleBidAsk(client any, message map[string]a
 	var channel *string = this.SafeString(params, "channel")
 	client.(ccxt.ClientInterface).Resolve(ticker, channel)
 }
-func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Coinbaseinternational) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instrument_name")
@@ -2271,12 +2271,12 @@ func (this *Coinbaseinternational) HandleAuthenticationMessage(client any, messa
 	var result map[string]any = this.SafeDictMap(message, "result", map[string]any{})
 	var expiresIn int64 = *this.SafeInteger(result, "expires_in", 900)
 	var ratio *float64 = this.SafeNumber(this.Options, "wsAuthRefreshRatio")
-	var refreshRatio float64 = func() float64 {
-		if ratio == nil {
-			return 0.8
-		}
-		return *ratio
-	}()
+	var refreshRatio float64
+	if ratio == nil {
+		refreshRatio = 0.8
+	} else {
+		refreshRatio = *ratio
+	}
 	var now int64 = this.Milliseconds()
 	this.Options["wsAuthRefreshAt"] = this.Sum(now, this.ParseToInt(float64((expiresIn*1000))*refreshRatio))
 	client.(ccxt.ClientInterface).SetLastPong(now)
@@ -3090,12 +3090,12 @@ func (this *Coinbaseinternational) setCancelOnDisconnectBody(ch chan ccxt.AsyncR
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("setCancelOnDisconnect", params)
-	var method string = func() string {
-		if enabled == true {
-			return "private/enable_cancel_on_disconnect"
-		}
-		return "private/disable_cancel_on_disconnect"
-	}()
+	var method string
+	if enabled == true {
+		method = "private/enable_cancel_on_disconnect"
+	} else {
+		method = "private/disable_cancel_on_disconnect"
+	}
 
 	r := <-this.RequestWsAsync(method, paramsResolved, true)
 	if r.Err != nil {
@@ -3164,12 +3164,12 @@ func (this *Coinbaseinternational) unsubscribeAllWsBody(ch chan ccxt.AsyncResult
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
 	var paramsResolved map[string]any = this.HandleRouteAndParams("unsubscribeAllWs", params)
-	var method string = func() string {
-		if isPrivate == true {
-			return "private/unsubscribe_all"
-		}
-		return "public/unsubscribe_all"
-	}()
+	var method string
+	if isPrivate == true {
+		method = "private/unsubscribe_all"
+	} else {
+		method = "public/unsubscribe_all"
+	}
 
 	r := <-this.RequestWsAsync(method, paramsResolved, isPrivate)
 	if r.Err != nil {

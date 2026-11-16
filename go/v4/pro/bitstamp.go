@@ -819,11 +819,11 @@ func (this *Bitstamp) HandleMyTrades(client any, message map[string]any) {
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var stored ccxt.WsArrayCache = this.MyTrades
-	var trade any = this.ParseWsMyTrade(data, market)
+	var trade map[string]any = this.ParseWsMyTrade(data, market)
 	stored.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(stored, channel)
 }
-func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Bitstamp) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "id": 635698396,
@@ -1278,7 +1278,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 
 			return nil
 		}
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bitstamp) (ret_ any) {
@@ -1329,7 +1329,7 @@ func (this *Bitstamp) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		// rethrows to the leader and marks the promise handled, so an
 		// alone leader's rejection is never unhandled
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

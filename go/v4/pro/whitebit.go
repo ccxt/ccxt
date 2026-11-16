@@ -1001,7 +1001,7 @@ func (this *Whitebit) SetBalanceCache(client any, typeVar *string, subscriptionH
 	if client.(ccxt.ClientInterface).SubscriptionHas(subscriptionHash) {
 		return
 	}
-	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
 	if fetchBalanceSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchBalanceSnapshot")
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
@@ -1330,7 +1330,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	// during the fetch or the authorize round-trip finds it and waits
 	// instead of re-leading, and so client.reject () below always has a
 	// waiter and can never park the error in client.rejections
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 	{
 		func(this *Whitebit) (ret_ any) {
@@ -1402,7 +1402,7 @@ func (this *Whitebit) authenticateBody(ch chan ccxt.AsyncResult[int], optionalAr
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	r3 := <-future.(*ccxt.Future).Await()
+	r3 := <-future.Await()
 	if r3.Err != nil {
 		panic(r3.Err)
 	}
@@ -1501,8 +1501,14 @@ func (this *Whitebit) HandleMessage(client any, message map[string]any) {
 func (this *Whitebit) HandleSubscriptionStatus(client any, message map[string]any, id *int64) {
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
-	var subs any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var values []any = ccxt.ObjectValues(subs)
+	var subs map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var values []any = nil
+	if subs != nil {
+		values = make([]any, 0, len(subs))
+		for _, objectValue := range subs {
+			values = append(values, objectValue)
+		}
+	}
 	for i := 0; i < len(values); i++ {
 		var subscription any = values[i]
 		if subscription != true {

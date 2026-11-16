@@ -4885,12 +4885,12 @@ func (this *Bitget) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 		var maxNotional *float64 = this.SafeNumberN(item, []any{"endUnit", "maxBorrowableAmount", "baseMaxBorrowableAmount", "maxTierValue"})
 		var marginCurrency *string = this.SafeString2(item, "coin", "baseCoin")
 		var base *string = this.SafeString(market, "base")
-		var currencyId *string = func() *string {
-			if marginCurrency != nil {
-				return marginCurrency
-			}
-			return base
-		}()
+		var currencyId *string
+		if marginCurrency != nil {
+			currencyId = marginCurrency
+		} else {
+			currencyId = base
+		}
 		var marketId *string = this.SafeString(item, "symbol")
 		tiers = append(tiers, map[string]any{
 			"tier":                  this.SafeInteger2(item, "level", "tier"),
@@ -4987,12 +4987,12 @@ func (this *Bitget) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if uta == true {
 		defaultWindow = 2592000000
 	}
-	var sinceResolved *int64 = func() *int64 {
-		if since == nil {
-			return Int64PtrTyped(this.Milliseconds() - int64(defaultWindow))
-		}
-		return since
-	}()
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = this.Milliseconds() - int64(defaultWindow)
+	} else {
+		sinceResolved = *since
+	}
 	var request map[string]any = map[string]any{
 		"startTime": sinceResolved,
 		"endTime":   this.Milliseconds(),
@@ -5308,12 +5308,12 @@ func (this *Bitget) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if uta == true {
 		defaultWindow = 2592000000
 	}
-	var sinceResolved *int64 = func() *int64 {
-		if since == nil {
-			return Int64PtrTyped(this.Milliseconds() - int64(defaultWindow))
-		}
-		return since
-	}()
+	var sinceResolved int64
+	if since == nil {
+		sinceResolved = this.Milliseconds() - int64(defaultWindow)
+	} else {
+		sinceResolved = *since
+	}
 	var request map[string]any = map[string]any{
 		"startTime": sinceResolved,
 		"endTime":   this.Milliseconds(),
@@ -7273,12 +7273,12 @@ func (this *Bitget) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		maxLimitForHistoryEndpoint = 100 // the uta history endpoint rejects a limit above 100
 	}
 	if paginate {
-		var limitForPagination int = func() int {
-			if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination {
-				return maxLimitForHistoryEndpoint
-			}
-			return maxLimitForRecentEndpoint
-		}()
+		var limitForPagination int
+		if useHistoryEndpointForPagination != nil && *useHistoryEndpointForPagination {
+			limitForPagination = maxLimitForHistoryEndpoint
+		} else {
+			limitForPagination = maxLimitForRecentEndpoint
+		}
 		var paramsWithUta map[string]any = this.Extend(paramsUTA, map[string]any{
 			"uta": uta,
 		})

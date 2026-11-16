@@ -763,13 +763,13 @@ func (this *Extended) HandleFundingRate(client any, message map[string]any) {
 	//     }
 	//
 	var data map[string]any = this.SafeDictMap(message, "data", map[string]any{})
-	var fundingRate any = this.ParseWsFundingRate(data, nil, message)
+	var fundingRate map[string]any = this.ParseWsFundingRate(data, nil, message)
 	var symbol string = *this.SafeString(fundingRate, "symbol", "")
-	ccxt.AddElementToObject(this.FundingRates, symbol, fundingRate)
+	this.FundingRates[symbol] = fundingRate
 	var messageHash string = "fundingRate:" + symbol
 	client.(ccxt.ClientInterface).Resolve(fundingRate, messageHash)
 }
-func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) any {
+func (this *Extended) ParseWsFundingRate(fundingRate map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var message map[string]any = ccxt.GetArgMap(optionalArgs, 1, nil)

@@ -8838,12 +8838,12 @@ func (this *Htx) fetchDepositsBody(ch chan AsyncResult[[]Transaction], optionalA
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var limitValue any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 100) {
-			return 100
-		}
-		return limit
-	}()
+	var limitValue int64
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limitValue = 100
+	} else {
+		limitValue = *limit
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -8929,12 +8929,12 @@ func (this *Htx) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], option
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var limitValue any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 100) {
-			return 100
-		}
-		return limit
-	}()
+	var limitValue int64
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limitValue = 100
+	} else {
+		limitValue = *limit
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()

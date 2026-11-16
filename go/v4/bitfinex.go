@@ -1675,7 +1675,7 @@ func (this *Bitfinex) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		minusIndex = 1
 	}
 	var marketId *string = this.SafeString(ticker, 0)
-	var marketResolved any = nil
+	var marketResolved map[string]any = nil
 	if isFetchTicker {
 		marketResolved = market
 	} else {
@@ -3373,12 +3373,12 @@ func (this *Bitfinex) fetchDepositAddressBody(ch chan AsyncResult[DepositAddress
 	//
 	var result []any = SafeListTyped(response, 4)
 	var poolAddress *string = this.SafeString(result, 5)
-	var address *string = func() *string {
-		if poolAddress == nil {
-			return this.SafeString(result, 4)
-		}
-		return poolAddress
-	}()
+	var address *string
+	if poolAddress == nil {
+		address = this.SafeString(result, 4)
+	} else {
+		address = poolAddress
+	}
 	var tag *string = func() *string {
 		if poolAddress == nil {
 			return nil

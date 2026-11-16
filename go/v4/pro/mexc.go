@@ -566,7 +566,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 	//        "t": 1678643605721
 	//    }
 	//
-	var parsedTicker any = this.ParseWsBidAsk(message)
+	var parsedTicker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(parsedTicker, "symbol")
 	if symbol == nil {
 		return
@@ -575,7 +575,7 @@ func (this *Mexc) HandleBidAsk(client any, message any) {
 	var messageHash string = "bidask:" + *symbol
 	client.(ccxt.ClientInterface).Resolve(parsedTicker, messageHash)
 }
-func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Mexc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var data any = this.SafeDictN(ticker, []any{"d", "data", "publicAggreBookTicker"})

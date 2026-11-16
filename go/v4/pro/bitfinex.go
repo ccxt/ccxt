@@ -1044,12 +1044,12 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 					}
 					return delta2
 				}()
-				var side string = func() string {
-					if (delta2 != nil) && (!(*delta2 >= 0)) {
-						return "asks"
-					}
-					return "bids"
-				}()
+				var side string
+				if (delta2 != nil) && (!(*delta2 >= 0)) {
+					side = "asks"
+				} else {
+					side = "bids"
+				}
 				var bookside any = ccxt.GetValue(orderbook, side)
 				var idString *string = this.SafeString(rawDelta, 0)
 				var price *float64 = this.SafeFloat(rawDelta, 1)
@@ -1071,12 +1071,12 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 					}
 					return deltaAmount
 				}()
-				var side string = func() string {
-					if deltaAmount == nil || !(*deltaAmount >= 0) {
-						return "asks"
-					}
-					return "bids"
-				}()
+				var side string
+				if deltaAmount == nil || !(*deltaAmount >= 0) {
+					side = "asks"
+				} else {
+					side = "bids"
+				}
 				var bookside any = ccxt.GetValue(orderbook, side)
 				bookside.(ccxt.IOrderBookSide).StoreArray([]any{price, size, counter})
 			}
@@ -1096,12 +1096,12 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 				}
 				return deltas2
 			}()
-			var side string = func() string {
-				if (deltas2 != nil) && (!(*deltas2 >= 0)) {
-					return "asks"
-				}
-				return "bids"
-			}()
+			var side string
+			if (deltas2 != nil) && (!(*deltas2 >= 0)) {
+				side = "asks"
+			} else {
+				side = "bids"
+			}
 			var bookside any = ccxt.GetValue(orderbookItem, side)
 			// price = 0 means that you have to remove the order from your book
 			var amount any = func() any {
@@ -1116,18 +1116,18 @@ func (this *Bitfinex) HandleOrderBook(client any, message []any, subscription ma
 			var amount *string = this.SafeString(deltas, 2)
 			var counter *string = this.SafeString(deltas, 1)
 			var price *string = this.SafeString(deltas, 0)
-			var size any = func() any {
-				if ccxt.Precise.StringLt(amount, "0") {
-					return ccxt.Precise.StringNeg(amount)
-				}
-				return amount
-			}()
-			var side string = func() string {
-				if ccxt.Precise.StringLt(amount, "0") {
-					return "asks"
-				}
-				return "bids"
-			}()
+			var size *string
+			if ccxt.Precise.StringLt(amount, "0") {
+				size = ccxt.Precise.StringNeg(amount)
+			} else {
+				size = amount
+			}
+			var side string
+			if ccxt.Precise.StringLt(amount, "0") {
+				side = "asks"
+			} else {
+				side = "bids"
+			}
 			var bookside any = ccxt.GetValue(orderbookItem, side)
 			bookside.(ccxt.IOrderBookSide).StoreArray([]any{this.ParseNumber(price), this.ParseNumber(size), this.ParseNumber(counter)})
 		}
@@ -1182,7 +1182,7 @@ func (this *Bitfinex) HandleChecksum(client any, message []any, subscription map
 		if symbol != nil {
 			delete(this.Orderbooks, *symbol)
 		}
-		var checksum any = this.HandleOption("watchOrderBook", "checksum", true)
+		var checksum bool = this.HandleOption("watchOrderBook", "checksum", true) == true
 		if checksum == true {
 			error := ccxt.ChecksumError(ccxt.Add(this.Id+" ", this.OrderbookChecksumMessage(symbol)))
 			client.(ccxt.ClientInterface).Reject(error, messageHash)
@@ -1445,7 +1445,7 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["private"])
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		// the auth nonce shares the increasing-nonce requirement (and the counter) with REST requests signed by the same key
@@ -1464,7 +1464,7 @@ func (this *Bitfinex) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

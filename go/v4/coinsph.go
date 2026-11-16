@@ -1856,7 +1856,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var orderType *string = this.SafeString(paramsOmitted, "type", typeVar)
 	orderType = this.EncodeOrderType(*orderType)
 	var paramsType map[string]any = this.OmitDict(paramsOmitted, "type")
-	var paramsQuote any = paramsType
+	var paramsQuote map[string]any = paramsType
 	var orderSide *string = this.EncodeOrderSide(side)
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
@@ -1885,7 +1885,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 			var quoteAmount any = nil
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsType, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber2(paramsRequiresPrice, "cost", "quoteOrderQty")
-			paramsQuote = this.Omit(paramsRequiresPrice, "cost")
+			paramsQuote = this.OmitDict(paramsRequiresPrice, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
 			} else if createMarketBuyOrderRequiresPrice {
@@ -1911,7 +1911,7 @@ func (this *Coinsph) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["stopPrice"] = this.PriceToPrecision(symbol, triggerPrice)
 	}
 	request["newOrderRespType"] = newOrderRespType
-	var paramsRequest any = this.Omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
+	var paramsRequest map[string]any = this.OmitDict(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty")
 	var response any = map[string]any{}
 	if testOrder != nil && *testOrder {
 

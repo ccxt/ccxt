@@ -4958,12 +4958,12 @@ func (this *Hashkey) setMarginModeBody(ch chan AsyncResult[map[string]any], marg
 		}
 	}
 	var marginModeUpper string = strings.ToUpper(marginMode)
-	var marginModeValue string = func() string {
-		if marginModeUpper == "CROSSED" {
-			return "CROSS"
-		}
-		return marginModeUpper
-	}()
+	var marginModeValue string
+	if marginModeUpper == "CROSSED" {
+		marginModeValue = "CROSS"
+	} else {
+		marginModeValue = marginModeUpper
+	}
 	if (marginModeValue != "CROSS") && (marginModeValue != "ISOLATED") {
 		panic(ArgumentsRequired(this.Id + " setMarginMode() marginMode must be either cross or isolated"))
 	}

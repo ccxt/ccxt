@@ -593,14 +593,14 @@ func (this *Blofin) watchBidsAsksBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 func (this *Blofin) HandleBidAsk(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsBidAsk(this.SafeDict(data, i, map[string]any{}))
+		var ticker map[string]any = this.ParseWsBidAsk(this.SafeDict(data, i, map[string]any{}))
 		var symbol string = *this.SafeString(ticker, "symbol", "")
 		var messageHash string = "bidask:" + symbol
 		this.Bidsasks[symbol] = ccxt.TickerFromMap(ticker)
 		client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 	}
 }
-func (this *Blofin) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Blofin) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "instId")
@@ -1155,7 +1155,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 	var data []any = ccxt.SafeListTyped(message, "data")
 	var newPositions []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var position any = this.ParseWsPosition(this.SafeDict(data, i, map[string]any{}))
+		var position map[string]any = this.ParseWsPosition(this.SafeDict(data, i, map[string]any{}))
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		if channelName != nil {
@@ -1163,7 +1163,7 @@ func (this *Blofin) HandlePositions(client any, message map[string]any) {
 		}
 	}
 }
-func (this *Blofin) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Blofin) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.PositionToMap(this.ParsePosition(position, market))

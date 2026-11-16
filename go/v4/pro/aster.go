@@ -810,7 +810,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	var marketType string = this.GetAccountTypeFromUrl(client.(ccxt.ClientInterface).GetUrl())
 	var marketId *string = this.SafeString(message, "s")
 	var market map[string]any = this.SafeMarket(marketId, nil, nil, marketType)
-	var ticker any = this.ParseWsBidAsk(message, market)
+	var ticker map[string]any = this.ParseWsBidAsk(message, market)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol != nil {
 		this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
@@ -818,7 +818,7 @@ func (this *Aster) HandleBidAsk(client any, message map[string]any) {
 	var messageHash string = "bidask:" + *this.SafeString(ticker, "symbol", "")
 	client.(ccxt.ClientInterface).Resolve(ticker, messageHash)
 }
-func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) any {
+func (this *Aster) ParseWsBidAsk(message map[string]any, market map[string]any) map[string]any {
 	var timestamp *int64 = this.SafeInteger(message, "T")
 	var bidAskSymbol any = nil
 	if market != nil {
@@ -1875,7 +1875,7 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Aster) (ret_ any) {
@@ -1929,7 +1929,7 @@ func (this *Aster) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 
 		}
 
-		r3 := <-future.(*ccxt.Future).Await()
+		r3 := <-future.Await()
 		if r3.Err != nil {
 			panic(r3.Err)
 		}
@@ -2255,8 +2255,8 @@ func (this *Aster) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position],
 			messageHashes = append(messageHashes, messageHash+"::"+symbol)
 		}
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	var cache ccxt.WsArrayCache = this.Positions
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
@@ -2298,7 +2298,7 @@ func (this *Aster) SetPositionsCache(client any) {
 	if this.Positions != nil {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -2382,7 +2382,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
-		var position any = this.ParseWsPosition(rawPosition)
+		var position map[string]any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
@@ -2399,7 +2399,7 @@ func (this *Aster) HandlePositions(client any, message map[string]any) {
 		client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 	}
 }
-func (this *Aster) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Aster) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "s": "BTCUSDT", // Symbol

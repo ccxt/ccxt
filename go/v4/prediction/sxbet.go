@@ -836,18 +836,10 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
 		panic(r.Err)
 	}
 	var response map[string]any = r.Value
-	var data any = this.SafeDict(response, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(response, "data", map[string]any{})
 	this.Options["sxObv3Metadata"] = data
 
-	var resolved map[string]any
-	switch resolvedBox := data.(type) {
-	case map[string]any:
-		resolved = resolvedBox
-	case nil:
-	default:
-		panic(ccxt.ExchangeError("resolved value is not map[string]any"))
-	}
-	ch <- ccxt.AsyncResult[map[string]any]{Value: resolved}
+	ch <- ccxt.AsyncResult[map[string]any]{Value: data}
 	return nil
 }
 
@@ -860,7 +852,7 @@ func (this *Sxbet) loadSxObv3MetadataBody(ch chan ccxt.AsyncResult[map[string]an
  * @param {string} oddsLadderStepSize the raw oddsLadderStepSize from /metadata/obv3 (e.g. '125')
  * @returns {string} the probability rounded to the nearest ladder step, in decimal-string form
  */
-func (this *Sxbet) RoundOddsToLadder(probability any, oddsLadderStepSize string) string {
+func (this *Sxbet) RoundOddsToLadder(probability *string, oddsLadderStepSize string) string {
 	var tickSize *string = ccxt.Precise.StringDiv(oddsLadderStepSize, "100000", 10)
 	return this.DecimalToPrecision(probability, ccxt.ROUND, tickSize, ccxt.TICK_SIZE)
 }
@@ -1222,19 +1214,19 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	var isBuy bool = (side == "buy")
 	// 'sell' bets the complementary outcome, mirroring the requested outcome's own probability -
 	// matches the normalize-to-one-book convention used by other prediction venues
-	var isMakerBettingOutcomeOne any = func() any {
-		if isBuy {
-			return isOutcomeOne
-		}
-		return !isOutcomeOne
-	}()
+	var isMakerBettingOutcomeOne bool
+	if isBuy {
+		isMakerBettingOutcomeOne = isOutcomeOne
+	} else {
+		isMakerBettingOutcomeOne = !isOutcomeOne
+	}
 	var priceStr *string = this.NumberToString(price)
-	var probability *string = func() *string {
-		if isBuy {
-			return priceStr
-		}
-		return ccxt.Precise.StringSub("1", priceStr)
-	}()
+	var probability *string
+	if isBuy {
+		probability = priceStr
+	} else {
+		probability = ccxt.Precise.StringSub("1", priceStr)
+	}
 
 	r1 := <-this.LoadSxObv3MetadataAsync()
 	if r1.Err != nil {
@@ -1244,7 +1236,7 @@ func (this *Sxbet) createOrderBody(ch chan ccxt.AsyncResult[ccxt.PredictionOrder
 	if r1.Value != nil {
 		obv3 = r1.Value
 	}
-	var domain any = this.SafeDict(obv3, "domain", map[string]any{})
+	var domain map[string]any = this.SafeDictMap(obv3, "domain", map[string]any{})
 	var activeAsset map[string]any = ccxt.SafeMapTyped(obv3, "activeAsset")
 	var baseToken *string = this.SafeString(activeAsset, "baseToken")
 	var oddsLadderStepSize *string = this.NumberToString(this.SafeInteger(obv3, "oddsLadderStepSize", 125))
@@ -2811,8 +2803,8 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	var outcomeId *string = this.SafeString(outcomeObj, "outcomeId")
 	var marketHash *string = this.SafeString(raw, "marketHash")
 	var isOutcomeOne bool = (outcomeId == marketHash || (outcomeId != nil && marketHash != nil && *outcomeId == *marketHash))
-	var outcomeOneOdds any = this.SafeDict(raw, "outcomeOne", map[string]any{})
-	var outcomeTwoOdds any = this.SafeDict(raw, "outcomeTwo", map[string]any{})
+	var outcomeOneOdds map[string]any = this.SafeDictMap(raw, "outcomeOne", map[string]any{})
+	var outcomeTwoOdds map[string]any = this.SafeDictMap(raw, "outcomeTwo", map[string]any{})
 	var ownOdds any = outcomeTwoOdds
 	if isOutcomeOne {
 		ownOdds = outcomeOneOdds
@@ -2840,12 +2832,12 @@ func (this *Sxbet) ParsePredictionTicker(raw any, optionalArgs ...any) map[strin
 	}()
 	var updatedAt *int64 = this.SafeInteger(ownOdds, "updatedAt")
 	var now int64 = this.Milliseconds()
-	var timestamp int64 = func() int64 {
-		if updatedAt != nil {
-			return *updatedAt
-		}
-		return now
-	}()
+	var timestamp int64
+	if updatedAt != nil {
+		timestamp = *updatedAt
+	} else {
+		timestamp = now
+	}
 	var average *float64 = nil
 	if (bid != nil) && (ask != nil) {
 		average = this.ParseNumber(ccxt.Precise.StringDiv(ccxt.Precise.StringAdd(this.NumberToString(bid), this.NumberToString(ask)), "2"))
@@ -3210,7 +3202,7 @@ func (this *Sxbet) HandleCentrifugoFrame(client any, msg any) {
 		return
 	}
 	var requestIdString *string = this.SafeString(msg, "id")
-	var pendingRequests any = this.SafeDict(this.Options, "wsPendingRequests", map[string]any{})
+	var pendingRequests map[string]any = this.SafeDictMap(this.Options, "wsPendingRequests", map[string]any{})
 	var pendingEntry map[string]any = ccxt.SafeMapTyped(pendingRequests, requestIdString)
 	var errorReply map[string]any = ccxt.SafeMapTyped(msg, "error")
 	if errorReply != nil {

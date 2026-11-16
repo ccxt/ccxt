@@ -1062,7 +1062,7 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
@@ -1285,18 +1285,18 @@ func (this *Latoken) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var isBuy bool = (side != nil && *side == "buy")
 	var isMaker bool = (makerBuyer != nil && *makerBuyer) && isBuy
-	var takerOrMaker string = func() string {
-		if isMaker {
-			return "maker"
-		}
-		return "taker"
-	}()
+	var takerOrMaker string
+	if isMaker {
+		takerOrMaker = "maker"
+	} else {
+		takerOrMaker = "taker"
+	}
 	var baseId *string = this.SafeString(trade, "baseCurrency")
 	var quoteId *string = this.SafeString(trade, "quoteCurrency")
 	var base *string = this.SafeCurrencyCode(baseId)
 	var quote *string = this.SafeCurrencyCode(quoteId)
 	var symbol any = nil
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if (base != nil) && (quote != nil) {
 		symbol = *base + "/" + *quote
 		if (this.Markets != nil) && (InOp(this.Markets, symbol)) {
@@ -1688,7 +1688,7 @@ func (this *Latoken) ParseOrder(order any, optionalArgs ...any) Order {
 		symbol = *base + "/" + *quote
 	}
 	var symbolKnown bool = (symbol != nil) && (this.Markets != nil) && (InOp(this.Markets, symbol))
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if symbolKnown {
 		marketResolved = this.Market(symbol)
 	}

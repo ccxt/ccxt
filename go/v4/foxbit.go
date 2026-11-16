@@ -2516,7 +2516,7 @@ func (this *Foxbit) ParseOrder(order any, optionalArgs ...any) Order {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(order, "market_symbol")
-	var marketResolved any = market
+	var marketResolved map[string]any = market
 	if market != nil {
 		symbol = this.SafeString(market, "symbol")
 	} else if symbol != nil {

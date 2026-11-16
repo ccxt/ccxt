@@ -1664,7 +1664,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 			ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(subscription, "token")}
 			return nil
 		}
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Kraken) (ret_ any) {
@@ -1717,7 +1717,7 @@ func (this *Kraken) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 		// rethrows the leader's own failure and attaches the handler that
 		// keeps an alone leader's rejection from killing the process
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

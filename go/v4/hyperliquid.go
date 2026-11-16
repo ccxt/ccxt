@@ -1340,19 +1340,19 @@ func (this *Hyperliquid) fetchBalanceBody(ch chan AsyncResult[Balances], optiona
 		for i := 0; i < len(balances); i++ {
 			var balance map[string]any = SafeMapTyped(balances, i)
 			var unifiedCode *string = this.SafeCurrencyCode(this.SafeString(balance, "coin"))
-			var code any = func() any {
-				if isSpot {
-					return this.UpdateSpotCurrencyCode(unifiedCode)
-				}
-				return unifiedCode
-			}()
+			var code *string
+			if isSpot {
+				code = this.UpdateSpotCurrencyCode(unifiedCode)
+			} else {
+				code = unifiedCode
+			}
 			var account map[string]any = this.Account()
 			var total *string = this.SafeString(balance, "total")
 			var used *string = this.SafeString(balance, "hold")
 			account["total"] = total
 			account["used"] = used
 			if code != nil {
-				AddElementToObject(spotBalances, code, account)
+				spotBalances[*code] = account
 			}
 		}
 
@@ -2033,12 +2033,12 @@ func (this *Hyperliquid) SignMessage(message any, privateKey string) any {
 func (this *Hyperliquid) ConstructPhantomAgent(hash any, optionalArgs ...any) map[string]any {
 	var isTestnet bool = GetArgBool(optionalArgs, 0, true)
 	_ = isTestnet
-	var source string = func() string {
-		if isTestnet == true {
-			return "b"
-		}
-		return "a"
-	}()
+	var source string
+	if isTestnet == true {
+		source = "b"
+	} else {
+		source = "a"
+	}
 	return map[string]any{
 		"source":       source,
 		"connectionId": hash,
@@ -3563,18 +3563,18 @@ func (this *Hyperliquid) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order]
 		if (id != nil) && cancelByCloid {
 			panic(BadRequest(this.Id + " cancelOrdersForSymbols() all orders must have either id or clientOrderId"))
 		}
-		var assetKey string = func() string {
-			if cancelByCloid {
-				return "asset"
-			}
-			return "a"
-		}()
-		var idKey string = func() string {
-			if cancelByCloid {
-				return "cloid"
-			}
-			return "o"
-		}()
+		var assetKey string
+		if cancelByCloid {
+			assetKey = "asset"
+		} else {
+			assetKey = "a"
+		}
+		var idKey string
+		if cancelByCloid {
+			idKey = "cloid"
+		} else {
+			idKey = "o"
+		}
 		var market map[string]any = this.Market(symbol)
 		var cancelObj map[string]any = map[string]any{}
 		cancelObj[assetKey] = this.ParseToNumeric(market["baseId"])
@@ -5829,12 +5829,12 @@ func (this *Hyperliquid) transferBody(ch chan AsyncResult[TransferEntry], code s
 		var sendAssetToken string = *this.SafeString(sendAssetCurrencyInfo, "name", "") + ":" + *this.SafeString(sendAssetCurrencyInfo, "tokenId", "")
 		// '' addresses the default USDC perp dex and 'spot' the spot balance, a unified account
 		// keeps every balance in the spot clearinghouse so spot is the default on both sides
-		var defaultDex string = func() string {
-			if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
-				return ""
-			}
-			return "spot"
-		}()
+		var defaultDex string
+		if (transferType != nil && *transferType == "swap") || (transferType != nil && *transferType == "perp") {
+			defaultDex = ""
+		} else {
+			defaultDex = "spot"
+		}
 		var sourceDex *string = this.SafeString(paramsSendAsset, "sourceDex", defaultDex)
 		var destinationDex *string = this.SafeString(paramsSendAsset, "destinationDex", defaultDex)
 		var sendAssetPayload map[string]any = map[string]any{

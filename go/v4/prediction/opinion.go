@@ -528,7 +528,7 @@ func (this *Opinion) fetchEventsBody(ch chan ccxt.AsyncResult[[]ccxt.PredictionE
 			singleResponse = r1.Value
 		}
 		var singleResult map[string]any = ccxt.SafeMapTyped(singleResponse, "result")
-		var singleData any = this.SafeDict(singleResult, "data", map[string]any{})
+		var singleData map[string]any = this.SafeDictMap(singleResult, "data", map[string]any{})
 		var single map[string]any = this.ParseEvent(singleData)
 		this.IndexEventOutcomes(single)
 
@@ -642,7 +642,7 @@ func (this *Opinion) fetchEventBody(ch chan ccxt.AsyncResult[ccxt.PredictionEven
 		response = r1.Value
 	}
 	var result map[string]any = ccxt.SafeMapTyped(response, "result")
-	var data any = this.SafeDict(result, "data", map[string]any{})
+	var data map[string]any = this.SafeDictMap(result, "data", map[string]any{})
 	var event map[string]any = this.ParseEvent(data)
 	this.IndexEventOutcomes(event)
 
@@ -1932,7 +1932,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
 	var cacheKey string = "tradeMarketsById"
-	var cached any = this.SafeDict(this.Options, cacheKey, map[string]any{})
+	var cached map[string]any = this.SafeDictMap(this.Options, cacheKey, map[string]any{})
 	var idStr string = ccxt.ToString(marketId)
 	var existing map[string]any = this.SafeDictMap(cached, idStr)
 	if existing != nil {
@@ -1960,7 +1960,7 @@ func (this *Opinion) loadTradeMarketBody(ch chan ccxt.AsyncResult[ccxt.MarketInt
 	var marketHandle string = *this.SafeString(market, "market", "")
 	this.AddMarketsEntry(marketHandle, market)
 	this.IndexMarketOutcomes(market)
-	ccxt.AddElementToObject(cached, idStr, market)
+	cached[idStr] = market
 	this.Options[cacheKey] = cached
 
 	ch <- ccxt.AsyncResult[ccxt.MarketInterface]{Value: ccxt.MarketInterfaceFromMap(market)}
@@ -2769,8 +2769,8 @@ func (this *Opinion) HandleTicker(client any, message map[string]any) {
 		"last":      last,
 		"info":      message,
 	}, outcomeObj)
-	var cachedTickers any = this.SafeDict(this.Options, "wsTickers", map[string]any{})
-	ccxt.AddElementToObject(cachedTickers, sym, ticker)
+	var cachedTickers map[string]any = this.SafeDictMap(this.Options, "wsTickers", map[string]any{})
+	cachedTickers[*sym] = ticker
 	this.Options["wsTickers"] = cachedTickers
 	client.(ccxt.ClientInterface).Resolve(ticker, "ticker::"+*sym)
 }

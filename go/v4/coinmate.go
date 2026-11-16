@@ -1212,12 +1212,12 @@ func (this *Coinmate) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalAr
 			panic(r.Err)
 		}
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"limit": limitResolved,
 	}

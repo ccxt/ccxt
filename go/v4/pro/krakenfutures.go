@@ -95,7 +95,7 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var url *string = ccxt.SafeStringPtr(this.UrlsApi["ws"])
 	var messageHash string = "challenge"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var request map[string]any = map[string]any{
@@ -106,7 +106,7 @@ func (this *Krakenfutures) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -613,7 +613,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = ccxt.DerefScalar(rawPositions[i])
 		var timestamp *int64 = this.SafeInteger(message, "timestamp")
-		var position any = this.ParseWsPosition(rawPosition, nil, timestamp)
+		var position map[string]any = this.ParseWsPosition(rawPosition, nil, timestamp)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 	}
@@ -635,7 +635,7 @@ func (this *Krakenfutures) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//        {
 	//            instrument: 'PF_LTCUSD',
@@ -990,7 +990,7 @@ func (this *Krakenfutures) ParseWsTrade(trade any, optionalArgs ...any) map[stri
 		},
 	}, marketResolved))
 }
-func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "symbol": "BTC_USDT",
@@ -2008,7 +2008,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	var tradeSymbols map[string]any = map[string]any{}
 	for i := 0; i < len(trades); i++ {
 		var trade any = trades[i]
-		var parsedTrade any = this.ParseWsMyTrade(trade)
+		var parsedTrade map[string]any = this.ParseWsMyTrade(trade)
 		var tradeSymbol *string = this.SafeString(parsedTrade, "symbol")
 		if tradeSymbol != nil {
 			tradeSymbols[*tradeSymbol] = true
@@ -2029,7 +2029,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "myTrades")
 }
-func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) any {
+func (this *Krakenfutures) ParseWsMyTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "instrument": "FI_XBTUSD_200925",

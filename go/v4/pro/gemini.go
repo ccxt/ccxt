@@ -1201,12 +1201,12 @@ func (this *Gemini) authenticateBody(ch chan ccxt.AsyncResult[*string], optional
 	var startIndex int = len(wsBaseUrl)
 	var urlParamsIndex int = strings.Index(*url, "?")
 	var urlLength int = len(*url)
-	var endIndex int = func() int {
-		if urlParamsIndex >= 0 {
-			return urlParamsIndex
-		}
-		return urlLength
-	}()
+	var endIndex int
+	if urlParamsIndex >= 0 {
+		endIndex = urlParamsIndex
+	} else {
+		endIndex = urlLength
+	}
 	var request string = ccxt.Slice(url, startIndex, endIndex)
 	var payload map[string]any = map[string]any{
 		"request": request,

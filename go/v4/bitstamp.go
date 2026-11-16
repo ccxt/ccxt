@@ -2058,12 +2058,12 @@ func (this *Bitstamp) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string
 	var duration int64 = this.ParseTimeframe(timeframe)
 	var until *int64 = this.SafeInteger(params, "until")
 	var untilIsDefined bool = (until != nil)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if limit != nil {
 		if since != nil {
 			var start int64 = this.ParseToInt(float64(*since) / 1000)
@@ -3558,12 +3558,12 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		if IsEqual(market, nil) {
 			market = this.GetMarketFromTrade(item)
 		}
-		var direction string = func() string {
-			if this.SafeString(parsedTrade, "side") != nil && *this.SafeString(parsedTrade, "side") == "buy" {
-				return "in"
-			}
-			return "out"
-		}()
+		var direction string
+		if this.SafeString(parsedTrade, "side") != nil && *this.SafeString(parsedTrade, "side") == "buy" {
+			direction = "in"
+		} else {
+			direction = "out"
+		}
 		return this.SafeLedgerEntry(map[string]any{
 			"info":             item,
 			"id":               parsedTrade["id"],
@@ -3586,7 +3586,7 @@ func (this *Bitstamp) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 		var direction any = nil
 		var transactionCurrency *string = this.SafeString(parsedTransaction, "currency")
 		var hasTransactionCurrency bool = !(InOp(item, "amount")) && (transactionCurrency != nil)
-		var currencyResolved any = currency
+		var currencyResolved map[string]any = currency
 		if hasTransactionCurrency {
 			currencyResolved = this.Currency(this.SafeString(parsedTransaction, "currency"))
 		}

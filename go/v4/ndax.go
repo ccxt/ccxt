@@ -1046,12 +1046,12 @@ func (this *Ndax) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}() // default 100
+	var limitValue int64
+	if limit == nil {
+		limitValue = 100
+	} else {
+		limitValue = *limit
+	} // default 100
 	var request map[string]any = map[string]any{
 		"omsId":        omsId,
 		"InstrumentId": market["id"],

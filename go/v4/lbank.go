@@ -1202,12 +1202,12 @@ func (this *Lbank) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol str
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 60
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 60
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol": market["id"],
 	}
@@ -1371,12 +1371,12 @@ func (this *Lbank) ParseTrade(trade any, optionalArgs ...any) Trade {
 	var fee map[string]any = nil
 	var feeCost *string = this.SafeString(trade, "tradeFee")
 	if feeCost != nil {
-		var feeCurr *string = func() *string {
-			if side != nil && *side == "buy" {
-				return this.SafeString(market, "base")
-			}
-			return this.SafeString(market, "quote")
-		}()
+		var feeCurr *string
+		if side != nil && *side == "buy" {
+			feeCurr = this.SafeString(market, "base")
+		} else {
+			feeCurr = this.SafeString(market, "quote")
+		}
 		fee = map[string]any{
 			"cost":     feeCost,
 			"currency": feeCurr,
@@ -2719,12 +2719,12 @@ func (this *Lbank) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArgs ..
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"current_page": 1,
@@ -2808,12 +2808,12 @@ func (this *Lbank) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		}
 	}
 	var market map[string]any = this.Market(symbol)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"symbol":       market["id"],
 		"current_page": 1,

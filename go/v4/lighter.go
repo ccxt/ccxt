@@ -3378,12 +3378,12 @@ func (this *Lighter) ParseOrder(order any, optionalArgs ...any) Order {
 	}
 	// Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
 	var tifAsInteger *int64 = this.SafeInteger(order, "time_in_force")
-	var tif *string = func() *string {
-		if tifAsInteger != nil {
-			return this.ParseOrderTimeInForceInteger(tifAsInteger)
-		}
-		return this.SafeString(order, "time_in_force")
-	}()
+	var tif *string
+	if tifAsInteger != nil {
+		tif = this.ParseOrderTimeInForceInteger(tifAsInteger)
+	} else {
+		tif = this.SafeString(order, "time_in_force")
+	}
 	var reduceOnlyAsBool *bool = this.SafeBool(order, "reduce_only")
 	var reduceOnlyAsInteger *int64 = this.SafeInteger(order, "reduce_only")
 	var reduceOnly any = reduceOnlyAsBool
@@ -3471,7 +3471,7 @@ func (this *Lighter) ParseOrderTypeInteger(typeInteger *int64) *string {
 	}
 	return this.SafeString(types, strconv.FormatInt(*typeInteger, 10))
 }
-func (this *Lighter) ParseOrderTimeInForce(tif any) *string {
+func (this *Lighter) ParseOrderTimeInForce(tif *string) *string {
 	var timeInForces map[string]any = map[string]any{
 		"immediate-or-cancel": "IOC",
 		"good-till-time":      "GTC",
@@ -3548,12 +3548,12 @@ func (this *Lighter) transferBody(ch chan AsyncResult[TransferEntry], code strin
 	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " transfer() only supports USDC and ETH transfers"))
 	}
-	var amountDecimals string = func() string {
-		if currencyCode != nil && *currencyCode == "USDC" {
-			return "6"
-		}
-		return "8"
-	}()
+	var amountDecimals string
+	if currencyCode != nil && *currencyCode == "USDC" {
+		amountDecimals = "6"
+	} else {
+		amountDecimals = "8"
+	}
 	var amountScaled int64 = this.ParseToInt(Precise.StringMul(this.Pow("10", amountDecimals), this.CurrencyToPrecision(code, amount)))
 	var fromRouteType int = func() int {
 		if fromAccount == "perp" {
@@ -4104,12 +4104,12 @@ func (this *Lighter) withdrawBody(ch chan AsyncResult[Transaction], code string,
 	if (currencyCode == nil || *currencyCode != "USDC") && (currencyCode == nil || *currencyCode != "ETH") {
 		panic(ExchangeError(this.Id + " withdraw() only supports USDC and ETH transfers"))
 	}
-	var amountDecimals string = func() string {
-		if currencyCode != nil && *currencyCode == "USDC" {
-			return "6"
-		}
-		return "8"
-	}()
+	var amountDecimals string
+	if currencyCode != nil && *currencyCode == "USDC" {
+		amountDecimals = "6"
+	} else {
+		amountDecimals = "8"
+	}
 	var amountScaled int64 = this.ParseToInt(Precise.StringMul(this.Pow("10", amountDecimals), this.CurrencyToPrecision(code, amount)))
 	var routeType *int64 = this.SafeInteger(paramsAccountIndex, "routeType", 0) // 0: perp, 1: spot
 	var paramsOmitted any = this.Omit(paramsAccountIndex, "routeType")
@@ -4418,14 +4418,14 @@ func (this *Lighter) ParseTrade(trade any, optionalArgs ...any) Trade {
 	}
 	var takerOrMaker *string = nil
 	if (side != nil) && (isMakerAsk != nil) {
-		var isMaker any = func() any {
-			if side != nil && *side == "sell" {
-				return (isMakerAsk != nil && *isMakerAsk == true)
-			}
-			return (isMakerAsk != nil && *isMakerAsk == false)
-		}()
+		var isMaker bool
+		if side != nil && *side == "sell" {
+			isMaker = (isMakerAsk != nil && *isMakerAsk == true)
+		} else {
+			isMaker = (isMakerAsk != nil && *isMakerAsk == false)
+		}
 		takerOrMaker = SafeStringPtr(func() string {
-			if isMaker == true {
+			if isMaker {
 				return "maker"
 			}
 			return "taker"

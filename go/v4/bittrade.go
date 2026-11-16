@@ -864,12 +864,12 @@ func (this *Bittrade) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], o
 		var leverageRatio *string = this.SafeString(market, "leverage-ratio", "1")
 		var superLeverageRatio *string = this.SafeString(market, "super-margin-leverage-ratio", "1")
 		var margin bool = Precise.StringGt(leverageRatio, "1") || Precise.StringGt(superLeverageRatio, "1")
-		var fee *float64 = func() *float64 {
-			if base != nil && *base == "OMG" {
-				return this.ParseNumber("0")
-			}
-			return this.ParseNumber("0.002")
-		}()
+		var fee *float64
+		if base != nil && *base == "OMG" {
+			fee = this.ParseNumber("0")
+		} else {
+			fee = this.ParseNumber("0.002")
+		}
 		if baseId == nil {
 			panic(ExchangeError(this.Id + " fetchMarkets() missing baseId"))
 		}
@@ -2349,12 +2349,12 @@ func (this *Bittrade) createOrderBody(ch chan AsyncResult[Order], symbol string,
 		request["client-order-id"] = clientOrderId
 	}
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "client-order-id"})
-	var paramsOrder any = paramsOmitted
+	var paramsOrder map[string]any = paramsOmitted
 	if (typeVar == "market") && (side == "buy") {
 		var quoteAmount *string = nil
 		createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(paramsOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 		var cost *float64 = this.SafeNumber(paramsRequiresPrice, "cost")
-		paramsOrder = this.Omit(paramsRequiresPrice, "cost")
+		paramsOrder = this.OmitDict(paramsRequiresPrice, "cost")
 		if cost != nil {
 			quoteAmount = this.AmountToPrecision(symbol, cost)
 		} else if createMarketBuyOrderRequiresPrice {
@@ -2710,12 +2710,12 @@ func (this *Bittrade) fetchDepositsBody(ch chan AsyncResult[[]Transaction], opti
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 100) {
-			return 100
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()
@@ -2774,12 +2774,12 @@ func (this *Bittrade) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], o
 	_ = limit
 	var params map[string]any = GetArgMap(optionalArgs, 3, map[string]any{})
 	_ = params
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 100) {
-			return 100
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 100) {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	if this.Markets == nil {
 
 		r := <-this.LoadMarketsAsync()

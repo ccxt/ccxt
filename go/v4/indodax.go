@@ -953,12 +953,12 @@ func (this *Indodax) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 		"tf":     selectedTimeframe,
 		"symbol": market["id"],
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 1000
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	if since != nil {
 		request["from"] = math.Floor(float64(*since) / 1000)
 	} else {
@@ -1329,9 +1329,9 @@ func (this *Indodax) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 	var priceIsRequired bool = false
 	var quantityIsRequired bool = false
 	var isMarketBuy bool = (typeVar == "market") && (side == "buy")
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isMarketBuy {
-		paramsOmitted = this.Omit(params, "cost")
+		paramsOmitted = this.OmitDict(params, "cost")
 	}
 	if typeVar == "market" {
 		if side == "buy" {

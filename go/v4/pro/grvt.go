@@ -1002,12 +1002,12 @@ func (this *Grvt) HandleMyTrade(client any, message map[string]any) {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var trade any = this.ParseWsMyTrade(data)
+	var trade map[string]any = this.ParseWsMyTrade(data)
 	this.MyTrades.Append(trade)
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades::"+*this.SafeString(trade, "symbol", ""))
 	client.(ccxt.ClientInterface).Resolve(this.MyTrades, "myTrades")
 }
-func (this *Grvt) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	return ccxt.TradeToMap(this.ParseTrade(trade, market))
@@ -1129,14 +1129,14 @@ func (this *Grvt) HandlePosition(client any, message map[string]any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var data map[string]any = ccxt.SafeMapTyped(message, "feed")
-	var position any = this.ParseWsPosition(data)
+	var position map[string]any = this.ParseWsPosition(data)
 	this.Positions.Append(position)
 	var newPositions []any = []any{}
 	newPositions = append(newPositions, position)
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions::"+*this.SafeString(position, "symbol", ""))
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Grvt) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Grvt) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	// same as REST api
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market

@@ -990,18 +990,18 @@ func (this *Bitbns) cancelOrderBody(ch chan AsyncResult[Order], id string, optio
 		"symbol":   market["uppercaseId"],
 	}
 	var response map[string]any = nil
-	var tail string = func() string {
-		if isTrigger != nil && *isTrigger == true {
-			return "StopLossOrder"
-		}
-		return "Order"
-	}()
-	var quoteSide string = func() string {
-		if market["quoteId"] == "USDT" {
-			return "usdtcancel"
-		}
-		return "cancel"
-	}()
+	var tail string
+	if isTrigger != nil && *isTrigger == true {
+		tail = "StopLossOrder"
+	} else {
+		tail = "Order"
+	}
+	var quoteSide string
+	if market["quoteId"] == "USDT" {
+		quoteSide = "usdtcancel"
+	} else {
+		quoteSide = "cancel"
+	}
 	quoteSide += tail
 	request["side"] = quoteSide
 

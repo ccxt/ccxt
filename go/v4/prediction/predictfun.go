@@ -4730,7 +4730,7 @@ func (this *Predictfun) HandleMessage(client any, message map[string]any) {
 		// by it - see handleSubscriptionStatus in pro/binance.ts
 		var id *string = this.SafeString(message, "requestId")
 		var subscriptionsById map[string]any = this.IndexBy(client.(ccxt.ClientInterface).SubscriptionsSnapshot(), "id")
-		var subscription any = this.SafeDict(subscriptionsById, id, map[string]any{})
+		var subscription map[string]any = this.SafeDictMap(subscriptionsById, id, map[string]any{})
 		var success *bool = this.SafeBool(message, "success", false)
 		if !(success != nil && *success) {
 			this.HandleSubscriptionError(client, message, subscription)

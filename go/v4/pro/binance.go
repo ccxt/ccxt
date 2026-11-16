@@ -2228,12 +2228,12 @@ func (this *Binance) watchOHLCVForSymbolsBody(ch chan ccxt.AsyncResult[map[strin
 			var stockSymbolString any = this.Symbol(this.SafeString(stockSymAndTf, 0, ""))
 			var stockMarket map[string]any = this.Market(stockSymbolString)
 			var stockTicker *string = this.SafeString2(stockMarket, "base", "id")
-			var stockTickerString string = func() string {
-				if stockTicker == nil {
-					return ""
-				}
-				return strings.ToLower(*stockTicker)
-			}()
+			var stockTickerString string
+			if stockTicker == nil {
+				stockTickerString = ""
+			} else {
+				stockTickerString = strings.ToLower(*stockTicker)
+			}
 			var stockTimeframeString *string = this.SafeString(stockSymAndTf, 1, "")
 			var stockInterval *string = this.SafeString(this.Timeframes, stockTimeframeString, stockTimeframeString)
 			if (stockInterval == nil || *stockInterval != "5m") && (stockInterval == nil || *stockInterval != "1h") && (stockInterval == nil || *stockInterval != "1d") && (stockInterval == nil || *stockInterval != "1w") && (stockInterval == nil || *stockInterval != "1M") {
@@ -2569,12 +2569,12 @@ func (this *Binance) HandleOHLCV(client any, message map[string]any) {
 	var symbol *string = ccxt.SafeStringPtr(market["symbol"])
 	// coin-margined contracts count "v" in contracts, "q" is the base asset volume that fetchOHLCV returns
 	var inverse *bool = this.SafeBool(market, "inverse")
-	var volumeKey string = func() string {
-		if inverse != nil && *inverse == true {
-			return "q"
-		}
-		return "v"
-	}()
+	var volumeKey string
+	if inverse != nil && *inverse == true {
+		volumeKey = "q"
+	} else {
+		volumeKey = "v"
+	}
 	var parsed []any = []any{this.SafeInteger(kline, "t"), this.SafeFloat(kline, "o"), this.SafeFloat(kline, "h"), this.SafeFloat(kline, "l"), this.SafeFloat(kline, "c"), this.SafeFloat(kline, volumeKey)}
 	var messageHash *string = ccxt.SafeStringPtr(ccxt.Add("ohlcv::"+*symbol+"::", unifiedTimeframe))
 	if symbol != nil && this.Ohlcvs[*symbol] == nil {
@@ -3775,12 +3775,12 @@ func (this *Binance) HandleTickersAndBidsAsks(client any, message any, methodTyp
 		}
 		var tickerMarketId *string = this.SafeString(ticker, "s")
 		var tickerMarketsByIdList []any = ccxt.SafeListTyped(this.Markets_by_id, tickerMarketId)
-		var numTickerMarkets int = func() int {
-			if tickerMarketsByIdList == nil {
-				return 0
-			}
-			return len(tickerMarketsByIdList)
-		}()
+		var numTickerMarkets int
+		if tickerMarketsByIdList == nil {
+			numTickerMarkets = 0
+		} else {
+			numTickerMarkets = len(tickerMarketsByIdList)
+		}
 		// an ambiguous id, spot and swap share e.g. BTCUSDC, must not be resolved by
 		// blind first pick, the stream url decides; only a unique match, like an
 		// option id, may override it, see https://github.com/ccxt/ccxt/issues/29728
@@ -3882,8 +3882,14 @@ func (this *Binance) ensureUserDataStreamWsSubscribeSignatureBody(ch chan ccxt.A
 		panic(ccxt.ExchangeError(this.Id + " has no websocket url for this endpoint"))
 	}
 	var client ccxt.ClientInterface = this.Client(url)
-	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var subscriptionsKeys []string = nil
+	if subscriptions != nil {
+		subscriptionsKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			subscriptionsKeys = append(subscriptionsKeys, objectKey)
+		}
+	}
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if accountType == marketType {
 
@@ -3959,8 +3965,14 @@ func (this *Binance) HandleUserDataStreamSubscribe(client any, message map[strin
 	//   }
 	//
 	var messageHash *string = this.SafeString(message, "id")
-	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var subscriptionsKeys []string = nil
+	if subscriptions != nil {
+		subscriptionsKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			subscriptionsKeys = append(subscriptionsKeys, objectKey)
+		}
+	}
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var result map[string]any = ccxt.SafeMapTyped(message, "result")
 	var subscriptionId *int64 = this.SafeInteger(result, "subscriptionId")
@@ -4234,7 +4246,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Binance) (ret_ any) {
@@ -4331,7 +4343,7 @@ func (this *Binance) authenticateBody(ch chan ccxt.AsyncResult[*string], optiona
 
 		}
 
-		r9 := <-future.(*ccxt.Future).Await()
+		r9 := <-future.Await()
 		if r9.Err != nil {
 			panic(r9.Err)
 		}
@@ -5017,8 +5029,14 @@ func (this *Binance) HandleBalance(client any, message map[string]any) {
 	//
 	var wallet string = *this.SafeString(this.Options, "wallet", "wb") // cw for cross wallet
 	// each account is connected to a different endpoint
-	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var subscriptionsKeys []string = nil
+	if subscriptions != nil {
+		subscriptionsKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			subscriptionsKeys = append(subscriptionsKeys, objectKey)
+		}
+	}
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	var messageHash string = accountType + ":balance"
 	if this.Balance[accountType] == nil {
@@ -6768,8 +6786,8 @@ func (this *Binance) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client, typeVar, isPortfolioMargin)
 	this.SetPositionsCache(client, typeVar, symbolsNormalized, isPortfolioMargin)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	var cache ccxt.WsArrayCache = this.PositionsByType[typeVar.(string)]
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (cache == nil) {
 
@@ -6815,7 +6833,7 @@ func (this *Binance) SetPositionsCache(client any, typeVar any, optionalArgs ...
 	if ccxt.IsEqual(typeVar, "spot") {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", false) == true
 	if this.PositionsByType[typeVar.(string)] != nil {
 		// a fresh client has no snapshot future yet, which means the
 		// connection was re-established after a disconnect: positions
@@ -6919,8 +6937,14 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	//
 	// each account is connected to a different endpoint
 	// and has exactly one subscriptionhash which is the account type
-	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var subscriptionsKeys []string = nil
+	if subscriptions != nil {
+		subscriptionsKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			subscriptionsKeys = append(subscriptionsKeys, objectKey)
+		}
+	}
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if !(this.PositionsByType[accountType] != nil) {
 		this.PositionsByType[accountType] = ccxt.NewArrayCacheBySymbolBySide()
@@ -6931,7 +6955,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition map[string]any = ccxt.SafeMapTyped(rawPositions, i)
-		var position any = this.ParseWsPosition(rawPosition)
+		var position map[string]any = this.ParseWsPosition(rawPosition)
 		var timestamp *int64 = this.SafeInteger(message, "E")
 		ccxt.AddElementToObject(position, "timestamp", timestamp)
 		ccxt.AddElementToObject(position, "datetime", this.Iso8601(timestamp))
@@ -6956,7 +6980,7 @@ func (this *Binance) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, accountType+":positions")
 }
-func (this *Binance) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Binance) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "s": "BTCUSDT", // Symbol
@@ -7603,12 +7627,12 @@ func (this *Binance) HandleWsError(client any, message any) {
 	var error map[string]any = this.SafeDictMap(message, "error", map[string]any{})
 	var code *int64 = this.SafeInteger(error, "code")
 	var msg *string = this.SafeString(error, "msg")
-	var codeValue int64 = func() int64 {
-		if code == nil {
-			return 0
-		}
-		return *code
-	}()
+	var codeValue int64
+	if code == nil {
+		codeValue = 0
+	} else {
+		codeValue = *code
+	}
 
 	{
 		func(this *Binance) (ret_ any) {
@@ -7640,7 +7664,7 @@ func (this *Binance) HandleWsError(client any, message any) {
 				}
 			}()
 			// try block:
-			this.HandleErrors(this.ParseToInt(codeValue), *msg, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, this.Json(error), error, map[string]any{}, "")
+			this.HandleErrors(codeValue, *msg, client.(ccxt.ClientInterface).GetUrl(), "", map[string]any{}, this.Json(error), error, map[string]any{}, "")
 			return nil
 		}(this)
 
@@ -7664,8 +7688,14 @@ func (this *Binance) HandleEventStreamTerminated(client any, message map[string]
 	//    }
 	//
 	var event *string = this.SafeString(message, "e")
-	var subscriptions any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
-	var subscriptionsKeys []string = ccxt.ObjectKeys(subscriptions)
+	var subscriptions map[string]any = client.(ccxt.ClientInterface).SubscriptionsSnapshot()
+	var subscriptionsKeys []string = nil
+	if subscriptions != nil {
+		subscriptionsKeys = make([]string, 0, len(subscriptions))
+		for objectKey := range subscriptions {
+			subscriptionsKeys = append(subscriptionsKeys, objectKey)
+		}
+	}
 	var accountType string = this.GetAccountTypeFromSubscriptions(subscriptionsKeys)
 	if event != nil && *event == "eventStreamTerminated" {
 		client.(ccxt.ClientInterface).SubscriptionDel(accountType)

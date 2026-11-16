@@ -1904,12 +1904,12 @@ func (this *Luno) fetchLedgerByEntriesBody(ch chan AsyncResult[[]LedgerEntry], o
 		}
 		return entry
 	}()
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 1
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 1
+	} else {
+		limitValue = *limit
+	}
 	var request map[string]any = map[string]any{
 		"min_row": entryValue,
 		"max_row": this.Sum(entryValue, limitValue),

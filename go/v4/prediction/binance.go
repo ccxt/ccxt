@@ -1290,8 +1290,8 @@ func (this *Binance) ParsePredictionOrder(order any, optionalArgs ...any) map[st
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
 	var status any = this.ParseOrderStatus(this.SafeString(order, "status"))
-	var outcomeObjResolved any = outcomeObj
-	if ccxt.IsEqual(outcomeObjResolved, nil) {
+	var outcomeObjResolved map[string]any = outcomeObj
+	if outcomeObjResolved == nil {
 		var marketId *string = this.SafeString(order, "marketId")
 		var outcome *string = this.SafeStringUpper(order, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)
@@ -1810,8 +1810,8 @@ func (this *Binance) fetchPositionBody(ch chan ccxt.AsyncResult[ccxt.PredictionP
 func (this *Binance) ParsePredictionPosition(position any, optionalArgs ...any) any {
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var outcomeObjResolved any = outcomeObj
-	if ccxt.IsEqual(outcomeObjResolved, nil) {
+	var outcomeObjResolved map[string]any = outcomeObj
+	if outcomeObjResolved == nil {
 		var marketId *string = this.SafeString(position, "marketId")
 		var outcome *string = this.SafeStringUpper(position, "outcomeName")
 		var market map[string]any = this.SafeMarket(marketId)
@@ -2034,8 +2034,8 @@ func (this *Binance) ParsePredictionTrade(trade any, optionalArgs ...any) any {
 	//
 	var outcomeObj map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = outcomeObj
-	var outcomeObjResolved any = outcomeObj
-	if ccxt.IsEqual(outcomeObjResolved, nil) {
+	var outcomeObjResolved map[string]any = outcomeObj
+	if outcomeObjResolved == nil {
 		var marketId *string = this.SafeString(trade, "marketId")
 		var outcome *string = this.SafeStringUpper(trade, "outcome")
 		var market map[string]any = this.SafeMarket(marketId)

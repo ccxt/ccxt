@@ -1281,12 +1281,12 @@ func (this *Modetrade) ParseFundingRate(fundingRate any, optionalArgs ...any) Fu
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var symbol *string = this.SafeString(fundingRate, "symbol")
-	var marketValue any = func() any {
-		if symbol == nil {
-			return market
-		}
-		return this.Market(symbol)
-	}()
+	var marketValue map[string]any
+	if symbol == nil {
+		marketValue = market
+	} else {
+		marketValue = this.Market(symbol)
+	}
 	var nextFundingTimestamp *int64 = this.SafeInteger(fundingRate, "next_funding_time")
 	var estFundingRateTimestamp *int64 = this.SafeInteger(fundingRate, "est_funding_rate_timestamp")
 	var lastFundingRateTimestamp *int64 = this.SafeInteger(fundingRate, "last_funding_rate_timestamp")

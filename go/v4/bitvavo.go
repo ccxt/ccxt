@@ -1957,9 +1957,9 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	var stopLossPrice *string = this.SafeString(params, "stopLossPrice")     // trigger when price crosses from above to below this value
 	var takeProfitPrice *string = this.SafeString(params, "takeProfitPrice") // trigger when price crosses from below to above this value
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"timeInForce", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
-	var paramsCost any = paramsOmitted
+	var paramsCost map[string]any = paramsOmitted
 	if isMarketOrder {
-		paramsCost = this.Omit(paramsOmitted, []any{"cost"})
+		paramsCost = this.OmitDict(paramsOmitted, []any{"cost"})
 	}
 	if isMarketOrder {
 		var cost *float64 = nil
@@ -2017,7 +2017,7 @@ func (this *Bitvavo) CreateOrderRequest(symbol string, typeVar string, side stri
 	}
 	var operatorIdparamsOperatorIdVariable []any = this.HandleOptionAndParams(paramsCost, "createOrder", "operatorId")
 	operatorId := GetValue(operatorIdparamsOperatorIdVariable, 0)
-	paramsOperatorId := operatorIdparamsOperatorIdVariable[1]
+	var paramsOperatorId map[string]any = MapTyped(operatorIdparamsOperatorIdVariable[1])
 	if operatorId != nil {
 		request["operatorId"] = this.ParseToInt(operatorId)
 	} else {

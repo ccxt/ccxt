@@ -1007,12 +1007,12 @@ func (this *Paradex) ParseMarket(market any) map[string]any {
 	var takerFee *float64 = this.ParseNumber("0.0003")
 	var makerFee *float64 = this.ParseNumber("-0.00005")
 	if isOption {
-		var optionTypeSuffix string = func() string {
-			if optionType != nil && *optionType == "CALL" {
-				return "C"
-			}
-			return "P"
-		}()
+		var optionTypeSuffix string
+		if optionType != nil && *optionType == "CALL" {
+			optionTypeSuffix = "C"
+		} else {
+			optionTypeSuffix = "P"
+		}
 		var deliveryValue string = ""
 		if expiry == nil || *expiry != 0 {
 			deliveryValue = this.Yymmdd(expiry) + "-"
@@ -1321,12 +1321,12 @@ func (this *Paradex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string,
 	var hasEnd bool = (func() bool { _, ok := request["end_at"]; return ok }())
 	var paramsOmitted map[string]any = this.OmitDict(paramsUntil, []any{"price"})
 	// exchange has undocumented limit slightly above, but 1000 is reliable limit
-	var limitResolved any = func() any {
-		if (limit == nil) || (limit != nil && *limit > 1000) {
-			return 1000
-		}
-		return limit
-	}()
+	var limitResolved int64
+	if (limit == nil) || (limit != nil && *limit > 1000) {
+		limitResolved = 1000
+	} else {
+		limitResolved = *limit
+	}
 	var windowLength int64 = this.ParseToInt(duration * (this.ParseToInt(limitResolved) + 1) * 1000)
 	if since != nil {
 		requestUntil["start_at"] = *since

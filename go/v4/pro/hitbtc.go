@@ -111,7 +111,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 	var url *string = this.SafeString(wsUrls, "private")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var timestamp int64 = this.Milliseconds()
@@ -133,7 +133,7 @@ func (this *Hitbtc) authenticateBody(ch chan ccxt.AsyncResult[*string]) any {
 		this.Watch(url, messageHash, request, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -846,7 +846,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 		var marketId string = marketIds[i]
 		var market map[string]any = this.SafeMarket(marketId)
 		var symbol *string = this.SafeSymbol(marketId, market)
-		var ticker any = this.ParseWsBidAsk(data[marketId], market)
+		var ticker map[string]any = this.ParseWsBidAsk(data[marketId], market)
 		if symbol != nil {
 			this.Bidsasks[*symbol] = ccxt.TickerFromMap(ticker)
 		}
@@ -856,7 +856,7 @@ func (this *Hitbtc) HandleBidAsk(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsBidAsk(ticker any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var timestamp *int64 = this.SafeInteger(ticker, "t")
@@ -1459,7 +1459,7 @@ func (this *Hitbtc) HandleOrderHelper(client any, message map[string]any, order 
 		client.(ccxt.ClientInterface).Resolve(orders, *messageHash+"::"+*symbol)
 	}
 }
-func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *Hitbtc) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	//
 	//    {
 	//        "id": 584244931496,
@@ -1545,7 +1545,7 @@ func (this *Hitbtc) ParseWsOrder(order any, optionalArgs ...any) map[string]any 
 	var tradeId *string = this.SafeString(order, "trade_id")
 	var trades []any = nil
 	if tradeId != nil {
-		var trade any = this.ParseWsOrderTrade(order, marketResolved)
+		var trade map[string]any = this.ParseWsOrderTrade(order, marketResolved)
 		trades = []any{trade}
 	}
 	var rawStatus *string = this.SafeString(order, "status")

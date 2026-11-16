@@ -2495,18 +2495,18 @@ func (this *Coinbase) ParseContractMarket(market any, optionalArgs ...any) map[s
 	var takerFeeRate *float64 = this.SafeNumber(feeTier, "taker_fee_rate")
 	var makerFeeRate *float64 = this.SafeNumber(feeTier, "maker_fee_rate")
 	// CDE charges a fixed USD fee per side per contract, not a rate; 0.0002 approximates it for nano contracts
-	var taker *float64 = func() *float64 {
-		if (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0) {
-			return takerFeeRate
-		}
-		return this.ParseNumber("0.0002")
-	}()
-	var maker *float64 = func() *float64 {
-		if (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0) {
-			return makerFeeRate
-		}
-		return this.ParseNumber("0.0002")
-	}()
+	var taker *float64
+	if (takerFeeRate != nil) && (takerFeeRate == nil || *takerFeeRate != 0) {
+		taker = takerFeeRate
+	} else {
+		taker = this.ParseNumber("0.0002")
+	}
+	var maker *float64
+	if (makerFeeRate != nil) && (makerFeeRate == nil || *makerFeeRate != 0) {
+		maker = makerFeeRate
+	} else {
+		maker = this.ParseNumber("0.0002")
+	}
 	return this.SafeMarketStructure(map[string]any{
 		"id":           id,
 		"symbol":       symbol,
@@ -3295,18 +3295,18 @@ func (this *Coinbase) ParseCustomBalance(response any, optionalArgs ...any) map[
 	var totalUsdBalance *string = this.SafeString(totalUsdBalanceData, "value")
 	var futuresBuyingPower *string = this.SafeString(futuresBuyingPowerData, "value")
 	if (totalUsdBalance != nil) || (futuresBuyingPower != nil) {
-		var usdTotal any = func() any {
-			if totalUsdBalance != nil {
-				return totalUsdBalance
-			}
-			return futuresBuyingPower
-		}()
-		var usdFree any = func() any {
-			if futuresBuyingPower != nil {
-				return futuresBuyingPower
-			}
-			return usdTotal
-		}()
+		var usdTotal *string
+		if totalUsdBalance != nil {
+			usdTotal = totalUsdBalance
+		} else {
+			usdTotal = futuresBuyingPower
+		}
+		var usdFree *string
+		if futuresBuyingPower != nil {
+			usdFree = futuresBuyingPower
+		} else {
+			usdFree = usdTotal
+		}
 		var usdUsed *string = Precise.StringSub(usdTotal, usdFree)
 		var balanceResult map[string]any = map[string]any{
 			"info": response,
@@ -4471,12 +4471,12 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 	_ = market
 	var marketId *string = this.SafeString(order, "product_id")
 	var symbol *string = this.SafeSymbol(marketId, market, "-")
-	var marketResolved any = func() any {
-		if symbol != nil {
-			return this.SafeMarket(symbol, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if symbol != nil {
+		marketResolved = this.SafeMarket(symbol, market)
+	} else {
+		marketResolved = market
+	}
 	var orderConfiguration map[string]any = SafeMapTyped(order, "order_configuration")
 	var limitGTC map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtc")
 	var limitGTD map[string]any = this.SafeDictMap(orderConfiguration, "limit_limit_gtd")
@@ -4519,7 +4519,7 @@ func (this *Coinbase) ParseOrder(order any, optionalArgs ...any) Order {
 	var datetime *string = this.SafeString(order, "created_time")
 	var totalFees *string = this.SafeString(order, "total_fees")
 	var currencyFee *string = nil
-	if (totalFees != nil) && (!IsEqual(marketResolved, nil)) {
+	if (totalFees != nil) && (marketResolved != nil) {
 		currencyFee = this.SafeString(marketResolved, "quote")
 	}
 	return this.SafeOrder(map[string]any{
@@ -5020,12 +5020,12 @@ func (this *Coinbase) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], stat
 	if market != nil {
 		request["product_id"] = market["id"]
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	request["limit"] = limitResolved
 	if since != nil {
 		request["start_date"] = this.Iso8601(since)

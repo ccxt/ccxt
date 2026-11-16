@@ -963,7 +963,7 @@ func (this *Blockchaincom) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 	var url *string = this.SafeString(this.Urls["api"], "ws", "")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var isAuthenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if isAuthenticated == nil {
 		this.CheckRequiredCredentials()
@@ -990,7 +990,7 @@ func (this *Blockchaincom) authenticateBody(ch chan ccxt.AsyncResult[*string], o
 		return nil
 	}
 
-	r1 := <-future.(*ccxt.Future).Await()
+	r1 := <-future.Await()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}

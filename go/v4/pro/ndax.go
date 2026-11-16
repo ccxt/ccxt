@@ -488,12 +488,12 @@ func (this *Ndax) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBookInte
 	var messageHash string = name + ":" + marketId
 	var url *string = this.SafeString(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var requestId int64 = this.RequestId()
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 100
+	} else {
+		limitValue = *limit
+	}
 	var payload map[string]any = map[string]any{
 		"OMSId":        omsId,
 		"InstrumentId": this.SafeInteger(market, "id"),

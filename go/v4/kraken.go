@@ -2548,12 +2548,12 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var orderOmitted any = this.Omit(order, "usingCost")
 	var description map[string]any = SafeMapTyped(orderOmitted, "descr")
 	var orderDescriptionObj map[string]any = SafeMapTyped(orderOmitted, "descr") // can be null
-	var orderDescription *string = func() *string {
-		if orderDescriptionObj != nil {
-			return this.SafeString(orderDescriptionObj, "order")
-		}
-		return this.SafeString(orderOmitted, "descr")
-	}()
+	var orderDescription *string
+	if orderDescriptionObj != nil {
+		orderDescription = this.SafeString(orderDescriptionObj, "order")
+	} else {
+		orderDescription = this.SafeString(orderOmitted, "descr")
+	}
 	var side *string = nil
 	var descriptionType any = nil
 	var marketId any = nil
@@ -2562,7 +2562,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) Order {
 	var cost *string = nil
 	var triggerPrice *string = nil
 	if orderDescription != nil {
-		var parts []string = Split(orderDescription, " ")
+		var parts []string = strings.Split(*orderDescription, " ")
 		side = this.SafeString(parts, 0)
 		if !(isUsingCost != nil && *isUsingCost) {
 			amount = this.SafeString(parts, 1)
@@ -2818,12 +2818,12 @@ func (this *Kraken) OrderRequest(method string, symbol *string, typeVar *string,
 		if isLimitOrder || (trailingLimitAmount != nil) || (trailingLimitPercent != nil) {
 			request["ordertype"] = "trailing-stop-limit"
 			if trailingLimitPercent != nil {
-				var trailingLimitPercentString any = func() any {
-					if strings.HasSuffix(*trailingLimitPercent, "%") {
-						return (offset + *trailingLimitPercent)
-					}
-					return (offset + *trailingLimitPercent + "%")
-				}()
+				var trailingLimitPercentString string
+				if strings.HasSuffix(*trailingLimitPercent, "%") {
+					trailingLimitPercentString = (offset + *trailingLimitPercent)
+				} else {
+					trailingLimitPercentString = (offset + *trailingLimitPercent + "%")
+				}
 				request["price"] = trailingPercentString
 				request["price2"] = trailingLimitPercentString
 			} else if trailingLimitAmount != nil {
@@ -3036,10 +3036,10 @@ func (this *Kraken) fetchOrderBody(ch chan AsyncResult[Order], id string, option
 		"trades": true,
 		"txid":   id,
 	}
-	var query any = params
+	var query map[string]any = params
 	if clientOrderId != nil {
 		request["userref"] = clientOrderId
-		query = this.Omit(params, []any{"userref", "clientOrderId"})
+		query = this.OmitDict(params, []any{"userref", "clientOrderId"})
 	}
 
 	r1 := <-this.PrivatePostQueryOrders(this.Extend(request, query))

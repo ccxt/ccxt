@@ -403,12 +403,12 @@ func (this *Bingx) ParseWsTicker(message map[string]any, optionalArgs ...any) ma
 	// prefer the caller's stream-derived flag so an unresolved market id on
 	// the Coin-M endpoint does not silently fall back to the contract count
 	var inverse bool = (isInverse == true) || ((isInverse == nil) && (marketResolved["inverse"] == true))
-	var baseVolumeKey string = func() string {
-		if inverse {
-			return "m"
-		}
-		return "v"
-	}()
+	var baseVolumeKey string
+	if inverse {
+		baseVolumeKey = "m"
+	} else {
+		baseVolumeKey = "v"
+	}
 	return ccxt.TickerToMap(this.SafeTicker(map[string]any{
 		"symbol":        marketResolved["symbol"],
 		"timestamp":     timestamp,
@@ -1309,12 +1309,12 @@ func (this *Bingx) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order], optio
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchOrders", market, params)
 	subType, _ := this.HandleSubTypeAndParams("watchOrders", market, paramsMarketType, "linear")
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
@@ -1422,12 +1422,12 @@ func (this *Bingx) watchMyTradesBody(ch chan ccxt.AsyncResult[[]ccxt.Trade], opt
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("watchMyTrades", market, params)
 	subType, _ := this.HandleSubTypeAndParams("watchMyTrades", market, paramsMarketType, "linear")
 	var isSpot bool = (typeVar != nil && *typeVar == "spot")
@@ -1740,7 +1740,7 @@ func (this *Bingx) SetPositionsCache(client any, typeVar *string, optionalArgs .
 	if this.Positions != nil {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash any = ccxt.Add(typeVar, ":fetchPositionsSnapshot")
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
@@ -1785,7 +1785,7 @@ func (this *Bingx) loadPositionsSnapshotBody(ch chan ccxt.AsyncResult[bool], cli
 	}
 	return nil
 }
-func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) any {
+func (this *Bingx) ParseWsPosition(position any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "s": "LINK-USDT",     // Symbol
@@ -1881,7 +1881,7 @@ func (this *Bingx) HandlePositions(client any, message map[string]any) {
 	var newPositions []any = []any{}
 	for i := 0; i < len(rawPositions); i++ {
 		var rawPosition any = rawPositions[i]
-		var position any = this.ParseWsPosition(rawPosition)
+		var position map[string]any = this.ParseWsPosition(rawPosition)
 		var symbol *string = this.SafeString(position, "symbol")
 		if symbol == nil {
 			continue
@@ -2049,7 +2049,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 		// reusableFuture (), not future () - the two match in
 		// js/py/php/cs/java, but go's ccxt.Client.Future () yields a channel
 		// that the trailing suspension point below would panic on
-		var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+		var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 
 		{
 			func(this *Bingx) (ret_ any) {
@@ -2090,7 +2090,7 @@ func (this *Bingx) authenticateBody(ch chan ccxt.AsyncResult[*string], optionalA
 
 		}
 
-		r2 := <-future.(*ccxt.Future).Await()
+		r2 := <-future.Await()
 		if r2.Err != nil {
 			panic(r2.Err)
 		}

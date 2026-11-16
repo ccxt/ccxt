@@ -2977,12 +2977,12 @@ func (this *Gate) GetMarginMode(trigger any, params any) []any {
 func (this *Gate) GetSettlementCurrencies(typeVar string, method string) any {
 	var options map[string]any = SafeMapTyped(this.Options, typeVar) // [ 'BTC', 'USDT' ] unified codes
 	var fetchMarketsContractOptions map[string]any = SafeMapTyped(options, method)
-	var defaultSettle any = func() any {
-		if typeVar == "swap" {
-			return []any{"usdt"}
-		}
-		return []any{"btc"}
-	}()
+	var defaultSettle []any
+	if typeVar == "swap" {
+		defaultSettle = []any{"usdt"}
+	} else {
+		defaultSettle = []any{"btc"}
+	}
 	return this.SafeList(fetchMarketsContractOptions, "settlementCurrencies", defaultSettle)
 }
 
@@ -4110,12 +4110,12 @@ func (this *Gate) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol stri
 	if limit != nil {
 		// gateeu returns an empty book for a spot limit above 100
 		var maxSpotLimit int64 = this.ParseToInt(this.HandleOption("fetchOrderBook", "maxSpotLimit", 1000))
-		var maxLimit int64 = func() int64 {
-			if *this.SafeBool(market, "spot", false) {
-				return maxSpotLimit
-			}
-			return 300
-		}()
+		var maxLimit int64
+		if *this.SafeBool(market, "spot", false) {
+			maxLimit = maxSpotLimit
+		} else {
+			maxLimit = 300
+		}
 		AddElementToObject(request, "limit", mathMin(limit, maxLimit))
 	}
 	request["with_id"] = true
@@ -5033,9 +5033,9 @@ func (this *Gate) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, op
 		if isMark || isIndex {
 			AddElementToObject(request, "contract", Add(*price+"_", market["id"]))
 		}
-		var paramsContract any = paramsOmitted
+		var paramsContract map[string]any = paramsOmitted
 		if isMark || isIndex {
-			paramsContract = this.Omit(paramsOmitted, "price")
+			paramsContract = this.OmitDict(paramsOmitted, "price")
 		}
 		if *this.SafeBool(market, "future", false) {
 
@@ -7694,12 +7694,12 @@ func (this *Gate) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], optionalAr
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	typeVar, _ := this.HandleMarketTypeAndParams("fetchClosedOrders", market, paramsPaginate)
 	useHistorical, paramsHistorical := this.HandleOptionBoolAndParams(paramsPaginate, "fetchClosedOrders", "historical", false)
 	if !useHistorical && (((since == nil) && (until == nil)) || (typeVar == nil || *typeVar != "swap")) {
@@ -7831,12 +7831,12 @@ func (this *Gate) fetchOrdersByStatusBody(ch chan AsyncResult[[]Order], status a
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	var trigger *bool = this.SafeBool2(params, "trigger", "stop")
 	typeVar, _ := this.HandleMarketTypeAndParams("fetchOrdersByStatus", market, params)
 	// don't omit here, omits done in prepareOrdersByStatusRequest
@@ -8649,9 +8649,9 @@ func (this *Gate) transferBody(ch chan AsyncResult[TransferEntry], code string, 
 		request["settle"] = currency["id"] // todo: currencies have network-junctions
 	}
 	var isMarginTransfer bool = (IsEqual(fromId, "margin")) || (IsEqual(toId, "margin"))
-	var query any = params
+	var query map[string]any = params
 	if isMarginTransfer {
-		query = this.Omit(params, "symbol")
+		query = this.OmitDict(params, "symbol")
 	}
 
 	r1 := <-this.PrivateWalletPostTransfers(this.Extend(request, query))
@@ -10435,12 +10435,12 @@ func (this *Gate) fetchMySettlementHistoryBody(ch chan AsyncResult[[]map[string]
 	if symbol != nil {
 		market = this.Market(symbol)
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchMySettlementHistory", market, params)
 	var isOption bool = (typeVar != nil && *typeVar == "option")
 	var isFuture bool = (typeVar != nil && *typeVar == "future")

@@ -2847,13 +2847,13 @@ func (this *Poloniex) OrderRequest(symbol any, typeVar any, side any, amount any
 	if isMarket {
 		if IsEqual(side, "buy") {
 			var quoteAmount any = nil
-			var createMarketBuyOrderRequiresPrice any = true
+			var createMarketBuyOrderRequiresPrice bool = true
 			createMarketBuyOrderRequiresPrice, queryOmitted = this.HandleOptionBoolAndParams(queryOmitted, "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			var cost *float64 = this.SafeNumber(queryOmitted, "cost")
 			queryOmitted = this.Omit(queryOmitted, "cost")
 			if cost != nil {
 				quoteAmount = this.CostToPrecision(symbol, cost)
-			} else if (createMarketBuyOrderRequiresPrice == true) && (*this.SafeBool(market, "spot", false)) {
+			} else if createMarketBuyOrderRequiresPrice && (*this.SafeBool(market, "spot", false)) {
 				if price == nil {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument"))
 				} else {
@@ -3038,12 +3038,12 @@ func (this *Poloniex) cancelOrderBody(ch chan AsyncResult[Order], id string, opt
 		return nil
 	}
 	var clientOrderId *string = this.SafeString(params, "clientOrderId")
-	var idValue *string = func() *string {
-		if clientOrderId != nil {
-			return clientOrderId
-		}
-		return &id
-	}()
+	var idValue string
+	if clientOrderId != nil {
+		idValue = *clientOrderId
+	} else {
+		idValue = id
+	}
 	request["id"] = idValue
 	var isTrigger *bool = this.SafeBool2(params, "trigger", "stop")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"clientOrderId", "trigger", "stop"})
@@ -3392,12 +3392,12 @@ func (this *Poloniex) fetchOrderStatusBody(ch chan AsyncResult[*string], id stri
 		"true":  "open",
 		"false": "closed",
 	}
-	var found string = func() string {
-		if func() bool { _, ok := indexed[id]; return ok }() {
-			return "true"
-		}
-		return "false"
-	}()
+	var found string
+	if func() bool { _, ok := indexed[id]; return ok }() {
+		found = "true"
+	} else {
+		found = "false"
+	}
 
 	ch <- AsyncResult[*string]{Value: this.SafeString(statuses, found)}
 	return nil
@@ -3890,7 +3890,7 @@ func (this *Poloniex) PrepareRequestForDepositAddress(code string, optionalArgs 
 	}
 	var currency map[string]any = this.Currency(code)
 	var networkCode any = nil
-	var query any = nil
+	var query map[string]any = nil
 	var networkCodePtr *string = nil
 	networkCodePtr, query = this.HandleNetworkCodeAndParams(params)
 	if networkCodePtr != nil {
@@ -5262,12 +5262,12 @@ func (this *Poloniex) ParseMarginModification(data any, optionalArgs ...any) map
 	var marketId *string = this.SafeString(data, "symbol")
 	var marketResolved map[string]any = this.SafeMarket(marketId, market)
 	var rawType *string = this.SafeString(data, "type")
-	var typeVar string = func() string {
-		if rawType != nil && *rawType == "ADD" {
-			return "add"
-		}
-		return "reduce"
-	}()
+	var typeVar string
+	if rawType != nil && *rawType == "ADD" {
+		typeVar = "add"
+	} else {
+		typeVar = "reduce"
+	}
 	return map[string]any{
 		"info":       data,
 		"symbol":     marketResolved["symbol"],

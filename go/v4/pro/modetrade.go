@@ -471,7 +471,7 @@ func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
 	var timestamp *int64 = this.SafeInteger(message, "ts")
 	var result []any = []any{}
 	for i := 0; i < len(data); i++ {
-		var ticker any = this.ParseWsBidAsk(this.Extend(data[i], map[string]any{
+		var ticker map[string]any = this.ParseWsBidAsk(this.Extend(data[i], map[string]any{
 			"ts": timestamp,
 		}))
 		var symbol *string = this.SafeString(ticker, "symbol")
@@ -482,7 +482,7 @@ func (this *Modetrade) HandleBidAsk(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(result, topic)
 }
-func (this *Modetrade) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsBidAsk(ticker map[string]any, optionalArgs ...any) map[string]any {
 	var market map[string]any = ccxt.GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var marketId *string = this.SafeString(ticker, "symbol")
@@ -830,7 +830,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
 	var event string = "auth"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
@@ -857,7 +857,7 @@ func (this *Modetrade) authenticateBody(ch chan ccxt.AsyncResult[*string], optio
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}
@@ -1531,7 +1531,7 @@ func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 		var rawPosition map[string]any = ccxt.SafeMapTyped(rawPositions, i)
 		var marketId *string = this.SafeString(rawPosition, "symbol")
 		var market map[string]any = this.SafeMarket(marketId)
-		var position any = this.ParseWsPosition(rawPosition, market)
+		var position map[string]any = this.ParseWsPosition(rawPosition, market)
 		newPositions = append(newPositions, position)
 		cache.Append(position)
 		var marketSymbol string = *this.SafeString(market, "symbol", "")
@@ -1540,7 +1540,7 @@ func (this *Modetrade) HandlePositions(client any, message map[string]any) {
 	}
 	client.(ccxt.ClientInterface).Resolve(newPositions, "positions")
 }
-func (this *Modetrade) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Modetrade) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "symbol":"PERP_ETH_USDC",

@@ -2272,12 +2272,12 @@ func (this *Hyperliquid) watchOrdersBody(ch chan ccxt.AsyncResult[[]ccxt.Order],
 		market = this.Market(symbol)
 		messageHash = "order:" + *this.SafeString(market, "symbol", "")
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	var url *string = ccxt.SafeStringPtr(this.UrlsApiSections["ws"]["public"])
 	var request map[string]any = map[string]any{
 		"method": "subscribe",

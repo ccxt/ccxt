@@ -549,12 +549,12 @@ func (this *testMainClass) testSafeBody(ch chan ccxt.AsyncResult[any], methodNam
 										}
 									}
 									// output the message
-									var failType string = func() string {
-										if shouldFail {
-											return "[TEST_FAILURE]"
-										}
-										return "[TEST_WARNING]"
-									}()
+									var failType string
+									if shouldFail {
+										failType = "[TEST_FAILURE]"
+									} else {
+										failType = "[TEST_WARNING]"
+									}
 									Dump(failType, exchange.GetId(), methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", ExceptionMessage(e))
 
 									ch <- ccxt.AsyncResult[any]{Value: retSuccess}
@@ -735,12 +735,12 @@ func (this *testMainClass) runTestsBody(ch chan ccxt.AsyncResult[any], exchange 
 			failedMethods = append(failedMethods, testName)
 		}
 	}
-	var testPrefixString string = func() string {
-		if EvalTruthy(isPublicTest) {
-			return "PUBLIC_TESTS"
-		}
-		return "PRIVATE_TESTS"
-	}()
+	var testPrefixString string
+	if EvalTruthy(isPublicTest) {
+		testPrefixString = "PUBLIC_TESTS"
+	} else {
+		testPrefixString = "PRIVATE_TESTS"
+	}
 	if len(failedMethods) > 0 {
 		var errorsString string = strings.Join(failedMethods, ", ")
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, "Failed methods : "+errorsString)
@@ -837,12 +837,12 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 	var codes []string = []string{"BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"}
 	var spotSymbols []any = []any{"BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"}
 	var swapSymbols []any = []any{"BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"}
-	var targetSymbols any = func() any {
-		if spot == true {
-			return spotSymbols
-		}
-		return swapSymbols
-	}()
+	var targetSymbols []any
+	if spot == true {
+		targetSymbols = spotSymbols
+	} else {
+		targetSymbols = swapSymbols
+	}
 	var symbol any = this.GetTestSymbol(exchange, spot, targetSymbols)
 	// if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
 	if IsEqual(symbol, nil) {
@@ -930,12 +930,12 @@ func (this *testMainClass) getMostActiveSymbolsBody(ch chan ccxt.AsyncResult[any
 	// an explicit per-exchange pin is a deliberate maintainer choice (it usually
 	// works around a venue-specific quirk), so never rank around it
 	var isSpot any = ccxt.DerefScalar(exchange.SafeBool(defaultMarket, "spot", false))
-	var preferredKey string = func() string {
-		if isSpot == true {
-			return "preferredSpotSymbol"
-		}
-		return "preferredSwapSymbol"
-	}()
+	var preferredKey string
+	if isSpot == true {
+		preferredKey = "preferredSpotSymbol"
+	} else {
+		preferredKey = "preferredSwapSymbol"
+	}
 	var preferredSymbol any = ccxt.DerefScalar(exchange.SafeString(this.SkippedSettingsForExchange, preferredKey))
 	if !IsEqual(preferredSymbol, nil) {
 
@@ -2273,18 +2273,18 @@ func (this *testMainClass) AssertNewAndStoredOutputInner(exchange ccxt.ICoreExch
 		// a truthiness test here turns a real 0 / 0.0 / "" into "undefined", which a
 		// typed core hits constantly (its Num fields are real doubles, so an unset
 		// cost arrives as 0.0 rather than as a string). Test for undefined instead.
-		var newOutputString string = func() string {
-			if !IsEqual(sanitizedNewOutput, nil) {
-				return ToString(sanitizedNewOutput)
-			}
-			return "undefined"
-		}()
-		var storedOutputString string = func() string {
-			if !IsEqual(sanitizedStoredOutput, nil) {
-				return ToString(sanitizedStoredOutput)
-			}
-			return "undefined"
-		}()
+		var newOutputString string
+		if !IsEqual(sanitizedNewOutput, nil) {
+			newOutputString = ToString(sanitizedNewOutput)
+		} else {
+			newOutputString = "undefined"
+		}
+		var storedOutputString string
+		if !IsEqual(sanitizedStoredOutput, nil) {
+			storedOutputString = ToString(sanitizedStoredOutput)
+		} else {
+			storedOutputString = "undefined"
+		}
 		var messageError string = "output value mismatch:" + newOutputString + " != " + storedOutputString
 		if (strictTypeCheck == true) && (this.Lang != "C#") {
 			// upon building the request we want strict type check to make sure all the types are correct
@@ -3560,12 +3560,12 @@ func (this *testMainClass) runStaticTestsBody(ch chan ccxt.AsyncResult[any], typ
 	if EvalTruthy(this.RequestTestsFailed) || EvalTruthy(this.ResponseTestsFailed) || EvalTruthy(this.StaticWsTestsFailed) {
 		ExitScript(1)
 	} else {
-		var prefix string = func() string {
-			if EvalTruthy((IsSync())) {
-				return "[SYNC]"
-			}
-			return ""
-		}()
+		var prefix string
+		if EvalTruthy((IsSync())) {
+			prefix = "[SYNC]"
+		} else {
+			prefix = ""
+		}
 		var successMessage any = Add(Add(Add(Add(Add(Add(Add(Add("[", this.Lang), "]"), prefix), "[TEST_SUCCESS] "), ToString(sum)), " static "), typeVar), " tests passed.")
 		Dump(Add("[INFO]", successMessage))
 	}

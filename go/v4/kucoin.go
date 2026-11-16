@@ -4280,18 +4280,18 @@ func (this *Kucoin) fetchUTAOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
-	var endAt any = func() any {
-		if since != nil {
-			return this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
-		}
-		return now
-	}()
+	var endAt int64
+	if since != nil {
+		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+	} else {
+		endAt = now
+	}
 	if since != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64(*since) / float64(denominator)))
 	} else if limit != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64((now - (*limit * duration))) / float64(denominator)))
 	}
-	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
+	request["endAt"] = this.ParseToInt(math.Floor(float64(endAt) / float64(denominator)))
 	typeVar, paramsMarketType := this.HandleMarketTypeAndParams("fetchOHLCV", market, paramsPaginate)
 	if (typeVar != nil && *typeVar == "spot") || (typeVar != nil && *typeVar == "margin") {
 		request["tradeType"] = "SPOT"
@@ -4417,18 +4417,18 @@ func (this *Kucoin) fetchSpotOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol stri
 	if (since == nil) && (limit != nil) {
 		sinceResolved = now - (*limit * duration)
 	}
-	var endAt any = func() any {
-		if since != nil {
-			return this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
-		}
-		return now
-	}()
+	var endAt int64
+	if since != nil {
+		endAt = this.ParseToInt(this.Sum(since, Multiply(windowLimit, duration)))
+	} else {
+		endAt = now
+	}
 	if since != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64(*since) / float64(denominator)))
 	} else if limit != nil {
 		request["startAt"] = this.ParseToInt(math.Floor(float64((now - (*limit * duration))) / float64(denominator)))
 	}
-	request["endAt"] = this.ParseToInt(MathFloor(Divide(endAt, denominator)))
+	request["endAt"] = this.ParseToInt(math.Floor(float64(endAt) / float64(denominator)))
 
 	r2 := <-this.PublicGetMarketCandles(this.Extend(request, paramsPaginate))
 	if r2.Err != nil {
@@ -10627,7 +10627,7 @@ func (this *Kucoin) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 		}
 	}
 	var accountType any = "main"
-	var paramsRequest any = nil
+	var paramsRequest map[string]any = nil
 	var accountTypePtr *string = nil
 	accountTypePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchDeposits", "accountType", accountType)
 	accountType = nil
@@ -10874,7 +10874,7 @@ func (this *Kucoin) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 		}
 	}
 	var accountType any = "main"
-	var paramsRequest any = nil
+	var paramsRequest map[string]any = nil
 	var accountTypePtr *string = nil
 	accountTypePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchWithdrawals", "accountType", accountType)
 	accountType = nil
@@ -15196,12 +15196,12 @@ func (this *Kucoin) ParseMarginModification(info any, optionalArgs ...any) map[s
 	var marketResolved map[string]any = this.SafeMarket(id, market)
 	var currencyId *string = this.SafeString(info, "settleCurrency")
 	var crossMode *bool = this.SafeBool(info, "crossMode", false)
-	var mode string = func() string {
-		if crossMode != nil && *crossMode {
-			return "cross"
-		}
-		return "isolated"
-	}()
+	var mode string
+	if crossMode != nil && *crossMode {
+		mode = "cross"
+	} else {
+		mode = "isolated"
+	}
 	var marketId *string = this.SafeString(marketResolved, "symbol")
 	var timestamp *int64 = this.SafeInteger(info, "currentTimestamp")
 	return map[string]any{
@@ -15619,7 +15619,7 @@ func (this *Kucoin) ParseMarketLeverageTiers(info any, optionalArgs ...any) []an
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var marketCursor any = market
+	var marketCursor map[string]any = market
 	var tiers []any = []any{}
 	for i := 0; i < GetArrayLength(info); i++ {
 		var tier map[string]any = this.SafeDictMap(info, i, map[string]any{})
@@ -15673,7 +15673,7 @@ func (this *Kucoin) fetchLeverageTiersBody(ch chan AsyncResult[LeverageTiers], o
 	}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, "swap", false, true)
 	var marginMode any = "cross"
-	var paramsRequest any = nil
+	var paramsRequest map[string]any = nil
 	var marginModePtr *string = nil
 	marginModePtr, paramsRequest = this.HandleOptionStringAndParams(params, "fetchLeverageTiers", "marginMode", marginMode)
 	marginMode = nil

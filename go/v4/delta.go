@@ -1318,12 +1318,12 @@ func (this *Delta) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	var turnoverSymbol *string = this.SafeStringUpper(ticker, "turnover_symbol")
 	var quoteId *string = this.SafeStringUpper(marketResolved, "quoteId")
 	var baseDenominated bool = (turnoverSymbol != nil) && (quoteId != nil) && (turnoverSymbol != quoteId && (turnoverSymbol == nil || quoteId == nil || *turnoverSymbol != *quoteId))
-	var quoteVolume *float64 = func() *float64 {
-		if baseDenominated {
-			return this.SafeNumber(ticker, "turnover_usd")
-		}
-		return this.SafeNumber(ticker, "turnover")
-	}()
+	var quoteVolume *float64
+	if baseDenominated {
+		quoteVolume = this.SafeNumber(ticker, "turnover_usd")
+	} else {
+		quoteVolume = this.SafeNumber(ticker, "turnover")
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -3645,12 +3645,12 @@ func (this *Delta) modifyMarginHelperBody(ch chan AsyncResult[MarginModification
 	}
 	var market map[string]any = this.Market(symbol)
 	var amountString *string = this.NumberToString(amount)
-	var deltaMargin *string = func() *string {
-		if typeVar == "reduce" {
-			return Precise.StringMul(amountString, "-1")
-		}
-		return amountString
-	}()
+	var deltaMargin *string
+	if typeVar == "reduce" {
+		deltaMargin = Precise.StringMul(amountString, "-1")
+	} else {
+		deltaMargin = amountString
+	}
 	var request map[string]any = map[string]any{
 		"product_id":   market["numericId"],
 		"delta_margin": deltaMargin,

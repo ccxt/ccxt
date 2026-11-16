@@ -402,12 +402,12 @@ func (this *Mudrex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 	var windowEnd int64 = this.ParseToInt(Add(startTime, (duration * requestLimit)))
 	var until *int64 = this.SafeInteger(params, "until")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"price", "until"})
-	var cappedEnd int64 = func() int64 {
-		if windowEnd > now {
-			return now
-		}
-		return windowEnd
-	}()
+	var cappedEnd int64
+	if windowEnd > now {
+		cappedEnd = now
+	} else {
+		cappedEnd = windowEnd
+	}
 	var endTime int64 = this.ParseToInt(func() any {
 		if until != nil {
 			return (float64(*until) / 1000)

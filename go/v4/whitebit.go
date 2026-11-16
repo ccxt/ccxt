@@ -3572,12 +3572,12 @@ func (this *Whitebit) fetchClosedOrdersBody(ch chan AsyncResult[[]Order], option
 		market = this.Market(symbol)
 		request["market"] = market["id"]
 	}
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	if limit != nil {
 		request["limit"] = mathMin(limit, 100) // default 50 max 100
 	}

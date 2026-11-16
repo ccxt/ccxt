@@ -2998,7 +2998,7 @@ func (this *Bybit) fetchSpotMarketsBody(ch chan AsyncResult[[]MarketInterface], 
 	var request map[string]any = map[string]any{
 		"category": "spot",
 	}
-	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
+	var usePrivateInstrumentsInfo bool = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false) == true
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
@@ -3139,7 +3139,7 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	var paramsExtended map[string]any = this.Extend(params, map[string]any{})
 	paramsExtended["limit"] = 1000 // minimize number of requests
 	var preLaunchMarkets any = []any{}
-	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
+	var usePrivateInstrumentsInfo bool = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false) == true
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
@@ -3299,12 +3299,12 @@ func (this *Bybit) fetchFutureMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		if expiry != nil {
 			symbol = Add(Add(symbol, "-"), this.Yymmdd(expiry))
 		}
-		var contractSize *float64 = func() *float64 {
-			if inverse {
-				return this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
-			}
-			return this.ParseNumber("1")
-		}()
+		var contractSize *float64
+		if inverse {
+			contractSize = this.SafeNumber2(lotSizeFilter, "minTradingQty", "minOrderQty")
+		} else {
+			contractSize = this.ParseNumber("1")
+		}
 		var parsedMarket map[string]any = this.SafeMarketStructure(map[string]any{
 			"id":             id,
 			"symbol":         symbol,
@@ -3378,7 +3378,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	var request map[string]any = map[string]any{
 		"category": "option",
 	}
-	var usePrivateInstrumentsInfo any = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false)
+	var usePrivateInstrumentsInfo bool = this.HandleOption("fetchMarkets", "usePrivateInstrumentsInfo", false) == true
 	var response map[string]any = nil
 	if usePrivateInstrumentsInfo == true {
 
@@ -3397,7 +3397,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 	}
 	var data map[string]any = SafeMapTyped(response, "result")
 	var markets any = this.SafeList(data, "list", []any{})
-	var loadAllOptions any = this.HandleOption("fetchMarkets", "loadAllOptions")
+	var loadAllOptions bool = this.HandleOption("fetchMarkets", "loadAllOptions") == true
 	if loadAllOptions == true {
 		request["limit"] = 1000
 		var paginationCursor *string = this.SafeString(data, "nextPageCursor")
@@ -3491,7 +3491,7 @@ func (this *Bybit) fetchOptionMarketsBody(ch chan AsyncResult[[]MarketInterface]
 		var optionLetter string = *this.SafeString(splitId, 3, "")
 		var isActive bool = (status != nil && *status == "Trading")
 		var isInverse bool = (base == settle || (base != nil && settle != nil && *base == *settle))
-		var loadExpiredOptions any = this.HandleOption("fetchMarkets", "loadExpiredOptions")
+		var loadExpiredOptions bool = this.HandleOption("fetchMarkets", "loadExpiredOptions") == true
 		if isActive || (loadAllOptions == true) || (loadExpiredOptions == true) {
 			result = append(result, this.SafeMarketStructure(map[string]any{
 				"id":             id,
@@ -3833,9 +3833,9 @@ func (this *Bybit) fetchTickersBody(ch chan AsyncResult[map[string]Ticker], opti
 		}
 	}
 	var request map[string]any = map[string]any{}
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if hasOptionSymbol {
-		paramsOmitted = this.Omit(params, []any{"code", "currency"})
+		paramsOmitted = this.OmitDict(params, []any{"code", "currency"})
 	}
 	categoryparamsCategoryVariable := this.GetBybitType("fetchTickers", market, paramsOmitted)
 	var category *string = SafeStringPtr(categoryparamsCategoryVariable[0])
@@ -4365,12 +4365,12 @@ func (this *Bybit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRate
 		}
 		return nil
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 200
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 200
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"limit": limitResolved,
 	}
@@ -6258,12 +6258,12 @@ func (this *Bybit) EditOrderRequest(id *string, symbol any, typeVar any, side an
 		}
 	}
 	if triggerPrice != nil {
-		var triggerPriceRequest *string = func() *string {
-			if triggerPrice != nil && *triggerPrice == "0" {
-				return triggerPrice
-			}
-			return this.GetPrice(symbol, triggerPrice)
-		}()
+		var triggerPriceRequest *string
+		if triggerPrice != nil && *triggerPrice == "0" {
+			triggerPriceRequest = triggerPrice
+		} else {
+			triggerPriceRequest = this.GetPrice(symbol, triggerPrice)
+		}
 		request["triggerPrice"] = triggerPriceRequest
 		var triggerBy *string = this.SafeString(paramsValue, "triggerBy", "LastPrice")
 		request["triggerBy"] = triggerBy
@@ -6271,24 +6271,24 @@ func (this *Bybit) EditOrderRequest(id *string, symbol any, typeVar any, side an
 	if hasStopLoss || hasTakeProfit {
 		if hasStopLoss {
 			var slTriggerPrice *string = this.SafeString2(stopLoss, "triggerPrice", "stopPrice", stopLoss)
-			var stopLossRequest *string = func() *string {
-				if slTriggerPrice != nil && *slTriggerPrice == "0" {
-					return slTriggerPrice
-				}
-				return this.GetPrice(symbol, slTriggerPrice)
-			}()
+			var stopLossRequest *string
+			if slTriggerPrice != nil && *slTriggerPrice == "0" {
+				stopLossRequest = slTriggerPrice
+			} else {
+				stopLossRequest = this.GetPrice(symbol, slTriggerPrice)
+			}
 			request["stopLoss"] = stopLossRequest
 			var slTriggerBy *string = this.SafeString(paramsValue, "slTriggerBy", "LastPrice")
 			request["slTriggerBy"] = slTriggerBy
 		}
 		if hasTakeProfit {
 			var tpTriggerPrice *string = this.SafeString2(takeProfit, "triggerPrice", "stopPrice", takeProfit)
-			var takeProfitRequest *string = func() *string {
-				if tpTriggerPrice != nil && *tpTriggerPrice == "0" {
-					return tpTriggerPrice
-				}
-				return this.GetPrice(symbol, tpTriggerPrice)
-			}()
+			var takeProfitRequest *string
+			if tpTriggerPrice != nil && *tpTriggerPrice == "0" {
+				takeProfitRequest = tpTriggerPrice
+			} else {
+				takeProfitRequest = this.GetPrice(symbol, tpTriggerPrice)
+			}
 			request["takeProfit"] = takeProfitRequest
 			var tpTriggerBy *string = this.SafeString(paramsValue, "tpTriggerBy", "LastPrice")
 			request["tpTriggerBy"] = tpTriggerBy
@@ -7051,12 +7051,12 @@ func (this *Bybit) fetchOrderClassicBody(ch chan AsyncResult[Order], id string, 
 	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra string = func() string {
-			if isTrigger != nil && *isTrigger {
-				return ""
-			}
-			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
-		}()
+		var extra string
+		if isTrigger != nil && *isTrigger {
+			extra = ""
+		} else {
+			extra = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
+		}
 		panic(OrderNotFound("Order " + id + " was not found." + extra))
 	}
 	if length > 1 {
@@ -7402,12 +7402,12 @@ func (this *Bybit) fetchClosedOrderBody(ch chan AsyncResult[Order], id string, o
 	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra string = func() string {
-			if isTrigger != nil && *isTrigger {
-				return ""
-			}
-			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
-		}()
+		var extra string
+		if isTrigger != nil && *isTrigger {
+			extra = ""
+		} else {
+			extra = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
+		}
 		panic(OrderNotFound("Order " + id + " was not found." + extra))
 	}
 	if length > 1 {
@@ -7467,12 +7467,12 @@ func (this *Bybit) fetchOpenOrderBody(ch chan AsyncResult[Order], id string, opt
 	var length int = len(result)
 	if length == 0 {
 		var isTrigger *bool = this.SafeBool2(params, "trigger", "stop", false)
-		var extra string = func() string {
-			if isTrigger != nil && *isTrigger {
-				return ""
-			}
-			return " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
-		}()
+		var extra string
+		if isTrigger != nil && *isTrigger {
+			extra = ""
+		} else {
+			extra = " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true"
+		}
 		panic(OrderNotFound("Order " + id + " was not found." + extra))
 	}
 	if length > 1 {
@@ -8921,12 +8921,12 @@ func (this *Bybit) withdrawBody(ch chan AsyncResult[Transaction], code string, a
 	var accounts []any = accountsRecv
 	var isUta *bool = this.SafeBool(accounts, 1, false)
 	accountTypeOption, paramsAccountType := this.HandleOptionStringAndParams(paramsWithdrawTag, "withdraw", "accountType")
-	var defaultAccountType string = func() string {
-		if isUta != nil && *isUta == true {
-			return "UTA"
-		}
-		return "SPOT"
-	}()
+	var defaultAccountType string
+	if isUta != nil && *isUta == true {
+		defaultAccountType = "UTA"
+	} else {
+		defaultAccountType = "SPOT"
+	}
 	var accountType any = func() any {
 		if accountTypeOption == nil {
 			return defaultAccountType

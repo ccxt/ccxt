@@ -2251,7 +2251,7 @@ func (this *Nado) ParseWsTrade(trade any, optionalArgs ...any) map[string]any {
 		"fee":          nil,
 	}, marketResolved))
 }
-func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) any {
+func (this *Nado) ParseWsMyTrade(trade map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "fill",
@@ -2336,7 +2336,7 @@ func (this *Nado) HandleTrade(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(trades, messageHash)
 }
 func (this *Nado) HandleMyTrade(client any, message map[string]any) {
-	var trade any = this.ParseWsMyTrade(message)
+	var trade map[string]any = this.ParseWsMyTrade(message)
 	if this.MyTrades == nil {
 		var limit *int64 = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
@@ -2465,7 +2465,7 @@ func (this *Nado) HandleOrder(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(orders, "orders")
 	client.(ccxt.ClientInterface).Resolve(orders, "orders:"+*this.SafeString(order, "symbol", ""))
 }
-func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Nado) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "position_change",
@@ -2533,7 +2533,7 @@ func (this *Nado) HandlePosition(client any, message map[string]any) {
 	if !(*this.SafeBool(market, "contract", false)) {
 		return
 	}
-	var position any = this.ParseWsPosition(message, market)
+	var position map[string]any = this.ParseWsPosition(message, market)
 	if this.Positions == nil {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -2552,7 +2552,7 @@ func (this *Nado) HandlePosition(client any, message map[string]any) {
 	client.(ccxt.ClientInterface).Resolve(positions, "positions")
 	client.(ccxt.ClientInterface).Resolve(positions, "positions:"+*this.SafeString(position, "symbol", ""))
 }
-func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any {
+func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "type": "best_bid_offer",
@@ -2581,7 +2581,7 @@ func (this *Nado) ParseWsBidAsk(bidask map[string]any, optionalArgs ...any) any 
 	}, marketResolved))
 }
 func (this *Nado) HandleBidAsk(client any, message map[string]any) {
-	var ticker any = this.ParseWsBidAsk(message)
+	var ticker map[string]any = this.ParseWsBidAsk(message)
 	var symbol *string = this.SafeString(ticker, "symbol")
 	if symbol == nil {
 		return

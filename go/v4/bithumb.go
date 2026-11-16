@@ -2078,12 +2078,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 	}
 	request["side"] = sideRequest
 	var timeInForceRaw *string = this.SafeString2(params, "timeInForce", "time_in_force")
-	var timeInForce string = func() string {
-		if timeInForceRaw == nil {
-			return "GTC"
-		}
-		return *timeInForceRaw
-	}()
+	var timeInForce string
+	if timeInForceRaw == nil {
+		timeInForce = "GTC"
+	} else {
+		timeInForce = *timeInForceRaw
+	}
 	var paramsTimeInForce map[string]any = func() map[string]any {
 		if timeInForceRaw == nil {
 			return params
@@ -2118,12 +2118,12 @@ func (this *Bithumb) CreateOrderRequest(symbol string, typeVar string, side stri
 			createMarketBuyOrderRequiresPrice, paramsRequiresPrice := this.HandleOptionBoolAndParams(this.Omit(paramsOrder, "cost"), "createOrder", "createMarketBuyOrderRequiresPrice", true)
 			paramsOrder = paramsRequiresPrice
 			var amountString *string = this.NumberToString(amount)
-			var cost any = func() any {
-				if costParam == nil {
-					return amountString
-				}
-				return costParam
-			}()
+			var cost *string
+			if costParam == nil {
+				cost = amountString
+			} else {
+				cost = costParam
+			}
 			if createMarketBuyOrderRequiresPrice {
 				if (price == nil) && (costParam == nil) {
 					panic(InvalidOrder(this.Id + " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument"))
@@ -2740,12 +2740,12 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 		symbol = SafeStringPtr(*base + "/" + *quote)
 	}
 	var marketId *string = this.SafeString(order, "market")
-	var marketResolved any = func() any {
-		if symbol == nil {
-			return this.SafeMarket(marketId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if symbol == nil {
+		marketResolved = this.SafeMarket(marketId, market)
+	} else {
+		marketResolved = market
+	}
 	if symbol == nil {
 		symbol = this.SafeString(marketResolved, "symbol")
 	}
@@ -2755,7 +2755,7 @@ func (this *Bithumb) ParseOrder(order any, optionalArgs ...any) Order {
 	var fee map[string]any = nil
 	if feeCost != nil {
 		var currency *string = nil
-		if !IsEqual(marketResolved, nil) {
+		if marketResolved != nil {
 			currency = this.SafeString(marketResolved, "quote")
 		}
 		fee = map[string]any{
@@ -2835,12 +2835,12 @@ func (this *Bithumb) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optionalA
 		}
 	}
 	generation, paramsGeneration := this.HandleOptionIntegerAndParams(params, "fetchOpenOrders", "generation", 2)
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{}
 	var market map[string]any = nil
 	var response map[string]any = nil

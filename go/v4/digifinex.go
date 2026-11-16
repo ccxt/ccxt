@@ -916,12 +916,12 @@ func (this *Digifinex) fetchMarketsV2Body(ch chan AsyncResult[[]MarketInterface]
 		//
 		var isAllowedRaw int64 = *this.SafeInteger(market, "is_allow", 1)
 		var isTradingSwap bool = false
-		var typeVar string = func() string {
-			if defaultType != nil && *defaultType == "margin" {
-				return "margin"
-			}
-			return "spot"
-		}()
+		var typeVar string
+		if defaultType != nil && *defaultType == "margin" {
+			typeVar = "margin"
+		} else {
+			typeVar = "spot"
+		}
 		var spot bool = (settle == nil)
 		var swap bool = !spot
 		var margin any = func() any {
@@ -1176,7 +1176,7 @@ func (this *Digifinex) fetchBalanceBody(ch chan AsyncResult[Balances], optionalA
 		}
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchBalance", paramsMarketType)
 	var response map[string]any = nil
@@ -2084,24 +2084,24 @@ func (this *Digifinex) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol strin
 		request["period"] = this.SafeString(this.Timeframes, timeframe, timeframe)
 		var duration int64 = this.ParseTimeframe(timeframe)
 		if (since != nil) || (limit != nil) || (until != nil) {
-			var endTime int64 = func() int64 {
-				if until != nil {
-					return *until
-				}
-				return this.Milliseconds()
-			}()
+			var endTime int64
+			if until != nil {
+				endTime = *until
+			} else {
+				endTime = this.Milliseconds()
+			}
 			var startLimit int64 = func() int64 {
 				if limit != nil {
 					return *limit
 				}
 				return 200
 			}()
-			var startTime int64 = func() int64 {
-				if since != nil {
-					return this.ParseToInt(float64(*since) / 1000)
-				}
-				return this.ParseToInt(float64((endTime - ((startLimit * duration) * 1000))) / 1000)
-			}()
+			var startTime int64
+			if since != nil {
+				startTime = this.ParseToInt(float64(*since) / 1000)
+			} else {
+				startTime = this.ParseToInt(float64((endTime - ((startLimit * duration) * 1000))) / 1000)
+			}
 			request["start_time"] = startTime
 			if (limit != nil) || (until != nil) {
 				if until != nil {
@@ -2623,7 +2623,7 @@ func (this *Digifinex) cancelOrderBody(ch chan AsyncResult[Order], id string, op
 	}
 	var idValue *string = this.NumberToString(id)
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("cancelOrder", market, params)
 	var request map[string]any = map[string]any{
 		"order_id": idValue,
@@ -2915,12 +2915,12 @@ func (this *Digifinex) cancelOrdersForSymbolsBody(ch chan AsyncResult[[]Order], 
 		for i := 0; i < len(ids); i++ {
 			var orderId *string = SafeStringPtr(DerefScalar(ids[i]))
 			var isCanceled bool = this.InArray(orderId, data)
-			var status string = func() string {
-				if isCanceled {
-					return "canceled"
-				}
-				return "failed"
-			}()
+			var status string
+			if isCanceled {
+				status = "canceled"
+			} else {
+				status = "failed"
+			}
 			result = append(result, OrderToMap(this.SafeOrder(map[string]any{
 				"info": orderId,
 				"id":   orderId,
@@ -3168,7 +3168,7 @@ func (this *Digifinex) fetchOpenOrdersBody(ch chan AsyncResult[[]Order], optiona
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOpenOrders", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOpenOrders", paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -3313,7 +3313,7 @@ func (this *Digifinex) fetchOrdersBody(ch chan AsyncResult[[]Order], optionalArg
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOrders", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOrders", paramsMarketType)
 	var request map[string]any = map[string]any{}
@@ -3455,7 +3455,7 @@ func (this *Digifinex) fetchOrderBody(ch chan AsyncResult[Order], id string, opt
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchOrder", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchOrder", paramsMarketType)
 	var idValue *string = this.NumberToString(id)
@@ -3599,7 +3599,7 @@ func (this *Digifinex) fetchMyTradesBody(ch chan AsyncResult[[]Trade], optionalA
 		market = this.Market(symbol)
 	}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchMyTrades", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchMyTrades", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
@@ -3795,7 +3795,7 @@ func (this *Digifinex) fetchLedgerBody(ch chan AsyncResult[[]LedgerEntry], optio
 	}
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchLedger", nil, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchLedger", paramsMarketType)
 	if marketType != nil && *marketType == "swap" {
@@ -5039,7 +5039,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan AsyncResult[[]Position], optio
 		}
 		market = this.Market(symbol)
 	}
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPositions", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPositions", paramsMarketType)
 	if marginMode != nil {
@@ -5167,7 +5167,7 @@ func (this *Digifinex) fetchPositionBody(ch chan AsyncResult[Position], symbol a
 	var market map[string]any = this.Market(symbol)
 	var request map[string]any = map[string]any{}
 	var marketType *string = nil
-	var paramsMarketType any = nil
+	var paramsMarketType map[string]any = nil
 	marketType, paramsMarketType = this.HandleMarketTypeAndParams("fetchPosition", market, params)
 	marginMode, query := this.HandleMarginModeAndParams("fetchPosition", paramsMarketType)
 	if marginMode != nil {
@@ -6197,12 +6197,12 @@ func (this *Digifinex) setMarginModeBody(ch chan AsyncResult[map[string]any], ma
 	}
 	var market map[string]any = this.Market(symbol)
 	var marginModeLower string = strings.ToLower(marginMode)
-	var marginModeResolved string = func() string {
-		if marginModeLower == "cross" {
-			return "crossed"
-		}
-		return marginModeLower
-	}()
+	var marginModeResolved string
+	if marginModeLower == "cross" {
+		marginModeResolved = "crossed"
+	} else {
+		marginModeResolved = marginModeLower
+	}
 	var request map[string]any = map[string]any{
 		"instrument_id": market["id"],
 		"margin_mode":   marginModeResolved,

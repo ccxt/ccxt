@@ -1466,7 +1466,7 @@ func (this *BaseExchange) ParseWsOrder(order any, optionalArgs ...any) map[strin
 	_ = market
 	panic(NotSupported(this.Id + " parseWsOrder() is not supported yet"))
 }
-func (this *BaseExchange) ParseWsOrderTrade(trade any, optionalArgs ...any) any {
+func (this *BaseExchange) ParseWsOrderTrade(trade any, optionalArgs ...any) map[string]any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	panic(NotSupported(this.Id + " parseWsOrderTrade() is not supported yet"))
@@ -1937,12 +1937,12 @@ func (this *BaseExchange) InitRestRateLimiter() {
 		refillRate = (1 / this.RateLimit)
 	}
 	var useLeaky bool = (this.RollingWindowSize == 0) || (this.RateLimiterAlgorithm == "leakyBucket")
-	var algorithm string = func() string {
-		if useLeaky {
-			return "leakyBucket"
-		}
-		return "rollingWindow"
-	}()
+	var algorithm string
+	if useLeaky {
+		algorithm = "leakyBucket"
+	} else {
+		algorithm = "rollingWindow"
+	}
 	var defaultBucket map[string]any = map[string]any{
 		"delay":      0.001,
 		"capacity":   1,
@@ -3025,18 +3025,18 @@ func (this *BaseExchange) CalculateFeeWithRate(symbol any, typeVar any, side any
 		key = "settle"
 	}
 	// even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
-	var takerOrMakerResolved any = func() any {
-		if typeVar == "market" {
-			return "taker"
-		}
-		return takerOrMaker
-	}()
-	var rate *string = func() *string {
-		if feeRate != nil {
-			return this.NumberToString(feeRate)
-		}
-		return this.SafeString(market, takerOrMakerResolved)
-	}()
+	var takerOrMakerResolved string
+	if typeVar == "market" {
+		takerOrMakerResolved = "taker"
+	} else {
+		takerOrMakerResolved = takerOrMaker
+	}
+	var rate *string
+	if feeRate != nil {
+		rate = this.NumberToString(feeRate)
+	} else {
+		rate = this.SafeString(market, takerOrMakerResolved)
+	}
 	cost = Precise.StringMul(cost, rate)
 	return map[string]any{
 		"type":     takerOrMakerResolved,
@@ -3288,29 +3288,29 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) []any {
 	for i := 0; i < GetArrayLength(fees); i++ {
 		var fee map[string]any = MapTyped(GetValue(fees, i))
 		var code *string = this.SafeString(fee, "currency")
-		var feeCurrencyCode any = func() any {
-			if code != nil {
-				return code
-			}
-			return strconv.Itoa(i)
-		}()
+		var feeCurrencyCode string
+		if code != nil {
+			feeCurrencyCode = *code
+		} else {
+			feeCurrencyCode = strconv.Itoa(i)
+		}
 		if !IsEqual(feeCurrencyCode, nil) {
 			var rate *string = this.SafeString(fee, "rate")
 			var cost *string = this.SafeString(fee, "cost")
 			if cost == nil {
 				continue
 			}
-			if !(InOp(reduced, feeCurrencyCode)) {
-				AddElementToObject(reduced, feeCurrencyCode, map[string]any{})
+			if _, ok := reduced[feeCurrencyCode]; !ok {
+				reduced[feeCurrencyCode] = map[string]any{}
 			}
-			var rateKey any = func() any {
-				if rate == nil {
-					return ""
-				}
-				return rate
-			}()
-			if InOp(GetValue(reduced, feeCurrencyCode), rateKey) {
-				AddElementToObject(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost", Precise.StringAdd(GetValue(GetValue(GetValue(reduced, feeCurrencyCode), rateKey), "cost"), cost))
+			var rateKey string
+			if rate == nil {
+				rateKey = ""
+			} else {
+				rateKey = *rate
+			}
+			if InOp(reduced[feeCurrencyCode], rateKey) {
+				AddElementToObject(GetValue(reduced[feeCurrencyCode], rateKey), "cost", Precise.StringAdd(GetValue(GetValue(reduced[feeCurrencyCode], rateKey), "cost"), cost))
 			} else {
 				var newRateFee map[string]any = map[string]any{
 					"currency": code,
@@ -3319,7 +3319,7 @@ func (this *BaseExchange) ReduceFeesByCurrency(fees any) []any {
 				if rate != nil {
 					newRateFee["rate"] = rate
 				}
-				AddElementToObject(GetValue(reduced, feeCurrencyCode), rateKey, newRateFee)
+				AddElementToObject(reduced[feeCurrencyCode], rateKey, newRateFee)
 			}
 		}
 	}
@@ -4052,12 +4052,12 @@ func (this *BaseExchange) NetworkIdToCode(optionalArgs ...any) *string {
 	}
 	var networkCodesByIds map[string]any = SafeMapTyped(this.Options, "networksById")
 	var mappedCode *string = this.SafeString(networkCodesByIds, networkId)
-	var networkCode *string = func() *string {
-		if mappedCode == nil {
-			return networkId
-		}
-		return mappedCode
-	}()
+	var networkCode *string
+	if mappedCode == nil {
+		networkCode = networkId
+	} else {
+		networkCode = mappedCode
+	}
 	return SafeStringPtr(this.SafeString(this.NetworkAliases, networkCode, networkCode))
 }
 func (this *BaseExchange) HandleNetworkCodeAndParams(params any) (*string, map[string]any) {
@@ -5418,12 +5418,12 @@ func (this *BaseExchange) SafeMarket(optionalArgs ...any) map[string]any {
 				if (marketType == nil) && (market == nil) {
 					panic(ArgumentsRequired(Add(Add(this.Id+" safeMarket() requires a fourth argument for ", marketId), " to disambiguate between different markets with the same market id")))
 				}
-				var marketTypeResolved *string = func() *string {
-					if marketType == nil {
-						return this.SafeString(market, "type", "")
-					}
-					return marketType
-				}()
+				var marketTypeResolved *string
+				if marketType == nil {
+					marketTypeResolved = this.SafeString(market, "type", "")
+				} else {
+					marketTypeResolved = marketType
+				}
 				for i := 0; i < len(markets); i++ {
 					var currentMarket any = markets[i]
 					if this.SafeBool(currentMarket, marketTypeResolved, false) != nil && *this.SafeBool(currentMarket, marketTypeResolved, false) {

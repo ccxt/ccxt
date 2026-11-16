@@ -603,12 +603,12 @@ func (this *Hollaex) HandleBalance(client any, message map[string]any) {
 			}
 		}
 		var second *string = this.SafeString(parts, 1)
-		var freeOrTotal string = func() string {
-			if second != nil && *second == "available" {
-				return "free"
-			}
-			return "total"
-		}()
+		var freeOrTotal string
+		if second != nil && *second == "available" {
+			freeOrTotal = "free"
+		} else {
+			freeOrTotal = "total"
+		}
 		ccxt.AddElementToObject(account, freeOrTotal, this.SafeString(data, key))
 		if code != nil {
 			this.Balance[*code] = account

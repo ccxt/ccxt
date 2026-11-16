@@ -2555,24 +2555,24 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	var isMarket bool = (orderType == "MARKET")
 	var timeInForce *string = this.SafeStringLower(params, "timeInForce")
 	var postOnly bool = this.IsPostOnly(isMarket, nil, params)
-	var orderQtyKey string = func() string {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey string = func() string {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
-	var typeKey string = func() string {
-		if isConditional {
-			return "type"
-		}
-		return "order_type"
-	}()
+	var orderQtyKey string
+	if isConditional {
+		orderQtyKey = "quantity"
+	} else {
+		orderQtyKey = "order_quantity"
+	}
+	var priceKey string
+	if isConditional {
+		priceKey = "price"
+	} else {
+		priceKey = "order_price"
+	}
+	var typeKey string
+	if isConditional {
+		typeKey = "type"
+	} else {
+		typeKey = "order_type"
+	}
 	request[typeKey] = orderType // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
 	if !isConditional {
 		if postOnly {
@@ -2604,12 +2604,12 @@ func (this *Woofipro) CreateOrderRequest(symbol *string, typeVar *string, side *
 	} else if hasStopLoss || hasTakeProfit {
 		request["algo_type"] = "TP_SL"
 		var childOrders []any = []any{}
-		var closeSide string = func() string {
-			if orderSide == "BUY" {
-				return "SELL"
-			}
-			return "BUY"
-		}()
+		var closeSide string
+		if orderSide == "BUY" {
+			closeSide = "SELL"
+		} else {
+			closeSide = "BUY"
+		}
 		if hasStopLoss {
 			var stopLossPrice any = this.SafeValue2(stopLoss, "triggerPrice", "price", stopLoss)
 			var stopLossOrder map[string]any = map[string]any{
@@ -2845,18 +2845,18 @@ func (this *Woofipro) editOrderBody(ch chan AsyncResult[Order], id string, symbo
 	}
 	var paramsChildOrders []any = SafeListTyped(params, "childOrders")
 	var isConditional bool = (triggerPrice != nil) || (paramsChildOrders != nil)
-	var orderQtyKey string = func() string {
-		if isConditional {
-			return "quantity"
-		}
-		return "order_quantity"
-	}()
-	var priceKey string = func() string {
-		if isConditional {
-			return "price"
-		}
-		return "order_price"
-	}()
+	var orderQtyKey string
+	if isConditional {
+		orderQtyKey = "quantity"
+	} else {
+		orderQtyKey = "order_quantity"
+	}
+	var priceKey string
+	if isConditional {
+		priceKey = "price"
+	} else {
+		priceKey = "order_price"
+	}
 	if price != nil {
 		request[priceKey] = this.PriceToPrecision(symbol, price)
 	}
@@ -3893,12 +3893,12 @@ func (this *Woofipro) ParseLedgerEntry(item any, optionalArgs ...any) LedgerEntr
 	var currencyResolved map[string]any = this.SafeCurrency(currencyId, currency)
 	var amount *float64 = this.SafeNumber(item, "amount")
 	var side *string = this.SafeString(item, "token_side")
-	var direction string = func() string {
-		if side != nil && *side == "DEPOSIT" {
-			return "in"
-		}
-		return "out"
-	}()
+	var direction string
+	if side != nil && *side == "DEPOSIT" {
+		direction = "in"
+	} else {
+		direction = "out"
+	}
 	var timestamp *int64 = this.SafeInteger(item, "created_time")
 	var fee any = this.ParseTokenAndFeeTemp(item, "fee_token", "fee_amount")
 	return this.SafeLedgerEntry(map[string]any{
@@ -5031,12 +5031,12 @@ func (this *Woofipro) Sign(path string, optionalArgs ...any) map[string]any {
 		var ts string = strconv.FormatInt(this.Nonce(), 10)
 		url += pathWithParams
 		var hasKeyPrefix bool = (strings.Index(this.ApiKey, "ed25519:") >= 0)
-		var apiKey any = func() any {
-			if hasKeyPrefix {
-				return this.ApiKey
-			}
-			return ("ed25519:" + this.ApiKey)
-		}()
+		var apiKey string
+		if hasKeyPrefix {
+			apiKey = this.ApiKey
+		} else {
+			apiKey = ("ed25519:" + this.ApiKey)
+		}
 		var authHeaders map[string]any = map[string]any{
 			"orderly-account-id": this.AccountId,
 			"orderly-key":        apiKey,

@@ -2203,7 +2203,7 @@ func (this *Cex) transferBody(ch chan AsyncResult[TransferEntry], code string, a
 			transfer = StructBox(r1.Value, TransferEntryToMap)
 		}
 	}
-	var fillResponseFromRequest any = this.HandleOption("transfer", "fillResponseFromRequest", true)
+	var fillResponseFromRequest bool = this.HandleOption("transfer", "fillResponseFromRequest", true) == true
 	var filled map[string]any = map[string]any{}
 	if fillResponseFromRequest == true {
 		filled["fromAccount"] = fromAccount
@@ -2232,12 +2232,12 @@ func (this *Cex) transferBetweenMainAndSubAccountBody(ch chan AsyncResult[Transf
 	}
 	var currency map[string]any = this.Currency(code)
 	var fromMain bool = (fromAccount == "")
-	var targetAccount string = func() string {
-		if fromMain {
-			return toAccount
-		}
-		return fromAccount
-	}()
+	var targetAccount string
+	if fromMain {
+		targetAccount = toAccount
+	} else {
+		targetAccount = fromAccount
+	}
 	var guid *string = this.SafeString(params, "guid", this.Uuid())
 	var request map[string]any = map[string]any{
 		"currency":   currency["id"],

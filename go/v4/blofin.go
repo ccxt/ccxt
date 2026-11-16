@@ -967,12 +967,12 @@ func (this *Blofin) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol st
 	var request map[string]any = map[string]any{
 		"instId": market["id"],
 	}
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 50
+	} else {
+		limitValue = *limit
+	}
 	request["size"] = limitValue // max 100
 
 	r1 := <-this.PublicGetMarketBooks(this.Extend(request, params))
@@ -4165,18 +4165,18 @@ func (this *Blofin) ParsePosition(position any, optionalArgs ...any) Position {
 		var mmpWithFee *string = Precise.StringAdd(this.NumberToString(maintenanceMarginPercentage), takerFeeRate)
 		var totalSize *string = Precise.StringMul(contractsAbs, contractSizeString)
 		var marginPerUnit *string = Precise.StringDiv(initialMarginString, totalSize)
-		var num *string = func() *string {
-			if side != nil && *side == "long" {
-				return Precise.StringSub(entryPriceString, marginPerUnit)
-			}
-			return Precise.StringAdd(entryPriceString, marginPerUnit)
-		}()
-		var denom any = func() any {
-			if side != nil && *side == "long" {
-				return Precise.StringSub("1", mmpWithFee)
-			}
-			return Precise.StringAdd("1", mmpWithFee)
-		}()
+		var num *string
+		if side != nil && *side == "long" {
+			num = Precise.StringSub(entryPriceString, marginPerUnit)
+		} else {
+			num = Precise.StringAdd(entryPriceString, marginPerUnit)
+		}
+		var denom *string
+		if side != nil && *side == "long" {
+			denom = Precise.StringSub("1", mmpWithFee)
+		} else {
+			denom = Precise.StringAdd("1", mmpWithFee)
+		}
 		if (denom != nil) && Precise.StringGt(denom, "0") {
 			liquidationPriceString = Precise.StringDiv(num, denom)
 		}
@@ -4258,7 +4258,7 @@ func (this *Blofin) fetchLeveragesBody(ch chan AsyncResult[map[string]Leverage],
 		panic(ArgumentsRequired(this.Id + " fetchLeverages() requires a symbols argument"))
 	}
 	var marginMode *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	marginMode, query = this.HandleMarginModeAndParams("fetchLeverages", params)
 	if marginMode == nil {
 		marginMode = this.SafeString(query, "marginMode", "cross") // cross as default marginMode
@@ -4324,7 +4324,7 @@ func (this *Blofin) fetchLeverageBody(ch chan AsyncResult[Leverage], symbol any,
 		}
 	}
 	var marginMode *string = nil
-	var query any = nil
+	var query map[string]any = nil
 	marginMode, query = this.HandleMarginModeAndParams("fetchLeverage", params)
 	if marginMode == nil {
 		marginMode = this.SafeString(query, "marginMode", "cross") // cross as default marginMode

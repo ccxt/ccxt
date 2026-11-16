@@ -314,12 +314,12 @@ func (this *Apex) watchOrderBookForSymbolsBody(ch chan ccxt.AsyncResult[ccxt.Ord
 	var url any = this.GetWsPublicUrl()
 	var topics []any = []any{}
 	var messageHashes []any = []any{}
-	var limitValue int64 = func() int64 {
-		if limit == nil {
-			return 25
-		}
-		return *limit
-	}()
+	var limitValue int64
+	if limit == nil {
+		limitValue = 25
+	} else {
+		limitValue = *limit
+	}
 	for i := 0; i < len(symbolsNormalized); i++ {
 		var symbol string = symbolsNormalized[i]
 		var market map[string]any = this.Market(symbol)
@@ -1261,7 +1261,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 	var signature string = this.Hmac(this.Encode(messageString), this.Encode(this.StringToBase64(this.Secret)), ccxt.Sha256, "base64")
 	var messageHash string = "authenticated"
 	var client ccxt.ClientInterface = this.Client(url)
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		// auth sign
@@ -1281,7 +1281,7 @@ func (this *Apex) authenticateBody(ch chan ccxt.AsyncResult[*string], url any, o
 		this.Watch(url, messageHash, message, messageHash)
 	}
 
-	r := <-future.(*ccxt.Future).Await()
+	r := <-future.Await()
 	if r.Err != nil {
 		panic(r.Err)
 	}

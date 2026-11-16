@@ -1880,28 +1880,28 @@ func (this *Dydx) CreateOrderRequest(symbol string, typeVar string, side string,
 		}
 		return subaccountIdOption
 	}()
-	var clientOrderIdValue int64 = func() int64 {
-		if clientOrderId == nil {
-			return 0
-		}
-		return *clientOrderId
-	}()
+	var clientOrderIdValue int64
+	if clientOrderId == nil {
+		clientOrderIdValue = 0
+	} else {
+		clientOrderIdValue = *clientOrderId
+	}
 	var orderFlagValue any = func() any {
 		if orderFlag == nil {
 			return 0
 		}
 		return orderFlag
 	}()
-	var clobPairIdValue int64 = func() int64 {
-		if clobPairId == nil {
-			return 0
-		}
-		return *clobPairId
-	}()
+	var clobPairIdValue int64
+	if clobPairId == nil {
+		clobPairIdValue = 0
+	} else {
+		clobPairIdValue = *clobPairId
+	}
 	var orderId string = this.CreateOrderIdFromParts(walletAddress, subaccountIdValue, clientOrderIdValue, orderFlagValue, clobPairIdValue)
 	return []any{orderId, this.Extend(signingPayload, paramsOmitted)}
 }
-func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) string {
+func (this *Dydx) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId int64, orderFlags any, clobPairId int64) string {
 	var nameSp string = *this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var clientOrderIdString *string = this.NumberToString(clientOrderId)
 	var clobPairIdString *string = this.NumberToString(clobPairId)

@@ -949,12 +949,12 @@ func (this *Independentreserve) fetchOpenOrdersBody(ch chan AsyncResult[[]Order]
 		request["primaryCurrencyCode"] = market["baseId"]
 		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 50
+	} else {
+		limitResolved = *limit
+	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 
@@ -1009,12 +1009,12 @@ func (this *Independentreserve) fetchClosedOrdersBody(ch chan AsyncResult[[]Orde
 		request["primaryCurrencyCode"] = market["baseId"]
 		request["secondaryCurrencyCode"] = market["quoteId"]
 	}
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 50
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 50
+	} else {
+		limitResolved = *limit
+	}
 	request["pageIndex"] = 1
 	request["pageSize"] = limitResolved
 

@@ -1387,12 +1387,12 @@ func (this *Deribit) fetchMarketsBody(ch chan AsyncResult[[]MarketInterface], op
 					if option {
 						strike = this.SafeNumber(market, "strike")
 						optionType = this.SafeString(market, "option_type")
-						var letter string = func() string {
-							if optionType != nil && *optionType == "call" {
-								return "C"
-							}
-							return "P"
-						}()
+						var letter string
+						if optionType != nil && *optionType == "call" {
+							letter = "C"
+						} else {
+							letter = "P"
+						}
 						symbol = Add(Add(Add(Add(symbol, "-"), this.NumberToString(strike)), "-"), letter)
 					}
 				}
@@ -2816,12 +2816,12 @@ func (this *Deribit) createOrderBody(ch chan AsyncResult[Order], symbol string, 
 		request["type"] = "trailing_stop"
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
 	} else if isStopOrder {
-		var triggerPrice *string = func() *string {
-			if stopLossPrice != nil {
-				return stopLossPrice
-			}
-			return takeProfitPrice
-		}()
+		var triggerPrice *string
+		if stopLossPrice != nil {
+			triggerPrice = stopLossPrice
+		} else {
+			triggerPrice = takeProfitPrice
+		}
 		request["trigger_price"] = this.PriceToPrecision(symbol, triggerPrice)
 		request["trigger"] = trigger
 		if isStopLossOrder {
@@ -2986,9 +2986,9 @@ func (this *Deribit) editOrderBody(ch chan AsyncResult[Order], id string, symbol
 	}
 	var trailingAmount *string = this.SafeString2(params, "trailingAmount", "trigger_offset")
 	var isTrailingAmountOrder bool = (trailingAmount != nil)
-	var paramsOmitted any = params
+	var paramsOmitted map[string]any = params
 	if isTrailingAmountOrder {
-		paramsOmitted = this.Omit(params, "trigger_offset")
+		paramsOmitted = this.OmitDict(params, "trigger_offset")
 	}
 	if isTrailingAmountOrder {
 		request["trigger_offset"] = this.ParseToNumeric(trailingAmount)
@@ -3724,12 +3724,12 @@ func (this *Deribit) ParsePosition(position any, optionalArgs ...any) Position {
 	_ = market
 	var contract *string = this.SafeString(position, "instrument_name")
 	var marketResolved map[string]any = this.SafeMarket(contract, market)
-	var side string = func() string {
-		if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
-			return "long"
-		}
-		return "short"
-	}()
+	var side string
+	if this.SafeString(position, "direction") != nil && *this.SafeString(position, "direction") == "buy" {
+		side = "long"
+	} else {
+		side = "short"
+	}
 	var unrealizedPnl *string = this.SafeString(position, "floating_profit_loss")
 	var initialMarginString *string = this.SafeString(position, "initial_margin")
 	var notionalString *string = this.SafeString(position, "size_currency")

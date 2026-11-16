@@ -266,7 +266,7 @@ func (this *Deepcoin) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 		ch <- ccxt.AsyncResult[*string]{Value: this.SafeString(this.Options, "listenKey")}
 		return nil
 	}
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var listenKey any = nil
 
 	{
@@ -344,7 +344,7 @@ func (this *Deepcoin) authenticateBody(ch chan ccxt.AsyncResult[*string], option
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from killing the process
 
-	r4 := <-future.(*ccxt.Future).Await()
+	r4 := <-future.Await()
 	if r4.Err != nil {
 		panic(r4.Err)
 	}
@@ -968,7 +968,7 @@ func (this *Deepcoin) watchOrderBookBody(ch chan ccxt.AsyncResult[ccxt.OrderBook
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
 	suffixparamsValueVariable := this.OrderBookSuffix(market, "watchOrderBook", params)
 	var suffix *string = ccxt.SafeStringPtr(suffixparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(suffixparamsValueVariable[1])
+	var paramsValue map[string]any = suffixparamsValueVariable[1].(map[string]any)
 
 	r1 := <-this.WatchPublicAsync(market, messageHash, "25", paramsValue, suffix)
 	if r1.Err != nil {
@@ -1011,7 +1011,7 @@ func (this *Deepcoin) unWatchOrderBookBody(ch chan ccxt.AsyncResult[bool], symbo
 	var messageHash string = "orderbook" + "::" + *this.SafeString(market, "symbol", "")
 	suffixparamsValueVariable := this.OrderBookSuffix(market, "unWatchOrderBook", params)
 	var suffix *string = ccxt.SafeStringPtr(suffixparamsValueVariable[0])
-	var paramsValue map[string]any = ccxt.MapTyped(suffixparamsValueVariable[1])
+	var paramsValue map[string]any = suffixparamsValueVariable[1].(map[string]any)
 	var subscription map[string]any = map[string]any{
 		"topic": "orderbook",
 	}
@@ -1039,7 +1039,7 @@ func (this *Deepcoin) OrderBookSuffix(market map[string]any, methodName string, 
 	_ = params
 	var symbol string = *this.SafeString(market, "symbol", "")
 	var aggregation *string = nil
-	var paramsAggregation any = nil
+	var paramsAggregation map[string]any = nil
 	aggregation, paramsAggregation = this.HandleOptionStringAndParams(params, methodName, "aggregation")
 	if aggregation == nil {
 		var precision map[string]any = ccxt.SafeMapTyped(market, "precision")
@@ -1579,13 +1579,13 @@ func (this *Deepcoin) HandlePosition(client any, message map[string]any) {
 		if this.Positions == nil {
 			this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 		}
-		var parsed any = this.ParseWsPosition(data, market)
+		var parsed map[string]any = this.ParseWsPosition(data, market)
 		this.Positions.Append(parsed)
 		client.(ccxt.ClientInterface).Resolve(this.Positions, messageHash)
 		client.(ccxt.ClientInterface).Resolve(this.Positions, symbolMessageHash)
 	}
 }
-func (this *Deepcoin) ParseWsPosition(position map[string]any, optionalArgs ...any) any {
+func (this *Deepcoin) ParseWsPosition(position map[string]any, optionalArgs ...any) map[string]any {
 	//
 	//     {
 	//         "A": "9256245",

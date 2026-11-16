@@ -569,12 +569,12 @@ func (this *PredictionExchange) ShortenSlug(slug any) any {
 		"percent":                 "pct",
 	}
 	var stopWords []any = []any{"will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"}
-	var lower string = func() string {
-		if IsEqual(slug, nil) {
-			return ""
-		}
-		return ToLower(slug)
-	}()
+	var lower string
+	if IsEqual(slug, nil) {
+		lower = ""
+	} else {
+		lower = ToLower(slug)
+	}
 	var allowed string = "abcdefghijklmnopqrstuvwxyz0123456789"
 	var chars []string = this.StringToCharsArray(lower)
 	var s string = ""
@@ -638,12 +638,12 @@ func (this *PredictionExchange) SlugToOutcomeSymbol(eventSlug any, marketSlug an
 	// removal so labels like "UP OR DOWN" survive intact) — venue labels with spaces or
 	// currency symbols ("JD Vance", a dollar-sign price) yield clean handles (JD_VANCE, 120)
 	// instead of leaking raw text into the outcome handle
-	var upper string = func() string {
-		if IsEqual(outcome, nil) {
-			return ""
-		}
-		return ToUpper(outcome)
-	}()
+	var upper string
+	if IsEqual(outcome, nil) {
+		upper = ""
+	} else {
+		upper = ToUpper(outcome)
+	}
 	var allowed string = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	var chars []string = this.StringToCharsArray(upper)
 	var label string = ""
@@ -1842,7 +1842,7 @@ func (this *PredictionExchange) SafePredictionOrder(outcomeOrder any, optionalAr
 					lastTradeTimestamp = tradeTimestamp
 				}
 			}
-			var tradeFee any = this.SafeDict(trade, "fee")
+			var tradeFee map[string]any = this.SafeDictMap(trade, "fee")
 			if tradeFee != nil {
 				feeList = append(feeList, tradeFee)
 			}

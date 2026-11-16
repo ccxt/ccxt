@@ -2888,12 +2888,12 @@ func (this *Okx) ParseMarket(market any) map[string]any {
 			}
 		}
 	}
-	var feesType string = func() string {
-		if typeVar == nil {
-			return ""
-		}
-		return *typeVar
-	}()
+	var feesType string
+	if typeVar == nil {
+		feesType = ""
+	} else {
+		feesType = *typeVar
+	}
 	var fees map[string]any = this.SafeDict2Map(this.Fees, feesType, "trading", map[string]any{})
 	var maxLeverage *string = this.SafeString(market, "lever", "1")
 	maxLeverage = Precise.StringMax(maxLeverage, "1")
@@ -4038,12 +4038,12 @@ func (this *Okx) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, opt
 			// limitResolved is already at most 100 for mark or index candles and 300 otherwise
 			defaultType = "HistoryCandles"
 		}
-		var startTime any = func() any {
-			if since != nil && *since > 1 {
-				return (*since - 1)
-			}
-			return 0
-		}()
+		var startTime int64
+		if since != nil && *since > 1 {
+			startTime = (*since - 1)
+		} else {
+			startTime = 0
+		}
 		request["before"] = startTime
 		request["after"] = this.Sum(since, Multiply(durationInMilliseconds, limitResolved))
 	}
@@ -9580,12 +9580,12 @@ func (this *Okx) fetchFundingHistoryBody(ch chan AsyncResult[[]FundingHistory], 
 		request["begin"] = since
 	}
 	requestUntil, paramsUntil := this.HandleUntilOption("end", request, params)
-	var symbolResolved *string = func() *string {
-		if market != nil {
-			return this.SafeString(market, "symbol")
-		}
-		return symbol
-	}()
+	var symbolResolved *string
+	if market != nil {
+		symbolResolved = this.SafeString(market, "symbol")
+	} else {
+		symbolResolved = symbol
+	}
 	typeVar, query := this.HandleMarketTypeAndParams("fetchFundingHistory", market, paramsUntil)
 	if typeVar != nil && *typeVar == "swap" {
 		requestUntil["instType"] = func() any {
@@ -10670,12 +10670,12 @@ func (this *Okx) ParseBorrowInterest(info any, optionalArgs ...any) any {
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
 	var instId *string = this.SafeString(info, "instId")
-	var marketResolved any = func() any {
-		if instId != nil {
-			return this.SafeMarket(instId, market)
-		}
-		return market
-	}()
+	var marketResolved map[string]any
+	if instId != nil {
+		marketResolved = this.SafeMarket(instId, market)
+	} else {
+		marketResolved = market
+	}
 	var timestamp *int64 = this.SafeInteger(info, "ts")
 	return map[string]any{
 		"info":           info,
@@ -11877,12 +11877,12 @@ func (this *Okx) fetchAllGreeksBody(ch chan AsyncResult[map[string]Greeks], opti
 	}
 	var request map[string]any = map[string]any{}
 	var symbolsNormalized []string = this.MarketSymbols(symbols, nil, true, true, true)
-	var symbolsLength int = func() int {
-		if symbolsNormalized == nil {
-			return 0
-		}
-		return len(symbolsNormalized)
-	}()
+	var symbolsLength int
+	if symbolsNormalized == nil {
+		symbolsLength = 0
+	} else {
+		symbolsLength = len(symbolsNormalized)
+	}
 	if (symbolsNormalized == nil) || (symbolsLength != 1) {
 		var uly *string = this.SafeString(params, "uly")
 		if uly != nil {
@@ -12835,12 +12835,12 @@ func (this *Okx) fetchMarginAdjustmentHistoryBody(ch chan AsyncResult[[]MarginMo
 		panic(ArgumentsRequired(this.Id + " fetchMarginAdjustmentHistory () requires a type argument"))
 	}
 	var isAdd bool = (typeVar != nil && *typeVar == "add")
-	var subType string = func() string {
-		if isAdd {
-			return "160"
-		}
-		return "161"
-	}()
+	var subType string
+	if isAdd {
+		subType = "160"
+	} else {
+		subType = "161"
+	}
 	if auto != nil && *auto {
 		if isAdd {
 			subType = "162"
@@ -12978,12 +12978,12 @@ func (this *Okx) fetchPositionsHistoryBody(ch chan AsyncResult[[]Position], opti
 	var marginMode *string = this.SafeString(params, "marginMode")
 	var instType *string = this.SafeStringUpper(params, "instType")
 	var paramsOmitted map[string]any = this.OmitDict(params, []any{"until", "marginMode", "instType"})
-	var limitResolved int64 = func() int64 {
-		if limit == nil {
-			return 100
-		}
-		return *limit
-	}()
+	var limitResolved int64
+	if limit == nil {
+		limitResolved = 100
+	} else {
+		limitResolved = *limit
+	}
 	var request map[string]any = map[string]any{
 		"limit": limitResolved,
 	}

@@ -939,7 +939,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	var messageHash string = "authenticated"
-	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
+	var future *ccxt.Future = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = client.(ccxt.ClientInterface).SubscriptionSafe(messageHash)
 	if authenticated == nil {
 		var id int64 = this.RequestId()
@@ -963,7 +963,7 @@ func (this *Polymarket) authenticateBody(ch chan ccxt.AsyncResult[*string], opti
 		this.Watch(url, messageHash, this.Extend(request, params), messageHash)
 	}
 
-	r1 := <-future.(*ccxt.Future).Await()
+	r1 := <-future.Await()
 	if r1.Err != nil {
 		panic(r1.Err)
 	}
@@ -1275,8 +1275,8 @@ func (this *Polymarket) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Posit
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client, symbolsNormalized)
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
-	var awaitPositionsSnapshot any = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
+	var awaitPositionsSnapshot bool = this.HandleOption("watchPositions", "awaitPositionsSnapshot", true) == true
 	if (fetchPositionsSnapshot == true) && (awaitPositionsSnapshot == true) && (this.Positions == nil) {
 		// the portfolio channel pushes one snapshot at subscribe time and
 		// then only on changes, so the first call hydrates over rest
@@ -1313,7 +1313,7 @@ func (this *Polymarket) SetPositionsCache(client any, optionalArgs ...any) {
 	if this.Positions != nil {
 		return
 	}
-	var fetchPositionsSnapshot any = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true)
+	var fetchPositionsSnapshot bool = this.HandleOption("watchPositions", "fetchPositionsSnapshot", true) == true
 	if fetchPositionsSnapshot == true {
 		var messageHash string = "fetchPositionsSnapshot"
 		if _, ok := client.(ccxt.ClientInterface).GetFutures()[messageHash]; !ok {
@@ -1383,8 +1383,8 @@ func (this *Polymarket) watchBalanceBody(ch chan ccxt.AsyncResult[ccxt.Balances]
 	var url *string = this.SafeString(this.Urls["api"], "ws")
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetBalanceCache(client)
-	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
-	var awaitBalanceSnapshot any = this.HandleOption("watchBalance", "awaitBalanceSnapshot", true)
+	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
+	var awaitBalanceSnapshot bool = this.HandleOption("watchBalance", "awaitBalanceSnapshot", true) == true
 	if _, ok := this.Balance["info"]; (fetchBalanceSnapshot == true) && (awaitBalanceSnapshot == true) && !ok {
 		// the portfolio channel pushes one snapshot at subscribe time and
 		// then only on changes, so the first call hydrates over rest
@@ -1412,7 +1412,7 @@ func (this *Polymarket) SetBalanceCache(client any) {
 	if _, ok := this.Balance["info"]; ok {
 		return
 	}
-	var fetchBalanceSnapshot any = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true)
+	var fetchBalanceSnapshot bool = this.HandleOption("watchBalance", "fetchBalanceSnapshot", true) == true
 	if fetchBalanceSnapshot == true {
 		var messageHash string = "fetchBalanceSnapshot"
 		if !(client.(ccxt.ClientInterface).FutureHas(messageHash)) {
