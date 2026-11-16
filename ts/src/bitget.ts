@@ -2303,7 +2303,7 @@ export default class bitget extends Exchange {
                 continue;
             }
             const parsedMarket = this.parseMarket (market);
-            if ((parsedMarket !== undefined) && parsedMarket['spot']) {
+            if ((parsedMarket !== undefined) && this.safeBool (parsedMarket, 'spot', false)) {
                 const marketId = parsedMarket['id'];
                 const instrument = this.safeDict (spotInstruments, marketId);
                 if (instrument !== undefined) {
