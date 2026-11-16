@@ -2900,9 +2900,9 @@ export default class htx extends Exchange {
         //         "ts": 1781066959396
         //     }
         //
-        let trades = this.safeValue (response, 'data');
-        if (!Array.isArray (trades)) {
-            trades = this.safeList (trades, 'trades');
+        let trades = this.safeList (response, 'data');
+        if (trades === undefined) {
+            trades = this.safeList (this.safeDict (response, 'data'), 'trades', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -3906,8 +3906,10 @@ export default class htx extends Exchange {
         //         "ts": 1780967407144
         //     }
         //
-        const rawOrder = this.safeValue (response, 'data');
-        const order = Array.isArray (rawOrder) ? this.safeDict (rawOrder, 0) : rawOrder;
+        let order = this.safeDict (response, 'data');
+        if (order === undefined) {
+            order = this.safeDict (this.safeList (response, 'data', []), 0, {});
+        }
         return this.parseOrder (order, market);
     }
 
@@ -4161,8 +4163,10 @@ export default class htx extends Exchange {
                 }
             }
         }
-        const rawOrders = this.safeValue (response, 'data');
-        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
+        let orders = this.safeList (response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList (this.safeDict (response, 'data'), 'orders', []);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -4706,8 +4710,10 @@ export default class htx extends Exchange {
         //         "ts": 1780739390596
         //     }
         //
-        const rawOrders = this.safeValue (response, 'data');
-        const orders = Array.isArray (rawOrders) ? rawOrders : this.safeList (rawOrders, 'orders', []);
+        let orders = this.safeList (response, 'data');
+        if (orders === undefined) {
+            orders = this.safeList (this.safeDict (response, 'data'), 'orders', []);
+        }
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5770,8 +5776,8 @@ export default class htx extends Exchange {
         if (this.safeBool (market, 'spot', false)) {
             result = this.safeList (response, 'data', []);
         } else {
-            const data = this.safeValue (response, 'data');
-            if (Array.isArray (data)) {
+            const data = this.safeList (response, 'data');
+            if (data !== undefined) {
                 result = data;
             } else {
                 const batchData = this.safeDict (response, 'data', {});
