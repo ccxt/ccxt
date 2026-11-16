@@ -1467,6 +1467,75 @@ function goChan3SameTForwards (content: string, masked: string, bodyStart: numbe
     return out;
 }
 
+// one tabled family of consumers (struct / list-of-struct): element proof, forward boxing and the per-read rewrite
+interface GoChan3ConsumerRule {
+    elem: (at: number, method: string, r: { recv: string, start: number }) => string | undefined;
+    inCore: (at: number) => [ number, number, string ] | undefined;
+    shadow: string;
+    label: (T: string) => string;
+    same: (T: string) => string[];
+    fwdValue: (T: string, outer: string | undefined, rn: string) => string;
+    bind: RegExp;
+    unbound: (pre: string, method: string, line: string) => void;
+    read: (u: { at: number, end: number, read: string, before: string, after: string, name: string, method: string, T: string, line: string, fe0: number }) => void;
+}
+
+// consumers: `rN := <-RECV.MAsync(..)` reads of a tabled method and `ch <- <-RECV.MAsync(..)` forwards into an untyped core
+function goChan3ConsumerWalk (content: string, masked: string, q: string, fresh: (at: number) => string, alt: string, promiseArgs: [ number, number ][], edits: Edit[], rule: GoChan3ConsumerRule) {
+    const call = new RegExp ('\\.(' + alt + ')Async\\(', 'g');
+    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
+        const ls = masked.lastIndexOf ('\n', m.index) + 1;
+        const line = masked.substring (ls, masked.indexOf ('\n', m.index));
+        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
+            continue;
+        }
+        const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
+        const T = rule.elem (m.index, m[1], r);
+        if (T === undefined) {
+            continue;
+        }
+        const pre = masked.substring (ls, r.start);
+        const callEnd = goChanClose (masked, m.index + m[0].length - 1);
+        const [ , fe0 ] = goChan3Func (masked, m.index);
+        const fwd = /^(\t+)ch <- <-$/.exec (pre);
+        if (fwd !== null) {
+            if (rule.inCore (m.index) !== undefined) {
+                continue;   // the core section owns forwards inside its cores
+            }
+            const outer = goChan3CoreTypeAt (masked, m.index);
+            if ((outer !== undefined) && rule.same (T).includes (outer)) {
+                continue;   // same-T forward (replay)
+            }
+            if ((outer !== 'any') && (outer !== rule.shadow)) {
+                throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + rule.label (T) + ') into an AsyncResult[' + outer + '] core');
+            }
+            const rn = fresh (m.index);
+            const carrier = q + 'AsyncResult[' + outer + ']';
+            edits.push ({ 'start': ls, 'end': callEnd, 'text': fwd[1] + rn + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + 'ch <- ' + carrier + '{Value: ' + rule.fwdValue (T, outer, rn) + ', Err: ' + rn + '.Err}' });
+            continue;
+        }
+        const bind = rule.bind.exec (pre);
+        if (bind === null) {
+            rule.unbound (pre, m[1], line);
+            continue;
+        }
+        const name = bind[1];
+        const scope = masked.substring (callEnd, fe0);
+        const rebind = new RegExp ('\\n\\t+' + name + ' := ').exec (scope);
+        const limit = callEnd + ((rebind === null) ? scope.length : rebind.index);
+        const use = new RegExp ('(?<![\\w.])' + name + '\\.Value\\b', 'g');
+        use.lastIndex = callEnd;
+        for (let u = use.exec (masked); (u !== null) && (u.index < limit); u = use.exec (masked)) {
+            const at = u.index;
+            const end = at + u[0].length;
+            const uls = masked.lastIndexOf ('\n', at) + 1;
+            const before = masked.substring (uls, at);
+            const after = masked.substring (end, masked.indexOf ('\n', end));
+            rule.read ({ 'at': at, 'end': end, 'read': u[0], 'before': before, 'after': after, 'name': name, 'method': m[1], 'T': T, 'line': line, 'fe0': fe0 });
+        }
+    }
+}
+
 export function goChan3StructPass (content: string, table: Map<string, string>): string {
     const predictionFile = /^package ccxtprediction\s*$/m.test (content);
     const regStructs = goChan3StructEntries (table, false);
@@ -1577,114 +1646,75 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
         const valueAt = close + tail[0].length - 1 - tail[3].length;
         edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructSliceToMaps(' + tail[3] + ', ' + QH + 'ToMap)' });
     }
-    // consumers
-    const call = new RegExp ('\\.(' + alt + ')Async\\(', 'g');
-    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
-        const ls = masked.lastIndexOf ('\n', m.index) + 1;
-        const line = masked.substring (ls, masked.indexOf ('\n', m.index));
-        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
-            continue;
-        }
-        const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
-        const T = goChan3ConsumerElem (masked, m.index, m[1], r, predictionFile, regStructs, predStructs);
-        if (T === undefined) {
-            continue;
-        }
-        const QT = goChan3StructQual (T, q);
-        const QH = q + goChan3StructHelper (T);
-        const elem = goChan3StructMapElem (T);
-        const newName = (T === 'map[string]map[string][]OHLCV') ? 'NewOHLCVForSymbolsMap' : ((elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]));
-        const pre = masked.substring (ls, r.start);
-        const callEnd = goChanClose (masked, m.index + m[0].length - 1);
-        const [ , fe0 ] = goChan3Func (masked, m.index);
-        const fwd = /^(\t+)ch <- <-$/.exec (pre);
-        if (fwd !== null) {
-            const core = inStructCore (m.index);
-            if (core !== undefined) {
-                continue;   // the core section above owns forwards inside struct cores
+    goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
+        'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regStructs, predStructs),
+        'inCore': inStructCore,
+        'shadow': 'map[string]any',
+        'label': (T) => T,
+        'same': (T) => [ goChan3StructQual (T, q), T ],
+        'fwdValue': (T, outer, rn) => q + ((outer === 'any') ? 'StructBox(' : 'StructResultMap(') + rn + '.Value, ' + q + goChan3StructHelper (T) + 'ToMap)',
+        'bind': /^\t+(\w+) := <-$/,
+        'unbound': (pre, method, line) => {
+            if (!/^\t+\w+ := $/.test (pre)) {
+                throw new Error ('GOCHAN3: unbound receive of struct channel ' + method + 'Async: ' + line.trim ());
             }
-            const outer = goChan3CoreTypeAt (masked, m.index);
-            if ((outer === QT) || (outer === T)) {
-                continue;   // same-T struct forward (replay)
-            }
-            if ((outer !== 'any') && (outer !== 'map[string]any')) {
-                throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + T + ') into an AsyncResult[' + outer + '] core');
-            }
-            const rn = fresh (m.index);
-            const carrier = q + 'AsyncResult[' + outer + ']';
-            const val = q + ((outer === 'any') ? 'StructBox(' : 'StructResultMap(') + rn + '.Value, ' + QH + 'ToMap)';
-            edits.push ({ 'start': ls, 'end': callEnd, 'text': fwd[1] + rn + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + 'ch <- ' + carrier + '{Value: ' + val + ', Err: ' + rn + '.Err}' });
-            continue;
-        }
-        const bind = /^\t+(\w+) := <-$/.exec (pre);
-        if (bind === null) {
-            if (/^\t+\w+ := $/.test (pre)) {
-                continue;   // local promise variable passed to PromiseAllTyped
-            }
-            throw new Error ('GOCHAN3: unbound receive of struct channel ' + m[1] + 'Async: ' + line.trim ());
-        }
-        const name = bind[1];
-        const scope = masked.substring (callEnd, fe0);
-        const rebind = new RegExp ('\\n\\t+' + name + ' := ').exec (scope);
-        const limit = callEnd + ((rebind === null) ? scope.length : rebind.index);
-        const use = new RegExp ('(?<![\\w.])' + name + '\\.Value\\b', 'g');
-        use.lastIndex = callEnd;
-        for (let u = use.exec (masked); (u !== null) && (u.index < limit); u = use.exec (masked)) {
-            const at = u.index;
-            const end = at + u[0].length;
+            // local promise variable passed to PromiseAllTyped
+        },
+        'read': ({ at, end, read, before, after, name, method, T, fe0 }) => {
             if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
-                continue;   // the read of a same-T forward block, rewritten whole by the core section
+                return;   // the read of a same-T forward block, rewritten whole by the core section
             }
-            const uls = masked.lastIndexOf ('\n', at) + 1;
-            const before = masked.substring (uls, at);
-            const after = masked.substring (end, masked.indexOf ('\n', end));
-            const box = q + 'StructBox(' + u[0] + ', ' + QH + 'ToMap)';
-            const asMap = q + 'StructResultMap(' + u[0] + ', ' + QH + 'ToMap)';
+            const QT = goChan3StructQual (T, q);
+            const QH = q + goChan3StructHelper (T);
+            const elem = goChan3StructMapElem (T);
+            const newName = (T === 'map[string]map[string][]OHLCV') ? 'NewOHLCVForSymbolsMap' : ((elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]));
+            const box = q + 'StructBox(' + read + ', ' + QH + 'ToMap)';
+            const asMap = q + 'StructResultMap(' + read + ', ' + QH + 'ToMap)';
             if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) {
-                continue;   // already boxed (replay)
+                return;   // already boxed (replay)
             }
             const containerName = newName.substring (3);
             const containerField = GO_CHAN3_STRUCT_MAP_FIELDS[containerName] ?? containerName;
             if ((elem !== undefined) && before.endsWith (containerName + '{' + containerField + ': ') && (after[0] === '}')) {
-                continue;   // typed wrapper container (replay)
+                return;   // typed wrapper container (replay)
             }
             const assert = /^\.\(([^()]+)\)/.exec (after);
             if (assert !== null) {
                 if ((assert[1] !== QT) && (assert[1] !== 'map[string]any')) {
-                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + T);
+                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' asserted to ' + assert[1] + ', table says ' + T);
                 }
-                edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': (assert[1] === QT) ? u[0] : asMap });
-                continue;
+                edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': (assert[1] === QT) ? read : asMap });
+                return;
             }
             const wrap = new RegExp ('(?:^|[^\\w.])((?:ccxt\\.)?(MapTyped|BoxAbsent|' + newName + ')\\()$').exec (before);
             if ((wrap !== null) && (after[0] === ')')) {
                 let text = (wrap[2] === 'MapTyped') ? asMap : box;
                 if (wrap[2] === newName) {
                     // a typed wrapper: the struct itself, or the container of the typed dict
-                    text = (elem === undefined) ? u[0] : (wrap[1].substring (0, wrap[1].length - wrap[2].length - 1) + containerName + '{' + containerField + ': ' + u[0] + '}');
+                    text = (elem === undefined) ? read : (wrap[1].substring (0, wrap[1].length - wrap[2].length - 1) + containerName + '{' + containerField + ': ' + read + '}');
                 }
                 edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': text });
-                continue;
+                return;
             }
             if (new RegExp ('^\\t+var \\w+ ' + goChan3Escape (QT) + ' = $').test (before) && /^\s*$/.test (after)) {
-                continue;
+                return;
             }
             const nilCmp = /^(\s*)([!=])= nil\b/.exec (after);
             if (nilCmp !== null) {
-                edits.push ({ 'start': at, 'end': end + nilCmp[0].length, 'text': ((nilCmp[2] === '!') ? '!' : '') + q + 'StructAbsent(' + u[0] + ')' });
-                continue;
+                edits.push ({ 'start': at, 'end': end + nilCmp[0].length, 'text': ((nilCmp[2] === '!') ? '!' : '') + q + 'StructAbsent(' + read + ')' });
+                return;
             }
             if (/\bnil\s*[!=]=\s*$/.test (before)) {
-                throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' (' + T + ') compared with nil');
+                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + T + ') compared with nil');
             }
             const sendIn = /^\t+ch <- (?:ccxt\.)?AsyncResult\[([^\n]*)\]\{Value: $/.exec (before);
             if (sendIn !== null) {
                 const core = inStructCore (at);
                 if (((core !== undefined) && (core[2] === T)) || (sendIn[1] === QT)) {
-                    continue;
+                    return;
                 }
                 edits.push ({ 'start': at, 'end': end, 'text': (sendIn[1] === 'map[string]any') ? asMap : box });
-                continue;
+                return;
             }
             const shortMap = /^\t+(\w+) :?= $/.exec (before);
             const [ fs0 ] = goChan3Func (masked, at);
@@ -1694,11 +1724,11 @@ export function goChan3StructPass (content: string, table: Map<string, string>):
             );
             if (/^\t+var \w+ map\[string\]any = $/.test (before) || /(?:^|[^\w.])(?:ccxt\.)?(?:MapTyped|MapOrEmpty)\($/.test (before) || isMapLocal) {
                 edits.push ({ 'start': at, 'end': end, 'text': asMap });
-                continue;
+                return;
             }
             edits.push ({ 'start': at, 'end': end, 'text': box });
-        }
-    }
+        },
+    });
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 
@@ -1899,82 +1929,43 @@ export function goChan3StructListPass (content: string, table: Map<string, strin
         const valueAt = close + tail[0].length - 1 - tail[3].length;
         edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructListsToLists(' + tail[3] + ', ' + q + helper (T).row + ')' });
     }
-    // consumers
-    const call = new RegExp ('\\.(' + alt + ')Async\\(', 'g');
-    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
-        const ls = masked.lastIndexOf ('\n', m.index) + 1;
-        const line = masked.substring (ls, masked.indexOf ('\n', m.index));
-        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
-            continue;
-        }
-        const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
-        const T = goChan3ConsumerElem (masked, m.index, m[1], r, predictionFile, regLists, predLists);
-        if (T === undefined) {
-            continue;
-        }
-        const QT = qt (T);
-        const H = helper (T);
-        const pre = masked.substring (ls, r.start);
-        const callEnd = goChanClose (masked, m.index + m[0].length - 1);
-        const [ , fe0 ] = goChan3Func (masked, m.index);
-        const fwd = /^(\t+)ch <- <-$/.exec (pre);
-        if (fwd !== null) {
-            if (inListCore (m.index) !== undefined) {
-                continue;   // the core section above owns forwards inside list-of-struct cores
-            }
-            const outer = goChan3CoreTypeAt (masked, m.index);
-            if ((outer === QT) || (outer === '[]' + T)) {
-                continue;   // same-T forward (replay)
-            }
-            if ((outer !== '[]any') && (outer !== 'any')) {
-                throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + QT + ') into an AsyncResult[' + outer + '] core');
-            }
-            const rn = fresh (m.index);
-            const carrier = q + 'AsyncResult[' + outer + ']';
-            const val = q + ((outer === 'any') ? 'StructListBox(' : (H.to + '(')) + rn + '.Value' + ((outer === 'any') ? (', ' + q + H.row + ')') : ')');
-            edits.push ({ 'start': ls, 'end': callEnd, 'text': fwd[1] + rn + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + 'ch <- ' + carrier + '{Value: ' + val + ', Err: ' + rn + '.Err}' });
-            continue;
-        }
-        const bind = /^\t+(r\d*) := <-$/.exec (pre);
-        if (bind === null) {
-            continue;   // promiseAll element / handed-on channel / PanicOnError: left typed for the runtime's untyped accessor
-        }
-        const name = bind[1];
-        const scope = masked.substring (callEnd, fe0);
-        const rebind = new RegExp ('\\n\\t+' + name + ' := ').exec (scope);
-        const limit = callEnd + ((rebind === null) ? scope.length : rebind.index);
-        const use = new RegExp ('(?<![\\w.])' + name + '\\.Value\\b', 'g');
-        use.lastIndex = callEnd;
-        for (let u = use.exec (masked); (u !== null) && (u.index < limit); u = use.exec (masked)) {
-            const at = u.index;
-            const end = at + u[0].length;
-            const uls = masked.lastIndexOf ('\n', at) + 1;
-            const before = masked.substring (uls, at);
-            const after = masked.substring (end, masked.indexOf ('\n', end));
+    goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
+        'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regLists, predLists),
+        'inCore': inListCore,
+        'shadow': '[]any',
+        'label': qt,
+        'same': (T) => [ qt (T), '[]' + T ],
+        'fwdValue': (T, outer, rn) => q + ((outer === 'any') ? 'StructListBox(' : (helper (T).to + '(')) + rn + '.Value' + ((outer === 'any') ? (', ' + q + helper (T).row + ')') : ')'),
+        'bind': /^\t+(r\d*) := <-$/,
+        // promiseAll element / handed-on channel / PanicOnError: left typed for the runtime's untyped accessor
+        'unbound': () => undefined,
+        'read': ({ at, end, read, before, after, name, method, T, line }) => {
+            const QT = qt (T);
+            const H = helper (T);
             if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
-                continue;   // already boxed / a same-T list send (replay)
+                return;   // already boxed / a same-T list send (replay)
             }
             const core = inListCore (at);
             if ((core !== undefined) && /^\t+ch <- (?:ccxt\.)?AsyncResult\[[^\n]*\]\{Value: $/.test (before)) {
-                continue;   // the core section above owns sends inside list-of-struct cores
+                return;   // the core section above owns sends inside list-of-struct cores
             }
             const wrap = new RegExp ('(?:^|[^\\w.])((?:ccxt\\.)?' + H.newArray + '\\()$').exec (before);
             if ((wrap !== null) && (after[0] === ')')) {
-                edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': u[0] });
-                continue;   // typed wrapper: the slice itself
+                edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': read });
+                return;   // typed wrapper: the slice itself
             }
             if (new RegExp ('^\\t+var \\w+ ' + QT.replace (/[.[\]]/g, '\\$&') + ' = $').test (before) && /^\s*$/.test (after)) {
-                continue;
+                return;
             }
             if (/^\s*[!=]= nil\b/.test (after) || /\bnil\s*[!=]=\s*$/.test (before)) {
-                continue;   // a nil slice is the absent result
+                return;   // a nil slice is the absent result
             }
             if (/^\.\(/.test (after)) {
-                throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' (' + QT + ') asserted: ' + line.trim ());
+                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + QT + ') asserted: ' + line.trim ());
             }
-            edits.push ({ 'start': at, 'end': end, 'text': q + H.to + '(' + u[0] + ')' });
-        }
-    }
+            edits.push ({ 'start': at, 'end': end, 'text': q + H.to + '(' + read + ')' });
+        },
+    });
     return edits.length ? goChan3Splice (content, edits) : content;
 }
 

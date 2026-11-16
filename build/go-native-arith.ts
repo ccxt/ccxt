@@ -756,24 +756,55 @@ function goNilSkipUnsafe (isPtr: boolean[], margs: string[]): boolean {
     return (isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0]));
 }
 
+// one classified compare operand: native text, kind, nil-test name, may-be-nil, and proven beyond its declaration
+interface GoCmpOperand { op: string; kind: Kind | undefined; name: string; nil: boolean; proven?: boolean }
+type GoCmpRule = (scope: GoArithScope, x: string, declared: string | undefined) => GoCmpOperand | undefined;
+
+// a `*int64` / `*float64` local: nil unless `nonNil` proves it
+function goCmpPointerRule (nonNil: (scope: GoArithScope, x: string, declared: string) => boolean): GoCmpRule {
+    return (scope, x, declared) => {
+        if ((declared !== '*int64') && (declared !== '*float64')) {
+            return undefined;
+        }
+        const proven = nonNil (scope, x, declared);
+        return { 'op': '*' + x, 'kind': (declared === '*int64') ? 'i64' : 'f64', 'name': x, 'nil': !proven, 'proven': proven };
+    };
+}
+
+// a BaseExchange numeric field read on `this`
+function goCmpFieldRule (fields: Set<string>): GoCmpRule {
+    return (scope, x) => {
+        const field = /^this\.(\w+)$/.exec (x);
+        return (field && fields.has (field[1])) ? { 'op': x, 'kind': GO_BASE_NUMERIC_FIELDS[field[1]], 'name': x, 'nil': false } : undefined;
+    };
+}
+
+// classify both operands by the rewriter's ordered rules (first match wins, else the plain operand kind); every
+// proven operand is arithmetic or a primary, which binds tighter than a comparison
+function goCompareOperands (scope: GoArithScope, args: string[], margs: string[], rules: GoCmpRule[]): GoCmpOperand[] {
+    return args.map ((x, i) => {
+        const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
+        for (const rule of rules) {
+            const o = rule (scope, x, declared);
+            if (o !== undefined) {
+                return o;
+            }
+        }
+        return { 'op': x, 'kind': goCompareOperandKind (scope, x, margs[i]), 'name': x, 'nil': false };
+    });
+}
+
+function goCompareOperandsText (helper: string, ops: GoCmpOperand[], margs: string[], nanSafe = false): string | undefined {
+    if (ops.some ((o) => o.kind === undefined) || goNilSkipUnsafe (ops.map ((o) => o.nil), margs)) {
+        return undefined;
+    }
+    return goNativeCompareText (helper, ops[0].op, ops[1].op, ops[0].kind as Kind, ops[1].kind as Kind, ops[0].nil, ops[1].nil, ops.map ((o) => o.name), nanSafe);
+}
+
 function goNativeCompareRewriteFunc (text: string, ownMethods: Set<string>): string {
     const scope = goArithScope (goArithMask (text), ownMethods);
-    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => {
-        if (args.length !== 2) {
-            return undefined;
-        }
-        const ptr = args.map ((x) => (/^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined));
-        const isPtr = ptr.map ((p) => (p === '*int64') || (p === '*float64'));
-        const guarded = args.map ((x, i) => isPtr[i] && goTypedArithPointerIsNonNil (scope, x));
-        const kinds = args.map ((x, i) => (isPtr[i] ? ((ptr[i] === '*int64') ? 'i64' : 'f64') as Kind : goCompareOperandKind (scope, x, margs[i])));
-        const nil = isPtr.map ((p, i) => p && !guarded[i]);
-        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (nil, margs)) {
-            return undefined;
-        }
-        // every proven operand is arithmetic or a primary, which binds tighter than a comparison
-        const ops = args.map ((x, i) => (isPtr[i] ? '*' + x : x));
-        return goNativeCompareText (helper, ops[0], ops[1], kinds[0], kinds[1], nil[0], nil[1], args);
-    });
+    const rules = [ goCmpPointerRule ((sc, x) => goTypedArithPointerIsNonNil (sc, x)) ];
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => ((args.length === 2) ? goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs) : undefined));
 }
 
 export function goNativeCompare (content: string): string {
@@ -869,33 +900,13 @@ function goTupleCompareRewriteFunc (text: string, ownMethods: Set<string>, fileO
         if (args.length !== 2) {
             return undefined;
         }
-        const ptrName: string[] = [];
-        const isPtr: boolean[] = [];
-        const kinds: (Kind | undefined)[] = [];
-        const ops: string[] = [];
-        for (let i = 0; i < 2; i++) {
-            const x = args[i];
-            const tuple = goTupleElementType (scope, x, fileOwn);
-            const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
-            if (tuple === '*int64') {
-                ptrName.push (x + '.(*int64)'); isPtr.push (true); kinds.push ('i64'); ops.push ('*' + x + '.(*int64)');
-            } else if (tuple === 'int64') {
-                ptrName.push (x); isPtr.push (false); kinds.push ('i64'); ops.push (x);
-            } else if (goAddOnlyCounter (scope, x)) {
-                ptrName.push (x); isPtr.push (false); kinds.push ('int'); ops.push (x + '.(int)');
-            } else if (((declared === '*int64') || (declared === '*float64')) && goEarlyExitPointerNonNil (scope, x, declared)) {
-                ptrName.push (x); isPtr.push (false); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-            } else if ((declared === '*int64') || (declared === '*float64')) {
-                const guarded = goTypedArithPointerIsNonNil (scope, x);
-                ptrName.push (x); isPtr.push (!guarded); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-            } else {
-                ptrName.push (x); isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
-            }
-        }
-        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
-            return undefined;
-        }
-        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], ptrName);
+        const rules: GoCmpRule[] = [
+            (sc, x) => ((goTupleElementType (sc, x, fileOwn) === '*int64') ? { 'op': '*' + x + '.(*int64)', 'kind': 'i64', 'name': x + '.(*int64)', 'nil': true } : undefined),
+            (sc, x) => ((goTupleElementType (sc, x, fileOwn) === 'int64') ? { 'op': x, 'kind': 'i64', 'name': x, 'nil': false } : undefined),
+            (sc, x) => (goAddOnlyCounter (sc, x) ? { 'op': x + '.(int)', 'kind': 'int', 'name': x, 'nil': false } : undefined),
+            goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x)),
+        ];
+        return goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs);
     });
 }
 
@@ -1062,31 +1073,8 @@ const GO_BASE_NUMERIC_FIELDS: { [name: string]: Kind } = { 'RateLimit': 'f64', '
 
 function goFloatFieldRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
     const scope = goArithScope (goArithMask (text), ownMethods);
-    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => {
-        if (args.length !== 2) {
-            return undefined;
-        }
-        const isPtr: boolean[] = [];
-        const kinds: (Kind | undefined)[] = [];
-        const ops: string[] = [];
-        for (let i = 0; i < 2; i++) {
-            const x = args[i];
-            const field = /^this\.(\w+)$/.exec (x);
-            const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
-            if (field && fields.has (field[1])) {
-                isPtr.push (false); kinds.push (GO_BASE_NUMERIC_FIELDS[field[1]]); ops.push (x);
-            } else if ((declared === '*int64') || (declared === '*float64')) {
-                const nonNil = goEarlyExitPointerNonNil (scope, x, declared) || goTypedArithPointerIsNonNil (scope, x);
-                isPtr.push (!nonNil); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-            } else {
-                isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
-            }
-        }
-        if (kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
-            return undefined;
-        }
-        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args, true);
-    });
+    const rules = [ goCmpFieldRule (fields), goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x)) ];
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => ((args.length === 2) ? goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs, true) : undefined));
 }
 
 export function goFloatFieldComparisons (content: string): string {
@@ -1847,38 +1835,22 @@ function goIntegralBoxKind (scope: GoArithScope, name: string, seen: Set<string>
 
 function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
     const scope: GoArithScope & { text: string } = { ...goArithScope (goArithMask (text), ownMethods), 'text': text };
+    const rules: GoCmpRule[] = [
+        goCmpFieldRule (fields),
+        (sc, x, declared) => {
+            const box = (declared === 'any') ? goIntegralBoxKind (sc, x) : undefined;
+            return (box === undefined) ? undefined : { 'op': x + '.(' + ((box === 'i64') ? 'int64' : 'int') + ')', 'kind': box, 'name': x, 'nil': false, 'proven': true };
+        },
+        goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x) || goGuardedPointerNonNil (sc, x)),
+    ];
     return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs, current) => {
         if (args.length !== 2) {
             return undefined;
         }
         scope.text = current;
-        const isPtr: boolean[] = [];
-        const kinds: (Kind | undefined)[] = [];
-        const ops: string[] = [];
-        let boxed = false;
-        for (let i = 0; i < 2; i++) {
-            const x = args[i];
-            const field = /^this\.(\w+)$/.exec (x);
-            const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
-            const box = (declared === 'any') ? goIntegralBoxKind (scope, x) : undefined;
-            if (field && fields.has (field[1])) {
-                isPtr.push (false); kinds.push (GO_BASE_NUMERIC_FIELDS[field[1]]); ops.push (x);
-            } else if (box !== undefined) {
-                boxed = true;
-                isPtr.push (false); kinds.push (box); ops.push (x + '.(' + ((box === 'i64') ? 'int64' : 'int') + ')');
-            } else if ((declared === '*int64') || (declared === '*float64')) {
-                const nonNil = goEarlyExitPointerNonNil (scope, x, declared) || goTypedArithPointerIsNonNil (scope, x) || goGuardedPointerNonNil (scope, x);
-                boxed = boxed || nonNil;
-                isPtr.push (!nonNil); kinds.push ((declared === '*int64') ? 'i64' : 'f64'); ops.push ('*' + x);
-            } else {
-                isPtr.push (false); kinds.push (goCompareOperandKind (scope, x, margs[i])); ops.push (x);
-            }
-        }
+        const ops = goCompareOperands (scope, args, margs, rules);
         // only sites the field-comparison pass could not prove (a box local or a guarded pointer)
-        if (!boxed || kinds.some ((k) => k === undefined) || goNilSkipUnsafe (isPtr, margs)) {
-            return undefined;
-        }
-        return goNativeCompareText (helper, ops[0], ops[1], kinds[0] as Kind, kinds[1] as Kind, isPtr[0], isPtr[1], args, true);
+        return ops.some ((o) => o.proven) ? goCompareOperandsText (helper, ops, margs, true) : undefined;
     });
 }
 
