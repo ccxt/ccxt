@@ -11,18 +11,6605 @@ import { spawnSync } from 'child_process';
 import fs from 'fs';
 import log from 'ololog';
 import ansi from 'ansicolor';
-import { goChanCarrierPass, goChanSelfTest } from './go-chan.js';
-import { goErrValuePass, goErrSelfTest } from './go-err.js';
-import { goChan3Pass, goChan3SelfTest, goChan3Table } from './go-chan3.js';
-import { goStructReturnsPass, goStructReturnsSelfTest } from './go-struct-returns.js';
 import {Transpiler as OldTranspiler } from "./transpile.js";
 import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import Piscina from 'piscina';
 import os from 'os';
 import { isMainEntry } from "./transpile.js";
-import { goGofmtBinarySpacing } from "./goGofmtLayout.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
-import { goNativeArithmetic, goTypedArithSelfTest, goIntegralArithmeticSelfTest, goNativeCompare, goNativeCompareSelfTest, goTupleTruthyComparisons, goTupleTruthySelfTest, goPointerNonNilArithSelfTest, goFloatFieldComparisons, goFloatComparisonsSelfTest, goInt64RetypeArith, goInt64RetypeArithSelfTest, goGuardedDivide, goNativeDivideCheck, goIntegralBoxComparisons, goBoxedIntComparisonsSelfTest, goInlineMulSub, goInlineMulSubCheck, goInlineArithHelpers, goInlineMathCheck, goAddImport, goInlineComparisons, goInlineComparisonsCheck, goInlineIsEqual, goInlineIsEqualCheck, goIsEqualBoolMethod, goIsEqualBoolMethodCheck, goCaseAffix, goCaseAffixCheck, goParseNative, goParseNativeCheck } from './go-native-arith.js';
+import { fileURLToPath } from 'url';
+
+// ===== struct returns for Go row builders =====
+// Struct returns for the Go row builders (parseTicker / safeTicker / ...), a post-print pass over every
+// generated Go file: retypes every declaration of a listed name to its struct, builds non-identity returns
+// with <T>FromMap, and boxes every other call site back with <T>ToMap. HOWTO add a type: NOTES.md.
+
+// from/to: boundary helpers when the row is not a map (default <T>FromMap / <T>ToMap)
+const GO_STRUCT_RETURN_TYPES: Record<string, { names: string[], from?: string, to?: string }> = {
+    'Ticker': { 'names': [ 'ParseTicker', 'SafeTicker', 'ParseContractTicker' ] },
+    'Trade': { 'names': [ 'ParseTrade', 'SafeTrade' ] },
+    'OHLCV': { 'names': [ 'ParseOHLCV' ], 'from': 'OHLCVFromList', 'to': 'OHLCVToList' },
+    'Order': { 'names': [ 'ParseOrder', 'SafeOrder' ] },
+    'Position': { 'names': [ 'ParsePosition', 'SafePosition' ] },
+    'Transaction': { 'names': [ 'ParseTransaction' ] },
+    'LedgerEntry': { 'names': [ 'ParseLedgerEntry', 'SafeLedgerEntry' ] },
+    'DepositAddress': { 'names': [ 'ParseDepositAddress' ] },
+    'TransferEntry': { 'names': [ 'ParseTransfer' ] },
+    'FundingRate': { 'names': [ 'ParseFundingRate' ] },
+    'OpenInterest': { 'names': [ 'ParseOpenInterest', 'SafeOpenInterest' ] },
+    'TradingFeeInterface': { 'names': [ 'ParseTradingFee' ] },
+    'Leverage': { 'names': [ 'ParseLeverage' ] },
+    'MarginMode': { 'names': [ 'ParseMarginMode' ] },
+    'Greeks': { 'names': [ 'ParseGreeks' ] },
+    'Option': { 'names': [ 'ParseOption' ] },
+    'Conversion': { 'names': [ 'ParseConversion' ] },
+};
+
+// what a call of a struct-return name reads as after step 3 boxes it (to-helper result; any for OHLCV)
+function goStructBoxedReturn (name: string): string | undefined {
+    const struct = NAME_TO_STRUCT.get (name);
+    if (struct === undefined) {
+        return undefined;
+    }
+    return (GO_STRUCT_RETURN_TYPES[struct].to === undefined) ? 'map[string]any' : '';
+}
+
+const fromName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].from ?? (struct + 'FromMap');
+const toName = (struct: string) => GO_STRUCT_RETURN_TYPES[struct].to ?? (struct + 'ToMap');
+
+const NAME_TO_STRUCT = new Map<string, string> ();
+for (const [ struct, spec ] of Object.entries (GO_STRUCT_RETURN_TYPES)) {
+    for (const name of spec.names) {
+        NAME_TO_STRUCT.set (name, struct);
+    }
+}
+
+// true for chars outside string/rune literals and comments
+function codeMask (s: string): Uint8Array {
+    const mask = new Uint8Array (s.length);
+    let i = 0;
+    while (i < s.length) {
+        const c = s[i];
+        if (c === '/' && s[i + 1] === '/') {
+            while (i < s.length && s[i] !== '\n') i++;
+            continue;
+        }
+        if (c === '/' && s[i + 1] === '*') {
+            const end = s.indexOf ('*/', i + 2);
+            i = (end < 0) ? s.length : end + 2;
+            continue;
+        }
+        if (c === '`') {
+            const end = s.indexOf ('`', i + 1);
+            i = (end < 0) ? s.length : end + 1;
+            continue;
+        }
+        if (c === '"' || c === '\'') {
+            i++;
+            while (i < s.length && s[i] !== c && s[i] !== '\n') {
+                if (s[i] === '\\') i++;
+                i++;
+            }
+            i++;
+            continue;
+        }
+        mask[i] = 1;
+        i++;
+    }
+    return mask;
+}
+
+function matchClose (s: string, mask: Uint8Array, open: number): number {
+    return maskedScan (s, mask, open, (i, d) => !d && ')]}'.includes (s[i]));
+}
+
+// first code index `stop (i, depth)` accepts, depth taken through i; else -1
+function maskedScan (s: string, mask: Uint8Array, pos: number, stop: (i: number, d: number) => boolean): number {
+    let depth = 0;
+    for (let i = pos; i < s.length; i++) {
+        if (!mask[i]) continue;
+        const c = s[i];
+        if (c === '(' || c === '[' || c === '{') depth++;
+        else if (c === ')' || c === ']' || c === '}') depth--;
+        if (stop (i, depth)) return i;
+    }
+    return -1;
+}
+
+// end (exclusive) of a return expression starting at pos: first newline at bracket depth 0
+function exprEnd (s: string, mask: Uint8Array, pos: number): number {
+    const end = maskedScan (s, mask, pos, (i, d) => d < 0 || (s[i] === '\n' && !d));
+    return (end < 0) ? s.length : end;
+}
+
+function qualifier (content: string): string {
+    return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
+}
+
+const DECL_RE = /^func \(this \*\w+\) (\w+)\(/gm;
+const CALL_RE = /(?<![\w])((?:this|exchange|this\.base|this\.DerivedExchange|this\.Exchange|this\.BaseExchange)\.)(\w+)\(/g;
+
+function goStructReturnsPass (content: string): string {
+    const names = [ ...NAME_TO_STRUCT.keys () ];
+    if (!names.some ((n) => content.includes (n + '('))) {
+        return content;
+    }
+    const q = qualifier (content);
+    const mask = codeMask (content);
+    type Edit = { at: number, del: number, text: string };
+    const edits: Edit[] = [];
+    const identitySpans = new Set<number> (); // call-name starts left unboxed
+    // 1+2: declarations and their function-level returns
+    DECL_RE.lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = DECL_RE.exec (content)) !== null) {
+        const struct = NAME_TO_STRUCT.get (m[1]);
+        if (struct === undefined || !mask[m.index]) continue;
+        const parenOpen = m.index + m[0].length - 1;
+        const parenClose = matchClose (content, mask, parenOpen);
+        const bodyOpen = content.indexOf ('{', parenClose);
+        const retType = content.slice (parenClose + 1, bodyOpen).trim ();
+        const applied = (retType === q + struct); // idempotent replay
+        if (!applied && retType !== 'map[string]any' && retType !== 'any') {
+            throw new Error ('go-struct-returns: ' + m[1] + ' returns ' + retType + ', expected map[string]any or any');
+        }
+        const bodyClose = matchClose (content, mask, bodyOpen);
+        if (!applied) {
+            edits.push ({ 'at': parenClose + 1, 'del': bodyOpen - parenClose - 1, 'text': ' ' + q + struct + ' ' });
+        }
+        // nested func literals: their returns are not the method's
+        const nested: [number, number][] = [];
+        const litRe = /func\s*\(/g;
+        litRe.lastIndex = bodyOpen;
+        let lm: RegExpExecArray | null;
+        while ((lm = litRe.exec (content)) !== null && lm.index < bodyClose) {
+            if (!mask[lm.index]) continue;
+            const pc = matchClose (content, mask, lm.index + lm[0].length - 1);
+            let j = pc + 1;
+            while (j < bodyClose && content[j] !== '{' && content[j] !== '\n') j++;
+            if (content[j] === '{') {
+                nested.push ([ j, matchClose (content, mask, j) ]);
+            }
+        }
+        const retRe = /\breturn\b/g;
+        retRe.lastIndex = bodyOpen;
+        let rm: RegExpExecArray | null;
+        while ((rm = retRe.exec (content)) !== null && rm.index < bodyClose) {
+            if (!mask[rm.index] || nested.some (([ a, b ]) => rm!.index > a && rm!.index < b)) continue;
+            let start = rm.index + 6;
+            while (content[start] === ' ') start++;
+            const end = exprEnd (content, mask, start);
+            const expr = content.slice (start, end).trimEnd ();
+            if (expr === '') {
+                throw new Error ('go-struct-returns: bare return in ' + m[1]);
+            }
+            const call = /^(?:this|this\.base|this\.DerivedExchange)\.(\w+)\(/.exec (expr);
+            if (call !== null && NAME_TO_STRUCT.get (call[1]) === struct && matchClose (content, mask, start + call[0].length - 1) === start + expr.length - 1) {
+                identitySpans.add (start + call[0].length - call[1].length - 1);
+                continue;
+            }
+            if (applied) continue;
+            edits.push ({ 'at': start, 'del': 0, 'text': q + fromName (struct) + '(' });
+            edits.push ({ 'at': start + expr.length, 'del': 0, 'text': ')' });
+        }
+    }
+    // 3: box every other call
+    CALL_RE.lastIndex = 0;
+    while ((m = CALL_RE.exec (content)) !== null) {
+        const struct = NAME_TO_STRUCT.get (m[2]);
+        if (struct === undefined || !mask[m.index]) continue;
+        const nameAt = m.index + m[1].length;
+        const to = toName (struct) + '(';
+        if (identitySpans.has (nameAt) || content.slice (Math.max (0, m.index - to.length), m.index) === to) continue;
+        const close = matchClose (content, mask, m.index + m[0].length - 1);
+        // the Value of a struct channel send (`AsyncResult[T]{Value: call}`, go-chan3) is the struct itself
+        if (new RegExp ('AsyncResult\\[(?:ccxt\\.)?' + struct + '\\]\\{Value: $').test (content.slice (Math.max (0, m.index - 80), m.index))) continue;
+        // `<T>FromMap(call)` (a struct channel send of a row builder, go-chan3) is the struct itself
+        const from = q + fromName (struct) + '(';
+        if ((content.slice (Math.max (0, m.index - from.length), m.index) === from) && (content[close + 1] === ')')) {
+            edits.push ({ 'at': m.index - from.length, 'del': from.length, 'text': '' });
+            edits.push ({ 'at': close + 1, 'del': 1, 'text': '' });
+            continue;
+        }
+        edits.push ({ 'at': m.index, 'del': 0, 'text': q + toName (struct) + '(' });
+        edits.push ({ 'at': close + 1, 'del': 0, 'text': ')' });
+    }
+    // apply back to front; at equal offsets closers (`)`) before openers keeps nesting sane
+    edits.sort ((a, b) => (b.at - a.at) || ((a.text === ')' ? 0 : 1) - (b.text === ')' ? 0 : 1)));
+    let out = content;
+    for (const e of edits) {
+        out = out.slice (0, e.at) + e.text + out.slice (e.at + e.del);
+    }
+    return out;
+}
+
+function goStructReturnsSelfTest (): string[] {
+    const problems: string[] = [];
+    const src = [
+        'package ccxtpro',
+        '',
+        'func (this *X) ParseTicker(ticker any, optionalArgs ...any) map[string]any {',
+        '\tvar f = func() any {',
+        '\t\treturn 1',
+        '\t}',
+        '\t_ = f',
+        '\tif ticker == nil {',
+        '\t\treturn this.ParseContractTicker(ticker, "a(")',
+        '\t}',
+        '\treturn this.SafeTicker(map[string]any{',
+        '\t\t"symbol": nil,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) Other() any {',
+        '\tvar t map[string]any = this.ParseTicker(this.SafeTicker(nil))',
+        '\treturn t',
+        '}',
+        'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(ticker, map[string]any{})',
+        '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{\n\t\t"txid": nil,\n\t}',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(this.DerivedExchange.ParseLedgerEntry(nil), this.ParseTransaction(nil))',
+        '}',
+        '',
+    ].join ('\n');
+    const want = [
+        'package ccxtpro',
+        '',
+        'func (this *X) ParseTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
+        '\tvar f = func() any {',
+        '\t\treturn 1',
+        '\t}',
+        '\t_ = f',
+        '\tif ticker == nil {',
+        '\t\treturn this.ParseContractTicker(ticker, "a(")',
+        '\t}',
+        '\treturn this.SafeTicker(map[string]any{',
+        '\t\t"symbol": nil,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) Other() any {',
+        '\tvar t map[string]any = ccxt.TickerToMap(this.ParseTicker(ccxt.TickerToMap(this.SafeTicker(nil))))',
+        '\treturn t',
+        '}',
+        'func (this *X) ParseContractTicker(ticker any, optionalArgs ...any) ccxt.Ticker {',
+        '\treturn ccxt.TickerFromMap(this.Extend(ticker, map[string]any{}))',
+        '}',
+        'func (this *X) ParseTransaction(transaction any, optionalArgs ...any) ccxt.Transaction {',
+        '\treturn ccxt.TransactionFromMap(map[string]any{\n\t\t"txid": nil,\n\t})',
+        '}',
+        'func (this *X) ParseLedgerEntry(item any, optionalArgs ...any) ccxt.LedgerEntry {',
+        '\treturn this.SafeLedgerEntry(map[string]any{}, nil)',
+        '}',
+        'func (this *X) Ledger() any {',
+        '\treturn this.Extend(ccxt.LedgerEntryToMap(this.DerivedExchange.ParseLedgerEntry(nil)), ccxt.TransactionToMap(this.ParseTransaction(nil)))',
+        '}',
+        '',
+    ].join ('\n');
+    const src2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t}',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(transfer, map[string]any{})',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{this.ParseDepositAddress(nil), this.ParseTransfer(nil)}',
+        '}',
+        '',
+    ].join ('\n');
+    const want2 = [
+        'package ccxt',
+        '',
+        'func (this *Y) ParseDepositAddress(depositAddress any, optionalArgs ...any) DepositAddress {',
+        '\treturn DepositAddressFromMap(map[string]any{',
+        '\t\t"info": depositAddress,',
+        '\t})',
+        '}',
+        'func (this *Y) ParseTransfer(transfer any, optionalArgs ...any) TransferEntry {',
+        '\treturn TransferEntryFromMap(this.Extend(transfer, map[string]any{}))',
+        '}',
+        'func (this *Y) Use() any {',
+        '\treturn []any{DepositAddressToMap(this.ParseDepositAddress(nil)), TransferEntryToMap(this.ParseTransfer(nil))}',
+        '}',
+        '',
+    ].join ('\n');
+    const posSrc = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) any {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn position',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) any {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(this.DerivedExchange.ParsePosition(positions), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    const posWant = [
+        'package ccxt',
+        '',
+        'func (this *BaseExchange) SafePosition(position any) Position {',
+        '\tposition = this.Extend(position, map[string]any{})',
+        '\treturn PositionFromMap(position)',
+        '}',
+        'func (this *X) ParsePosition(position any, optionalArgs ...any) Position {',
+        '\treturn this.SafePosition(map[string]any{',
+        '\t\t"info": position,',
+        '\t})',
+        '}',
+        'func (this *BaseExchange) ParsePositions(positions any) []any {',
+        '\tvar position map[string]any = this.Extend(PositionToMap(this.DerivedExchange.ParsePosition(positions)), nil)',
+        '\treturn []any{position}',
+        '}',
+        '',
+    ].join ('\n');
+    // FundingRate / OpenInterest (package ccxt: unqualified helpers)
+    const fundingOpenInterestSrc = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) map[string]any {',
+        '\treturn map[string]any{',
+        '\t\t"info": contract,',
+        '\t}',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) map[string]any {',
+        '\treturn this.Extend(interest, map[string]any{})',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = this.DerivedExchange.ParseFundingRate(nil)',
+        '\treturn this.ParseOpenInterest(parsed)',
+        '}',
+        '',
+    ].join ('\n');
+    const want31 = [
+        'package ccxt',
+        '',
+        'func (this *X) ParseFundingRate(contract any, optionalArgs ...any) FundingRate {',
+        '\treturn FundingRateFromMap(map[string]any{',
+        '\t\t"info": contract,',
+        '\t})',
+        '}',
+        'func (this *X) ParseOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn this.SafeOpenInterest(map[string]any{',
+        '\t\t"info": interest,',
+        '\t}, nil)',
+        '}',
+        'func (this *X) SafeOpenInterest(interest any, optionalArgs ...any) OpenInterest {',
+        '\treturn OpenInterestFromMap(this.Extend(interest, map[string]any{}))',
+        '}',
+        'func (this *X) Fetch() any {',
+        '\tvar parsed any = FundingRateToMap(this.DerivedExchange.ParseFundingRate(nil))',
+        '\treturn OpenInterestToMap(this.ParseOpenInterest(parsed))',
+        '}',
+        '',
+    ].join ('\n');
+    for (const [ label, input, expected ] of [ [ 'U30 ', src2, want2 ], [ '', src, want ], [ 'Position ', posSrc, posWant ], [ 'U31 ', fundingOpenInterestSrc, want31 ] ]) {
+        const got = goStructReturnsPass (input);
+        if (got !== expected) {
+            problems.push ('GOSTRUCT ' + label + 'self-test mismatch:\n' + got);
+        }
+        if (goStructReturnsPass (got) !== got) {
+            problems.push ('GOSTRUCT ' + label + 'not idempotent');
+        }
+    }
+    // struct channel sends (go-chan3): `OrderFromMap(row builder)` and a bare `AsyncResult[Order]{Value: row builder}` stay the struct
+    const chan = 'package ccxt\n\nfunc (this *X) f(ch chan AsyncResult[Order]) any {\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(this.ParseOrder(a), b))}\n\treturn nil\n}\n';
+    const chanOut = goStructReturnsPass (chan);
+    if (!chanOut.includes ('\tch <- AsyncResult[Order]{Value: this.ParseOrder(a)}\n\tch <- AsyncResult[Order]{Value: this.SafeOrder(a)}\n\tch <- AsyncResult[Order]{Value: OrderFromMap(this.Extend(OrderToMap(this.ParseOrder(a)), b))}\n') || (goStructReturnsPass (chanOut) !== chanOut)) {
+        problems.push ('GOSTRUCT struct channel sends:\n' + chanOut);
+    }
+    return problems;
+}
+
+// ===== typed async carriers (`<-chan EndpointResult[T]`) and their consumers =====
+// A tabled method's cores send EndpointResult[T]{Value: v, Raw: v}; Raw is the value sent today, so
+// IsError / PanicOnError / ReturnPanicErrorT see the same payload. Table: build/go-chan-tables.json (endpoint).
+
+const GO_CHAN_TABLE_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
+const GO_MAP = 'map[string]any';
+const GO_LIST = '[]any';
+// `this.X` and `this.DerivedExchange.X` for each [name, type] (retyped on the base and every override)
+const goChanBoth = (rows: string[][]) => rows.flatMap (([ n, t ]) => [ [ 'this.' + n, t ], [ 'this.DerivedExchange.' + n, t ] ]);
+const goChanRows = (names: string[], type: string, prefix = '', suffix = '') => names.map ((n) => [ prefix + n + suffix, type ]);
+// calls whose hand-written Go signature returns this type (go/v4/exchange_*.go)
+const GO_CHAN_CALL_TYPES: { [callee: string]: string } = Object.fromEntries ([
+    [ 'this.ParseToInt', 'int64' ], [ 'this.Json', 'string' ], [ 'this.Decode', 'string' ],
+    ...goChanRows ([ 'Extend', 'DeepExtend', 'IndexBy', 'ParseCurrenciesCustom', 'ParseEvent', 'ParseMarketToEvent', 'SetApiCredentials' ], GO_MAP, 'this.'),
+    // ApplyEventFetchParams: exchange_prediction.go, retyped by transpilePredictionBaseMethods; ParseTransactionsByType: goProvenListMethods
+    ...goChanRows ([ 'ArraysConcat', 'ApplyEventFetchParams', 'ParseTransactionsByType', 'ParsePredictionOrders', 'FilterByOutcomeSinceLimit', 'ParsePredictionTrades',
+        'ParseDepositMethodIds', 'ParsePortfolioDetails' ], GO_LIST, 'this.'),
+    ...[ [ 'String', '*string' ], [ 'Integer', '*int64' ], [ 'Float', '*float64' ], [ 'Number', '*float64' ], [ 'Bool', '*bool' ] ]
+        .flatMap (([ n, t ]) => goChanRows ([ '', '2', 'N' ], t, 'this.Safe' + n)),
+    ...goChanRows ([ 'Order', 'Ticker', 'Trade', 'Struct', 'Position', 'Transaction', 'LedgerEntry', 'DepositAddress', 'TransferEntry', 'FundingRate', 'OpenInterest',
+        'TradingFeeInterface', 'Leverage', 'MarginMode', 'Greeks', 'Option', 'Conversion', 'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
+        'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory', 'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo', 'DepositWithdrawFee',
+        'Account', 'OrderBook', 'OrderBookL3', 'MarginLoan', 'Balance', 'Balances', 'LeverageTiers', 'PredictionTicker', 'PredictionOrder', 'PredictionTrade',
+        'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionEvent', 'PredictionSettlement', 'PredictionOutcome',
+        'MarketInterface', 'Currency', 'Currencies', 'PredictionOutcomeMap', 'PredictionEventMap', 'OHLCVForSymbolsMap' ], GO_MAP, '', 'ToMap'),
+    ...goChanRows ([ 'Ticker', 'FundingRate', 'OpenInterest', 'TradingFeeInterface', 'Leverage', 'MarginMode', 'IsolatedBorrowRate', 'LastPrice', 'DepositWithdrawFee',
+        'DepositAddress', 'CrossBorrowRate', 'OrderBook', 'Greeks', 'Option', 'PredictionTicker' ], GO_MAP, '', 'MapToMap'),
+    ...goChanRows ([ 'OHLCV', 'Trades', 'Orders', 'OHLCVs', 'Positions', 'Transactions', 'LedgerEntries', 'DepositAddresses', 'TransferEntries', 'OpenInterests', 'Conversions',
+        'Liquidations', 'BorrowInterests', 'FundingHistories', 'FundingRateHistories', 'LeverageTiers', 'MarginModifications', 'LongShortRatios', 'ADLs', 'Accounts',
+        'PredictionOrders', 'PredictionTrades', 'PredictionPositions', 'PredictionEvents', 'PredictionSettlements', 'MapSlice', 'StringSlice', 'MarketInterfaces' ], GO_LIST, '', 'ToList'),
+    [ 'MapTyped', GO_MAP ], [ 'MarketTyped', GO_MAP ], [ 'ListTyped', GO_LIST ],
+    // printer-retyped by provenReturnFamilies (goProvenMapCollectionMethods for the balance parsers)
+    ...goChanBoth (goChanRows ([ 'ParseCurrencies', 'ParseBalanceCustom', 'ParseUtaBalance', 'ParseBalanceByType', 'ParseBalanceForSingleCurrency', 'ParseCustomBalance',
+        'ParseSwapBalance', 'ParseSpotBalance', 'CustomParseBalance', 'ParseFundingBalance', 'ParseTradingBalance', 'ParseBalanceList', 'ParseMarginLoan',
+        'ParseIsolatedBorrowRates', 'ParseLastPrices', 'RemoveKeysFromDict', 'ParseTickersForRolling', 'ParseBidsAsksCustom', 'ParseSxbetTickersByHash',
+        'ParseLeverageTiers', 'ParseLeverages', 'ParseMarginModes', 'ParseOpenInterests', 'ParseADLRank', 'ParseAllGreeks', 'ParseOptionChain', 'ParseAccount',
+        'ParseDepositAddressSpecial', 'ParseTradingFees', 'AssignDefaultDepositWithdrawFees', 'ParseDepositWithdrawFee', 'ParseTradingLimits', 'DepositWithdrawFee',
+        'ParsePublicDepositWithdrawFees', 'SafePosition', 'ParsePosition', 'ParseOptionPosition' ], GO_MAP)),
+    ...goChanBoth (goChanRows ([ 'InsertMissingCandles', 'ParseTradingViewOHLCV', 'ParseBorrowRateHistory', 'ParseMarketLeverageTiers', 'ParseEmulatedLeverageTiers',
+        'ParseOpenInterestsHistory', 'ParseLiquidations', 'ParseADLRanks', 'FilterByArrayADLRanks', 'ParseConversions', 'ParseLongShortRatioHistory', 'ParseAccounts',
+        'ParseFundingRateHistories', 'ParseIncomes', 'ParseFundingHistories', 'ParsePredictionPositions', 'ParseDepositAddresses', 'ParseTransfers' ], GO_LIST)),
+]);
+// the Go element type of a table value (`T?` marks cores that may also send a bare nil)
+function goChanType (value: string | undefined): string | undefined {
+    return (value === undefined) ? undefined : value.replace (/\?$/, '');
+}
+
+// this.DerivedExchange is IDerivedExchange, whose tabled lines --apply-hand retypes with the cores
+const GO_CHAN_RECEIVERS = /^(?:this|this\.base|this\.Exchange|this\.BaseExchange|this\.DerivedExchange|exchange)$/;
+
+let GO_CHAN_TABLE: Map<string, string> | undefined = undefined;
+
+// method (printed core name without the Async suffix) -> EndpointResult element type
+function goChanTable (): Map<string, string> {
+    if (GO_CHAN_TABLE === undefined) {
+        const table = new Map<string, string> ();
+        const raw = JSON.parse (fs.readFileSync (GO_CHAN_TABLE_FILE, 'utf8'));
+        const entries: Record<string, string> = raw.endpoint ?? {};
+        for (const method of Object.keys (entries)) {
+            if (/\?$/.test (entries[method]) && !/^(?:map\[|\[\]|\*)/.test (entries[method])) {
+                throw new Error ('GOCHAN: ' + method + ': nil sends need a nilable type (go-chan-tables.json)');
+            }
+            table.set (method, entries[method]);
+        }
+        GO_CHAN_TABLE = table;
+    }
+    return GO_CHAN_TABLE;
+}
+
+
+// comments and string/rune/raw literals blanked to spaces, newlines kept (offsets match the input)
+function goChanMask (content: string): string {
+    const out = content.split ('');
+    let state = 'code';
+    let escaped = false;
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if ((c === '/') && (content[i + 1] === '/')) { state = 'line'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if ((c === '/') && (content[i + 1] === '*')) { state = 'block'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if (c === '"') { state = 'dq'; out[i] = ' '; continue; }
+            if (c === '`') { state = 'raw'; out[i] = ' '; continue; }
+            if (c === '\'') { state = 'rune'; out[i] = ' '; continue; }
+            continue;
+        }
+        out[i] = (c === '\n') ? '\n' : ' ';
+        if (state === 'line') { if (c === '\n') { state = 'code'; } continue; }
+        if (state === 'block') { if ((c === '*') && (content[i + 1] === '/')) { out[i + 1] = ' '; i++; state = 'code'; } continue; }
+        if (state === 'dq') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return out.join ('');
+}
+
+// index just past the bracket matching masked[open]
+function goChanClose (masked: string, open: number): number {
+    const close = goChanScan (masked, open, (i, d) => !d && ')}]'.includes (masked[i]));
+    return (close < 0) ? -1 : close + 1;
+}
+
+// first index `stop (i, depth)` accepts (depth through i), else -1
+function goChanScan (masked: string, start: number, stop: (i: number, d: number) => boolean): number {
+    let depth = 0;
+    for (let i = start; i < masked.length; i++) {
+        const c = masked[i];
+        depth += ('([{'.includes (c) ? 1 : 0) - (')]}'.includes (c) ? 1 : 0);
+        if (stop (i, depth)) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+// end (exclusive, trailing blanks trimmed) of the expression at `start`: first newline at an `atDepth` depth
+function goChanExprEnd (masked: string, start: number, atDepth = (d: number) => !d): number {
+    let i = goChanScan (masked, start, (j, d) => (masked[j] === '\n') && atDepth (d));
+    i = (i < 0) ? masked.length : i;
+    while ((i > start) && /\s/.test (masked[i - 1])) {
+        i--;
+    }
+    return i;
+}
+
+function goChanQual (content: string): string {
+    return /^package ccxt\s*$/m.test (content) ? '' : 'ccxt.';
+}
+
+// the Go type of a sent expression, or a reason it is unproven. Only duplicable forms are admitted,
+// because the send spells the value twice (Value and Raw).
+function goChanSendType (expr: string, fnMasked: string, signature: string, ownCall: (name: string) => string | undefined = () => undefined): { type?: string, bind?: boolean, nil?: boolean, reason?: string } {
+    if (expr === 'nil') {
+        return { 'nil': true };
+    }
+    if (/^(?:true|false)$/.test (expr)) {
+        return { 'type': 'bool' };
+    }
+    if (/^"(?:[^"\\\n]|\\.)*"$/.test (expr)) {
+        return { 'type': 'string' };
+    }
+    // the four BaseExchange market tables are `map[string]any` fields (go/v4/exchange.go)
+    if (/^this\.(?:Markets|Markets_by_id|Currencies|Currencies_by_id)$/.test (expr)) {
+        return { 'type': 'map[string]any' };
+    }
+    const literal = /^(map\[string\]any|\[\]any|\[\]string)\{/.exec (expr);
+    if (literal !== null) {
+        return { 'type': literal[1], 'bind': true };
+    }
+    const call = /^((?:ccxt\.)?[\w.]+)\(/.exec (expr);
+    if ((call !== null) && GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')] !== undefined) {
+        return { 'type': GO_CHAN_CALL_TYPES[call[1].replace (/^ccxt\./, '')], 'bind': true };
+    }
+    // `this.M(..)` with M declared once on the same receiver in this file with a concrete return type
+    const own = /^this\.(\w+)\(/.exec (expr);
+    const ownType = (own !== null) ? ownCall (own[1]) : undefined;
+    if ((ownType !== undefined) && (goChanClose (expr, expr.indexOf ('(')) === expr.length)) {
+        return { 'type': ownType, 'bind': true };
+    }
+    if (!/^[A-Za-z_]\w*$/.test (expr)) {
+        return { 'reason': (call !== null) ? 'call-send' : 'expr-send' };
+    }
+    const name = expr;
+    const param = new RegExp ('[(,]\\s*' + name + ' ([^,)]+)').exec (signature);
+    const decls = fnMasked.match (new RegExp ('(?<![.\\w])var ' + name + ' [^\\n=]+(?= =|\\n)', 'g')) || [];
+    const shortDecl = new RegExp ('(?<![.\\w])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=').test (fnMasked);
+    const closureParam = new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked);
+    if (shortDecl || closureParam || (decls.length + (param ? 1 : 0) !== 1)) {
+        return { 'reason': 'local-untyped' };
+    }
+    const type = (param ? param[1] : decls[0].replace (new RegExp ('^var ' + name + ' '), '')).trim ();
+    if ((type === 'any') || (type === 'interface{}') || /^\.\.\./.test (type)) {
+        return { 'reason': 'local-any' };
+    }
+    return { 'type': type };
+}
+
+// every path out of the body sends exactly as today's receiver expects one value: body-level `return nil`
+// follows a send, the body ends in such a return or a panic, and no `panic("break")` (it sends nothing)
+function goChanEveryExitSends (lines: string[]): boolean {
+    let depth = 0;
+    let literal = 0;
+    let last = '';
+    let sendDepth = -1;
+    const literalAt: number[] = [];
+    for (let k = 3; k < lines.length; k++) {
+        const line = lines[k];
+        const t = line.trim ();
+        if (/\bfunc\s*\(/.test (line) && /\{\s*$/.test (line)) {
+            literalAt.push (depth);
+            literal++;
+        }
+        if ((literal === 0) && /^return\b/.test (t) && ((t !== 'return nil') || !/^ch <- /.test (last))) {
+            return false;
+        }
+        const before = depth;
+        depth += (line.split ('{').length - 1) - (line.split ('}').length - 1);
+        while (literalAt.length && (depth <= literalAt[literalAt.length - 1])) {
+            literalAt.pop ();
+            literal--;
+        }
+        if (sendDepth >= 0) {
+            // continuation lines of a multi-line send
+            if (depth <= sendDepth) {
+                sendDepth = -1;
+            }
+            continue;
+        }
+        if (t !== '' && t !== '}') {
+            last = t;
+        }
+        if (/^ch <- /.test (t) && (depth > before)) {
+            sendDepth = before;
+        }
+    }
+    return (last === 'return nil') || /^panic\(/.test (last);
+}
+
+// the concrete return type of a one-line `func ...(..) T {` header (not any, not a tuple)
+function goChanConcreteReturn (header: string): string | undefined {
+    const t = /\) ([^\s(){},]+) \{$/.exec (header);
+    return ((t === null) || (t[1] === 'any') || (t[1] === 'interface{}')) ? undefined : t[1];
+}
+
+// the concrete return type of the single `func (this *R) name(..) T {` in the file
+function goChanOwnReturn (masked: string, receiver: string, name: string): string | undefined {
+    const decls = masked.match (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\([^\\n]*\\{$', 'gm')) || [];
+    return (decls.length === 1) ? goChanConcreteReturn (decls[0]) : undefined;
+}
+
+// ===== sends of base methods (Parse*/Filter*/Safe*) once their base return is typed =====
+let GO_CHAN_BASE_RETURNS: { key: string, map: Map<string, string> } | undefined = undefined;
+let GO_CHAN_BASE_RETURNS_TEST: Map<string, string> | undefined = undefined;
+
+// `<Struct>.<method>` -> concrete return, for BaseExchange / Exchange / PredictionExchange in go/v4/exchange*.go
+function goChanBaseReturns (dir: string = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4')): Map<string, string> {
+    if (GO_CHAN_BASE_RETURNS_TEST !== undefined) {
+        return GO_CHAN_BASE_RETURNS_TEST;
+    }
+    const files = fs.existsSync (dir) ? fs.readdirSync (dir).filter ((f) => /^exchange.*\.go$/.test (f) && !f.endsWith ('_api.go')).sort () : [];
+    const key = files.map ((f) => f + ':' + fs.statSync (path.join (dir, f)).mtimeMs).join ('|');
+    if ((GO_CHAN_BASE_RETURNS === undefined) || (GO_CHAN_BASE_RETURNS.key !== key)) {
+        const seen = new Map<string, string | undefined> ();
+        for (const f of files) {
+            const masked = goChanMask (fs.readFileSync (path.join (dir, f), 'utf8'));
+            const decl = /^func \(this \*(BaseExchange|Exchange|PredictionExchange)\) (\w+)\([^\n]*\{$/gm;
+            for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) {
+                const type = goChanConcreteReturn (m[0]);
+                const k = m[1] + '.' + m[2];
+                seen.set (k, seen.has (k) ? undefined : type);
+            }
+        }
+        const map = new Map<string, string> ();
+        seen.forEach ((t, k) => { if (t !== undefined) { map.set (k, t); } });
+        // a name declared anywhere with no concrete type blocks every lookup of it
+        seen.forEach ((t, k) => { if (t === undefined) { map.set (k, ''); } });
+        GO_CHAN_BASE_RETURNS = { key, map };
+    }
+    return GO_CHAN_BASE_RETURNS.map;
+}
+
+function goChanSetBaseReturnsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN_BASE_RETURNS_TEST = map;
+}
+
+// `this.M` on R: R's own declaration in the file decides. Otherwise R must directly embed Exchange (package ccxt)
+// or ccxt.PredictionExchange; the promoted method is the shallowest declaration, which must have a concrete type.
+function goChanMethodReturn (masked: string, receiver: string, name: string): string | undefined {
+    // struct-return names: every call site is boxed back (go-struct-returns), whatever disk says
+    const boxed = goStructBoxedReturn (name);
+    if (boxed !== undefined) {
+        return (boxed === '') ? undefined : boxed;
+    }
+    if (new RegExp ('^func \\(this \\*' + receiver + '\\) ' + name + '\\(', 'm').test (masked)) {
+        return goChanOwnReturn (masked, receiver, name);
+    }
+    const embed = new RegExp ('^type ' + receiver + ' struct \\{\\n\\t((?:ccxt\\.)?\\w+)\\n', 'm').exec (masked);
+    const own = /^package ccxt\s*$/m.test (masked);
+    let chain: string[];
+    if (own && /^(?:BaseExchange|Exchange|PredictionExchange)$/.test (receiver)) {
+        chain = (receiver === 'BaseExchange') ? [ 'BaseExchange' ] : [ receiver, 'BaseExchange' ];
+    } else if (own && (embed !== null) && (embed[1] === 'Exchange')) {
+        chain = [ 'Exchange', 'BaseExchange' ];
+    } else if ((embed !== null) && (embed[1] === (own ? '' : 'ccxt.') + 'PredictionExchange')) {
+        chain = [ 'PredictionExchange', 'BaseExchange' ];
+    } else {
+        // pro venue `type R struct {\n\t*ccxt.V`: V's REST declaration decides, else V's promoted Exchange chain
+        const venue = own ? null : new RegExp ('^type ' + receiver + ' struct \\{\\n\\t\\*ccxt\\.(\\w+)\\n', 'm').exec (masked);
+        return (venue === null) ? undefined : goChanVenueReturn (venue[1], name);
+    }
+    const map = goChanBaseReturns ();
+    for (const s of chain) {
+        const t = map.get (s + '.' + name);
+        if (t !== undefined) {
+            return (t === '') ? undefined : t;
+        }
+    }
+    return undefined;
+}
+
+// the concrete return of V.name for a REST venue V (go/v4/<v>.go), falling back to its Exchange/BaseExchange chain
+function goChanVenueReturn (venue: string, name: string): string | undefined {
+    const file = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4', venue.toLowerCase () + '.go');
+    const masked = fs.existsSync (file) ? goChanMask (fs.readFileSync (file, 'utf8')) : '';
+    if (!new RegExp ('^type ' + venue + ' struct \\{\\n\\tExchange\\n', 'm').test (masked)) {
+        return undefined;
+    }
+    return goChanMethodReturn (masked, venue, name);
+}
+
+type GoChanEdit = { start: number, end: number, text: string };
+
+interface GoChanCore { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, sends: { start: number, end: number, expr: string, bind: boolean }[] }
+
+// every `XAsync` trampoline + body pair of a tabled method in the file; throws on a tabled core it cannot prove
+function goChanCores (content: string, masked: string, table: Map<string, string>, audit?: (method: string, receiver: string, reason: string, types: string[]) => void): GoChanCore[] {
+    const cores: GoChanCore[] = [];
+    // a tabled method defined in any other shape (hand-written, unbuffered) cannot be proven here
+    const anyDef = /^func \(this \*(\w+)\) (\w+)Async\([^\n]*\) <-chan any \{\n(?!\tch := make\(chan any, 1\)\n\tgo this\.\w+Body\(ch)/gm;
+    for (let m = anyDef.exec (masked); m !== null; m = anyDef.exec (masked)) {
+        if (audit !== undefined) {
+            audit (m[2], m[1], 'hand-shape', []);
+        } else if (table.has (m[2])) {
+            throw new Error ('GOCHAN: ' + m[1] + '.' + m[2] + 'Async is not a generated trampoline');
+        }
+    }
+    const wrapper = /^func \(this \*(\w+)\) (\w+)Async\(([^\n]*)\) <-chan any \{\n\tch := make\(chan any, 1\)\n\tgo this\.(\w+)\(ch(?:, [^\n]*)?\)\n\treturn ch\n\}\n/gm;
+    for (let m = wrapper.exec (masked); m !== null; m = wrapper.exec (masked)) {
+        const [ whole, receiver, method, , bodyName ] = m;
+        if (!table.has (method) && (audit === undefined)) {
+            continue;
+        }
+        const fail = (reason: string, types: string[] = []) => {
+            if (audit !== undefined) {
+                audit (method, receiver, reason, types);
+                return;
+            }
+            throw new Error ('GOCHAN: ' + receiver + '.' + method + 'Async cannot carry ' + table.get (method) + ': ' + reason);
+        };
+        if (bodyName !== method.charAt (0).toLowerCase () + method.slice (1) + 'Body') {
+            fail ('body-name');
+            continue;
+        }
+        const head = '\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan any';
+        const headAt = masked.indexOf (head);
+        const bodyStart = headAt + 1;
+        if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) {
+            fail ('body-missing');
+            continue;
+        }
+        const bodyEnd = masked.indexOf ('\n}\n', bodyStart) + 3;
+        const fnMasked = masked.substring (bodyStart, bodyEnd);
+        const signature = fnMasked.substring (0, fnMasked.indexOf ('{'));
+        const lines = fnMasked.split ('\n');
+        if (!/^\tdefer close\(ch\)$/.test (lines[1]) || !/^\tdefer (?:ccxt\.)?ReturnPanicError\(ch\)$/.test (lines[2])) {
+            fail ('prologue');
+            continue;
+        }
+        const sends: { start: number, end: number, expr: string, bind: boolean }[] = [];
+        let nilSends = false;
+        const types = new Set<string> ();
+        let reason = '';
+        const use = /(?<![.\w])ch(?!\w)/g;
+        for (let u = use.exec (fnMasked); u !== null; u = use.exec (fnMasked)) {
+            const before = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+            const after = fnMasked.substring (u.index, u.index + 6);
+            if ((u.index < signature.length) || /defer (?:ccxt\.)?(?:close|ReturnPanicError)\($/.test (before)) {
+                continue;
+            }
+            if (!/^\s*$/.test (before) || !after.startsWith ('ch <- ')) {
+                reason = 'channel-escapes';
+                break;
+            }
+            const start = u.index + 6;
+            const end = goChanExprEnd (fnMasked, start);
+            const expr = content.substring (bodyStart + start, bodyStart + end);
+            const proof = goChanSendType (expr, fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+            if (proof.reason !== undefined) {
+                reason = proof.reason;
+                break;
+            }
+            if (proof.nil) {
+                nilSends = true;
+            } else {
+                types.add (proof.type as string);
+            }
+            if (proof.bind) {
+                // bound once so Value and Raw hold the same value; the next statement must leave the block
+                const next = fnMasked.substring (end).split ('\n').slice (1).find ((l) => l.trim () !== '');
+                if ((next === undefined) || (next.trim () !== 'return nil') || /(?<![.\w])chValue(?!\w)/.test (fnMasked)) {
+                    reason = 'bind-scope';
+                    break;
+                }
+            }
+            sends.push ({ 'start': bodyStart + start, 'end': bodyStart + end, expr, 'bind': !!proof.bind });
+        }
+        if ((reason === '') && (content.substring (bodyStart, bodyEnd).indexOf ('panic("break")') >= 0)) {
+            reason = 'break-panic';
+        }
+        if ((reason === '') && !goChanEveryExitSends (lines)) {
+            reason = 'exit-without-send';
+        }
+        const list = [ ...types ];
+        if ((reason === '') && (list.length > 1)) {
+            reason = 'mixed-types';
+        }
+        const want = goChanType (table.get (method));
+        if ((reason === '') && nilSends && ((audit !== undefined) ? false : !/\?$/.test (table.get (method) as string))) {
+            reason = 'nil-send';
+        }
+        if (audit !== undefined && nilSends && reason === '') {
+            list.push ('nil');
+        }
+        if ((reason === '') && (want !== undefined) && (types.size === 1) && (list[0] !== want)) {
+            reason = 'type-' + list[0];
+        }
+        if (audit !== undefined) {
+            audit (method, receiver, reason, list);
+            if ((reason !== '') || !table.has (method)) {
+                continue;
+            }
+        } else if (reason !== '') {
+            fail (reason, list);
+        }
+        cores.push ({ receiver, method, 'asyncStart': m.index, 'asyncEnd': m.index + whole.length, bodyStart, bodyEnd, sends });
+    }
+    return cores;
+}
+
+function goChanSplice (content: string, edits: GoChanEdit[]): string {
+    edits.sort ((a, b) => b.start - a.start);
+    let out = content;
+    let floor = Infinity;
+    for (const e of edits) {
+        if (e.end > floor) {
+            throw new Error ('GOCHAN: overlapping edits at ' + e.start);
+        }
+        out = out.substring (0, e.start) + e.text + out.substring (e.end);
+        floor = e.start;
+    }
+    return out;
+}
+
+function goChanCoreEdits (content: string, core: GoChanCore, type: string, q: string): GoChanEdit[] {
+    const carrier = q + 'EndpointResult[' + type + ']';
+    const edits: GoChanEdit[] = [];
+    const asyncText = content.substring (core.asyncStart, core.asyncEnd).replace (') <-chan any {', ') <-chan ' + carrier + ' {').replace ('make(chan any, 1)', 'make(chan ' + carrier + ', 1)');
+    edits.push ({ 'start': core.asyncStart, 'end': core.asyncEnd, 'text': asyncText });
+    const head = content.substring (core.bodyStart, content.indexOf ('\n', core.bodyStart));
+    edits.push ({ 'start': core.bodyStart, 'end': core.bodyStart + head.length, 'text': head.replace ('(ch chan any', '(ch chan ' + carrier) });
+    const panicAt = content.indexOf ('ReturnPanicError(ch)', core.bodyStart);
+    edits.push ({ 'start': panicAt, 'end': panicAt + 'ReturnPanicError(ch)'.length, 'text': 'ReturnPanicErrorT(ch)' });
+    for (const s of core.sends) {
+        if (s.expr === 'nil') {
+            edits.push ({ 'start': s.start, 'end': s.end, 'text': carrier + '{}' });
+            continue;
+        }
+        if (!s.bind) {
+            edits.push ({ 'start': s.start, 'end': s.end, 'text': carrier + '{Value: ' + s.expr + ', Raw: ' + s.expr + '}' });
+            continue;
+        }
+        const lineStart = content.lastIndexOf ('\n', s.start) + 1;
+        const indent = content.substring (lineStart, content.indexOf ('ch <- ', lineStart));
+        const text = 'chValue := ' + s.expr + '\n' + indent + 'ch <- ' + carrier + '{Value: chValue, Raw: chValue}';
+        edits.push ({ 'start': lineStart + indent.length, 'end': s.end, text });
+    }
+    return edits;
+}
+
+// consumer rewrites for every `<recv>.<M>Async(..)` call of a tabled method
+function goChanConsumerEdits (content: string, masked: string, table: Map<string, string>, skip: (at: number) => boolean): GoChanEdit[] {
+    const names = [ ...table.keys () ];
+    if (names.length === 0) {
+        return [];
+    }
+    const edits: GoChanEdit[] = [];
+    const call = new RegExp ('\\.(' + names.join ('|') + ')Async\\b', 'g');
+    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
+        if (skip (m.index)) {
+            continue;
+        }
+        const nilable = /\?$/.test (table.get (m[1]) as string);
+        const type = goChanType (table.get (m[1])) as string;
+        let recvStart = m.index;
+        // `this.DerivedExchange.(IName)` / `exchange.(ccxt.IName)` assert to the interface --apply-hand retypes
+        const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, m.index - 120), m.index));
+        if (asserted !== null) {
+            recvStart = m.index - asserted[0].length;
+        }
+        while ((asserted === null) && (recvStart > 0) && /[\w.]/.test (masked[recvStart - 1])) {
+            recvStart--;
+        }
+        const recv = (asserted !== null) ? asserted[1] : masked.substring (recvStart, m.index);
+        const lineStart = masked.lastIndexOf ('\n', recvStart) + 1;
+        if (/^func \(/.test (masked.substring (lineStart, recvStart))) {
+            continue;
+        }
+        const nameEnd = m.index + m[0].length;
+        if (masked[nameEnd] !== '(') {
+            // a method value: Spawn / CallDynamically receive the channel reflectively
+            continue;
+        }
+        if (!GO_CHAN_RECEIVERS.test (recv)) {
+            throw new Error ('GOCHAN: unknown receiver ' + recv + ' for ' + m[1] + 'Async');
+        }
+        const callEnd = goChanClose (masked, nameEnd);
+        const callText = content.substring (recvStart, callEnd);
+        const lineEnd = masked.indexOf ('\n', callEnd);
+        const pre = masked.substring (lineStart, recvStart);
+        const post = masked.substring (callEnd, lineEnd);
+        const q = /(?:^|[^\w.])ccxt\.\w+\($/.test (pre.replace (/\($/, '')) ? 'ccxt.' : '';
+        let r: RegExpExecArray | null;
+        // typed wrapper: raw := <-call / if IsError(raw) / return e, CreateReturnError(raw) / var res T = conv
+        if ((r = /^(\t+)raw := <-$/.exec (pre)) !== null && (post === '')) {
+            const blockEnd = content.indexOf ('\n', content.indexOf ('\n', content.indexOf ('\n', content.indexOf ('\n', lineEnd + 1) + 1) + 1) + 1);
+            const block = content.substring (lineEnd, blockEnd);
+            const w = /^\n(\t+)if ((?:ccxt\.)?)IsError\(raw\) \{\n(\t+)return (.+), ((?:ccxt\.)?)CreateReturnError\(raw\)\n\t+\}\n\t+var res (.+) = (.+)$/.exec (block);
+            if (w === null) {
+                throw new Error ('GOCHAN: unrecognised wrapper around ' + callText);
+            }
+            const fnEnd = masked.indexOf ('\n}\n', lineEnd);
+            const rest = masked.substring (blockEnd, fnEnd);
+            if (/\braw\b/.test (rest) || /(?<![.\w])r(?!\w)/.test (masked.substring (masked.lastIndexOf ('\nfunc ', lineStart), fnEnd))) {
+                throw new Error ('GOCHAN: wrapper local clash around ' + callText);
+            }
+            const conv = w[7];
+            let value: string;
+            if ((conv === 'raw.(' + w[6] + ')') && (w[6] === type) && !nilable) {
+                value = 'r.Value';
+            } else if (conv === 'raw') {
+                value = 'r.Raw';
+            } else {
+                value = conv.replace (/\braw\b/g, 'r.Raw');
+            }
+            const text = r[1] + 'r := <-' + callText + '\n' + w[1] + 'if ' + w[2] + 'IsError(r.Raw) {\n' + w[3] + 'return ' + w[4] + ', ' + w[5] + 'CreateReturnError(r.Raw)\n' + w[1] + '}\n' + w[1] + 'var res ' + w[6] + ' = ' + value;
+            edits.push ({ 'start': lineStart, 'end': blockEnd, text });
+            continue;
+        }
+        if (/^\t+r := <-$/.test (pre)) {
+            continue;
+        }
+        const recvOpen = recvStart - 3;
+        const isReceive = (masked.substring (recvOpen, recvStart) === '(<-') && (masked[callEnd] === ')');
+        if (isReceive && /^\.(?:Raw|Value|Checked\(\))/.test (masked.substring (callEnd + 1, callEnd + 11))) {
+            continue;
+        }
+        if (!isReceive && /(?:^|[^\w.])(?:ccxt\.)?EndpointRaw\($/.test (masked.substring (lineStart, recvStart))) {
+            continue;
+        }
+        if (!isReceive) {
+            if ((masked.substring (recvStart - 2, recvStart) === '<-') && /^\t+\w+ :?= <-$/.test (pre) && (post === '')) {
+                // `x := <-call` statement: x keeps the boxed payload it had
+                edits.push ({ 'start': recvStart - 2, 'end': callEnd, 'text': '(<-' + callText + ').Raw' });
+                continue;
+            }
+            if (masked.substring (recvStart - 2, recvStart) === '<-') {
+                throw new Error ('GOCHAN: unparenthesised receive of ' + callText);
+            }
+            // handed on as a value (PromiseAll list, append): the boxed channel today's holders expect
+            const qual = goChanQual (content);
+            edits.push ({ 'start': recvStart, 'end': callEnd, 'text': qual + 'EndpointRaw(' + callText + ')' });
+            continue;
+        }
+        const recvText = '(<-' + callText + ')';
+        const outerEnd = callEnd + 1;
+        const panicOpen = /((?:ccxt\.)?)PanicOnError\($/.exec (masked.substring (lineStart, recvOpen));
+        const checkedEnd = outerEnd + 1;
+        if ((panicOpen !== null) && (masked[outerEnd] === ')')) {
+            const panicStart = recvOpen - panicOpen[0].length;
+            const typedOpen = /((?:ccxt\.)?)(MapTyped|ListTyped)\($/.exec (masked.substring (lineStart, panicStart));
+            const typedMatches = typedOpen !== null && (masked[checkedEnd] === ')') && ((typedOpen[2] === 'MapTyped') ? (type === 'map[string]any') : (type === '[]any'));
+            if (typedMatches) {
+                const start = panicStart - (typedOpen as RegExpExecArray)[0].length;
+                edits.push ({ start, 'end': checkedEnd + 1, 'text': recvText + '.Checked()' });
+                continue;
+            }
+            // `x, _ := PanicOnError((<-call)).(T)` with T the carried type: the assertion always holds on Value
+            const assertion = /^(\t+)(\w+), _ := $/.exec (masked.substring (lineStart, panicStart));
+            if ((assertion !== null) && (masked.substring (checkedEnd, lineEnd) === '.(' + type + ')')) {
+                edits.push ({ 'start': lineStart, 'end': lineEnd, 'text': assertion[1] + assertion[2] + ' := ' + recvText + '.Checked()' });
+                continue;
+            }
+            const statement = /^\s*$/.test (masked.substring (lineStart, panicStart)) && /^\s*$/.test (masked.substring (checkedEnd, lineEnd));
+            if (statement) {
+                edits.push ({ 'start': panicStart, 'end': checkedEnd, 'text': recvText + '.Checked()' });
+                continue;
+            }
+            edits.push ({ 'start': recvOpen, 'end': outerEnd, 'text': recvText + '.Raw' });
+            continue;
+        }
+        // any other receive keeps the untyped payload it had
+        edits.push ({ 'start': recvOpen, 'end': outerEnd, 'text': recvText + '.Raw' });
+    }
+    return edits;
+}
+
+// the shared pass: retypes every tabled core in the file and rewrites every consumer of a tabled method
+function goChanCarrierPass (content: string, table: Map<string, string> = goChanTable ()): string {
+    if ((table.size === 0) || (content.indexOf ('Async') < 0)) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const q = goChanQual (content);
+    const cores = goChanCores (content, masked, table);
+    const edits: GoChanEdit[] = [];
+    for (const core of cores) {
+        edits.push (...goChanCoreEdits (content, core, goChanType (table.get (core.method)) as string, q));
+    }
+    const iface = new RegExp ('^(\\t(' + [ ...table.keys () ].join ('|') + ')Async\\([^\\n]*\\)) <-chan any$', 'gm');
+    for (let m = iface.exec (masked); m !== null; m = iface.exec (masked)) {
+        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + q + 'EndpointResult[' + goChanType (table.get (m[2])) + ']' });
+    }
+    const ifaceAt = (at: number) => { const ls = masked.lastIndexOf ('\n', at) + 1; return /^\t\w+Async\([^\n]*\) <-chan any$/.test (masked.substring (ls, masked.indexOf ('\n', at))); };
+    const inCoreHead = (at: number) => ifaceAt (at) || cores.some ((c) => (at >= c.asyncStart) && (at < c.asyncEnd));
+    edits.push (...goChanConsumerEdits (content, masked, table, inCoreHead));
+    return edits.length ? goChanSplice (content, edits) : content;
+}
+
+
+function goChanSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('gochan: ' + m); } };
+    const table = new Map ([ [ 'SetX', 'map[string]any' ], [ 'SetFlag', 'bool' ] ]);
+    const core = (recv: string, body: string, name = 'SetX') => 'func (this *' + recv + ') ' + name + 'Async(a any, optionalArgs ...any) <-chan any {\n\tch := make(chan any, 1)\n\tgo this.' + name.charAt (0).toLowerCase () + name.slice (1) + 'Body(ch, a, optionalArgs...)\n\treturn ch\n}\nfunc (this *' + recv + ') ' + name.charAt (0).toLowerCase () + name.slice (1) + 'Body(ch chan any, a any, optionalArgs ...any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n' + body + '}\n';
+    const good = '\tvar response map[string]any = nil\n\tif a == nil {\n\t\tch <- response\n\t\treturn nil\n\t}\n\tch <- response // unify\n\treturn nil\n';
+    const out = goChanCarrierPass ('package ccxt\n\n' + core ('X', good), table);
+    ok (out.includes ('SetXAsync(a any, optionalArgs ...any) <-chan EndpointResult[map[string]any] {'), 'signature');
+    ok (out.includes ('ch := make(chan EndpointResult[map[string]any], 1)'), 'make');
+    ok (out.includes ('setXBody(ch chan EndpointResult[map[string]any], a any'), 'body param');
+    ok (out.includes ('defer ReturnPanicErrorT(ch)'), 'panic carrier');
+    ok (out.split ('ch <- EndpointResult[map[string]any]{Value: response, Raw: response}').length === 3, 'every send');
+    ok (out.includes ('ch <- EndpointResult[map[string]any]{Value: response, Raw: response} // unify'), 'value send');
+    ok (goChanCarrierPass (out, table) === out, 'idempotent');
+    const flag = goChanCarrierPass ('package ccxtpro\n\n' + core ('X', '\tch <- true\n\treturn nil\n', 'SetFlag').replace ('ReturnPanicError', 'ccxt.ReturnPanicError'), table);
+    ok (flag.includes ('<-chan ccxt.EndpointResult[bool]') && flag.includes ('ccxt.ReturnPanicErrorT(ch)') && flag.includes ('ch <- ccxt.EndpointResult[bool]{Value: true, Raw: true}'), 'qualified bool core');
+    const tryPass = (src: string) => { try { goChanCarrierPass (src, table); return false; } catch (e) { return true; } };
+    const throws = (body: string, name = 'SetX') => tryPass ('package ccxt\n' + core ('X', body, name));
+    ok (throws ('\tvar r any = nil\n\tch <- r\n\treturn nil\n'), 'any local rejected');
+    ok (throws ('\tgo func() { ch <- nil }()\n\treturn nil\n'), 'escaping channel rejected');
+    ok (throws ('\tvar b bool = true\n\tch <- b\n\treturn nil\n'), 'wrong type rejected');
+    ok (throws ('\tch <- nil\n\treturn nil\n'), 'untyped nil send rejected');
+    const nt = new Map ([ [ 'SetX', 'map[string]any?' ] ]);
+    const nilCore = goChanCarrierPass ('package ccxt\n' + core ('X', '\tvar r map[string]any = nil\n\tif r == nil {\n\t\tch <- nil\n\t} else {\n\t\tch <- r\n\t}\n\treturn nil\n'), nt);
+    ok (nilCore.includes ('\t\tch <- EndpointResult[map[string]any]{}\n') && nilCore.includes ('<-chan EndpointResult[map[string]any] {'), 'nilable table admits nil sends');
+    ok (throws ('\tr := F()\n\tch <- r\n\treturn nil\n'), 'short decl rejected');
+    ok (!throws ('\tpanic(NotSupported(\"x\"))\n'), 'send-free base core');
+    ok (throws ('\tvar r map[string]any = nil\n\tif a == nil {\n\t\treturn nil\n\t}\n\tch <- r\n\treturn nil\n'), 'bare return rejected');
+    ok (throws ('\tvar r map[string]any = nil\n\tfor {\n\t\tpanic(\"break\")\n\t}\n\tch <- r\n\treturn nil\n'), 'break panic rejected');
+    ok (throws ('\tvar r map[string]any = nil\n\tch <- r\n'), 'fall-off end rejected');
+    const consumer = 'package ccxt\n\nfunc (this *Y) f() any {\n\tPanicOnError((<-this.SetXAsync(1)))\n\tvar m map[string]any = MapTyped(PanicOnError((<-this.SetXAsync(2, map[string]any{}))))\n\tx := PanicOnError((<-this.base.SetXAsync(3)))\n\ty := (<-this.SetXAsync(4))\n\tp := promiseAll([]any{this.SetXAsync(5), this.OtherAsync()})\n\tthis.Spawn(this.SetXAsync, 6)\n\tv := ListTyped(PanicOnError((<-this.SetXAsync(7))))\n\treturn []any{m, x, y, p, v}\n}\n';
+    const c = goChanCarrierPass (consumer, table);
+    ok (c.includes ('\t(<-this.SetXAsync(1)).Checked()\n'), 'statement Checked');
+    ok (c.includes ('var m map[string]any = (<-this.SetXAsync(2, map[string]any{})).Checked()\n'), 'MapTyped Checked');
+    ok (c.includes ('x := PanicOnError((<-this.base.SetXAsync(3)).Raw)'), 'boxed PanicOnError');
+    ok (c.includes ('y := (<-this.SetXAsync(4)).Raw'), 'bare receive');
+    ok (goChanCarrierPass ('package ccxt\n\nfunc (this *Y) f() {\n\tv := <-this.DerivedExchange.SetXAsync(1)\n\tPanicOnError(v)\n}\n', table).includes ('\tv := (<-this.DerivedExchange.SetXAsync(1)).Raw\n\tPanicOnError(v)'), 'unparenthesised receive statement');
+    ok (goChanCarrierPass ('package ccxt\n\nfunc (this *Y) f() {\n\ta := (<-this.DerivedExchange.SetXAsync(1))\n\tPanicOnError(a)\n}\n', table).includes ('a := (<-this.DerivedExchange.SetXAsync(1)).Raw'), 'derived receiver');
+    ok (c.includes ('[]any{EndpointRaw(this.SetXAsync(5)), this.OtherAsync()}'), 'promise list');
+    ok (c.includes ('this.Spawn(this.SetXAsync, 6)'), 'method value untouched');
+    const pair = goChanCarrierPass ('package ccxt\n\nfunc (this *Y) f() any {\n\th, _ := PanicOnError((<-this.PairAsync(1))).([]any)\n\tg, _ := PanicOnError((<-this.PairAsync(2))).(map[string]any)\n\treturn []any{h, g}\n}\n', new Map ([ [ 'Pair', '[]any' ] ]));
+    ok (pair.includes ('\th := (<-this.PairAsync(1)).Checked()\n') && pair.includes ('g, _ := PanicOnError((<-this.PairAsync(2)).Raw).(map[string]any)'), 'asserted pair receive');
+    ok (c.includes ('v := ListTyped(PanicOnError((<-this.SetXAsync(7)).Raw))'), 'mismatched ListTyped stays boxed');
+    ok (goChanCarrierPass (c, table) === c, 'consumer idempotent');
+    const wrapper = 'package ccxtpro\n\nfunc (this *Z) SetX(a int64, options ...SetXOptions) (map[string]any, error) {\n\topts := SetXOptionsStruct{}\n\traw := <-this.Exchange.SetXAsync(a, opts.Params)\n\tif ccxt.IsError(raw) {\n\t\treturn map[string]any{}, ccxt.CreateReturnError(raw)\n\t}\n\tvar res map[string]any = raw.(map[string]any)\n\treturn res, nil\n}\n';
+    const w = goChanCarrierPass (wrapper, table);
+    ok (w.includes ('\tr := <-this.Exchange.SetXAsync(a, opts.Params)\n\tif ccxt.IsError(r.Raw) {\n\t\treturn map[string]any{}, ccxt.CreateReturnError(r.Raw)\n\t}\n\tvar res map[string]any = r.Value\n'), 'typed wrapper');
+    const conv = goChanCarrierPass (wrapper.replace ('var res map[string]any = raw.(map[string]any)', 'var res Order = NewOrder(raw)').replace (/\(map\[string\]any, error\)/, '(Order, error)'), table);
+    ok (goChanCarrierPass (w, table) === w, 'wrapper idempotent');
+    ok (goChanCarrierPass (wrapper, new Map ([ [ 'SetX', 'map[string]any?' ] ])).includes ('var res map[string]any = r.Raw.(map[string]any)'), 'nilable wrapper keeps the assertion on Raw');
+    ok (conv.includes ('var res Order = NewOrder(r.Raw)'), 'converted wrapper keeps the payload');
+    ok (goChanCarrierPass (consumer, new Map ()) === consumer, 'empty table no-op');
+    ok (tryPass ('package ccxt\n\nfunc (this *X) SetXAsync(a any) <-chan any {\n\tout := make(chan any)\n\treturn out\n}\n'), 'hand shape rejected');
+    const bound = goChanCarrierPass ('package ccxt\n' + core ('X', '\tif a != nil {\n\t\tch <- this.Extend(a, map[string]any{\n\t\t\t"k": 1,\n\t\t})\n\t\treturn nil\n\t}\n\tch <- map[string]any{}\n\treturn nil\n'), table);
+    ok (bound.includes ('\t\tchValue := this.Extend(a, map[string]any{\n\t\t\t"k": 1,\n\t\t})\n\t\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n\t\treturn nil'), 'bound call send');
+    ok (bound.includes ('\tchValue := map[string]any{}\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'bound literal send');
+    ok (throws ('\tif a != nil {\n\t\tch <- this.Extend(a)\n\t}\n\tpanic(\"x\")\n'), 'bound send without return rejected');
+    ok (throws ('\tch <- this.ParseThing(a)\n\treturn nil\n'), 'any-typed call rejected');
+    const ownOk = goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.ParseRows(a)\n\treturn nil\n') + 'func (this *X) ParseRows(a any) map[string]any {\n\treturn nil\n}\n', table);
+    ok (ownOk.includes ('\tchValue := this.ParseRows(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'own typed call send');
+    // inherited base returns
+    goChanSetBaseReturnsForTest (new Map ([ [ 'BaseExchange.ParseBase', 'map[string]any' ], [ 'Exchange.ParseShadow', '' ], [ 'BaseExchange.ParseShadow', 'map[string]any' ] ]));
+    const embed = 'package ccxt\ntype X struct {\n\tExchange\n}\n';
+    const inherited = goChanCarrierPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table);
+    ok (inherited.includes ('\tchValue := this.ParseBase(a)\n\tch <- EndpointResult[map[string]any]{Value: chValue, Raw: chValue}\n'), 'inherited base typed send');
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n') + 'func (this *X) ParseBase(a any) any {\n\treturn nil\n}\n'), 'own any override beats base');
+    ok (tryPass ('package ccxt\ntype X struct {\n\tY\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'non-base embed rejected');
+    ok (tryPass ('package ccxtpro\ntype X struct {\n\tExchange\n}\n' + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n')), 'other package rejected');
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseOther(a)\n\treturn nil\n')), 'untyped base rejected');
+    ok (tryPass (embed + core ('X', '\tch <- this.ParseShadow(a)\n\treturn nil\n')), 'any shadow in Exchange rejected');
+    const pred = 'package ccxtprediction\ntype X struct {\n\tccxt.PredictionExchange\n}\n';
+    ok (goChanCarrierPass (pred + core ('X', '\tch <- this.ParseBase(a)\n\treturn nil\n'), table).includes ('ch <- ccxt.EndpointResult[map[string]any]{Value: chValue, Raw: chValue}'), 'prediction inherited send');
+    const viaIface = goChanCarrierPass ('package ccxt\nfunc F(exchange any) {\n\tv := (<-exchange.(ccxt.ISetX).SetXAsync(1))\n\t_ = v\n}\n', table);
+    ok (viaIface.includes ('v := (<-exchange.(ccxt.ISetX).SetXAsync(1)).Raw'), 'asserted interface receiver');
+    goChanSetBaseReturnsForTest (undefined);
+    ok (throws ('\tch <- this.ParseRows(a)\n\treturn nil\n' + '}\nfunc (this *X) ParseRows(a any) any {\n\treturn nil\n'), 'own any-typed call rejected');
+    ok (throws ('\tch <- this.ParseRows(a)\n\treturn nil\n' + '}\nfunc (this *Y) ParseRows(a any) map[string]any {\n\treturn nil\n'), 'other receiver call rejected');
+    ok (goChanCarrierPass ('package ccxt\n' + core ('X', '\tch <- this.IndexBy(a, "network")\n\treturn nil\n'), table).includes ('chValue := this.IndexBy(a, "network")'), 'IndexBy send');
+    const itf = goChanCarrierPass ('package ccxt\n\ntype I interface {\n\tSetXAsync(a any, optionalArgs ...any) <-chan any\n\tSetYAsync() <-chan any\n}\n', table);
+    ok (itf.includes ('\tSetXAsync(a any, optionalArgs ...any) <-chan EndpointResult[map[string]any]\n\tSetYAsync() <-chan any\n'), 'interface line');
+    return problems;
+}
+
+// hand-written files are not regenerated: `npx tsx build/go-chan.ts --apply-hand` retypes the tabled
+// interface lines in go/v4/exchange_interface.go and lists every other hand-written reference
+function goChanApplyHand () {
+    const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
+    const table = goChanTable ();
+    const names = [ ...table.keys () ];
+    const iface = path.join (dir, 'exchange_interface.go');
+    const text = fs.readFileSync (iface, 'utf8');
+    fs.writeFileSync (iface, goChanCarrierPass (text, table));
+    const ref = new RegExp ('\\b(' + names.join ('|') + ')Async\\b');
+    for (const f of fs.readdirSync (dir).filter ((x) => /^exchange.*\.go$/.test (x) && x !== 'exchange_interface.go')) {
+        const body = fs.readFileSync (path.join (dir, f), 'utf8');
+        if (body.indexOf ('PLEASE DO NOT EDIT THIS FILE') >= 0 || /^\/\/ Code generated/m.test (body)) {
+            continue;
+        }
+        body.split ('\n').forEach ((l, i) => { if (names.length && ref.test (l)) { console.log ('HAND-REF ' + f + ':' + (i + 1) + ': ' + l.trim ()); } });
+    }
+}
+
+// ===== errors as values =====
+// Errors as values in generated Go. Async results travel as AsyncResult[any]{Value, Err} (EndpointResult[T] keeps Raw); every await becomes
+// `r := <-X` + `if r.Err != nil { panic(r.Err) }` + r.Value, typed wrappers return r.Err. Runs last on generated text.
+
+type GoErrStats = { [reason: string]: number };
+
+function goErrBump (stats: GoErrStats | undefined, reason: string) {
+    if (stats !== undefined) {
+        stats[reason] = (stats[reason] || 0) + 1;
+    }
+}
+
+// the received operand: a selector chain of calls / type assertions ending in a call; end index or -1
+function goErrOperandEnd (masked: string, start: number): number {
+    let i = start;
+    for (;;) {
+        const id = /^[A-Za-z_]\w*/.exec (masked.substring (i, i + 200));
+        if (id === null) {
+            return -1;
+        }
+        i += id[0].length;
+        for (;;) {
+            if (masked[i] === '(') {
+                i = goChanClose (masked, i);
+            } else if (masked.startsWith ('.(', i)) {
+                i = goChanClose (masked, i + 1);
+            } else {
+                break;
+            }
+            if (i < 0) {
+                return -1;
+            }
+        }
+        if ((masked[i] === '.') && /[A-Za-z_]/.test (masked[i + 1] || '')) {
+            i++;
+            continue;
+        }
+        return (masked[i - 1] === ')') ? i : -1;
+    }
+}
+
+// Sleep / Throttle / tests' Close (`<-chan bool`) and GetTestFiles (`<-chan map[string]any`) carry no error
+function goErrUncheckedCallee (operand: string): boolean {
+    return /^(?:(?:this|exchange|this\.Exchange|this\.BaseExchange|this\.base)\.(?:Sleep|Throttle)|(?:ccxt\.)?(?:Close|GetTestFiles))\(/.test (operand);
+}
+
+// `n := <-call` followed by `if n.Err != nil { <onErr> }`
+function goErrReceive (ind: string, n: string, call: string, onErr: string): string {
+    return ind + n + ' := <-' + call + '\n' + ind + 'if ' + n + '.Err != nil {\n' + ind + '\t' + onErr + '\n' + ind + '}\n';
+}
+
+function goErrFreshName (fn: string): string {
+    for (let k = 0; ; k++) {
+        const name = (k === 0) ? 'r' : ('r' + k);
+        if (!new RegExp ('\\b' + name + '\\b').test (fn)) {
+            return name;
+        }
+    }
+}
+
+// true when `at` is a statement position: the innermost open bracket before it is a block `{`
+function goErrStatementStart (masked: string, at: number): boolean {
+    const stack: string[] = [ 'B' ];
+    for (let i = 0; i < at; i++) {
+        const c = masked[i];
+        if ((c === '(') || (c === '[')) {
+            stack.push (c);
+        } else if (c === '{') {
+            stack.push (((masked[i - 1] === ' ') && (masked[i + 1] === '\n')) ? 'B' : 'C');
+        } else if ((c === ')') || (c === ']') || (c === '}')) {
+            stack.pop ();
+        }
+    }
+    return stack[stack.length - 1] === 'B';
+}
+
+// what is evaluated before the receive inside its statement: names, literals, field reads and the openings
+// of calls enclosing the receive (those calls run after it), so hoisting keeps the evaluation order
+function goErrSafePrefix (prefix: string): boolean {
+    const head = /^\t*(?:var \w+ [^=\n]+ = |[\w.]+(?:\[[\w." ]+\])*(?:, [\w.]+)* :?= |\w+ <- |return |)/.exec (prefix) as RegExpExecArray;
+    const rest = prefix.substring (head[0].length);
+    if (/^(?:if|for|switch|case|else|go|defer|select|func|var)\b/.test (rest.trim ()) || /^\t*\}/.test (prefix)) {
+        return false;
+    }
+    return /^[\w. ,(!]*$/.test (rest);
+}
+
+// typed wrappers: `raw := <-X` / IsError(raw) -> `r := <-X` / r.Err; EndpointResult wrappers keep r.Raw
+function goErrWrappers (content: string): string {
+    const plain = /^(\t+)raw := <-([^\n]+)\n\1if (?:ccxt\.)?IsError\(raw\) \{\n\1\treturn ([^\n]+), (?:ccxt\.)?CreateReturnError\(raw\)\n\1\}\n/gm;
+    let out = '';
+    let cursor = 0;
+    for (let m = plain.exec (content); m !== null; m = plain.exec (content)) {
+        const fnStart = content.lastIndexOf ('\nfunc ', m.index) + 1;
+        const fnEnd = content.indexOf ('\n}\n', m.index);
+        const name = goErrFreshName (content.substring (fnStart, fnEnd));
+        const tail = content.substring (m.index + m[0].length, fnEnd).replace (/\braw\b/g, name + '.Value');
+        out += content.substring (cursor, m.index) + goErrReceive (m[1], name, m[2], 'return ' + m[3] + ', ' + name + '.Err') + tail;
+        cursor = fnEnd;
+        plain.lastIndex = fnEnd;
+    }
+    content = out + content.substring (cursor);
+    return content.replace (/^(\t+)(\w+) := <-([^\n]+)\n\1if (?:ccxt\.)?IsError\(\2\.Raw\) \{\n\1\treturn ([^\n]+), (?:ccxt\.)?CreateReturnError\(\2\.Raw\)\n\1\}\n/gm,
+        (_m: string, ind: string, n: string, call: string, zero: string) => goErrReceive (ind, n, call, 'return ' + zero + ', ' + n + '.Err'));
+}
+
+// `xRecv := (<-X)` + `PanicOnError(xRecv.Raw)`: the holder is the result itself
+function goErrListHolders (content: string): string {
+    return content.replace (/^(\t+)(\w+) := \(<-([^\n]+)\)\n\1(?:ccxt\.)?PanicOnError\(\2\.Raw\)\n/gm,
+        (_m: string, ind: string, n: string, call: string) => goErrReceive (ind, n, call, 'panic(' + n + '.Err)'));
+}
+
+// the first receive arrow at/after `from` (a send's arrow follows an operand, a receive's does not)
+function goErrNextReceive (masked: string, from: number): number {
+    for (let p = masked.indexOf ('<-', from); p >= 0; p = masked.indexOf ('<-', p + 2)) {
+        const before = masked.substring (0, p).replace (/[ \t]+$/, '');
+        const prev = before[before.length - 1];
+        if (((prev !== undefined) && /[\w)\]]/.test (prev)) || masked.startsWith ('<-chan', p)) {
+            continue;
+        }
+        return p;
+    }
+    return -1;
+}
+
+// one top-level func: hoist every await it can, keep PanicOnError(RECV) where it cannot
+function goErrFunc (fn: string, q: string, stats?: GoErrStats): string {
+    let cursor = 0;
+    for (;;) {
+        const masked = goChanMask (fn);
+        const p = goErrNextReceive (masked, cursor);
+        if (p < 0) {
+            return fn;
+        }
+        cursor = p + 2;
+        let opStart = p + 2;
+        while (masked[opStart] === ' ') {
+            opStart++;
+        }
+        const opEnd = goErrOperandEnd (masked, opStart);
+        if (opEnd < 0) {
+            continue;
+        }
+        const operand = fn.substring (opStart, opEnd);
+        const ls = masked.lastIndexOf ('\n', p) + 1;
+        const nl = masked.indexOf ('\n', opEnd);
+        const le = (nl < 0) ? masked.length : nl;
+        const indent = (/^\t*/.exec (masked.substring (ls)) as RegExpExecArray)[0];
+        // the receive expression: `(<-X)` or `<-X`, plus a `.Raw` / `.Value` / `.Checked()` selector
+        let rs = p;
+        let re = opEnd;
+        if ((masked[p - 1] === '(') && !/[\w\]]/.test (masked[p - 2] || '') && (masked[opEnd] === ')')) {
+            rs = p - 1;
+            re = opEnd + 1;
+        }
+        const selM = /^\.(Raw|Value|Checked\(\))/.exec (masked.substring (re, re + 10));
+        const sel = ((selM !== null) && (selM[1] === 'Raw')) ? 'Raw' : 'Value';
+        if (selM !== null) {
+            re += selM[0].length;
+        }
+        // an enclosing PanicOnError( ... )
+        let ws = rs;
+        let we = re;
+        let wrapped = false;
+        const wrapM = /(?:ccxt\.)?PanicOnError\($/.exec (masked.substring (ls, rs));
+        if ((wrapM !== null) && (masked[re] === ')')) {
+            ws = rs - wrapM[0].length;
+            we = re + 1;
+            wrapped = true;
+        }
+        const prefix = masked.substring (ls, ws);
+        const stmtEnd = goChanExprEnd (masked, ls, (d: number) => d <= 0);
+        const suffix = masked.substring (we, stmtEnd);
+        // already in the hoisted shape
+        const own = /^\t*(\w+) := $/.exec (masked.substring (ls, p));
+        if ((own !== null) && (rs === p) && (re === opEnd) && masked.startsWith ('\n' + indent + 'if ' + own[1] + '.Err != nil {', le)) {
+            continue;
+        }
+        if (goErrUncheckedCallee (operand)) {
+            if (wrapped && /^\t*$/.test (prefix) && /^\s*$/.test (suffix)) {
+                fn = fn.substring (0, ws) + '<-' + operand + fn.substring (we);
+            }
+            continue;
+        }
+        // forward of another async result: `ch <- <-X`
+        if (!wrapped && /^\t*\w+ <- $/.test (prefix) && (rs === p) && (re === opEnd) && /^\s*$/.test (suffix)) {
+            continue;
+        }
+        const atStatement = goErrStatementStart (masked, ls) && (masked.substring (ls, ls + indent.length) === indent);
+        if (!(atStatement && goErrSafePrefix (prefix))) {
+            // not hoistable: the runtime checks the struct in PanicOnError / Checked(), so the value is unchanged
+            const recvText = '(<-' + operand + ')';
+            let text: string;
+            if (wrapped) {
+                text = fn.substring (ws, rs) + recvText + ')';
+            } else if ((selM !== null) && (selM[1] !== 'Raw')) {
+                text = recvText + '.Checked()';
+            } else if (selM !== null) {
+                text = q + 'PanicOnError(' + recvText + ')';
+            } else {
+                // a bare receive handed on as a value (a promiseAll element): the AsyncResult itself travels on
+                goErrBump (stats, 'handed-on');
+                continue;
+            }
+            fn = fn.substring (0, ws) + text + fn.substring (we);
+            cursor = ws + text.length;
+            goErrBump (stats, 'kept:' + (!atStatement ? 'expression' : (/^\t*(?:if|for|switch|case|\} else if|go|defer)\b/.test (prefix) ? 'header' : 'order')));
+            continue;
+        }
+        const name = goErrFreshName (fn);
+        // a trailing comment of a dropped statement stays on the receive line
+        const whole = /^\t*$/.test (prefix) && /^\s*$/.test (suffix);
+        const lineEnd = (fn.indexOf ('\n', stmtEnd) < 0) ? fn.length : fn.indexOf ('\n', stmtEnd);
+        const comment = whole ? fn.substring (stmtEnd, lineEnd).replace (/\s+$/, '') : '';
+        const hoist = goErrReceive (indent, name, operand + comment, 'panic(' + name + '.Err)');
+        let rest = fn.substring (ls, ws) + name + '.' + sel + fn.substring (we, stmtEnd);
+        let restEnd = stmtEnd;
+        if (whole) {
+            rest = '';
+            restEnd = Math.min (fn.length, lineEnd + 1);
+        } else {
+            // `x := RECV` + `PanicOnError(x)`: the check is the hoisted one
+            const decl = /^\t*(?:var (\w+) [^=\n]+ = |(\w+) :?= )$/.exec (prefix);
+            const target = (decl === null) ? undefined : (decl[1] || decl[2]);
+            if ((target !== undefined) && !wrapped && /^\s*$/.test (suffix)) {
+                const next = new RegExp ('^\\n\\t*(?:ccxt\\.)?PanicOnError\\(' + target + '\\)([ \\t]*//[^\\n]*)?[ \\t]*(?=\\n)').exec (fn.substring (stmtEnd));
+                if (next !== null) {
+                    restEnd = stmtEnd + next[0].length;
+                    rest += (next[1] || '').replace (/\s+$/, '');
+                }
+            }
+        }
+        fn = fn.substring (0, ls) + hoist + rest + fn.substring (restEnd);
+        // receives nested in the operand are visited next
+        cursor = ls + indent.length + name.length + ' := <-'.length;
+        goErrBump (stats, 'hoisted');
+    }
+}
+
+// `PanicOnError(x)` on a local declared once with a type PanicOnError returns unchanged (never an error,
+// string, []any or result struct) and never re-bound by `:=`: a no-op, dropped
+function goErrNoOpChecks (fn: string, stats?: GoErrStats): string {
+    return fn.replace (/^\t*(?:ccxt\.)?PanicOnError\((\w+)\)[ \t]*\n/gm, (line: string, name: string) => {
+        const decls = fn.match (new RegExp ('(?:\\bvar ' + name + ' [^=\\n]+=|(?<![\\w.])' + name + '(?:, \\w+)* :=|, ' + name + ' :=|[(,] ?' + name + ' [\\w*\\[\\]]+)', 'g')) || [];
+        const typed = new RegExp ('^var ' + name + ' (?:map\\[string\\]any|bool|int64|float64|\\*string|\\*int64|\\*float64|\\*bool) =$').test (decls[0] || '');
+        if ((decls.length === 1) && typed) {
+            goErrBump (stats, 'dropped:no-op');
+            return '';
+        }
+        goErrBump (stats, 'kept:value-check');
+        return line;
+    });
+}
+
+// sends into an AsyncResult channel carry the value in Value
+function goErrSends (fn: string, q: string): string {
+    const masked = goChanMask (fn);
+    const names = new Set<string> ();
+    const decl = /(?:[(,] ?(\w+) chan |(\w+) := make\(chan )(?:any\b|interface\{\}|(?:ccxt\.)?AsyncResult\[any\])/g;
+    for (let m = decl.exec (masked); m !== null; m = decl.exec (masked)) {
+        names.add (m[1] || m[2]);
+    }
+    if (names.size === 0) {
+        return fn;
+    }
+    const send = new RegExp ('^\\t*(?:' + [ ...names ].join ('|') + ') <- ', 'gm');
+    const edits: { start: number, end: number, text: string }[] = [];
+    for (let m = send.exec (masked); m !== null; m = send.exec (masked)) {
+        const start = m.index + m[0].length;
+        const end = goChanExprEnd (masked, start, (d: number) => d <= 0);
+        const expr = fn.substring (start, end);
+        if (/^(?:\(?<-|(?:ccxt\.)?AsyncResult\[any\]\{)/.test (expr)) {
+            continue;
+        }
+        edits.push ({ start, end, 'text': q + 'AsyncResult[any]{Value: ' + expr + '}' });
+    }
+    for (let i = edits.length - 1; i >= 0; i--) {
+        fn = fn.substring (0, edits[i].start) + edits[i].text + fn.substring (edits[i].end);
+    }
+    return fn;
+}
+
+function goErrRetypeChans (content: string, q: string): string {
+    const masked = goChanMask (content);
+    const re = /\bchan (?:any\b|interface\{\})/g;
+    let out = '';
+    let cursor = 0;
+    for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+        out += content.substring (cursor, m.index) + 'chan ' + q + 'AsyncResult[any]';
+        cursor = m.index + m[0].length;
+    }
+    return out + content.substring (cursor);
+}
+
+function goErrValuePass (content: string, stats?: GoErrStats): string {
+    if (content.indexOf ('<-') < 0) {
+        return content;
+    }
+    const q = goChanQual (content);
+    content = goErrListHolders (goErrWrappers (content));
+    const masked = goChanMask (content);
+    let out = '';
+    let cursor = 0;
+    const fnRe = /^func /gm;
+    for (let m = fnRe.exec (masked); m !== null; m = fnRe.exec (masked)) {
+        const close = masked.indexOf ('\n}', m.index);
+        const end = (close < 0) ? content.length : close + 2;
+        out += content.substring (cursor, m.index) + goErrSends (goErrNoOpChecks (goErrFunc (content.substring (m.index, end), q, stats), stats), q);
+        cursor = end;
+        fnRe.lastIndex = end;
+    }
+    const res = goErrRetypeChans (out + content.substring (cursor), q);
+    // non-ccxt packages that newly reference ccxt.AsyncResult need the import
+    if (q !== '' && res.indexOf ('ccxt.') >= 0 && !/"github\.com\/ccxt\/ccxt\/go\/v4"/.test (res)) {
+        return res.replace (/^(package \w+\n)/m, '$1\nimport "github.com/ccxt/ccxt/go/v4"\n');
+    }
+    return res;
+}
+
+function goErrSelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('go-err: ' + m); } };
+    const body = (b: string) => 'package ccxt\n\nfunc (this *X) FooAsync(a any) <-chan any {\n\tch := make(chan any, 1)\n\tgo this.fooBody(ch, a)\n\treturn ch\n}\nfunc (this *X) fooBody(ch chan any, a any) any {\n\tdefer close(ch)\n\tdefer ReturnPanicError(ch)\n' + b + '\treturn nil\n}\n';
+    const run = (b: string) => goErrValuePass (body (b));
+    const check = (ind: string, n = 'r') => ind + 'if ' + n + '.Err != nil {\n' + ind + '\tpanic(' + n + '.Err)\n' + ind + '}\n';
+    let out = run ('\tPanicOnError((<-this.LoadMarketsAsync()))\n\tch <- a\n');
+    ok (out.includes ('\tr := <-this.LoadMarketsAsync()\n' + check ('\t') + '\tch <- AsyncResult[any]{Value: a}\n'), 'statement + send: ' + out);
+    ok (out.includes ('FooAsync(a any) <-chan AsyncResult[any] {\n\tch := make(chan AsyncResult[any], 1)') && out.includes ('fooBody(ch chan AsyncResult[any], a any)'), 'retype');
+    ok (goErrValuePass (out) === out, 'idempotent');
+    out = run ('\tvar r any = nil\n\tresponse := (<-this.PublicGetTime(a))\n\tPanicOnError(response)\n\tch <- response\n');
+    ok (out.includes ('\tr1 := <-this.PublicGetTime(a)\n' + check ('\t', 'r1') + '\tresponse := r1.Value\n\tch <- '), 'decl + adjacent check, fresh name: ' + out);
+    out = run ('\tresponse = (<-this.FapiPublicGetTime(a)).Raw\n\tPanicOnError(response) // c\n');
+    ok (out.includes ('\tresponse = r.Raw // c\n\treturn nil'), 'Raw selector: ' + out);
+    out = run ('\tvar results []any = ListTyped(PanicOnError((<-promiseAll(a))))\n\tvar m map[string]any = (<-this.Bar(this.Extend(a, map[string]any{\n\t\t"k": a,\n\t}))).Checked()\n');
+    ok (out.includes ('\tr := <-promiseAll(a)\n' + check ('\t') + '\tvar results []any = ListTyped(r.Value)\n'), 'conversion kept: ' + out);
+    ok (out.includes ('\tr1 := <-this.Bar(this.Extend(a, map[string]any{\n\t\t"k": a,\n\t}))\n' + check ('\t', 'r1') + '\tvar m map[string]any = r1.Value\n'), 'multi-line Checked: ' + out);
+    out = run ('\tif a != nil {\n\t\tPanicOnError((<-this.Sleep(1)))\n\t}\n\tx := this.F(this.K(), PanicOnError((<-this.G())))\n\ty := this.F(a, <-this.G())\n\tif PanicOnError((<-this.H())) == nil {\n\t}\n\tch <- <-this.K()\n');
+    ok (out.includes ('\t\t<-this.Sleep(1)\n'), 'bool channel: ' + out);
+    ok (out.includes ('x := this.F(this.K(), PanicOnError((<-this.G())))') && out.includes ('if PanicOnError((<-this.H())) == nil'), 'order / header kept: ' + out);
+    ok (out.includes ('\tch <- <-this.K()\n'), 'forward: ' + out);
+    ok (out.includes ('\tr := <-this.G()\n' + check ('\t') + '\ty := this.F(a, r.Value)\n'), 'identifier operands hoist: ' + out);
+    ok (goErrValuePass (out) === out, 'kept idempotent');
+    out = run ('\tPanicOnError((<-promiseAll([]any{this.L(), <-this.S()})))\n');
+    ok (out.includes ('\tr := <-promiseAll([]any{this.L(), <-this.S()})\n'), 'nested receive: ' + out);
+    out = run ('\tPanicOnError((<-this.G())) // note\n');
+    ok (out.includes ('\tr := <-this.G() // note\n' + check ('\t') + '\treturn nil'), 'trailing comment: ' + out);
+    out = run ('\tdataRecv := (<-this.E(a))\n\tPanicOnError(dataRecv.Raw)\n\tvar h []any = dataRecv.Value\n\tvar m map[string]any = this.M(a)\n\tPanicOnError(m)\n\tvar v any = this.M(a)\n\tPanicOnError(v)\n');
+    ok (out.includes ('\tdataRecv := <-this.E(a)\n' + check ('\t', 'dataRecv') + '\tvar h []any = dataRecv.Value\n'), 'listEp: ' + out);
+    ok (!out.includes ('PanicOnError(m)') && out.includes ('PanicOnError(v)'), 'no-op check dropped only when typed: ' + out);
+    const wrap = 'package ccxt\n\nfunc (this *ExchangeTyped) F(params ...any) (Balances, error) {\n\traw := <-this.Exchange.FAsync(params...)\n\tif IsError(raw) {\n\t\treturn Balances{}, CreateReturnError(raw)\n\t}\n\tvar res Balances = NewBalances(raw)\n\treturn res, nil\n}\nfunc (this *ExchangeTyped) S(params ...any) (Status, error) {\n\tr := <-this.Exchange.SAsync(params...)\n\tif IsError(r.Raw) {\n\t\treturn Status{}, CreateReturnError(r.Raw)\n\t}\n\tvar res Status = NewStatus(r.Raw)\n\treturn res, nil\n}\n';
+    out = goErrValuePass (wrap);
+    ok (out.includes ('\tr := <-this.Exchange.FAsync(params...)\n\tif r.Err != nil {\n\t\treturn Balances{}, r.Err\n\t}\n\tvar res Balances = NewBalances(r.Value)\n'), 'typed wrapper: ' + out);
+    ok (out.includes ('\tif r.Err != nil {\n\t\treturn Status{}, r.Err\n\t}\n\tvar res Status = NewStatus(r.Raw)\n'), 'endpoint wrapper: ' + out);
+    ok (goErrValuePass (out) === out, 'wrapper idempotent');
+    const pro = goErrValuePass ('package ccxtpro\n\nfunc (this *X) fBody(ch chan any) any {\n\tdefer close(ch)\n\tdefer ccxt.ReturnPanicError(ch)\n\tch <- ccxt.PanicOnError(<-future.(*ccxt.Future).Await())\n\treturn nil\n}\n');
+    ok (pro.includes ('\tr := <-future.(*ccxt.Future).Await()\n' + check ('\t') + '\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n') && pro.includes ('ch chan ccxt.AsyncResult[any]'), 'qualified: ' + pro);
+    return problems;
+}
+
+// ===== GO-CHAN3: typed AsyncResult channels (`<-chan AsyncResult[any]` -> `<-chan AsyncResult[T]`) =====
+// API
+//   tables  build/go-chan-tables.json async: { "<Core>": "<Go T>" } keyed by the printed core name without
+//           `Async` (e.g. "CancelOrder": "map[string]any"). T in map[string]any, []any, string, float64, bool,
+//           int64, *int64, ... A method may not also sit in an EndpointResult (gochan) table: goChan3Table throws.
+//   pass    goChan3Pass(content): runs AFTER goErrValuePass (it retypes the AsyncResult[any] go-err printed).
+//           Cores: trampoline + body + every `ch <- AsyncResult[any]{Value: e}` send; e must be statically T
+//           (literal, typed local/param, typed own/base return, nil for nilable T, a forward of a same-T
+//           tabled receive), else it THROWS (fail closed). Consumers of tabled receives read r.Value as T:
+//           `r.Value.(T)` / MapTyped / ListTyped drop, `x := r.Value` stays typed unless rebound or nil-compared,
+//           any other boxing of a nilable T goes through BoxAbsent (typed-nil trap), forwards retype.
+//           Interface lines `\tMAsync(..) <-chan AsyncResult[any]` retype (hand exchange_interface.go: --apply-hand).
+//   audit   `npx tsx build/go-chan3.ts --audit [dir=go/v4] [--json]`: per method per core the unprovable sends
+//           over committed generated Go (reads files, no transpile). `--self-test` runs the self-test.
+// Runtime: ReturnPanicError[T] is generic; reflective readers read a typed AsyncResult[T] through the runtime's untyped accessor.
+
+const GO_CHAN3_FILE = path.join (path.dirname (fileURLToPath (import.meta.url)), 'go-chan-tables.json');
+const goChan3File = (): { 'async': Record<string, string>, 'resolved': string[] } => JSON.parse (fs.readFileSync (GO_CHAN3_FILE, 'utf8'));
+let GO_CHAN3_TABLE: Map<string, string> | undefined = undefined;
+
+function goChan3Nilable (type: string): boolean {
+    return /^(?:map\[|\[\]|\*)/.test (type) || goChan3WsInterface (type);
+}
+
+function goChan3BaseType (type: string): string {
+    return type.replace (/\?$/, '');
+}
+
+function goChan3AllowsNil (rawType: string): boolean {
+    return rawType.endsWith ('?') || goChan3Nilable (goChan3BaseType (rawType));
+}
+
+function goChan3LookupRaw (table: Map<string, string>, receiver: string | undefined, method: string): string | undefined {
+    return ((receiver !== undefined) && (receiver !== '') && table.has (receiver + '.' + method))
+        ? table.get (receiver + '.' + method)
+        : table.get (method);
+}
+
+function goChan3Lookup (table: Map<string, string>, receiver: string | undefined, method: string): string | undefined {
+    const raw = goChan3LookupRaw (table, receiver, method);
+    return (raw === undefined) ? undefined : goChan3BaseType (raw);
+}
+
+function goChan3EnclosingReceiver (masked: string, at: number): string | undefined {
+    const [ fs0 ] = goChan3Func (masked, at);
+    const m = /^func \(this \*(\w+)\) /.exec (masked.substring (fs0, fs0 + 80));
+    return (m === null) ? undefined : m[1];
+}
+
+// a nil T boxed into `any` must read as untyped nil (typed-nil trap): only map[string]any / []any fold
+function goChan3FoldsAbsent (type: string): boolean {
+    return (type === 'map[string]any') || (type === '[]any');
+}
+
+// `<ind>x := v` / `x = v` / `ch <- C{Value: v<tail>}` of a T value as native statements: a folding T
+// gets `if v == nil` arms (absent stays untyped nil), any other T is its own box
+function goChan3AbsentStmt (ind: string, kind: 'decl' | 'set' | 'send', lhs: string, v: string, type: string, tail = ''): string {
+    const fold = goChan3FoldsAbsent (type);
+    if (kind === 'decl') {
+        return fold ? (ind + 'var ' + lhs + ' any = nil\n' + ind + 'if ' + v + ' != nil {\n' + ind + '\t' + lhs + ' = ' + v + '\n' + ind + '}') : (ind + 'var ' + lhs + ' any = ' + v);
+    }
+    const put = (e: string) => (kind === 'set') ? (lhs + ' = ' + e) : (lhs + 'Value: ' + e + tail);
+    return fold ? (ind + 'if ' + v + ' == nil {\n' + ind + '\t' + put ('nil') + '\n' + ind + '} else {\n' + ind + '\t' + put (v) + '\n' + ind + '}') : (ind + put (v));
+}
+
+// `v` read inside the arm of an emitted `if v == nil {..} else {` / `if v != nil {` guard (idempotency)
+function goChan3AbsentGuarded (masked: string, ls: number, v: string): boolean {
+    const head = masked.substring (Math.max (0, ls - 400), ls);
+    const e = v.replace (/[.[\]]/g, '\\$&');
+    return new RegExp ('if ' + e + ' != nil \\{\\n$').test (head) || new RegExp ('if ' + e + ' == nil \\{\\n[^\\n]*\\n\\t*\\} else \\{\\n$').test (head)
+        || new RegExp ('if ' + e + ' == nil \\{\\n$').test (head);
+}
+
+// the `any` box of T value `v` spanning [start, end) (the bare read, or a legacy BoxAbsent(v) call) as native
+// statements: `x := V` / `x = V` / a channel send split into nil arms; elsewhere a guarded temp is hoisted
+// before a self-contained statement line. Anything else throws (fail closed).
+function goChan3AbsentEdits (content: string, masked: string, start: number, end: number, v: string, type: string, taken: Set<string>): Edit[] {
+    if (!goChan3FoldsAbsent (type)) {
+        return [ { start, end, 'text': v } ];   // pointer / interface T: its box is already the nil verdict
+    }
+    const ls = masked.lastIndexOf ('\n', start) + 1;
+    let le = masked.indexOf ('\n', end);
+    le = (le < 0) ? masked.length : le;
+    const before = masked.substring (ls, start);
+    const after = masked.substring (end, le);
+    const tail = content.substring (end, le);
+    let m = /^(\t+)(\w+) := $/.exec (before) || /^(\t+)var (\w+) any = $/.exec (before);
+    if ((m !== null) && /^\s*$/.test (after)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'decl', m[2], v, type) } ];
+    }
+    m = /^(\t+)(\w+) = $/.exec (before);
+    if ((m !== null) && /^\s*$/.test (after)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'set', m[2], v, type) } ];
+    }
+    m = /^(\t+)(\w+ <- (?:ccxt\.)?AsyncResult\[any\]\{)Value: $/.exec (before);
+    const close = /^((?:, Err: \w+\.Err)?\})\s*$/.exec (after);
+    if ((m !== null) && (close !== null)) {
+        return [ { 'start': ls, 'end': le, 'text': goChan3AbsentStmt (m[1], 'send', m[2], v, type, tail.replace (/\s+$/, '')) } ];
+    }
+    // hoist: the line must be one whole statement at block level (not a case/else/continuation line)
+    const [ fs0 ] = goChan3Func (masked, start);
+    let depth = 0;
+    for (let i = fs0; i < ls; i++) {
+        const c = masked[i];
+        depth += ((c === '(') || (c === '[')) ? 1 : (((c === ')') || (c === ']')) ? -1 : 0);
+    }
+    const line = masked.substring (ls, le);
+    const stmt = line.replace (/\{\s*$/, '');
+    const balanced = (goChanClose ('(' + stmt + ')', 0) === stmt.length + 2) && (stmt.split ('{').length === stmt.split ('}').length);
+    const ind = /^\t+/.exec (line);
+    const prev = masked.substring (masked.lastIndexOf ('\n', ls - 2) + 1, Math.max (ls - 1, 0)).trimEnd ();
+    if ((depth !== 0) || !balanced || (ind === null) || /^\s*(?:\}|case\b|default\b|for\b|switch\b|select\b|go\b|defer\b)/.test (line) || /[,(\[]\s*$/.test (line)
+        || /(?:&&|\|\||[+\-*/%,(\[=:.])$/.test (prev)) {
+        throw new Error ('GOCHAN3: absent-folding read of ' + v + ' in an unsupported position: ' + line.trim ());
+    }
+    const base = v.replace (/\W+/g, '') + 'Box';
+    let name = base;
+    for (let k = 1; taken.has (name) || new RegExp ('\\b' + name + '\\b').test (masked.substring (fs0, goChan3Func (masked, start)[1])); k++) {
+        name = base + k;
+    }
+    taken.add (name);
+    return [
+        { 'start': ls, 'end': ls, 'text': goChan3AbsentStmt (ind[0], 'decl', name, v, type) + '\n' },
+        { start, end, 'text': name },
+    ];
+}
+
+// T of the value `v` read in the function holding `at`: `rN.Value` of a tabled receive, `V[k]` of a
+// `var V []T`, or a `var retResN T` forward; undefined when unproven
+function goChan3AbsentType (masked: string, at: number, v: string, table: Map<string, string>): string | undefined {
+    const [ fs0, fe0 ] = goChan3Func (masked, at);
+    const fn = masked.substring (fs0, at);
+    let m = /^(\w+)\.Value$/.exec (v);
+    if (m !== null) {
+        const binds = [ ...fn.matchAll (new RegExp ('\\n\\t+' + m[1] + ' := <-[^\\n]*?\\.(\\w+)Async\\(', 'g')) ];
+        const recv = goChan3EnclosingReceiver (masked, at);
+        return binds.length ? goChan3Lookup (table, recv, binds[binds.length - 1][1]) : undefined;
+    }
+    m = /^(\w+)\[\d+\]$/.exec (v) || /^(retRes\d+)$/.exec (v);
+    if (m !== null) {
+        const whole = masked.substring (fs0, fe0);
+        const decls = [ ...whole.matchAll (new RegExp ('\\n\\t+var ' + m[1] + ' ([^=\\n]+?) = ', 'g')) ];
+        if (decls.length !== 1) {
+            return undefined;
+        }
+        const t = decls[0][1];
+        return v.endsWith (']') ? (t.startsWith ('[]') ? t.slice (2) : undefined) : t;
+    }
+    return undefined;
+}
+
+// final lowering: every intermediate `BoxAbsent(v)` marker the passes above left becomes native Go
+function goChan3LowerAbsent (content: string, table: Map<string, string>): string {
+    for (let round = 0; (round < 64) && /(?<![\w.])(?:ccxt\.)?BoxAbsent\(/.test (content); round++) {
+        const masked = goChanMask (content);
+        const re = /(?<![\w.])(?:ccxt\.)?BoxAbsent\(/g;
+        const edits: Edit[] = [];
+        const taken = new Set<string> ();
+        let lastLine = -1;
+        for (let m = re.exec (masked); m !== null; m = re.exec (masked)) {
+            const ls = masked.lastIndexOf ('\n', m.index) + 1;
+            if (ls === lastLine) {
+                continue;   // one marker per line per round: hoists on the same line would overlap
+            }
+            if (/^func /.test (masked.substring (ls, m.index))) {
+                continue;
+            }
+            const close = goChanClose (masked, m.index + m[0].length - 1);
+            const v = content.substring (m.index + m[0].length, close - 1).trim ();
+            if (!/^(?:\w+\.Value|\w+\[\d+\]|retRes\d+)$/.test (v)) {
+                throw new Error ('GOCHAN3: unlowerable absent box of ' + v);
+            }
+            const type = goChan3AbsentType (masked, m.index, v, table);
+            if (type === undefined) {
+                throw new Error ('GOCHAN3: absent box of ' + v + ' without a proven element type');
+            }
+            edits.push (...goChan3AbsentEdits (content, masked, m.index, close, v, type, taken));
+            lastLine = ls;
+        }
+        if (!edits.length) {
+            break;
+        }
+        content = goChan3Splice (content, edits);
+    }
+    return content;
+}
+
+// ===== GO-CHAN3 WS: ws cache objects travel as a Go interface element (never MapTyped: that nils them) =====
+// OrderBookInterface: every watchOrderBook* core sends the live book (`ob.Limit()` on a typed local, `ob.(OrderBookInterface).Limit()` on a box)
+// or forwards an untabled Watch/WatchMultiple receive, unboxed at the send with OrderBookTyped.
+function goChan3WsInterface (type: string): boolean {
+    return /^(?:ccxt\.)?(?:OrderBookInterface|ArrayCacheInterface|ClientInterface)$/.test (type);
+}
+
+// T as spelled in a file of package ccxt (q === '') or an importer (q === 'ccxt.')
+function goChan3QualType (type: string, q: string): string {
+    return goChan3WsInterface (type) ? (q + type.replace (/^ccxt\./, '')) : type;
+}
+
+// the WS send proof: `ob.(OrderBookInterface).Limit()`, or an untabled receive `rN.Value` / its `x := rN.Value`
+// local asserted to the interface element. Returns the Value text to emit, or undefined.
+function goChan3WsSend (expr: string, fnMasked: string, want: string | undefined, q: string): string | undefined {
+    if ((want === undefined) || !goChan3WsInterface (want)) {
+        return undefined;
+    }
+    const t = goChan3QualType (want, q);
+    if (new RegExp ('^\\w+(?:\\.\\(' + t.replace ('.', '\\.') + '\\))?\\.Limit\\(\\)$').test (expr)) {
+        return expr; // Limit() returns OrderBookInterface
+    }
+    let name = expr;
+    const local = /^[a-z]\w*$/.exec (expr);
+    if ((local !== null) && !/^r\d*$/.test (expr)) {
+        const binds = fnMasked.match (new RegExp ('(?<![\\w.])' + expr + '(?:\\s*,\\s*\\w+)*\\s*(?::?=(?!=)|\\+=)|var ' + expr + ' ', 'g')) || [];
+        const bind = new RegExp ('\\n\\t*' + expr + ' := (r\\d*)\\.Value\\n').exec (fnMasked);
+        if ((bind === null) || (binds.length !== 1)) {
+            return undefined;
+        }
+        name = bind[1] + '.Value';
+    }
+    const recv = /^(r\d*)\.Value$/.exec (name);
+    if ((recv === null) || (new RegExp ('\\n\\t*' + recv[1] + ' := <-this\\.\\w+\\(').exec (fnMasked) === null)) {
+        return undefined;
+    }
+    // untyped nil stays nil, a book / cache / client keeps its pointer
+    const unbox = /ArrayCacheInterface$/.test (t) ? 'AsArrayCache' : (/ClientInterface$/.test (t) ? 'AsClient' : 'OrderBookTyped');
+    return q + unbox + '(' + expr + ')';
+}
+
+// a balance local: one `var X any|map[string]any = map[string]any{` declaration, every later write keeps that map
+// (`X = this.MergeBalanceAccount(X, ..)` / `X = this.SafeBalance(X)` return their first argument, bare or
+// inside the printer's `MapTyped(..)` box cast)
+function goChan3BalanceLocal (fnMasked: string, name: string): boolean {
+    if ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1) {
+        return false;
+    }
+    if (!new RegExp ('\\n\\t+var ' + name + ' (?:any|map\\[string\\]any) = map\\[string\\]any\\{').test (fnMasked)) {
+        return false;
+    }
+    if (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?:=|\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
+        return false;
+    }
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*[-+*/:]?=(?!=)[^\\n]*', 'g')) || [];
+    const keeps = new RegExp ('^' + name + ' = (?:MapTyped\\()?this\\.(?:MergeBalanceAccount\\(' + name + ', |SafeBalance\\(' + name + '\\)\\)?$)');
+    return writes.every ((w) => keeps.test (w));
+}
+
+// a map[string]any send of a balance: `this.SafeBalance(X)` / `X` of a balance local (SafeBalance returns its
+// argument, so the value is that map; SafeBalance stays `any` for the ws callers' *sync.Map), or `X` declared once
+// `var X any = <map-returning call>` and never rewritten (the declaration is retyped)
+function goChan3BalanceSend (expr: string, fnMasked: string, ownCall: (name: string) => string | undefined): { value: string, decl?: { start: number, end: number } } | undefined {
+    const safe = /^this\.SafeBalance\((\w+)\)$/.exec (expr);
+    const name = (safe !== null) ? safe[1] : (/^[a-z]\w*$/.test (expr) ? expr : undefined);
+    if (name === undefined) {
+        return undefined;
+    }
+    if (goChan3BalanceLocal (fnMasked, name)) {
+        const typed = new RegExp ('\\n\\t+var ' + name + ' map\\[string\\]any = ').test (fnMasked);
+        // the SafeBalance call stays (it normalises the map in place); only its `any` result is narrowed
+        return { 'value': ((safe !== null) || !typed) ? expr + '.(map[string]any)' : expr };
+    }
+    if (safe !== null) {
+        return undefined;
+    }
+    const decl = new RegExp ('\\n\\t+var ' + name + ' (any) = this\\.(\\w+)\\(').exec (fnMasked);
+    if ((decl === null) || ((fnMasked.match (new RegExp ('(?<![\\w.])var ' + name + '\\b', 'g')) || []).length !== 1)) {
+        return undefined;
+    }
+    const callStart = decl.index + decl[0].length - decl[2].length - 6;
+    const callEnd = goChanExprEnd (fnMasked, callStart);
+    if ((goChanClose (fnMasked, decl.index + decl[0].length - 1) !== callEnd) || (ownCall (decl[2]) !== 'map[string]any')) {
+        return undefined;
+    }
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + name + '\\s*(?:,[^\\n=]*)?[-+*/:]?=(?!=)', 'g')) || [];
+    if ((writes.length !== 0) || new RegExp ('\\bfunc\\s*\\([^)]*\\b' + name + ' ').test (fnMasked)) {
+        return undefined;
+    }
+    const at = decl.index + decl[0].indexOf (' any = ') + 1;
+    return { 'value': name, 'decl': { 'start': at, 'end': at + 3 } };
+}
+
+// method -> T from go-chan-tables.json async; a method also in a gochan table throws
+function goChan3Table (): Map<string, string> {
+    if (GO_CHAN3_TABLE === undefined) {
+        const table = new Map<string, string> ();
+        const f = 'go-chan-tables.json';
+        const entries = goChan3File ().async;
+        const carriers = goChanTable ();
+        for (const method of Object.keys (entries)) {
+            const type = entries[method];
+            if ((typeof type !== 'string') || /\bany\b(?!\])|^interface/.test (type.replace (/^(?:\[\])?map\[string\]any$|^\[\]any$/, ''))) {
+                throw new Error ('GOCHAN3: ' + method + ': element type must be concrete (' + f + ')');
+            }
+            if (carriers.has (method)) {
+                throw new Error ('GOCHAN3: ' + method + ' is already an EndpointResult carrier (gochan table), ' + f);
+            }
+            table.set (method, type);
+        }
+        GO_CHAN3_TABLE = table;
+    }
+    return GO_CHAN3_TABLE;
+}
+
+function goChan3SetTableForTest (table: Map<string, string> | undefined, resolved?: Set<string>) {
+    GO_CHAN3_TABLE = table;
+    GO_CHAN3_RESOLVED = resolved;
+}
+
+// ===== GO-CHAN3 WS2: the Future resolution boundary =====
+// Methods in go-chan-tables.json resolved (watch*/ *Ws) may send what a ws handler resolved (Client.Resolve takes any): such a
+// send becomes an inline type switch (T, *sync.Map snapshot / ArrayCache ToArray, nil) that panics on any other type.
+let GO_CHAN3_RESOLVED: Set<string> | undefined = undefined;
+
+function goChan3Resolved (): Set<string> {
+    if (GO_CHAN3_RESOLVED === undefined) {
+        GO_CHAN3_RESOLVED = new Set (goChan3File ().resolved);
+    }
+    return GO_CHAN3_RESOLVED;
+}
+
+function goChan3ResolvedOk (want: string | undefined, method: string, receiver?: string): boolean {
+    const resolved = goChan3Resolved ();
+    return (want !== undefined) && (resolved.has (method) || ((receiver !== undefined) && resolved.has (receiver + '.' + method)))
+        && /^(?:map\[string\]any|\[\]any|bool|\*string|int|int64|OrderBookInterface|ArrayCacheInterface|ClientInterface)$/.test (want);
+}
+
+// receive text (`<-this.Watch(..)`) -> the typed twin suffix (WatchMap / WatchMultipleList ..) for the wanted
+// carrier, which applies the dict/list coercion once; undefined otherwise. A struct carrier keeps Watch: its
+// `<T>FromMap` takes the box.
+function goChan3WatchTwinSuffix (receive: string, want: string, structCarrier: boolean): { 'at': number, 'suffix': string } | undefined {
+    const m = /^<-(?:ccxt\.)?this\.(Watch|WatchMultiple)\(/.exec (receive);
+    if (structCarrier || (m === null) || ((want !== 'map[string]any') && (want !== '[]any'))) {
+        return undefined;
+    }
+    return { 'at': m[0].length - 1, 'suffix': (want === 'map[string]any') ? 'Map' : 'List' };
+}
+
+function goChan3ResolvedName (fn: string, taken: Set<string>): string {
+    for (let k = 0; ; k++) {
+        const name = 'resolved' + ((k === 0) ? '' : k);
+        if (!taken.has (name) && !new RegExp ('\\b' + name + '(?:Box)?\\b').test (fn)) {
+            taken.add (name);
+            return name;
+        }
+    }
+}
+
+
+type Edit = { start: number, end: number, text: string };
+type Report = (method: string, receiver: string, reason: string, types: string[]) => void;
+
+function goChan3Splice (content: string, edits: Edit[]): string {
+    edits.sort ((a, b) => b.start - a.start);
+    let out = content;
+    let floor = Infinity;
+    for (const e of edits) {
+        if (e.end > floor) {
+            throw new Error ('GOCHAN3: overlapping edits at ' + e.start);
+        }
+        out = out.substring (0, e.start) + e.text + out.substring (e.end);
+        floor = e.start;
+    }
+    return out;
+}
+
+function goChan3FreshName (fn: string, taken: Set<string>): string {
+    for (let k = 0; ; k++) {
+        const name = (k === 0) ? 'r' : ('r' + k);
+        if (!taken.has (name) && !new RegExp ('\\b' + name + '\\b').test (fn)) {
+            taken.add (name);
+            return name;
+        }
+    }
+}
+
+// fresh `rN` names per enclosing function (names handed out earlier in the same function stay taken)
+function goChan3FreshFactory (content: string, masked: string): (at: number) => string {
+    const taken = new Map<number, Set<string>> ();
+    return (at: number) => {
+        const [ fs0, fe0 ] = goChan3Func (masked, at);
+        const t = taken.get (fs0) || new Set<string> ();
+        taken.set (fs0, t);
+        return goChan3FreshName (content.substring (fs0, fe0), t);
+    };
+}
+
+// interface lines `\tMAsync(..) <-chan AsyncResult[<shadow>]` of tabled methods (IPrediction* interfaces read the prediction table)
+function goChan3IfaceEdits (masked: string, iface: RegExp, reg: Map<string, string>, pred: Map<string, string>, edits: Edit[], typed: (t: string, q: string) => string) {
+    for (let m = iface.exec (masked); m !== null; m = iface.exec (masked)) {
+        const owner = /\ntype (\w+) interface \{\n[^}]*$/.exec (masked.substring (0, m.index));
+        const isPredIface = (owner !== null) && /^IPrediction/.test (owner[1]);
+        const t = (isPredIface ? pred : reg).get (m[2]);
+        if (t === undefined) {
+            continue;
+        }
+        edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + m[3] + 'AsyncResult[' + typed (t, m[3]) + ']' });
+    }
+}
+
+// the one tabled element type of a PromiseAllTyped argument list (calls and locals bound to calls), undefined when none is tabled
+function goChan3PromiseAllElem (masked: string, at: number, args: string, predictionFile: boolean, reg: Map<string, string>, pred: Map<string, string>, kind: string): string | undefined {
+    const [ fs0 ] = goChan3Func (masked, at);
+    const fnPre = masked.substring (fs0, at);
+    const pall = (predictionFile || goChan3PredictionScope (masked, at)) ? pred : reg;
+    const encRecv = goChan3EnclosingReceiver (masked, at);
+    const callRe = new RegExp ('(?<![\\w.])(?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g');
+    const mnames = [ ...args.matchAll (callRe) ].map ((c) => c[1]);
+    for (const id of args.split (',').map ((s) => s.trim ()).filter ((s) => /^\w+$/.test (s))) {
+        const dm = new RegExp ('\\n\\t+' + id + ' := (?:this|this\\.DerivedExchange|this\\.Exchange|this\\.BaseExchange)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(').exec (fnPre);
+        if (dm !== null) {
+            mnames.push (dm[1]);
+        }
+    }
+    const lookupPall = (mname: string) => ((encRecv !== undefined) ? pall.get (encRecv + '.' + mname) : undefined) ?? pall.get (mname);
+    const ts = new Set (mnames.map ((mname) => lookupPall (mname)));
+    if (!mnames.some ((mname) => lookupPall (mname) !== undefined)) {
+        return undefined;
+    }
+    if ((ts.size !== 1) || ts.has (undefined)) {
+        throw new Error ('GOCHAN3: PromiseAllTyped mixes ' + kind + ' channels: ' + args.substring (0, 120));
+    }
+    return [ ...ts ][0] as string;
+}
+
+// tabled element type of a consumer call `.MAsync(` at `at` (prediction table in prediction scope / IPrediction casts)
+function goChan3ConsumerElem (masked: string, at: number, method: string, r: { recv: string, start: number }, predictionFile: boolean, reg: Map<string, string>, pred: Map<string, string>): string | undefined {
+    if (!GO_CHAN3_RECEIVERS.test (r.recv)) {
+        throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + method + 'Async');
+    }
+    const isPredCall = ((predictionFile || goChan3PredictionScope (masked, at)) && (r.recv !== 'this.BaseExchange')) || /IPrediction/.test (masked.substring (r.start, at));
+    const encRecv = goChan3EnclosingReceiver (masked, at);
+    const map = isPredCall ? pred : reg;
+    return ((encRecv !== undefined) ? map.get (encRecv + '.' + method) : undefined) ?? map.get (method);
+}
+
+// receiver text of a `.MAsync` call at `at` (the dot), or undefined when it is not a call we know
+function goChan3Receiver (masked: string, at: number): { recv: string, start: number } | undefined {
+    const asserted = /(?<![\w.])(this\.DerivedExchange|exchange)\.\((?:ccxt\.)?I\w+\)$/.exec (masked.substring (Math.max (0, at - 120), at));
+    if (asserted !== null) {
+        return { 'recv': asserted[1], 'start': at - asserted[0].length };
+    }
+    let s = at;
+    while ((s > 0) && /[\w.]/.test (masked[s - 1])) {
+        s--;
+    }
+    return { 'recv': masked.substring (s, at), 'start': s };
+}
+
+const GO_CHAN3_RECEIVERS = /^(?:this|this\.base|this\.Exchange|this\.BaseExchange|this\.DerivedExchange|exchange)$/;
+
+// the tabled method a `<-RECV.MAsync(..)` receive at `recvAt` (index of `<-`) reads, when it is one
+function goChan3ReceiveMethod (masked: string, recvAt: number, table: Map<string, string>, receiver?: string): string | undefined {
+    const m = /^<-\s*([\w.]+(?:\.\((?:ccxt\.)?I\w+\))?)\.(\w+)Async\(/.exec (masked.substring (recvAt, recvAt + 300));
+    const r = receiver ?? goChan3EnclosingReceiver (masked, recvAt);
+    if ((m === null) || (goChan3Lookup (table, r, m[2]) === undefined) || !GO_CHAN3_RECEIVERS.test (m[1].replace (/\.\((?:ccxt\.)?I\w+\)$/, ''))) {
+        return undefined;
+    }
+    return m[2];
+}
+
+interface GoChan3Core { receiver: string, method: string, asyncStart: number, asyncEnd: number, bodyStart: number, bodyEnd: number, edits: Edit[] }
+
+let GO_CHAN3_STUBS: Map<string, string> | undefined = undefined;
+
+// key -> value over every `go/v4[/prediction]/*_api.go` signature `sig` matches; keys whose files disagree (or value '') drop
+function goChan3ScanApiStubs (sig: RegExp, entry: (m: RegExpExecArray) => [ string, string ]): Map<string, string> {
+    const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
+    const out = new Map<string, string> ();
+    for (const d of [ dir, path.join (dir, 'prediction') ]) {
+        for (const f of fs.existsSync (d) ? fs.readdirSync (d).filter ((x) => x.endsWith ('_api.go')) : []) {
+            const text = fs.readFileSync (path.join (d, f), 'utf8');
+            for (let m = sig.exec (text); m !== null; m = sig.exec (text)) {
+                const [ k, t ] = entry (m);
+                out.set (k, (out.has (k) && (out.get (k) !== t)) ? '' : t);
+            }
+        }
+    }
+    return new Map ([ ...out ].filter (([ , t ]) => t !== ''));
+}
+
+// implicit-API stub name -> T of its `EndpointResult[T]` when every `*_api.go` declaring it agrees
+function goChan3EndpointStubs (): Map<string, string> {
+    if (GO_CHAN3_STUBS === undefined) {
+        const sig = /^func \(this \*\w+\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?(?:EndpointResult\[(.+)\]|AsyncResult\[any\]) \{$/gm;
+        GO_CHAN3_STUBS = goChan3ScanApiStubs (sig, (m) => [ m[1], m[2] || '' ]);
+    }
+    return GO_CHAN3_STUBS;
+}
+
+function goChan3SetStubsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN3_STUBS = map;
+}
+
+// T of a sent `rN.Raw` bound once by `rN := <-this.Stub(..)` (typed implicit-API stub) or `<-this.MAsync(..)` (gochan
+// EndpointResult carrier); its Value is the same response's typed view
+function goChan3EndpointRawType (expr: string, fnMasked: string): string | undefined {
+    const m = /^(r\d*)\.Raw$/.exec (expr);
+    if (m === null) {
+        return undefined;
+    }
+    const binds = [ ...fnMasked.matchAll (new RegExp ('\\n\\t+' + m[1] + ' :?= <-this\\.(\\w+)\\(', 'g')) ];
+    if ((binds.length !== 1) || ((fnMasked.match (new RegExp ('(?<![\\w.])' + m[1] + '\\s*:?=(?!=)', 'g')) || []).length !== 1)) {
+        return undefined;
+    }
+    const callee = binds[0][1];
+    const stub = goChan3EndpointStubs ().get (callee);
+    if (stub !== undefined) {
+        return stub;
+    }
+    const carrier = /^(\w+)Async$/.exec (callee);
+    return (carrier === null) ? undefined : goChanTable ().get (carrier[1]);
+}
+
+// a sent local whose every write is an awaited typed endpoint (`x := rN.Raw`, `var x any = nil` + `x = rN.Raw`)
+// and whose other uses are nil tests only: typed T, writes read Value (endpointValue[T] of Raw) instead of Raw
+function goChan3LocalJoin (name: string, fnMasked: string, bodyStart: number, table?: Map<string, string>, receiver?: string): { type?: string, reason?: string, edits: Edit[] } {
+    const edits: Edit[] = [];
+    const types = new Set<string> ();
+    const stubs = goChan3EndpointStubs ();
+    const signatureEnd = fnMasked.indexOf ('{');
+    const occ = new RegExp ('(?<![\\w.])' + name + '(?!\\w)', 'g');
+    let decls = 0;
+    let nilable = false;
+    let declAt = -1;
+    const bad = (reason: string) => ({ reason, 'edits': [] as Edit[] });
+    for (let o = occ.exec (fnMasked); o !== null; o = occ.exec (fnMasked)) {
+        if (o.index < signatureEnd) {
+            return bad ('local-param');
+        }
+        const ls = fnMasked.lastIndexOf ('\n', o.index) + 1;
+        const le = fnMasked.indexOf ('\n', o.index);
+        const lead = fnMasked.substring (ls, o.index);
+        const after = fnMasked.substring (o.index + name.length, le);
+        const w = /^ (:?=) (r\d*)\.(Raw|Value)\s*$/.exec (after);
+        if (/^\t+$/.test (lead) && (w !== null)) {
+            decls += (w[1] === ':=') ? 1 : 0;
+            const binds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-this\\.(\\w+)\\(', 'g')) || [];
+            const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
+            const fwds = fnMasked.match (new RegExp ('\\n\\t+' + w[2] + ' := <-(?:this|this\\.Exchange|this\\.DerivedExchange|this\\.base)(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g')) || [];
+            const fwd = (fwds.length === 1) ? /\.(\w+)Async\($/.exec (fwds[0]) : null;
+            // a forward of a tabled AsyncResult[T] core (Value) or of an EndpointResult[T] carrier (Raw is the same value)
+            const fwdLookup = ((fwd !== null) && (table !== undefined) && (w[3] === 'Value')) ? goChan3Lookup (table, receiver, fwd[1]) : undefined;
+            const fwdType = (fwd === null) ? undefined : (fwdLookup ?? goChanTable ().get (fwd[1]));
+            const t = ((stub === null) ? undefined : stubs.get (stub[1])) ?? fwdType;
+            if (t === undefined) {
+                return bad ('local-untyped');
+            }
+            types.add (t);
+            if (w[3] === 'Raw') {
+                const at = o.index + name.length + w[1].length + 2 + w[2].length + 1;
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + at + 3, 'text': 'Value' });
+            }
+            continue;
+        }
+        const init = /^ any = (nil|map\[string\]any\{\})\s*$/.exec (after);
+        if (/^\t+var $/.test (lead) && (init !== null)) {
+            decls++;
+            nilable = nilable || (init[1] === 'nil');
+            if (init[1] !== 'nil') {
+                types.add ('map[string]any');
+            }
+            declAt = o.index + name.length + 1;
+            continue;
+        }
+        // `var x any = <one-line call of a GO_CHAN_CALL_TYPES producer>`: the declaration carries the producer's type
+        const callInit = /^ any = ((?:ccxt\.)?this\.\w+\(.*\))\s*$/.exec (after);
+        const callProof = ((callInit === null) || (goChanClose (callInit[1], callInit[1].indexOf ('(')) !== callInit[1].length)) ? undefined : goChanSendType (callInit[1].replace (/^ccxt\./, ''), '', '');
+        if (/^\t+var $/.test (lead) && (callProof !== undefined) && (callProof.type !== undefined) && (callProof.bind === true)) {
+            decls++;
+            types.add (callProof.type);
+            declAt = o.index + name.length + 1;
+            continue;
+        }
+        const safeDictInit = /^ any = (this\.SafeDict(2|N)?\(.*\))\s*$/.exec (after);
+        if (/^\t+var $/.test (lead) && (safeDictInit !== null) && (goChanClose (safeDictInit[1], safeDictInit[1].indexOf ('(')) === safeDictInit[1].length)) {
+            decls++;
+            types.add ('map[string]any');
+            declAt = o.index + name.length + 1;
+            const sdAt = o.index + name.length + ' any = this.'.length;
+            const sdLen = 'SafeDict'.length + (safeDictInit[2] || '').length;
+            edits.push ({ 'start': bodyStart + sdAt, 'end': bodyStart + sdAt + sdLen, 'text': 'SafeDict' + (safeDictInit[2] || '') + 'Map' });
+            continue;
+        }
+        if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
+            nilable = true;
+            continue;
+        }
+        if (/^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after)) {
+            continue;
+        }
+        return bad ('local-any');
+    }
+    const list = [ ...types ];
+    if ((decls !== 1) || (list.length !== 1) || (nilable && !goChan3Nilable (list[0]))) {
+        return bad ((list.length > 1) ? 'local-mixed' : 'local-any');
+    }
+    if (declAt >= 0) {
+        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
+    }
+    return { 'type': list[0], edits };
+}
+
+// ===== GO-CHAN3 ENDPOINT SENDS: a core's send of its own receiver's implicit-endpoint receive (stub resolved per
+// receiver's `*_api.go`): EndpointResult[T] stubs read Value; untyped stubs documented "a JSON object."/"a JSON
+// array." read MapTyped/ListTyped(rN.Value); `IsEqual(x, nil)` becomes `x == nil` (typed-nil trap). =====
+let GO_CHAN3_RECV_STUBS: Map<string, string> | undefined = undefined;
+
+// `Receiver.Stub` -> 'E:T' (EndpointResult[T]) | 'A:T' (AsyncResult[any] documented as JSON object/array)
+function goChan3ReceiverStubs (): Map<string, string> {
+    if (GO_CHAN3_RECV_STUBS === undefined) {
+        const sig = /^(?:\/\/ \w+ returns a channel that yields ([^\n]*)\n)?func \(this \*(\w+)\) (\w+)\(args \.\.\.any\) <-chan (?:ccxt\.)?(?:EndpointResult\[(.+)\]|AsyncResult\[any\]) \{$/gm;
+        const doc: { [k: string]: string } = { 'a JSON object.': 'map[string]any', 'a JSON array.': '[]any' };
+        GO_CHAN3_RECV_STUBS = goChan3ScanApiStubs (sig, (m) => [ m[2] + '.' + m[3], (m[4] !== undefined) ? ('E:' + m[4]) : ((doc[m[1] || ''] !== undefined) ? ('A:' + doc[m[1] as string]) : '') ]);
+    }
+    return GO_CHAN3_RECV_STUBS;
+}
+
+function goChan3SetReceiverStubsForTest (map: Map<string, string> | undefined) {
+    GO_CHAN3_RECV_STUBS = map;
+}
+
+// typed text of `r.field` when r is bound exactly once from `<-this.Stub(` of this receiver
+function goChan3EndpointRead (r: string, field: string, receiver: string, fnMasked: string, q: string): { type: string, text: string } | undefined {
+    const binds = fnMasked.match (new RegExp ('\\n\\t+' + r + ' := <-this\\.(\\w+)\\(', 'g')) || [];
+    const writes = fnMasked.match (new RegExp ('(?<![\\w.])' + r + '(?:\\s*,\\s*\\w+)*\\s*:?=(?!=)', 'g')) || [];
+    const stub = (binds.length === 1) ? /<-this\.(\w+)\($/.exec (binds[0]) : null;
+    const s = ((stub === null) || (writes.length !== 1)) ? undefined : goChan3ReceiverStubs ().get (receiver + '.' + stub[1]);
+    if (s === undefined) {
+        return undefined;
+    }
+    const type = s.substring (2);
+    if (s[0] === 'E') {
+        return { type, 'text': r + '.Value' };
+    }
+    return (field === 'Value') ? { type, 'text': q + ((type === '[]any') ? 'ListTyped(' : 'MapTyped(') + r + '.Value)' } : undefined;
+}
+
+// the proof of a send `{Value: expr}` (fnMasked offsets open/close of its braces) through endpoint reads, with edits
+function goChan3EndpointSend (expr: string, receiver: string, fnMasked: string, bodyStart: number, open: number, close: number, q: string, memo: Map<string, { type?: string, reason?: string, edits: Edit[] }>): { type: string, edits: Edit[] } | undefined {
+    const direct = /^(r\d*)\.(Raw|Value)$/.exec (expr);
+    if (direct !== null) {
+        const read = goChan3EndpointRead (direct[1], direct[2], receiver, fnMasked, q);
+        const at = open + 1 + 'Value: '.length;
+        return ((read === undefined) || (fnMasked.substring (at, close - 1) !== expr)) ? undefined : { 'type': read.type, 'edits': (read.text === expr) ? [] : [ { 'start': bodyStart + at, 'end': bodyStart + close - 1, 'text': read.text } ] };
+    }
+    if (!/^[a-z]\w*$/.test (expr)) {
+        return undefined;
+    }
+    const seen = memo.get ('#endpoint:' + expr);
+    if (seen !== undefined) {
+        return (seen.type === undefined) ? undefined : { 'type': seen.type, 'edits': [] };
+    }
+    const edits: Edit[] = [];
+    const types = new Set<string> ();
+    const occ = new RegExp ('(?<![\\w.])' + expr + '(?!\\w)', 'g');
+    let decls = 0;
+    let declAt = -1;
+    let ok = true;
+    for (let o = occ.exec (fnMasked); (o !== null) && ok; o = occ.exec (fnMasked)) {
+        const ls = fnMasked.lastIndexOf ('\n', o.index) + 1;
+        const lead = fnMasked.substring (ls, o.index);
+        const after = fnMasked.substring (o.index + expr.length, fnMasked.indexOf ('\n', o.index));
+        const w = /^ (:?=) (r\d*)\.(Raw|Value)\s*$/.exec (after);
+        const lit = /^ = (map\[string\]any|\[\]any)\{\s*$/.exec (after);
+        const eq = /(?:ccxt\.)?IsEqual\($/.exec (lead);
+        const done = /^ :?= (?:ccxt\.)?(MapTyped|ListTyped)\((r\d*)\.Value\)\s*$/.exec (after);
+        const doneRead = (done === null) ? undefined : goChan3EndpointRead (done[2], 'Value', receiver, fnMasked, q);
+        if (/^\t+$/.test (lead) && (doneRead !== undefined) && (doneRead.type === (((done as RegExpExecArray)[1] === 'MapTyped') ? 'map[string]any' : '[]any'))) {
+            decls += /^ :=/.test (after) ? 1 : 0;
+            types.add (doneRead.type);   // already rewritten (idempotency)
+        } else if (/^\t+$/.test (lead) && (w !== null)) {
+            const read = goChan3EndpointRead (w[2], w[3], receiver, fnMasked, q);
+            ok = read !== undefined;
+            if (read !== undefined) {
+                decls += (w[1] === ':=') ? 1 : 0;
+                types.add (read.type);
+                const at = o.index + expr.length + w[1].length + 2;
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + at + w[2].length + 1 + w[3].length, 'text': read.text });
+            }
+        } else if (/^\t+var $/.test (lead) && /^ any = nil\s*$/.test (after)) {
+            decls++;
+            declAt = o.index + expr.length + 1;
+        } else if (/^\t+$/.test (lead) && (lit !== null)) {
+            types.add (lit[1]);
+        } else if ((/^\t+$/.test (lead) && /^ = nil\s*$/.test (after)) || /^ [!=]= nil\b/.test (after)) {
+            continue;
+        } else if ((eq !== null) && after.startsWith (', nil)')) {
+            edits.push ({ 'start': bodyStart + o.index - eq[0].length, 'end': bodyStart + o.index + expr.length + ', nil)'.length, 'text': expr + ' == nil' });
+        } else {
+            ok = /^\t+ch <- (?:ccxt\.)?AsyncResult\[any\]\{Value: $/.test (lead) && /^\}\s*$/.test (after);
+        }
+    }
+    const list = [ ...types ];
+    if (!ok || (decls !== 1) || (list.length !== 1) || !goChan3Nilable (list[0])) {
+        memo.set ('#endpoint:' + expr, { 'reason': 'local-untyped', 'edits': [] });
+        return undefined;
+    }
+    if (declAt >= 0) {
+        edits.push ({ 'start': bodyStart + declAt, 'end': bodyStart + declAt + 3, 'text': list[0] });
+    }
+    memo.set ('#endpoint:' + expr, { 'type': list[0], edits });
+    return { 'type': list[0], edits };
+}
+
+function goChan3EndpointSendSelfTest (ok: (c: boolean, m: string) => void, run: (src: string) => string, throws: (src: string) => boolean, core: (recv: string, body: string) => string) {
+    goChan3SetReceiverStubsForTest (new Map ([ [ 'X.PostE', 'E:map[string]any' ], [ 'X.PostA', 'A:map[string]any' ], [ 'X.PostL', 'E:[]any' ] ]));
+    const recv = (r: string, s: string) => '\tr' + r + ' := <-this.' + s + '(a)\n\tif r' + r + '.Err != nil {\n\t\tpanic(r' + r + '.Err)\n\t}\n';
+    const d = run ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n'));
+    ok (d.includes ('ch <- AsyncResult[map[string]any]{Value: r1.Value}'), 'endpoint direct Raw send: ' + d);
+    ok (run (d) === d, 'endpoint direct idempotent');
+    const a = run ('package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Value}\n\treturn nil\n'));
+    ok (a.includes ('ch <- AsyncResult[map[string]any]{Value: MapTyped(r1.Value)}'), 'documented object stub: ' + a);
+    ok (run (a) === a, 'documented object idempotent');
+    const sd = run ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (sd.includes ('\tresponse := r1.Value\n') && sd.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'short-declared endpoint local: ' + sd);
+    ok (run (sd) === sd, 'short-declared idempotent');
+    const mix = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n' + recv ('1', 'PostA').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r1.Value\n\t} else {\n' + recv ('2', 'PostE').replace (/\n\t/g, '\n\t\t').replace (/^\t/, '\t\t') + '\t\tresponse = r2.Raw\n\t}\n\tif IsEqual(response, nil) {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (mix.includes ('\tvar response map[string]any = nil\n') && mix.includes ('response = MapTyped(r1.Value)\n') && mix.includes ('response = r2.Value\n') && mix.includes ('if response == nil {') && mix.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'mixed-stub endpoint join: ' + mix);
+    ok (run (mix) === mix, 'mixed-stub idempotent');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostL') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'list stub into map core throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostA') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'Raw of untyped stub throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostUnknown') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'unknown stub throws');
+    ok (throws ('package ccxt\n' + core ('Y', recv ('1', 'PostE') + '\tch <- AsyncResult[any]{Value: r1.Raw}\n\treturn nil\n')), 'other receiver stub throws');
+    ok (throws ('package ccxt\n' + core ('X', recv ('1', 'PostE') + '\tresponse := r1.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'endpoint local other use throws');
+    goChan3SetReceiverStubsForTest (undefined);
+}
+
+// cores of tabled methods (or every core in audit mode) with their send edits; throws on an unprovable tabled core
+function goChan3Cores (content: string, masked: string, table: Map<string, string>, audit?: Report): GoChan3Core[] {
+    const cores: GoChan3Core[] = [];
+    const q = goChanQual (content);
+    const any = '(?:ccxt\\.)?AsyncResult\\[any\\]';
+    const handDef = new RegExp ('^func \\(this \\*(\\w+)\\) (\\w+)Async\\([^\\n]*\\) <-chan ' + any + ' \\{\\n(?!\\tch := make\\(chan ' + any + ', 1\\)\\n\\tgo this\\.\\w+Body\\(ch)', 'gm');
+    for (let m = handDef.exec (masked); m !== null; m = handDef.exec (masked)) {
+        if (audit !== undefined) {
+            audit (m[2], m[1], 'hand-shape', []);
+        } else if (goChan3Lookup (table, m[1], m[2]) !== undefined) {
+            throw new Error ('GOCHAN3: ' + m[1] + '.' + m[2] + 'Async is not a generated trampoline');
+        }
+    }
+    const tramp = new RegExp ('^func \\(this \\*(\\w+)\\) (\\w+)Async\\(([^\\n]*)\\) <-chan ' + any + ' \\{\\n\\tch := make\\(chan ' + any + ', 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\n', 'gm');
+    for (let m = tramp.exec (masked); m !== null; m = tramp.exec (masked)) {
+        const [ whole, receiver, method, , bodyName ] = m;
+        const rawWant = goChan3LookupRaw (table, receiver, method);
+        const want = (rawWant === undefined) ? undefined : goChan3BaseType (rawWant);
+        if ((want === undefined) && (audit === undefined)) {
+            continue;
+        }
+        const realType = goChan3Lookup (goChan3Table (), receiver, method);
+        const structCarrier = (realType !== undefined) && goChan3StructTypes ().has (goChan3BaseType (realType));
+        const types = new Set<string> ();
+        const reasons: string[] = [];
+        const fail = (reason: string) => { reasons.push (reason); };
+        const head = '\nfunc (this *' + receiver + ') ' + bodyName + '(ch chan ' + q + 'AsyncResult[any]';
+        const headAt = masked.indexOf (head);
+        if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) {
+            fail ('body-missing');
+        }
+        const bodyStart = headAt + 1;
+        const bodyEnd = (headAt < 0) ? -1 : masked.indexOf ('\n}\n', bodyStart) + 3;
+        const edits: Edit[] = [];
+        const joins = new Map<string, { type?: string, reason?: string, edits: Edit[] }> ();
+        const freshTaken = new Set<string> ();
+        if (headAt >= 0) {
+            const fnMasked = masked.substring (bodyStart, bodyEnd);
+            const fnText = content.substring (bodyStart, bodyEnd);
+            const signature = fnMasked.substring (0, fnMasked.indexOf ('{'));
+            const lines = fnMasked.split ('\n');
+            if (!/^\tdefer close\(ch\)$/.test (lines[1]) || !/^\tdefer (?:ccxt\.)?ReturnPanicError\(ch\)$/.test (lines[2])) {
+                fail ('prologue');
+            }
+            const use = /(?<![.\w])ch(?!\w)/g;
+            for (let u = use.exec (fnMasked); u !== null; u = use.exec (fnMasked)) {
+                const before = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                if ((u.index < signature.length) || /defer (?:ccxt\.)?(?:close|ReturnPanicError)\($/.test (before)) {
+                    continue;
+                }
+                if (!/^\t*$/.test (before) || !fnMasked.startsWith ('ch <- ', u.index)) {
+                    fail ('channel-escapes');
+                    continue;
+                }
+                const at = u.index + 6;
+                // `ch <- <-X`: a forward keeps the element type only from a same-T tabled core
+                if (fnMasked.startsWith ('<-', at)) {
+                    const fwd = goChan3ReceiveMethod (fnMasked, at, table, receiver);
+                    const ft = (fwd === undefined) ? undefined : goChan3Lookup (table, receiver, fwd);
+                    const lineEnd = goChanExprEnd (fnMasked, at);
+                    if ((ft === undefined) && goChan3ResolvedOk (want, method, receiver)) {
+                        const rn = goChan3FreshName (fnText, freshTaken);
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        let receive = fnText.substring (at, lineEnd);
+                        const twin = goChan3WatchTwinSuffix (receive, want as string, structCarrier);
+                        if (twin !== undefined) {
+                            receive = receive.substring (0, twin.at) + twin.suffix + receive.substring (twin.at);
+                        }
+                        const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), (twin !== undefined) || structCarrier);
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + lineEnd, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
+                        types.add (want as string);
+                        continue;
+                    }
+                    if ((ft === undefined) || ((want !== undefined) && (ft !== want))) {
+                        fail ('forward-untabled:' + (/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (at, at + 200)) || [ '', '?' ])[1]);
+                    } else {
+                        types.add (ft);
+                    }
+                    continue;
+                }
+                const lit = new RegExp ('^' + any + '\\{').exec (fnMasked.substring (at, at + 40));
+                if (lit === null) {
+                    fail ('send-shape');
+                    continue;
+                }
+                const open = at + lit[0].length - 1;
+                const close = goChanClose (fnMasked, open);
+                const inner = fnText.substring (open + 1, close - 1);
+                const v = /^Value: ([\s\S]*)$/.exec (inner);
+                if (v === null) {
+                    // `{}` (nil) or `{Err: ..}`
+                    if (/^\s*$/.test (inner) || /^Err: /.test (inner)) {
+                        if (/^\s*$/.test (inner)) {
+                            types.add ('nil');
+                        }
+                        edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + goChan3QualType (want || 'any', q) + ']' });
+                        continue;
+                    }
+                    fail ('send-shape');
+                    continue;
+                }
+                const expr = v[1];
+                let type: string | undefined = undefined;
+                const fwdVal = /^(r\d*)\.Value$/.exec (expr);
+                const ep = goChan3EndpointSend (expr, receiver, fnMasked, bodyStart, open, close, q, joins);
+                if (ep !== undefined) {
+                    edits.push (...ep.edits);
+                    type = ep.type;
+                } else if (fwdVal !== null) {
+                    const bind = new RegExp ('\\n\\t*' + fwdVal[1] + ' := (<-)').exec (fnMasked);
+                    const fm = (bind === null) ? undefined : goChan3ReceiveMethod (fnMasked, bind.index + bind[0].length - 2, table, receiver);
+                    type = (fm === undefined) ? undefined : goChan3Lookup (table, receiver, fm);
+                    const ws = (type === undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
+                    if (ws !== undefined) {
+                        edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
+                        type = want as string;
+                    }
+                    if ((type === undefined) && (fm === undefined) && (bind !== null) && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        // the receive is bound once in this core and the coercion is its only reader: it reads the typed twin
+                        const recvAt = bind.index + bind[0].length - 2;
+                        const twin = goChan3WatchTwinSuffix (fnMasked.substring (recvAt), want as string, structCarrier);
+                        const bound = fnMasked.match (new RegExp ('\\n\\t*' + (fwdVal as RegExpExecArray)[1] + ' := ', 'g')) ?? [];
+                        if ((twin !== undefined) && (bound.length === 1)) {
+                            edits.push ({ 'start': bodyStart + recvAt + twin.at, 'end': bodyStart + recvAt + twin.at, 'text': twin.suffix });
+                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, '', true) });
+                        } else {
+                            edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, expr, want as string, q, goChan3ResolvedName (fnText, freshTaken), structCarrier) });
+                        }
+                        types.add (want as string);
+                        continue;
+                    }
+                    if (type === undefined) {
+                        const name = (bind === null) ? '?' : ((/^<-\s*[\w.()]*?\.?(\w+)\(/.exec (fnMasked.substring (bind.index + bind[0].length - 2, bind.index + bind[0].length + 200)) || [ '', '?' ])[1]);
+                        fail ('forward-untabled:' + name);
+                        continue;
+                    }
+                } else if (expr.startsWith ('<-') && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
+                    const rn = goChan3FreshName (fnText, freshTaken);
+                    const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                    const twin = goChan3WatchTwinSuffix (expr, want as string, structCarrier);
+                    const receive = (twin === undefined) ? expr : (expr.substring (0, twin.at) + twin.suffix + expr.substring (twin.at));
+                    const stmts = goChan3ResolvedStmts (ind, rn + '.Value', want as string, q, (twin !== undefined) ? rn : goChan3ResolvedName (fnText, freshTaken), (twin !== undefined) || structCarrier);
+                    edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': rn + ' := ' + receive + '\n' + ind + 'if ' + rn + '.Err != nil {\n' + ind + '\tpanic(' + rn + '.Err)\n' + ind + '}\n' + ind + stmts });
+                    types.add (want as string);
+                    continue;
+                } else if (goChan3EndpointRawType (expr, fnMasked) !== undefined) {
+                    // `rN.Raw` of a single typed endpoint / carrier receive: send its typed view (same as the local join)
+                    type = goChan3EndpointRawType (expr, fnMasked) as string;
+                    edits.push ({ 'start': bodyStart + open + 1 + 7 + expr.length - 3, 'end': bodyStart + open + 1 + 7 + expr.length, 'text': 'Value' });
+                } else {
+                    let proof: { type?: string, nil?: boolean, reason?: string } = goChanSendType (expr.replace (/^ccxt\./, ''), fnMasked, signature, (name) => goChanMethodReturn (masked, receiver, name));
+                    // `this.SafeDict(..)` under a map carrier: its typed twin SafeDictMap (exchange_safe.go) is the same read as a map (absent -> nil map)
+                    const safeDict = /^this\.SafeDict(2|N)?\(/.exec (expr);
+                    if ((proof.reason !== undefined) && (want === 'map[string]any') && (safeDict !== null) && (goChanClose (expr, safeDict[0].length - 1) === expr.length)) {
+                        const nameAt = open + 1 + 'Value: this.'.length;
+                        edits.push ({ 'start': bodyStart + nameAt, 'end': bodyStart + nameAt + safeDict[0].length - 'this.('.length, 'text': 'SafeDict' + (safeDict[1] || '') + 'Map' });
+                        proof = { 'type': want };
+                    }
+                    // `this.Events` / `this.Outcomes` (prediction cache fields, declared map[string]any in the PredictionExchange struct
+                    // table, GO_PREDICTION_STRUCT_FIELDS): already the map the carrier sends, no MapTyped around it
+                    if ((proof.reason !== undefined) && (want === 'map[string]any') && /^this\.(?:Events|Outcomes)$/.test (expr)) {
+                        proof = { 'type': want };
+                    }
+                    if ((proof.reason !== undefined) && /^local-/.test (proof.reason)) {
+                        let join = joins.get (expr);
+                        if (join === undefined) {
+                            join = goChan3LocalJoin (expr, fnMasked, bodyStart, table, receiver);
+                            joins.set (expr, join);
+                            edits.push (...join.edits);
+                        }
+                        proof = (join.type !== undefined) ? { 'type': join.type } : { 'reason': join.reason || proof.reason };
+                    }
+                    const bal = ((proof.reason !== undefined) && (want === 'map[string]any')) ? goChan3BalanceSend (expr, fnMasked, (name) => goChanMethodReturn (masked, receiver, name)) : undefined;
+                    if (bal !== undefined) {
+                        if (bal.decl !== undefined) {
+                            const d = bal.decl;
+                            if (!edits.some ((e) => (e.start === bodyStart + d.start))) {
+                                edits.push ({ 'start': bodyStart + d.start, 'end': bodyStart + d.end, 'text': 'map[string]any' });
+                            }
+                        }
+                        if (bal.value !== expr) {
+                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + bal.value });
+                        }
+                        proof = { 'type': 'map[string]any' };
+                    }
+                    const ws = (proof.reason !== undefined) ? goChan3WsSend (expr, fnMasked, want, q) : undefined;
+                    if (ws !== undefined) {
+                        if (ws !== expr) {
+                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': 'Value: ' + ws });
+                        }
+                        type = want as string;
+                    } else if (proof.nil) {
+                        type = 'nil';
+                        if ((want !== undefined) && !goChan3Nilable (want)) {
+                            edits.push ({ 'start': bodyStart + open + 1, 'end': bodyStart + close - 1, 'text': '' });
+                        }
+                    } else if ((proof.reason !== undefined) && goChan3ResolvedOk (want, method, receiver) && /^\s*$/.test (fnMasked.substring (close, fnMasked.indexOf ('\n', close)))) {
+                        const ind = fnMasked.substring (fnMasked.lastIndexOf ('\n', u.index) + 1, u.index);
+                        edits.push ({ 'start': bodyStart + u.index, 'end': bodyStart + close, 'text': goChan3ResolvedStmts (ind, fnText.substring (open + 1 + 7, close - 1), want as string, q, goChan3ResolvedName (fnText, freshTaken), structCarrier) });
+                        types.add (want as string);
+                        continue;
+                    } else if (proof.reason !== undefined) {
+                        const callee = /^(?:ccxt\.)?(?:this\.)?(\w+)\(/.exec (expr);
+                        fail (proof.reason + ((callee !== null) ? (':' + callee[1]) : ((proof.reason.startsWith ('local')) ? (':' + expr) : '')));
+                        continue;
+                    } else {
+                        type = (proof.type as string).replace (/^ccxt\./, '');
+                    }
+                }
+                types.add (type);
+                edits.push ({ 'start': bodyStart + at, 'end': bodyStart + open, 'text': q + 'AsyncResult[' + goChan3QualType (want || 'any', q) + ']' });
+            }
+        }
+        const list = [ ...types ];
+        if (want !== undefined) {
+            for (const t of list) {
+                if ((t === 'nil') ? !goChan3AllowsNil (rawWant as string) : (t !== want)) {
+                    fail ('type-' + t);
+                }
+            }
+        } else if (list.filter ((t) => t !== 'nil').length > 1) {
+            fail ('mixed-types');
+        }
+        if (audit !== undefined) {
+            audit (method, receiver, [ ...new Set (reasons) ].join (','), list);
+        }
+        if ((want === undefined) || (audit !== undefined && reasons.length)) {
+            continue;
+        }
+        if (reasons.length) {
+            throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async cannot carry AsyncResult[' + want + ']: ' + [ ...new Set (reasons) ].join (', '));
+        }
+        const carrier = q + 'AsyncResult[' + goChan3QualType (want, q) + ']';
+        const asyncText = content.substring (m.index, m.index + whole.length).replace (/\) <-chan (?:ccxt\.)?AsyncResult\[any\] \{/, ') <-chan ' + carrier + ' {').replace (/make\(chan (?:ccxt\.)?AsyncResult\[any\], 1\)/, 'make(chan ' + carrier + ', 1)');
+        edits.push ({ 'start': m.index, 'end': m.index + whole.length, 'text': asyncText });
+        const headEnd = content.indexOf ('\n', bodyStart);
+        edits.push ({ 'start': bodyStart, 'end': headEnd, 'text': content.substring (bodyStart, headEnd).replace ('(ch chan ' + q + 'AsyncResult[any]', '(ch chan ' + carrier) });
+        cores.push ({ receiver, method, 'asyncStart': m.index, 'asyncEnd': m.index + whole.length, bodyStart, bodyEnd, edits });
+    }
+    return cores;
+}
+
+// the enclosing top-level func [start, end) of `at`
+function goChan3Func (masked: string, at: number): [ number, number ] {
+    const s = masked.lastIndexOf ('\nfunc ', at) + 1;
+    const e = masked.indexOf ('\n}\n', at);
+    return [ s, (e < 0) ? masked.length : e + 2 ];
+}
+
+// consumers: every `rN := <-RECV.MAsync(..)` of a tabled method, `ch <- <-RECV.MAsync(..)` forwards into an
+// untabled channel, and the interface lines
+function goChan3ConsumerEdits (content: string, masked: string, table: Map<string, string>, cores: GoChan3Core[], coreSendAt: (at: number) => string | undefined): Edit[] {
+    const edits: Edit[] = [];
+    const q = goChanQual (content);
+    const names = [ ...new Set ([ ...table.keys () ].map ((k) => k.replace (/^\w+\./, ''))) ];
+    if (!names.length) {
+        return edits;
+    }
+    const inHead = (at: number) => cores.some ((c) => (at >= c.asyncStart) && (at < c.asyncEnd));
+    const call = new RegExp ('\\.(' + names.join ('|') + ')Async\\b', 'g');
+    const fresh = new Map<number, Set<string>> ();
+    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const lineEnd = masked.indexOf ('\n', m.index);
+        const line = masked.substring (lineStart, lineEnd);
+        if (inHead (m.index) || /^func /.test (line) || /^\t\w+Async\(/.test (line)) {
+            continue;
+        }
+        if (masked[m.index + m[0].length] !== '(') {
+            continue; // method value: Spawn / CallDynamically receive it reflectively
+        }
+        const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
+        if (!GO_CHAN3_RECEIVERS.test (r.recv)) {
+            throw new Error ('GOCHAN3: unknown receiver ' + r.recv + ' for ' + m[1] + 'Async');
+        }
+        const encRecv = goChan3EnclosingReceiver (masked, m.index);
+        const looked = goChan3Lookup (table, encRecv, m[1]);
+        if (looked === undefined) {
+            continue;
+        }
+        const type = looked;
+        const nilable = goChan3Nilable (type);
+        const pre = masked.substring (lineStart, r.start);
+        const callEnd = goChanClose (masked, m.index + m[0].length);
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+        // forward `ch <- <-X`
+        const fwd = /^(\t+)(\w+) <- <-$/.exec (pre);
+        if (fwd !== null) {
+            const outer = coreSendAt (m.index);
+            if (outer === type) {
+                continue;
+            }
+            if (outer !== undefined) {
+                throw new Error ('GOCHAN3: forward of ' + m[1] + ' into an AsyncResult[' + outer + '] core');
+            }
+            const taken = fresh.get (fs0) || new Set<string> ();
+            fresh.set (fs0, taken);
+            const n = goChan3FreshName (content.substring (fs0, fe0), taken);
+            const value = nilable ? (q + 'BoxAbsent(' + n + '.Value)') : (n + '.Value');
+            const text = fwd[1] + n + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + fwd[2] + ' <- ' + q + 'AsyncResult[any]{Value: ' + value + ', Err: ' + n + '.Err}';
+            edits.push ({ 'start': lineStart, 'end': callEnd, text });
+            continue;
+        }
+        const bind = /^\t+(r\d*) := <-$/.exec (pre);
+        if (bind === null) {
+            // PanicOnError((<-X)) / promiseAll element / handed-on channel: left typed for the runtime's untyped accessor
+            continue;
+        }
+        const name = bind[1];
+        const scope = masked.substring (callEnd, fe0);
+        const use = new RegExp ('(?<![\\w.])' + name + '\\.Value\\b', 'g');
+        for (let u = use.exec (scope); u !== null; u = use.exec (scope)) {
+            const at = callEnd + u.index;
+            const end = at + u[0].length;
+            const ls = masked.lastIndexOf ('\n', at) + 1;
+            const le = masked.indexOf ('\n', at);
+            const before = masked.substring (ls, at);
+            const after = masked.substring (end, le);
+            // a struct channel read already boxed or converted by goChan3StructPass (replay): idempotent
+            if (/(?:^|[^\w.])(?:ccxt\.)?(?:Struct(?:Box|ResultMap|Absent)|\w+From(?:Map|List)|ToString|ToFloat64|ParseInt)\($/.test (before)) {
+                continue;
+            }
+            // a list-of-struct read already boxed / a same-T []T send, emitted by goChan3StructListPass (replay)
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
+                continue;
+            }
+            // a typed map-of-struct wrapper read (`Tickers{Tickers: r.Value}`) emitted by goChan3StructPass (replay)
+            const typedDict = /(?:^|[^\w.])(?:ccxt\.)?(\w+)\{(\w+): $/.exec (before);
+            if ((typedDict !== null) && (after[0] === '}') && Object.values (GO_CHAN3_STRUCT_MAPS).includes (typedDict[1]) && ((GO_CHAN3_STRUCT_MAP_FIELDS[typedDict[1]] ?? typedDict[1]) === typedDict[2])) {
+                continue;
+            }
+            // native absent fold or comma-ok nil check already emitted: idempotent
+            if ((nilable && /^\s*(?:,\s*\w+\.Value\s*)?[!=]= nil\b/.test (after)) || goChan3AbsentGuarded (masked, ls, name + '.Value')) {
+                continue;
+            }
+            const assert = /^\.\(([^()]+)\)/.exec (after);
+            // type switch over an already boxed typed value (replay): idempotent
+            if (/\bswitch \w+ := any\($/.test (before) && /^\)\.\(type\)/.test (after)) {
+                continue;
+            }
+            if (assert !== null) {
+                // type switch already emitted over an untyped forward (`switch xBox := r.Value.(type)`): box the now-typed value
+                if ((assert[1] === 'type') && /\bswitch \w+ := $/.test (before)) {
+                    edits.push ({ 'start': at, 'end': end, 'text': 'any(' + name + '.Value)' });
+                    continue;
+                }
+                if ((type === '*string') && (assert[1] === 'string')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ToString(' + name + '.Value)' });
+                    continue;
+                }
+                if (((type === '*int64') || (type === '*float64')) && (assert[1] === 'float64')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ToFloat64(' + name + '.Value)' });
+                    continue;
+                }
+                if ((type === '*int64') && (assert[1] === 'int64')) {
+                    edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': q + 'ParseInt(' + name + '.Value)' });
+                    continue;
+                }
+                if (assert[1] !== goChan3QualType (type, q)) {
+                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' asserted to ' + assert[1] + ', table says ' + type);
+                }
+                // comma-ok `x, ok := r.Value.(T)`: ok was false only for an absent (nil) value
+                const commaOk = /^\t+\w+, \w+ :?= $/.test (before) && /^\s*$/.test (after.substring (assert[0].length));
+                const nilable = /^(?:\[\]|map\[|\*)/.test (type);
+                if (commaOk && !nilable) {
+                    throw new Error ('GOCHAN3: comma-ok assertion of ' + m[1] + ' on a value type ' + type);
+                }
+                edits.push ({ 'start': end, 'end': end + assert[0].length, 'text': commaOk ? (', ' + name + '.Value != nil') : '' });
+                continue;
+            }
+            const typed = /((?:ccxt\.)?)(MapTyped|ListTyped)\($/.exec (before);
+            if ((typed !== null) && (after[0] === ')') && (type === ((typed[2] === 'MapTyped') ? 'map[string]any' : '[]any'))) {
+                edits.push ({ 'start': at - typed[0].length, 'end': end + 1, 'text': name + '.Value' });
+                continue;
+            }
+            if (/^\t+var \w+ [^=]+ = $/.test (before) && /^\s*$/.test (after)) {
+                const declared = (/^\t+var \w+ ([^=]+) = $/.exec (before) as RegExpExecArray)[1].trim ();
+                if ((declared === goChan3QualType (type, q)) || !/^(?:any|interface\{\})$/.test (declared)) {
+                    continue; // `var x T = r.Value` (or a mismatched declaration the compiler reports)
+                }
+            }
+            if (/(?:^|[^\w.])(?:ccxt\.)?New\w+\($/.test (before) && (after[0] === ')')) {
+                continue; // typed wrapper conversions take any
+            }
+            if (/BoxAbsent\($/.test (before)) {
+                continue;
+            }
+            // `x := r.Value`: typed local unless rebound or nil-compared
+            const short = /^(\t+)(\w+) := $/.exec (before);
+            if ((short !== null) && /^\s*$/.test (after)) {
+                const x = short[2];
+                const [ , fe ] = goChan3Func (masked, at);
+                const rest = masked.substring (le, fe);
+                const rebound = new RegExp ('(?<![\\w.])' + x + '(?:\\s*,\\s*\\w+)*\\s*(?::?=(?!=)|\\+=|-=|\\+\\+|--)|&' + x + '\\b|,\\s*' + x + '\\s*:?=(?!=)').test (rest);
+                const nilCmp = new RegExp ('(?<![\\w.])' + x + '\\s*[!=]=\\s*nil|nil\\s*[!=]=\\s*' + x + '(?![\\w.])').test (rest);
+                const closure = new RegExp ('func\\s*\\([^)]*\\b' + x + ' ').test (rest);
+                if (!rebound && !closure && !nilCmp && !nilable) {
+                    continue; // scalar T: x is a native typed local
+                }
+                // x only forwarded by a same-T core send (`ch <- AsyncResult[T]{Value: x}`): keep it typed
+                const uses = rest.match (new RegExp ('(?<![\\w.])' + x + '(?![\\w.])', 'g')) || [];
+                const sends = rest.match (new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[[^\\n]*\\]\\{Value: (?:[\\w.]+From(?:Map|List)\\()?' + x + '\\)?\\}', 'g')) || [];
+                if (!rebound && !closure && !nilCmp && uses.length && (uses.length === sends.length) && (coreSendAt (at) === type)) {
+                    continue;
+                }
+                if (!rebound && !closure && nilable) {
+                    // nilable T handed on through any: BoxAbsent keeps absent == nil (typed-nil trap)
+                    edits.push ({ 'start': ls, 'end': end, 'text': short[1] + x + ' := ' + q + 'BoxAbsent(' + name + '.Value)' });
+                    continue;
+                }
+                edits.push ({ 'start': ls, 'end': end, 'text': short[1] + 'var ' + x + ' any = ' + (nilable ? (q + 'BoxAbsent(' + name + '.Value)') : (name + '.Value')) });
+                continue;
+            }
+            // `ch <- AsyncResult[any]{Value: r.Value}`: a same-T core send is retyped by the core pass
+            const send = /^\t+(\w+) <- (?:ccxt\.)?AsyncResult\[(.+)\]\{Value: $/.exec (before);
+            if ((send !== null) && goChan3IsStructType (send[2])) {
+                continue;   // a struct core's same-T send (replay)
+            }
+            if ((send !== null) && (after[0] === '}')) {
+                const outer = coreSendAt (at);
+                if (outer === type) {
+                    continue;
+                }
+                if (outer !== undefined) {
+                    throw new Error ('GOCHAN3: ' + m[1] + ' forwarded into an AsyncResult[' + outer + '] core');
+                }
+            }
+            if (/(?:[!=]=\s*nil)/.test (after.substring (0, 8)) && !nilable) {
+                throw new Error ('GOCHAN3: ' + name + '.Value of ' + m[1] + ' (' + type + ') compared with nil');
+            }
+            if (nilable) {
+                edits.push ({ 'start': at, 'end': end, 'text': q + 'BoxAbsent(' + name + '.Value)' });
+            }
+        }
+    }
+    return edits;
+}
+
+// ===== GO-CHAN3 promiseAll: `<-promiseAll([]any{A, B})` of one-T stubs/cores, read only as `GetValue(V, k)` =====
+// -> `PromiseAllTyped[T, C](A, B)` (C = AsyncResult[T] | EndpointResult[T]), `var V []T = rN.Value`, `BoxAbsent(V[k])`
+// (an absent element stays untyped nil).
+function goChan3PromiseAllPass (content: string, table: Map<string, string>): string {
+    if (content.search (/[pP]romiseAll\(\[\]any\{/) < 0) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const q = goChanQual (content);
+    const stubs = goChan3EndpointStubs ();
+    const edits: Edit[] = [];
+    const site = /^(\t+)(r\d*) := <-(?:ccxt\.)?[pP]romiseAll\(\[\]any\{/gm;
+    for (let m = site.exec (masked); m !== null; m = site.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        if (masked.substring (close, close + 2) !== ')\n') {
+            continue;
+        }
+        const [ fs0, fe0 ] = goChan3Func (masked, m.index);
+        const fn = masked.substring (fs0, fe0);
+        const r = m[2];
+        const tail = masked.substring (close + 2);
+        const ind = m[1];
+        const head = new RegExp ('^' + ind + 'if ' + r + '\\.Err != nil \\{\\n' + ind + '\\tpanic\\(' + r + '\\.Err\\)\\n' + ind + '\\}\\n' + ind + 'var (\\w+) \\[\\]any = (?:ccxt\\.)?ListTyped\\(' + r + '\\.Value\\)\\n').exec (tail);
+        if (head === null) {
+            continue;
+        }
+        const v = head[1];
+        // elements split at depth 0
+        const elems: { start: number, end: number }[] = [];
+        let depth = 0;
+        let s = open + 1;
+        for (let i = open + 1; i < close - 1; i++) {
+            const c = masked[i];
+            depth += ((c === '(') || (c === '{') || (c === '[')) ? 1 : (((c === ')') || (c === '}') || (c === ']')) ? -1 : 0);
+            if ((c === ',') && (depth === 0)) {
+                elems.push ({ 'start': s, 'end': i });
+                s = i + 1;
+            }
+        }
+        elems.push ({ 'start': s, 'end': close - 1 });
+        const types = new Set<string> ();
+        const local: Edit[] = [];
+        const args: string[] = [];
+        // `EndpointRaw(this.E(..))` re-boxes a typed stub for PromiseAll: the typed variant takes the channel itself
+        const unwrap = (t: string) => { const w = /^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/.exec (t); return ((w !== null) && (goChanClose (t, t.indexOf ('(')) === t.length)) ? w[1] : t; };
+        let ok = elems.length > 0;
+        for (const e of elems) {
+            const text = masked.substring (e.start, e.end).trim ();
+            let call = unwrap (text);
+            const id = /^\w+$/.exec (text);
+            if (id !== null) {
+                const decl = new RegExp ('\\n(\\t+)var ' + text + ' any = ([^\\n]*)\\n', 'g');
+                const d = [ ...fn.matchAll (decl) ];
+                const uses = fn.match (new RegExp ('(?<![\\w.])' + text + '(?!\\w)', 'g')) || [];
+                if ((d.length !== 1) || (uses.length !== 2)) {
+                    ok = false;
+                    break;
+                }
+                call = unwrap (d[0][2]);
+                const at = fs0 + (d[0].index as number) + 1;
+                local.push ({ 'start': at, 'end': at + d[0][0].length - 2, 'text': d[0][1] + text + ' := ' + content.substring (at + d[0][0].length - 2 - d[0][2].length, at + d[0][0].length - 2).replace (/^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/, '$1') });
+                args.push (text);
+            } else {
+                args.push (content.substring (e.start, e.end).trim ().replace (/^(?:ccxt\.)?EndpointRaw\(([\s\S]*)\)$/, '$1'));
+            }
+            const c = /^this\.(\w+)\(/.exec (call);
+            if ((c === null) || (goChanClose (call, call.indexOf ('(')) !== call.length)) {
+                ok = false;
+                break;
+            }
+            const core = /^(\w+)Async$/.exec (c[1]);
+            const t = (core !== null) ? table.get (core[1]) : stubs.get (c[1]);
+            types.add (((core !== null) ? 'A:' : 'E:') + (t || '?'));
+            ok = ok && (t !== undefined);
+        }
+        if (!ok || (types.size !== 1)) {
+            continue;
+        }
+        const kind = [ ...types ][0];
+        const type = kind.substring (2);
+        const carrier = q + ((kind[0] === 'A') ? 'AsyncResult[' : 'EndpointResult[') + type + ']';
+        const declEnd = close + 2 + head[0].length;
+        const rest = masked.substring (declEnd, fe0);
+        const read = new RegExp ('(?<![\\w.])((?:ccxt\\.)?GetValue\\()?' + v + '(?!\\w)(, (\\d+)\\))?', 'g');
+        const reads: Edit[] = [];
+        for (let u = read.exec (rest); u !== null; u = read.exec (rest)) {
+            if ((u[1] === undefined) || (u[3] === undefined) || (Number (u[3]) >= elems.length)) {
+                ok = false;
+                break;
+            }
+            reads.push ({ 'start': declEnd + u.index, 'end': declEnd + u.index + u[0].length, 'text': q + 'BoxAbsent(' + v + '[' + u[3] + '])' });
+        }
+        if (!ok || new RegExp ('(?<![\\w.])' + r + '(?!\\w)').test (rest)) {
+            continue;
+        }
+        edits.push (...local, ...reads);
+        edits.push ({ 'start': m.index + m[1].length + r.length + 6, 'end': close + 1, 'text': q + 'PromiseAllTyped[' + type + ', ' + carrier + '](' + args.join (', ') + ')' });
+        const varLine = head[0].split ('\n')[3];
+        edits.push ({ 'start': declEnd - 1 - varLine.length, 'end': declEnd - 1, 'text': ind + 'var ' + v + ' []' + type + ' = ' + r + '.Value' });
+    }
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// ===== GO-CHAN3 STRUCT: unified-struct channels (`AsyncResult[map[string]any]` -> `AsyncResult[T]`) =====
+// Proven above on the map shadow; goChan3StructPass retypes cores (sends `TFromMap(E)`), interfaces (not IPrediction*)
+// and consumers (`NewT` / `.(T)` read T, other reads box with `TToMap`). Prediction venues keep the map shadow.
+const GO_CHAN3_EXTRA_STRUCTS: string[] = [
+    'ADL', 'CrossBorrowRate', 'IsolatedBorrowRate', 'LastPrice', 'LongShortRatio',
+    'MarginModification', 'Liquidation', 'BorrowInterest', 'FundingHistory',
+    'FundingRateHistory', 'LeverageTier', 'Status', 'PositionModeInfo',
+    'DepositWithdrawFee', 'Account', 'OrderBook', 'OrderBookL3',
+    'MarginLoan', 'Balance', 'Balances', 'LeverageTiers',
+    'MarketInterface', 'Currency', 'Currencies',
+    'PredictionTicker', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition',
+    'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest',
+    'PredictionEvent', 'PredictionSettlement', 'PredictionOutcome',
+];
+
+const GO_CHAN3_SHARED_PRED_STRUCTS = new Set<string> ([
+    'Account', 'Balance', 'Balances', 'LeverageTiers', 'LeverageTier', 'MarginLoan',
+    'MarketInterface', 'Currency', 'Currencies', 'PredictionEvent', 'PredictionOutcome',
+]);
+
+function goChan3IsPredOnlyStruct (t: string): boolean {
+    return /^(?:map\[string\]|\[\])?Prediction/.test (t);
+}
+
+function goChan3StructTypes (): Set<string> {
+    const base = [ ...new Set ([ ...Object.keys (GO_STRUCT_RETURN_TYPES).filter ((t) => GO_STRUCT_RETURN_TYPES[t].to === undefined), ...GO_CHAN3_EXTRA_STRUCTS ]) ];
+    // map-of-struct channels: `map[string]T` (a string-keyed dict of T, e.g. fetchTickers) rides the same pass
+    return new Set ([ ...base, ...base.filter ((t) => GO_CHAN3_STRUCT_MAPS[t] !== undefined).map ((t) => 'map[string]' + t), 'map[string]map[string][]OHLCV' ]);
+}
+
+// struct element -> the typed wrapper container of its string-keyed dict (`Tickers{Tickers: map[string]Ticker}`)
+const GO_CHAN3_STRUCT_MAPS: Record<string, string> = {
+    'Ticker': 'Tickers', 'FundingRate': 'FundingRates', 'OpenInterest': 'OpenInterests',
+    'TradingFeeInterface': 'TradingFees', 'Leverage': 'Leverages', 'MarginMode': 'MarginModes',
+    'IsolatedBorrowRate': 'IsolatedBorrowRates', 'LastPrice': 'LastPrices',
+    'DepositWithdrawFee': 'DepositWithdrawFees', 'DepositAddress': 'DepositAddresses',
+    'CrossBorrowRate': 'CrossBorrowRates', 'OrderBook': 'OrderBooks',
+    'Greeks': 'AllGreeks', 'Option': 'OptionChain',
+    'PredictionTicker': 'PredictionTickers',
+    'PredictionOutcome': 'PredictionOutcomes', 'PredictionEvent': 'PredictionEvents',
+};
+
+const GO_CHAN3_STRUCT_MAP_FIELDS: Record<string, string> = {
+    'AllGreeks': 'Greeks', 'OptionChain': 'Chains', 'PredictionTickers': 'Tickers',
+};
+
+// `map[string]T` -> T (undefined for a single struct)
+function goChan3StructMapElem (t: string): string | undefined {
+    const m = /^map\[string\](?:ccxt\.)?(\w+)$/.exec (t);
+    return (m === null) ? undefined : m[1];
+}
+
+// a struct channel type as written in a file with qualifier q (`map[string]ccxt.Ticker`, `ccxt.Order`)
+function goChan3StructQual (t: string, q: string): string {
+    if (t === 'map[string]map[string][]OHLCV') {
+        return 'map[string]map[string][]' + q + 'OHLCV';
+    }
+    const e = goChan3StructMapElem (t);
+    return (e === undefined) ? (q + t) : ('map[string]' + q + e);
+}
+
+// the from/to helper base name of a struct channel type (`TickerMap` for map[string]Ticker)
+function goChan3StructHelper (t: string): string {
+    if (t === 'map[string]map[string][]OHLCV') {
+        return 'OHLCVForSymbolsMap';
+    }
+    const e = goChan3StructMapElem (t);
+    return (e === undefined) ? t : (e + 'Map');
+}
+
+// is t (optionally ccxt.-qualified) a struct channel type
+function goChan3IsStructType (t: string): boolean {
+    return goChan3StructTypes ().has (t.replace (/^ccxt\./, '').replace (/^map\[string\]ccxt\./, 'map[string]').replace (/^map\[string\]map\[string\]\[\]ccxt\./, 'map[string]map[string][]'));
+}
+
+function goChan3Escape (s: string): string {
+    return s.replace (/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// method -> struct T of the tabled struct channels
+function goChan3StructEntries (table: Map<string, string>, predScope = false): Map<string, string> {
+    const structs = goChan3StructTypes ();
+    if (!predScope) {
+        return new Map ([ ...table ].filter (([ m, t ]) => !m.startsWith ('Prediction.') && structs.has (t) && (!goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (goChan3StructMapElem (t) ?? t))));
+    }
+    const out = new Map<string, string> ();
+    for (const [ m, t ] of table) {
+        if (!structs.has (t)) {
+            continue;
+        }
+        if (!m.startsWith ('Prediction.') && (goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (goChan3StructMapElem (t) ?? t))) {
+            out.set (m, t);
+        }
+    }
+    for (const [ m, t ] of table) {
+        if (m.startsWith ('Prediction.') && structs.has (t)) {
+            out.set (m.slice (11), t);
+        }
+    }
+    return out;
+}
+
+// the table the proofs run on: struct channels as their map shadow (list-of-struct channels as []any)
+function goChan3Shadow (table: Map<string, string>): Map<string, string> {
+    const structs = goChan3StructTypes ();
+    return new Map ([ ...table ].map (([ m, t ]) => [ m, structs.has (t) ? 'map[string]any' : ((goChan3ListElem (t) !== undefined) ? '[]any' : t) ]));
+}
+
+// `at` sits in prediction code: a ccxtprediction file or a PredictionExchange method
+function goChan3PredictionScope (masked: string, at: number): boolean {
+    if (/^package ccxtprediction\s*$/m.test (masked.substring (0, 200))) {
+        return true;
+    }
+    const [ fs0 ] = goChan3Func (masked, at);
+    return /^func \(this \*PredictionExchange\)/.test (masked.substring (fs0, fs0 + 40));
+}
+
+// element type of the core body enclosing `at` (undefined outside a core body)
+function goChan3CoreTypeAt (masked: string, at: number): string | undefined {
+    const [ fs0 ] = goChan3Func (masked, at);
+    const head = masked.substring (fs0, masked.indexOf ('\n', fs0));
+    const m = /^func \(this \*\w+\) \w+\(ch chan (?:ccxt\.)?AsyncResult\[(.+?)\](?:,|\))/.exec (head);
+    return (m === null) ? undefined : m[1];
+}
+
+// the method a `rN` read in the function holding `at` was received from (last bind before `at`)
+function goChan3BindMethod (masked: string, at: number, name: string): string | undefined {
+    const [ fs0 ] = goChan3Func (masked, at);
+    const binds = [ ...masked.substring (fs0, at).matchAll (new RegExp ('\\n\\t+' + name + ' := <-[\\w.]+(?:\\.\\((?:ccxt\\.)?I\\w+\\))?\\.(\\w+)Async\\(', 'g')) ];
+    return binds.length ? binds[binds.length - 1][1] : undefined;
+}
+
+// the struct T of that method
+function goChan3StructBind (masked: string, at: number, name: string, structs: Map<string, string>): string | undefined {
+    const bm = goChan3BindMethod (masked, at, name);
+    if (bm === undefined) {
+        return undefined;
+    }
+    const enc = goChan3EnclosingReceiver (masked, at);
+    return ((enc !== undefined) ? structs.get (enc + '.' + bm) : undefined) ?? structs.get (bm);
+}
+
+// retype a struct-family core: its trampoline `whole` at `at` and the single body head `bodyName(ch chan AsyncResult[<shadow>]`
+// move to `carrier`; returns the body span [start, end)
+function goChan3RetypeCore (content: string, masked: string, at: number, whole: string, bodyName: string, q: string, shadow: string, carrier: string, what: string, edits: Edit[]): [ number, number ] {
+    const receiver = /^func \(this \*(\w+)\)/.exec (whole) as RegExpExecArray;
+    edits.push ({ 'start': at, 'end': at + whole.length, 'text': content.substring (at, at + whole.length).replace (new RegExp ('(?:ccxt\\.)?AsyncResult\\[' + goChan3Escape (shadow) + '\\]', 'g'), carrier) });
+    const head = '\nfunc (this *' + receiver[1] + ') ' + bodyName + '(ch chan ' + q + 'AsyncResult[' + shadow + ']';
+    const headAt = masked.indexOf (head);
+    if ((headAt < 0) || (masked.indexOf (head, headAt + 1) >= 0)) {
+        throw new Error ('GOCHAN3: ' + what + 'Async has no single body');
+    }
+    const bodyStart = headAt + 1;
+    const headEnd = masked.indexOf ('\n', bodyStart);
+    edits.push ({ 'start': bodyStart, 'end': headEnd, 'text': content.substring (bodyStart, headEnd).replace (q + 'AsyncResult[' + shadow + ']', carrier) });
+    return [ bodyStart, masked.indexOf ('\n}\n', bodyStart) + 3 ];
+}
+
+// same-T struct forwards in a core body (`retResN := rN.Value`, nil-tested and sent, rN binding the core's T): the
+// map round trip is the identity, so each block becomes `ch <- AsyncResult[T]{Value: rN.Value}`. Returns
+// [start, end, text] edits within [bodyStart, bodyEnd).
+function goChan3SameTForwards (content: string, masked: string, bodyStart: number, bodyEnd: number, st: string, carrier: string, coreStructs: Map<string, string>): [ number, number, string ][] {
+    const out: [ number, number, string ][] = [];
+    const fn = masked.substring (bodyStart, bodyEnd);
+    const shadow = '(?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\]';
+    const decl = /\n([ \t]*)(?:var (retRes\d+) map\[string\]any = |(retRes\d+) := )(\w+)\.Value[ \t]*(?=\n)/g;
+    for (let m = decl.exec (fn); m !== null; m = decl.exec (fn)) {
+        const [ , ind ] = m;
+        const name = m[2] ?? m[3];
+        const recv = m[4];
+        const declEnd = m.index + m[0].length;
+        const tail = new RegExp ('^((?:\\n[ \\t]*)*)\\n' + ind + '(?:if ' + name + ' == nil \\{\\n' + ind + '\\tch <- ' + shadow + '\\{(?:Value: nil)?\\}\\n' + ind + '\\} else \\{\\n' + ind + '\\tch <- ' + shadow + '\\{Value: ' + name + '\\}\\n' + ind + '\\}'
+            + '|ch <- ' + shadow + '\\{Value: ' + name + '\\})').exec (fn.substring (declEnd));
+        if (tail === null) {
+            continue;
+        }
+        const uses = new RegExp ('(?<![\\w.])' + name + '\\b', 'g');
+        const blockEnd = declEnd + tail[0].length;
+        if ((fn.match (uses) ?? []).length !== (fn.substring (m.index, blockEnd).match (uses) ?? []).length) {
+            continue;   // the local is read elsewhere: it keeps the map round trip
+        }
+        if (goChan3StructBind (masked, bodyStart + m.index + 1, recv, coreStructs) !== st) {
+            continue;
+        }
+        const gap = content.substring (bodyStart + declEnd, bodyStart + declEnd + tail[1].length);
+        const sent = tail[0].substring (tail[1].length);
+        if ((content.substring (bodyStart + m.index, bodyStart + declEnd) !== m[0]) || (content.substring (bodyStart + declEnd + tail[1].length, bodyStart + blockEnd) !== sent)) {
+            continue;   // a trailing comment on the declaration or a send line: keep it
+        }
+        out.push ([ bodyStart + m.index + 1, bodyStart + blockEnd, ((gap === '') ? '' : (gap.substring (1) + '\n')) + ind + 'ch <- ' + carrier + '{Value: ' + recv + '.Value}' ]);
+    }
+    return out;
+}
+
+// one tabled family of consumers (struct / list-of-struct): element proof, forward boxing and the per-read rewrite
+interface GoChan3ConsumerRule {
+    elem: (at: number, method: string, r: { recv: string, start: number }) => string | undefined;
+    inCore: (at: number) => [ number, number, string ] | undefined;
+    shadow: string;
+    label: (T: string) => string;
+    same: (T: string) => string[];
+    fwdValue: (T: string, outer: string | undefined, rn: string) => string;
+    bind: RegExp;
+    unbound: (pre: string, method: string, line: string) => void;
+    read: (u: { at: number, end: number, read: string, before: string, after: string, name: string, method: string, T: string, line: string, fe0: number }) => void;
+}
+
+// consumers: `rN := <-RECV.MAsync(..)` reads of a tabled method and `ch <- <-RECV.MAsync(..)` forwards into an untyped core
+function goChan3ConsumerWalk (content: string, masked: string, q: string, fresh: (at: number) => string, alt: string, promiseArgs: [ number, number ][], edits: Edit[], rule: GoChan3ConsumerRule) {
+    const call = new RegExp ('\\.(' + alt + ')Async\\(', 'g');
+    for (let m = call.exec (masked); m !== null; m = call.exec (masked)) {
+        const ls = masked.lastIndexOf ('\n', m.index) + 1;
+        const line = masked.substring (ls, masked.indexOf ('\n', m.index));
+        if (/^func /.test (line) || /^\t\w+Async\(/.test (line) || promiseArgs.some (([ s, e ]) => (m.index > s) && (m.index < e))) {
+            continue;
+        }
+        const r = goChan3Receiver (masked, m.index) as { recv: string, start: number };
+        const T = rule.elem (m.index, m[1], r);
+        if (T === undefined) {
+            continue;
+        }
+        const pre = masked.substring (ls, r.start);
+        const callEnd = goChanClose (masked, m.index + m[0].length - 1);
+        const [ , fe0 ] = goChan3Func (masked, m.index);
+        const fwd = /^(\t+)ch <- <-$/.exec (pre);
+        if (fwd !== null) {
+            if (rule.inCore (m.index) !== undefined) {
+                continue;   // the core section owns forwards inside its cores
+            }
+            const outer = goChan3CoreTypeAt (masked, m.index);
+            if ((outer !== undefined) && rule.same (T).includes (outer)) {
+                continue;   // same-T forward (replay)
+            }
+            if ((outer !== 'any') && (outer !== rule.shadow)) {
+                throw new Error ('GOCHAN3: forward of ' + m[1] + ' (' + rule.label (T) + ') into an AsyncResult[' + outer + '] core');
+            }
+            const rn = fresh (m.index);
+            const carrier = q + 'AsyncResult[' + outer + ']';
+            edits.push ({ 'start': ls, 'end': callEnd, 'text': fwd[1] + rn + ' := <-' + content.substring (r.start, callEnd) + '\n' + fwd[1] + 'ch <- ' + carrier + '{Value: ' + rule.fwdValue (T, outer, rn) + ', Err: ' + rn + '.Err}' });
+            continue;
+        }
+        const bind = rule.bind.exec (pre);
+        if (bind === null) {
+            rule.unbound (pre, m[1], line);
+            continue;
+        }
+        const name = bind[1];
+        const scope = masked.substring (callEnd, fe0);
+        const rebind = new RegExp ('\\n\\t+' + name + ' := ').exec (scope);
+        const limit = callEnd + ((rebind === null) ? scope.length : rebind.index);
+        const use = new RegExp ('(?<![\\w.])' + name + '\\.Value\\b', 'g');
+        use.lastIndex = callEnd;
+        for (let u = use.exec (masked); (u !== null) && (u.index < limit); u = use.exec (masked)) {
+            const at = u.index;
+            const end = at + u[0].length;
+            const uls = masked.lastIndexOf ('\n', at) + 1;
+            const before = masked.substring (uls, at);
+            const after = masked.substring (end, masked.indexOf ('\n', end));
+            rule.read ({ 'at': at, 'end': end, 'read': u[0], 'before': before, 'after': after, 'name': name, 'method': m[1], 'T': T, 'line': line, 'fe0': fe0 });
+        }
+    }
+}
+
+function goChan3StructPass (content: string, table: Map<string, string>): string {
+    const predictionFile = /^package ccxtprediction\s*$/m.test (content);
+    const regStructs = goChan3StructEntries (table, false);
+    const predStructs = goChan3StructEntries (table, true);
+    const names = [ ...new Set ((predictionFile ? [ ...predStructs.keys () ] : [ ...regStructs.keys (), ...predStructs.keys () ]).map ((k) => k.replace (/^\w+\./, ''))) ];
+    if (!names.length || !names.some ((n) => content.includes (n + 'Async('))) {
+        return content;
+    }
+    const q = goChanQual (content);
+    const alt = names.join ('|');
+    const masked = goChanMask (content);
+    const edits: Edit[] = [];
+    const fresh = goChan3FreshFactory (content, masked);
+    // interface lines
+    const iface = new RegExp ('^(\\t(' + alt + ')Async\\([^\\n]*\\)) <-chan ((?:ccxt\\.)?)AsyncResult\\[map\\[string\\]any\\]$', 'gm');
+    goChan3IfaceEdits (masked, iface, regStructs, predStructs, edits, (st, q0) => goChan3StructQual (st, q0));
+    // cores
+    const coreBodies: [ number, number, string ][] = [];
+    const sameTBlocks: [ number, number ][] = [];
+    const tramp = new RegExp ('^func \\(this \\*(\\w+)\\) (' + alt + ')Async\\([^\\n]*\\) <-chan (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\], 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\n', 'gm');
+    for (let m = tramp.exec (masked); m !== null; m = tramp.exec (masked)) {
+        const [ whole, receiver, method, bodyName ] = m;
+        const coreStructs = (predictionFile || (receiver === 'PredictionExchange')) ? predStructs : regStructs;
+        const st = coreStructs.get (receiver + '.' + method) ?? coreStructs.get (method);
+        if (st === undefined) {
+            continue;
+        }
+        const T = goChan3StructQual (st, q);
+        const H = q + goChan3StructHelper (st);
+        const carrier = q + 'AsyncResult[' + T + ']';
+        const [ bodyStart, bodyEnd ] = goChan3RetypeCore (content, masked, m.index, whole, bodyName, q, 'map[string]any', carrier, 'struct core ' + receiver + '.' + method, edits);
+        coreBodies.push ([ bodyStart, bodyEnd, st ]);
+        const fn = masked.substring (bodyStart, bodyEnd);
+        for (const [ s0, e0, text0 ] of goChan3SameTForwards (content, masked, bodyStart, bodyEnd, st, carrier, coreStructs)) {
+            edits.push ({ 'start': s0, 'end': e0, 'text': text0 });
+            sameTBlocks.push ([ s0, e0 ]);
+        }
+        const send = /\n(\t+)ch <- /g;
+        for (let s = send.exec (fn); s !== null; s = send.exec (fn)) {
+            const at = bodyStart + s.index + s[0].length;
+            const ind = s[1];
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
+                continue;   // inside a same-T forward block, rewritten whole above
+            }
+            if (masked.startsWith ('<-', at)) {
+                const fm = goChan3ReceiveMethod (masked, at, table);
+                const ft = (fm === undefined) ? undefined : (coreStructs.get (receiver + '.' + fm) ?? coreStructs.get (fm) ?? goChan3Lookup (table, receiver, fm));
+                if (ft === st) {
+                    continue;
+                }
+                if (ft !== 'map[string]any') {
+                    throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async forwards ' + (fm || '?') + ' (' + (ft || 'untabled') + ') into AsyncResult[' + T + ']');
+                }
+                const end = goChanExprEnd (masked, at);
+                const rn = fresh (at);
+                edits.push ({ 'start': bodyStart + s.index + 1 + ind.length, 'end': end, 'text': rn + ' := ' + content.substring (at, end) + '\n' + ind + 'ch <- ' + carrier + '{Value: ' + H + 'FromMap(' + rn + '.Value), Err: ' + rn + '.Err}' });
+                continue;
+            }
+            const lit = /^(?:ccxt\.)?AsyncResult\[map\[string\]any\]\{/.exec (masked.substring (at, at + 40));
+            if (lit === null) {
+                throw new Error ('GOCHAN3: struct core ' + receiver + '.' + method + 'Async has an unshaped send');
+            }
+            const open = at + lit[0].length - 1;
+            const close = goChanClose (masked, open);
+            const inner = content.substring (open + 1, close - 1);
+            let text = inner;
+            const v = /^Value: ([\s\S]*?)((?:, Err: [\w.]+)?)$/.exec (inner);
+            if (v !== null) {
+                const e = v[1];
+                const recv = /^(\w+)\.Value$/.exec (e);
+                const boxed = new RegExp ('^(?:ccxt\\.)?' + goChan3StructHelper (st) + 'ToMap\\(([\\s\\S]*)\\)$').exec (e);
+                if (e === 'nil') {
+                    text = v[2].replace (/^, /, '');
+                } else if ((recv !== null) && (goChan3StructBind (masked, at, recv[1], coreStructs) === st)) {
+                    text = inner;
+                } else if ((boxed !== null) && (goChanClose (e, e.indexOf ('(')) === e.length)) {
+                    text = 'Value: ' + boxed[1] + v[2];
+                } else {
+                    text = 'Value: ' + H + 'FromMap(' + e + ')' + v[2];
+                }
+            }
+            edits.push ({ 'start': at, 'end': close, 'text': carrier + '{' + text + '}' });
+        }
+    }
+    const inStructCore = (at: number) => coreBodies.find (([ s, e ]) => (at >= s) && (at < e));
+    // PromiseAllTyped of same-T struct channels (shadow `PromiseAllTyped[map[string]any, AsyncResult[map[string]any]](..)`)
+    const promiseArgs: [ number, number ][] = [];
+    const pall = /(?<![\w.])((?:ccxt\.)?PromiseAllTyped)\[map\[string\]any, ((?:ccxt\.)?)AsyncResult\[map\[string\]any\]\]\(/g;
+    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        const args = masked.substring (open + 1, close - 1);
+        const ts = goChan3PromiseAllElem (masked, m.index, args, predictionFile, regStructs, predStructs, 'struct');
+        if (ts === undefined) {
+            continue;
+        }
+        const st = ts;
+        const QT = goChan3StructQual (st, q);
+        const QH = q + goChan3StructHelper (st);
+        promiseArgs.push ([ open, close ]);
+        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + QT + ', ' + m[2] + 'AsyncResult[' + QT + ']]' });
+        const tail = /^\n(\t+)if (r\d*)\.Err != nil \{\n\t+panic\(\2\.Err\)\n\t+\}\n\t+var \w+ \[\]map\[string\]any = (\2\.Value)\n/.exec (masked.substring (close, close + 400));
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
+        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
+            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of struct channels');
+        }
+        const valueAt = close + tail[0].length - 1 - tail[3].length;
+        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructSliceToMaps(' + tail[3] + ', ' + QH + 'ToMap)' });
+    }
+    goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
+        'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regStructs, predStructs),
+        'inCore': inStructCore,
+        'shadow': 'map[string]any',
+        'label': (T) => T,
+        'same': (T) => [ goChan3StructQual (T, q), T ],
+        'fwdValue': (T, outer, rn) => q + ((outer === 'any') ? 'StructBox(' : 'StructResultMap(') + rn + '.Value, ' + q + goChan3StructHelper (T) + 'ToMap)',
+        'bind': /^\t+(\w+) := <-$/,
+        'unbound': (pre, method, line) => {
+            if (!/^\t+\w+ := $/.test (pre)) {
+                throw new Error ('GOCHAN3: unbound receive of struct channel ' + method + 'Async: ' + line.trim ());
+            }
+            // local promise variable passed to PromiseAllTyped
+        },
+        'read': ({ at, end, read, before, after, name, method, T, fe0 }) => {
+            if (sameTBlocks.some (([ bs, be ]) => (at >= bs) && (at < be))) {
+                return;   // the read of a same-T forward block, rewritten whole by the core section
+            }
+            const QT = goChan3StructQual (T, q);
+            const QH = q + goChan3StructHelper (T);
+            const elem = goChan3StructMapElem (T);
+            const newName = (T === 'map[string]map[string][]OHLCV') ? 'NewOHLCVForSymbolsMap' : ((elem === undefined) ? ('New' + T) : ('New' + GO_CHAN3_STRUCT_MAPS[elem]));
+            const box = q + 'StructBox(' + read + ', ' + QH + 'ToMap)';
+            const asMap = q + 'StructResultMap(' + read + ', ' + QH + 'ToMap)';
+            if (/(?:^|[^\w.])(?:ccxt\.)?Struct(?:Box|ResultMap|Absent)\($/.test (before)) {
+                return;   // already boxed (replay)
+            }
+            const containerName = newName.substring (3);
+            const containerField = GO_CHAN3_STRUCT_MAP_FIELDS[containerName] ?? containerName;
+            if ((elem !== undefined) && before.endsWith (containerName + '{' + containerField + ': ') && (after[0] === '}')) {
+                return;   // typed wrapper container (replay)
+            }
+            const assert = /^\.\(([^()]+)\)/.exec (after);
+            if (assert !== null) {
+                if ((assert[1] !== QT) && (assert[1] !== 'map[string]any')) {
+                    throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' asserted to ' + assert[1] + ', table says ' + T);
+                }
+                edits.push ({ 'start': at, 'end': end + assert[0].length, 'text': (assert[1] === QT) ? read : asMap });
+                return;
+            }
+            const wrap = new RegExp ('(?:^|[^\\w.])((?:ccxt\\.)?(MapTyped|BoxAbsent|' + newName + ')\\()$').exec (before);
+            if ((wrap !== null) && (after[0] === ')')) {
+                let text = (wrap[2] === 'MapTyped') ? asMap : box;
+                if (wrap[2] === newName) {
+                    // a typed wrapper: the struct itself, or the container of the typed dict
+                    text = (elem === undefined) ? read : (wrap[1].substring (0, wrap[1].length - wrap[2].length - 1) + containerName + '{' + containerField + ': ' + read + '}');
+                }
+                edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': text });
+                return;
+            }
+            if (new RegExp ('^\\t+var \\w+ ' + goChan3Escape (QT) + ' = $').test (before) && /^\s*$/.test (after)) {
+                return;
+            }
+            const nilCmp = /^(\s*)([!=])= nil\b/.exec (after);
+            if (nilCmp !== null) {
+                edits.push ({ 'start': at, 'end': end + nilCmp[0].length, 'text': ((nilCmp[2] === '!') ? '!' : '') + q + 'StructAbsent(' + read + ')' });
+                return;
+            }
+            if (/\bnil\s*[!=]=\s*$/.test (before)) {
+                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + T + ') compared with nil');
+            }
+            const sendIn = /^\t+ch <- (?:ccxt\.)?AsyncResult\[([^\n]*)\]\{Value: $/.exec (before);
+            if (sendIn !== null) {
+                const core = inStructCore (at);
+                if (((core !== undefined) && (core[2] === T)) || (sendIn[1] === QT)) {
+                    return;
+                }
+                edits.push ({ 'start': at, 'end': end, 'text': (sendIn[1] === 'map[string]any') ? asMap : box });
+                return;
+            }
+            const shortMap = /^\t+(\w+) :?= $/.exec (before);
+            const [ fs0 ] = goChan3Func (masked, at);
+            const isMapLocal = (shortMap !== null) && (
+                new RegExp ('\\n\\t+ch <- (?:ccxt\\.)?AsyncResult\\[map\\[string\\]any\\]\\{Value: ' + shortMap[1] + '\\b').test (masked.substring (end, fe0)) ||
+                new RegExp ('\\n\\t+var ' + shortMap[1] + ' map\\[string\\]any\\b').test (masked.substring (fs0, at))
+            );
+            if (/^\t+var \w+ map\[string\]any = $/.test (before) || /(?:^|[^\w.])(?:ccxt\.)?(?:MapTyped|MapOrEmpty)\($/.test (before) || isMapLocal) {
+                edits.push ({ 'start': at, 'end': end, 'text': asMap });
+                return;
+            }
+            edits.push ({ 'start': at, 'end': end, 'text': box });
+        },
+    });
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+
+// the shared pass: retypes tabled cores, their consumers and interface lines (idempotent)
+function goChan3Pass (content: string, table: Map<string, string> = goChan3Table ()): string {
+    const shadow = goChan3Shadow (table);
+    return goChan3StructListPass (goChan3StructPass (goChan3LowerAbsent (goChan3PassMarked (content, shadow), shadow), table), table);
+}
+
+// ===== GO-CHAN3 STRUCT LISTS: list-of-struct channels (`AsyncResult[[]any]` -> `AsyncResult[[]T]`) =====
+// Proven above on the []any shadow; goChan3StructListPass retypes cores (sends `TsFromList(E)`), interfaces (not
+// IPrediction*) and consumers (typed wrappers read []T, other reads box with `TsToList`). Prediction venues keep []any.
+const GO_CHAN3_STRUCT_LISTS: Record<string, { from: string, to: string, row: string, newArray: string }> = {
+    'Trade': { 'from': 'TradesFromList', 'to': 'TradesToList', 'row': 'TradeToMap', 'newArray': 'NewTradeArray' },
+    'Order': { 'from': 'OrdersFromList', 'to': 'OrdersToList', 'row': 'OrderToMap', 'newArray': 'NewOrderArray' },
+    'OHLCV': { 'from': 'OHLCVsFromList', 'to': 'OHLCVsToList', 'row': 'OHLCVToList', 'newArray': 'NewOHLCVArray' },
+    'Position': { 'from': 'PositionsFromList', 'to': 'PositionsToList', 'row': 'PositionToMap', 'newArray': 'NewPositionArray' },
+    'Transaction': { 'from': 'TransactionsFromList', 'to': 'TransactionsToList', 'row': 'TransactionToMap', 'newArray': 'NewTransactionArray' },
+    'LedgerEntry': { 'from': 'LedgerEntriesFromList', 'to': 'LedgerEntriesToList', 'row': 'LedgerEntryToMap', 'newArray': 'NewLedgerEntryArray' },
+    'DepositAddress': { 'from': 'DepositAddressesFromList', 'to': 'DepositAddressesToList', 'row': 'DepositAddressToMap', 'newArray': 'NewDepositAddressArray' },
+    'TransferEntry': { 'from': 'TransferEntriesFromList', 'to': 'TransferEntriesToList', 'row': 'TransferEntryToMap', 'newArray': 'NewTransferEntryArray' },
+    'OpenInterest': { 'from': 'OpenInterestsFromList', 'to': 'OpenInterestsToList', 'row': 'OpenInterestToMap', 'newArray': 'NewOpenInterestArray' },
+    'Conversion': { 'from': 'ConversionsFromList', 'to': 'ConversionsToList', 'row': 'ConversionToMap', 'newArray': 'NewConversionArray' },
+    'Liquidation': { 'from': 'LiquidationsFromList', 'to': 'LiquidationsToList', 'row': 'LiquidationToMap', 'newArray': 'NewLiquidationArray' },
+    'BorrowInterest': { 'from': 'BorrowInterestsFromList', 'to': 'BorrowInterestsToList', 'row': 'BorrowInterestToMap', 'newArray': 'NewBorrowInterestArray' },
+    'FundingHistory': { 'from': 'FundingHistoriesFromList', 'to': 'FundingHistoriesToList', 'row': 'FundingHistoryToMap', 'newArray': 'NewFundingHistoryArray' },
+    'FundingRateHistory': { 'from': 'FundingRateHistoriesFromList', 'to': 'FundingRateHistoriesToList', 'row': 'FundingRateHistoryToMap', 'newArray': 'NewFundingRateHistoryArray' },
+    'LeverageTier': { 'from': 'LeverageTiersFromList', 'to': 'LeverageTiersToList', 'row': 'LeverageTierToMap', 'newArray': 'NewLeverageTierArray' },
+    'MarginModification': { 'from': 'MarginModificationsFromList', 'to': 'MarginModificationsToList', 'row': 'MarginModificationToMap', 'newArray': 'NewMarginModificationArray' },
+    'LongShortRatio': { 'from': 'LongShortRatiosFromList', 'to': 'LongShortRatiosToList', 'row': 'LongShortRatioToMap', 'newArray': 'NewLongShortRatioArray' },
+    'ADL': { 'from': 'ADLsFromList', 'to': 'ADLsToList', 'row': 'ADLToMap', 'newArray': 'NewADLArray' },
+    'Account': { 'from': 'AccountsFromList', 'to': 'AccountsToList', 'row': 'AccountToMap', 'newArray': 'NewAccountArray' },
+    'PredictionOrder': { 'from': 'PredictionOrdersFromList', 'to': 'PredictionOrdersToList', 'row': 'PredictionOrderToMap', 'newArray': 'NewPredictionOrderArray' },
+    'PredictionTrade': { 'from': 'PredictionTradesFromList', 'to': 'PredictionTradesToList', 'row': 'PredictionTradeToMap', 'newArray': 'NewPredictionTradeArray' },
+    'PredictionPosition': { 'from': 'PredictionPositionsFromList', 'to': 'PredictionPositionsToList', 'row': 'PredictionPositionToMap', 'newArray': 'NewPredictionPositionArray' },
+    'PredictionEvent': { 'from': 'PredictionEventsFromList', 'to': 'PredictionEventsToList', 'row': 'PredictionEventToMap', 'newArray': 'NewPredictionEventArray' },
+    'PredictionSettlement': { 'from': 'PredictionSettlementsFromList', 'to': 'PredictionSettlementsToList', 'row': 'PredictionSettlementToMap', 'newArray': 'NewPredictionSettlementArray' },
+    'MarketInterface': { 'from': 'MarketInterfacesFromList', 'to': 'MarketInterfacesToList', 'row': 'MarketInterfaceToMap', 'newArray': 'NewMarketInterfaceArray' },
+    'map[string]any': { 'from': 'MapSliceFromList', 'to': 'MapSliceToList', 'row': 'MapElementToMap', 'newArray': 'NewMapArray' },
+    'string': { 'from': 'StringSliceFromList', 'to': 'StringSliceToList', 'row': 'StringElementToAny', 'newArray': 'NewStringArray' },
+};
+
+// `[]T` (optionally `[]ccxt.T`) of a list-of-struct channel -> T (undefined otherwise)
+function goChan3ListElem (t: string): string | undefined {
+    if (t === '[]map[string]any') {
+        return 'map[string]any';
+    }
+    if (t === '[]string') {
+        return 'string';
+    }
+    const m = /^\[\](?:ccxt\.)?(\w+)$/.exec (t);
+    return ((m !== null) && (GO_CHAN3_STRUCT_LISTS[m[1]] !== undefined)) ? m[1] : undefined;
+}
+
+// a read already boxed by goChan3StructListPass (replay): `TsToList(` / `TsFromList(` / `StructListsToLists(` right before it
+function goChan3ListBoxed (before: string): boolean {
+    const names = Object.values (GO_CHAN3_STRUCT_LISTS).flatMap ((h) => [ h.to, h.from ]);
+    return new RegExp ('(?:^|[^\\w.])(?:ccxt\\.)?(?:' + names.join ('|') + '|StructListsToLists|StructListBox)\\($').test (before);
+}
+
+// `ch <- AsyncResult[[]T]{Value: ` of a list-of-struct T right before a read (replay)
+function goChan3ListSendBefore (before: string): boolean {
+    const m = /^\t+\w+ <- (?:ccxt\.)?AsyncResult\[(\[\](?:map\[string\]any|[\w.]+))\]\{Value: $/.exec (before);
+    return (m !== null) && (goChan3ListElem (m[1]) !== undefined);
+}
+
+// method -> T of the tabled list-of-struct channels
+function goChan3StructListEntries (table: Map<string, string>, predScope = false): Map<string, string> {
+    const out = new Map<string, string> ();
+    if (!predScope) {
+        for (const [ m, t ] of table) {
+            const e = goChan3ListElem (t);
+            if ((e !== undefined) && !m.startsWith ('Prediction.') && (!goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (e))) {
+                out.set (m, e);
+            }
+        }
+        return out;
+    }
+    for (const [ m, t ] of table) {
+        const e = goChan3ListElem (t);
+        if ((e !== undefined) && !m.startsWith ('Prediction.') && (goChan3IsPredOnlyStruct (t) || GO_CHAN3_SHARED_PRED_STRUCTS.has (e) || (e === 'map[string]any') || (e === 'string'))) {
+            out.set (m, e);
+        }
+    }
+    for (const [ m, t ] of table) {
+        const e = goChan3ListElem (t);
+        if ((e !== undefined) && m.startsWith ('Prediction.')) {
+            out.set (m.slice (11), e);
+        }
+    }
+    return out;
+}
+
+function goChan3StructListPass (content: string, table: Map<string, string>): string {
+    const predictionFile = /^package ccxtprediction\s*$/m.test (content);
+    const regLists = goChan3StructListEntries (table, false);
+    const predLists = goChan3StructListEntries (table, true);
+    const names = [ ...new Set ((predictionFile ? [ ...predLists.keys () ] : [ ...regLists.keys (), ...predLists.keys () ]).map ((k) => k.replace (/^\w+\./, ''))) ];
+    if (!names.length || !names.some ((n) => content.includes (n + 'Async'))) {
+        return content;
+    }
+    const q = goChanQual (content);
+    const alt = names.join ('|');
+    const masked = goChanMask (content);
+    const edits: Edit[] = [];
+    const fresh = goChan3FreshFactory (content, masked);
+    const qt = (T: string) => ((T === 'map[string]any') || (T === 'string')) ? ('[]' + T) : ('[]' + q + T);
+    const helper = (T: string) => GO_CHAN3_STRUCT_LISTS[T];
+    const bindOf = (at: number, name: string) => goChan3BindMethod (masked, at, name);
+    // interface lines
+    const iface = new RegExp ('^(\\t(' + alt + ')Async\\([^\\n]*\\)) <-chan ((?:ccxt\\.)?)AsyncResult\\[\\[\\]any\\]$', 'gm');
+    goChan3IfaceEdits (masked, iface, regLists, predLists, edits, (lt, q0) => '[]' + (((lt === 'map[string]any') || (lt === 'string')) ? lt : (q0 + lt)));
+    // cores
+    const coreBodies: [ number, number, string ][] = [];
+    const tramp = new RegExp ('^func \\(this \\*(\\w+)\\) (' + alt + ')Async\\([^\\n]*\\) <-chan (?:ccxt\\.)?AsyncResult\\[\\[\\]any\\] \\{\\n\\tch := make\\(chan (?:ccxt\\.)?AsyncResult\\[\\[\\]any\\], 1\\)\\n\\tgo this\\.(\\w+)\\(ch(?:, [^\\n]*)?\\)\\n\\treturn ch\\n\\}\\n', 'gm');
+    for (let m = tramp.exec (masked); m !== null; m = tramp.exec (masked)) {
+        const [ whole, receiver, method, bodyName ] = m;
+        const coreLists = (predictionFile || (receiver === 'PredictionExchange')) ? predLists : regLists;
+        const T = coreLists.get (receiver + '.' + method) ?? coreLists.get (method);
+        if (T === undefined) {
+            continue;
+        }
+        const carrier = q + 'AsyncResult[' + qt (T) + ']';
+        const [ bodyStart, bodyEnd ] = goChan3RetypeCore (content, masked, m.index, whole, bodyName, q, '[]any', carrier, 'list-of-struct core ' + receiver + '.' + method, edits);
+        coreBodies.push ([ bodyStart, bodyEnd, T ]);
+        const fn = masked.substring (bodyStart, bodyEnd);
+        const send = /\n(\t+)ch <- /g;
+        for (let s = send.exec (fn); s !== null; s = send.exec (fn)) {
+            const at = bodyStart + s.index + s[0].length;
+            const ind = s[1];
+            if (masked.startsWith ('<-', at)) {
+                const fm = goChan3ReceiveMethod (masked, at, table, receiver);
+                const ft = (fm === undefined) ? undefined : ((coreLists.has (receiver + '.' + fm) || coreLists.has (fm)) ? ('[]' + (coreLists.get (receiver + '.' + fm) ?? coreLists.get (fm))) : goChan3Lookup (table, receiver, fm));
+                if (ft === '[]' + T) {
+                    continue;   // same-T forward
+                }
+                if (ft !== '[]any') {
+                    throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async forwards ' + (fm || '?') + ' (' + (ft || 'untabled') + ') into AsyncResult[' + qt (T) + ']');
+                }
+                const end = goChanExprEnd (masked, at);
+                const rn = fresh (at);
+                edits.push ({ 'start': bodyStart + s.index + 1 + ind.length, 'end': end, 'text': rn + ' := ' + content.substring (at, end) + '\n' + ind + 'ch <- ' + carrier + '{Value: ' + q + helper (T).from + '(' + rn + '.Value), Err: ' + rn + '.Err}' });
+                continue;
+            }
+            const lit = /^(?:ccxt\.)?AsyncResult\[\[\]any\]\{/.exec (masked.substring (at, at + 40));
+            if (lit === null) {
+                throw new Error ('GOCHAN3: list-of-struct core ' + receiver + '.' + method + 'Async has an unshaped send');
+            }
+            const open = at + lit[0].length - 1;
+            const close = goChanClose (masked, open);
+            edits.push ({ 'start': at, 'end': open, 'text': carrier });
+            const inner = masked.substring (open + 1, close - 1);
+            const v = /^Value: ([\s\S]*?)((?:, Err: [\w.]+)?)$/.exec (inner);
+            if ((v === null) || (v[1] === 'nil')) {
+                continue;   // `{}` / `{Err: e}` / `{Value: nil}`: a nil slice
+            }
+            const e = v[1];
+            const recv = /^(r\d*)\.Value$/.exec (e);
+            if (recv !== null) {
+                const bm = bindOf (at, recv[1]);
+                const bt = (bm === undefined) ? undefined : ((coreLists.has (receiver + '.' + bm) || coreLists.has (bm)) ? ('[]' + (coreLists.get (receiver + '.' + bm) ?? coreLists.get (bm))) : goChan3Lookup (table, receiver, bm));
+                if (bt === '[]' + T) {
+                    continue;   // same-T receive: the slice itself
+                }
+                if ((bt !== undefined) && (goChan3ListElem (bt) !== undefined)) {
+                    throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async sends ' + bm + ' (' + bt + ') as AsyncResult[' + qt (T) + ']');
+                }
+            } else if (/^(?:ccxt\.)?\w+\.Value\b/.test (e) && (bindOf (at, e.split ('.')[0]) !== undefined) && ((coreLists.get (receiver + '.' + (bindOf (at, e.split ('.')[0]) as string)) ?? coreLists.get (bindOf (at, e.split ('.')[0]) as string)) !== undefined)) {
+                throw new Error ('GOCHAN3: ' + receiver + '.' + method + 'Async sends an unshaped list-of-struct read: ' + e);
+            }
+            const valStart = open + 1 + 'Value: '.length;
+            edits.push ({ 'start': valStart, 'end': valStart, 'text': q + helper (T).from + '(' });
+            edits.push ({ 'start': valStart + e.length, 'end': valStart + e.length, 'text': ')' });
+        }
+    }
+    const inListCore = (at: number) => coreBodies.find (([ s, e ]) => (at >= s) && (at < e));
+    // PromiseAllTyped of same-T list channels (shadow `PromiseAllTyped[[]any, AsyncResult[[]any]](..)`)
+    const promiseArgs: [ number, number ][] = [];
+    const pall = /(?<![\w.])((?:ccxt\.)?PromiseAllTyped)\[\[\]any, ((?:ccxt\.)?)AsyncResult\[\[\]any\]\]\(/g;
+    for (let m = pall.exec (masked); m !== null; m = pall.exec (masked)) {
+        const open = m.index + m[0].length - 1;
+        const close = goChanClose (masked, open);
+        const args = masked.substring (open + 1, close - 1);
+        const ts = goChan3PromiseAllElem (masked, m.index, args, predictionFile, regLists, predLists, 'list-of-struct');
+        if (ts === undefined) {
+            continue;
+        }
+        const T = ts;
+        promiseArgs.push ([ open, close ]);
+        edits.push ({ 'start': m.index, 'end': open, 'text': m[1] + '[' + qt (T) + ', ' + m[2] + 'AsyncResult[' + qt (T) + ']]' });
+        const tail = /^\n(\t+)if (r\d*)\.Err != nil \{\n\t+panic\(\2\.Err\)\n\t+\}\n\t+var \w+ \[\]\[\]any = (\2\.Value)\n/.exec (masked.substring (close, close + 400));
+        const lineStart = masked.lastIndexOf ('\n', m.index) + 1;
+        const bind = /^\t+(r\d*) := <-$/.exec (masked.substring (lineStart, m.index));
+        if ((tail === null) || (bind === null) || (bind[1] !== tail[2])) {
+            throw new Error ('GOCHAN3: unshaped PromiseAllTyped read of list-of-struct channels');
+        }
+        const valueAt = close + tail[0].length - 1 - tail[3].length;
+        edits.push ({ 'start': valueAt, 'end': valueAt + tail[3].length, 'text': q + 'StructListsToLists(' + tail[3] + ', ' + q + helper (T).row + ')' });
+    }
+    goChan3ConsumerWalk (content, masked, q, fresh, alt, promiseArgs, edits, {
+        'elem': (at, method, r) => goChan3ConsumerElem (masked, at, method, r, predictionFile, regLists, predLists),
+        'inCore': inListCore,
+        'shadow': '[]any',
+        'label': qt,
+        'same': (T) => [ qt (T), '[]' + T ],
+        'fwdValue': (T, outer, rn) => q + ((outer === 'any') ? 'StructListBox(' : (helper (T).to + '(')) + rn + '.Value' + ((outer === 'any') ? (', ' + q + helper (T).row + ')') : ')'),
+        'bind': /^\t+(r\d*) := <-$/,
+        // promiseAll element / handed-on channel / PanicOnError: left typed for the runtime's untyped accessor
+        'unbound': () => undefined,
+        'read': ({ at, end, read, before, after, name, method, T, line }) => {
+            const QT = qt (T);
+            const H = helper (T);
+            if (goChan3ListBoxed (before) || goChan3ListSendBefore (before)) {
+                return;   // already boxed / a same-T list send (replay)
+            }
+            const core = inListCore (at);
+            if ((core !== undefined) && /^\t+ch <- (?:ccxt\.)?AsyncResult\[[^\n]*\]\{Value: $/.test (before)) {
+                return;   // the core section above owns sends inside list-of-struct cores
+            }
+            const wrap = new RegExp ('(?:^|[^\\w.])((?:ccxt\\.)?' + H.newArray + '\\()$').exec (before);
+            if ((wrap !== null) && (after[0] === ')')) {
+                edits.push ({ 'start': at - wrap[1].length, 'end': end + 1, 'text': read });
+                return;   // typed wrapper: the slice itself
+            }
+            if (new RegExp ('^\\t+var \\w+ ' + QT.replace (/[.[\]]/g, '\\$&') + ' = $').test (before) && /^\s*$/.test (after)) {
+                return;
+            }
+            if (/^\s*[!=]= nil\b/.test (after) || /\bnil\s*[!=]=\s*$/.test (before)) {
+                return;   // a nil slice is the absent result
+            }
+            if (/^\.\(/.test (after)) {
+                throw new Error ('GOCHAN3: ' + name + '.Value of ' + method + ' (' + QT + ') asserted: ' + line.trim ());
+            }
+            edits.push ({ 'start': at, 'end': end, 'text': q + H.to + '(' + read + ')' });
+        },
+    });
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+function goChan3PassMarked (content: string, table: Map<string, string>): string {
+    content = goChan3PromiseAllPass (content, table);
+    if ((table.size === 0) || (content.indexOf ('Async') < 0)) {
+        return content;
+    }
+    const masked = goChanMask (content);
+    const q = goChanQual (content);
+    const cores = goChan3Cores (content, masked, table);
+    const edits: Edit[] = [];
+    for (const c of cores) {
+        edits.push (...c.edits);
+    }
+    // element type of the core whose body holds `at` (undefined: an untabled AsyncResult[any] core / no core)
+    const coreSendAt = (at: number) => {
+        const c = cores.find ((k) => (at >= k.bodyStart) && (at < k.bodyEnd));
+        if (c !== undefined) {
+            return goChan3Lookup (table, c.receiver, c.method);
+        }
+        // a core already typed on disk (replay): its body head carries T (a struct T reads as its map shadow)
+        const t = goChan3CoreTypeAt (masked, at);
+        if ((t === undefined) || (t === 'any')) {
+            return undefined;
+        }
+        if (goChan3ListElem (t) !== undefined) {
+            return '[]any';   // a list-of-struct core reads as its []any shadow
+        }
+        return goChan3IsStructType (t) ? 'map[string]any' : t.replace (/^ccxt\./, '');
+    };
+    const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
+    if (globalKeys.length) {
+        const iface = new RegExp ('^(\\t(' + globalKeys.join ('|') + ')Async\\([^\\n]*\\)) <-chan ((?:ccxt\\.)?)AsyncResult\\[any\\]$', 'gm');
+        for (let m = iface.exec (masked); m !== null; m = iface.exec (masked)) {
+            edits.push ({ 'start': m.index, 'end': m.index + m[0].length, 'text': m[1] + ' <-chan ' + m[3] + 'AsyncResult[' + goChan3QualType (goChan3BaseType (table.get (m[2]) as string), m[3]) + ']' });
+        }
+    }
+    edits.push (...goChan3ConsumerEdits (content, masked, table, cores, coreSendAt));
+    return edits.length ? goChan3Splice (content, edits) : content;
+}
+
+// audit over generated Go text: per core the verdict ('' = provable) and send types
+function goChan3Audit (content: string, report: Report) {
+    goChan3Cores (content, goChanMask (content), goChan3Table (), report);
+}
+
+function goChan3AuditDir (dir: string, json: boolean) {
+    const files: string[] = [];
+    for (const sub of [ '', 'pro', 'prediction' ]) {
+        const d = path.join (dir, sub);
+        if (fs.existsSync (d)) {
+            files.push (...fs.readdirSync (d).filter ((f) => f.endsWith ('.go') && !f.endsWith ('_test.go')).map ((f) => path.join (d, f)));
+        }
+    }
+    const per = new Map<string, { cores: number, bad: string[], types: Set<string> }> ();
+    for (const f of files.sort ()) {
+        goChan3Audit (fs.readFileSync (f, 'utf8'), (method, receiver, reason, types) => {
+            const e = per.get (method) || { 'cores': 0, 'bad': [], 'types': new Set<string> () };
+            e.cores++;
+            types.forEach ((t) => e.types.add (t));
+            if (reason !== '') {
+                e.bad.push (path.relative (dir, f) + ':' + receiver + ':' + reason);
+            }
+            per.set (method, e);
+        });
+    }
+    const rows = [ ...per.entries () ].map (([ method, e ]) => ({ method, 'cores': e.cores, 'unprovable': e.bad.length, 'types': [ ...e.types ].sort (), 'bad': e.bad }));
+    rows.sort ((a, b) => (a.unprovable - b.unprovable) || (b.cores - a.cores));
+    if (json) {
+        console.log (JSON.stringify (rows, null, 1));
+        return;
+    }
+    for (const r of rows) {
+        const ok = (r.unprovable === 0) && (r.types.filter ((t) => t !== 'nil').length <= 1);
+        console.log ((ok ? 'OK   ' : 'NO   ') + r.method + ' cores=' + r.cores + ' unprovable=' + r.unprovable + ' types=' + r.types.join ('|'));
+        for (const b of r.bad) {
+            console.log ('       ' + b);
+        }
+    }
+}
+
+function goChan3SelfTest (): string[] {
+    const problems: string[] = [];
+    const ok = (c: boolean, m: string) => { if (!c) { problems.push ('gochan3: ' + m); } };
+    const table = new Map ([ [ 'SetX', 'map[string]any' ], [ 'GetN', 'int64' ], [ 'GetS', 'string' ] ]);
+    goChanSetBaseReturnsForTest (new Map ([ [ 'BaseExchange.Extend', 'map[string]any' ] ]));
+    const lc = (n: string) => n.charAt (0).toLowerCase () + n.slice (1);
+    const core = (recv: string, body: string, name = 'SetX', Q = '') => 'func (this *' + recv + ') ' + name + 'Async(a any, optionalArgs ...any) <-chan ' + Q + 'AsyncResult[any] {\n\tch := make(chan ' + Q + 'AsyncResult[any], 1)\n\tgo this.' + lc (name) + 'Body(ch, a, optionalArgs...)\n\treturn ch\n}\nfunc (this *' + recv + ') ' + lc (name) + 'Body(ch chan ' + Q + 'AsyncResult[any], a any, optionalArgs ...any) any {\n\tdefer close(ch)\n\tdefer ' + Q + 'ReturnPanicError(ch)\n' + body + '}\n';
+    const run = (src: string, t = table) => goChan3Pass (src, t);
+    const throws = (src: string) => { try { run (src); return false; } catch (e) { return true; } };
+    // retype + sends + nil
+    const good = '\tvar response map[string]any = nil\n\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: map[string]any{\n\t\t"k": 1,\n\t}}\n\tch <- AsyncResult[any]{Value: response} // c\n\treturn nil\n';
+    const out = run ('package ccxt\n\n' + core ('X', good));
+    ok (out.includes ('SetXAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]any] {\n\tch := make(chan AsyncResult[map[string]any], 1)'), 'trampoline: ' + out);
+    ok (out.includes ('setXBody(ch chan AsyncResult[map[string]any], a any'), 'body param');
+    ok (out.includes ('\tdefer ReturnPanicError(ch)\n'), 'generic ReturnPanicError call unchanged');
+    ok (out.includes ('ch <- AsyncResult[map[string]any]{Value: nil}'), 'nil send');
+    ok (out.includes ('ch <- AsyncResult[map[string]any]{Value: map[string]any{\n\t\t"k": 1,\n\t}}'), 'multi-line literal send');
+    ok (out.includes ('ch <- AsyncResult[map[string]any]{Value: response} // c'), 'local send');
+    ok (run (out) === out, 'idempotent');
+    // balance sends: SafeBalance of a merged map-literal local narrows; a rewritten local stays unproven
+    const balTable = new Map ([ [ 'SetX', 'map[string]any' ] ]);
+    const bal = run ('package ccxt\n\n' + core ('X', '\tvar result any = map[string]any{\n\t\t"info": a,\n\t}\n\tresult = this.MergeBalanceAccount(result, a, a)\n\tch <- AsyncResult[any]{Value: this.SafeBalance(result)}\n\treturn nil\n'), balTable);
+    ok (bal.includes ('ch <- AsyncResult[map[string]any]{Value: this.SafeBalance(result).(map[string]any)}'), 'balance send: ' + bal);
+    ok (throws ('package ccxt\n\n' + core ('X', '\tvar result any = map[string]any{}\n\tresult = a\n\tch <- AsyncResult[any]{Value: this.SafeBalance(result)}\n\treturn nil\n')), 'rewritten balance local rejected');
+    // scalar core, pro qualification, typed call
+    const pro = run ('package ccxtpro\n\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: this.ParseToInt(a)}\n\treturn nil\n', 'GetN', 'ccxt.'));
+    ok (pro.includes ('<-chan ccxt.AsyncResult[int64] {') && pro.includes ('make(chan ccxt.AsyncResult[int64], 1)') && pro.includes ('ch <- ccxt.AsyncResult[int64]{Value: this.ParseToInt(a)}') && pro.includes ('(ch chan ccxt.AsyncResult[int64]'), 'pro qualification: ' + pro);
+    // unprovable sends throw
+    ok (throws ('package ccxt\n' + core ('X', '\tvar r any = nil\n\tch <- AsyncResult[any]{Value: r}\n\treturn nil\n')), 'any local throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n')), 'any call throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: nil}\n\treturn nil\n', 'GetN')), 'nil into scalar throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tvar b bool = true\n\tch <- AsyncResult[any]{Value: b}\n\treturn nil\n')), 'wrong type throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tgo func() { ch <- AsyncResult[any]{} }()\n\treturn nil\n')), 'escaping channel throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tch <- <-this.OtherAsync(a)\n\treturn nil\n')), 'untabled forward throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.OtherAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n')), 'untabled value forward throws');
+    ok (!throws ('package ccxt\n' + core ('X', '\tpanic(NotSupported("x"))\n')), 'send-free base core');
+    ok (throws ('package ccxt\n\nfunc (this *X) SetXAsync(a any) <-chan AsyncResult[any] {\n\tout := make(chan AsyncResult[any])\n\treturn out\n}\n'), 'hand shape throws');
+    // same-T forwards stay
+    const fw = run ('package ccxt\n' + core ('X', '\tif a == nil {\n\t\tch <- <-this.DerivedExchange.SetXAsync(a)\n\t\treturn nil\n\t}\n\tr := <-this.SetXAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n'));
+    ok (fw.includes ('\t\tch <- <-this.DerivedExchange.SetXAsync(a)\n') && fw.includes ('\tch <- AsyncResult[map[string]any]{Value: r.Value}\n'), 'same-T forwards: ' + fw);
+    // inherited base return
+    const embed = 'package ccxt\ntype X struct {\n\tExchange\n}\n';
+    ok (run (embed + core ('X', '\tch <- AsyncResult[any]{Value: this.Extend(a)}\n\treturn nil\n')).includes ('ch <- AsyncResult[map[string]any]{Value: this.Extend(a)}'), 'base typed return');
+    // consumers
+    const consumer = 'package ccxt\n\nfunc (this *Y) f() any {\n' +
+        '\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar m map[string]any = MapTyped(r.Value)\n' +
+        '\tr1 := <-this.GetNAsync(1)\n\tif r1.Err != nil {\n\t\tpanic(r1.Err)\n\t}\n\tvar n int64 = r1.Value.(int64)\n' +
+        '\tr2 := <-this.SetXAsync(2)\n\tif r2.Err != nil {\n\t\tpanic(r2.Err)\n\t}\n\tresponse := r2.Value\n\tif IsEqual(response, nil) {\n\t\treturn nil\n\t}\n' +
+        '\tr3 := <-this.GetNAsync(3)\n\tif r3.Err != nil {\n\t\tpanic(r3.Err)\n\t}\n\tt := r3.Value\n' +
+        '\tr4 := <-this.GetSAsync(3)\n\tif r4.Err != nil {\n\t\tpanic(r4.Err)\n\t}\n\ts := r4.Value\n\ts = nil\n' +
+        '\tr5 := <-this.base.SetXAsync(5)\n\tif r5.Err != nil {\n\t\tpanic(r5.Err)\n\t}\n\tvar o Order = NewOrder(r5.Value)\n\tAppendToArray(&list, r5.Value)\n' +
+        '\tp := promiseAll([]any{this.SetXAsync(5), this.OtherAsync()})\n\tthis.Spawn(this.SetXAsync, 6)\n\tPanicOnError((<-this.SetXAsync(7)))\n' +
+        '\treturn []any{m, n, response, t, s, o, p}\n}\n';
+    const c = run (consumer);
+    ok (c.includes ('\tvar m map[string]any = r.Value\n'), 'MapTyped dropped');
+    ok (c.includes ('\tvar n int64 = r1.Value\n'), 'assertion dropped');
+    ok (c.includes ('\tvar response any = nil\n\tif r2.Value != nil {\n\t\tresponse = r2.Value\n\t}\n') && !c.includes ('BoxAbsent'), 'nilable any-handoff native fold: ' + c);
+    ok (c.includes ('\tt := r3.Value\n'), 'scalar typed local kept');
+    ok (c.includes ('\tvar s any = r4.Value\n\ts = nil\n'), 'rebound local stays any');
+    ok (c.includes ('NewOrder(r5.Value)') && c.includes ('\tvar r5ValueBox any = nil\n\tif r5.Value != nil {\n\t\tr5ValueBox = r5.Value\n\t}\n\tAppendToArray(&list, r5ValueBox)'), 'wrapper conv kept, handoff hoisted native');
+    ok (c.includes ('[]any{this.SetXAsync(5), this.OtherAsync()}') && c.includes ('this.Spawn(this.SetXAsync, 6)') && c.includes ('PanicOnError((<-this.SetXAsync(7)))'), 'reflective consumers untouched');
+    ok (run (c) === c, 'consumer idempotent');
+    ok ((() => { try { run ('package ccxt\n\nfunc (this *Y) f() {\n\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\t_ = r.Value.([]any)\n}\n'); return false; } catch (e) { return true; } }) (), 'mismatched assertion throws');
+    const okForm = run ('package ccxt\n\nfunc (this *Y) f() {\n\tr := <-this.SetXAsync(1)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tv, ok := r.Value.(map[string]any)\n\t_, _ = v, ok\n}\n');
+    ok (okForm.includes ('\tv, ok := r.Value, r.Value != nil\n'), 'comma-ok assertion keeps its nil verdict');
+    // forward of a tabled receive into an untabled core
+    const into = run ('package ccxt\n' + core ('X', '\tch <- <-this.DerivedExchange.SetXAsync(a)\n\treturn nil\n', 'Other'));
+    ok (into.includes ('\tr := <-this.DerivedExchange.SetXAsync(a)\n\tif r.Value == nil {\n\t\tch <- AsyncResult[any]{Value: nil, Err: r.Err}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: r.Value, Err: r.Err}\n\t}\n'), 'forward into any core: ' + into);
+    ok (run (into) === into, 'forward idempotent');
+    const into2 = run ('package ccxt\n' + core ('X', '\tr := <-this.SetXAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'Other'));
+    ok (into2.includes ('\tif r.Value == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: r.Value}\n\t}\n'), 'value forward into any core: ' + into2);
+    ok (run (into2) === into2, 'value forward idempotent');
+    // interface lines
+    const itf = run ('package ccxt\n\ntype I interface {\n\tSetXAsync(a any, optionalArgs ...any) <-chan AsyncResult[any]\n\tOtherAsync() <-chan AsyncResult[any]\n}\n');
+    ok (itf.includes ('\tSetXAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]any]\n\tOtherAsync() <-chan AsyncResult[any]\n'), 'interface line');
+    ok (run (consumer, new Map ()) === consumer, 'empty table no-op');
+    // audit
+    const seen: string[] = [];
+    goChan3Cores ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n'), goChanMask ('package ccxt\n' + core ('X', '\tch <- AsyncResult[any]{Value: this.ParseThing(a)}\n\treturn nil\n')), new Map (), (mm, rr, reason) => seen.push (mm + ':' + reason));
+    ok (seen.length === 1 && seen[0] === 'SetX:call-send:ParseThing', 'audit reason: ' + seen.join (';'));
+    // endpoint-joined locals
+    goChan3SetStubsForTest (new Map ([ [ 'PubGetA', 'map[string]any' ], [ 'PubGetL', '[]any' ] ]));
+    const joined = run ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tif a == nil {\n\n\t\tr := <-this.PubGetA(a)\n\t\tif r.Err != nil {\n\t\t\tpanic(r.Err)\n\t\t}\n\t\tresponse = r.Raw\n\t} else {\n\n\t\tr1 := <-this.PubGetA(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tresponse = r1.Raw\n\t}\n\tif response == nil {\n\t\tpanic(\"x\")\n\t}\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n'));
+    ok (joined.includes ('\tvar response map[string]any = nil\n') && joined.includes ('response = r.Value\n') && joined.includes ('response = r1.Value\n') && joined.includes ('ch <- AsyncResult[map[string]any]{Value: response}'), 'endpoint join: ' + joined);
+    ok (throws ('package ccxt\n' + core ('X', '\tvar response any = nil\n\tr := <-this.PubGetL(a)\n\tresponse = r.Raw\n\tr1 := <-this.PubGetA(a)\n\tresponse = r1.Raw\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'mixed endpoint join throws');
+    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tresponse := r.Raw\n\tthis.Use(response)\n\tch <- AsyncResult[any]{Value: response}\n\treturn nil\n')), 'other use throws');
+    const rawSend = run ('package ccxt\n' + core ('X', '\tr := <-this.PubGetA(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Raw}\n\treturn nil\n'));
+    ok (rawSend.includes ('\tch <- AsyncResult[map[string]any]{Value: r.Value}\n'), 'endpoint Raw send: ' + rawSend);
+    ok (throws ('package ccxt\n' + core ('X', '\tr := <-this.PubGetL(a)\n\tch <- AsyncResult[any]{Value: r.Raw}\n\treturn nil\n')), 'endpoint Raw send of another T throws');
+    // typed promiseAll
+    const pall = 'package ccxt\n\nfunc (this *Y) f(p any) any {\n\tvar a any = EndpointRaw(this.PubGetA(p))\n\tr := <-promiseAll([]any{a, this.PubGetA(p)})\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar v []any = ListTyped(r.Value)\n\tx := GetValue(v, 0)\n\treturn []any{x, GetValue(v, 1)}\n}\n';
+    const pt = run (pall);
+    ok (pt.includes ('\ta := this.PubGetA(p)\n\tr := <-PromiseAllTyped[map[string]any, EndpointResult[map[string]any]](a, this.PubGetA(p))\n') && pt.includes ('\tvar v []map[string]any = r.Value\n\tvar x any = nil\n\tif v[0] != nil {\n\t\tx = v[0]\n\t}\n\tvar v1Box any = nil\n\tif v[1] != nil {\n\t\tv1Box = v[1]\n\t}\n\treturn []any{x, v1Box}'), 'typed promiseAll: ' + pt);
+    ok (run (pt) === pt, 'typed promiseAll idempotent');
+    ok (run (pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})')) === pall.replace ('this.PubGetA(p)})', 'this.PubGetL(p)})'), 'mixed promiseAll untouched');
+    ok (run (pall.replace ('x := GetValue(v, 0)', 'x := v')) === pall.replace ('x := GetValue(v, 0)', 'x := v'), 'whole-list read untouched');
+    goChan3EndpointSendSelfTest (ok, run, throws, core);
+    // WS2 Future boundary: untabled Watch forwards convert through an inline type switch
+    goChan3SetTableForTest (new Map ([ [ 'WatchX', 'map[string]any' ] ]), new Set ([ 'WatchX' ]));
+    const w = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.Watch(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tif a == nil {\n\t\tch <- <-this.WatchMultiple(a)\n\t\treturn nil\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'WatchX', 'ccxt.'), goChan3Table ());
+    ok (w.includes ('\tr := <-this.WatchMap(a)\n') && w.includes ('\tch <- ccxt.AsyncResult[map[string]any]{Value: r.Value}\n') && (w.indexOf ('resolved') < 0) && (w.indexOf ('sync.Map') < 0) && (w.indexOf ('import "sync"') < 0)
+        && w.includes ('\t\tr1 := <-this.WatchMultipleMap(a)\n\t\tif r1.Err != nil {\n\t\t\tpanic(r1.Err)\n\t\t}\n\t\tch <- ccxt.AsyncResult[map[string]any]{Value: r1.Value}\n'), 'ws2 boundary: ' + w);
+    ok (run (w, goChan3Table ()) === w, 'ws2 idempotent');
+    // a struct carrier hands the box to its `<T>FromMap` builder: no switch, no sync import; a plain map keeps the coercion
+    goChan3SetTableForTest (new Map ([ [ 'WatchX', 'Ticker' ], [ 'WatchM', 'map[string]any' ] ]), new Set ([ 'WatchX', 'WatchM' ]));
+    const wsrc = (name: string) => 'package ccxtpro\n\nimport ccxt \"github.com/ccxt/ccxt/go/v4\"\n' + core ('X', '\tr := <-this.Other(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r.Value}\n\treturn nil\n', name, 'ccxt.');
+    const wt = goChan3Pass (wsrc ('WatchX'), goChan3Table ());
+    ok (wt.includes ('ch <- ccxt.AsyncResult[ccxt.Ticker]{Value: ccxt.TickerFromMap(r.Value)}') && !wt.includes ('switch resolved') && !wt.includes ('import \"sync\"'), 'struct T: builder takes the box: ' + wt);
+    ok (goChan3Pass (wsrc ('WatchM'), goChan3Table ()).includes ('switch resolvedBox := r.Value.(type)'), 'plain map keeps the coercion');
+    // WS2 bool + per-receiver table + nullable value type bool?
+    goChan3SetTableForTest (new Map ([ [ 'UnWatchX', 'bool' ], [ 'InitX', 'bool?' ], [ 'A.HelperX', 'map[string]any' ], [ 'B.HelperX', '[]any' ] ]), new Set ([ 'UnWatchX' ]));
+    const wb = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- <-this.Watch(a)\n\treturn nil\n', 'UnWatchX', 'ccxt.'), goChan3Table ());
+    ok (wb.includes ('var resolved bool\n') && wb.includes ('ch <- ccxt.AsyncResult[bool]{Value: resolved}'), 'ws2 bool boundary: ' + wb);
+    const nb = run ('package ccxt\n' + core ('X', '\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: true}\n\treturn nil\n', 'InitX'), goChan3Table ());
+    ok (nb.includes ('ch <- AsyncResult[bool]{}\n') && nb.includes ('ch <- AsyncResult[bool]{Value: true}\n'), 'nullable bool?: ' + nb);
+    const pr = run ('package ccxt\n' + core ('A', '\tch <- AsyncResult[any]{Value: map[string]any{}}\n\treturn nil\n', 'HelperX') + core ('B', '\tch <- AsyncResult[any]{Value: []any{}}\n\treturn nil\n', 'HelperX'), goChan3Table ());
+    ok (pr.includes ('func (this *A) HelperXAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]any]') && pr.includes ('func (this *B) HelperXAsync(a any, optionalArgs ...any) <-chan AsyncResult[[]any]'), 'per-receiver table: ' + pr);
+    // an ArrayCacheInterface forward unboxes with AsArrayCache, never OrderBookTyped
+    goChan3SetTableForTest (new Map ([ [ 'C.SubX', 'ArrayCacheInterface' ] ]), new Set ([ 'C.SubX' ]));
+    const ac = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('C', '\tr1 := <-this.Watch(a)\n\tif r1.Err != nil {\n\t\tpanic(r1.Err)\n\t}\n\tch <- ccxt.AsyncResult[any]{Value: r1.Value}\n\treturn nil\n', 'SubX', 'ccxt.'), goChan3Table ());
+    ok (ac.includes ('ch <- ccxt.AsyncResult[ccxt.ArrayCacheInterface]{Value: ccxt.AsArrayCache(r1.Value)}') && (ac.indexOf ('OrderBookTyped') < 0), 'W09 ArrayCacheInterface forward: ' + ac);
+    // struct channels: AsyncResult[map[string]any] shadow -> AsyncResult[Order]
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchX', 'map[string]any' ] ]), new Set ());
+    const sc = (body: string, name = 'CreateOrder') => core ('X', body, name);
+    const sv = run ('package ccxt\n' + sc ('\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: this.ParseOrder(a)}\n\treturn nil\n')
+        + 'func (this *Y) f(a any) any {\n\tr := <-this.DerivedExchange.(ICreateOrder).CreateOrderAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar o Order = NewOrder(r.Value)\n\tvar m map[string]any = MapTyped(r.Value)\n\tif r.Value == nil {\n\t\treturn o\n\t}\n\treturn []any{m, r.Value}\n}\n'
+        + sc ('\tr := <-this.CreateOrderAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'FetchX')
+        + 'type I interface {\n\tCreateOrderAsync(a any, optionalArgs ...any) <-chan AsyncResult[any]\n}\n', goChan3Table ());
+    ok (sv.includes ('CreateOrderAsync(a any, optionalArgs ...any) <-chan AsyncResult[Order] {\n\tch := make(chan AsyncResult[Order], 1)') && sv.includes ('createOrderBody(ch chan AsyncResult[Order], a any'), 'struct core head: ' + sv);
+    ok (sv.includes ('\t\tch <- AsyncResult[Order]{}\n') && sv.includes ('\tch <- AsyncResult[Order]{Value: OrderFromMap(this.ParseOrder(a))}\n'), 'struct core sends: ' + sv);
+    ok (sv.includes ('\tvar o Order = r.Value\n') && sv.includes ('\tvar m map[string]any = StructResultMap(r.Value, OrderToMap)\n') && sv.includes ('\tif StructAbsent(r.Value) {\n') && sv.includes ('\t\trValueBox = StructBox(r.Value, OrderToMap)\n'), 'struct consumers: ' + sv);
+    ok (sv.includes ('ch <- AsyncResult[map[string]any]{Value: StructResultMap(r.Value, OrderToMap)}'), 'struct into map core: ' + sv);
+    ok (sv.includes ('\tCreateOrderAsync(a any, optionalArgs ...any) <-chan AsyncResult[Order]\n'), 'struct interface line');
+    ok (run (sv, goChan3Table ()) === sv, 'struct channel idempotent');
+    // same-T struct forward: `retResN` only nil-tested and sent, rN bound to the core's own T -> `rN.Value` as is
+    const fwdPre = '\tr := <-this.CreateOrderAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n';
+    const fwdBranch = '\tvar retRes12 map[string]any = MapTyped(r.Value)\n\t// only buy side\n\tif retRes12 == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- AsyncResult[any]{Value: retRes12}\n\t}\n\treturn nil\n';
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchO', 'Order' ] ]), new Set ());
+    const fwd1 = run ('package ccxt\n' + sc (fwdPre + fwdBranch, 'FetchO'), goChan3Table ());
+    ok (fwd1.includes ('\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\t// only buy side\n\tch <- AsyncResult[Order]{Value: r.Value}\n\treturn nil\n') && !fwd1.includes ('retRes12') && !fwd1.includes ('StructResultMap') && !fwd1.includes ('OrderFromMap'), 'same-T branch forward: ' + fwd1);
+    ok (run (fwd1, goChan3Table ()) === fwd1, 'same-T branch forward idempotent');
+    const fwd2 = run ('package ccxt\n' + sc (fwdPre + '\tretRes7 := r.Value\n\tch <- AsyncResult[any]{Value: retRes7}\n\treturn nil\n', 'FetchO'), goChan3Table ());
+    ok (fwd2.includes ('\t}\n\tch <- AsyncResult[Order]{Value: r.Value}\n\treturn nil\n') && !fwd2.includes ('retRes7'), 'same-T short forward: ' + fwd2);
+    const fwd3 = run ('package ccxt\n' + sc (fwdPre + fwdBranch.replace ('\t// only buy side\n', '\tthis.Use(retRes12)\n'), 'FetchO'), goChan3Table ());
+    ok (fwd3.includes ('\tvar retRes12 map[string]any = StructResultMap(r.Value, OrderToMap)\n\tthis.Use(retRes12)\n') && fwd3.includes ('{Value: OrderFromMap(retRes12)}'), 'a local read elsewhere keeps the round trip: ' + fwd3);
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchTickers', 'map[string]Ticker' ], [ 'FetchO', 'Order' ] ]), new Set ());
+    const fwd4 = run ('package ccxt\n' + sc ('\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n' + fwdBranch.replace ('\t// only buy side\n', ''), 'FetchO'), goChan3Table ());
+    ok (fwd4.includes ('\tvar retRes12 map[string]any = StructResultMap(r.Value, TickerMapToMap)\n') && !fwd4.includes ('{Value: r.Value}'), 'a receive of another T keeps the round trip: ' + fwd4);
+    goChan3SetTableForTest (new Map ([ [ 'FetchTickers', 'map[string]Ticker' ], [ 'WatchTickers', 'map[string]Ticker' ] ]), new Set ());
+    const fwdPro = run ('package ccxtpro\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar retRes12 map[string]any = MapTyped(r.Value)\n\tif retRes12 == nil {\n\t\tch <- ccxt.AsyncResult[any]{Value: nil}\n\t} else {\n\t\tch <- ccxt.AsyncResult[any]{Value: retRes12}\n\t}\n\treturn nil\n', 'WatchTickers', 'ccxt.'), goChan3Table ());
+    ok (fwdPro.includes ('\tch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: r.Value}\n\treturn nil\n') && !fwdPro.includes ('retRes12') && !fwdPro.includes ('StructResultMap'), 'ccxt-qualified map-of-struct forward: ' + fwdPro);
+    ok (run (fwdPro, goChan3Table ()) === fwdPro, 'ccxt-qualified forward idempotent');
+    goChan3SetTableForTest (new Map ([ [ 'CreateOrder', 'Order' ], [ 'FetchX', 'map[string]any' ] ]), new Set ());
+    const pv = 'package ccxtprediction\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: map[string]any{}}\n\treturn nil\n', 'CreateOrder', 'ccxt.');
+    let pvOut = '';
+    try { pvOut = run (pv, goChan3Table ()); } catch (e) { pvOut = 'THROW ' + e; }
+    ok (pvOut.includes ('ccxt.AsyncResult[map[string]any]{Value: map[string]any{}}') && !pvOut.includes ('ccxt.Order'), 'prediction venue keeps the map shadow: ' + pvOut);
+    // list-of-struct channels: AsyncResult[[]any] shadow -> AsyncResult[[]Trade]
+    goChan3SetTableForTest (new Map ([ [ 'FetchTrades', '[]Trade' ], [ 'FetchOrders', '[]Order' ], [ 'FetchOpenOrders', '[]Order' ], [ 'FetchY', '[]any' ] ]), new Set ());
+    const lc3 = (body: string, name = 'FetchTrades') => core ('X', body, name);
+    const lv = run ('package ccxt\n' + lc3 ('\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: this.ArraysConcat(a)}\n\treturn nil\n')
+        + 'func (this *Y) FetchTrades(a any) ([]Trade, error) {\n\tr := <-this.FetchTradesAsync(a)\n\tif r.Err != nil {\n\t\treturn nil, r.Err\n\t}\n\tvar res []Trade = NewTradeArray(r.Value)\n\treturn res, nil\n}\n'
+        + 'func (this *Y) f(a any) any {\n\tr := <-this.DerivedExchange.(IFetchTrades).FetchTradesAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar t any = nil\n\tif r.Value != nil {\n\t\tt = r.Value\n\t}\n\treturn t\n}\n'
+        + lc3 ('\tr := <-this.FetchTradesAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'FetchY')
+        + lc3 ('\tr := <-PromiseAllTyped[[]any, AsyncResult[[]any]](this.FetchOpenOrdersAsync(a), this.FetchOpenOrdersAsync(a))\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar both [][]any = r.Value\n\tch <- AsyncResult[any]{Value: this.ArraysConcat(both)}\n\treturn nil\n', 'FetchOrders')
+        + lc3 ('\tch <- AsyncResult[any]{Value: this.ArraysConcat(a)}\n\treturn nil\n', 'FetchOpenOrders')
+        + 'type I interface {\n\tFetchTradesAsync(a any, optionalArgs ...any) <-chan AsyncResult[any]\n}\n', goChan3Table ());
+    ok (lv.includes ('FetchTradesAsync(a any, optionalArgs ...any) <-chan AsyncResult[[]Trade] {\n\tch := make(chan AsyncResult[[]Trade], 1)') && lv.includes ('fetchTradesBody(ch chan AsyncResult[[]Trade], a any'), 'list-of-struct core head: ' + lv);
+    ok (lv.includes ('\t\tch <- AsyncResult[[]Trade]{Value: nil}\n') && lv.includes ('\tch <- AsyncResult[[]Trade]{Value: TradesFromList(this.ArraysConcat(a))}\n'), 'list-of-struct core sends: ' + lv);
+    ok (lv.includes ('\tvar res []Trade = r.Value\n'), 'list-of-struct typed wrapper returns the slice: ' + lv);
+    ok (lv.includes ('\tif r.Value != nil {\n\t\tt = TradesToList(r.Value)\n'), 'list-of-struct untyped read boxes to the []any: ' + lv);
+    ok (lv.includes ('ch <- AsyncResult[[]any]{Value: TradesToList(r.Value)}'), 'list-of-struct into []any core: ' + lv);
+    ok (lv.includes ('PromiseAllTyped[[]Order, AsyncResult[[]Order]](') && lv.includes ('var both [][]any = StructListsToLists(r.Value, OrderToMap)\n'), 'list-of-struct promiseAll: ' + lv);
+    ok (lv.includes ('\tFetchTradesAsync(a any, optionalArgs ...any) <-chan AsyncResult[[]Trade]\n'), 'list-of-struct interface line');
+    ok (run (lv, goChan3Table ()) === lv, 'list-of-struct channel idempotent');
+    const lp = 'package ccxtprediction\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: []any{}}\n\treturn nil\n', 'FetchTrades', 'ccxt.');
+    let lpOut = '';
+    try { lpOut = run (lp, goChan3Table ()); } catch (e) { lpOut = 'THROW ' + e; }
+    ok (lpOut.includes ('ccxt.AsyncResult[[]any]{Value: []any{}}') && !lpOut.includes ('ccxt.Trade'), 'prediction venue keeps the trades list shape: ' + lpOut);
+    // map-of-struct channels: AsyncResult[map[string]any] shadow -> AsyncResult[map[string]Ticker]
+    goChan3SetTableForTest (new Map ([ [ 'FetchTickers', 'map[string]Ticker' ], [ 'FetchX', 'map[string]any' ] ]), new Set ());
+    const mc = (body: string, name = 'FetchTickers') => core ('X', body, name);
+    const mv = run ('package ccxt\n' + mc ('\tif a == nil {\n\t\tch <- AsyncResult[any]{Value: nil}\n\t\treturn nil\n\t}\n\tch <- AsyncResult[any]{Value: this.Extend(a)}\n\treturn nil\n')
+        + 'func (this *Y) FetchTickers(a any) (Tickers, error) {\n\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\treturn Tickers{}, r.Err\n\t}\n\tvar res Tickers = NewTickers(r.Value)\n\treturn res, nil\n}\n'
+        + 'func (this *Y) f(a any) any {\n\tr := <-this.DerivedExchange.(IFetchTickers).FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tvar m map[string]any = r.Value\n\treturn []any{m, r.Value}\n}\n'
+        + mc ('\tr := <-this.FetchTickersAsync(a)\n\tif r.Err != nil {\n\t\tpanic(r.Err)\n\t}\n\tch <- AsyncResult[any]{Value: r.Value}\n\treturn nil\n', 'FetchX')
+        + 'type I interface {\n\tFetchTickersAsync(a any, optionalArgs ...any) <-chan AsyncResult[any]\n}\n', goChan3Table ());
+    ok (mv.includes ('FetchTickersAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]Ticker] {\n\tch := make(chan AsyncResult[map[string]Ticker], 1)'), 'map-of-struct core head: ' + mv);
+    ok (mv.includes ('\t\tch <- AsyncResult[map[string]Ticker]{}\n') && mv.includes ('\tch <- AsyncResult[map[string]Ticker]{Value: TickerMapFromMap(this.Extend(a))}\n'), 'map-of-struct core sends: ' + mv);
+    ok (mv.includes ('\tvar res Tickers = Tickers{Tickers: r.Value}\n'), 'map-of-struct typed wrapper returns the typed dict: ' + mv);
+    ok (mv.includes ('\tvar m map[string]any = StructResultMap(r.Value, TickerMapToMap)\n') && mv.includes ('StructBox(r.Value, TickerMapToMap)'), 'map-of-struct consumers: ' + mv);
+    ok (mv.includes ('ch <- AsyncResult[map[string]any]{Value: StructResultMap(r.Value, TickerMapToMap)}'), 'map-of-struct into map core: ' + mv);
+    ok (mv.includes ('\tFetchTickersAsync(a any, optionalArgs ...any) <-chan AsyncResult[map[string]Ticker]\n'), 'map-of-struct interface line');
+    ok (run (mv, goChan3Table ()) === mv, 'map-of-struct channel idempotent');
+    const pm = 'package ccxtprediction\n\nimport ccxt "github.com/ccxt/ccxt/go/v4"\n' + core ('X', '\tch <- ccxt.AsyncResult[any]{Value: map[string]any{}}\n\treturn nil\n', 'FetchTickers', 'ccxt.');
+    let pmOut = '';
+    try { pmOut = run (pm, goChan3Table ()); } catch (e) { pmOut = 'THROW ' + e; }
+    ok (pmOut.includes ('ccxt.AsyncResult[map[string]any]{Value: map[string]any{}}') && !pmOut.includes ('ccxt.Ticker'), 'prediction venue keeps the tickers map shadow: ' + pmOut);
+    goChan3SetTableForTest (undefined, undefined);
+    ok ([ 'WatchTicker', 'WatchMarkPrice' ].every ((m) => goChan3Resolved ().has (m)), 'ws2 resolved set loads');
+    goChan3SetTableForTest (undefined, undefined);
+    goChan3SetStubsForTest (undefined);
+    goChanSetBaseReturnsForTest (undefined);
+    return problems;
+}
+
+// hand-written go/v4/exchange_interface.go is not regenerated: retype its tabled lines, list other hand refs
+function goChan3ApplyHand () {
+    const dir = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'go', 'v4');
+    const table = goChan3Table ();
+    const iface = path.join (dir, 'exchange_interface.go');
+    fs.writeFileSync (iface, goChan3Pass (fs.readFileSync (iface, 'utf8'), table));
+    const globalKeys = [ ...table.keys () ].filter ((k) => !k.includes ('.'));
+    if (!globalKeys.length) {
+        return;
+    }
+    const ref = new RegExp ('\\b(' + globalKeys.join ('|') + ')Async\\b');
+    const roots = [ dir, path.join (dir, '..', 'tests', 'base') ];
+    for (const d of roots) {
+        for (const f of fs.readdirSync (d).filter ((x) => x.endsWith ('.go') && x !== 'exchange_interface.go')) {
+            const body = fs.readFileSync (path.join (d, f), 'utf8');
+            if ((body.indexOf ('PLEASE DO NOT EDIT THIS FILE') >= 0) || /^\/\/ Code generated/m.test (body) || !/^exchange|^test\.(helpers|structs)/.test (f)) {
+                continue;
+            }
+            body.split ('\n').forEach ((l, i) => { if (ref.test (l)) { console.log ('HAND-REF ' + path.relative (process.cwd (), path.join (d, f)) + ':' + (i + 1) + ': ' + l.trim ()); } });
+        }
+    }
+}
+
+// replay over committed generated Go (preview only; never commit the output)
+function goChan3Replay (dir: string, write: boolean) {
+    let files = 0;
+    let changed = 0;
+    for (const sub of [ '', 'pro', 'prediction', '../tests/base' ]) {
+        const d = path.join (dir, sub);
+        if (!fs.existsSync (d)) {
+            continue;
+        }
+        for (const f of fs.readdirSync (d).filter ((x) => x.endsWith ('.go'))) {
+            const p = path.join (d, f);
+            const text = fs.readFileSync (p, 'utf8');
+            const out = goChan3Pass (text);
+            files++;
+            if (out !== text) {
+                changed++;
+                if (write) {
+                    fs.writeFileSync (p, out);
+                }
+            }
+        }
+    }
+    console.log ('GOCHAN3 replay: ' + changed + '/' + files + ' files changed' + (write ? ' (written)' : ''));
+}
+
+// ===== gofmt binary-operator layout =====
+// go/printer's blank rule for binary operators (nodes.go binaryExpr/cutoff/walkBinary),
+// applied to every Go line whose expressions this module can parse completely. Emitters and
+// post-passes splice operand text after the printer ran, so the spacing is recomputed here,
+// once, from the expression tree - lines it cannot parse are left exactly as they are.
+
+type GoTok = { 'kind': string, 'text': string, 'start': number, 'end': number };
+type GoNode = { [key: string]: any };
+
+const GO_MULTI_OPS = [ '<<=', '>>=', '&^=', '...', '&&', '||', '<-', '++', '--', '==', '!=', '<=', '>=', ':=',
+    '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<', '>>', '&^' ];
+const GO_SINGLE_OPS = '+-*/%&|^<>=!:,;.()[]{}~';
+const GO_KEYWORDS = new Set ([ 'break', 'case', 'chan', 'const', 'continue', 'default', 'defer', 'else',
+    'fallthrough', 'for', 'func', 'go', 'goto', 'if', 'import', 'interface', 'map', 'package', 'range',
+    'return', 'select', 'struct', 'switch', 'type', 'var' ]);
+const GO_ASSIGN_OPS = new Set ([ '=', ':=', '+=', '-=', '*=', '/=', '%=', '&=', '|=', '^=', '<<=', '>>=', '&^=' ]);
+const GO_UNARY_OPS = new Set ([ '-', '+', '!', '^', '&', '<-' ]);
+
+function goBinaryPrecedence (tok: GoTok | undefined): number {
+    if (tok === undefined || tok.kind !== 'op') {
+        return 0;
+    }
+    switch (tok.text) {
+    case '||': return 1;
+    case '&&': return 2;
+    case '==': case '!=': case '<': case '<=': case '>': case '>=': return 3;
+    case '+': case '-': case '|': case '^': return 4;
+    case '*': case '/': case '%': case '<<': case '>>': case '&': case '&^': return 5;
+    default: return 0;
+    }
+}
+
+function goLexLine (line: string): GoTok[] | null {
+    const toks: GoTok[] = [];
+    let i = 0;
+    while (i < line.length) {
+        const c = line[i];
+        if (c === ' ' || c === '\t' || c === '\r') {
+            i += 1;
+            continue;
+        }
+        if (c === '/' && line[i + 1] === '/') {
+            toks.push ({ 'kind': 'comment', 'text': line.slice (i), 'start': i, 'end': line.length });
+            break;
+        }
+        if (c === '/' && line[i + 1] === '*') {
+            return null;
+        }
+        if (c === '"' || c === '\'' || c === '`') {
+            let j = i + 1;
+            while (j < line.length && line[j] !== c) {
+                j += (line[j] === '\\' && c !== '`') ? 2 : 1;
+            }
+            if (j >= line.length) {
+                return null;
+            }
+            toks.push ({ 'kind': 'lit', 'text': line.slice (i, j + 1), 'start': i, 'end': j + 1 });
+            i = j + 1;
+            continue;
+        }
+        const rest = line.slice (i);
+        const num = /^(?:0[xX][0-9a-fA-F_.pP+-]+|0[bBoO][0-7_]+|(?:[0-9][0-9_]*(?:\.[0-9_]*)?|\.[0-9][0-9_]*)(?:[eE][-+]?[0-9_]+)?)i?/.exec (rest);
+        if (/[0-9]/.test (c) || (c === '.' && /[0-9]/.test (line[i + 1] ?? ''))) {
+            toks.push ({ 'kind': 'lit', 'text': num[0], 'start': i, 'end': i + num[0].length });
+            i += num[0].length;
+            continue;
+        }
+        const ident = /^[A-Za-z_\u0080-\uffff][A-Za-z0-9_\u0080-\uffff]*/.exec (rest);
+        if (ident !== null) {
+            toks.push ({ 'kind': 'id', 'text': ident[0], 'start': i, 'end': i + ident[0].length });
+            i += ident[0].length;
+            continue;
+        }
+        const multi = GO_MULTI_OPS.find ((op) => rest.startsWith (op));
+        const op = multi ?? (GO_SINGLE_OPS.indexOf (c) >= 0 ? c : undefined);
+        if (op === undefined) {
+            return null;
+        }
+        toks.push ({ 'kind': 'op', 'text': op, 'start': i, 'end': i + op.length });
+        i += op.length;
+    }
+    return toks;
+}
+
+class GoLineParser {
+    toks: GoTok[];
+    p = 0;
+    noLit = false;
+    constructor (toks: GoTok[]) {
+        this.toks = toks;
+    }
+    peek (offset = 0): GoTok | undefined {
+        return this.toks[this.p + offset];
+    }
+    is (text: string, offset = 0): boolean {
+        const tok = this.peek (offset);
+        return tok !== undefined && (tok.kind === 'op' || tok.kind === 'id') && tok.text === text;
+    }
+    atEnd (): boolean {
+        return this.p >= this.toks.length;
+    }
+    fail (): never {
+        throw new Error ('go-layout: unparsed');
+    }
+    expect (text: string) {
+        if (!this.is (text)) {
+            this.fail ();
+        }
+        this.p += 1;
+    }
+    nested<T> (fn: () => T): T {
+        const saved = this.noLit;
+        this.noLit = false;
+        try {
+            return fn ();
+        } finally {
+            this.noLit = saved;
+        }
+    }
+    skipBalanced () {
+        const open = this.peek ().text;
+        const close = open === '(' ? ')' : (open === '[' ? ']' : '}');
+        let depth = 0;
+        while (!this.atEnd ()) {
+            const t = this.peek ().text;
+            this.p += 1;
+            if (t === open) {
+                depth += 1;
+            } else if (t === close) {
+                depth -= 1;
+                if (depth === 0) {
+                    return;
+                }
+            }
+        }
+        this.fail ();
+    }
+    parseExpr (): GoNode {
+        return this.parseBinary (1);
+    }
+    parseBinary (minPrec: number): GoNode {
+        let x = this.parseUnary ();
+        for (;;) {
+            const prec = goBinaryPrecedence (this.peek ());
+            if (prec === 0 || prec < minPrec) {
+                return x;
+            }
+            const op = this.p;
+            this.p += 1;
+            const y = this.parseBinary (prec + 1);
+            x = { 't': 'bin', 'op': op, 'opText': this.toks[op].text, 'prec': prec, 'x': x, 'y': y };
+        }
+    }
+    parseUnary (): GoNode {
+        const tok = this.peek ();
+        if (tok !== undefined && tok.kind === 'op') {
+            if (tok.text === '<-' && this.is ('chan', 1)) {
+                return this.parseOperandTail (this.parseType ());
+            }
+            if (GO_UNARY_OPS.has (tok.text)) {
+                this.p += 1;
+                return { 't': 'un', 'opText': tok.text, 'x': this.parseUnary () };
+            }
+            if (tok.text === '*') {
+                this.p += 1;
+                return { 't': 'star', 'x': this.parseUnary () };
+            }
+        }
+        return this.parseOperandTail (this.parseOperand ());
+    }
+    parseOperand (): GoNode {
+        const tok = this.peek ();
+        if (tok === undefined) {
+            this.fail ();
+        }
+        if (tok.kind === 'lit') {
+            this.p += 1;
+            return { 't': 'leaf' };
+        }
+        if (tok.kind === 'id') {
+            if (tok.text === 'func') {
+                this.parseFuncType ();
+                if (this.is ('{')) {
+                    this.p += 1;                  // a func literal body: statements follow on later lines
+                    if (!this.atEnd ()) {
+                        this.fail ();
+                    }
+                    return { 't': 'open' };
+                }
+                return { 't': 'leaf' };
+            }
+            if (tok.text === 'map' || tok.text === 'chan' || tok.text === 'struct' || tok.text === 'interface') {
+                return this.parseType ();
+            }
+            if (GO_KEYWORDS.has (tok.text)) {
+                this.fail ();
+            }
+            this.p += 1;
+            return { 't': 'leaf' };
+        }
+        if (tok.text === '(') {
+            this.p += 1;
+            const x = this.nested (() => this.parseExpr ());
+            this.expect (')');
+            return { 't': 'paren', 'x': x };
+        }
+        if (tok.text === '[') {
+            return this.parseType ();
+        }
+        this.fail ();
+    }
+    parseOperandTail (x: GoNode): GoNode {
+        for (;;) {
+            if (this.is ('.')) {
+                this.p += 1;
+                if (this.is ('(')) {
+                    this.p += 1;
+                    if (this.is ('type')) {
+                        this.p += 1;
+                    } else {
+                        this.nested (() => this.parseType ());
+                    }
+                    this.expect (')');
+                    x = { 't': 'assert', 'x': x };
+                } else {
+                    const name = this.peek ();
+                    if (name === undefined || name.kind !== 'id') {
+                        this.fail ();
+                    }
+                    this.p += 1;
+                    x = { 't': 'sel', 'x': x };
+                }
+            } else if (this.is ('(')) {
+                this.p += 1;
+                const args = this.nested (() => {
+                    const list: GoNode[] = [];
+                    while (!this.is (')')) {
+                        list.push (this.parseExpr ());
+                        if (this.is ('...')) {
+                            this.p += 1;
+                        }
+                        if (this.is (',')) {
+                            this.p += 1;
+                        } else if (!this.is (')')) {
+                            this.fail ();
+                        }
+                    }
+                    return list;
+                });
+                this.p += 1;
+                x = { 't': 'call', 'fun': x, 'args': args };
+            } else if (this.is ('[')) {
+                this.p += 1;
+                x = this.nested (() => this.parseIndexTail (x));
+            } else if (this.is ('{') && !this.noLit) {
+                return this.nested (() => this.parseCompositeBody ());
+            } else {
+                return x;
+            }
+        }
+    }
+    parseIndexTail (x: GoNode): GoNode {
+        const items: (GoNode | null)[] = [];
+        const colons: number[] = [];
+        items.push (this.is (':') ? null : this.parseExpr ());
+        if (this.is (':')) {
+            while (this.is (':')) {
+                colons.push (this.p);
+                this.p += 1;
+                items.push ((this.is (':') || this.is (']')) ? null : this.parseExpr ());
+            }
+            this.expect (']');
+            return { 't': 'slice', 'x': x, 'items': items, 'colons': colons };
+        }
+        while (this.is (',')) {
+            this.p += 1;
+            items.push (this.parseExpr ());
+        }
+        this.expect (']');
+        return { 't': 'index', 'x': x, 'items': items };
+    }
+    parseCompositeBody (): GoNode {
+        this.expect ('{');
+        const elts: GoNode[] = [];
+        for (;;) {
+            if (this.atEnd ()) {
+                return { 't': 'comp', 'elts': elts, 'open': true };
+            }
+            if (this.is ('}')) {
+                this.p += 1;
+                return { 't': 'comp', 'elts': elts };
+            }
+            let element = this.is ('{') ? this.parseCompositeBody () : this.parseExpr ();
+            if (this.is (':')) {
+                this.p += 1;
+                const value = this.is ('{') ? this.parseCompositeBody () : this.parseExpr ();
+                element = { 't': 'kv', 'k': element, 'v': value };
+            }
+            elts.push (element);
+            if (this.is (',')) {
+                this.p += 1;
+            } else if (!this.is ('}') && !this.atEnd ()) {
+                this.fail ();
+            }
+        }
+    }
+    parseFuncType () {
+        this.expect ('func');
+        if (!this.is ('(')) {
+            this.fail ();
+        }
+        this.skipBalanced ();
+        if (this.is ('(')) {
+            this.skipBalanced ();
+        } else if (this.startsType ()) {
+            this.parseType ();
+        }
+    }
+    startsType (): boolean {
+        const tok = this.peek ();
+        if (tok === undefined) {
+            return false;
+        }
+        if (tok.kind === 'id') {
+            return !GO_KEYWORDS.has (tok.text) || [ 'map', 'chan', 'func', 'struct', 'interface' ].includes (tok.text);
+        }
+        return tok.text === '*' || tok.text === '[' || (tok.text === '<-' && this.is ('chan', 1));
+    }
+    parseType (): GoNode {
+        const tok = this.peek ();
+        if (tok === undefined) {
+            this.fail ();
+        }
+        if (tok.text === '*' || tok.text === '<-') {
+            this.p += 1;
+            return this.parseType ();
+        }
+        if (tok.text === '[') {
+            this.skipBalanced ();
+            return this.parseType ();
+        }
+        if (tok.text === 'map') {
+            this.p += 1;
+            if (!this.is ('[')) {
+                this.fail ();
+            }
+            this.skipBalanced ();
+            return this.parseType ();
+        }
+        if (tok.text === 'chan') {
+            this.p += 1;
+            if (this.is ('<-')) {
+                this.p += 1;
+            }
+            return this.parseType ();
+        }
+        if (tok.text === 'func') {
+            this.parseFuncType ();
+            return { 't': 'leaf' };
+        }
+        if (tok.text === 'struct' || tok.text === 'interface') {
+            this.p += 1;
+            if (!this.is ('{')) {
+                this.fail ();
+            }
+            this.skipBalanced ();
+            return { 't': 'leaf' };
+        }
+        if (tok.text === '(') {
+            this.skipBalanced ();
+            return { 't': 'leaf' };
+        }
+        if (tok.kind !== 'id' || GO_KEYWORDS.has (tok.text)) {
+            this.fail ();
+        }
+        this.p += 1;
+        if (this.is ('.') && this.peek (1)?.kind === 'id') {
+            this.p += 2;
+        }
+        if (this.is ('[')) {
+            this.skipBalanced ();
+        }
+        return { 't': 'leaf' };
+    }
+    parseExprList (): GoNode[] {
+        const list = [ this.parseExpr () ];
+        while (this.is (',')) {
+            this.p += 1;
+            if (this.atEnd ()) {
+                break;                        // the trailing comma of an element line
+            }
+            list.push (this.parseExpr ());
+        }
+        return list;
+    }
+}
+
+type GoLayout = { 'blank': Map<number, boolean>, 'colon': Map<number, [ boolean, boolean ]> };
+
+function goWalkBinary (e: GoNode): [ boolean, boolean, number ] {
+    let has4 = e.prec === 4;
+    let has5 = e.prec === 5;
+    let maxProblem = 0;
+    const walk = (sub: GoNode) => {
+        const [ h4, h5, mp ] = goWalkBinary (sub);
+        has4 = has4 || h4;
+        has5 = has5 || h5;
+        maxProblem = Math.max (maxProblem, mp);
+    };
+    if (e.x.t === 'bin' && e.x.prec >= e.prec) {
+        walk (e.x);
+    }
+    if (e.y.t === 'bin') {
+        if (e.y.prec > e.prec) {
+            walk (e.y);
+        }
+    } else if (e.y.t === 'star') {
+        if (e.opText === '/') {
+            maxProblem = 5;
+        }
+    } else if (e.y.t === 'un') {
+        const pair = e.opText + e.y.opText;
+        if (pair === '/*' || pair === '&&' || pair === '&^') {
+            maxProblem = 5;
+        } else if (pair === '++' || pair === '--') {
+            maxProblem = Math.max (maxProblem, 4);
+        }
+    }
+    return [ has4, has5, maxProblem ];
+}
+
+function goVisitAll (list: (GoNode | null)[], depth: number, out: GoLayout) {
+    for (const n of list) {
+        goVisitLayout (n, depth, out);
+    }
+}
+
+function goCutoff (e: GoNode, depth: number): number {
+    const [ has4, has5, maxProblem ] = goWalkBinary (e);
+    if (maxProblem > 0) {
+        return maxProblem + 1;
+    }
+    if (has4 && has5) {
+        return depth === 1 ? 5 : 4;
+    }
+    return depth === 1 ? 6 : 4;
+}
+
+function goVisitLayout (n: GoNode | null, depth: number, out: GoLayout) {
+    if (n === null) {
+        return;
+    }
+    switch (n.t) {
+    case 'bin':
+        out.blank.set (n.op, n.prec < goCutoff (n, depth));
+        goVisitLayout (n.x, depth + ((n.x.t === 'bin' && n.x.prec === n.prec) ? 0 : 1), out);
+        goVisitLayout (n.y, depth + 1, out);
+        break;
+    case 'paren':
+        goVisitLayout (n.x, (n.x.t === 'paren') ? depth : Math.max (1, depth - 1), out);
+        break;
+    case 'un':
+    case 'sel':
+    case 'assert':
+        goVisitLayout (n.x, depth, out);
+        break;
+    case 'star':
+        goVisitLayout (n.x, 1, out);
+        break;
+    case 'call': {
+        const d = (n.args.length > 1) ? depth + 1 : depth;
+        goVisitLayout (n.fun, d, out);
+        goVisitAll (n.args, d, out);
+        break;
+    }
+    case 'index':
+        goVisitLayout (n.x, 1, out);
+        goVisitAll (n.items, depth + 1, out);
+        break;
+    case 'slice': {
+        goVisitLayout (n.x, 1, out);
+        const present = n.items.filter ((item) => item !== null);
+        const needsBlanks = (depth <= 1) && (present.length > 1) && present.some ((item) => item.t === 'bin');
+        n.colons.forEach ((colon: number, k: number) => {
+            out.colon.set (colon, [ needsBlanks && n.items[k] !== null, needsBlanks && n.items[k + 1] !== null ]);
+        });
+        goVisitAll (n.items, depth + 1, out);
+        break;
+    }
+    case 'comp':
+        goVisitAll (n.elts, 1, out);
+        break;
+    case 'kv':
+        goVisitLayout (n.k, 1, out);
+        goVisitLayout (n.v, 1, out);
+        break;
+    default:
+        break;
+    }
+}
+
+// one simple statement (go/printer stmt(): assignments are depth 1, or 2 when both sides are lists)
+// `base` is the expression depth the statement starts at: 1 for a whole statement, deeper
+// for a line that continues one already inside brackets (a called multi-line func literal)
+function goLayoutSimpleStmt (parser: GoLineParser, out: GoLayout, base: number = 1) {
+    if (parser.is ('range')) {
+        parser.p += 1;
+        goVisitLayout (parser.parseExpr (), base, out);
+        return;
+    }
+    const lhs = parser.parseExprList ();
+    const tok = parser.peek ();
+    if (tok !== undefined && tok.kind === 'op' && GO_ASSIGN_OPS.has (tok.text)) {
+        parser.p += 1;
+        let rhs: GoNode[];
+        if (parser.is ('range')) {
+            parser.p += 1;
+            rhs = [ parser.parseExpr () ];
+        } else {
+            rhs = parser.parseExprList ();
+        }
+        const depth = (lhs.length > 1 && rhs.length > 1) ? 2 : 1;
+        goVisitAll (lhs.concat (rhs), Math.max (depth, base), out);
+    } else if (parser.is ('++') || parser.is ('--')) {
+        parser.p += 1;
+        goVisitLayout (lhs[0], Math.max (2, base), out);
+    } else if (parser.is ('<-')) {
+        parser.p += 1;
+        goVisitLayout (lhs[0], base, out);
+        goVisitLayout (parser.parseExpr (), base, out);
+    } else if (parser.is (':') && lhs.length === 1) {
+        parser.p += 1;                        // a `key: value` element of a composite literal body
+        goVisitLayout (lhs[0], base, out);
+        if (!parser.atEnd ()) {
+            goVisitLayout (parser.is ('{') ? parser.parseCompositeBody () : parser.parseExpr (), base, out);
+            if (parser.is (',')) {
+                parser.p += 1;
+            }
+        }
+    } else {
+        goVisitAll (lhs, base, out);
+    }
+}
+
+function goLayoutHeader (parser: GoLineParser, out: GoLayout) {
+    parser.noLit = true;
+    if (!parser.is ('{')) {
+        goLayoutSimpleStmt (parser, out);
+        while (parser.is (';')) {
+            parser.p += 1;
+            if (!parser.is (';') && !parser.is ('{')) {
+                goLayoutSimpleStmt (parser, out);
+            }
+        }
+    }
+    parser.noLit = false;
+    parser.expect ('{');
+}
+
+// runs one line's layout: a GoLayout/null result is final, otherwise the line must be consumed whole
+function goLayoutRun (parser: GoLineParser, out: GoLayout, layout: (parser: GoLineParser) => GoLayout | null | undefined | void): GoLayout | null {
+    try {
+        const early = layout (parser);
+        if (early !== undefined) {
+            return early;
+        }
+        return parser.atEnd () ? out : null;
+    } catch (e) {
+        return null;
+    }
+}
+
+function goLayoutStatement (toks: GoTok[], base: number = 1): GoLayout | null {
+    const out: GoLayout = { 'blank': new Map (), 'colon': new Map () };
+    // `}(args) + x`: a multi-line func literal being called, so the line continues an
+    // expression. The `}` closes the literal and is its operand, so swap in a stand-in
+    // identifier and lay the line out as the expression it is; token indices are unchanged.
+    if ((toks.length > 1) && (toks[0].kind === 'op') && (toks[0].text === '}') &&
+            (toks[1].kind === 'op') && (toks[1].text === '(')) {
+        const shim = toks.slice ();
+        shim[0] = { 'kind': 'id', 'text': '_', 'start': toks[0].start, 'end': toks[0].end };
+        // the line may also close a control header whose condition is that call
+        // (`}(args)) {`); drop the trailing brace and any paren opened on an earlier
+        // line, so what is left is exactly one balanced expression
+        let end = shim.length;
+        if ((end > 1) && (shim[end - 1].kind === 'op') && (shim[end - 1].text === '{')) {
+            end -= 1;
+        }
+        let depth = 0;
+        for (let k = 0; k < end; k++) {
+            const t = shim[k];
+            if (t.kind !== 'op') {
+                continue;
+            }
+            if ((t.text === '(') || (t.text === '[')) {
+                depth += 1;
+            } else if ((t.text === ')') || (t.text === ']')) {
+                depth -= 1;
+                if (depth < 0) {          // closes a bracket from an earlier line
+                    end = k;
+                    break;
+                }
+            }
+        }
+        return goLayoutRun (new GoLineParser (shim.slice (0, end)), out, (parser) => goLayoutSimpleStmt (parser, out, base));
+    }
+    return goLayoutRun (new GoLineParser (toks), out, (parser) => {
+        if (parser.is ('}')) {
+            parser.p += 1;
+            if (parser.atEnd () || (parser.is (',') && parser.toks.length === 2)) {
+                return out;
+            }
+            parser.expect ('else');
+            if (parser.is ('{')) {
+                parser.p += 1;
+            } else {
+                parser.expect ('if');
+                goLayoutHeader (parser, out);
+            }
+        } else {
+            const head = parser.peek ();
+            const word = head.kind === 'id' ? head.text : '';
+            if (word === 'if' || word === 'for' || word === 'switch') {
+                parser.p += 1;
+                goLayoutHeader (parser, out);
+            } else if (word === 'return') {
+                parser.p += 1;
+                if (!parser.atEnd ()) {
+                    goVisitAll (parser.parseExprList (), 1, out);
+                }
+            } else if (word === 'case') {
+                parser.p += 1;
+                goLayoutSimpleStmt (parser, out);
+                parser.expect (':');
+            } else if (word === 'go' || word === 'defer') {
+                parser.p += 1;
+                goVisitLayout (parser.parseExpr (), 1, out);
+            } else if (word === 'var' || word === 'const') {
+                const assign = toks.findIndex ((tok) => tok.kind === 'op' && tok.text === '=');
+                if (assign < 0) {
+                    return out;
+                }
+                parser.p = assign + 1;
+                goVisitAll (parser.parseExprList (), 1, out);
+            } else if (word === 'break' || word === 'continue' || word === 'fallthrough' || word === 'goto' ||
+                    word === 'default' || word === 'select') {
+                return out;
+            } else if (GO_KEYWORDS.has (word)) {
+                return null;
+            } else {
+                goLayoutSimpleStmt (parser, out);
+            }
+        }
+        return undefined;
+    });
+}
+
+// the Go text of `line` with the blanks go/printer gives each binary operator and slice colon
+function goApplyLayout (line: string, toks: GoTok[], layout: GoLayout): string {
+    const gaps: (string | undefined)[] = toks.map (() => undefined);   // gap before token k
+    const setGap = (k: number, blank: boolean) => {
+        if (k > 0 && k < toks.length && toks[k].kind !== 'comment') {
+            gaps[k] = blank ? ' ' : '';
+        }
+    };
+    for (const [ k, blank ] of layout.blank) {
+        setGap (k, blank);
+        setGap (k + 1, blank);
+    }
+    for (const [ k, [ before, after ] ] of layout.colon) {
+        setGap (k, before);
+        setGap (k + 1, after);
+    }
+    let out = line.slice (0, toks.length > 0 ? toks[0].start : line.length);
+    for (let k = 0; k < toks.length; k++) {
+        if (k > 0) {
+            const original = line.slice (toks[k - 1].end, toks[k].start);
+            out += (gaps[k] !== undefined && /^ *$/.test (original)) ? gaps[k] : original;
+        }
+        out += toks[k].text;
+    }
+    return out;
+}
+
+// number of comma-separated entries in the bracket frame opened at `open`, looking past the
+// end of the line when the frame stays open: 1 for a single argument, 0 when it is empty.
+// `rest` is the source from `open` onwards, so a multi-line argument list is counted whole.
+function goCountFrameArgs (rest: string, open: number): number {
+    let depth = 0;
+    let entries = 0;
+    let seen = false;
+    for (let i = open + 1; i < rest.length; i++) {
+        const c = rest[i];
+        if (c === '"' || c === '\'' || c === '`') {
+            let j = i + 1;
+            while (j < rest.length && rest[j] !== c) {
+                j += (rest[j] === '\\') ? 2 : 1;
+            }
+            i = j;
+            seen = true;
+        } else if (c === '/' && rest[i + 1] === '/') {
+            const nl = rest.indexOf ('\n', i);
+            if (nl < 0) {
+                break;
+            }
+            i = nl;
+        } else if (c === '(' || c === '[' || c === '{') {
+            depth += 1;
+        } else if (c === ')' || c === ']' || c === '}') {
+            if (depth === 0) {
+                return (seen || entries > 0) ? entries + 1 : 0;
+            }
+            depth -= 1;
+            seen = true;
+        } else if (c === ',' && depth === 0) {
+            entries += 1;
+        } else if (c !== ' ' && c !== '\t' && c !== '\n' && c !== '\r') {
+            seen = true;
+        }
+    }
+    return (seen || entries > 0) ? entries + 1 : 0;
+}
+
+// per line: true when the line starts inside a `{` body (a block or a composite literal, not a
+// struct/interface type) and outside any raw string or block comment, plus the bracket depth
+// each line starts at
+function goLayoutLineContexts (lines: string[]): { 'inBody': boolean[], 'depths': number[] } {
+    const result: boolean[] = [];
+    const depths: number[] = [];
+    const stack: string[] = [];
+    let inRaw = false;
+    let inBlockComment = false;
+    let lastSignificant = '';
+    let lastWord = '';
+    let continued = false;
+    // offset of each line in `joined`, so a frame's argument list can be scanned across lines
+    const joined = lines.join ('\n');
+    const lineStart: number[] = [];
+    let at = 0;
+    for (const line of lines) {
+        lineStart.push (at);
+        at += line.length + 1;
+    }
+    for (let ln = 0; ln < lines.length; ln++) {
+        const line = lines[ln];
+        const top = stack[stack.length - 1];
+        result.push (!inRaw && !inBlockComment && !continued && top === '{');
+        // brackets still open under the innermost block: a line continuing an expression
+        // from inside them starts that many levels deep, as go/printer counts depth. Only
+        // multi-argument call parens add a level, matching goCountFrameArgsText. A line
+        // closing a func literal starts at the literal's own `{`, so that frame is skipped.
+        let open = 0;
+        let top2 = stack.length - 1;
+        if ((top2 >= 0) && (stack[top2] === '{') && line.trimStart ().startsWith ('}')) {
+            top2 -= 1;
+        }
+        for (let s = top2; s >= 0; s--) {
+            if (stack[s] === '{' || stack[s] === 'T') {
+                break;
+            }
+            if (stack[s] !== 'g') {
+                open += 1;
+            }
+        }
+        depths.push (open);
+        const startedInside = inRaw || inBlockComment;
+        for (let i = 0; i < line.length; i++) {
+            const c = line[i];
+            if (inRaw) {
+                if (c === '`') {
+                    inRaw = false;
+                }
+                continue;
+            }
+            if (inBlockComment) {
+                if (c === '*' && line[i + 1] === '/') {
+                    inBlockComment = false;
+                    i += 1;
+                }
+                continue;
+            }
+            if (c === '/' && line[i + 1] === '/') {
+                break;
+            }
+            if (c === '/' && line[i + 1] === '*') {
+                inBlockComment = true;
+                i += 1;
+                continue;
+            }
+            if (c === '`') {
+                inRaw = true;
+                continue;
+            }
+            if (c === '"' || c === '\'') {
+                let j = i + 1;
+                while (j < line.length && line[j] !== c) {
+                    j += (line[j] === '\\') ? 2 : 1;
+                }
+                i = j;
+                lastSignificant = c;
+                continue;
+            }
+            if (c === '(' || c === '[') {
+                // go/printer adds a level for a `[` and for a call paren with more than one
+                // argument; a grouping paren or a one-argument call keeps the level
+                let adds = (c === '[');
+                if (c === '(') {
+                    const isCall = (i > 0) && /[A-Za-z0-9_)\]}"'`]/.test (line.slice (0, i).replace (/[ \t]+$/, '').slice (-1));
+                    adds = isCall && (goCountFrameArgs (joined, lineStart[ln] + i) > 1);
+                }
+                stack.push (adds ? c : 'g');
+            } else if (c === '{') {
+                stack.push ((lastWord === 'struct' || lastWord === 'interface') ? 'T' : '{');
+            } else if (c === ')' || c === ']' || c === '}') {
+                stack.pop ();
+            }
+            if (c !== ' ' && c !== '\t') {
+                lastSignificant = c;
+                const word = /^[A-Za-z_][A-Za-z0-9_]*/.exec (line.slice (i));
+                if (word !== null && (i === 0 || !/[A-Za-z0-9_]/.test (line[i - 1]))) {
+                    lastWord = word[0];
+                    i += word[0].length - 1;
+                    lastSignificant = 'a';
+                } else if (c !== '{') {
+                    lastWord = '';
+                }
+            }
+        }
+        // a line ending in an operator or a separator continues its expression on the next
+        // line, except a trailing comma directly inside a `{` body: there each element is
+        // laid out on its own, as go/printer walks composite literal elements separately
+        const elementComma = (lastSignificant === ',') && (stack[stack.length - 1] === '{');
+        continued = startedInside || inRaw || inBlockComment ||
+            (!elementComma && /[-+*/%&|^<>=!,.:]/.test (lastSignificant));
+    }
+    return { 'inBody': result, 'depths': depths };
+}
+
+function goGofmtBinarySpacing (content: string): string {
+    const lines = content.split ('\n');
+    const ctx = goLayoutLineContexts (lines);
+    for (let l = 0; l < lines.length; l++) {
+        const toks = goLexLine (lines[l]);
+        if (toks === null) {
+            continue;
+        }
+        const code = (toks.length > 0 && toks[toks.length - 1].kind === 'comment') ? toks.slice (0, -1) : toks;
+        if (code.length === 0) {
+            continue;
+        }
+        // a called multi-line func literal continues the expression it sits in, so it is laid
+        // out at the depth of the brackets still open around it, plus one for the literal's
+        // own frame; every other line is a statement of its own and starts in a block body
+        const literalCall = (code.length > 1) && (code[0].kind === 'op') && (code[0].text === '}') &&
+            (code[1].kind === 'op') && (code[1].text === '(');
+        if (!ctx.inBody[l] && !literalCall) {
+            continue;
+        }
+        const layout = goLayoutStatement (code, literalCall ? ctx.depths[l] + 1 : 1);
+        if (layout !== null && (layout.blank.size > 0 || layout.colon.size > 0)) {
+            lines[l] = goApplyLayout (lines[l], toks, layout);
+        }
+    }
+    return lines.join ('\n');
+}
+
+// ===== native Go arithmetic / comparisons on proven numeric operands =====
+// Post-pass over emitted Go text. A helper call becomes the native operator only when every
+// operand is a non-nil numeric whose Go type the function text proves (int64 / float64 / int
+// local or param declared once, int64 base-method result, numeric literal). Anything else keeps the helper.
+
+type Kind = 'i64' | 'f64' | 'int' | 'ilit' | 'flit';
+
+const GO_ARITH_HELPERS = [ 'Subtract', 'Multiply', 'Divide', 'Mod', 'OpNeg', 'IsLessThan', 'IsGreaterThan',
+    'IsGreaterThanOrEqual', 'IsLessThanOrEqual', 'MathMin', 'MathMax', 'MathFloor', 'MathCeil', 'MathRound', 'MathPow' ];
+const GO_ARITH_CALL_RX = new RegExp ('(?<![\\w.])(?:ccxt\\.)?(' + GO_ARITH_HELPERS.join ('|') + ')\\(', 'g');
+// BaseExchange methods whose Go signature returns int64 (go/v4/exchange*.go)
+const GO_ARITH_INT64_METHODS = [ 'Milliseconds', 'Seconds', 'ParseToInt', 'ParseTimeframe' ];
+const GO_ARITH_MAX_EXACT = 2 ** 53;
+
+function goArithMask (content: string): string {
+    const out = content.split ('');
+    let state = 'code';
+    let escaped = false;
+    for (let i = 0; i < content.length; i++) {
+        const c = content[i];
+        if (state === 'code') {
+            if ((c === '/') && (content[i + 1] === '/')) { state = 'line'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if ((c === '/') && (content[i + 1] === '*')) { state = 'block'; out[i] = ' '; out[i + 1] = ' '; i++; continue; }
+            if (c === '"') { state = 'dq'; out[i] = ' '; continue; }
+            if (c === '`') { state = 'raw'; out[i] = ' '; continue; }
+            if (c === '\'') { state = 'rune'; out[i] = ' '; continue; }
+            continue;
+        }
+        out[i] = (c === '\n') ? '\n' : ' ';
+        if (state === 'line') { if (c === '\n') { state = 'code'; } continue; }
+        if (state === 'block') { if ((c === '*') && (content[i + 1] === '/')) { out[i + 1] = ' '; i++; state = 'code'; } continue; }
+        if (state === 'dq') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '"') { state = 'code'; } continue; }
+        if (state === 'rune') { if (escaped) { escaped = false; } else if (c === '\\') { escaped = true; } else if (c === '\'') { state = 'code'; } continue; }
+        if (state === 'raw') { if (c === '`') { state = 'code'; } continue; }
+    }
+    return out.join ('');
+}
+
+function goArithClose (masked: string, open: number): number {
+    let depth = 0;
+    for (let i = open; i < masked.length; i++) {
+        const c = masked[i];
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; }
+        else if ((c === ')') || (c === ']') || (c === '}')) { depth--; if (depth === 0) { return i; } }
+    }
+    return -1;
+}
+
+// top-level comma split of masked[open+1 .. close-1]; returns [start, end) spans
+function goArithArgs (masked: string, open: number, close: number): number[][] {
+    const spans: number[][] = [];
+    let depth = 0;
+    let start = open + 1;
+    for (let i = open + 1; i < close; i++) {
+        const c = masked[i];
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; }
+        else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
+        else if ((c === ',') && (depth === 0)) { spans.push ([ start, i ]); start = i + 1; }
+    }
+    spans.push ([ start, close ]);
+    return spans;
+}
+
+function goArithStripParens (text: string): string {
+    let t = text.trim ();
+    while (t.startsWith ('(') && (goArithClose (t, 0) === t.length - 1)) {
+        t = t.slice (1, -1).trim ();
+    }
+    return t;
+}
+
+// Go type of `name` when the function text declares it exactly once (a `var`, a signature param)
+function goArithDeclaredType (maskedFunc: string, signature: string, name: string): string | undefined {
+    const vars = [ ...maskedFunc.matchAll (new RegExp ('\\bvar\\s+' + name + '\\s+([^=\\n]+?)\\s*(?:=|\\n)', 'g')) ];
+    const shortDecls = maskedFunc.match (new RegExp ('(?:^|[^\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=', 'gm')) ?? [];
+    const literalParams = [ ...maskedFunc.matchAll (/\bfunc\s*\(([^()]*)\)/g) ].filter ((m) => new RegExp ('\\b' + name + '\\b').test (m[1]));
+    const rangeDecls = maskedFunc.match (new RegExp ('\\bfor\\b[^\\n{]*\\b' + name + '\\b[^\\n{]*:=\\s*range\\b')) ?? [];
+    const params = signature.substring (signature.indexOf ('(', signature.startsWith ('func (') ? signature.indexOf (')') + 1 : 0));
+    const sigParam = new RegExp ('[(,]\\s*' + name + '\\s+([^,()]+?)\\s*[,)]').exec (params);
+    const count = vars.length + shortDecls.length + literalParams.length + rangeDecls.length + (sigParam ? 1 : 0);
+    if (count !== 1) {
+        return undefined;
+    }
+    if (sigParam) {
+        return sigParam[1].trim ();
+    }
+    return (vars.length === 1) ? vars[0][1].trim () : undefined;
+}
+
+function goArithIntLiteralValue (t: string): number | undefined {
+    if (!/^\d+(?:\s*[*+]\s*\d+)*$/.test (t) || /^0\d/.test (t)) {
+        return undefined;
+    }
+    // untyped integer constant expression (only * and +, so no precedence surprise in a product)
+    const sums = t.split ('+').map ((s) => s.split ('*').reduce ((a, b) => a * Number (b.trim ()), 1));
+    const value = sums.reduce ((a, b) => a + b, 0);
+    return (value <= GO_ARITH_MAX_EXACT) ? value : undefined;
+}
+
+interface GoArithScope { masked: string; signature: string; known: Map<string, Kind>; ownMethods: Set<string>; pos: number; derefs: Set<string>; sums?: Map<string, string> }
+
+// one self-test case table: `want` must (or must not) appear in the pass output of `wrap (body)`
+function goArithCaseProblems (pass: (content: string) => string, wrap: (body: string) => string, cases: [ string, string, boolean ][], prefix: string): string[] {
+    const problems: string[] = [];
+    for (const [ body, want, present ] of cases) {
+        const out = pass (wrap (body));
+        if (out.includes (want) !== present) {
+            problems.push (prefix + want + ' in ' + out);
+        }
+    }
+    return problems;
+}
+
+// file-level shadows: own int64-method overrides (+ extra names), BaseExchange numeric fields not redeclared, own Handle* methods
+function goArithOwnMethods (masked: string, extra: string[] = []): Set<string> {
+    return new Set<string> (GO_ARITH_INT64_METHODS.concat (extra).filter ((name) => new RegExp ('^func \\(this \\*\\w+\\) ' + name + '\\(', 'm').test (masked)));
+}
+
+function goArithBaseFields (masked: string): Set<string> {
+    return new Set<string> (Object.keys (GO_BASE_NUMERIC_FIELDS).filter ((f) => !new RegExp ('^\\s+' + f + '\\s+[\\w*\\[]|\\) ' + f + '\\(', 'm').test (masked)));
+}
+
+function goArithFileOwnHandles (masked: string): Set<string> {
+    return new Set<string> ([ ...masked.matchAll (/^func \(this \*\w+\) (Handle\w+)\(/gm) ].map ((m) => m[1]));
+}
+
+function goArithScope (masked: string, ownMethods: Set<string>): GoArithScope {
+    const nl = masked.indexOf ('\n');
+    return { 'masked': masked, 'signature': masked.slice (0, nl < 0 ? masked.length : nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+}
+
+// rewrite every top-level `func ...{` .. `}` block of a file; `head` is its first line
+function goArithEachFunc (content: string, rewrite: (fn: string, head: string) => string): string {
+    const lines = content.split ('\n');
+    const out: string[] = [];
+    let start = -1;
+    for (let k = 0; k < lines.length; k++) {
+        if (start < 0) {
+            if (lines[k].startsWith ('func ') && !lines[k].endsWith ('}')) {
+                start = k;
+            } else {
+                out.push (lines[k]);
+            }
+            continue;
+        }
+        if (lines[k] === '}') {
+            out.push (rewrite (lines.slice (start, k + 1).join ('\n'), lines[start]));
+            start = -1;
+        }
+    }
+    if (start >= 0) {
+        out.push (...lines.slice (start));
+    }
+    return out.join ('\n');
+}
+
+// goArithEachFunc for rewrites that may emit `math.X`: undone where a local shadows `math`, else adds the import
+function goArithMathEachFunc (content: string, masked: string, rewrite: (fn: string, head: string) => { text: string, math: boolean }): string {
+    const mathShadowed = /(?<![\w.])math\s*(?::=|,)|\bvar math\b|[(,]\s*math\s+\w/.test (masked);
+    let usesMath = false;
+    const joined = goArithEachFunc (content, (fn, head) => {
+        const result = rewrite (fn, head);
+        if (result.math && mathShadowed) {
+            return fn;
+        }
+        usesMath = usesMath || result.math;
+        return result.text;
+    });
+    return usesMath ? goAddImport (joined, 'math') : joined;
+}
+
+// right-to-left over the calls `rx` matches (an inner call is rewritten before its container); `native` answers the replacement
+function goArithRewriteCalls (text: string, scope: GoArithScope, rx: RegExp, native: (helper: string, args: string[], margs: string[], text: string) => string | undefined): string {
+    let masked = scope.masked;
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        const spans = (close < 0) ? [] : goArithArgs (masked, call.open, close);
+        scope.pos = call.start;
+        const args = spans.map (([ s, e ]) => goArithStripParens (text.slice (s, e)));
+        const margs = spans.map (([ s, e ]) => goArithStripParens (masked.slice (s, e)));
+        let out = native (call.helper, args, margs, text);
+        if (out === undefined) {
+            continue;
+        }
+        if (/\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (close + 1))) {
+            out = out.slice (1, -1);
+        }
+        text = text.slice (0, call.start) + out + text.slice (close + 1);
+        masked = masked.slice (0, call.start) + goArithMask (out) + masked.slice (close + 1);
+        scope.masked = masked;
+    }
+    return text;
+}
+
+const GO_COMPARE_CALL_RX = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan)\(/g;
+
+function goArithKind (scope: GoArithScope, text: string, maskedText: string): Kind | undefined {
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (maskedText);
+    const known = scope.known.get (t);
+    if (known !== undefined) {
+        return known;
+    }
+    if (goArithIntLiteralValue (t) !== undefined) {
+        return 'ilit';
+    }
+    if (/^\d+\.\d+$/.test (t)) {
+        return 'flit';
+    }
+    if (/^int64\(-\d+\)$/.test (t)) {
+        return 'i64';
+    }
+    const extraOperandKind = goExtraOperandKind (scope, t, m);
+    if (extraOperandKind !== undefined) {
+        return extraOperandKind;
+    }
+    if (goNeverNilIntExpr (scope, t, m)) {
+        return 'i64';
+    }
+    if (/^[A-Za-z_]\w*$/.test (t) && (t !== 'nil') && (t !== 'true') && (t !== 'false')) {
+        const type = goArithDeclaredType (scope.masked, scope.signature, t);
+        if (((type === '*int64') || (type === '*float64')) && (goTypedArithPointerIsNonNil (scope, t) || goEarlyExitPointerNonNil (scope, t, type) || goGuardedPointerNonNil (scope, t))) {
+            scope.derefs.add (t);
+            return (type === '*int64') ? 'i64' : 'f64';
+        }
+        if ((type === undefined) && goTupleInt64 (scope, t)) {
+            return 'i64';
+        }
+        return (type === 'int64') ? 'i64' : ((type === 'float64') ? 'f64' : ((type === 'int') ? 'int' : undefined));
+    }
+    // a float64 conversion, optionally divided/multiplied by nonzero constants, is a float64 value
+    const conv = /^float64\(/.exec (m);
+    if (conv) {
+        const end = goArithClose (m, conv[0].length - 1);
+        if ((end > 0) && /^(?:\s*[*/]\s*[1-9]\d*(?:\.\d+)?)*$/.test (m.slice (end + 1))) {
+            return 'f64';
+        }
+    }
+    // helpers with a plain Go return type (go/v4/exchange_helpers.go): never nil
+    const plain = /^(?:ccxt\.)?(GetArrayLength|GetLength|len|ParseInt)\(/.exec (m);
+    if (plain && (goArithClose (m, plain[0].length - 1) === m.length - 1)) {
+        return (plain[1] === 'ParseInt') ? 'i64' : 'int';
+    }
+    const call = /^this\.(\w+)\(/.exec (m);
+    if (call && GO_ARITH_INT64_METHODS.includes (call[1]) && !scope.ownMethods.has (call[1]) && (goArithClose (m, call[0].length - 1) === m.length - 1)) {
+        return 'i64';
+    }
+    return undefined;
+}
+
+const isInt64Side = (k: Kind) => (k === 'i64') || (k === 'ilit');
+const isFloatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit');
+const isNumeric = (k: Kind) => (k !== undefined);
+
+// float64 spelling of a proven numeric operand (literals stay untyped constants)
+function goArithAsFloat (text: string, kind: Kind): string {
+    return ((kind === 'i64') || (kind === 'int')) ? 'float64(' + text + ')' : text;
+}
+
+// the native text for one helper call, or undefined to keep the helper
+function goArithNative (helper: string, args: string[], kinds: Kind[]): { text: string, kind: Kind } | undefined {
+    const [ a, b ] = args;
+    const [ ka, kb ] = kinds;
+    if (helper === 'OpNeg') {
+        if (ka === 'ilit' && /^\d+$/.test (a)) { return { 'text': 'int64(-' + a + ')', 'kind': 'i64' }; }
+        if (ka === 'flit') { return { 'text': 'float64(-' + a + ')', 'kind': 'f64' }; }
+        if ((ka === 'i64') || (ka === 'f64')) { return { 'text': '(-' + a + ')', 'kind': ka }; }
+        if (ka === 'int') { return { 'text': '(-int64(' + a + '))', 'kind': 'i64' }; }
+        return undefined;
+    }
+    if ([ 'MathFloor', 'MathCeil', 'MathRound' ].includes (helper)) {
+        if ((ka === 'i64') || (ka === 'f64') || (ka === 'int')) {
+            return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ')', 'kind': 'f64' };
+        }
+        return undefined;
+    }
+    if (helper === 'MathPow') {
+        if (isNumeric (ka) && isNumeric (kb) && ((ka !== 'ilit' && ka !== 'flit') || (kb !== 'ilit' && kb !== 'flit'))) {
+            return { 'text': 'math.Pow(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
+        }
+        return undefined;
+    }
+    const bothInt64 = isInt64Side (ka) && isInt64Side (kb) && ((ka === 'i64') || (kb === 'i64'));
+    const bothInt = ((ka === 'int') || (ka === 'ilit')) && ((kb === 'int') || (kb === 'ilit')) && ((ka === 'int') || (kb === 'int'));
+    const bothFloat = isFloatSide (ka) && isFloatSide (kb) && ((ka === 'f64') || (kb === 'f64'));
+    if ((helper === 'MathMin') || (helper === 'MathMax')) {
+        // the helper answers float64(a|b); integral operands carry no NaN
+        if (bothInt64) {
+            return { 'text': 'math.' + helper.slice (4) + '(' + goArithAsFloat (a, ka) + ', ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
+        }
+        return undefined;
+    }
+    if ((helper === 'Subtract') || (helper === 'Multiply')) {
+        // helper boxes an int64 result for integral operands; float operands may box either kind
+        if (bothInt64) {
+            return { 'text': '(' + a + ((helper === 'Subtract') ? ' - ' : ' * ') + b + ')', 'kind': 'i64' };
+        }
+        return goNonNilMulSubNative (helper, a, b, ka, kb);
+    }
+    if (helper === 'Mod') {
+        const divisor = goArithIntLiteralValue (b);
+        if (((ka === 'i64') && (kb === 'ilit') && (divisor !== undefined) && (divisor !== 0)) || (isInt64Side (ka) && (kb === 'i64') && goPositiveDivisorLiteral (b))) {
+            return { 'text': '(' + a + ' % ' + b + ')', 'kind': 'i64' };
+        }
+        return undefined;
+    }
+    if (helper === 'Divide') {
+        // JS division is float; a zero divisor is the helper's nil, so only a nonzero constant divides
+        const divisor = (kb === 'ilit') ? goArithIntLiteralValue (b) : ((kb === 'flit') ? Number (b) : undefined);
+        if (((kb === 'i64') || (kb === 'f64') || (kb === 'int')) && goPositiveDivisorLiteral (b) && ((ka === 'i64') || (ka === 'f64') || (ka === 'int') || (ka === 'ilit'))) {
+            return { 'text': '(' + goArithAsFloat (a, ka === 'ilit' ? 'f64' : ka) + ' / ' + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
+        }
+        if ((divisor === undefined) || (divisor === 0) || !((ka === 'i64') || (ka === 'f64') || (ka === 'int'))) {
+            return undefined;
+        }
+        return { 'text': '(' + goArithAsFloat (a, ka) + ' / ' + b + ')', 'kind': 'f64' };
+    }
+    const ops: { [h: string]: string } = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' };
+    const op = ops[helper];
+    if (op !== undefined) {
+        // float `<`/`<=` keep the helper: IsLessThan = !GT && !EQ answers true for NaN
+        const floatOk = bothFloat && ((op === '>') || (op === '>='));
+        if (bothInt64 || bothInt || floatOk) {
+            return { 'text': '(' + a + ' ' + op + ' ' + b + ')', 'kind': undefined };
+        }
+    }
+    return undefined;
+}
+
+function goArithRewriteFunc (text: string, ownMethods: Set<string>): { text: string, math: boolean } {
+    let masked = goArithMask (text);
+    const scope = goArithScope (masked, ownMethods);
+    const calls = [ ...masked.matchAll (GO_ARITH_CALL_RX) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    let usesMath = false;
+    // right to left: an inner call is rewritten before the call that contains it
+    calls.sort ((x, y) => y.start - x.start);
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        if (close < 0) {
+            continue;
+        }
+        const before = masked.slice (0, call.start);
+        let after = close + 1;
+        const spans = goArithArgs (masked, call.open, close);
+        const args = spans.map (([ s, e ]) => text.slice (s, e).trim ());
+        const maskedArgs = spans.map (([ s, e ]) => masked.slice (s, e).trim ());
+        const expected = (call.helper === 'OpNeg' || call.helper.startsWith ('MathF') || call.helper === 'MathCeil' || call.helper === 'MathRound') ? 1 : 2;
+        if (args.length !== expected) {
+            continue;
+        }
+        scope.pos = call.start;
+        scope.derefs = new Set<string> ();
+        scope.sums = new Map<string, string> ();
+        const kinds = args.map ((arg, i) => goArithKind (scope, arg, maskedArgs[i]));
+        if (kinds.some ((k) => k === undefined)) {
+            continue;
+        }
+        // an operand that is not a single primary keeps its own parens
+        const operands = args.map ((arg) => {
+            const t = goArithStripParens (arg);
+            if (scope.derefs.has (t)) {
+                return '*' + t;
+            }
+            if (scope.sums?.has (t)) {
+                return scope.sums.get (t) as string;
+            }
+            if (/^\*[A-Za-z_]\w*$/.test (t)) {
+                return t;
+            }
+            return /^[\w.]+$|^[\w.]+\(.*\)$|^-?\d+(?:\.\d+)?$/.test (t) && (goArithClose (goArithMask (t), t.indexOf ('(')) === t.length - 1 || t.indexOf ('(') < 0) ? t : '(' + t + ')';
+        });
+        const native = goArithNative (call.helper, operands, kinds);
+        if (native === undefined) {
+            continue;
+        }
+        // user ruling: division keeps the float64 quotient (like C#), whatever consumes it
+        if ((call.helper === 'OpNeg') && goNegLiteralCompare (before, masked.slice (after), kinds[0], operands[0], scope)) {
+            native.text = '-' + operands[0];
+            native.kind = undefined;
+        } else if (((call.helper === 'OpNeg') || (native.kind === 'f64')) && (/(==|!=)\s*$/.test (before) || /^\s*(==|!=)/.test (masked.slice (after)))) {
+            continue;                   // an interface comparison differs from a typed one
+        }
+        const assertion = /^\.\((\w+)\)/.exec (masked.slice (after));
+        if (assertion) {
+            // `.(int64)` on the helper's box: the native value already is that type
+            if (!((assertion[1] === 'int64' && native.kind === 'i64') || (assertion[1] === 'float64' && native.kind === 'f64'))) {
+                continue;
+            }
+            after += assertion[0].length;
+        }
+        if (native.kind !== undefined) {
+            scope.known.set (goArithStripParens (native.text), native.kind);
+            scope.known.set (native.text, native.kind);
+        }
+        // drop the operator's own parens where the call already sits alone inside parens or a call argument list
+        let nativeText = native.text.replace (/^(math\.\w+)\(\((.*)\)\)$/, (all: string, fn: string, inner: string) => (goArithClose (inner, inner.indexOf ('(')) !== -1 || inner.indexOf ('(') < 0) && goArithClose ('(' + inner + ')', 0) === inner.length + 1 ? fn + '(' + inner + ')' : all);
+        if (nativeText.startsWith ('(') && /\(\s*$/.test (before) && /^\s*\)/.test (masked.slice (after))) {
+            nativeText = nativeText.slice (1, -1);
+        }
+        native.text = nativeText;
+        usesMath = usesMath || native.text.startsWith ('math.');
+        text = text.slice (0, call.start) + native.text + text.slice (after);
+        masked = masked.slice (0, call.start) + goArithMask (native.text) + masked.slice (after);
+        scope.masked = masked;
+    }
+    return { text, 'math': usesMath };
+}
+
+function goNativeArithmetic (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !GO_ARITH_CALL_RX.test (content)) {
+        return content;
+    }
+    GO_ARITH_CALL_RX.lastIndex = 0;
+    const masked = goArithMask (content);
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
+    for (const m of masked.matchAll (/^func \(this \*\w+\) (HandleOptionIntegerAndParams2?)\(/gm)) {
+        ownMethods.add (m[1]);
+    }
+    return goArithMathEachFunc (content, masked, (fn) => goArithRewriteFunc (fn, ownMethods));
+}
+
+// ===== non-nil pointer operands =====
+// A declared-once `*int64`/`*float64` local reads as its value when the call sits right after
+// `x != nil &&` on its line, or inside an `if x != nil {` block (no `||`) that never rewrites x.
+function goTypedArithPointerIsNonNil (scope: GoArithScope, name: string): boolean {
+    const head = scope.masked.slice (0, scope.pos);
+    const lines = head.split ('\n');
+    const cur = lines[lines.length - 1];
+    const guard = '\\(?' + name + ' != nil\\)? && \\(*';
+    if (new RegExp ('^\\s*(?:if |\\} else if |return |var \\w+ bool = )?\\(*' + guard + '(?:!?\\(*)?$').test (cur)) {
+        return true;
+    }
+    let indent = cur.length - cur.replace (/^\t+/, '').length;
+    for (let k = lines.length - 2; k >= 0; k--) {
+        const line = lines[k];
+        const s = line.trim ();
+        if (new RegExp ('(?<![\\w.*&])' + name + '\\s*(?:=[^=]|\\+\\+|--|[-+*/]=)').test (line) || /\bfunc\b/.test (s)) {
+            return false;
+        }
+        const li = line.length - line.replace (/^\t+/, '').length;
+        if ((s !== '') && (li < indent)) {
+            indent = li;
+            if (new RegExp ('^(?:\\} else )?if \\(*' + name + ' != nil\\)*(?: && [^|]*)? ?\\{$').test (s) && (s.indexOf ('||') < 0)) {
+                return true;
+            }
+            if (/^(?:\} else|else)/.test (s) || (li === 0)) {
+                return false;
+            }
+        }
+    }
+    return false;
+}
+
+function goTypedArithSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tvar p any = nil\n\tif c != nil {\n\t\tp = Divide(c, 100)\n\t}\n\treturn p', '(*c / 100)', true ],
+        [ '\tvar s *int64 = this.SafeInteger(o, "s")\n\tif (s != nil) && IsLessThan(s, 5) {\n\t\treturn 1\n\t}\n\treturn 0', '(*s < 5)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\treturn Divide(c, 100)', 'Divide(c, 100)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil {\n\t\tc = this.SafeNumber(o, "d")\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
+        [ '\tvar c *float64 = this.SafeNumber(o, "c")\n\tif c != nil || true {\n\t\treturn Divide(c, 100)\n\t}\n\treturn nil', 'Divide(c, 100)', true ],
+    ];
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go-typed-arith-self-test-arith: expected ');
+}
+
+// ----- extra operand proofs -----
+// Extra operand proofs: a printed `*p` deref, int64()/int() conversions.
+function goExtraOperandKind (scope: GoArithScope, t: string, m: string): Kind | undefined {
+    const deref = /^\*([A-Za-z_]\w*)$/.exec (t);
+    if (deref) {
+        // the deref already runs before the helper call, so a nil pointer panics in both forms
+        const type = goArithDeclaredType (scope.masked, scope.signature, deref[1]);
+        return (type === '*int64') ? 'i64' : ((type === '*float64') ? 'f64' : undefined);
+    }
+    const sum = /^this\.Sum\(/.exec (m);
+    if (sum && !scope.ownMethods.has ('Sum') && (goArithClose (m, sum[0].length - 1) === m.length - 1)) {
+        // BaseExchange.Sum folds Add from 0.0: integral non-nil operands box an int64 sum
+        const spans = goArithArgs (m, sum[0].length - 1, m.length - 1);
+        const parts: string[] = [];
+        let typed = false;
+        if (t.length !== m.length) {
+            return undefined;
+        }
+        for (const [ s0, e0 ] of spans) {
+        const arg = t.slice (s0, e0).trim ();
+            const saved = scope.derefs;
+            scope.derefs = new Set<string> ();
+            const k = goArithKind (scope, arg, m.slice (s0, e0).trim ());
+            const a = goArithStripParens (arg);
+            let text = scope.derefs.has (a) ? '*' + a : (/^[\w.*]+$/.test (a) ? a : '(' + a + ')');
+            scope.derefs = saved;
+            if ((k !== 'i64') && (k !== 'ilit') && (k !== 'int')) {
+                return undefined;
+            }
+            if (k === 'int') {
+                text = 'int64(' + text + ')';
+            }
+            typed = typed || (k !== 'ilit');
+            parts.push (text);
+        }
+        if (!typed || (parts.length < 2)) {
+            return undefined;
+        }
+        scope.sums?.set (t, '(' + parts.join (' + ') + ')');
+        return 'i64';
+    }
+    const conv = /^(int64|int)\(/.exec (m);
+    if (conv && (goArithClose (m, conv[0].length - 1) === m.length - 1)) {
+        return (conv[1] === 'int64') ? 'i64' : 'int';
+    }
+    return undefined;
+}
+
+// the only write is the declaration (no `name =` / `&name` anywhere in the function)
+function goSingleWrite (scope: GoArithScope, name: string): boolean {
+    const writes = scope.masked.match (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g')) ?? [];
+    return writes.length === 0;
+}
+
+// `var p *int64 = this.SafeInteger{,2,N}(..., <int literal | non-nil SafeInteger>)` never yields nil
+function goNonNilIntegerInit (masked: string): boolean {
+    const call = /^this\.SafeInteger(2|N)?\(/.exec (masked.trim ());
+    if (!call) {
+        return false;
+    }
+    const text = masked.trim ();
+    const open = call[0].length - 1;
+    if (goArithClose (text, open) !== text.length - 1) {
+        return false;
+    }
+    const spans = goArithArgs (text, open, text.length - 1);
+    const want = (call[1] === '2') ? 4 : 3;
+    if (spans.length !== want) {
+        return false;
+    }
+    const def = text.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
+    return /^-?\d+$/.test (def) || goNonNilIntegerInit (def);
+}
+
+// a declared-once, never-rewritten pointer local proven non-nil by its initializer or an earlier early-exit nil test
+function goEarlyExitPointerNonNil (scope: GoArithScope, name: string, type: string): boolean {
+    if (!goSingleWrite (scope, name)) {
+        return false;
+    }
+    const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
+    if ((type === '*int64') && decl && goNonNilIntegerInit (decl[1]) && (decl.index < scope.pos)) {
+        return true;
+    }
+    const lines = scope.masked.slice (0, scope.pos).split ('\n');
+    const all = scope.masked.split ('\n');
+    const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    let indent = indentOf (lines[lines.length - 1]);
+    for (let k = lines.length - 2; k >= 0; k--) {
+        const s = lines[k].trim ();
+        if (s === '') {
+            continue;
+        }
+        if (/\bfunc\b/.test (s)) {
+            return false;
+        }
+        const li = indentOf (lines[k]);
+        if (li < indent) {
+            indent = li;
+            continue;
+        }
+        if ((li === indent) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (s)) {
+            // body = following deeper lines; it must end in an exit and close with a bare `}`
+            let j = k + 1;
+            let last = '';
+            while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
+                if (all[j].trim () !== '') {
+                    last = all[j].trim ();
+                }
+                j++;
+            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// MathMin/MathMax answer float64(a|b); integral operands carry no NaN
+// `L == OpNeg(N)` / `L != OpNeg(N)` with a typed numeric L compares against the constant -N
+function goNegLiteralCompare (before: string, after: string, kind: Kind, operand: string, scope: GoArithScope): boolean {
+    if ((kind !== 'ilit') || !/^\d+$/.test (operand) || /^\s*[.([]/.test (after)) {
+        return false;
+    }
+    const cmp = /(\S)\s*(?:==|!=)\s*$/.exec (before);
+    if (!cmp) {
+        return false;
+    }
+    let end = cmp.index + 1;
+    let start = end;
+    if (before[end - 1] === ')') {
+        let depth = 0;
+        for (let i = end - 1; i >= 0; i--) {
+            if (before[i] === ')') { depth++; } else if (before[i] === '(') { depth--; if (depth === 0) { start = i; break; } }
+        }
+        const callee = /(?:strings\.Index|(?:ccxt\.)?GetIndexOf)$/.exec (before.slice (0, start));
+        return (callee !== null) && (callee.index === 0 || /[^\w.]/.test (before[callee.index - 1]));
+    }
+    const ident = /(?<![\w.*])(this\.RateLimit|[A-Za-z_]\w*)$/.exec (before.slice (0, end));
+    if (!ident) {
+        return false;
+    }
+    if (ident[1] === 'this.RateLimit') {
+        return true;
+    }
+    const type = goArithDeclaredType (scope.masked, scope.signature, ident[1]);
+    return (type === 'int64') || (type === 'int') || (type === 'float64');
+}
+
+// divisor names the generated code only ever binds to positive periods / sizes (user-approved list)
+function goPositiveDivisorLiteral (operand: string): boolean {
+    const name = operand.replace (/^\*/, '');
+    return /^(?:duration|timeframe\w*|pageSize|chunkSize|step|ms|week|day|hour|minute|second|leverage|streamLimit|denominator)$/.test (name);
+}
+
+function goIntegralArithmeticSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, d int64) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar n *int64 = this.SafeInteger(o, "n", this.SafeInteger(o, "m", 5))\n\treturn MathMin(n, 50)', 'math.Min(float64(*n), 50)', true ],
+        [ '\tvar n *int64 = this.SafeInteger(o, "n")\n\treturn MathMin(n, 50)', 'MathMin(n, 50)', true ],
+        [ '\tvar n *int64 = this.SafeInteger(o, "n", 5)\n\tn = this.SafeInteger(o, "m")\n\treturn OpNeg(n)', 'OpNeg(n)', true ],
+        [ '\tvar t *int64 = this.SafeInteger(o, "t")\n\tif t == nil {\n\t\tpanic("x")\n\t}\n\treturn Divide(t, duration)', 'Divide(t, duration)', true ],
+        [ '\tvar duration int64 = d\n\tvar t *int64 = this.SafeInteger(o, "t")\n\tif t == nil {\n\t\tpanic("x")\n\t}\n\treturn Divide(t, duration)', '(float64(*t) / float64(duration))', true ],
+        [ '\tvar duration int64 = d\n\tvar t *int64 = this.SafeInteger(o, "t")\n\tif t == nil {\n\t\tt = this.SafeInteger(o, "u")\n\t}\n\treturn Divide(t, duration)', 'Divide(t, duration)', true ],
+        [ '\tvar other int64 = d\n\treturn Divide(1, other)', 'Divide(1, other)', true ],
+        [ '\tvar leverage int64 = d\n\treturn Mod(1000, leverage)', '(1000 % leverage)', true ],
+        [ '\tvar c int64 = d\n\treturn (c == OpNeg(1))', '(c == -1)', true ],
+        [ '\tvar c any = d\n\treturn (c == OpNeg(1))', 'OpNeg(1)', true ],
+        [ '\treturn (strings.Index(s, "/") != OpNeg(1))', '(strings.Index(s, "/") != -1)', true ],
+        [ '\tvar n int = 3\n\treturn OpNeg(n)', '(-int64(n))', true ],
+        [ '\tvar a int64 = d\n\treturn Multiply(this.Sum(a, 1), d)', '((a + 1) * d)', true ],
+        [ '\tvar a any = d\n\treturn Multiply(this.Sum(a, 1), d)', 'Multiply(this.Sum(a, 1), d)', true ],
+    ];
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go integral arithmetic self test expected ');
+}
+
+// ----- native ordered comparisons -----
+// Ordered comparisons whose operands the Go text types: `x := <int>` locals, native int64/int/float64
+// arithmetic, `*p` derefs, and unguarded `*int64`/`*float64` identifiers via the helper's nil table.
+function goCompareOperandKind (scope: GoArithScope, text: string, maskedText: string): Kind | undefined {
+    const inner: GoArithScope = { ...scope, 'derefs': new Set<string> () };
+    const base = goArithKind (inner, text, maskedText);
+    if (base !== undefined) {
+        return (inner.derefs.size === 0) ? base : undefined;
+    }
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (maskedText);
+    if (/^[A-Za-z_]\w*$/.test (t)) {
+        const decls = scope.masked.match (new RegExp ('(?<![\\w.])' + t + '\\s*:=\\s*[^\\n;{]*', 'g')) ?? [];
+        const others = scope.masked.match (new RegExp ('\\bvar\\s+' + t + '\\b|\\b' + t + '\\s*,[^=\\n]*:=|,\\s*' + t + '\\s*(?:,[^=\\n]*)?:=|\\bfunc\\s*\\([^()]*\\b' + t + '\\b')) ?? [];
+        const sig = scope.signature.substring (scope.signature.indexOf ('(', scope.signature.startsWith ('func (') ? scope.signature.indexOf (')') + 1 : 0));
+        if ((decls.length > 0) && (others.length === 0) && !new RegExp ('[(,]\\s*' + t + '\\s').test (sig) && decls.every ((d) => /:=\s*\d+\s*$/.test (d) && !/:=\s*0\d/.test (d))) {
+            return 'int';
+        }
+        return undefined;
+    }
+    const deref = /^\*\s*([A-Za-z_]\w*)$/.exec (t);
+    if (deref) {
+        const type = goArithDeclaredType (scope.masked, scope.signature, deref[1]);
+        return (type === '*int64') ? 'i64' : ((type === '*float64') ? 'f64' : undefined);
+    }
+    // binary Go arithmetic: the static type is the operands' common type
+    const ops: number[] = [];
+    let depth = 0;
+    let prev = '';
+    for (let i = 0; i < m.length; i++) {
+        const c = m[i];
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
+        if ((depth === 0) && '+-*/%'.includes (c) && /[\w)\]]/.test (prev) && (m[i + 1] !== '=') && (m[i + 1] !== c)) {
+            ops.push (i);
+        }
+        if (c !== ' ') { prev = c; }
+    }
+    if (ops.length === 0) {
+        return undefined;
+    }
+    const bounds = [ -1, ...ops, m.length ];
+    const kinds: Kind[] = [];
+    for (let k = 0; k + 1 < bounds.length; k++) {
+        const kind = goCompareOperandKind (scope, t.slice (bounds[k] + 1, bounds[k + 1]), m.slice (bounds[k] + 1, bounds[k + 1]));
+        if (kind === undefined) {
+            return undefined;
+        }
+        kinds.push (kind);
+    }
+    for (const want of [ 'i64', 'int', 'f64' ] as Kind[]) {
+        const lit = (want === 'f64') ? [ 'ilit', 'flit' ] : [ 'ilit' ];
+        if (kinds.includes (want) && kinds.every ((k) => (k === want) || lit.includes (k as string))) {
+            return want;
+        }
+    }
+    return undefined;
+}
+
+// operand text that may be skipped by a nil short-circuit: no calls, derefs, or divisions
+function goNativeCompareSkippable (masked: string): boolean {
+    const noConv = masked.replace (/\b(?:int64|float64|len)\(/g, '(');
+    return !/\w\s*\(/.test (noConv) && !/[/%]/.test (masked) && !/(?:^|[(+\-*,]\s*)\*\s*[A-Za-z_(]/.test (masked.trim ()) && !/\b(?:nil|true|false)\b/.test (masked);
+}
+
+// native ordered comparison; a float `<` / `<=` (true for NaN in the helper) is spelled `!(a >= b)` when nanSafe, else kept
+function goNativeCompareText (helper: string, a: string, b: string, ka: Kind, kb: Kind, pa: boolean, pb: boolean, name: string[], nanSafe = false): string | undefined {
+    const op: string = { 'IsGreaterThan': '>', 'IsGreaterThanOrEqual': '>=', 'IsLessThan': '<', 'IsLessThanOrEqual': '<=' }[helper];
+    const isLit = (k: Kind) => (k === 'ilit') || (k === 'flit');
+    if ((op === undefined) || (isLit (ka) && isLit (kb))) {
+        return undefined;
+    }
+    const float = (ka === 'f64') || (kb === 'f64') || (ka === 'flit') || (kb === 'flit');
+    // IsLessThan = !GT && !EQ answers true for NaN
+    if (!nanSafe && float && ((ka === 'f64') || (kb === 'f64')) && ((op === '<') || (op === '<='))) {
+        return undefined;
+    }
+    const conv = (x: string, k: Kind, other: Kind) => {
+        if (float && ((k === 'i64') || (k === 'int'))) { return 'float64(' + x + ')'; }
+        if ((k === 'int') && (other === 'i64')) { return 'int64(' + x + ')'; }
+        return x;
+    };
+    if (float && ((ka === 'flit' && kb === 'int') || (kb === 'flit' && ka === 'int'))) {
+        return undefined;
+    }
+    const ca = conv (a, ka, kb);
+    const cb = conv (b, kb, ka);
+    let cmp = ca + ' ' + op + ' ' + cb;
+    if (nanSafe && float && (op === '<')) {
+        cmp = '!(' + ca + ' >= ' + cb + ')';
+    } else if (nanSafe && float && (op === '<=')) {
+        cmp = '!(' + ca + ' > ' + cb + ')';
+    }
+    if (!pa && !pb) {
+        return '(' + cmp + ')';
+    }
+    const [ na, nb ] = name;
+    // helper nil table: GT(nil, x) false, GT(x, nil) true, EQ(nil, nil) true
+    const gtOrGe = (op === '>') || (op === '>=');
+    if (pa && pb) {
+        if (op === '>') { return '(' + na + ' != nil && (' + nb + ' == nil || ' + cmp + '))'; }
+        if (op === '<') { return '(' + nb + ' != nil && (' + na + ' == nil || ' + cmp + '))'; }
+        if (op === '>=') { return '(' + nb + ' == nil || (' + na + ' != nil && ' + cmp + '))'; }
+        return '(' + na + ' == nil || (' + nb + ' != nil && ' + cmp + '))';
+    }
+    if (pa) {
+        return gtOrGe ? '(' + na + ' != nil && ' + cmp + ')' : '(' + na + ' == nil || ' + cmp + ')';
+    }
+    return gtOrGe ? '(' + nb + ' == nil || ' + cmp + ')' : '(' + nb + ' != nil && ' + cmp + ')';
+}
+
+// a nil test may skip the other operand: that one must be side-effect free
+function goNilSkipUnsafe (isPtr: boolean[], margs: string[]): boolean {
+    return (isPtr[0] && !isPtr[1] && !goNativeCompareSkippable (margs[1])) || (isPtr[1] && !isPtr[0] && !goNativeCompareSkippable (margs[0]));
+}
+
+// one classified compare operand: native text, kind, nil-test name, may-be-nil, and proven beyond its declaration
+interface GoCmpOperand { op: string; kind: Kind | undefined; name: string; nil: boolean; proven?: boolean }
+type GoCmpRule = (scope: GoArithScope, x: string, declared: string | undefined) => GoCmpOperand | undefined;
+
+// a `*int64` / `*float64` local: nil unless `nonNil` proves it
+function goCmpPointerRule (nonNil: (scope: GoArithScope, x: string, declared: string) => boolean): GoCmpRule {
+    return (scope, x, declared) => {
+        if ((declared !== '*int64') && (declared !== '*float64')) {
+            return undefined;
+        }
+        const proven = nonNil (scope, x, declared);
+        return { 'op': '*' + x, 'kind': (declared === '*int64') ? 'i64' : 'f64', 'name': x, 'nil': !proven, 'proven': proven };
+    };
+}
+
+// a BaseExchange numeric field read on `this`
+function goCmpFieldRule (fields: Set<string>): GoCmpRule {
+    return (scope, x) => {
+        const field = /^this\.(\w+)$/.exec (x);
+        return (field && fields.has (field[1])) ? { 'op': x, 'kind': GO_BASE_NUMERIC_FIELDS[field[1]], 'name': x, 'nil': false } : undefined;
+    };
+}
+
+// classify both operands by the rewriter's ordered rules (first match wins, else the plain operand kind); every
+// proven operand is arithmetic or a primary, which binds tighter than a comparison
+function goCompareOperands (scope: GoArithScope, args: string[], margs: string[], rules: GoCmpRule[]): GoCmpOperand[] {
+    return args.map ((x, i) => {
+        const declared = /^[A-Za-z_]\w*$/.test (x) ? goArithDeclaredType (scope.masked, scope.signature, x) : undefined;
+        for (const rule of rules) {
+            const o = rule (scope, x, declared);
+            if (o !== undefined) {
+                return o;
+            }
+        }
+        return { 'op': x, 'kind': goCompareOperandKind (scope, x, margs[i]), 'name': x, 'nil': false };
+    });
+}
+
+function goCompareOperandsText (helper: string, ops: GoCmpOperand[], margs: string[], nanSafe = false): string | undefined {
+    if (ops.some ((o) => o.kind === undefined) || goNilSkipUnsafe (ops.map ((o) => o.nil), margs)) {
+        return undefined;
+    }
+    return goNativeCompareText (helper, ops[0].op, ops[1].op, ops[0].kind as Kind, ops[1].kind as Kind, ops[0].nil, ops[1].nil, ops.map ((o) => o.name), nanSafe);
+}
+
+function goNativeCompareRewriteFunc (text: string, ownMethods: Set<string>): string {
+    const scope = goArithScope (goArithMask (text), ownMethods);
+    const rules = [ goCmpPointerRule ((sc, x) => goTypedArithPointerIsNonNil (sc, x)) ];
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => ((args.length === 2) ? goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs) : undefined));
+}
+
+function goNativeCompare (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
+        return content;
+    }
+    const ownMethods = goArithOwnMethods (goArithMask (content));
+    return goArithEachFunc (content, (fn) => goNativeCompareRewriteFunc (fn, ownMethods));
+}
+
+function goNativeCompareSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar now int64 = this.Milliseconds()\n\tvar e *int64 = this.SafeInteger(o, "e")\n\tif (e != nil) && IsGreaterThan(e, now+10000) {\n\t}\n\treturn nil', '(e != nil) && (*e > now+10000)', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tif IsLessThan(e, 5) {\n\t}\n\treturn nil', 'if (e == nil || *e < 5) {', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tif IsGreaterThanOrEqual(5, e) {\n\t}\n\treturn nil', 'if (e == nil || 5 >= *e) {', true ],
+        [ '\tvar a *int64 = this.SafeInteger(o, "a")\n\tvar b *int64 = this.SafeInteger(o, "b")\n\tif IsLessThan(a, b) {\n\t}\n\treturn nil', 'if (b != nil && (a == nil || *a < *b)) {', true ],
+        [ '\tfor i := 1; IsLessThan(i, 10); i++ {\n\t}\n\treturn nil', 'for i := 1; (i < 10); i++ {', true ],
+        [ '\tvar day int = 5\n\tvar age int64 = this.Milliseconds()\n\tif IsGreaterThan(age, 14*day) {\n\t}\n\treturn nil', 'if (age > int64(14*day)) {', true ],
+        [ '\tvar e *float64 = this.SafeNumber(o, "e")\n\tif IsLessThan(e, 0) {\n\t}\n\treturn nil', 'IsLessThan(e, 0)', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tif IsLessThan(e, this.Seconds()) {\n\t}\n\treturn nil', 'IsLessThan(e, this.Seconds())', true ],
+        [ '\tfor i := 1; IsLessThan(i, n); i++ {\n\t}\n\treturn nil', 'IsLessThan(i, n)', true ],
+        [ '\tfor i := 1; IsLessThan(i, 3); i++ {\n\t}\n\tvar i any = 2\n\treturn nil', 'IsLessThan(i, 3)', true ],
+    ];
+    return goArithCaseProblems (goNativeCompare, wrap, cases, 'go native compare self test expected ');
+}
+
+// ----- tuple / counter / early-exit comparison operands -----
+// Comparison/EvalTruthy operands the comparison pass above cannot type: Handle*AndParams tuple element-0 locals, Add-only int
+// counters (`var n any = 0`), and declared-once pointers proven non-nil by an earlier early exit.
+const GO_TUPLE_ELEMENT_PTR_TYPES: [ RegExp, string ][] = [
+    [ /^(?:HandleOptionIntegerAndParams2?Nullable|HandleParamInteger2?)$/, '*int64' ],
+    [ /^(?:HandleOptionBoolAndParams2?Nullable|HandleParamBool2?)$/, '*bool' ],
+];
+
+function goDeclCount (masked: string, name: string): number {
+    const rx = new RegExp ('(?<![\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bvar\\s+' + name + '\\b|\\bfunc\\s*\\([^()]*\\b' + name + '\\b|\\bfor\\b[^\\n{]*\\b' + name + '\\b[^\\n{]*:=\\s*range\\b', 'g');
+    return (masked.match (rx) ?? []).length;
+}
+
+// Go type of a single-write local bound from a Handle*AndParams result, by the base method's declared shape
+function goTupleElementType (scope: GoArithScope, name: string, fileOwn: Set<string>): string | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) {
+        return undefined;
+    }
+    const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
+    if (pair && !fileOwn.has (pair[1]) && (pair.index < scope.pos)) {
+        return 'int64';
+    }
+    // only a raw `h[0]` read keeps the pointer box (GetValue derefs it to a plain scalar)
+    const el = new RegExp ('(?<![\\w.])' + name + '\\s*:=\\s*(\\w+)\\[0\\]\\s*$', 'm').exec (scope.masked);
+    if (!el || (el.index > scope.pos)) {
+        return undefined;
+    }
+    const holder = el[1];
+    const decl = new RegExp ('\\bvar\\s+' + holder + '\\s+\\[\\]any\\s*=\\s*this\\.(\\w+)\\(').exec (scope.masked);
+    if (!decl || (goDeclCount (scope.masked, holder) !== 1) || !goSingleWrite (scope, holder) || fileOwn.has (decl[1])) {
+        return undefined;
+    }
+    for (const [ rx, type ] of GO_TUPLE_ELEMENT_PTR_TYPES) {
+        if (rx.test (decl[1])) {
+            return type;
+        }
+    }
+    return undefined;
+}
+
+// `var n any = <int>` whose every other write is `n = <int>` or `n = Add(n, <int>)`: an int box, never nil
+function goAddOnlyCounter (scope: GoArithScope, name: string): boolean {
+    if (!/^[A-Za-z_]\w*$/.test (name) || (goDeclCount (scope.masked, name) !== 1)) {
+        return false;
+    }
+    if (!new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*[1-9]?\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n')) {
+        return false;
+    }
+    const writes = scope.masked.match (new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)[^\\n]*|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g')) ?? [];
+    const lit = '[1-9]?\\d{0,8}';
+    const ok = new RegExp ('^' + name + '\\s*=\\s*(?:' + lit + '|(?:ccxt\\.)?Add\\(' + name + ',\\s*' + lit + '\\))\\s*$');
+    return writes.every ((w) => ok.test (w.trim ()));
+}
+
+function goTupleCompareRewriteFunc (text: string, ownMethods: Set<string>, fileOwn: Set<string>): string {
+    const scope = goArithScope (goArithMask (text), ownMethods);
+    const rx = /(?<![\w.])(?:ccxt\.)?(IsGreaterThanOrEqual|IsLessThanOrEqual|IsGreaterThan|IsLessThan|EvalTruthy)\(/g;
+    return goArithRewriteCalls (text, scope, rx, (helper, args, margs) => {
+        if (helper === 'EvalTruthy') {
+            // EvalTruthy derefs a *bool box: nil is false
+            if ((args.length === 1) && (goTupleElementType (scope, args[0], fileOwn) === '*bool')) {
+                return '(' + args[0] + '.(*bool) != nil && *' + args[0] + '.(*bool))';
+            }
+            return undefined;
+        }
+        if (args.length !== 2) {
+            return undefined;
+        }
+        const rules: GoCmpRule[] = [
+            (sc, x) => ((goTupleElementType (sc, x, fileOwn) === '*int64') ? { 'op': '*' + x + '.(*int64)', 'kind': 'i64', 'name': x + '.(*int64)', 'nil': true } : undefined),
+            (sc, x) => ((goTupleElementType (sc, x, fileOwn) === 'int64') ? { 'op': x, 'kind': 'i64', 'name': x, 'nil': false } : undefined),
+            (sc, x) => (goAddOnlyCounter (sc, x) ? { 'op': x + '.(int)', 'kind': 'int', 'name': x, 'nil': false } : undefined),
+            goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x)),
+        ];
+        return goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs);
+    });
+}
+
+function goTupleTruthyComparisons (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?(?:Is(?:Greater|Less)Than(?:OrEqual)?|EvalTruthy)\(/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = goArithOwnMethods (masked);
+    // an exchange-level override of a Handle* method may answer another element type
+    const fileOwn = goArithFileOwnHandles (masked);
+    return goArithEachFunc (content, (fn) => goTupleCompareRewriteFunc (fn, ownMethods, fileOwn));
+}
+
+function goTupleTruthySelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'if (u.(*bool) != nil && *u.(*bool)) {', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif !ccxt.EvalTruthy(u) {\n\t}\n\treturn nil', 'if !(u.(*bool) != nil && *u.(*bool)) {', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := ccxt.GetValue(uparamsV, 0)\n\tif ccxt.EvalTruthy(u) {\n\t}\n\treturn nil', 'ccxt.EvalTruthy(u)', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionAndParams(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'EvalTruthy(u)', true ],
+        [ '\tvar uparamsV []any = this.HandleOptionBoolAndParamsNullable(o, "m", "uta", nil)\n\tu := uparamsV[0]\n\tu = true\n\tif EvalTruthy(u) {\n\t}\n\treturn nil', 'EvalTruthy(u)', true ],
+        [ '\tvar aparamsV []any = this.HandleParamInteger(o, "a")\n\ta := aparamsV[0]\n\tif IsLessThan(a, 4) {\n\t}\n\treturn nil', 'if (a.(*int64) == nil || *a.(*int64) < 4) {', true ],
+        [ '\tvar aparamsV []any = this.HandleParamInteger(o, "a")\n\ta := aparamsV[0]\n\tif IsGreaterThan(a, this.Seconds()) {\n\t}\n\treturn nil', 'IsGreaterThan(a, this.Seconds())', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 3)\n\t_ = p\n\tfor i := 1; IsLessThan(i, m); i++ {\n\t}\n\treturn nil', 'for i := 1; (int64(i) < m); i++ {', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 3)\n\t_ = p\n\tvar e any = 0\n\tfor IsLessThanOrEqual(e, m) {\n\t\te = Add(e, 1)\n\t}\n\treturn nil', 'for (int64(e.(int)) <= m) {', true ],
+        [ '\tvar e any = 0\n\te = this.Sum(e, 1)\n\tif IsGreaterThan(e, 0) {\n\t}\n\treturn nil', 'IsGreaterThan(e, 0)', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif e == nil {\n\t\treturn nil\n\t}\n\tif f == nil {\n\t\treturn nil\n\t}\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'if (*e < *f-1) {', true ],
+        [ '\tvar e *int64 = this.SafeInteger(o, "e")\n\tvar f *int64 = this.SafeInteger(o, "f")\n\tif IsLessThan(e, *f-1) {\n\t}\n\treturn nil', 'IsLessThan(e, *f-1)', true ],
+    ];
+    return goArithCaseProblems (goTupleTruthyComparisons, wrap, cases, 'go tuple truthy self test expected ');
+}
+
+// ----- Subtract/Multiply on proven non-nil operands -----
+// Subtract/Multiply on proven non-nil float64 operands and int64-with-int pairs; pointer locals proven
+// non-nil by any `x != nil` conjunct of an enclosing `if` or an earlier `if x == nil [|| ...] { exit }`.
+function goNonNilMulSubNative (helper: string, a: string, b: string, ka: Kind, kb: Kind): { text: string, kind: Kind } | undefined {
+    const op = (helper === 'Subtract') ? ' - ' : ' * ';
+    // the helper's int64 result: Multiply converts to b's int kind, Subtract is exact below 2^53
+    if (((ka === 'i64') && (kb === 'int')) || ((ka === 'int') && (kb === 'i64'))) {
+        return { 'text': '(' + ((ka === 'int') ? 'int64(' + a + ')' : a) + op + ((kb === 'int') ? 'int64(' + b + ')' : b) + ')', 'kind': 'i64' };
+    }
+    const floatSide = (k: Kind) => (k === 'f64') || (k === 'flit') || (k === 'ilit');
+    if ((ka !== 'f64') && (kb !== 'f64')) {
+        return undefined;
+    }
+    if (floatSide (ka) && floatSide (kb)) {
+        return { 'text': '(' + a + op + b + ')', 'kind': 'f64' };
+    }
+    // Subtract goes through ToFloat64 on both sides; Multiply(f64, int64) would truncate a to b's kind
+    if ((helper === 'Subtract') || (kb === 'f64')) {
+        return { 'text': '(' + goArithAsFloat (a, ka) + op + goArithAsFloat (b, kb) + ')', 'kind': 'f64' };
+    }
+    return undefined;
+}
+
+function goSplitTopLevel (cond: string, sep: string): string[] {
+    const parts: string[] = [];
+    let depth = 0;
+    let start = 0;
+    for (let i = 0; i < cond.length; i++) {
+        const c = cond[i];
+        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; }
+        else if ((depth === 0) && cond.startsWith (sep, i)) { parts.push (cond.slice (start, i)); start = i + sep.length; i += sep.length - 1; }
+    }
+    parts.push (cond.slice (start));
+    return parts.map ((p) => goArithStripParens (p));
+}
+
+// a declared-once, never-rewritten *int64/*float64 local or param that is non-nil at scope.pos
+function goGuardedPointerNonNil (scope: GoArithScope, name: string): boolean {
+    if (!goSingleWrite (scope, name)) {
+        return false;
+    }
+    const lines = scope.masked.slice (0, scope.pos).split ('\n');
+    const all = scope.masked.split ('\n');
+    const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    let indent = indentOf (lines[lines.length - 1]);
+    for (let k = lines.length - 2; k >= 1; k--) {
+        const s = lines[k].trim ();
+        if (s === '') {
+            continue;
+        }
+        const li = indentOf (lines[k]);
+        if (li < indent) {
+            indent = li;
+            if (/^(?:\} else|else)/.test (s) && !/^\} else if /.test (s)) {
+                // the else arm of a plain `if name == nil {` (no && / ||) sees name non-nil: the
+                // nearest line at the arm's indent is the `if` header (the then-body is deeper)
+                if (s === '} else {') {
+                    for (let h = k - 1; h >= 1; h--) {
+                        const hs = lines[h].trim ();
+                        if ((hs === '') || (indentOf (lines[h]) > li)) {
+                            continue;
+                        }
+                        if ((indentOf (lines[h]) === li) && new RegExp ('^if \\(*' + name + ' == nil\\)* \\{$').test (hs)) {
+                            return true;
+                        }
+                        break;
+                    }
+                }
+                return false;
+            }
+            const head = /^(?:\} else )?if (.*) \{$/.exec (s);
+            if (head && (head[1].indexOf ('||') < 0) && (head[1].indexOf (';') < 0) && goSplitTopLevel (head[1], '&&').includes (name + ' != nil')) {
+                return true;
+            }
+            continue;
+        }
+        const exit = /^if (.*) \{$/.exec (s);
+        if ((li === indent) && exit && (exit[1].indexOf ('&&') < 0) && goSplitTopLevel (exit[1], '||').includes (name + ' == nil')) {
+            let j = k + 1;
+            let last = '';
+            while ((j < all.length) && ((all[j].trim () === '') || (indentOf (all[j]) > li))) {
+                if (all[j].trim () !== '') {
+                    last = all[j].trim ();
+                }
+                j++;
+            }
+            if ((j < all.length) && (all[j].trim () === '}') && /^(?:return\b|continue$|break$|panic\()/.test (last)) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// `x, p := this.HandleOptionIntegerAndParams(...)` (base method): x is a plain int64
+function goTupleInt64 (scope: GoArithScope, name: string): boolean {
+    if ((goDeclCount (scope.masked, name) !== 1) || !goSingleWrite (scope, name)) {
+        return false;
+    }
+    const pair = new RegExp ('(?<![\\w.])' + name + ',\\s*\\w+\\s*:=\\s*this\\.(HandleOptionIntegerAndParams2?)\\(').exec (scope.masked);
+    return (pair !== null) && !scope.ownMethods.has (pair[1]) && (pair.index < scope.pos);
+}
+
+function goPointerNonNilArithSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, q *float64) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) && (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'c = (*p * *a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tvar c any = nil\n\tif (p != nil) || (a != nil) {\n\t\tc = Multiply(p, a)\n\t}\n\treturn c', 'Multiply(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif (p != nil) && (a != nil) {\n\t\tp = this.SafeNumber(o, "x")\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif p != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t} else {\n\t\treturn Subtract(p, a)\n\t}', '(*p - *a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\tp = this.SafeNumber(o, "x")\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', 'Subtract(p, a)', true ],
+        [ '\tvar p *float64 = this.SafeNumber(o, "p")\n\tvar a *float64 = this.SafeNumber(o, "a")\n\tif a == nil {\n\t\treturn nil\n\t}\n\tif p == nil {\n\t\treturn nil\n\t}\n\tif a != nil {\n\t} else {\n\t\treturn Subtract(p, a)\n\t}\n\treturn nil', '(*p - *a)', true ],
+        [ '\tif q == nil {\n\t\treturn nil\n\t}\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tvar v any = func() any {\n\t\tif r == nil {\n\t\t\treturn nil\n\t\t}\n\t\treturn ccxt.Multiply(r, 100)\n\t}()\n\treturn ccxt.Subtract(q, 1)', '(*r * 100)', true ],
+        [ '\tif q == nil {\n\t\treturn nil\n\t}\n\treturn ccxt.Subtract(q, 1)', '(*q - 1)', true ],
+        [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\treturn Multiply(r, 100)', 'Multiply(r, 100)', true ],
+        [ '\tvar n int64 = 3\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\treturn Multiply(r, n)', 'Multiply(r, n)', true ],
+        [ '\tvar n int64 = 3\n\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\treturn Subtract(r, n)', '(*r - float64(n))', true ],
+        [ '\tvar r *float64 = this.SafeNumber(o, "r")\n\tif r == nil {\n\t\treturn nil\n\t}\n\tif Multiply(r, 2) == 0 {\n\t}\n\treturn nil', 'Multiply(r, 2) == 0', true ],
+        [ '\tm, p := this.HandleOptionIntegerAndParams(o, "f", "m", 100)\n\t_ = p\n\tvar page int64 = 2\n\treturn this.SafeInteger(p, "offset", ccxt.Multiply(page, m))', '(page * m)', true ],
+        [ '\tvar page int64 = 2\n\tvar m int = 100\n\treturn Multiply(page, m)', '(page * int64(m))', true ],
+        [ '\tvar page int64 = 2\n\tvar m any = 100\n\treturn Multiply(page, m)', 'Multiply(page, m)', true ],
+    ];
+    return goArithCaseProblems (goNativeArithmetic, wrap, cases, 'go pointer non nil arith expected ');
+}
+
+// ----- float NaN-algebra comparisons and BaseExchange numeric fields -----
+// Ordered comparisons the passes above leave: float `<`/`<=` print the helper's own NaN algebra
+// (`IsLessThan = !(a >= b)`, `LE = !(a > b)`), and non-nil BaseExchange numeric fields type.
+const GO_BASE_NUMERIC_FIELDS: { [name: string]: Kind } = { 'RateLimit': 'f64', 'FetchHistoryCacheSize': 'int', 'MinFundingAddressLength': 'int' };
+
+function goFloatFieldRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
+    const scope = goArithScope (goArithMask (text), ownMethods);
+    const rules = [ goCmpFieldRule (fields), goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x)) ];
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs) => ((args.length === 2) ? goCompareOperandsText (helper, goCompareOperands (scope, args, margs, rules), margs, true) : undefined));
+}
+
+function goFloatFieldComparisons (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = goArithOwnMethods (masked);
+    // a file that declares its own field / method of that name may shadow the BaseExchange one
+    const fields = goArithBaseFields (masked);
+    // only methods on an exchange receiver (`this`) see BaseExchange fields
+    return goArithEachFunc (content, (fn, head) => goFloatFieldRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
+}
+
+function goFloatComparisonsSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif (d != nil) && IsLessThan(d, 0) {\n\t}\n\treturn nil', '(d != nil) && (!(*d >= 0))', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif ccxt.IsLessThan(d, 0) {\n\t}\n\treturn nil', 'if (d == nil || !(*d >= 0)) {', true ],
+        [ '\tvar a *float64 = this.SafeNumber(o, \"a\")\n\tvar b *float64 = this.SafeNumber(o, \"b\")\n\tif IsLessThan(a, b) {\n\t}\n\treturn nil', 'if (b != nil && (a == nil || !(*a >= *b))) {', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif IsLessThanOrEqual(d, 0) {\n\t}\n\treturn nil', 'if (d == nil || !(*d > 0)) {', true ],
+        [ '\tvar m float64 = 2.5\n\tfor p := 1; ccxt.IsLessThan(p, m); p++ {\n\t}\n\treturn nil', 'for p := 1; (!(float64(p) >= m)); p++ {', true ],
+        [ '\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil', 'if (this.RateLimit > 0) {', true ],
+        [ '\tif IsLessThan(GetLength(n), this.MinFundingAddressLength) {\n\t}\n\treturn nil', '(GetLength(n) < this.MinFundingAddressLength)', true ],
+        [ '\tif IsLessThan(n, 0.5) {\n\t}\n\treturn nil', 'IsLessThan(n, 0.5)', true ],
+        [ '\tvar d *float64 = this.SafeNumber(o, 2)\n\tif IsLessThan(d, this.Seconds()) {\n\t}\n\treturn nil', 'IsLessThan(d, this.Seconds())', true ],
+        [ '\tif IsGreaterThan(this.Other, 0) {\n\t}\n\treturn nil', 'IsGreaterThan(this.Other, 0)', true ],
+    ];
+    const problems = goArithCaseProblems (goFloatFieldComparisons, wrap, cases, 'go float comparisons self test expected ');
+    // a struct that redeclares the field keeps the helper
+    const shadow = goFloatFieldComparisons ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif IsGreaterThan(this.RateLimit, 0) {\n\t}\n\treturn nil'));
+    if (!shadow.includes ('IsGreaterThan(this.RateLimit, 0)')) {
+        problems.push ('shadowed field went native: ' + shadow);
+    }
+    return problems;
+}
+
+// ----- `var x any` locals retyped to int64 -----
+// `var x any = E` whose every write is a never-nil integer (int64 expression, int literal, a nil-guarded
+// `*int64` arm, a literal-default SafeInteger) and whose every read is an argument of a helper that
+// derefs and normalizes its operands: `var x int64` changes no value, so the native pass can fire.
+const GO_NORMALIZING_READERS = /(?:^|[^\w.])(?:ccxt\.)?(Subtract|Multiply|IsLessThan|IsGreaterThan|IsLessThanOrEqual|IsGreaterThanOrEqual|mathMin|mathMax|MathMin|MathMax)\($|this\.Sum\($/;
+
+// the int64 text a write stores, or undefined when the write is not provably a never-nil integer
+function goNeverNilIntWrite (scope: GoArithScope, text: string, maskedText: string, guarded: Set<string>): string | undefined {
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (maskedText);
+    if (/^\d+$/.test (t) && (goArithIntLiteralValue (t) !== undefined)) {
+        return t;
+    }
+    if (guarded.has (t)) {
+        return '*' + t;
+    }
+    if (/^[A-Za-z_]\w*$/.test (t)) {
+        const type = goArithDeclaredType (scope.masked, scope.signature, t);
+        if ((type === 'int') && (t !== 'nil')) {
+            return 'int64(' + t + ')';
+        }
+        if ((type === '*int64') && (goTypedArithPointerIsNonNil (scope, t) || goEarlyExitPointerNonNil (scope, t, type) || goGuardedPointerNonNil (scope, t))) {
+            return '*' + t;
+        }
+    }
+    if (/^this\.SafeInteger(2|N)?\(/.test (m) && (goNonNilIntegerInit (m) || goLiteralDefaultSafeInteger (scope, m))) {
+        return '*' + t;
+    }
+    if (/^this\.Sum\(/.test (m)) {
+        return undefined;   // Sum returns `any`
+    }
+    const mm = /^(?:ccxt\.)?(mathMin|mathMax|MathMin|MathMax)\(/.exec (m);
+    if (mm && (goArithClose (m, mm[0].length - 1) === m.length - 1)) {
+        // the helper boxes an integral float64; every read normalizes it, so the int64 builtin is the same value
+        const spans = goArithArgs (m, mm[0].length - 1, m.length - 1);
+        if (spans.length !== 2) {
+            return undefined;
+        }
+        const parts = spans.map (([ s0, e0 ]) => goNeverNilIntWrite (scope, t.slice (s0, e0).trim (), m.slice (s0, e0).trim (), guarded));
+        if (parts.some ((p) => p === undefined) || parts.every ((p, i) => /^\d+$/.test (p as string))) {
+            return undefined;
+        }
+        return (mm[1].toLowerCase ().endsWith ('min') ? 'min(' : 'max(') + parts.join (', ') + ')';
+    }
+    scope.derefs = new Set<string> ();
+    scope.sums = new Map<string, string> ();
+    const kind = goArithKind (scope, text, maskedText);
+    return ((kind === 'i64') && (scope.derefs.size === 0) && (scope.sums.size === 0)) ? text : undefined;
+}
+
+function goBuiltinShadowed (masked: string): boolean {
+    return /(?<![\w.])(?:min|max)\s*(?::=|,|\s+\w)|\bvar (?:min|max)\b|[(,]\s*(?:min|max)\s+\w/.test (masked);
+}
+
+// a native Go `a * b - c` (+ - * only) over int64 operands and int constants is a never-nil int64
+function goNeverNilIntExpr (scope: GoArithScope, t: string, m: string): boolean {
+    if ((t.length !== m.length) || !/[-+*]/.test (m) || /[/%<>=!&|^]/.test (m)) {
+        return false;
+    }
+    const parts: [ number, number ][] = [];
+    let depth = 0;
+    let start = 0;
+    let prevOperand = false;
+    for (let i = 0; i < m.length; i++) {
+        const c = m[i];
+        if ((c === '(') || (c === '[') || (c === '{')) { depth++; prevOperand = false; continue; }
+        if ((c === ')') || (c === ']') || (c === '}')) { depth--; prevOperand = true; continue; }
+        if (depth > 0) { continue; }
+        if (((c === '+') || (c === '-') || (c === '*')) && prevOperand) {
+            parts.push ([ start, i ]);
+            start = i + 1;
+            prevOperand = false;
+            continue;
+        }
+        if (/\w/.test (c)) { prevOperand = true; }
+    }
+    parts.push ([ start, m.length ]);
+    if (parts.length < 2) {
+        return false;
+    }
+    let typed = false;
+    for (const [ s0, e0 ] of parts) {
+        const pt = t.slice (s0, e0).trim ();
+        const pm = m.slice (s0, e0).trim ();
+        if (pt === '') {
+            return false;
+        }
+        const saved = scope.derefs;
+        scope.derefs = new Set<string> ();
+        const k = /^\d+$/.test (pt) ? 'ilit' : goArithKind (scope, pt, pm);
+        const derefNeeded = scope.derefs.size > 0;
+        scope.derefs = saved;
+        if (derefNeeded || ((k !== 'i64') && (k !== 'ilit'))) {
+            return false;   // the printed text must already be the int64 value
+        }
+        typed = typed || (k === 'i64');
+    }
+    return typed;
+}
+
+// `this.SafeInteger{,2,N}(..., d)` with d a declared `int`/`int64` local: the base method boxes d, never nil
+function goLiteralDefaultSafeInteger (scope: GoArithScope, m: string): boolean {
+    const call = /^this\.SafeInteger(2|N)?\(/.exec (m);
+    if (!call || (goArithClose (m, call[0].length - 1) !== m.length - 1)) {
+        return false;
+    }
+    const spans = goArithArgs (m, call[0].length - 1, m.length - 1);
+    const want = (call[1] === '2') ? 4 : 3;
+    if (spans.length !== want) {
+        return false;
+    }
+    const def = m.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
+    const type = /^[A-Za-z_]\w*$/.test (def) ? goArithDeclaredType (scope.masked, scope.signature, def) : undefined;
+    return (type === 'int') || (type === 'int64');
+}
+
+// `*int64` pointers the closure condition proves non-nil in the given arm
+function goNilGuardArms (scope: GoArithScope, condition: string, trueArm: boolean): Set<string> {
+    const out = new Set<string> ();
+    const c = goArithStripParens (condition);
+    if (trueArm && (c.indexOf ('||') < 0)) {
+        for (const part of goSplitTopLevel (c, '&&')) {
+            const g = /^([A-Za-z_]\w*) != nil$/.exec (part);
+            if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) {
+                out.add (g[1]);
+            }
+        }
+    }
+    if (!trueArm) {
+        const g = /^([A-Za-z_]\w*) == nil$/.exec (c);
+        if (g && (goArithDeclaredType (scope.masked, scope.signature, g[1]) === '*int64') && goSingleWrite (scope, g[1])) {
+            out.add (g[1]);
+        }
+    }
+    return out;
+}
+
+// every read of name is a whole argument of a deref-normalizing helper
+function goReadsNormalize (masked: string, name: string, writeSpans: [ number, number ][]): boolean {
+    const rx = new RegExp ('(?<![\\w.*&])' + name + '(?![\\w])', 'g');
+    for (const m of masked.matchAll (rx)) {
+        const at = m.index as number;
+        if (writeSpans.some (([ s, e ]) => (at >= s) && (at < e))) {
+            continue;
+        }
+        const after = masked.slice (at + name.length);
+        if (!/^\s*[,)]/.test (after)) {
+            if (process.env.HX4G30_DEBUG) { console.error ('readctx', name, '|', masked.slice (Math.max (0, at - 50), at + name.length + 10).replace (/\s+/g, ' ')); }
+            return false;
+        }
+        // innermost open paren before the read, and the argument boundary right before it
+        let depth = 0;
+        let i = at - 1;
+        for (; i >= 0; i--) {
+            const c = masked[i];
+            if ((c === ')') || (c === ']') || (c === '}')) { depth++; }
+            else if ((c === '(') || (c === '[') || (c === '{')) { if (depth === 0) { break; } depth--; }
+        }
+        if ((i < 0) || (masked[i] !== '(')) {
+            if (process.env.HX4G30_DEBUG) { console.error ('readctx', name, '|', masked.slice (Math.max (0, at - 50), at + name.length + 10).replace (/\s+/g, ' ')); }
+            return false;
+        }
+        const between = masked.slice (i + 1, at);
+        if (!/^\s*$/.test (between) && !/,\s*$/.test (between)) {
+            return false;
+        }
+        if (/,\s*$/.test (between)) {
+            // the read must start its own argument (nothing of a sibling expression before it)
+            let d = 0;
+            for (let j = at - 1; j > i; j--) {
+                const c = masked[j];
+                if ((c === ')') || (c === ']') || (c === '}')) { d++; } else if ((c === '(') || (c === '[') || (c === '{')) { d--; }
+                else if ((c === ',') && (d === 0)) { if (!/^\s*$/.test (masked.slice (j + 1, at))) { return false; } break; }
+            }
+        }
+        if (!GO_NORMALIZING_READERS.test (masked.slice (Math.max (0, i - 40), i + 1))) {
+            if (process.env.HX4G30_DEBUG) { console.error ('readctx', name, '|', masked.slice (Math.max (0, i - 40), at + name.length + 10).replace (/\s+/g, ' ')); }
+            return false;
+        }
+    }
+    return true;
+}
+
+function goAnyToInt64RetypeFunc (text: string, ownMethods: Set<string>): string {
+    const masked = goArithMask (text);
+    const nl = masked.indexOf ('\n');
+    const lines = text.split ('\n');
+    const mlines = masked.split ('\n');
+    const lineStart = (line: number) => mlines.slice (0, line).reduce ((n, l) => n + l.length + 1, 0);
+    let changed = false;
+    for (let k = 1; k < mlines.length; k++) {
+        const d = /^(\t+)var (\w+) any = /.exec (mlines[k]);
+        if (!d) {
+            continue;
+        }
+        const name = d[2];
+        const scope: GoArithScope = { 'masked': masked, 'signature': masked.slice (0, nl), 'known': new Map (), 'ownMethods': ownMethods, 'pos': 0, 'derefs': new Set<string> () };
+        if ((goArithDeclaredType (masked, scope.signature, name) !== 'any') || (goDeclCount (masked, name) !== 1)) {
+            continue;
+        }
+        if (new RegExp ('[\\w.](?:\\s*,\\s*' + name + ')+\\s*:?=(?!=)|(?<![\\w.])' + name + '\\s*,[\\w\\s,]*:?=(?!=)|&' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:\\+\\+|--|[-+*/%]=)').test (masked)) {
+            continue;
+        }
+        const ind = d[1];
+        const valueCol = d[0].length;
+        // [line, value column, guarded pointers]
+        const writes: [ number, number, Set<string> ][] = [];
+        const writeSpans: [ number, number ][] = [];
+        let closureEnd = -1;
+        if (mlines[k].slice (valueCol) === 'func() any {') {
+            const body = ind + '\t';
+            if (!((k + 5 < mlines.length) && mlines[k + 1].startsWith (body + 'if ') && mlines[k + 1].endsWith (' {') && mlines[k + 2].startsWith (body + '\treturn ')
+                    && (mlines[k + 3] === body + '}') && mlines[k + 4].startsWith (body + 'return ') && (mlines[k + 5] === ind + '}()'))) {
+                continue;
+            }
+            const cond = mlines[k + 1].slice (body.length + 3, -2);
+            scope.pos = lineStart (k + 1);
+            writes.push ([ k + 2, body.length + 8, goNilGuardArms (scope, cond, true) ], [ k + 4, body.length + 7, goNilGuardArms (scope, cond, false) ]);
+            closureEnd = k + 5;
+            writeSpans.push ([ lineStart (k), lineStart (k + 6) ]);
+        } else {
+            writes.push ([ k, valueCol, new Set<string> () ]);
+            writeSpans.push ([ lineStart (k), lineStart (k + 1) ]);
+        }
+        let ok = true;
+        for (let j = k + 1; ok && (j < mlines.length); j++) {
+            if (j <= closureEnd) {
+                continue;
+            }
+            const w = new RegExp ('^(\\t+)' + name + ' = ').exec (mlines[j]);
+            if (w) {
+                writes.push ([ j, w[0].length, new Set<string> () ]);
+                writeSpans.push ([ lineStart (j), lineStart (j) + w[0].length ]);
+            } else if (new RegExp ('(?<![\\w.*])' + name + '\\s*=(?!=)').test (mlines[j])) {
+                ok = false;
+            }
+        }
+        const edits: [ number, number, string ][] = [];
+        for (const [ j, col, guarded ] of writes) {
+            if (!ok) {
+                break;
+            }
+            const value = lines[j].slice (col);
+            const mvalue = mlines[j].slice (col).trimEnd ();
+            const comment = value.slice (mvalue.length);
+            if ((comment.trim () !== '') && !comment.trim ().startsWith ('//')) {
+                ok = false;
+                break;
+            }
+            scope.pos = lineStart (j) + col;
+            const native = goNeverNilIntWrite (scope, value.slice (0, mvalue.length), mvalue, guarded);
+            if ((native !== undefined) && /^(?:min|max)\(/.test (native) && goBuiltinShadowed (masked)) {
+                ok = false;
+                break;
+            }
+            if (native === undefined) {
+                if (process.env.HX4G30_DEBUG) { console.error ('write', name, '|', value.trim (), '@', mlines[0].slice (0, 60)); }
+                ok = false;
+                break;
+            }
+            edits.push ([ j, col, native + comment ]);
+        }
+        if (ok && !goReadsNormalize (masked, name, writeSpans) && process.env.HX4G30_DEBUG) { console.error ('read', name, '@', mlines[0].slice (0, 60)); }
+        if (!ok || !goReadsNormalize (masked, name, writeSpans)) {
+            continue;
+        }
+        for (const [ j, col, value ] of edits) {
+            lines[j] = lines[j].slice (0, col) + value;
+        }
+        lines[k] = lines[k].replace ('var ' + name + ' any = ', 'var ' + name + ' int64 = ');
+        if (closureEnd > 0) {
+            lines[k] = lines[k].replace (/func\(\) any \{$/, 'func() int64 {');
+        }
+        changed = true;
+    }
+    return changed ? lines.join ('\n') : text;
+}
+
+function goAnyToInt64Retype (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/\bvar \w+ any = /.test (content)) {
+        return content;
+    }
+    const ownMethods = goArithOwnMethods (goArithMask (content), [ 'Sum' ]);
+    return goArithEachFunc (content, (fn) => goAnyToInt64RetypeFunc (fn, ownMethods));
+}
+
+// native arithmetic, then retype the locals it proved int64 and rerun until nothing moves
+function goInt64RetypeArith (content: string): string {
+    let out = goNativeArithmetic (content);
+    for (let i = 0; i < 4; i++) {
+        const retyped = goAnyToInt64Retype (out);
+        if (retyped === out) {
+            break;
+        }
+        out = goNativeArithmetic (retyped);
+    }
+    return out;
+}
+
+function goInt64RetypeArithSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, limit *int64, until *int64) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        // every write int64, every read a helper argument: typed, and the arithmetic goes native
+        [ '\tvar d int64 = 60\n\tvar w any = (d * 1000) * 1000\n\tif limit != nil {\n\t\tw = (d * 1000) * *limit\n\t}\n\treturn Subtract(this.Milliseconds(), w)', '(this.Milliseconds() - w)', true ],
+        [ '\tvar d int64 = 60\n\tvar e any = func() any {\n\t\tif until != nil {\n\t\t\treturn until\n\t\t}\n\t\treturn this.Milliseconds()\n\t}()\n\treturn Subtract(e, d)', 'var e int64 = func() int64 {', true ],
+        [ '\tvar d int64 = 60\n\tif limit != nil {\n\t\tvar c any = mathMin(limit, 1440)\n\t\treturn Multiply(c, d)\n\t}\n\treturn nil', '(c * d)', true ],
+        [ '\tvar dl *int64 = this.SafeInteger(o, "l", 200)\n\tvar n int64 = 5\n\tvar c any = dl\n\tif limit != nil {\n\t\tc = limit\n\t}\n\treturn Subtract(n, c)', '(n - c)', true ],
+        // negatives: a nil write, a nil test, a plain read, an unguarded pointer, a Sum write keep `any` and the helper
+        [ '\tvar d int64 = 60\n\tvar w any = nil\n\tif limit != nil {\n\t\tw = d * 2\n\t}\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
+        [ '\tvar d int64 = 60\n\tvar w any = d * 2\n\tif w == nil {\n\t}\n\treturn Subtract(w, d)', 'var w any', true ],
+        [ '\tvar d int64 = 60\n\tvar w any = d * 2\n\to = w\n\treturn Subtract(w, d)', 'var w any', true ],
+        [ '\tvar d int64 = 60\n\tvar w any = limit\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
+        [ '\tvar d int64 = 60\n\tvar w any = this.Sum(d, 1)\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
+        [ '\tvar d int64 = 60\n\tvar w any = mathMin(limit, 1440)\n\treturn Subtract(w, d)', 'Subtract(w, d)', true ],
+    ];
+    return goArithCaseProblems (goInt64RetypeArith, wrap, cases, 'go int64retype arith self test expected ');
+}
+
+// ----- Divide on guarded operands -----
+// Divide (and a MathFloor/MathCeil around a rewritten one) on operands the passes above cannot type:
+// Handle*IntegerAndParams*Nullable element-0 boxes under `!IsEqual(x, nil)`, pointers in the else arm of
+// `if x == nil`, int64 sums/differences, `this.RateLimit`; divisors proven positive by name, literal init or guard.
+interface GoIfHead { cond: string; negated: boolean }
+
+// conditions of the `if` heads enclosing scope.pos (negated = we sit in its plain `else` arm); stops at a func literal
+function goEnclosingIfHeads (scope: GoArithScope): GoIfHead[] {
+    const lines = scope.masked.slice (0, scope.pos).split ('\n');
+    const indentOf = (l: string) => l.length - l.replace (/^\t+/, '').length;
+    const heads: GoIfHead[] = [];
+    let indent = indentOf (lines[lines.length - 1]);
+    for (let k = lines.length - 2; k >= 1; k--) {
+        const s = lines[k].trim ();
+        const li = indentOf (lines[k]);
+        if ((s === '') || (li >= indent)) {
+            continue;
+        }
+        indent = li;
+        if (/\bfunc\b/.test (s)) {
+            break;
+        }
+        if (s === '} else {') {
+            // the chain head at the same indent; an `else if` chain proves nothing
+            for (let j = k - 1; j >= 1; j--) {
+                const t = lines[j].trim ();
+                const lj = indentOf (lines[j]);
+                if ((t === '') || (lj > li)) {
+                    continue;
+                }
+                if (lj < li || /^\} else if /.test (t)) {
+                    break;
+                }
+                const h = /^if (.*) \{$/.exec (t);
+                if (h) {
+                    heads.push ({ 'cond': h[1], 'negated': true });
+                    k = j;
+                    break;
+                }
+            }
+            continue;
+        }
+        const head = /^if (.*) \{$/.exec (s);
+        if (head) {
+            heads.push ({ 'cond': head[1], 'negated': false });
+        }
+    }
+    return heads;
+}
+
+function goIfGuarded (scope: GoArithScope, conjunct: string): boolean {
+    return goEnclosingIfHeads (scope).some ((h) => !h.negated && (h.cond.indexOf ('||') < 0) && (h.cond.indexOf (';') < 0) && goSplitTopLevel (h.cond, '&&').includes (conjunct));
+}
+
+// `var p *int64 = this.SafeInteger{,2,N}(..., D)` with D an int literal, a plain int/int64 local, or such a pointer
+function goNonNilIntInit (scope: GoArithScope, name: string, depth: number): boolean {
+    if ((depth > 3) || !goSingleWrite (scope, name) || (goArithDeclaredType (scope.masked, scope.signature, name) !== '*int64')) {
+        return false;
+    }
+    const decl = new RegExp ('\\bvar\\s+' + name + '\\s+\\*int64\\s*=\\s*([^\\n]+)').exec (scope.masked);
+    if (!decl || (decl.index > scope.pos)) {
+        return false;
+    }
+    const text = decl[1].trim ();
+    const call = /^this\.SafeInteger(2|N)?\(/.exec (text);
+    if (!call || (goArithClose (text, call[0].length - 1) !== text.length - 1)) {
+        return false;
+    }
+    const spans = goArithArgs (text, call[0].length - 1, text.length - 1);
+    const want = (call[1] === '2') ? 4 : 3;
+    if (spans.length !== want) {
+        return false;
+    }
+    const def = text.slice (spans[want - 1][0], spans[want - 1][1]).trim ();
+    if (/^-?\d+$/.test (def)) {
+        return true;
+    }
+    if (!/^[A-Za-z_]\w*$/.test (def)) {
+        return false;
+    }
+    const type = goArithDeclaredType (scope.masked, scope.signature, def);
+    return (type === 'int') || (type === 'int64') || goNonNilIntInit (scope, def, depth + 1);
+}
+
+// kind + Go spelling of an operand, or undefined
+function goGuardedDivideOperand (scope: GoArithScope, text: string, masked: string, fields: Set<string>, fileOwn: Set<string> = new Set<string> ()): { kind: Kind, text: string } | undefined {
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (masked);
+    const known = scope.known.get (t);
+    if (known !== undefined) {
+        return { 'kind': known, 'text': t };
+    }
+    if (/^[A-Za-z_]\w*$/.test (t)) {
+        const declared = goArithDeclaredType (scope.masked, scope.signature, t);
+        if (((declared === '*int64') || (declared === '*float64')) && goSingleWrite (scope, t)) {
+            const elseOfNil = goEnclosingIfHeads (scope).some ((h) => h.negated && (goArithStripParens (h.cond) === t + ' == nil'));
+            if (elseOfNil || goNonNilIntInit (scope, t, 0)) {
+                return { 'kind': (declared === '*int64') ? 'i64' : 'f64', 'text': '*' + t };
+            }
+        }
+        if ((goTupleElementType (scope, t, fileOwn) === '*int64') && goIfGuarded (scope, '!IsEqual(' + t + ', nil)')) {
+            return { 'kind': 'i64', 'text': '*' + t + '.(*int64)' };
+        }
+    }
+    const field = /^this\.(\w+)$/.exec (t);
+    if (field && fields.has (field[1]) && (GO_BASE_NUMERIC_FIELDS[field[1]] === 'f64')) {
+        return { 'kind': 'f64', 'text': t };
+    }
+    const tight = /^([A-Za-z_]\w*)([-+])(\d+)$/.exec (m);
+    if (tight && (t === m)) {
+        const l = goGuardedDivideOperand (scope, tight[1], tight[1], fields, fileOwn);
+        return (l && (l.kind === 'i64') && (l.text === tight[1])) ? { 'kind': 'i64', 'text': '(' + t + ')' } : undefined;
+    }
+    // `a - b` / `a + b` of int64 operands (one top-level operator)
+    const minus = goSplitTopLevel (m, ' - ');
+    const plus = goSplitTopLevel (m, ' + ');
+    if (((minus.length === 2) !== (plus.length === 2)) && (goSplitTopLevel (m, ' * ').length === 1) && (goSplitTopLevel (m, ' / ').length === 1)) {
+        const op = (minus.length === 2) ? ' - ' : ' + ';
+        const at = m.indexOf (op, m.length - (op === ' - ' ? minus[1] : plus[1]).length - op.length - 1);
+        const side = (s: string, ms: string) => goGuardedDivideOperand (scope, s, ms, fields, fileOwn);
+        const l = side (t.slice (0, at), m.slice (0, at));
+        const r = side (t.slice (at + op.length), m.slice (at + op.length));
+        if (l && r && isInt64Side (l.kind) && isInt64Side (r.kind) && ((l.kind === 'i64') || (r.kind === 'i64'))) {
+            return { 'kind': 'i64', 'text': '(' + l.text + op + r.text + ')' };
+        }
+        return undefined;
+    }
+    // BaseExchange.Sum of integral operands boxes an int64 sum
+    const sum = /^this\.Sum\(/.exec (m);
+    if (sum && !scope.ownMethods.has ('Sum') && (t.length === m.length) && (goArithClose (m, sum[0].length - 1) === m.length - 1)) {
+        const parts: string[] = [];
+        let typed = false;
+        const ps = goArithArgs (m, sum[0].length - 1, m.length - 1).map (([ s0, e0 ]) => goGuardedDivideOperand (scope, t.slice (s0, e0), m.slice (s0, e0), fields, fileOwn));
+        // Sum folds Add from 0.0: float64 operands give their float64 sum
+        if ((ps.length >= 2) && ps.every ((p) => p && (p.kind === 'f64'))) {
+            return { 'kind': 'f64', 'text': '(' + ps.map ((p) => p?.text).join (' + ') + ')' };
+        }
+        for (const p of ps) {
+            if (!p || ![ 'i64', 'ilit', 'int' ].includes (p.kind as string)) {
+                return undefined;
+            }
+            typed = typed || (p.kind !== 'ilit');
+            parts.push ((p.kind === 'int') ? 'int64(' + p.text + ')' : p.text);
+        }
+        return (typed && (parts.length >= 2)) ? { 'kind': 'i64', 'text': '(' + parts.join (' + ') + ')' } : undefined;
+    }
+    const saved = scope.derefs;
+    scope.derefs = new Set<string> ();
+    scope.sums = new Map<string, string> ();
+    const kind = goArithKind (scope, t, m);
+    const deref = scope.derefs.has (t);
+    const summed = scope.sums.get (t);
+    scope.derefs = saved;
+    if (kind === undefined) {
+        return undefined;
+    }
+    const spelled = deref ? '*' + t : (summed ?? t);
+    return { 'kind': kind, 'text': (/^[\w.*]+$|^-?\d+(?:\.\d+)?$/.test (spelled) || /^[\w.]+\(.*\)$/.test (spelled) && (goArithClose (goArithMask (spelled), spelled.indexOf ('(')) === spelled.length - 1)) ? spelled : '(' + spelled + ')' };
+}
+
+// divisor never zero (nor negative zero): approved period names, a positive literal local, or an enclosing `x > 0`
+function goGuardedPositiveDivisor (scope: GoArithScope, b: string): boolean {
+    const t = goArithStripParens (b);
+    const lit = (t.indexOf ('.') < 0) ? goArithIntLiteralValue (t) : Number (t);
+    if ((lit !== undefined) && (lit > 0)) {
+        return true;
+    }
+    const name = t.replace (/^\*/, '');
+    if (/^[A-Za-z_]\w*$/.test (name)) {
+        if (goPositiveDivisorLiteral (name)) {
+            return true;
+        }
+        if (goSingleWrite (scope, name) && new RegExp ('\\bvar\\s+' + name + '\\s+(?:int|int64)\\s*=\\s*[1-9]\\d{0,8}\\s*(?:\\n|$)').test (scope.masked + '\n') && (goArithDeclaredType (scope.masked, scope.signature, name) !== undefined)) {
+            return true;
+        }
+    }
+    return /^this\.\w+$/.test (t) && !new RegExp ('(?<![\\w.])' + t.replace ('.', '\\.') + '\\s*=(?!=)').test (scope.masked) && goIfGuarded (scope, t + ' > 0');
+}
+
+function goGuardedDivideRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>, fileOwn: Set<string>): { text: string, math: boolean } {
+    let masked = goArithMask (text);
+    const scope = goArithScope (masked, ownMethods);
+    const rx = /(?<![\w.])(?:ccxt\.)?(Divide|MathFloor|MathCeil)\(/g;
+    const calls = [ ...masked.matchAll (rx) ].map ((m) => ({ 'start': m.index as number, 'helper': m[1], 'open': (m.index as number) + m[0].length - 1 }));
+    calls.sort ((x, y) => y.start - x.start);
+    const mine = new Set<string> ();
+    let usesMath = false;
+    for (const call of calls) {
+        const close = goArithClose (masked, call.open);
+        if (close < 0) {
+            continue;
+        }
+        const spans = goArithArgs (masked, call.open, close);
+        scope.pos = call.start;
+        let native: string | undefined = undefined;
+        if ((call.helper === 'Divide') && (spans.length === 2)) {
+            const a = goGuardedDivideOperand (scope, text.slice (spans[0][0], spans[0][1]), masked.slice (spans[0][0], spans[0][1]), fields, fileOwn);
+            const b = goGuardedDivideOperand (scope, text.slice (spans[1][0], spans[1][1]), masked.slice (spans[1][0], spans[1][1]), fields, fileOwn);
+            if (a && b && goGuardedPositiveDivisor (scope, b.text)) {
+                // gofmt drops the blanks of a sum inside a conversion's argument list
+                const f = (o: { kind: Kind, text: string }) => ((o.kind === 'i64') || (o.kind === 'int')) ? 'float64(' + goArithStripParens (o.text).replace (/ ([-+]) /g, '$1') + ')' : o.text;
+                native = '(' + f (a) + ' / ' + f (b) + ')';
+            }
+        } else if ((call.helper !== 'Divide') && (spans.length === 1)) {
+            // only around a quotient this pass produced
+            const arg = goArithStripParens (text.slice (spans[0][0], spans[0][1]));
+            if (mine.has (arg)) {
+                native = 'math.' + call.helper.slice (4) + '(' + arg + ')';
+            }
+        }
+        if (native === undefined) {
+            continue;
+        }
+        let after = close + 1;
+        if (/(==|!=)\s*$/.test (masked.slice (0, call.start)) || /^\s*(==|!=)/.test (masked.slice (after))) {
+            continue;  // an interface comparison differs from a typed one
+        }
+        const assertion = /^\.\((\w+)\)/.exec (masked.slice (after));
+        if (assertion) {
+            if (assertion[1] !== 'float64') {
+                continue;
+            }
+            after += assertion[0].length;
+        }
+        scope.known.set (native, 'f64');
+        scope.known.set (goArithStripParens (native), 'f64');
+        if (native.startsWith ('(') && /\(\s*$/.test (masked.slice (0, call.start)) && /^\s*\)/.test (masked.slice (after))) {
+            native = native.slice (1, -1);
+            scope.known.set (native, 'f64');
+        }
+        mine.add (goArithStripParens (native));
+        usesMath = usesMath || native.startsWith ('math.');
+        text = text.slice (0, call.start) + native + text.slice (after);
+        masked = masked.slice (0, call.start) + goArithMask (native) + masked.slice (after);
+        scope.masked = masked;
+    }
+    return { text, 'math': usesMath };
+}
+
+function goGuardedDivide (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Divide\(/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
+    const fields = goArithBaseFields (masked);
+    const fileOwn = goArithFileOwnHandles (masked);
+    return goArithMathEachFunc (content, masked, (fn, head) => goGuardedDivideRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> (), fileOwn));
+}
+
+function goNativeDivideCheck (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\n// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code\n\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const tuple = '\tvar uV []any = this.HandleOptionIntegerAndParamsNullable(o, "f", "until")\n\tu := uV[0]\n';
+    const cases: [ string, string, boolean ][] = [
+        [ tuple + '\tif !IsEqual(u, nil) {\n\t\treturn this.ParseToInt(Divide(u, 1000))\n\t}\n\treturn nil', 'this.ParseToInt(float64(*u.(*int64)) / 1000)', true ],
+        [ tuple + '\treturn this.ParseToInt(Divide(u, 1000))', 'Divide(u, 1000)', true ],
+        [ tuple + '\tif !IsEqual(u, nil) || true {\n\t\treturn Divide(u, 1000)\n\t}\n\treturn nil', 'Divide(u, 1000)', true ],
+        [ '\tvar s *int64 = this.SafeInteger(o, "s")\n\tvar t int64 = 60\n\tif s == nil {\n\t\treturn nil\n\t} else {\n\t\treturn MathFloor(Divide(s, t))\n\t}', 'math.Floor(float64(*s) / float64(t))', true ],
+        [ '\tvar s *int64 = this.SafeInteger(o, "s")\n\tvar t int64 = 60\n\tif s == nil {\n\t\treturn nil\n\t} else if t > 0 {\n\t\treturn Divide(s, t)\n\t}\n\treturn nil', 'Divide(s, t)', true ],
+        [ '\tvar s *int64 = this.SafeInteger(o, "s")\n\tvar t int64 = this.ParseToInt(n)\n\tif s != nil {\n\t\treturn Divide(s, t)\n\t}\n\treturn nil', 'Divide(s, t)', true ],
+        [ '\tvar p *int64 = this.SafeInteger(o, "p", 100)\n\tvar q *int64 = this.SafeInteger(o, "q", p)\n\tvar pageSize *int64 = this.SafeInteger(o, "z", 10)\n\treturn MathCeil(Divide(q, pageSize))', 'math.Ceil(float64(*q) / float64(*pageSize))', true ],
+        [ '\tvar q *int64 = this.SafeInteger(o, "q")\n\tvar pageSize *int64 = this.SafeInteger(o, "z", 10)\n\treturn MathCeil(Divide(q, pageSize))', 'Divide(q, pageSize)', true ],
+        [ '\tvar a int = len(o.([]any))\n\tvar chunkSize int64 = 5\n\treturn this.ParseToInt(Divide(this.Sum(a, chunkSize-1), chunkSize))', 'this.ParseToInt(float64(int64(a)+(chunkSize-1)) / float64(chunkSize))', true ],
+        [ '\tvar b *float64 = this.SafeNumber(o, "b")\n\tvar c *float64 = this.SafeNumber(o, "c")\n\tif (b != nil) && (c != nil) {\n\t\treturn Divide(this.Sum(b, c), 2)\n\t}\n\treturn nil', '((*b + *c) / 2)', true ],
+        [ '\tvar r any = nil\n\tif this.RateLimit > 0 {\n\t\tr = Divide(1, this.RateLimit)\n\t}\n\treturn r', 'r = (1 / this.RateLimit)', true ],
+        [ '\tvar r any = Divide(1, this.RateLimit)\n\treturn r', 'Divide(1, this.RateLimit)', true ],
+        [ '\tvar l int = 64\n\tvar s int64 = 3\n\treturn this.ParseToInt(Divide(s, l))', 'float64(s) / float64(l)', true ],
+        [ '\tvar l int = 0\n\tvar s int64 = 3\n\treturn this.ParseToInt(Divide(s, l))', 'Divide(s, l)', true ],
+        [ tuple + '\tif !IsEqual(u, nil) {\n\t\tif Divide(u, 1000) == 2 {\n\t\t}\n\t}\n\treturn nil', 'Divide(u, 1000) == 2', true ],
+    ];
+    const problems = goArithCaseProblems (goGuardedDivide, wrap, cases, 'go native divide check expected ');
+    const shadow = goGuardedDivide ('// PLEASE DO NOT EDIT THIS FILE\ntype K struct {\n\tRateLimit any\n}\n' + wrap ('\tif this.RateLimit > 0 {\n\t\treturn Divide(1, this.RateLimit)\n\t}\n\treturn nil'));
+    if (!shadow.includes ('Divide(1, this.RateLimit)')) {
+        problems.push ('shadowed field went native: ' + shadow);
+    }
+    const imported = goGuardedDivide (wrap ('\tvar s int64 = 3\n\treturn MathCeil(Divide(s, 1000))'));
+    if (!imported.includes ('import "math"') || !imported.includes ('math.Ceil(float64(s) / 1000)')) {
+        problems.push ('math import / Ceil missing: ' + imported);
+    }
+    return problems;
+}
+
+// ----- integral box comparisons -----
+// Ordered comparisons on `var x any = E` locals whose every write provably boxes one integral kind
+// (int literal / Add / Sum / Subtract / Multiply of non-nil integral operands, typed native arithmetic):
+// the box is read as `x.(int64)` / `x.(int)`. Pointer operands also accept the non-nil walk above.
+function goIntegralWriteKind (scope: GoArithScope, name: string, hyp: Kind, text: string, masked: string, seen: Set<string>): Kind | undefined {
+    const t = goArithStripParens (text);
+    const m = goArithStripParens (masked);
+    if (/^\d{1,15}$/.test (t) && !/^0\d/.test (t)) {
+        return 'int';
+    }
+    const arg = (a: string, am: string): Kind | undefined => {
+        const s = goArithStripParens (a);
+        if (s === name) {
+            return hyp;
+        }
+        // another box local: its own single kind (bounded recursion, cycles answer undefined)
+        if (/^[A-Za-z_]\w*$/.test (s) && (goArithDeclaredType (scope.masked, scope.signature, s) === 'any')) {
+            return goIntegralBoxKind (scope, s, seen);
+        }
+        const inner: GoArithScope = { ...scope, 'derefs': new Set<string> (), 'sums': new Map<string, string> () };
+        const k = goArithKind (inner, a, am) ?? goCompareOperandKind (scope, a, am);
+        return (k === 'ilit') ? 'int' : k;
+    };
+    // `func() any { ... return A ... return B }()`: every return arm boxes the same kind
+    if (/^func\(\) any \{/.test (m)) {
+        const open = m.indexOf ('{');
+        const end = goArithClose (m, open);
+        const body = m.slice (open + 1, end);
+        if ((end < 0) || (m.slice (end + 1).trim () !== '()') || /\bfunc\b/.test (body)) {
+            return undefined;
+        }
+        const rets = [ ...body.matchAll (/\breturn\b([^\n]*)/g) ];
+        const off = open + 1;
+        const kinds = rets.map ((r) => {
+            const s0 = off + (r.index as number) + 6;
+            const e0 = s0 + r[1].trimEnd ().length;
+            return goIntegralWriteKind (scope, name, hyp, t.slice (s0, e0), m.slice (s0, e0), seen);
+        });
+        const stmts = body.split ('\n').map ((l) => l.trim ()).filter ((l) => l !== '');
+        if ((rets.length < 2) || !stmts.every ((l) => /^(?:if .* \{|\} else \{|\} else if .* \{|\}|return .+)$/.test (l))) {
+            return undefined;
+        }
+        return kinds.every ((k) => k === hyp) ? hyp : undefined;
+    }
+    const deref = /^(?:ccxt\.)?DerefScalar\(this\.SafeInteger(?:2|N)?\(/.exec (m);
+    if (deref && (goArithClose (m, deref[0].length - 1) === m.length - 2) && goNonNilIntegerInit (m.slice (deref[0].indexOf ('(') + 1, -1))) {
+        return 'i64';
+    }
+    const call = /^(?:(?:ccxt\.)?(Add|Subtract|Multiply)|this\.(Sum))\(/.exec (m);
+    if (call && (goArithClose (m, call[0].length - 1) === m.length - 1) && !((call[2] === 'Sum') && scope.ownMethods.has ('Sum'))) {
+        const spans = goArithArgs (m, call[0].length - 1, m.length - 1);
+        if ((call[2] === undefined) && (spans.length !== 2)) {
+            return undefined;
+        }
+        const kinds = spans.map (([ s, e ]) => arg (t.slice (s, e).trim (), m.slice (s, e).trim ()));
+        if ((kinds.length === 0) || kinds.some ((k) => (k !== 'i64') && (k !== 'int'))) {
+            return undefined;
+        }
+        // Add keeps int+int as int; every other mix goes through int64 (ParseInt / reflect Int())
+        return ((call[1] === 'Add') && kinds.every ((k) => k === 'int')) ? 'int' : 'i64';
+    }
+    if (/^(?:ccxt\.)?\w+\(/.test (m) && !/^(?:int64|int|float64|len)\(/.test (m)) {
+        return undefined;
+    }
+    const k = goCompareOperandKind (scope, t, m);
+    return ((k === 'i64') || (k === 'int')) ? k : undefined;
+}
+
+// the single box kind of a `var name any = E` local over all its writes, assuming it inductively
+function goIntegralBoxKind (scope: GoArithScope, name: string, seen: Set<string> = new Set<string> ()): Kind | undefined {
+    if (!/^[A-Za-z_]\w*$/.test (name) || seen.has (name) || (seen.size > 4) || (goDeclCount (scope.masked, name) !== 1)) {
+        return undefined;
+    }
+    const decl = new RegExp ('\\bvar\\s+' + name + '\\s+any\\s*=\\s*([^\\n]+)').exec (scope.masked);
+    if (!decl || (decl.index > scope.pos)) {
+        return undefined;
+    }
+    const writes: [ number, number ][] = [ [ decl.index + decl[0].length - decl[1].length, 0 ] ];
+    const rx = new RegExp ('(?<![\\w.*])' + name + '\\s*(?:=(?!=)|\\+\\+|--|[-+*/%]=|,[\\w\\s,]*=(?!=))|&' + name + '\\b', 'g');
+    for (const w of scope.masked.matchAll (rx)) {
+        // only plain `name = E` rebinds; compound, tuple and address-taken writes keep the helper
+        if (!/^\w+\s*=$/.test (w[0]) || /,\s*$/.test (scope.masked.slice (0, w.index as number))) {
+            return undefined;
+        }
+        writes.push ([ (w.index as number) + w[0].length, 0 ]);
+    }
+    // a write spans to the first newline outside brackets (multi-line `func() any {...}()` initializers)
+    for (const w of writes) {
+        let depth = 0;
+        let i = w[0];
+        for (; i < scope.masked.length; i++) {
+            const c = scope.masked[i];
+            if ((c === '(') || (c === '[') || (c === '{')) { depth++; } else if ((c === ')') || (c === ']') || (c === '}')) { depth--; }
+            if ((c === '\n') && (depth <= 0)) { break; }
+        }
+        w[1] = i;
+    }
+    const text = (scope as GoArithScope & { text: string }).text;
+    const inner = new Set<string> ([ ...seen, name ]);
+    const saved = scope.pos;
+    for (const hyp of [ 'i64', 'int' ] as Kind[]) {
+        let ok = true;
+        for (const [ s, e ] of writes) {
+            const mm = scope.masked.slice (s, e);
+            // a trailing comment is masked to spaces; the masked span bounds the expression
+            const len = mm.trimEnd ().length;
+            scope.pos = s;
+            const kind = goIntegralWriteKind (scope, name, hyp, text.slice (s, s + len), mm.slice (0, len), inner);
+            if (kind !== hyp) {
+                ok = false;
+                break;
+            }
+        }
+        scope.pos = saved;
+        if (ok) {
+            return hyp;
+        }
+    }
+    return undefined;
+}
+
+function goIntegralBoxRewriteFunc (text: string, ownMethods: Set<string>, fields: Set<string>): string {
+    const scope: GoArithScope & { text: string } = { ...goArithScope (goArithMask (text), ownMethods), 'text': text };
+    const rules: GoCmpRule[] = [
+        goCmpFieldRule (fields),
+        (sc, x, declared) => {
+            const box = (declared === 'any') ? goIntegralBoxKind (sc, x) : undefined;
+            return (box === undefined) ? undefined : { 'op': x + '.(' + ((box === 'i64') ? 'int64' : 'int') + ')', 'kind': box, 'name': x, 'nil': false, 'proven': true };
+        },
+        goCmpPointerRule ((sc, x, declared) => goEarlyExitPointerNonNil (sc, x, declared) || goTypedArithPointerIsNonNil (sc, x) || goGuardedPointerNonNil (sc, x)),
+    ];
+    return goArithRewriteCalls (text, scope, GO_COMPARE_CALL_RX, (helper, args, margs, current) => {
+        if (args.length !== 2) {
+            return undefined;
+        }
+        scope.text = current;
+        const ops = goCompareOperands (scope, args, margs, rules);
+        // only sites the field-comparison pass could not prove (a box local or a guarded pointer)
+        return ops.some ((o) => o.proven) ? goCompareOperandsText (helper, ops, margs, true) : undefined;
+    });
+}
+
+function goIntegralBoxComparisons (content: string): string {
+    if ((content.indexOf ('PLEASE DO NOT EDIT THIS FILE') < 0) || !/(?<![\w.])(?:ccxt\.)?Is(?:Greater|Less)Than/.test (content)) {
+        return content;
+    }
+    const masked = goArithMask (content);
+    const ownMethods = goArithOwnMethods (masked, [ 'Sum' ]);
+    const fields = goArithBaseFields (masked);
+    return goArithEachFunc (content, (fn, head) => goIntegralBoxRewriteFunc (fn, ownMethods, /^func \(this \*\w+\)/.test (head) ? fields : new Set<string> ()));
+}
+
+function goBoxedIntComparisonsSelfTest (): string[] {
+    const wrap = (body: string) => '// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) F(o any, n any) any {\n' + body + '\n}\n';
+    const cases: [ string, string, boolean ][] = [
+        [ '\tvar s int64 = 5\n\tvar e any = this.Sum(s, 10)\n\tvar now int64 = this.Seconds()\n\tif IsLessThan(e, now) {\n\t}\n\treturn nil', 'if (e.(int64) < now) {', true ],
+        [ '\tvar a int64 = 5\n\tvar b int = 3\n\tvar x any = ccxt.Add(a, b)\n\tif ccxt.IsGreaterThan(x, a) {\n\t}\n\treturn nil', 'if (x.(int64) > a) {', true ],
+        [ '\tvar b int = 3\n\tvar x any = Add(b, 1)\n\tif IsGreaterThan(x, b) {\n\t}\n\treturn nil', 'if (x.(int) > b) {', true ],
+        [ '\tvar f *int64 = this.SafeInteger(o, "f")\n\tvar l *int64 = this.SafeInteger(o, "l", 20)\n\tvar r any = (*f - 3)\n\tif IsLessThan(r, l) {\n\t}\n\treturn nil', 'if (r.(int64) < *l) {', true ],
+        [ '\tvar m *int64 = this.SafeInteger(o, "m")\n\tvar q *int64 = this.SafeInteger(o, "q")\n\tif (m == nil) || (q == nil) {\n\t\treturn nil\n\t}\n\tif ccxt.IsLessThan(m, *q-1) {\n\t}\n\treturn nil', 'if (*m < *q-1) {', true ],
+        // mixed int / int64 writes, nil writes, pointer boxes and unknown writes keep the helper
+        [ '\tvar c int64 = 5\n\tvar i any = 0\n\ti = this.Sum(i, c)\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
+        [ '\tvar c int64 = 5\n\tvar i any = nil\n\ti = this.Sum(c, 1)\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
+        [ '\tvar p *int64 = this.SafeInteger(o, "p", 1)\n\tvar c int64 = 5\n\tvar i any = func() any {\n\t\tif c > 1 {\n\t\t\treturn p\n\t\t}\n\t\treturn c\n\t}()\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
+        [ '\tvar c int64 = 5\n\tvar i any = this.Sum(c, 1)\n\ti = GetValue(o, "x")\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
+        [ '\tvar c int64 = 5\n\tvar i any = this.Sum(c, 1)\n\ti, o = this.F(o, n), nil\n\tif IsLessThan(i, c) {\n\t}\n\treturn nil', 'IsLessThan(i, c)', true ],
+        [ '\tvar f float64 = 1.5\n\tvar c int64 = 5\n\tvar i any = Subtract(f, c)\n\tif IsGreaterThan(i, c) {\n\t}\n\treturn nil', 'IsGreaterThan(i, c)', true ],
+    ];
+    const problems = goArithCaseProblems (goIntegralBoxComparisons, wrap, cases, 'go boxed int comparisons self expected ');
+    // a file-local Sum may answer another box
+    const own = goIntegralBoxComparisons ('// PLEASE DO NOT EDIT THIS FILE\nfunc (this *K) Sum(a ...any) any {\n\treturn nil\n}\n' + wrap ('\tvar s int64 = 5\n\tvar e any = this.Sum(s, 10)\n\tif IsLessThan(e, s) {\n\t}\n\treturn nil'));
+    if (!own.includes ('IsLessThan(e, s)')) {
+        problems.push ('own Sum went native: ' + own);
+    }
+    return problems;
+}
+
+function goAddImport (content: string, pkg: string): string {
+    if (new RegExp ('^import "' + pkg + '"$', 'm').test (content) || new RegExp ('^\\s+"' + pkg + '"$', 'm').test (content)) {
+        return content;
+    }
+    const lines = content.split ('\n');
+    const at = lines.findIndex ((l) => l.startsWith ('// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md'));
+    if (at < 0) {
+        return content;
+    }
+    lines.splice (at + 2, 0, 'import "' + pkg + '"', '');
+    return lines.join ('\n');
+}
+
+type GoKeyAligner = { alignGoCompositeEntries: (entries: string[]) => string[], findGoTrailingCommentStart: (line: string) => number };
+
+// `if IsEqual(this.M(args), true) {` where M is a method of the same receiver in this file whose every
+// `return` yields a bool literal, nil or the try/catch carrier `ret__`/bare return: the value is never a pointer
+// box, so IsEqual(v, true) is exactly the native `v == true` (a nil result compares false in both forms).
+function goIsEqualBoolMethod (content: string): string {
+    if ((content.indexOf ('IT IS GENERATED AND WILL BE OVERWRITTEN') < 0) || !/IsEqual\(this\.\w+\(/.test (content)) {
+        return content;
+    }
+    const boolish = new Set<string> ();
+    const funcs = content.split (/(?=\nfunc )/);
+    for (const f of funcs) {
+        const head = f.match (/^\nfunc \(this \*(\w+)\) (\w+)\([^\n]*\) (?:any|bool) \{\n/);
+        if (!head) { continue; }
+        const rets = [ ...goArithMask (f).matchAll (/\breturn\b([^\n]*)/g) ].map ((r) => r[1].trim ());
+        if (rets.length && rets.every ((r) => [ 'true', 'false', 'nil', 'ret__', '' ].includes (r)) && rets.some ((r) => (r === 'true') || (r === 'false'))) {
+            boolish.add (head[1] + '.' + head[2]);
+        }
+    }
+    if (!boolish.size) {
+        return content;
+    }
+    return funcs.map ((f) => {
+        const head = f.match (/^\nfunc \(this \*(\w+)\)/);
+        if (!head) { return f; }
+        return f.replace (/(\bif |&& |\|\| )(!?)(?:ccxt\.)?IsEqual\(this\.(\w+)\(([^()\n]*)\), (true|false)\)(?= \{\n| &&| \|\|)/g, (m: string, pre: string, neg: string, name: string, args: string, lit: string) => {
+            return boolish.has (head[1] + '.' + name) ? pre + 'this.' + name + '(' + args + ') ' + (neg ? '!=' : '==') + ' ' + lit : m;
+        });
+    }).join ('');
+}
+
+function goIsEqualBoolMethodCheck (): string[] {
+    const problems: string[] = [];
+    const head = 'package ccxt\n\n// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:\n\n';
+    const m = 'func (this *K) H(c any) any {\n\tif c == nil {\n\t\treturn false\n\t}\n\treturn true\n}\n';
+    const out = goIsEqualBoolMethod (head + m + 'func (this *K) G(c any) any {\n\tif IsEqual(this.H(c), true) {\n\t\treturn 1\n\t}\n\tif !ccxt.IsEqual(this.H(c), true) {\n\t\treturn 2\n\t}\n\treturn IsEqual(this.H(c), true)\n}\n');
+    if (!out.includes ('if this.H(c) == true {') || !out.includes ('if this.H(c) != true {') || !out.includes ('return IsEqual(this.H(c), true)')) { problems.push ('bool method: ' + out); }
+    const other = head + 'func (this *K) H(c any) any {\n\treturn this.Safe(c)\n}\nfunc (this *K) G(c any) any {\n\tif IsEqual(this.H(c), true) {\n\t}\n\treturn nil\n}\n';
+    if (goIsEqualBoolMethod (other) !== other) { problems.push ('bool method: non-bool return rewritten'); }
+    return problems;
+}
 
 type dict = { [key: string]: string };
 
@@ -2788,7 +9375,7 @@ function nativeGuardedListElementReadsSelfTest (ok: SelfTestOk): void {
 // A resolved watch value as statements at indent `ind` (first line unindented): `var <v> T` + a type switch over
 // `expr` + the typed send. `direct` (a typed twin, or a struct carrier whose `<T>FromMap` builder coerces the box
 // itself via RowDict in exchange_struct_returns.go) sends the box as is.
-export function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
+function goChan3ResolvedStmts (ind: string, expr: string, want: string, q: string, v: string, direct = false): string {
     const swExpr = (/^this\.[A-Z]\w*$/.test (expr) ? ('any(' + expr + ')') : expr);
     if (direct) {
         return 'ch <- ' + q + 'AsyncResult[' + want + ']{Value: ' + swExpr + '}';
