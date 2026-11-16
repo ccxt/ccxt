@@ -192782,7 +192782,7 @@ function stringify(object, opts = {}) {
     }), encode = _scure_base__rspack_import_0/* .utf8.decode */.As.decode // lol
 , decode = _scure_base__rspack_import_0/* .utf8.encode */.As.encode, urlencodeBase64 = (payload)=>{
     const payload64 = typeof payload === 'string' ? stringToBase64(payload) : binaryToBase64(payload);
-    return payload64.replace(/[=]+$/, '').replace(/\+/g, '-').replace(/\//g, '_');
+    return base64ToBase64Url(payload64);
 }, numberToLE = (n, padding)=>(0,_noble_curves_utils_js__rspack_import_1/* .numberToBytesLE */.z)(BigInt(n), padding), numberToBE = (n, padding)=>(0,_noble_curves_utils_js__rspack_import_1/* .numberToBytesBE */.lq)(BigInt(n), padding);
 function packb(req) {
     return (0,_msgpack_js__rspack_import_2/* .serialize */.l)(req);
@@ -194573,7 +194573,7 @@ function jwt(request, secret, hash, isRSA = false, opts = {}) {
 function toHex(str) {
     var result = '';
     for(var i = 0; i < str.length; i++){
-        result += str.charCodeAt(i).toString(16);
+        result += str.charCodeAt(i).toString(16).padStart(2, '0');
     }
     return result;
 }
@@ -195257,7 +195257,7 @@ function totp(secret) {
     const dec2hex = (s)=>(s < 15.5 ? '0' : '') + Math.round(s).toString(16);
     const hex2dec = (s)=>parseInt(s, 16);
     const leftpad = (s, p)=>(p + s).slice(-p.length); // both s and p are short strings
-    secret = secret.replace(' ', ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
+    secret = secret.replace(/ /g, ''); // support 2fa-secrets with spaces like "4TDV WOGO" → "4TDVWOGO"
     const epoch = Math.round(new Date().getTime() / 1000.0);
     const time = leftpad(dec2hex(Math.floor(epoch / 30)), '0000000000000000');
     const hmacRes = (0,_crypto_js__rspack_import_0/* .hmac */.w8)(_scure_base__rspack_import_1/* .hex.decode */.uh.decode(time), _scure_base__rspack_import_1/* .base32.decode */.RG.decode(secret), _noble_hashes_legacy_js__rspack_import_2/* .sha1 */.e8, 'hex');
