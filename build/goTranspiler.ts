@@ -1372,26 +1372,11 @@ function goAppendCopySlot (receiver: string): [string, string] | undefined {
     const text = receiver.trim ();
     const call = /^((?:[A-Za-z_]\w*\.)?)GetValue\(([\s\S]*)\)$/.exec (text);
     if (call !== null) {
-        const args: string[] = [];
-        let depth = 0;
-        let start = 0;
-        const inner = call[2];
-        for (let i = 0; i < inner.length; i++) {
-            const c = inner[i];
-            if ((c === '(') || (c === '[') || (c === '{')) {
-                depth++;
-            } else if ((c === ')') || (c === ']') || (c === '}')) {
-                depth--;
-            } else if ((c === ',') && (depth === 0)) {
-                args.push (inner.substring (start, i));
-                start = i + 1;
-            }
-        }
-        args.push (inner.substring (start));
+        const args = goGuardedReadSplitArgs (call[2]);
         if (args.length !== 2) {
             return undefined;
         }
-        const [ container, key ] = args.map ((a: string) => a.trim ());
+        const [ container, key ] = args;
         if (!/^[A-Za-z_]\w*(?:\.\w+)*$/.test (container) || !GO_APPEND_SIMPLE_ARG.test (key)) {
             return undefined;
         }
@@ -2230,16 +2215,14 @@ function goMapWriteIfHeader (masked: string[], j: number): string {
 // the `||` or `&&` operands of a condition at paren depth 0
 function goMapWriteTopLevelParts (condition: string, op: string): string[] {
     const parts: string[] = [];
-    let depth = 0;
     let from = 0;
-    for (let i = 0; i < condition.length; i++) {
-        const c = condition[i];
-        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
+    goTopLevelScan (condition, 0, (i: number, depth: number) => {
         if ((depth === 0) && condition.startsWith (op, i)) {
             parts.push (condition.substring (from, i));
             from = i + 2;
         }
-    }
+        return false;
+    }, '([{)]}', '');
     parts.push (condition.substring (from));
     return parts;
 }
@@ -2561,22 +2544,14 @@ function goGuardedReadContainer (maskedLines: string[], fn: any, name: string, l
 // top-level comma split of a call's argument text (string/rune aware)
 function goGuardedReadSplitArgs (text: string): string[] {
     const parts: string[] = [];
-    let depth = 0;
     let from = 0;
-    let quote = '';
-    for (let i = 0; i < text.length; i++) {
-        const c = text[i];
-        if (quote !== '') {
-            if (c === '\\') { i++; } else if (c === quote) { quote = ''; }
-            continue;
-        }
-        if ((c === '"') || (c === '`') || (c === '\'')) { quote = c; continue; }
-        depth += ('([{'.indexOf (c) >= 0) ? 1 : ((')]}'.indexOf (c) >= 0) ? -1 : 0);
-        if ((depth === 0) && (c === ',')) {
+    goTopLevelScan (text, 0, (i: number, depth: number) => {
+        if ((depth === 0) && (text[i] === ',')) {
             parts.push (text.substring (from, i).trim ());
             from = i + 1;
         }
-    }
+        return false;
+    });
     parts.push (text.substring (from).trim ());
     return parts;
 }
@@ -2946,19 +2921,26 @@ function goGofmtLevelOneSums (content: string): string {
 }
 
 // index of the bracket closing the one at `open` (strings skipped), -1 when unbalanced
-function goMatchingCloseText (text: string, open: number): number {
+function goMatchingCloseText (text: string, open: number, brackets = '([{)]}'): number {
+    const half = brackets.length / 2;
+    return goTopLevelScan (text, open, (i: number, depth: number) => (depth === 0) && (brackets.indexOf (text[i]) >= half), brackets);
+}
+
+// walk `text` from `from`, skipping the literals opened by `quotes`; `stop (i, depth)` sees every other byte with the
+// depth of `brackets` (openers, then closers) after it; the first index it accepts, else -1
+function goTopLevelScan (text: string, from: number, stop: (i: number, depth: number) => boolean, brackets = '([{)]}', quotes = '"\'`'): number {
+    const half = brackets.length / 2;
     let depth = 0;
-    for (let i = open; i < text.length; i++) {
+    for (let i = from; i < text.length; i++) {
         const char = text[i];
-        if (char === '"' || char === '\'' || char === '`') {
+        if (quotes.indexOf (char) >= 0) {
             i = goSkipLiteralText (text, i);
-        } else if (char === '(' || char === '[' || char === '{') {
-            depth += 1;
-        } else if (char === ')' || char === ']' || char === '}') {
-            depth -= 1;
-            if (depth === 0) {
-                return i;
-            }
+            continue;
+        }
+        const at = brackets.indexOf (char);
+        depth += (at < 0) ? 0 : ((at < half) ? 1 : -1);
+        if (stop (i, depth)) {
+            return i;
         }
     }
     return -1;
@@ -3264,26 +3246,17 @@ function goApplyTextFixes (content: string, fixes: { 'start': number, 'end': num
 // when the brackets hold anything but one `low:high` pair
 function goSliceColonFix (content: string, open: number, close: number, level: number) {
     const bounds = content.slice (open, close);
-    let depth = 0;
-    let colon = -1;
-    for (let i = 0; i < bounds.length; i++) {
-        const char = bounds[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            i = goSkipLiteralText (bounds, i);
-        } else if (char === '(' || char === '[' || char === '{') {
-            depth += 1;
-        } else if (char === ')' || char === ']' || char === '}') {
-            depth -= 1;
-        } else if (char === ':' && depth === 0) {
-            if (colon >= 0) {
-                return null;              // `low:high:max` and anything else: leave it alone
-            }
-            colon = i;
+    const colons: number[] = [];
+    goTopLevelScan (bounds, 0, (i: number, depth: number) => {
+        if ((bounds[i] === ':') && (depth === 0)) {
+            colons.push (i);
         }
+        return false;
+    });
+    if (colons.length !== 1) {
+        return null;                      // `low:high:max` and anything else: leave it alone
     }
-    if (colon < 0) {
-        return null;
-    }
+    const colon = colons[0];
     const low = bounds.slice (0, colon).replace (/[ \t]+$/, '');
     const high = bounds.slice (colon + 1).replace (/^[ \t]+/, '');
     const needsBlanks = (level <= 1) && (low.trim () !== '') && (high.trim () !== '') &&
@@ -3296,26 +3269,16 @@ function goSliceColonFix (content: string, open: number, close: number, level: n
 // i.e. when it has a binary operator of its own - one nested in a call or a bracket does
 // not count, and neither does a unary sign
 function goBoundIsBinary (text: string): boolean {
-    let depth = 0;
-    for (let i = 0; i < text.length; i++) {
-        const char = text[i];
-        if (char === '"' || char === '\'' || char === '`') {
-            i = goSkipLiteralText (text, i);
-        } else if (char === '(' || char === '[' || char === '{') {
-            depth += 1;
-        } else if (char === ')' || char === ']' || char === '}') {
-            depth -= 1;
-        } else if ((depth === 0) && ('+-*/%&|^<>=!'.indexOf (char) >= 0)) {
-            let before = i - 1;
-            while ((before >= 0) && ((text[before] === ' ') || (text[before] === '\t'))) {
-                before -= 1;
-            }
-            if ((before >= 0) && GO_OPERAND_ENDER.test (text[before])) {
-                return true;
-            }
+    return goTopLevelScan (text, 0, (i: number, depth: number) => {
+        if ((depth !== 0) || ('+-*/%&|^<>=!'.indexOf (text[i]) < 0)) {
+            return false;
         }
-    }
-    return false;
+        let before = i - 1;
+        while ((before >= 0) && ((text[before] === ' ') || (text[before] === '\t'))) {
+            before -= 1;
+        }
+        return (before >= 0) && GO_OPERAND_ENDER.test (text[before]);
+    }) >= 0;
 }
 
 // the printer level inside the bracket opened at `content[i]`, entered from `level`
@@ -4045,7 +4008,7 @@ function dropNoOpMapTyped (content: string): string {
             continue;
         }
         const open = m.index + m[0].length - 1;
-        const end = goCloseParen (content, open);
+        const end = goMatchingCloseText (content, open, '()');
         if (end < 0) {
             continue;
         }
@@ -4062,7 +4025,7 @@ function dropNoOpMapTyped (content: string): string {
         // plain row; MapTyped keeps its wider table
         const rowWrap = /^(?:ccxt\.)?(?:MarketTyped|CurrencyTyped)\($/.test (m[0]);
         const innerIsCall = (rowWrap ? GO_PLAIN_ROW_CALL : callee).test (inner);
-        if (!innerIsCall || (goCloseParen (inner, innerOpen) !== inner.length - 1)) {
+        if (!innerIsCall || (goMatchingCloseText (inner, innerOpen, '()') !== inner.length - 1)) {
             continue;
         }
         out += content.substring (cursor, m.index) + dropNoOpMapTyped (inner);
@@ -8761,7 +8724,7 @@ function goOmitDictOfTypedMaps (content: string): string {
         let line = lines[i];
         call.lastIndex = 0;
         for (let m = call.exec (line); m !== null; m = call.exec (line)) {
-            const end = goCloseParen (line, m.index + m[0].indexOf ('('));
+            const end = goMatchingCloseText (line, m.index + m[0].indexOf ('('), '()');
             if ((end < 0) || (line[end - 1] !== ')') || (goNearestLocalType (lines, funcStart, i, m[1]) !== 'map[string]any')) {
                 continue;
             }
@@ -8775,23 +8738,6 @@ function goOmitDictOfTypedMaps (content: string): string {
     return lines.join ('\n');
 }
 
-function goCloseParen (text: string, open: number): number {
-    let depth = 0;
-    for (let k = open; k < text.length; k++) {
-        const c = text[k];
-        if (c === '"' || c === '`' || c === "'") {
-            k = goSkipLiteralText (text, k);
-        } else if (c === '(') {
-            depth += 1;
-        } else if (c === ')') {
-            depth -= 1;
-            if (depth === 0) {
-                return k;
-            }
-        }
-    }
-    return -1;
-}
 
 // the Go type of `name` at line `at`: its nearest enclosing `var name T =`, else a `name map[string]any`
 // parameter of the func; undefined when a closure or a `:=` could rebind it in between
@@ -8823,8 +8769,8 @@ function goSafeDictMapReads (content: string): string {
     let cursor = 0;
     for (let m = call.exec (content); m !== null; m = call.exec (content)) {
         const open = m.index + m[0].indexOf ('(');
-        const end = goCloseParen (content, open);
-        if ((end < 0) || (content[end - 1] !== ')') || (goCloseParen (content, m.index + m[0].length - 1) !== end - 1)) {
+        const end = goMatchingCloseText (content, open, '()');
+        if ((end < 0) || (content[end - 1] !== ')') || (goMatchingCloseText (content, m.index + m[0].length - 1, '()') !== end - 1)) {
             continue;
         }
         out += content.substring (cursor, m.index) + 'this.' + m[1] + 'Map(' + content.substring (m.index + m[0].length, end);
@@ -9275,14 +9221,6 @@ function goAddStringMethods (): Set<string> { return new Set ([ 'ImplodeParams',
 // the credential fields are declared `string` in go/v4/exchange.go, so they are non-nil leaves too
 function goAddStringFields (): Set<string> { return new Set ([ 'Id', 'Name', 'Version', 'Hostname', 'ApiKey', 'Secret', 'Uid', 'Password', 'AccountId', 'WalletAddress', 'PrivateKey' ]); }
 
-function goAddCloseParen (masked: string, open: number): number {
-    let depth = 0;
-    for (let i = open; i < masked.length; i++) {
-        const c = masked[i];
-        if (c === '(' || c === '[' || c === '{') { depth++; } else if (c === ')' || c === ']' || c === '}') { depth--; if (depth === 0) { return i; } }
-    }
-    return -1;
-}
 
 // split `text` (masked twin `masked`) at top-level occurrences of `sep`
 function goAddSplitTop (text: string, masked: string, sep: string): string[] | null {
@@ -9331,10 +9269,10 @@ function goAddStringLeaf (text: string, masked: string, locals: Set<string>, ove
     const field = t.match (/^this\.(\w+)$/);
     if (field) { return goAddStringFields ().has (field[1]); }
     const call = t.match (/^(this\.(\w+)|(ccxt\.)?ToString)\(/);
-    if (call && goAddCloseParen (mt, mt.indexOf ('(')) === mt.length - 1) {
+    if (call && goMatchingCloseText (mt, mt.indexOf ('(')) === mt.length - 1) {
         return (call[2] === undefined) || (goAddStringMethods ().has (call[2]) && !overridden.has (call[2]));
     }
-    if (t.startsWith ('(') && goAddCloseParen (mt, 0) === mt.length - 1) {
+    if (t.startsWith ('(') && goMatchingCloseText (mt, 0) === mt.length - 1) {
         return goAddStringSum (t.slice (1, -1), mt.slice (1, -1), locals, overridden) !== null;
     }
     return false;
@@ -9362,7 +9300,7 @@ function goAddStringSum (text: string, masked: string, locals: Set<string>, over
 // `Add(a, b)` -> `a + b` when both sides are proven strings, else null
 function goAddNative (text: string, masked: string, locals: Set<string>, overridden: Set<string>): string | null {
     const head = masked.match (/^(ccxt\.)?Add\(/);
-    if (!head || goAddCloseParen (masked, head[0].length - 1) !== masked.length - 1) { return null; }
+    if (!head || goMatchingCloseText (masked, head[0].length - 1) !== masked.length - 1) { return null; }
     const inner = text.slice (head[0].length, -1);
     const minner = masked.slice (head[0].length, -1);
     const args = goAddSplitTop (inner, minner, ',');
@@ -9396,7 +9334,7 @@ function goNativeStringAdds (content: string): string {
         const addRe = /(?<![\w.])(ccxt\.)?Add\(/g;
         let m: RegExpExecArray | null;
         while ((m = addRe.exec (masked)) !== null) {
-            const close = goAddCloseParen (masked, m.index + m[0].length - 1);
+            const close = goMatchingCloseText (masked, m.index + m[0].length - 1);
             if (close < 0) { break; }
             const before = masked.slice (0, m.index).trimEnd ();
             const after = masked.slice (close + 1).replace (/^[ \t]+/, '');
@@ -11168,7 +11106,7 @@ function goTypedWrapMethodReturnType (content: string, recv: string, name: strin
     const re = new RegExp ('^func \\(this \\*' + recv + '\\) ' + name + '\\(', 'gm');
     const found: string[] = [];
     for (let m = re.exec (content); m !== null; m = re.exec (content)) {
-        const close = goCloseParen (content, m.index + m[0].length - 1);
+        const close = goMatchingCloseText (content, m.index + m[0].length - 1, '()');
         const eol = content.indexOf ('\n', close);
         const tail = content.substring (close + 1, eol).trim ();
         found.push (tail.endsWith ('{') ? tail.slice (0, -1).trim () : '');
@@ -11242,7 +11180,7 @@ export function goDropRedundantTyped (content: string): string {
             continue;
         }
         const open = m.index + m[0].length - 1;
-        const end = goCloseParen (content, open);
+        const end = goMatchingCloseText (content, open, '()');
         if (end < 0) {
             continue;
         }
@@ -11256,7 +11194,7 @@ export function goDropRedundantTyped (content: string): string {
             native = /^[a-z_]\w*$/.test (inner) && goTypedWrapIsStringLocal (bodyOf (f), f.signature, inner);
         } else {
             const innerOpen = inner.indexOf ('(');
-            if ((innerOpen > 0) && (goCloseParen (inner, innerOpen) === inner.length - 1)) {
+            if ((innerOpen > 0) && (goMatchingCloseText (inner, innerOpen, '()') === inner.length - 1)) {
                 const want = (m[1] === 'MapTyped') ? 'map[string]any' : '[]any';
                 native = goTypedWrapCalleeType (content, f.recv, inner.substring (0, innerOpen + 1)) === want;
             }
@@ -12145,7 +12083,7 @@ function goRecordStringMethod (overridden: Set<string>, name: string, ret: strin
 function goStringAddLeaf (t: string, mt: string, locals: Set<string>, overridden: Set<string>): boolean {
     if (/^\*\w+$/.test (t)) { return locals.has (t); }
     const call = t.match (/^(\*?)(this\.(\w+)|(?:ccxt\.)?(NumberToString)|(strings)\.(\w+)|(strconv)\.(\w+))\(/);
-    if (!call || goAddCloseParen (mt, mt.indexOf ('(')) !== mt.length - 1) { return false; }
+    if (!call || goMatchingCloseText (mt, mt.indexOf ('(')) !== mt.length - 1) { return false; }
     const deref = call[1] === '*';
     if (call[4] !== undefined) { return !deref; }
     if (call[5] !== undefined) { return !deref && [ 'ToUpper', 'ToLower', 'Join', 'ReplaceAll', 'Replace', 'TrimSpace', 'Trim', 'TrimPrefix', 'TrimSuffix', 'TrimLeft', 'TrimRight', 'Repeat' ].indexOf (call[6]) >= 0; }
@@ -12358,7 +12296,7 @@ function goRowStringLocals (fn: string, masked: string, fileMasked: string): Set
                 if (w[1] !== undefined) { return true; }
                 const rhs = w[2].trim ();
                 const call = new RegExp ('^(ccxt\\.)?this\\.(' + fns + ')\\(').exec (rhs);
-                return (call !== null) && (goAddCloseParen (rhs, call[0].length - 1) === rhs.length - 1);
+                return (call !== null) && (goMatchingCloseText (rhs, call[0].length - 1) === rhs.length - 1);
             };
             if ((writes.length === 0) || !writes.every (okRhs)) { continue; }
             for (const key of keys) {
@@ -13141,7 +13079,7 @@ export function goStdlibStringHelpers (content: string): string {
     let text = content;
     let used = false;
     for (const call of calls) {
-        const close = goAddCloseParen (masked, call.open);
+        const close = goMatchingCloseText (masked, call.open);
         if (close < 0) { continue; }
         const spans = goStringHelperArgSpans (masked, call.open, close);
         if ((spans.length !== ((call.helper === 'Replace') ? 3 : 2)) || spans.some (([ s, e ]) => text.slice (s, e).trim () === '')) { continue; }
