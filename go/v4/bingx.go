@@ -5146,7 +5146,6 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 	//
 	var market map[string]any = GetArgMap(optionalArgs, 0, nil)
 	_ = market
-	var info any = order
 	var newOrder map[string]any = this.SafeDict2Map(order, "newOrderResponse", "orderOpenResponse")
 	var orderData any = func() any {
 		if newOrder != nil {
@@ -5234,7 +5233,7 @@ func (this *Bingx) ParseOrder(order any, optionalArgs ...any) Order {
 		}
 	}
 	return this.SafeOrder(map[string]any{
-		"info":                info,
+		"info":                order,
 		"id":                  this.SafeStringN(orderData, []any{"orderId", "i", "mainOrderId"}),
 		"clientOrderId":       this.SafeStringN(orderData, []any{"clientOrderID", "clientOrderId", "origClientOrderId", "c"}),
 		"symbol":              this.SafeSymbol(marketId, marketResolved, "-", marketType),
@@ -5292,12 +5291,12 @@ func (this *Bingx) ParseOrderStatus(status *string) *string {
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CancelOrderAsync(id any, optionalArgs ...any) <-chan AsyncResult[Order] {
+func (this *Bingx) CancelOrderAsync(id string, optionalArgs ...any) <-chan AsyncResult[Order] {
 	ch := make(chan AsyncResult[Order], 1)
 	go this.cancelOrderBody(ch, id, optionalArgs...)
 	return ch
 }
-func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id any, optionalArgs ...any) any {
+func (this *Bingx) cancelOrderBody(ch chan AsyncResult[Order], id string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -5562,12 +5561,12 @@ func (this *Bingx) cancelAllOrdersBody(ch chan AsyncResult[[]Order], optionalArg
  * @param {string[]} [params.clientOrderIds] client order ids
  * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
-func (this *Bingx) CancelOrdersAsync(ids any, optionalArgs ...any) <-chan AsyncResult[[]Order] {
+func (this *Bingx) CancelOrdersAsync(ids []string, optionalArgs ...any) <-chan AsyncResult[[]Order] {
 	ch := make(chan AsyncResult[[]Order], 1)
 	go this.cancelOrdersBody(ch, ids, optionalArgs...)
 	return ch
 }
-func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids any, optionalArgs ...any) any {
+func (this *Bingx) cancelOrdersBody(ch chan AsyncResult[[]Order], ids []string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var symbol *string = GetArgStringPtr(optionalArgs, 0, nil)
@@ -6563,11 +6562,11 @@ func (this *Bingx) fetchTransfersBody(ch chan AsyncResult[[]TransferEntry], opti
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes554319 []any = r1.Value
-		if retRes554319 == nil {
+		var retRes554219 []any = r1.Value
+		if retRes554219 == nil {
 			ch <- AsyncResult[[]TransferEntry]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554319)}
+			ch <- AsyncResult[[]TransferEntry]{Value: TransferEntriesFromList(retRes554219)}
 		}
 		return nil
 	}
@@ -6697,7 +6696,7 @@ func (this *Bingx) fetchDepositAddressesByNetworkBody(ch chan AsyncResult[map[st
 	//         }
 	//     }
 	//
-	var data []any = SafeListTyped(this.SafeDict(response, "data"), "data")
+	var data []any = SafeListTypedDefault(this.SafeDict(response, "data"), "data", []any{})
 	var parsed []any = this.ParseDepositAddresses(data, []any{currency["code"]}, false)
 
 	ch <- AsyncResult[map[string]DepositAddress]{Value: DepositAddressMapFromMap(this.IndexBy(parsed, "network"))}
@@ -8713,7 +8712,7 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 		}
 	}
 	url += "/" + version + "/" + pathValue
-	var requestHeaders any = nil
+	var requestHeaders map[string]any = nil
 	var requestBody *string = nil
 	var paramsSorted map[string]any = this.Keysort(this.Extend(this.Omit(params, this.ExtractParams(pathValue)), map[string]any{
 		"timestamp": this.Nonce(),
@@ -8756,13 +8755,11 @@ func (this *Bingx) Sign(path string, optionalArgs ...any) map[string]any {
 			url += "?" + query + "&" + "signature=" + signature
 		}
 	}
-	var bodyResult *string = requestBody
-	var headersResult any = requestHeaders
 	return map[string]any{
 		"url":     url,
 		"method":  method,
-		"body":    bodyResult,
-		"headers": headersResult,
+		"body":    requestBody,
+		"headers": requestHeaders,
 	}
 }
 func (this *Bingx) Nonce() int64 {
