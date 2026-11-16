@@ -2538,9 +2538,9 @@ impl Toobit {
             }
         }  else if (since != Value::Null) && (limit != Value::Null) {
             // without an end time the exchange returns the latest candles, not the ones starting at since
-            let mut duration: Value = (match (&(self.parse_timeframe(timeframe.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            request.insert("endTime".into(), crate::runtime::Math::min(&(match (&(self.sum(&[since.clone(), (match (&(duration), &(limit)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x),
-                Value::Float(y)) => Value::Float(x * y), _ => Value::Null })])), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &self.milliseconds()));
+            let mut duration: i64 = ((self.parse_timeframe(timeframe.clone())) * 1000);
+            request.insert("endTime".into(), crate::runtime::Math::min(&(match (&(Value::from((if let (Some(__m0), Some(__m1)) = (since.as_i64(), ((if let Some(__r) = limit.as_i64() { Some(duration * __r) } else { None }))) { Some((__m0 + __m1)) } else { None }))), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x),
+                Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null }), &Value::Int(self.milliseconds())));
         }
         if (limit != Value::Null) {
             request.insert("limit".into(), limit.clone());
