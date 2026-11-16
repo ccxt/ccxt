@@ -765,8 +765,13 @@ impl ExtendedCore {
 }));
         m.insert("fees".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.00025".into()), &[]));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0".into()), &[]));
+        m.insert("rwa".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0.0001".into()), &[]));
+    m
+}));
     m
 }));
         m.insert("requiredCredentials".to_string(), Value::Map({
@@ -916,6 +921,7 @@ impl ExtendedCore {
  * @name extended#fetchMarkets
  * @description retrieves data on all markets for extended
  * @see https://api.docs.extended.exchange/#get-markets
+ * @see https://docs.extended.exchange/extended-resources/trading/trading-fees-and-rebates
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -1101,6 +1107,11 @@ impl ExtendedCore {
         let mut minAmount: Value = self.safe_number_k(tradingConfig.clone(), "minOrderSize", &[]);
         let mut maxCost: Value = self.safe_number_k(tradingConfig, "maxLimitOrderValue", &[]);
         let mut created: Option<i64> = self.safe_integer_k(market.clone(), "createdAt", &[]).as_i64();
+        let mut category: Option<String> = self.safe_string_lower_k(market.clone(), "category", &[]).as_str().map(str::to_owned);
+        let mut takerFees: Value = (if (category.as_deref() == Some("rwa")) { self.safe_dict_k(self.fees.clone(), "rwa", &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+    m
+})]) } else { self.fees.clone() });
         let mut settleId: Value = Value::Null;
         let mut settle: Value = Value::Null;
         let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
@@ -1143,7 +1154,7 @@ impl ExtendedCore {
         m.insert("contract".to_string(), Value::Bool(!(isSpot)));
         m.insert("linear".to_string(), linear);
         m.insert("inverse".to_string(), inverse);
-        m.insert("taker".to_string(), self.safe_number_k(self.fees.clone(), "taker", &[]));
+        m.insert("taker".to_string(), self.safe_number_k(takerFees, "taker", &[]));
         m.insert("maker".to_string(), self.safe_number_k(self.fees.clone(), "maker", &[]));
         m.insert("contractSize".to_string(), contractSize);
         m.insert("expiry".to_string(), Value::Null);

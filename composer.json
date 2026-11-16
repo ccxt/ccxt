@@ -157,9 +157,9 @@
         "php": ">=8.1.0",
         "ext-bcmath": "*",
         "ext-curl": "*",
-        "ext-iconv": "*",
         "ext-pcre": "*",
         "ext-json": "*",
+        "ext-mbstring": "*",
         "ext-openssl": "*",
         "ext-gmp": "*",
         "clue/http-proxy-react": "1.10.0",
@@ -186,6 +186,11 @@
         "symfony/deprecation-contracts": "3.7.0",
         "symfony/polyfill-mbstring": "1.38.2",
         "symfony/polyfill-php80": "1.37.0"
+    },
+    "suggest": {
+        "ext-sodium": "Faster ed25519 signing",
+        "ext-ffi": "Required for lighter signing (native signer binary)",
+        "clue/socks-react": "Required for socksProxy in async/pro mode"
     },
     "archive": {
         "exclude": [

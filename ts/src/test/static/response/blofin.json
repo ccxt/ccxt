@@ -18,7 +18,7 @@
                     }
                 ],
                 "httpResponseByUrl": {
-                    "instId=CATI-USDT&limit=3&after=1792454399000": {
+                    "after=1792454399000": {
                         "code": "0",
                         "msg": "success",
                         "data": [
@@ -39,7 +39,7 @@
                             }
                         ]
                     },
-                    "instId=CATI-USDT&limit=3&after=1792411199999": {
+                    "after=1792411199999": {
                         "code": "0",
                         "msg": "success",
                         "data": [
@@ -57,27 +57,6 @@
                                 "instId": "CATI-USDT",
                                 "fundingRate": "0.000058",
                                 "fundingTime": "1792368000000"
-                            }
-                        ]
-                    },
-                    "instId=CATI-USDT&before=1792367999999&limit=3&after=1792454399000": {
-                        "code": "0",
-                        "msg": "success",
-                        "data": [
-                            {
-                                "instId": "CATI-USDT",
-                                "fundingRate": "0.000056",
-                                "fundingTime": "1792440000000"
-                            },
-                            {
-                                "instId": "CATI-USDT",
-                                "fundingRate": "0.000030",
-                                "fundingTime": "1792425600000"
-                            },
-                            {
-                                "instId": "CATI-USDT",
-                                "fundingRate": "0.000068",
-                                "fundingTime": "1792411200000"
                             }
                         ]
                     }

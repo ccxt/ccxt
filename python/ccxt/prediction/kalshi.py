@@ -519,7 +519,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         result = self.safe_string_lower(raw, 'result')
         resolved = (status == 'settled') or ((result is not None) and (result != ''))
-        endDate = self.safe_string(raw, 'expiration_time')
+        endDate = self.safe_string_2(raw, 'latest_expiration_time', 'expiration_time')
         volume = self.safe_number_2(raw, 'volume_fp', 'volume')
         liquidity = self.safe_number_2(raw, 'liquidity_dollars', 'liquidity')
         openInt = self.safe_number_2(raw, 'open_interest_fp', 'open_interest')
