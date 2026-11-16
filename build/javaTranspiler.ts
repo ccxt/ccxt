@@ -33,6 +33,7 @@ import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
 import { installJavaJ8CopyLocals } from './java-local-types.js';
+import { installJavaR84j1StringElementLocals, installJavaR84j1BoxElementLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2485,6 +2486,8 @@ class NewTranspiler {
         installJavaR77j2ConditionalLocals(this.transpiler);
         installJ6ReaderLocals(this.transpiler);
         installJavaJ8CopyLocals(this.transpiler);
+        installJavaR84j1StringElementLocals(this.transpiler);
+        installJavaR84j1BoxElementLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5812,7 +5815,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -9696,6 +9699,41 @@ function j6ReaderLocalsSelfTest (): string[] {
         if (!/\bObject ids = /.test(out)) problems.push("j6 reader: 'ids' (.join receiver) must stay Object");
     } catch (e: any) {
         problems.push(`j6 reader self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-84j1: string elements of a String-only list (Object.keys copy, ecdsa r/s) print String, and their
+// String-method / delete-key / String-argument uses lose the checkcast; an any element or a list of
+// unproven elements stays Object
+function javaR84j1StringElementLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr84j1selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Ticker } from './base/types.js';",
+        'export default class zzr84j1selftest extends Exchange {',
+        "    tick (t: Ticker, m: Dict) { const symbol = t['symbol']; m[(symbol as string)] = t; return m; }",
+        "    keys (m: any) { const ks = Object.keys (m); const out: Dict = {}; for (let i = 0; i < ks.length; i++) { const k = ks[i]; if (k.startsWith ('x')) { delete m[k]; } out[k] = this.currency (k); } return out; }",
+        "    box (m: Dict) { const rows: Dict[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < rows.length; i++) { const row = rows[i]; row['seen'] = true; out.push (this.safeString (row, 'id')); const ro = rows[i]; out.push (this.safeString (ro, 'id')); } return out; }",
+        "    neg (m: Dict, xs: string[]) { const vs: any[] = this.safeList (m, 'l', []); const out = []; for (let i = 0; i < vs.length; i++) { const a = vs[i]; out.push (a.length); const b = xs[i]; out.push (b.toUpperCase ()); } return out; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String k = \(String\) \(ks == null \|\| i < 0/.test(out)) problems.push("84j1: 'k' (Object.keys element) must print String with one checkcast");
+        if (!/\bk\.startsWith\(/.test(out) || /\(\(String\)k\)/.test(out) || /\(String\)k\b/.test(out)) problems.push("84j1: 'k' uses must print with no (String) cast");
+        if (!/Map<String, Object> row = \(java\.util\.Map<String, Object>\) \(rows == null/.test(out) || !/\brow\.put\("seen"/.test(out)) problems.push("84j1: 'row' (Dict element with an element write) must print Map<String, Object> and a native put");
+        if (!/String symbol = \(String\) [^;]*\.get\("symbol"\)/.test(out) || /\(\(String\)symbol\)/.test(out)) problems.push("84j1: 'symbol' (Str structure field) must print String and its `as string` key no cast");
+        for (const name of [ 'a', 'b', 'ro' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`84j1: '${name}' (unproven element or no native use) must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`84j1 self-test threw: ${e.message}`);
     } finally {
         fs.rmSync(probe, { force: true });
     }
