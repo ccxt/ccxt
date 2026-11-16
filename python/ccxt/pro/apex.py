@@ -839,19 +839,18 @@ class apex(ccxt.async_support.apex):
         authenticated = self.safe_value(client.subscriptions, messageHash)
         if authenticated is None:
             # auth sign
-            request = {
-                'type': 'login',
-                'topics': ['ws_zk_accounts_v3'],
-                'httpMethod': http_method,
-                'requestPath': request_path,
-                'apiKey': self.apiKey,
-                'passphrase': self.password,
-                'timestamp': timestamp,
-                'signature': signature,
-            }
             message = {
                 'op': 'login',
-                'args': [json.dumps(request)],
+                'args': [json.dumps({
+                    'type': 'login',
+                    'topics': ['ws_zk_accounts_v3'],
+                    'httpMethod': http_method,
+                    'requestPath': request_path,
+                    'apiKey': self.apiKey,
+                    'passphrase': self.password,
+                    'timestamp': timestamp,
+                    'signature': signature,
+                })],
             }
             self.watch(url, messageHash, message, messageHash)
         return await future

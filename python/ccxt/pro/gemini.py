@@ -239,7 +239,7 @@ class gemini(ccxt.async_support.gemini):
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         storesForSymbols = {}
         for i in range(0, len(trades)):
-            rawTrade = self.safe_value(trades, i)
+            rawTrade = self.safe_dict(trades, i, {})
             marketId = self.safe_string(rawTrade, 'symbol', '').lower()
             market = self.safe_market(marketId)
             symbol = self.safe_string(market, 'symbol', '')
@@ -344,8 +344,7 @@ class gemini(ccxt.async_support.gemini):
         changesLength = len(changes)
         # reverse order of array to store candles in ascending order
         for i in range(0, changesLength):
-            index = changesLength - i - 1
-            parsed = self.parse_ohlcv(self.safe_value(changes, index), market)
+            parsed = self.parse_ohlcv(self.safe_value(changes, changesLength - i - 1), market)
             stored.append(parsed)
         messageHash = 'ohlcv:' + symbol + ':' + timeframeId
         client.resolve(stored, messageHash)
@@ -879,7 +878,7 @@ class gemini(ccxt.async_support.gemini):
             collectedEventsOfTrades = []
             eventsLength = len(events)
             for i in range(0, len(events)):
-                event = self.safe_value(events, i)
+                event = self.safe_dict(events, i, {})
                 eventType = self.safe_string(event, 'type')
                 side = self.safe_string(event, 'side')
                 isOrderBook = (eventType == 'change') and (side is not None) and self.in_array(side, ['ask', 'bid'])

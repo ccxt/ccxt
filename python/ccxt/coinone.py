@@ -1259,8 +1259,7 @@ class coinone(Exchange, ImplicitAPI):
             }, params))
             payload = self.string_to_base64(json)
             requestBody = payload
-            secret = self.secret.upper()
-            signature = self.hmac(self.encode(payload), self.encode(secret), hashlib.sha512)
+            signature = self.hmac(self.encode(payload), self.encode(self.secret.upper()), hashlib.sha512)
             requestHeaders = {
                 'Content-Type': 'application/json',
                 'X-COINONE-PAYLOAD': payload,

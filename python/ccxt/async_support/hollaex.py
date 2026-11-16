@@ -689,7 +689,7 @@ class hollaex(Exchange, ImplicitAPI):
         keys = list(tickers.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            ticker = self.safe_value(tickers, key)
+            ticker = self.safe_dict(tickers, key, {})
             marketId = self.safe_string(ticker, 'symbol', key)
             market = self.safe_market(marketId, None, '-')
             symbol = market['symbol']

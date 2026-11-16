@@ -360,7 +360,7 @@ class hollaex(ccxt.async_support.hollaex):
         stored = self.orders
         marketIds = {}
         for i in range(0, len(rawOrders)):
-            order = self.safe_value(rawOrders, i)
+            order = self.safe_dict(rawOrders, i, {})
             parsed = self.parse_order(order)
             stored.append(parsed)
             symbol = self.safe_string(order, 'symbol')

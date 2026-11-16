@@ -516,7 +516,7 @@ class ndax(ccxt.async_support.ndax):
         #
         subscriptionsById = self.index_by(client.subscriptions, 'id')
         id = self.safe_integer(message, 'i')
-        subscription = None if (id is None) else self.safe_dict(subscriptionsById, id)
+        subscription = self.safe_dict(subscriptionsById, id)
         if subscription is not None:
             method = self.safe_value(subscription, 'method')
             if method is not None:

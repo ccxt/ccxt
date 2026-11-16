@@ -867,8 +867,7 @@ class ndax(Exchange, ImplicitAPI):
         #         }
         #     ]
         #
-        tickers = self.parse_tickers(response)
-        return self.filter_by_array_tickers(tickers, 'symbol', symbolsNormalized)
+        return self.filter_by_array_tickers(self.parse_tickers(response), 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
         """

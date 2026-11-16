@@ -970,10 +970,9 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         for i in range(0, len(marketIds)):
             marketId = marketIds[i]
             entry = self.safe_list(response, marketId, [])
-            first = self.safe_list(entry, 0, [])
             market = self.safe_market(marketId, None, delimiter)
             symbol = market['symbol']
-            result[symbol] = self.parse_ticker(first, market)
+            result[symbol] = self.parse_ticker(self.safe_list(entry, 0, []), market)
         return self.filter_by_array_tickers(result, 'symbol', symbolsNormalized)
 
     async def fetch_ticker(self, symbol: str, params: dict = {}) -> Ticker:
