@@ -1257,11 +1257,10 @@ export default class pacifica extends Exchange {
         };
         const [ requestUntil, paramsUntil ] = this.handleUntilOption ('end_time', request, paramsPaginate);
         const untilEnd = this.safeInteger (requestUntil, 'end_time');
-        let windowAnchor = nowMs;
+        let startTime = this.parseToInt (nowMs - limitValue * duration);
         if (untilEnd !== undefined) {
-            windowAnchor = untilEnd;
+            startTime = this.parseToInt (untilEnd - limitValue * duration);
         }
-        let startTime = this.parseToInt (windowAnchor - limitValue * duration);
         if (since !== undefined) {
             startTime = this.parseToInt (since);
         }
