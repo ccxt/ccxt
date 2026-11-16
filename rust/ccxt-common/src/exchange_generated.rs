@@ -1129,10 +1129,9 @@ pub trait ExchangeBase:
         if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("enableDemoTrading".into(), enable); }
 }
 
-    fn sign(&self, path: &str, optional_args: &[Value]) -> Value {
+    fn sign(&mut self, path: &str, optional_args: &[Value]) -> Value {
         // virtual-dispatch (static: DerivedExchange::sign(self, ...))
-        { let __v = crate::exchange::DerivedExchange::sign(self, path, crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3, crate::Value::Null),
-            crate::runtime::get_arg(optional_args, 4, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::sign(self, path, optional_args); if !matches!(__v, crate::Value::Null) { return __v; } }
 
         let mut path: Value = path.into();
         let mut api = get_arg(optional_args, 0, Value::from(vec![Value::Str("public".into())]));
@@ -4859,8 +4858,7 @@ pub trait ExchangeBase:
         let mut orderbook: Value = orderbook.into();
 
         // virtual-dispatch (static: DerivedExchange::parse_order_book(self, ...))
-        { let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), crate::runtime::get_arg(optional_args, 0, crate::Value::Null), crate::runtime::get_arg(optional_args, 1, crate::Value::Null), crate::runtime::get_arg(optional_args, 2, crate::Value::Null), crate::runtime::get_arg(optional_args, 3,
-            crate::Value::Null), crate::runtime::get_arg(optional_args, 4, crate::Value::Null), crate::runtime::get_arg(optional_args, 5, crate::Value::Null)); if !matches!(__v, crate::Value::Null) { return __v; } }
+        { let __v = crate::exchange::DerivedExchange::parse_order_book(self, orderbook.clone(), symbol.clone(), optional_args); if !matches!(__v, crate::Value::Null) { return __v; } }
         let mut timestamp = get_arg(optional_args, 0, Value::Null);
         let mut bidsKey = get_arg(optional_args, 1, Value::Str("bids".into()));
         let mut asksKey = get_arg(optional_args, 2, Value::Str("asks".into()));
@@ -6856,7 +6854,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn handle_errors(&self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
+    fn handle_errors(&mut self, mut code: Value, mut reason: Value, mut url: Value, mut method: Value, mut headers: Value, mut body: Value, mut response: Value, mut requestHeaders: Value, mut requestBody: Value) -> Value {
         // virtual-dispatch (static: DerivedExchange::handle_errors(self, ...))
         { let __v = crate::exchange::DerivedExchange::handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody); if !matches!(__v, crate::Value::Null) { return __v; } }
 
@@ -7712,8 +7710,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
 
     fn market(&self, symbol: &str) -> crate::Result<crate::types::Market> {
         // virtual-dispatch (static: DerivedExchange::market(self, ...))
-        { let __v = crate::exchange::DerivedExchange::market(self, crate::Value::from(symbol)); if !matches!(__v, crate::Value::Null) { return Ok(crate::types::FromRaw::from_raw(__v)); } }
-        self.market_non_virtual(symbol)
+        crate::exchange::DerivedExchange::market(self, symbol)
     }
 
     fn market_non_virtual(&self, symbol: &str) -> crate::Result<crate::types::Market> {
