@@ -20621,3 +20621,250 @@ export function installJ6ReaderLocals (transpiler) {
         return cast === undefined ? printed : accumulatorCastWrite (printer, node, printed, { cast });
     };
 }
+
+// ===== 77j8. copies of scalar parameters/locals and Array.isArray-guarded List writes =====
+// (a) `let x: Int = since` copies a default-valued parameter the typed core prints `Long since`
+//     (javaOptionalParameterType), or a local already declared Long/Double/String/Boolean. The
+//     pin's javaDeclaredTypeOfDeclaration answers only the dict family for a defaulted slot, so
+//     section 14 never sees the source box. Writes: the section-14 producers, a same-typed copy,
+//     an int literal (Long: printed with an L suffix) or a Long `+ - *` tree of int literals and
+//     Long operands (checkcast, Helpers widens to Long).
+// (b) `let xs = []; if (Array.isArray (v)) { xs = v; }`: the write is a List on the only path it
+//     runs (the printed guard is `v instanceof java.util.List` / Helpers.isArray, and a rest
+//     parameter - a Java array - is excluded), so the local is List<Object> and that write takes
+//     the checkcast its Object source needs.
+function j8ScalarSourceType (printer, identifier) {
+    if (identifier === undefined || !ts.isIdentifier (identifier) || printer.printNode (identifier, 0) !== identifier.text) {
+        return undefined;
+    }
+    let declared;
+    try {
+        declared = printer.javaDeclaredTypeOf (identifier);
+    } catch (e) {
+        declared = undefined;
+    }
+    if (JAVA_SCALAR_LOCAL_TYPES.includes (declared)) {
+        return declared;
+    }
+    const declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration?.resolve ();
+    if (declaration === undefined || !ts.isParameterDeclaration (declaration) || declaration.initializer === undefined
+        || declaration.dotDotDotToken !== undefined || printer.javaParameterIsWritten?.(declaration) !== false) {
+        return undefined;
+    }
+    const type = printer.javaOptionalParameterType?.(declaration);
+    return JAVA_SCALAR_LOCAL_TYPES.includes (type) ? type : undefined;
+}
+
+function j8IntLiteralTree (node, depth = 0) {
+    const n = unwrapParens (node);
+    if (javaIntLiteral (n)) {
+        return true;
+    }
+    return depth < 8 && n !== undefined && ts.isBinaryExpression (n)
+        && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (n.operatorToken.kind)
+        && j8IntLiteralTree (n.left, depth + 1) && j8IntLiteralTree (n.right, depth + 1);
+}
+
+// { cast, suffix } for a write of `right` into a `type` local, else undefined
+function j8ScalarWrite (printer, right, declaration, type, depth = 0) {
+    const value = unwrapParens (right);
+    if (value === undefined || depth > 4) {
+        return undefined;
+    }
+    const proven = javaScalarLocalValue (printer, value, declaration, type);
+    if (proven !== undefined) {
+        return { cast: proven.cast, suffix: false };
+    }
+    if (ts.isIdentifier (value)) {
+        return value.text === declaration.name.text || j8ScalarSourceType (printer, value) === type ? { cast: '', suffix: false } : undefined;
+    }
+    if (type === 'Long' && javaIntLiteral (value) && ts.isNumericLiteral (value)) {
+        return { cast: '', suffix: true };
+    }
+    if (type === 'Long' && ts.isBinaryExpression (value)
+        && [ ts.SyntaxKind.PlusToken, ts.SyntaxKind.MinusToken, ts.SyntaxKind.AsteriskToken ].includes (value.operatorToken.kind)) {
+        const operand = (o) => {
+            if (j8IntLiteralTree (o)) {
+                return true;
+            }
+            const w = j8ScalarWrite (printer, o, declaration, 'Long', depth + 1);
+            return w !== undefined && w.cast === '' && w.suffix === false; // a Long box (or null), no conversion
+        };
+        return operand (value.left) && operand (value.right) && !j8IntLiteralTree (value) ? { cast: '(Long)', suffix: false } : undefined;
+    }
+    return undefined;
+}
+
+function j8ScalarCopyLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined || !ts.isIdentifier (unwrapParens (declaration.initializer))) {
+        return undefined;
+    }
+    const type = j8ScalarSourceType (printer, unwrapParens (declaration.initializer));
+    if (type === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, type)) {
+        return undefined;
+    }
+    if (type !== 'String' && (identifierIndex (scope).get (name) ?? []).some ((n) => n !== declaration.name && javaUnboxingUse (n))) {
+        return undefined;
+    }
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, type, isProFile, {
+        writeOnly: true,
+        nonNull: type === 'String' ? false : undefined,
+        strictPlus: type === 'String',
+        stringAsCast: type === 'String',
+        writeOk: (right) => j8ScalarWrite (printer, right, declaration, type) !== undefined,
+    });
+    return ok ? type : undefined;
+}
+
+// `xs = v` inside the then-branch of `if (Array.isArray (v))`, v an unwritten non-rest identifier
+function j8ArrayGuardedWrite (printer, right) {
+    const source = unwrapParens (right);
+    if (source === undefined || !ts.isIdentifier (source)) {
+        return false;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (source)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    if (declaration === undefined || (ts.isParameterDeclaration (declaration) && declaration.dotDotDotToken !== undefined)
+        || printer.isVarargsArrayReference?.(source)) {
+        return false;
+    }
+    const scope = enclosingFunction (source);
+    for (const n of (identifierIndex (scope).get (source.text) ?? [])) {
+        const parent = n.parent;
+        if (parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind)) {
+            return false;
+        }
+    }
+    let child = source;
+    for (let n = source.parent; n !== undefined && n !== scope && !ts.isFunctionLike (n); child = n, n = n.parent) {
+        if (ts.isIfStatement (n) && n.thenStatement === child) {
+            const c = unwrapParens (n.expression);
+            if (ts.isCallExpression (c) && ts.isPropertyAccessExpression (c.expression) && ts.isIdentifier (c.expression.expression)
+                && c.expression.expression.text === 'Array' && c.expression.name.text === 'isArray' && c.arguments.length === 1
+                && ts.isIdentifier (unwrapParens (c.arguments[0])) && unwrapParens (c.arguments[0]).text === source.text) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function j8GuardedListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || declaration.parent.parent?.kind === ts.SyntaxKind.ForStatement
+        || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const init = javaListLocalValue (printer, declaration.initializer, declaration);
+    if (init === undefined || isNullishInitializer (unwrapParens (declaration.initializer))) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || (index.bindingCounts.get (name) ?? 0) !== 1 || index.parameterNames.has (name)
+        || index.blockedNames.has (name) || dataflowTypeTokenCollides (index, JAVA_LIST_LOCAL_TYPE)) {
+        return undefined;
+    }
+    let guarded = 0;
+    const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+    const ok = isSafeToNarrow (printer, declaration, name, JAVA_LIST_LOCAL_TYPE, isProFile, {
+        noCastAssertions: true,
+        writeOnly: true,
+        writeOk: (right) => {
+            if (javaListLocalValue (printer, right, declaration) !== undefined) {
+                return true;
+            }
+            const g = j8ArrayGuardedWrite (printer, right);
+            guarded += g ? 1 : 0;
+            return g;
+        },
+    });
+    return ok && guarded > 0 ? { cast: init.cast } : undefined;
+}
+
+export function installJavaJ8CopyLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaJ8CopyLocalsPatched) {
+        return;
+    }
+    printer._javaJ8CopyLocalsPatched = true;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = upstream (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at !== 0 && !(at > 0 && printed[at - 1] === '\n')) {
+            return printed;
+        }
+        let type;
+        let cast = '';
+        try {
+            type = j8ScalarCopyLocal (printer, declaration);
+            if (type === undefined) {
+                const list = j8GuardedListLocal (printer, declaration);
+                type = list === undefined ? undefined : JAVA_LIST_LOCAL_TYPE;
+                cast = list?.cast ? JAVA_LIST_LOCAL_CAST + ' ' : '';
+            }
+        } catch (e) {
+            type = undefined;
+        }
+        if (type === undefined) {
+            return printed;
+        }
+        typed.set (declaration, type);
+        const head = marker.replace (/Object (\S+) = $/, `${type} $1 = `) + cast;
+        return printed.slice (0, at) + head + printed.slice (at + marker.length);
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+    // writes into a retyped local: int literals take the L suffix, Object producers their checkcast
+    const upstreamBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = upstreamBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        let declaration;
+        try {
+            declaration = printer.getChecker ().getSymbolAtLocation (node.left)?.valueDeclaration?.resolve ();
+        } catch (e) {
+            return printed;
+        }
+        const type = declaration === undefined ? undefined : typed.get (declaration);
+        if (type === undefined) {
+            return printed;
+        }
+        if (type === JAVA_LIST_LOCAL_TYPE) {
+            const info = javaListLocalValue (printer, node.right, declaration);
+            const needsCast = info === undefined ? j8ArrayGuardedWrite (printer, node.right) : info.cast;
+            return needsCast ? accumulatorCastWrite (printer, node, printed, { cast: JAVA_LIST_LOCAL_CAST }) : printed;
+        }
+        const info = j8ScalarWrite (printer, node.right, declaration, type);
+        if (info?.suffix === true) {
+            const marker = `${printer.printNode (node.left, 0)} = `;
+            const at = printed.indexOf (marker);
+            const literal = printed.slice (at + marker.length);
+            return at !== -1 && /^-?\d+$/.test (literal) ? printed + 'L' : printed;
+        }
+        return info === undefined || info.cast === '' ? printed : accumulatorCastWrite (printer, node, printed, { cast: info.cast });
+    };
+}

@@ -32,6 +32,7 @@ import { installJavaMapLocalTypes } from './java-local-types.js';
 import { installJavaParamTypes } from './java-local-types.js';
 import { installJavaMapArgAlreadyTyped } from './java-local-types.js';
 import { installJavaListLocals } from './java-local-types.js';
+import { installJavaJ8CopyLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2483,6 +2484,7 @@ class NewTranspiler {
         installJavaStringReturns(this.transpiler);
         installJavaR77j2ConditionalLocals(this.transpiler);
         installJ6ReaderLocals(this.transpiler);
+        installJavaJ8CopyLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5810,7 +5812,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -6905,9 +6907,11 @@ function javaListLocalsSelfTest (): string[] {
         if (/Helpers\.getArrayLength\([mo]\)/.test(out) || /Helpers\.GetValue\(o, /.test(out)) problems.push("'m'/'o' length/get must go native");
         if (/List<Object> q = /.test(out)) problems.push("'q' (as string[] prints a List<String> cast) must not print List<Object>");
         if (/List<Object> s = (?!\(java\.util\.List<Object>\) \(\(Object\))/.test(out)) problems.push("'s' (as any prints ((Object)v)) needs the List checkcast");
-        for (const name of [ 'e', 'f', 'k' ]) {
+        for (const name of [ 'e', 'f' ]) {
             if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write/default and must stay Object`);
         }
+        // 'k': safeList with a [] default plus a write guarded by Array.isArray (k's source) is a List on every path (77j8)
+        if (!/\bObject k = /.test(out) && !/k = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'k' guarded write must take the List checkcast");
         if (/List<Object> g = /.test(out)) problems.push("'g' has no List write and must not print List<Object>");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
@@ -7010,6 +7014,41 @@ function javaNullSeedJoinSelfTest (): string[] {
         if (!/String net = null/.test(out)) problems.push("'net' (base core printed String) must print String");
         if (!/String c = null/.test(out)) problems.push("'c' (copies of String locals) must print String");
         if (!/\bObject m = null/.test(out)) problems.push("'m' (String and Map writes) must stay Object");
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 77j8: copies of a default-valued scalar parameter print its box; `[]` locals written only inside an
+// `Array.isArray (v)` branch print List<Object>; an unproven write keeps Object
+function javaJ8CopyLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzj8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Int } from './base/types.js';",
+        'export default class zzj8selftest extends Exchange {',
+        "    since (symbol: string, since: Int = undefined, p = {}) { let a: Int = since; if (a === undefined) { a = this.milliseconds () - 30 * 24 * 60 * 60 * 1000; } return { 'a': a }; }",
+        "    lit (symbol: string, limit: Int = undefined, p = {}) { let b: Int = limit; if (b === undefined) { b = 200; } return { 'b': b }; }",
+        "    mixed (symbol: string, since: Int = undefined, p = {}) { let c: Int = since; c = this.sum (c, 1); return { 'c': c }; }",
+        "    guarded (response: any) { let d = []; if (Array.isArray (response)) { d = response; } return d.length; }",
+        "    unguarded (response: any) { let e = []; e = response; return e.length; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Long a = since;/.test(out)) problems.push("'a' (copy of a Long default parameter) must print Long");
+        if (!/a = \(Long\) /.test(out)) problems.push("'a' Long-arithmetic write needs a Long checkcast");
+        if (!/Long b = limit;/.test(out) || !/b = 200L;/.test(out)) problems.push("'b' (Long copy + int literal write) must print Long and a 200L write");
+        if (!/List<Object> d = /.test(out) || !/d = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'d' (Array.isArray-guarded write) must print List<Object> with a checkcast");
+        for (const name of [ 'c', 'e' ]) {
+            if (!new RegExp(`\\bObject ${name} = `).test(out)) problems.push(`'${name}' has an unproven write and must stay Object`);
+        }
+        if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
     } finally {
