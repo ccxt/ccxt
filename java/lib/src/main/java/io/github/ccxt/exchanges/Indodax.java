@@ -1127,8 +1127,8 @@ public class Indodax extends IndodaxApi
             Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
             Map<String, Object> historyResult = (Map<String, Object>) this.safeDict(response, "return", new HashMap<String, Object>() {{}});
             List<Object> orders = this.parseOrders(historyResult.get("orders"), market, (Long) null, (Long) null, new HashMap<String, Object>() {{}});
-            orders = this.filterBy(orders, "status", "closed");
-            return this.filterBySymbolSinceLimit(orders, symbol, since, limit, false);
+            List<Object> closedOrders = this.filterBy(orders, "status", "closed");
+            return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit, false);
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
     }

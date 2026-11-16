@@ -1403,13 +1403,12 @@ public class Bigone extends BigoneApi
             String makerCode = makerCurrencyCode;
             if (!java.util.Objects.equals(takerFeeCost, null))
             {
-                String takerCode = takerCurrencyCode;
                 HashMap<String, Object> mapLiteral3 = new HashMap<String, Object>();
                 mapLiteral3.put("cost", makerFeeCost);
                 mapLiteral3.put("currency", makerCode);
                 HashMap<String, Object> mapLiteral4 = new HashMap<String, Object>();
                 mapLiteral4.put("cost", takerFeeCost);
-                mapLiteral4.put("currency", takerCode);
+                mapLiteral4.put("currency", takerCurrencyCode);
                 result.put("fees", new ArrayList<Object>(Arrays.asList(mapLiteral3, mapLiteral4)));
             } else
             {
@@ -1420,10 +1419,9 @@ public class Bigone extends BigoneApi
             }
         } else if (!java.util.Objects.equals(takerFeeCost, null))
         {
-            String takerCode2 = takerCurrencyCode;
             HashMap<String, Object> mapLiteral6 = new HashMap<String, Object>();
             mapLiteral6.put("cost", takerFeeCost);
-            mapLiteral6.put("currency", takerCode2);
+            mapLiteral6.put("currency", takerCurrencyCode);
             result.put("fee", mapLiteral6);
         } else
         {

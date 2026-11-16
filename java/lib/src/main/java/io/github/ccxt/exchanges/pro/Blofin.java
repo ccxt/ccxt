@@ -465,8 +465,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object symbolsNormalized = this.marketSymbols(symbols, (Object) null, false, false, false);
-            Object symbolsList = (List<String>)(symbolsNormalized);
+            List<String> symbolsList = this.marketSymbols(symbols, (Object) null, false, false, false);
             Map<String, Object> firstMarket = this.market((symbolsList == null || 0 >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(0)));
             String channel = "tickers";
             Pair<String, Map<String, Object>> marketTypeparamsMarketTypeVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters, (String) null);
@@ -478,7 +477,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
             List<Object> args = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)symbolsList).size(); i++)
             {
-                Map<String, Object> market = this.market((symbolsList == null || i < 0 || i >= ((List<?>)symbolsList).size() ? null : ((List<?>)symbolsList).get(i)));
+                Map<String, Object> market = this.market((symbolsList == null || i < 0 || i >= symbolsList.size() ? null : symbolsList.get(i)));
                 messageHashes.add(("bidask:" + market.get("symbol")));
                 ((List<Object>)args).add(new HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -497,7 +496,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 }
                 return tickers;
             }
-            return this.filterByArray(this.bidsasks, "symbol", symbolsNormalized, true);
+            return this.filterByArray(this.bidsasks, "symbol", symbolsList, true);
         }).thenApply(Tickers::new);
 
     }
@@ -781,7 +780,11 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
         return BaseExchange.supplyAsync(() -> {
 
             parameters.put("callerMethodName", "watchOrders");
-            Object symbolsArray = (((!java.util.Objects.equals(symbol, null)))) ? new ArrayList<Object>(Arrays.asList(symbol)) : new ArrayList<Object>(Arrays.asList());
+            Object symbolsArray = new ArrayList<Object>(Arrays.asList());
+            if (!java.util.Objects.equals(symbol, null))
+            {
+                ((List<Object>)symbolsArray).add(symbol);
+            }
             return (this.watchOrdersForSymbols(symbolsArray, since, limit, parameters)).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Order::new).collect(Collectors.toList()));
 
@@ -1115,8 +1118,7 @@ public class Blofin extends io.github.ccxt.exchanges.Blofin
                 Object channel = channelName;
                 if (Boolean.TRUE.equals(isOHLCV))
                 {
-                    Object tfArray = Helpers.GetValue(symbolsArray, i);
-                    Object tf = Helpers.GetValue(tfArray, 1);
+                    String tf = this.safeString(this.safeList(symbolsArray, i, (Object) null), 1);
                     String interval = this.safeString(this.timeframes, tf, tf);
                     channel = ((java.util.function.BinaryOperator<Object>) (hx4J40v0A, hx4J40v0B) -> { Object hx4J40v0P = hx4J40v0A instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0A; Object hx4J40v0Q = hx4J40v0B instanceof Integer hx4J40v0i ? (Object) Long.valueOf(hx4J40v0i.longValue()) : hx4J40v0B; if (hx4J40v0P instanceof Long hx4J40v0l && hx4J40v0Q instanceof Long hx4J40v0r) { return hx4J40v0l + hx4J40v0r; } if (hx4J40v0P instanceof Double || hx4J40v0Q instanceof Double) { java.util.function.ToDoubleFunction<Object> hx4J40v0D = hx4J40v0o -> { if (hx4J40v0o instanceof Double || hx4J40v0o instanceof Float || hx4J40v0o instanceof Long || hx4J40v0o instanceof Integer || hx4J40v0o instanceof java.math.BigDecimal) { return ((Number) hx4J40v0o).doubleValue(); } try { return Double.parseDouble(String.valueOf(hx4J40v0o)); } catch (NumberFormatException hx4J40v0e) { return 0.0; } }; return hx4J40v0D.applyAsDouble(hx4J40v0P) + hx4J40v0D.applyAsDouble(hx4J40v0Q); } if (hx4J40v0P instanceof String || hx4J40v0Q instanceof String) { return String.valueOf(hx4J40v0P) + String.valueOf(hx4J40v0Q); } return null; }).apply(channel, interval);
                 }

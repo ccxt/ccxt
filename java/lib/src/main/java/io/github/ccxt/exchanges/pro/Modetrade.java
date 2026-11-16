@@ -757,14 +757,13 @@ public class Modetrade extends io.github.ccxt.exchanges.Modetrade
             if (java.util.Objects.equals(authenticated, null))
             {
                 String ts = String.valueOf(this.nonce());
-                String auth = ts;
                 Object secret = this.secret;
                 if (((String)this.secret).indexOf("ed25519:") >= 0)
                 {
                     List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)this.secret).split(java.util.regex.Pattern.quote("ed25519:"))));
                     secret = (parts == null || 1 >= parts.size() ? null : parts.get(1));
                 }
-                Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
+                Object signature = eddsa(this.encode(ts), this.base58ToBinary(secret), ed25519());
                 Map<String, Object> request = new HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new HashMap<String, Object>() {{

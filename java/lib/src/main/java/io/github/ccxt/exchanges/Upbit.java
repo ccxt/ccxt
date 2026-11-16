@@ -2299,7 +2299,7 @@ public class Upbit extends UpbitApi
         String type = this.safeString(order, "ord_type");
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String status = this.parseOrderStatus(this.safeString(order, "state"));
-        Object lastTradeTimestamp = null;
+        Long lastTradeTimestamp = null;
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "volume");
         String remaining = this.safeString(order, "remaining_volume");
@@ -2325,7 +2325,7 @@ public class Upbit extends UpbitApi
         {
             // the timestamp in fetchOrder trades is missing
             Map<String, Object> lastTrade = (Map<String, Object>) this.safeDict(trades, (((long) numTrades) - 1L), new HashMap<String, Object>() {{}});
-            lastTradeTimestamp = lastTrade.get("timestamp");
+            lastTradeTimestamp = this.safeInteger(lastTrade, "timestamp");
             Boolean getFeesFromTrades = false;
             if (java.util.Objects.equals(feeCost, null))
             {
@@ -2952,13 +2952,12 @@ public class Upbit extends UpbitApi
             String token = jwt(request, this.encode(this.secret), sha256());
             headers.put("Authorization", ("Bearer " + token));
         }
-        Map<String, Object> requestHeaders = (((java.util.Objects.equals(apiName, "private")))) ? headers : null;
         {
             HashMap<String, Object> h2kMap2 = new HashMap<String, Object>();
             h2kMap2.put("url", url);
             h2kMap2.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
             h2kMap2.put("body", requestBody);
-            h2kMap2.put("headers", requestHeaders);
+            h2kMap2.put("headers", (((java.util.Objects.equals(apiName, "private")))) ? headers : null);
             return h2kMap2;
         }
     }

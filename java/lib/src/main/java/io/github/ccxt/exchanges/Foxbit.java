@@ -471,8 +471,6 @@ public class Foxbit extends FoxbitApi
             String networkCode = this.networkIdToCode(networkId, code);
             Map<String, Object> networkWithdrawInfo = (Map<String, Object>) this.safeDict(network, "withdraw_info", (Object) null);
             Map<String, Object> networkDepositInfo = (Map<String, Object>) this.safeDict(network, "deposit_info", (Object) null);
-            Boolean isWithdrawEnabled = java.util.Objects.equals(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            Boolean isDepositEnabled = java.util.Objects.equals(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (!java.util.Objects.equals(networkCode, null))
             {
                 HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
@@ -480,8 +478,8 @@ public class Foxbit extends FoxbitApi
                 mapLiteral1.put("id", networkId);
                 mapLiteral1.put("network", networkCode);
                 mapLiteral1.put("name", this.safeString(network, "name"));
-                mapLiteral1.put("deposit", isDepositEnabled);
-                mapLiteral1.put("withdraw", isWithdrawEnabled);
+                mapLiteral1.put("deposit", (java.util.Objects.equals(this.safeString(networkDepositInfo, "status"), "ENABLED")));
+                mapLiteral1.put("withdraw", (java.util.Objects.equals(this.safeString(networkWithdrawInfo, "status"), "ENABLED")));
                 mapLiteral1.put("active", true);
                 mapLiteral1.put("precision", null);
                 mapLiteral1.put("fee", this.safeNumber(networkWithdrawInfo, "fee", (Object) null));

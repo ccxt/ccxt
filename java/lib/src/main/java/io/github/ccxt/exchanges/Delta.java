@@ -467,9 +467,11 @@ public class Delta extends DeltaApi
         List<Object> optionParts = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("-"))));
         List<Object> symbolBase = new ArrayList<Object>(Arrays.asList(((String)symbol).split(java.util.regex.Pattern.quote("/"))));
         Boolean hasSlash = ((String)symbol).indexOf("/") > -1;
-        List<Object> partSource = ((Boolean.TRUE.equals(hasSlash))) ? symbolBase : optionParts;
-        Integer baseIndex = ((Boolean.TRUE.equals(hasSlash))) ? 0 : 1;
-        String base = this.safeString(partSource, baseIndex, "");
+        String base = this.safeString(optionParts, 1, "");
+        if (Boolean.TRUE.equals(hasSlash))
+        {
+            base = this.safeString(symbolBase, 0, "");
+        }
         String optionType = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 3 : 0, "");
         String rawExpiry = this.safeString(optionParts, ((Boolean.TRUE.equals(hasSlash))) ? 1 : 3, "");
         Object expiry = Helpers.add(Helpers.add((rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(4, ((String)rawExpiry).length()))), (rawExpiry == null ? null : ((String)rawExpiry).substring(Math.min(2, ((String)rawExpiry).length()), Math.min(4, ((String)rawExpiry).length())))), (rawExpiry == null ? null : ((String)rawExpiry).substring(0, Math.min(2, ((String)rawExpiry).length()))));

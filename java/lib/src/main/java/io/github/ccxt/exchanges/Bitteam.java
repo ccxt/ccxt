@@ -2727,14 +2727,12 @@ public class Bitteam extends BitteamApi
             {
                 if ((((String)url).indexOf("/ccxt/order/") >= 0) && (java.util.Objects.equals(method, "GET")))
                 {
-                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/order/"))));
-                    String orderId = this.safeString(parts, 1, "");
+                    String orderId = this.safeString(new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/order/")))), 1, "");
                     throw new OrderNotFound((((this.id + " order ") + orderId) + " not found")) ;
                 }
                 if (((String)url).indexOf("/cmc/orderbook/") >= 0)
                 {
-                    List<Object> parts = new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/cmc/orderbook/"))));
-                    String symbolId = this.safeString(parts, 1, "");
+                    String symbolId = this.safeString(new ArrayList<Object>(Arrays.asList(((String)url).split(java.util.regex.Pattern.quote("/cmc/orderbook/")))), 1, "");
                     throw new BadSymbol((((this.id + " symbolId ") + symbolId) + " not found")) ;
                 }
             }

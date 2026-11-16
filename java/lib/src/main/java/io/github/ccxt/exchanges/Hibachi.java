@@ -1201,9 +1201,7 @@ public class Hibachi extends HibachiApi
         Map<String, Object> market = this.market(symbol);
         Double takerFee = this.safeNumber(market, "taker", 0);
         Double makerFee = this.safeNumber(market, "maker", 0);
-        Object takerFeeValue = (((java.util.Objects.equals(takerFee, null)))) ? 0 : takerFee;
-        Object makerFeeValue = (((java.util.Objects.equals(makerFee, null)))) ? 0 : makerFee;
-        Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFeeValue), this.numberToString(makerFeeValue)));
+        Double feeRate = this.parseNumber(Precise.stringMax(this.numberToString(takerFee), this.numberToString(makerFee)));
         Object message = this.orderMessage(market, nonce, feeRate, (String) (type), (String) (side), amount, price);
         Object signature = this.signMessage(message, (String) (this.privateKey));
         Map<String, Object> request = new HashMap<String, Object>() {{

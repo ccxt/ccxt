@@ -2253,28 +2253,28 @@ public class Deribit extends DeribitApi
             Map<String, Object> optionFee = new HashMap<String, Object>() {{}};
             for (var i = 0; i < ((List<?>)fees).size(); i++)
             {
-                Object fee = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
-                String instrumentType = this.safeString(fee, "instrument_type");
+                Object feeEntry = (fees == null || i < 0 || i >= fees.size() ? null : fees.get(i));
+                String instrumentType = this.safeString(feeEntry, "instrument_type");
                 if (java.util.Objects.equals(instrumentType, "future"))
                 {
                     futureFee = new HashMap<String, Object>() {{
-                        put( "info", fee );
-                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee", (Object) null) );
-                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee", (Object) null) );
+                        put( "info", feeEntry );
+                        put( "maker", Deribit.this.safeNumber(feeEntry, "maker_fee", (Object) null) );
+                        put( "taker", Deribit.this.safeNumber(feeEntry, "taker_fee", (Object) null) );
                     }};
                 } else if (java.util.Objects.equals(instrumentType, "perpetual"))
                 {
                     perpetualFee = new HashMap<String, Object>() {{
-                        put( "info", fee );
-                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee", (Object) null) );
-                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee", (Object) null) );
+                        put( "info", feeEntry );
+                        put( "maker", Deribit.this.safeNumber(feeEntry, "maker_fee", (Object) null) );
+                        put( "taker", Deribit.this.safeNumber(feeEntry, "taker_fee", (Object) null) );
                     }};
                 } else if (java.util.Objects.equals(instrumentType, "option"))
                 {
                     optionFee = new HashMap<String, Object>() {{
-                        put( "info", fee );
-                        put( "maker", Deribit.this.safeNumber(fee, "maker_fee", (Object) null) );
-                        put( "taker", Deribit.this.safeNumber(fee, "taker_fee", (Object) null) );
+                        put( "info", feeEntry );
+                        put( "maker", Deribit.this.safeNumber(feeEntry, "maker_fee", (Object) null) );
+                        put( "taker", Deribit.this.safeNumber(feeEntry, "taker_fee", (Object) null) );
                     }};
                 }
             }

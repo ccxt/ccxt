@@ -683,8 +683,8 @@ public class Lbank extends LbankApi
 
             List<Object> marketsPromises = new ArrayList<Object>(Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object resolvedMarkets = (((List<?>)(marketsPromises)).stream().filter(CompletableFuture.class::isInstance).map((promiseAllItem) -> (CompletableFuture<?>) promiseAllItem).collect(Collectors.collectingAndThen(Collectors.toList(), (promiseAllFutures) -> CompletableFuture.allOf(promiseAllFutures.toArray(new CompletableFuture<?>[0])).<List<Object>>thenApply((promiseAllDone) -> promiseAllFutures.stream().<Object>map(CompletableFuture::join).collect(Collectors.toCollection(ArrayList<Object>::new)))))).join();
-            Object spotMarkets = this.safeValue(resolvedMarkets, 0);
-            Object swapMarkets = this.safeValue(resolvedMarkets, 1);
+            List<Object> spotMarkets = (List<Object>) this.safeList(resolvedMarkets, 0, new ArrayList<Object>(Arrays.asList()));
+            List<Object> swapMarkets = (List<Object>) this.safeList(resolvedMarkets, 1, new ArrayList<Object>(Arrays.asList()));
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
 

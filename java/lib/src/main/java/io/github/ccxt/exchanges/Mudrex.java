@@ -1485,7 +1485,7 @@ public class Mudrex extends MudrexApi
             }
             Map<String, Object> market = this.market(symbol);
             String positionId = this.safeString(parameters, "position_id");
-            Object amount = this.safeValue(parameters, "amount");
+            String amount = this.safeString(parameters, "amount");
             if (java.util.Objects.equals(positionId, null))
             {
                 List<Position> positions = (this.fetchPositions(new ArrayList<String>(Arrays.asList(symbol)), parameters)).join();

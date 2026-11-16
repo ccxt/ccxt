@@ -765,8 +765,13 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             Object key = (this.authenticate(parameters)).join();
             String url = (String) ((Map<String, Object>)this.urls.get("api")).get("ws");
             String messageHash = null;
-            Object pair = "all";
             String symbolResolved = (((java.util.Objects.equals(symbol, null)))) ? null : this.symbol(symbol);
+            Map<String, Object> message = new HashMap<String, Object>() {{
+                put( "action", "subscribe" );
+                put( "subscribe", "orderUpdate" );
+                put( "subscribeKey", key );
+                put( "pair", "all" );
+            }};
             if (java.util.Objects.equals(symbol, null))
             {
                 messageHash = "orders:all";
@@ -774,13 +779,8 @@ public class Lbank extends io.github.ccxt.exchanges.Lbank
             {
                 Map<String, Object> market = this.market(symbol);
                 messageHash = ("orders:" + market.get("symbol"));
-                pair = ((String)market.get("id"));
+                message.put("pair", market.get("id"));
             }
-            Map<String, Object> message = new HashMap<String, Object>();
-            message.put("action", "subscribe");
-            message.put("subscribe", "orderUpdate");
-            message.put("subscribeKey", key);
-            message.put("pair", pair);
             Map<String,Object> request = this.deepExtend(message, parameters);
             List<Object> orders = (List<Object>) (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbolResolved, since, limit, true);

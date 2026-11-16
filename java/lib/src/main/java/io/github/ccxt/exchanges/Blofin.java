@@ -884,7 +884,6 @@ public class Blofin extends BlofinApi
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Boolean isActive = (java.util.Objects.equals(this.safeString(market, "state"), "live"));
-        Boolean isMargin = Boolean.TRUE.equals(spot) && (Precise.stringGt(maxLeverage, "1"));
         String contractType = this.safeString(market, "contractType");
         Double maxLimitAmount = this.safeNumber(market, "maxLimitSize", (Object) null);
         Double maxSpotCost = this.safeNumber(market, "maxMarketSize", (Object) null); // for spot, market-buy size is denominated in the quote currency, i.e. cost
@@ -900,7 +899,7 @@ public class Blofin extends BlofinApi
         mapLiteral1.put("type", type);
         mapLiteral1.put("spot", spot);
         mapLiteral1.put("option", option);
-        mapLiteral1.put("margin", isMargin);
+        mapLiteral1.put("margin", (Boolean.TRUE.equals(spot) && Precise.stringGt(maxLeverage, "1")));
         mapLiteral1.put("swap", swap);
         mapLiteral1.put("future", future);
         mapLiteral1.put("active", isActive);
@@ -2663,9 +2662,8 @@ public class Blofin extends BlofinApi
 
     }
 
-    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
+    public io.github.ccxt.types.CurrencyInterface parseCurrency(Object chains)
     {
-        Object chains = currency;
         Map<String, Object> firstChain = (Map<String, Object>) this.safeDict(chains, 0, new HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
@@ -2913,10 +2911,10 @@ public class Blofin extends BlofinApi
             Integer dataLength = ((List<?>)data).size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Object entry = this.safeValue(data, i);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 if (java.util.Objects.equals(this.safeString(entry, "depositId"), id))
                 {
-                    return this.parseTransaction((Map<String, Object>) (entry), currency);
+                    return this.parseTransaction(entry, currency);
                 }
             }
             throw new ExchangeError(((this.id + " fetchDeposit() could not find deposit ") + id)) ;
@@ -2964,7 +2962,7 @@ public class Blofin extends BlofinApi
             Integer dataLength = ((List<?>)data).size();
             for (var i = 0; (dataLength != null && i < dataLength); i++)
             {
-                Object entry = this.safeValue(data, i);
+                Map<String, Object> entry = (Map<String, Object>) this.safeDict(data, i, new HashMap<String, Object>() {{}});
                 Boolean matches = false;
                 if (!java.util.Objects.equals(id, null))
                 {
@@ -2975,7 +2973,7 @@ public class Blofin extends BlofinApi
                 }
                 if (Boolean.TRUE.equals(matches))
                 {
-                    return this.parseTransaction((Map<String, Object>) (entry), currency);
+                    return this.parseTransaction(entry, currency);
                 }
             }
             String reference = (((!java.util.Objects.equals(id, null)))) ? id : clientId;
@@ -3698,7 +3696,7 @@ public class Blofin extends BlofinApi
         String entryPriceString = this.safeString2(position, "averagePrice", "openAveragePrice");
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
         String leverageString = this.safeString(position, "leverage");
-        Object initialMarginPercentage = null;
+        String initialMarginPercentageString = null;
         String collateralString = null;
         String marginString = null;
         if (java.util.Objects.equals(marginMode, "cross"))
@@ -3707,7 +3705,7 @@ public class Blofin extends BlofinApi
             collateralString = (((!java.util.Objects.equals(unrealizedPnlString, null)))) ? Precise.stringAdd(initialMarginString, unrealizedPnlString) : initialMarginString;
         } else if (java.util.Objects.equals(marginMode, "isolated"))
         {
-            initialMarginPercentage = Precise.stringDiv("1", leverageString);
+            initialMarginPercentageString = Precise.stringDiv("1", leverageString);
             String isolatedMarginString = this.omitZero(this.safeString2(position, "margin", "initialMargin"));
             if (!java.util.Objects.equals(isolatedMarginString, null))
             {
@@ -3719,12 +3717,11 @@ public class Blofin extends BlofinApi
         String maintenanceMarginString = this.safeString(position, "maintenanceMargin");
         Double maintenanceMargin = this.parseNumber(maintenanceMarginString);
         String maintenanceMarginPercentageString = Precise.stringDiv(maintenanceMarginString, notionalString);
-        if (java.util.Objects.equals(initialMarginPercentage, null))
+        if (java.util.Objects.equals(initialMarginPercentageString, null))
         {
-            initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
+            initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString, 4);
         } else if (java.util.Objects.equals(initialMarginString, null))
         {
-            String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
@@ -3774,7 +3771,7 @@ public class Blofin extends BlofinApi
         mapLiteral7.put("positionMargin", this.parseNumber(marginString));
         mapLiteral7.put("collateral", this.parseNumber(collateralString));
         mapLiteral7.put("initialMargin", this.parseNumber(initialMarginString));
-        mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentage));
+        mapLiteral7.put("initialMarginPercentage", this.parseNumber(initialMarginPercentageString));
         mapLiteral7.put("leverage", this.parseNumber(leverageString));
         mapLiteral7.put("marginRatio", marginRatio);
         mapLiteral7.put("stopLossPrice", null);

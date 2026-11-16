@@ -1103,7 +1103,7 @@ public class Deribit extends io.github.ccxt.exchanges.Deribit
                     throw new ArgumentsRequired((this.id + " watchMultipleWrapper() symbolsArray is required")) ;
                 }
                 Map<String, Object> market = null;
-                String currentDescriptor = null;
+                String currentDescriptor = "";
                 if (Boolean.TRUE.equals(isOHLCV))
                 {
                     List<Object> currentPair = (List<Object>) this.safeList(symbolsArray, i, new ArrayList<Object>(Arrays.asList()));

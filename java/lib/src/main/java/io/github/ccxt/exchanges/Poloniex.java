@@ -1564,11 +1564,10 @@ public class Poloniex extends PoloniexApi
 
     public io.github.ccxt.types.CurrencyInterface parseCurrency(Object currency)
     {
-        Object entry = currency;
-        String id = this.safeString(entry, "coin");
+        String id = this.safeString(currency, "coin");
         String code = this.safeCurrencyCode(id, (Map<String, Object>) null);
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
-        List<Object> chains = (List<Object>) this.safeList(entry, "networkList", new ArrayList<Object>(Arrays.asList()));
+        List<Object> chains = (List<Object>) this.safeList(currency, "networkList", new ArrayList<Object>(Arrays.asList()));
         Integer chainsLength = ((List<?>)chains).size();
         for (var j = 0; (chainsLength != null && j < chainsLength); j++)
         {
@@ -1602,18 +1601,18 @@ public class Poloniex extends PoloniexApi
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
             put( "id", id );
-            put( "name", Poloniex.this.safeString(entry, "name") );
+            put( "name", Poloniex.this.safeString(currency, "name") );
             put( "code", code );
             put( "type", null );
             put( "precision", null );
-            put( "info", entry );
+            put( "info", currency );
             put( "networks", networks );
             put( "deposit", null );
             put( "withdraw", null );
             put( "active", null );
             put( "fee", null );
             put( "limits", null );
-            put( "margin", Poloniex.this.safeBool(entry, "supportBorrow", (Object) null) );
+            put( "margin", Poloniex.this.safeBool(currency, "supportBorrow", (Object) null) );
         }});
     }
 
@@ -4211,8 +4210,8 @@ public class Poloniex extends PoloniexApi
         Long timestamp = this.safeTimestamp(transactionValue, "timestamp");
         String currencyId = this.safeString(transactionValue, "currency");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        String status = this.safeString(transactionValue, "status", "pending");
-        status = this.parseTransactionStatus(status);
+        String rawStatus = this.safeString(transactionValue, "status", "pending");
+        String status = this.parseTransactionStatus(rawStatus);
         String txid = this.safeString(transactionValue, "txid");
         String type = "deposit";
         if (!java.util.Objects.equals(this.safeString(transactionValue, "withdrawalRequestsId"), null))

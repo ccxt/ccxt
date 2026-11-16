@@ -1114,11 +1114,9 @@ public class Derive extends DeriveApi
             Map<String, Object> paramsOmitted = (Map<String, Object>) ((List<Object>) pageSizeparamsOmittedVariable).get(1);
             for (var i = 0; (maxPages != null && i < maxPages); i++)
             {
-                Object page = (((long) i) + 1L);
-                Map<String, Object> requestExtension = new HashMap<String, Object>() {{
-                    put( "page", page );
-                    put( "page_size", pageSize );
-                }};
+                Map<String, Object> requestExtension = new HashMap<String, Object>();
+                requestExtension.put("page", (((long) i) + 1L));
+                requestExtension.put("page_size", pageSize);
                 Map<String, Object> requestExtended = this.extend(this.extend(request, requestExtension), paramsOmitted); // nested because the csharp base defines extend with two arguments only
                 Map<String, Object> response = (this.publicPostGetAllInstruments(requestExtended)).join();
                 Map<String, Object> result = (Map<String, Object>) this.safeDict(response, "result", new HashMap<String, Object>() {{}});

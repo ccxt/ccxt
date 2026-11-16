@@ -1978,17 +1978,14 @@ public class Cex extends CexApi
             }
             Map<String, Object> currency = this.currency((String) (code));
             Boolean fromMain = (java.util.Objects.equals(fromAccount, ""));
-            String targetAccount = fromAccount;
-            if (Boolean.TRUE.equals(fromMain))
-            {
-                targetAccount = toAccount;
-            }
+            String targetAccount = ((Boolean.TRUE.equals(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("currency", currency.get("id"));
-            request.put("amount", this.currencyToPrecision((String) (code), amount, (String) null));
-            request.put("accountId", targetAccount);
-            request.put("clientTxId", guid);
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "currency", currency.get("id") );
+                put( "amount", Cex.this.currencyToPrecision((String) (code), amount, (String) null) );
+                put( "accountId", targetAccount );
+                put( "clientTxId", guid );
+            }};
             Map<String, Object> response = null;
             if (Boolean.TRUE.equals(fromMain))
             {

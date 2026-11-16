@@ -4336,11 +4336,8 @@ public class Woofipro extends WoofiproApi
             String auth = "";
             String ts = String.valueOf(this.nonce());
             url = (url + pathWithParams);
-            String apiKey = this.apiKey;
-            if (((String)this.apiKey).indexOf("ed25519:") < 0)
-            {
-                apiKey = ("ed25519:" + this.apiKey);
-            }
+            Boolean hasKeyPrefix = ((String)this.apiKey).indexOf("ed25519:") >= 0;
+            String apiKey = ((Boolean.TRUE.equals(hasKeyPrefix))) ? this.apiKey : (("ed25519:" + this.apiKey));
             Map<String, Object> authHeaders = new HashMap<String, Object>();
             authHeaders.put("orderly-account-id", this.accountId);
             authHeaders.put("orderly-key", apiKey);

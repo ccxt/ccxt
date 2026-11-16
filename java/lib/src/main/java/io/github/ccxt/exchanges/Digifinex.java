@@ -1493,16 +1493,14 @@ public class Digifinex extends DigifinexApi
             //
             Long date = this.safeInteger(response, "date");
             List<Object> tickers = (List<Object>) this.safeList(response, "ticker", new ArrayList<Object>(Arrays.asList()));
-            Map<String, Object> data = (Map<String, Object>) this.safeDict(response, "data", new HashMap<String, Object>() {{}});
             Map<String, Object> firstTicker = (Map<String, Object>) this.safeDict(tickers, 0, new HashMap<String, Object>() {{}});
-            Map<String, Object> result = data;
             if (!Boolean.TRUE.equals(this.safeBool(market, "swap", false)))
             {
-                result = this.extend(new HashMap<String, Object>() {{
+                return this.parseTicker(this.extend(new HashMap<String, Object>() {{
                     put( "date", date );
-                }}, firstTicker);
+                }}, firstTicker), market);
             }
-            return this.parseTicker(result, market);
+            return this.parseTicker(this.safeDict(response, "data", new HashMap<String, Object>() {{}}), market);
         }).thenApply(Ticker::new);
 
     }
@@ -2335,13 +2333,10 @@ public class Digifinex extends DigifinexApi
             Boolean createMarketBuyOrderRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.first();
             Map<String, Object> paramsRequiresPrice = createMarketBuyOrderRequiresPriceparamsRequiresPriceVariable.second();
             Boolean isMarketBuy = Boolean.TRUE.equals(isMarketOrder) && (java.util.Objects.equals(side, "buy"));
-            List<Object> keysToOmit = null;
+            List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("postOnly"));
             if (Boolean.TRUE.equals(isMarketBuy))
             {
-                keysToOmit = new ArrayList<Object>(Arrays.asList("cost", "postOnly"));
-            } else
-            {
-                keysToOmit = new ArrayList<Object>(Arrays.asList("postOnly"));
+                ((List<Object>)keysToOmit).add("cost");
             }
             paramsRequest = this.omit(paramsRequiresPrice, keysToOmit);
             if (Boolean.TRUE.equals(isMarketBuy))

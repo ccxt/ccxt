@@ -3816,8 +3816,7 @@ public class Hashkey extends HashkeyApi
 
     public Object handleTriggerOptionAndParams(Object parameters, String methodName, Object defaultValue)
     {
-        Object isTrigger = defaultValue;
-        Pair<Boolean, Map<String, Object>> isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), methodName, "stop", "trigger", isTrigger);
+        Pair<Boolean, Map<String, Object>> isTriggerStopparamsStopVariable = this.handleOptionBoolAndParams2((Map<String, Object>) (parameters), methodName, "stop", "trigger", defaultValue);
         Boolean isTriggerStop = isTriggerStopparamsStopVariable.first();
         Map<String, Object> paramsStop = isTriggerStopparamsStopVariable.second();
         return new ArrayList<Object>(Arrays.asList(isTriggerStop, paramsStop));

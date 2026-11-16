@@ -4411,8 +4411,6 @@ public class Predictfun extends PredictfunApi
                 url = (url + ("?" + this.urlencode(query)));
             }
         }
-        Map<String, Object> existingHeaders = new HashMap<String, Object>() {{}};
-        Map<String, Object> headersValue = existingHeaders;
         Map<String, Object> authHeaders = new HashMap<String, Object>() {{}};
         if ((!java.util.Objects.equals(apiKey, null)) && (!Boolean.TRUE.equals(sandboxMode)))
         {
@@ -4445,7 +4443,7 @@ public class Predictfun extends PredictfunApi
             authHeaders.put("Content-Type", "application/json");
             bodyValue = this.json(parameters);
         }
-        Map<String, Object> headersExtended = this.extend(headersValue, authHeaders);
+        Map<String, Object> headersExtended = this.extend(new HashMap<String, Object>() {{}}, authHeaders);
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);

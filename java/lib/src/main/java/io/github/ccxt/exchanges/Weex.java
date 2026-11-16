@@ -1476,7 +1476,7 @@ public class Weex extends WeexApi
             List<Object> results = new ArrayList<Object>(Arrays.asList());
             for (var i = 0; i < ((List<?>)response).size(); i++)
             {
-                Object rawTicker = this.safeValue(response, i);
+                Map<String, Object> rawTicker = (Map<String, Object>) this.safeDict(response, i, new HashMap<String, Object>() {{}});
                 // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
                 String marketId = this.safeString(rawTicker, "symbol");
                 Map<String, Object> tickerMarket = this.safeMarket(marketId, (Map<String, Object>) null, (String) null, marketType);
@@ -2129,7 +2129,7 @@ public class Weex extends WeexApi
             tradeMarketType = "swap";
         }
         Map<String, Object> marketResolved = this.safeMarket((((java.util.Objects.equals(market, null)))) ? tradeMarketId : null, market, (String) null, tradeMarketType);
-        Object isSpot = null;
+        Object isSpot = false;
         if (java.util.Objects.equals(market, null))
         {
             isSpot = java.util.Objects.equals(tradeMarketType, "spot");

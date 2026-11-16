@@ -6168,7 +6168,7 @@ public class Xt extends XtApi
 
     public Map<String, Object> parseTradingFee(Map<String, Object> fee, Map<String, Object> market)
     {
-        Object symbol = (((!java.util.Objects.equals(market, null)))) ? market.get("symbol") : null;
+        String symbol = this.safeString(market, "symbol");
         return new HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

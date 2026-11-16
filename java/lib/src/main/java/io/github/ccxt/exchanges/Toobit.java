@@ -3075,9 +3075,8 @@ public class Toobit extends ToobitApi
             // }
             //
             Map<String, Object> result = new HashMap<String, Object>() {{}};
-            Map<String, Object> entry = response;
-            Map<String, Object> marketResolved = this.safeMarket(this.safeString(entry, "symbol"), market, (String) null, (String) null);
-            Map<String, Object> fee = this.parseTradingFee(entry, marketResolved);
+            Map<String, Object> marketResolved = this.safeMarket(this.safeString(response, "symbol"), market, (String) null, (String) null);
+            Map<String, Object> fee = this.parseTradingFee(response, marketResolved);
             result.put((String)marketResolved.get("symbol"), fee);
             return result;
         }).thenApply(TradingFees::new);

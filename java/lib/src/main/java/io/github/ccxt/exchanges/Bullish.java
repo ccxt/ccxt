@@ -1331,14 +1331,12 @@ public class Bullish extends BullishApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             String clientOrderId = this.safeString(parameters, "clientOrderId");
-            Map<String, Object> paramsExtended = parameters;
+            Map<String, Object> orderIdParams = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(clientOrderId, null))
             {
-                paramsExtended = this.extend(new HashMap<String, Object>() {{
-                    put( "orderId", id );
-                }}, parameters);
+                orderIdParams.put("orderId", id);
             }
-            return (this.fetchMyTrades(symbol, since, limit, paramsExtended)).join();
+            return (this.fetchMyTrades(symbol, since, limit, this.extend(orderIdParams, parameters))).join();
         }).thenApply(res -> ((List<?>) res).stream().map(Trade::new).collect(Collectors.toList()));
 
     }

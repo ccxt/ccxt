@@ -718,8 +718,8 @@ public class Coincheck extends CoincheckApi
         String priceString = this.safeString(trade, "rate");
         String marketId = this.safeString(trade, "pair");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, "_", (String) null);
-        String baseId = (String) marketResolved.get("baseId");
-        String quoteId = (String) marketResolved.get("quoteId");
+        String baseId = this.safeString(marketResolved, "baseId");
+        String quoteId = this.safeString(marketResolved, "quoteId");
         String symbol = (String) marketResolved.get("symbol");
         String takerOrMaker = null;
         String amountString = null;

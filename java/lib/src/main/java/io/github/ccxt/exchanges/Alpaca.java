@@ -1331,8 +1331,7 @@ public class Alpaca extends AlpacaApi
         String defaultClientId = (String) this.implodeParams(clientOrderIdprefix, new HashMap<String, Object>() {{
             put( "id", random_id );
         }});
-        String clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
-        return clientOrderId;
+        return this.safeString(parameters, "clientOrderId", defaultClientId);
     }
 
     /**
@@ -2179,16 +2178,14 @@ public class Alpaca extends AlpacaApi
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
             Map<String, Object> currency = this.currency((String) (code));
-            String addressValue = address;
             String tagSuffix = this.safeString(parameters, "tag", "");
-            if (!java.util.Objects.equals(tagSuffix, ""))
-            {
-                addressValue = ((address + ":") + tagSuffix);
-            }
-            Map<String, Object> request = new HashMap<String, Object>();
-            request.put("asset", currency.get("id"));
-            request.put("address", addressValue);
-            request.put("amount", this.numberToString(amount));
+            String taggedAddress = ((address + ":") + tagSuffix);
+            Object addressValue = (((!java.util.Objects.equals(tagSuffix, "")))) ? taggedAddress : address;
+            Map<String, Object> request = new HashMap<String, Object>() {{
+                put( "asset", currency.get("id") );
+                put( "address", addressValue );
+                put( "amount", Alpaca.this.numberToString(amount) );
+            }};
             Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, paramsWithdrawTag))).join();
             //
             //     {

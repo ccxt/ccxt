@@ -2336,7 +2336,7 @@ public class Dydx extends DydxApi
             Map<String, Object> account = (this.fetchDydxAccount()).join();
             Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             Map<String, Object> payload = null;
-            Map<String, Object> signingPayload = null;
+            Map<String, Object> signingPayload = new HashMap<String, Object>() {{}};
             if (java.util.Objects.equals(fromAccount, "main"))
             {
                 // deposit to subaccount

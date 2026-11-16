@@ -2637,8 +2637,7 @@ public class Bittrade extends BittradeApi
             {
                 request = this.extend(request, query);
             }
-            Map<String,Object> requestSorted = this.keysort(request);
-            String auth = this.urlencode(requestSorted);
+            String auth = this.urlencode(this.keysort(request));
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             // eslint-disable-next-line quotes
             String payload = ((((((java.util.Objects.requireNonNullElse(method, "GET") + "\n") + this.hostname) + "\n") + url) + "\n") + auth);

@@ -1570,8 +1570,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Map<String,Object> message = this.deepExtend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
+            return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
         });
 
     }
@@ -1598,8 +1597,7 @@ public class Cryptocom extends io.github.ccxt.exchanges.Cryptocom
                 put( "subMessageHashes", subMessageHashes );
                 put( "messageHashes", messageHashes );
             }};
-            Map<String,Object> message = this.deepExtend(request, parameters);
-            return (this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend))).join();
+            return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, this.extend(subscription, subExtend))).join();
         });
 
     }

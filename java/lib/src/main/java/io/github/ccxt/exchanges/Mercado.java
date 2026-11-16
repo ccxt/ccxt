@@ -736,8 +736,7 @@ public class Mercado extends MercadoApi
                     }
                     String amountString = this.numberToString(amount);
                     String priceString = this.numberToString(price);
-                    Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
-                    request.put("cost", this.priceToPrecision(market.get("symbol"), cost));
+                    request.put("cost", this.priceToPrecision(market.get("symbol"), this.parseToNumeric(Precise.stringMul(amountString, priceString))));
                     response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
                 } else
                 {

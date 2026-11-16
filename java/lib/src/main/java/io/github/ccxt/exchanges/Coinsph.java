@@ -1702,7 +1702,7 @@ public class Coinsph extends CoinsphApi
             String orderType = this.safeString(paramsOmitted, "type", type);
             orderType = this.encodeOrderType(orderType);
             Map<String, Object> paramsType = this.omit(paramsOmitted, "type");
-            Object paramsQuote = null;
+            Object paramsQuote = paramsType;
             String orderSide = this.encodeOrderSide((String) (side));
             Map<String, Object> request = new HashMap<String, Object>();
             request.put("symbol", market.get("id"));
@@ -1771,8 +1771,7 @@ public class Coinsph extends CoinsphApi
                 request.put("stopPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             request.put("newOrderRespType", newOrderRespType);
-            Object paramsBase = (((!java.util.Objects.equals(paramsQuote, null)))) ? paramsQuote : paramsType;
-            Object paramsRequest = this.omit(paramsBase, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
+            Object paramsRequest = this.omit(paramsQuote, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
             Map<String, Object> response = new HashMap<String, Object>() {{}};
             if (Boolean.TRUE.equals(testOrder))
             {

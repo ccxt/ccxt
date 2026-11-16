@@ -552,14 +552,13 @@ public class Deepcoin extends DeepcoinApi
         String instType = this.safeString(parameters, "instType");
         Map<String, Object> paramsOmitted = this.omit(parameters, "instType");
         String type = this.safeString(paramsOmitted, "type");
-        Map<String, Object> paramsExtended = paramsOmitted;
         if ((java.util.Objects.equals(type, null)) && (!java.util.Objects.equals(instType, null)))
         {
             HashMap<String, Object> mapLiteral1 = new HashMap<String, Object>();
             mapLiteral1.put("type", instType);
-            paramsExtended = this.extend(paramsOmitted, mapLiteral1);
+            return super.handleMarketTypeAndParams(methodName, market, this.extend(paramsOmitted, mapLiteral1), defaultValue);
         }
-        return super.handleMarketTypeAndParams(methodName, market, paramsExtended, defaultValue);
+        return super.handleMarketTypeAndParams(methodName, market, paramsOmitted, defaultValue);
     }
 
     public String convertToInstrumentType(String type)
@@ -911,7 +910,11 @@ public class Deepcoin extends DeepcoinApi
                 request.put("after", until);
             }
             Boolean calculateUntil = (Boolean) this.safeBool(paramsPaginate, "calculateUntil", false);
-            List<Object> keysToOmit = ((Boolean.TRUE.equals(calculateUntil))) ? new ArrayList<Object>(Arrays.asList("price", "until", "calculateUntil")) : new ArrayList<Object>(Arrays.asList("price", "until"));
+            List<Object> keysToOmit = new ArrayList<Object>(Arrays.asList("price", "until"));
+            if (Boolean.TRUE.equals(calculateUntil))
+            {
+                ((List<Object>)keysToOmit).add("calculateUntil");
+            }
             Map<String, Object> paramsOmitted = this.omit(paramsPaginate, keysToOmit);
             if (Boolean.TRUE.equals(calculateUntil))
             {
@@ -2176,19 +2179,17 @@ public class Deepcoin extends DeepcoinApi
         List<Object> postOnlyparamsPostOnlyVariable = (List<Object>) this.handlePostOnly(java.util.Objects.equals(type, "market"), java.util.Objects.equals(type, "post_only"), parameters);
         Boolean postOnly = (Boolean) ((List<Object>) postOnlyparamsPostOnlyVariable).get(0);
         Map<String, Object> paramsPostOnly = (Map<String, Object>) ((List<Object>) postOnlyparamsPostOnlyVariable).get(1);
-        String typePostOnly = type;
-        if (Boolean.TRUE.equals(postOnly))
-        {
-            typePostOnly = "post_only";
-        }
         String timeInForce = this.handleTimeInForce(paramsPostOnly);
         Map<String, Object> paramsOmitted = this.omit(paramsPostOnly, "timeInForce");
-        String typeValue = typePostOnly;
         if (java.util.Objects.equals(timeInForce, "IOC"))
         {
-            typeValue = "ioc";
+            return new ArrayList<Object>(Arrays.asList("ioc", paramsOmitted));
         }
-        return new ArrayList<Object>(Arrays.asList(typeValue, paramsOmitted));
+        if (Boolean.TRUE.equals(postOnly))
+        {
+            return new ArrayList<Object>(Arrays.asList("post_only", paramsOmitted));
+        }
+        return new ArrayList<Object>(Arrays.asList(type, paramsOmitted));
     }
 
     /**

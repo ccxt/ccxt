@@ -2734,7 +2734,7 @@ public class Krakenfutures extends KrakenfuturesApi
                     ((List<Object>)executions).add(item);
                 }
                 // Final order (after placement / editing / execution / canceling)
-                Object orderTrigger = this.safeValue(item, "orderTrigger");
+                Map<String, Object> orderTrigger = (Map<String, Object>) this.safeDict(item, "orderTrigger", (Object) null);
                 if (java.util.Objects.equals(details, null))
                 {
                     details = this.safeValue2(item, "new", "order", orderTrigger);

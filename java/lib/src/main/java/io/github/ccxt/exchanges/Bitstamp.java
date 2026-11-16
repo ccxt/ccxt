@@ -2608,7 +2608,7 @@ public class Bitstamp extends BitstampApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
-            Object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(clientOrderId, null))
             {
@@ -2648,7 +2648,7 @@ public class Bitstamp extends BitstampApi
             {
                 market = this.market(symbol);
             }
-            Object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
+            String clientOrderId = this.safeString2(parameters, "client_order_id", "clientOrderId");
             Map<String, Object> request = new HashMap<String, Object>() {{}};
             if (!java.util.Objects.equals(clientOrderId, null))
             {

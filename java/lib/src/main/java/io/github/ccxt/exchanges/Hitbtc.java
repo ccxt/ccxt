@@ -1089,8 +1089,7 @@ public class Hitbtc extends HitbtcApi
     {
         String currencyId = this.safeString(currency, "_coin_id");
         String code = this.safeCurrencyCode(currencyId, (Map<String, Object>) null);
-        Object entry = currency;
-        List<Object> rawNetworks = (List<Object>) this.safeList(entry, "networks", new ArrayList<Object>(Arrays.asList()));
+        List<Object> rawNetworks = (List<Object>) this.safeList(currency, "networks", new ArrayList<Object>(Arrays.asList()));
         Map<String, Object> networks = new HashMap<String, Object>() {{}};
         for (var j = 0; j < ((List<?>)rawNetworks).size(); j++)
         {
@@ -1127,14 +1126,14 @@ public class Hitbtc extends HitbtcApi
             }
         }
         return this.safeCurrencyStructure(new HashMap<String, Object>() {{
-            put( "info", entry );
+            put( "info", currency );
             put( "code", code );
             put( "id", currencyId );
-            put( "precision", Hitbtc.this.safeNumber(entry, "precision_transfer", (Object) null) );
-            put( "name", Hitbtc.this.safeString(entry, "full_name") );
-            put( "active", !Boolean.TRUE.equals(Hitbtc.this.safeBool(entry, "delisted", false)) );
-            put( "deposit", Hitbtc.this.safeBool(entry, "payin_enabled", (Object) null) );
-            put( "withdraw", Hitbtc.this.safeBool(entry, "payout_enabled", (Object) null) );
+            put( "precision", Hitbtc.this.safeNumber(currency, "precision_transfer", (Object) null) );
+            put( "name", Hitbtc.this.safeString(currency, "full_name") );
+            put( "active", !Boolean.TRUE.equals(Hitbtc.this.safeBool(currency, "delisted", false)) );
+            put( "deposit", Hitbtc.this.safeBool(currency, "payin_enabled", (Object) null) );
+            put( "withdraw", Hitbtc.this.safeBool(currency, "payout_enabled", (Object) null) );
             put( "networks", networks );
             put( "fee", null );
             put( "limits", new HashMap<String, Object>() {{

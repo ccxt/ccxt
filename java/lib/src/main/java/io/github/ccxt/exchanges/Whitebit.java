@@ -1452,12 +1452,11 @@ public class Whitebit extends WhitebitApi
             {
                 throw new ExchangeError((this.id + " markets not loaded")) ;
             }
-            Map<String, Object> markets = this.markets;
-            List<String> marketIds = new ArrayList<String>(markets.keySet());
+            List<Object> marketIds = (this.markets == null ? new ArrayList<Object>() : new ArrayList<Object>(this.markets.keySet()));
             for (var i = 0; i < ((List<?>)marketIds).size(); i++)
             {
-                String marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
-                Object market = this.safeValue(markets, marketId);
+                Object marketId = (marketIds == null || i < 0 || i >= marketIds.size() ? null : marketIds.get(i));
+                Map<String, Object> market = (Map<String, Object>) this.safeDict(this.markets, marketId, (Object) null);
                 String marketSymbol = this.safeString(market, "symbol");
                 if ((java.util.Objects.equals(market, null)) || (java.util.Objects.equals(market, null)) || (java.util.Objects.equals(marketSymbol, null)) || (java.util.Objects.equals(marketSymbol, "")))
                 {
@@ -3901,7 +3900,7 @@ public class Whitebit extends WhitebitApi
             }
             if (Boolean.TRUE.equals(this.isFiat((String) (code))))
             {
-                Object provider = this.safeValue(paramsWithdrawTag, "provider");
+                String provider = this.safeString(paramsWithdrawTag, "provider");
                 if (java.util.Objects.equals(provider, null))
                 {
                     throw new ArgumentsRequired((this.id + " withdraw() requires a provider when the ticker is fiat")) ;
@@ -5217,17 +5216,12 @@ public class Whitebit extends WhitebitApi
         {
             requestBody = privateBody;
         }
-        Map<String, Object> requestHeaders = publicHeaders;
-        if (Boolean.TRUE.equals(isPrivate))
-        {
-            requestHeaders = privateHeaders;
-        }
         {
             HashMap<String, Object> h2kMap3 = new HashMap<String, Object>();
             h2kMap3.put("url", url);
             h2kMap3.put("method", java.util.Objects.requireNonNullElse(method, "GET"));
             h2kMap3.put("body", requestBody);
-            h2kMap3.put("headers", requestHeaders);
+            h2kMap3.put("headers", ((Boolean.TRUE.equals(isPrivate))) ? privateHeaders : publicHeaders);
             return h2kMap3;
         }
     }

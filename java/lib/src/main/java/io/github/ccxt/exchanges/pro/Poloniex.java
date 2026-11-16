@@ -213,11 +213,8 @@ public class Poloniex extends io.github.ccxt.exchanges.Poloniex
                 marketIds = this.marketIds(symbols);
             }
             Object symbolsSuffix = (((java.util.Objects.equals(symbols, null)))) ? "" : String.join((String)",", (List<String>)symbols);
-            String symbolsHash = null;
-            if (this.isEmpty(symbols))
-            {
-                symbolsHash = messageHash;
-            } else
+            String symbolsHash = messageHash;
+            if (!this.isEmpty(symbols))
             {
                 symbolsHash = ((messageHash + "::") + symbolsSuffix);
             }
