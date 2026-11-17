@@ -1004,7 +1004,8 @@ public partial class bitget : ccxt.bitget
         if (((limit == 1)) || ((limit == 5)) || ((limit == 15)) || ((limit == 50)))
         {
             channel = channel + ((object)limit).ToString();
-            incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = ((limit == 50));
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
@@ -1117,7 +1118,7 @@ public partial class bitget : ccxt.bitget
             return;
         }
         Int64? timestamp = this.safeInteger(rawOrderBook, "ts");
-        bool incrementalBook = (channel == "books");
+        bool incrementalBook = ((channel == "books") || (channel == "books50"));
         if (incrementalBook)
         {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);

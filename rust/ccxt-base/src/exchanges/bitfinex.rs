@@ -59,6 +59,10 @@ impl crate::exchange::DerivedExchange for BitfinexCore {
         // Forward to the inherent method on BitfinexCore.
         BitfinexCore::parse_order(self, order, &[market])
     }
+    fn parse_market(&self, market: crate::Value) -> crate::Value {
+        // Forward to the inherent method on BitfinexCore.
+        BitfinexCore::parse_market(self, market)
+    }
     fn parse_ohlcv(&self, ohlcv: crate::Value, market: crate::Value) -> crate::Value {
         // Forward to the inherent method on BitfinexCore.
         BitfinexCore::parse_ohlcv(self, ohlcv, &[market])
@@ -166,6 +170,7 @@ impl crate::exchange_generated::ExchangeBase for BitfinexCore {
                 "parse_ledger_entry_type" => self.parse_ledger_entry_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_liquidation" => self.parse_liquidation(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_margin_modification" => self.parse_margin_modification(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+                "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
                 "parse_ohlcv" => self.parse_ohlcv(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_open_interest" => self.parse_open_interest(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
                 "parse_order" => self.parse_order(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
@@ -1089,23 +1094,9 @@ impl BitfinexCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("feeSide".to_string(), Value::Str("get".into()));
         m.insert("percentage".to_string(), Value::Bool(true));
-        m.insert("tierBased".to_string(), Value::Bool(true));
-        m.insert("maker".to_string(), self.parse_number(Value::Str("0.001".into()), &[]));
-        m.insert("taker".to_string(), self.parse_number(Value::Str("0.002".into()), &[]));
-        m.insert("tiers".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("taker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]),
-            self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".into()), &[]), self.parse_number(Value::Str("0.002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0.0018".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("15000000".into()), &[]), self.parse_number(Value::Str("0.0016".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".into()), &[]), self.parse_number(Value::Str("0.0014".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]),
-            self.parse_number(Value::Str("0.0012".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])])]));
-        m.insert("maker".to_string(), Value::from(vec![Value::from(vec![self.parse_number(Value::Str("0".into()), &[]), self.parse_number(Value::Str("0.001".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("500000".into()), &[]), self.parse_number(Value::Str("0.0008".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("1000000".into()), &[]), self.parse_number(Value::Str("0.0006".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("2500000".into()), &[]), self.parse_number(Value::Str("0.0004".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("5000000".into()), &[]),
-            self.parse_number(Value::Str("0.0002".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("7500000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("10000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]),
-            Value::from(vec![self.parse_number(Value::Str("15000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("20000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("25000000".into()), &[]),
-            self.parse_number(Value::Str("0".into()), &[])]), Value::from(vec![self.parse_number(Value::Str("30000000".into()), &[]), self.parse_number(Value::Str("0".into()), &[])])]));
-    m
-}));
+        m.insert("tierBased".to_string(), Value::Bool(false));
+        m.insert("maker".to_string(), self.parse_number(Value::Str("0".into()), &[]));
+        m.insert("taker".to_string(), self.parse_number(Value::Str("0".into()), &[]));
     m
 }));
         m.insert("funding".to_string(), Value::Map({
@@ -1477,86 +1468,93 @@ impl BitfinexCore {
         let mut futuresMarketsInfo: Value = self.safe_list(response.clone(), Value::Int(1), &[Value::from(vec![])]);
         let mut marginIds: Value = self.safe_list(response, Value::Int(3), &[Value::from(vec![])]);
         let mut markets: Value = self.array_concat(spotMarketsInfo, futuresMarketsInfo);
-        let mut result: Vec<Value> = Vec::new();
-        {
-                        let mut i: i64 = 0;
-            let mut __for_first_339: bool = true;
-            while { if !__for_first_339 { i += 1; } __for_first_339 = false; i < (markets.len() as i64) } {
-            let mut pairObj: Value = self.safe_list(markets.clone(), Value::Int(i), &[]);
-            let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[Value::Str("".into())]);
-            let mut market: Value = self.safe_list(pairObj, Value::Int(1), &[Value::from(vec![])]);
-            let mut spot: bool = true;
-            let mut type_var: Value = Value::Null;
-            if id.as_str().unwrap_or("").contains("F0") {
-                spot = false;
-                type_var = Value::Str("swap".into());
-            }  else {
-                type_var = Value::Str("spot".into());
-            }
-            let mut swap: bool = type_var.as_str() == Some("swap");
-            let mut baseId: Value = Value::Null;
-            let mut quoteId: Value = Value::Null;
-            if id.as_str().unwrap_or("").contains(":") {
-                let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
-                baseId = parts.get(0).cloned().unwrap_or(Value::Null);
-                quoteId = parts.get(1).cloned().unwrap_or(Value::Null);
-            }  else {
-                baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-                quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
-            }
-            let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
-            let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
-            let mut splitBase: Value = Value::Array(if let Some(__s) = base.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
-            let mut splitQuote: Value = Value::Array(if let Some(__s) = quote.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
-            base = self.safe_string(splitBase, Value::Int(0), &[]);
-            quote = self.safe_string(splitQuote, Value::Int(0), &[]);
-            if (base == Value::Null) || (quote == Value::Null) {
-                continue;
-            }
-            let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
-            // baseId = 'f' + baseId;
-            // quoteId = 'f' + quoteId;
-            let mut settle: Value = Value::Null;
-            let mut settleId: Value = Value::Null;
-            if swap {
-                settle = quote.clone();
-                settleId = quote.clone();
-                symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
-            }
-            let mut minOrderSizeString: Option<String> = self.safe_string_opt(market.clone(), Value::Int(3), &[]);
-            let mut maxOrderSizeString: Option<String> = self.safe_string_opt(market.clone(), Value::Int(4), &[]);
-            result.push(Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".into()), id).into()));
-                    m.insert("symbol".to_string(), symbol);
-                    m.insert("base".to_string(), base);
-                    m.insert("quote".to_string(), quote);
-                    m.insert("settle".to_string(), settle);
-                    m.insert("baseId".to_string(), baseId);
-                    m.insert("quoteId".to_string(), quoteId);
-                    m.insert("settleId".to_string(), settleId);
-                    m.insert("type".to_string(), type_var);
-                    m.insert("spot".to_string(), Value::Bool(spot.clone()));
-                    m.insert("margin".to_string(), Value::Bool((spot && self.in_array(id, marginIds.clone()).as_bool() == Some(true))));
-                    m.insert("swap".to_string(), Value::Bool(swap.clone()));
-                    m.insert("future".to_string(), Value::Bool(false));
-                    m.insert("option".to_string(), Value::Bool(false));
-                    m.insert("active".to_string(), Value::Bool(true));
-                    m.insert("contract".to_string(), Value::Bool(!(spot)));
-                    m.insert("linear".to_string(), (if swap { Value::Bool(true) } else { Value::Null }));
-                    m.insert("inverse".to_string(), (if swap { Value::Bool(false) } else { Value::Null }));
-                    m.insert("contractSize".to_string(), (if swap { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
-                    m.insert("expiry".to_string(), Value::Null);
-                    m.insert("expiryDatetime".to_string(), Value::Null);
-                    m.insert("strike".to_string(), Value::Null);
-                    m.insert("optionType".to_string(), Value::Null);
-                    m.insert("precision".to_string(), Value::Map({
+        if let Value::Dict(__d) = &mut self.options { std::sync::Arc::make_mut(__d).insert("marginIds".into(), marginIds); }
+        return self.parse_markets(markets);
+
+    Value::Null
+}
+
+    pub fn parse_market(&self, mut pairObj: Value) -> Value {
+        //
+        //     [ 'AAVE:USD', [ null, null, null, "0.02", "5000.0", null, null, null, null, null, null, null ] ]
+        //
+        let mut marginIds: Value = self.safe_list_k(self.options.clone(), "marginIds", &[Value::from(vec![])]);
+        let mut id: Value = self.safe_string_upper(pairObj.clone(), Value::Int(0), &[Value::Str("".into())]);
+        let mut market: Value = self.safe_list(pairObj, Value::Int(1), &[Value::from(vec![])]);
+        let mut spot: bool = true;
+        let mut type_var: Value = Value::Null;
+        if id.as_str().unwrap_or("").contains("F0") {
+            spot = false;
+            type_var = Value::Str("swap".into());
+        }  else {
+            type_var = Value::Str("spot".into());
+        }
+        let mut swap: bool = type_var.as_str() == Some("swap");
+        let mut baseId: Value = Value::Null;
+        let mut quoteId: Value = Value::Null;
+        if id.as_str().unwrap_or("").contains(":") {
+            let mut parts: Vec<Value> = Value::Array(if let Some(__s) = id.as_str() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).as_array().cloned().unwrap_or_default();
+            baseId = parts.get(0).cloned().unwrap_or(Value::Null);
+            quoteId = parts.get(1).cloned().unwrap_or(Value::Null);
+        }  else {
+            baseId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(0); let __j = __l.min(3); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+            quoteId = id.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(3); let __j = __l.min(6); if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        }
+        let mut base: Value = self.safe_currency_code(baseId.clone(), &[]);
+        let mut quote: Value = self.safe_currency_code(quoteId.clone(), &[]);
+        let mut splitBase: Value = Value::Array(if let Some(__s) = base.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
+        let mut splitQuote: Value = Value::Array(if let Some(__s) = quote.as_str() { __s.split("F0").map(Value::from).collect() } else { Vec::new() });
+        base = self.safe_string(splitBase, Value::Int(0), &[]);
+        quote = self.safe_string(splitQuote, Value::Int(0), &[]);
+        if (base == Value::Null) || (quote == Value::Null) {
+            return Value::Null;
+        }
+        let mut symbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", base, Value::Str("/".into())).into()), quote).into());
+        // baseId = 'f' + baseId;
+        // quoteId = 'f' + quoteId;
+        let mut settle: Value = Value::Null;
+        let mut settleId: Value = Value::Null;
+        if swap {
+            settle = quote.clone();
+            settleId = quote.clone();
+            symbol = Value::Str(format!("{}{}", Value::Str(format!("{}{}", symbol, Value::Str(":".into())).into()), settle).into());
+        }
+        let mut minOrderSizeString: Option<String> = self.safe_string_opt(market.clone(), Value::Int(3), &[]);
+        let mut maxOrderSizeString: Option<String> = self.safe_string_opt(market.clone(), Value::Int(4), &[]);
+        return Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str("t".into()), id).into()));
+        m.insert("symbol".to_string(), symbol);
+        m.insert("base".to_string(), base);
+        m.insert("quote".to_string(), quote);
+        m.insert("settle".to_string(), settle);
+        m.insert("baseId".to_string(), baseId);
+        m.insert("quoteId".to_string(), quoteId);
+        m.insert("settleId".to_string(), settleId);
+        m.insert("type".to_string(), type_var);
+        m.insert("spot".to_string(), Value::Bool(spot.clone()));
+        m.insert("margin".to_string(), Value::Bool((spot && self.in_array(id, marginIds).as_bool() == Some(true))));
+        m.insert("swap".to_string(), Value::Bool(swap.clone()));
+        m.insert("future".to_string(), Value::Bool(false));
+        m.insert("option".to_string(), Value::Bool(false));
+        m.insert("active".to_string(), Value::Bool(true));
+        m.insert("contract".to_string(), Value::Bool(!(spot)));
+        m.insert("linear".to_string(), (if swap { Value::Bool(true) } else { Value::Null }));
+        m.insert("inverse".to_string(), (if swap { Value::Bool(false) } else { Value::Null }));
+        m.insert("maker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("maker".into()), &[]));
+        m.insert("taker".to_string(), self.safe_number(self.fees.as_map().and_then(|__m| __m.get("trading")).cloned().unwrap_or(Value::Null), Value::Str("taker".into()), &[]));
+        m.insert("contractSize".to_string(), (if swap { self.parse_number(Value::Str("1".into()), &[]) } else { Value::Null }));
+        m.insert("expiry".to_string(), Value::Null);
+        m.insert("expiryDatetime".to_string(), Value::Null);
+        m.insert("strike".to_string(), Value::Null);
+        m.insert("optionType".to_string(), Value::Null);
+        m.insert("precision".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("amount".to_string(), Value::Int(8));
         m.insert("price".to_string(), Value::Int(5));
     m
 }));
-                    m.insert("limits".to_string(), Value::Map({
+        m.insert("limits".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1584,13 +1582,10 @@ impl BitfinexCore {
 }));
     m
 }));
-                    m.insert("created".to_string(), Value::Null);
-                    m.insert("info".to_string(), market);
-                m
-            }));
-        }
-        }
-        return Value::from(result);
+        m.insert("created".to_string(), Value::Null);
+        m.insert("info".to_string(), market);
+    m
+});
 
     Value::Null
 }
@@ -1722,8 +1717,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_340: bool = true;
-            while { if !__for_first_340 { i += 1; } __for_first_340 = false; i < (networks.len() as i64) } {
+            let mut __for_first_342: bool = true;
+            while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (networks.len() as i64) } {
             let mut networkObj: Value = self.safe_list(networks.clone(), Value::Int(i), &[]);
             let mut networkId: Option<String> = self.safe_string_opt(networkObj.clone(), Value::Int(0), &[]);
             let mut valuesList: Value = self.safe_list(networkObj, Value::Int(1), &[]);
@@ -1744,8 +1739,8 @@ impl BitfinexCore {
         let mut allowedIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_341: bool = true;
-            while { if !__for_first_341 { i += 1; } __for_first_341 = false; i < (ids.len() as i64) } {
+            let mut __for_first_343: bool = true;
+            while { if !__for_first_343 { i += 1; } __for_first_343 = false; i < (ids.len() as i64) } {
             let mut id: Value = self.safe_string(ids.clone(), Value::Int(i), &[Value::Str("".into())]);
             if (id.as_str().unwrap_or("").ends_with("F0")) {
                 continue;
@@ -1760,8 +1755,8 @@ impl BitfinexCore {
         let mut arr: Value = self.to_array(Value::from(allowedIds));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_342: bool = true;
-            while { if !__for_first_342 { i += 1; } __for_first_342 = false; i < (arr.len() as i64) } {
+            let mut __for_first_344: bool = true;
+            while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < (arr.len() as i64) } {
             let mut parsed: Value = self.parse_currency_custom(arr.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null), indexed.clone(), indexedNetworks.clone());
             let mut code: Value = self.safe_string_k(parsed.clone(), "code", &[Value::Str("".into())]);
             result.insert(crate::runtime::stringify_param(&code), parsed);
@@ -1802,8 +1797,8 @@ impl BitfinexCore {
         let mut networkIds: Value = self.safe_list(indexedNetworks, id.clone(), &[Value::from(vec![])]);
         {
                         let mut j: i64 = 0;
-            let mut __for_first_343: bool = true;
-            while { if !__for_first_343 { j += 1; } __for_first_343 = false; j < (networkIds.len() as i64) } {
+            let mut __for_first_345: bool = true;
+            while { if !__for_first_345 { j += 1; } __for_first_345 = false; j < (networkIds.len() as i64) } {
             // safeString instead of raw access: the venue config payload can carry numeric
             // network ids, and the raw value flows into toLowerCase and a dictionary key,
             // which hard-casts to string in the C# build and throws InvalidCastException
@@ -1914,8 +1909,8 @@ impl BitfinexCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_344: bool = true;
-            while { if !__for_first_344 { i += 1; } __for_first_344 = false; i < (balances.len() as i64) } {
+            let mut __for_first_346: bool = true;
+            while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (balances.len() as i64) } {
             let mut balance: Value = self.safe_list(balances.clone(), Value::Int(i), &[]);
             let mut account: indexmap::IndexMap<String, Value> = self.account().as_map().cloned().unwrap_or_default();
             let mut interest: Option<String> = self.safe_string_opt(balance.clone(), Value::Int(3), &[]);
@@ -2163,8 +2158,8 @@ impl BitfinexCore {
         let mut orders: Value = self.to_array(orderbook);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_345: bool = true;
-            while { if !__for_first_345 { i += 1; } __for_first_345 = false; i < (orders.len() as i64) } {
+            let mut __for_first_347: bool = true;
+            while { if !__for_first_347 { i += 1; } __for_first_347 = false; i < (orders.len() as i64) } {
             let mut order: Value = orders.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut price: Value = self.safe_number(order.clone(), priceIndex.clone(), &[]);
             let mut signedAmount: Option<String> = self.safe_string_opt(order, Value::Int(2), &[]);
@@ -2528,8 +2523,8 @@ impl BitfinexCore {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_346: bool = true;
-            while { if !__for_first_346 { i += 1; } __for_first_346 = false; i < (trades.len() as i64) } {
+            let mut __for_first_348: bool = true;
+            while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (trades.len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(trades.clone(), Value::Int(i), &[]));
@@ -2678,8 +2673,8 @@ impl BitfinexCore {
         let mut postOnly: Value = Value::Bool(false);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_347: bool = true;
-            while { if !__for_first_347 { i += 1; } __for_first_347 = false; i < (flags.len() as i64) } {
+            let mut __for_first_349: bool = true;
+            while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (flags.len() as i64) } {
             if (self.safe_string(flags.clone(), Value::Int(i), &[]).as_str() == Some("postOnly")) {
                 postOnly = Value::Bool(true);
             }
@@ -2960,8 +2955,8 @@ impl BitfinexCore {
         let mut ordersRequests: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_348: bool = true;
-            while { if !__for_first_348 { i += 1; } __for_first_348 = false; i < (orders.len() as i64) } {
+            let mut __for_first_350: bool = true;
+            while { if !__for_first_350 { i += 1; } __for_first_350 = false; i < (orders.len() as i64) } {
             let mut rawOrder: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "symbol", &[]);
             let mut type_var: Option<String> = self.safe_string_k_opt(rawOrder.clone(), "type", &[]);
@@ -3011,8 +3006,8 @@ impl BitfinexCore {
         let mut data: Value = self.safe_list(response, Value::Int(4), &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_349: bool = true;
-            while { if !__for_first_349 { i += 1; } __for_first_349 = false; i < (data.len() as i64) } {
+            let mut __for_first_351: bool = true;
+            while { if !__for_first_351 { i += 1; } __for_first_351 = false; i < (data.len() as i64) } {
             results.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(self.safe_list(self.safe_list(data.clone(), Value::Int(i), &[]), Value::Int(4), &[]), Value::Int(0), &[]));
@@ -3054,8 +3049,8 @@ impl BitfinexCore {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_350: bool = true;
-            while { if !__for_first_350 { i += 1; } __for_first_350 = false; i < (orders.len() as i64) } {
+            let mut __for_first_352: bool = true;
+            while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (orders.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(orders.clone(), Value::Int(i), &[]));
@@ -3147,8 +3142,8 @@ impl BitfinexCore {
         let mut numericIds: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_351: bool = true;
-            while { if !__for_first_351 { i += 1; } __for_first_351 = false; i < (ids.len() as i64) } {
+            let mut __for_first_353: bool = true;
+            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (ids.len() as i64) } {
             // numericIds[i] = this.parseToNumeric (ids[i]);
             numericIds.push(self.parse_to_numeric(self.safe_string(ids.clone(), Value::Int(i), &[])));
         }
@@ -3218,8 +3213,8 @@ impl BitfinexCore {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_352: bool = true;
-            while { if !__for_first_352 { i += 1; } __for_first_352 = false; i < (orders.len() as i64) } {
+            let mut __for_first_354: bool = true;
+            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (orders.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(orders.clone(), Value::Int(i), &[]));
@@ -3377,8 +3372,8 @@ impl BitfinexCore {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_353: bool = true;
-            while { if !__for_first_353 { i += 1; } __for_first_353 = false; i < (response.len() as i64) } {
+            let mut __for_first_355: bool = true;
+            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (response.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
@@ -3488,8 +3483,8 @@ impl BitfinexCore {
         let mut ordersList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_354: bool = true;
-            while { if !__for_first_354 { i += 1; } __for_first_354 = false; i < (response.len() as i64) } {
+            let mut __for_first_356: bool = true;
+            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (response.len() as i64) } {
             ordersList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
@@ -3543,8 +3538,8 @@ impl BitfinexCore {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_355: bool = true;
-            while { if !__for_first_355 { i += 1; } __for_first_355 = false; i < (rawTrades.len() as i64) } {
+            let mut __for_first_357: bool = true;
+            while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (rawTrades.len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(rawTrades.clone(), Value::Int(i), &[]));
@@ -3605,8 +3600,8 @@ impl BitfinexCore {
         let mut tradesList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_356: bool = true;
-            while { if !__for_first_356 { i += 1; } __for_first_356 = false; i < (response.len() as i64) } {
+            let mut __for_first_358: bool = true;
+            while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (response.len() as i64) } {
             tradesList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
@@ -3996,8 +3991,8 @@ impl BitfinexCore {
         let mut takerFeeDeriv: Value = self.safe_number(takerData, Value::Int(5), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_357: bool = true;
-            while { if !__for_first_357 { i += 1; } __for_first_357 = false; i < (self.symbols.len() as i64) } {
+            let mut __for_first_359: bool = true;
+            while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (self.symbols.len() as i64) } {
             let mut symbol: Value = self.safe_string(self.symbols.clone(), Value::Int(i), &[Value::Str("".into())]);
             let mut market: Value = self.market(symbol.clone());
             let mut fee: indexmap::IndexMap<String, Value> = ({
@@ -4244,8 +4239,8 @@ impl BitfinexCore {
         let mut positionsList: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_358: bool = true;
-            while { if !__for_first_358 { i += 1; } __for_first_358 = false; i < (rawPositions.len() as i64) } {
+            let mut __for_first_360: bool = true;
+            while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (rawPositions.len() as i64) } {
             positionsList.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(rawPositions.clone(), Value::Int(i), &[]));
@@ -4581,8 +4576,8 @@ impl BitfinexCore {
         let mut ledgerObjects: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_359: bool = true;
-            while { if !__for_first_359 { i += 1; } __for_first_359 = false; i < (response.len() as i64) } {
+            let mut __for_first_361: bool = true;
+            while { if !__for_first_361 { i += 1; } __for_first_361 = false; i < (response.len() as i64) } {
             ledgerObjects.push(Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("result".to_string(), self.safe_list(response.clone(), Value::Int(i), &[]));
@@ -4710,8 +4705,8 @@ impl BitfinexCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_360: bool = true;
-            while { if !__for_first_360 { i += 1; } __for_first_360 = false; i < (rawRatesData.len() as i64) } {
+            let mut __for_first_362: bool = true;
+            while { if !__for_first_362 { i += 1; } __for_first_362 = false; i < (rawRatesData.len() as i64) } {
             let mut fr: Value = rawRatesData.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut rate: Value = self.parse_funding_rate_history(fr, &[market.clone()]);
             rates.push(rate);
@@ -4722,8 +4717,8 @@ impl BitfinexCore {
         let mut ratesLength: Value = Value::Int(rawRates.len() as i64);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_361: bool = true;
-            while { if !__for_first_361 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_361 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_363: bool = true;
+            while { if !__for_first_363 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_363 = false; i.as_f64().unwrap_or(f64::NAN) < ratesLength.as_f64().unwrap_or(f64::NAN) } {
             let mut index: Value = (match (&((match (&(ratesLength), &(i)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null })),
                 &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
             let mut valueAtIndex: Value = get_value(&rawRates, &index);

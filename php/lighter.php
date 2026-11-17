@@ -581,7 +581,12 @@ class lighter extends Exchange {
             'api_key_index' => $this->parse_to_int($apiKeyIndex),
             'account_index' => $this->parse_to_int($accountIndex),
         );
-        $token = $this->lighter_create_auth_token($this->safe_value($cachedAuth, 'signer'), $request);
+        $signer = $this->safe_value($cachedAuth, 'signer');
+        if ($signer === null) {
+            $this->check_required_credentials();
+            throw new AuthenticationError($this->id . ' could not load the signer, set options["libraryPath"] to the lighter signing library. Please check for more details => https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt');
+        }
+        $token = $this->lighter_create_auth_token($signer, $request);
         $this->set_auth_entry($accountIndex, $apiKeyIndex, array( 'deadline' => $deadline, 'token' => $token ));
         return $token;
     }

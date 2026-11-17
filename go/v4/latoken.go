@@ -1071,6 +1071,16 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 	}
 	var last *string = this.SafeString(ticker, "lastPrice")
 	var timestamp any = this.SafeIntegerOmitZero(ticker, "updateTimestamp") // sometimes latoken provided '0' ts from /ticker endpoint
+	// during venue incidents a deleted level leaks a signed aggregate into the
+	// best sizes - the quoted prices stay usable, so only negatives are dropped
+	var bidVolume *string = this.SafeString(ticker, "bestBidQuantity")
+	if (bidVolume != nil) && Precise.StringLt(bidVolume, "0") {
+		bidVolume = nil
+	}
+	var askVolume *string = this.SafeString(ticker, "bestAskQuantity")
+	if (askVolume != nil) && Precise.StringLt(askVolume, "0") {
+		askVolume = nil
+	}
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
 		"timestamp":     timestamp,
@@ -1078,9 +1088,9 @@ func (this *Latoken) ParseTicker(ticker any, optionalArgs ...any) Ticker {
 		"low":           nil,
 		"high":          nil,
 		"bid":           this.SafeString(ticker, "bestBid"),
-		"bidVolume":     this.SafeString(ticker, "bestBidQuantity"),
+		"bidVolume":     bidVolume,
 		"ask":           this.SafeString(ticker, "bestAsk"),
-		"askVolume":     this.SafeString(ticker, "bestAskQuantity"),
+		"askVolume":     askVolume,
 		"vwap":          nil,
 		"open":          nil,
 		"close":         last,

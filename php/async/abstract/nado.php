@@ -17,7 +17,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function gateway_public_get_query($params = array()) {
-        return $this->request('query', array('gateway', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('query', array('gateway', 'public'), 'GET', $params, array("cost" => 2, "byType" => array("status" => 1, "contracts" => 1, "order" => 1, "subaccount_orders" => 2, "subaccount_info" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -29,7 +29,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function gateway_public_post_query($params = array()) {
-        return $this->request('query', array('gateway', 'public'), 'POST', $params, array("cost" => 1));
+        return $this->request('query', array('gateway', 'public'), 'POST', $params, array("cost" => 2, "byType" => array("status" => 1, "contracts" => 1, "order" => 1, "subaccount_orders" => 2, "subaccount_info" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -53,7 +53,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function gatewayv2_public_get_pairs($params = array()) {
-        return $this->request('pairs', array('gatewayV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('pairs', array('gatewayV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -65,31 +65,31 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archive_post($params = array()) {
-        return $this->request('', array('archive'), 'POST', $params, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, array("cost" => 2, "byQuery" => array("candlesticks" => [2, 100], "events" => [2, 10], "matches" => [2, 10], "orders" => [2, 20], "interest_and_funding" => [5])));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archivev2_public_get_tickers($params = array()) {
-        return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archivev2_public_get_contracts($params = array()) {
-        return $this->request('contracts', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('contracts', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function archivev2_public_get_trades($params = array()) {
-        return $this->request('trades', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('trades', array('archiveV2', 'public'), 'GET', $params, array("cost" => 4, "byRows" => [2, 50]));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archivev2_public_get_symbols($params = array()) {
-        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -113,7 +113,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function gatewayPublicGetQuery($params = array()) {
-        return $this->request('query', array('gateway', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('query', array('gateway', 'public'), 'GET', $params, array("cost" => 2, "byType" => array("status" => 1, "contracts" => 1, "order" => 1, "subaccount_orders" => 2, "subaccount_info" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -125,7 +125,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function gatewayPublicPostQuery($params = array()) {
-        return $this->request('query', array('gateway', 'public'), 'POST', $params, array("cost" => 1));
+        return $this->request('query', array('gateway', 'public'), 'POST', $params, array("cost" => 2, "byType" => array("status" => 1, "contracts" => 1, "order" => 1, "subaccount_orders" => 2, "subaccount_info" => 2)));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -149,7 +149,7 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function gatewayV2PublicGetPairs($params = array()) {
-        return $this->request('pairs', array('gatewayV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('pairs', array('gatewayV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -161,31 +161,31 @@ abstract class nado extends \ccxt\async\Exchange {
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archivePost($params = array()) {
-        return $this->request('', array('archive'), 'POST', $params, array("cost" => 1));
+        return $this->request('', array('archive'), 'POST', $params, array("cost" => 2, "byQuery" => array("candlesticks" => [2, 100], "events" => [2, 10], "matches" => [2, 10], "orders" => [2, 20], "interest_and_funding" => [5])));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archiveV2PublicGetTickers($params = array()) {
-        return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('tickers', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archiveV2PublicGetContracts($params = array()) {
-        return $this->request('contracts', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('contracts', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
     public function archiveV2PublicGetTrades($params = array()) {
-        return $this->request('trades', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('trades', array('archiveV2', 'public'), 'GET', $params, array("cost" => 4, "byRows" => [2, 50]));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
     public function archiveV2PublicGetSymbols($params = array()) {
-        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, array("cost" => 1));
+        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, array("cost" => 2));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

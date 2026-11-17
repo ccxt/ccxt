@@ -1526,8 +1526,8 @@ if _try_result.is_err() {
         let mut spotBalances: Value = self.safe_list_k(data.clone(), "spot_balances", &[Value::from(vec![])]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1042: bool = true;
-            while { if !__for_first_1042 { i += 1; } __for_first_1042 = false; i < (spotBalances.len() as i64) } {
+            let mut __for_first_1045: bool = true;
+            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (spotBalances.len() as i64) } {
             let mut balance: Value = self.safe_dict(spotBalances.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balance.clone(), "symbol", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1705,8 +1705,8 @@ if _try_result.is_err() {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1043: bool = true;
-            while { if !__for_first_1043 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1043 = false; i.as_f64().unwrap_or(f64::NAN) < settingsLen } {
+            let mut __for_first_1046: bool = true;
+            while { if !__for_first_1046 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1046 = false; i.as_f64().unwrap_or(f64::NAN) < settingsLen } {
             let mut setting: Value = settings.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(setting.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null)]);
@@ -2004,9 +2004,6 @@ if _try_result.is_err() {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        if (since == Value::Null) {
-            panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" fetchOHLCV() requires a \"since\" argument".into()))));
-        }
         let mut defaultMaxLimit: Value = Value::Int(3950); // 4000 by docs, but in fact >~3960 returns error
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
@@ -2018,29 +2015,37 @@ if _try_result.is_err() {
         if paginate.as_bool() == Some(true) {
             return self.fetch_paginated_call_deterministic(Value::Str("fetchOHLCV".into()), &[symbol, since.clone(), limit.clone(), timeframe.clone(), paramsPaginate.clone(), defaultMaxLimit.clone()]).await;
         }
+        let mut limitValue: Value = (if (limit == Value::Null) { defaultMaxLimit } else { limit.clone() });
         let mut tf: Value = self.safe_string(self.timeframes.clone(), timeframe.clone(), &[timeframe.clone()]);
+        let mut nowMs: Value = self.milliseconds();
+        let mut duration: Value = (match (&(self.parse_timeframe(tf.clone())), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
-                m.insert("interval".to_string(), tf.clone());
-                m.insert("start_time".to_string(), since.clone());
+                m.insert("interval".to_string(), tf);
             m
         });
+        let mut sinceValue: Value = since.clone();
         let requestUntilparamsUntilVariable: Vec<Value> = self.handle_until_option(Value::Str("end_time".into()), Value::Map(request), paramsPaginate, &[]).as_array().cloned().unwrap_or_default();
         let mut requestUntil: Value = requestUntilparamsUntilVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsUntil: Value = requestUntilparamsUntilVariable.get(1).cloned().unwrap_or(Value::Null);
-        let mut nowMillis: Value = self.milliseconds();
-        let mut requestedUntil: Option<i64> = self.safe_integer_k(requestUntil.clone(), "end_time", &[]).as_i64();
-        if (requestedUntil.is_none()) {
-            let mut durationMillis: Value = (match (&(self.parse_timeframe(tf)), &(Value::Int(1000))) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null });
-            let mut candleCount: Value = (if (limit == Value::Null) { defaultMaxLimit } else { limit.clone() });
-            if (since != Value::Null) {
-                let mut windowEnd: Value = self.parse_to_int(self.sum(&[(match (&(since), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
-                    _ => Value::Null }), (match (&(candleCount), &(durationMillis)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
-                let mut until: Value = (if (windowEnd.as_f64().unwrap_or(f64::NAN) > nowMillis.as_f64().unwrap_or(f64::NAN)) { nowMillis } else { windowEnd });
-                if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_time".into(), until); }
+        if (self.safe_integer_k(requestUntil.clone(), "end_time", &[]) == Value::Null) {
+            if (sinceValue == Value::Null) {
+                sinceValue = (match (&(nowMs), &((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y),
+                    _ => Value::Null }))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y), _ => Value::Null });
+            }
+            let mut windowEnd: Value = self.parse_to_int(self.sum(&[(match (&(sinceValue), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x - y),
+                _ => Value::Null }), (match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null })]));
+            let mut until: Value = (if (windowEnd.as_f64().unwrap_or(f64::NAN) > nowMs.as_f64().unwrap_or(f64::NAN)) { nowMs } else { windowEnd });
+            if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("end_time".into(), until); }
+        }  else {
+            if (sinceValue == Value::Null) {
+                sinceValue = (match (&(requestUntil.as_map().and_then(|__m| __m.get("end_time")).cloned().unwrap_or(Value::Null)), &((match (&(limitValue), &(duration)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64),
+                    (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }))) { (Value::Int(__x), Value::Int(__y)) => Value::Int(__x - __y), (__a, __b) => match ((match __a { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(),
+                    Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), __b.as_f64()) { (Some(__x), Some(__y)) => Value::Float(__x - __y), _ => Value::Null } });
             }
         }
+        if let Value::Dict(__d) = &mut requestUntil { std::sync::Arc::make_mut(__d).insert("start_time".into(), sinceValue); }
         let __ws_arg_5 = self.extend(requestUntil, &[paramsUntil]);
         let mut response: Value = self.public_get_kline(&[__ws_arg_5]).await;
         //
@@ -2575,8 +2580,8 @@ if _try_result.is_err() {
         let mut timestamp: Value = self.milliseconds(); // unified sequence
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1044: bool = true;
-            while { if !__for_first_1044 { i += 1; } __for_first_1044 = false; i < (orders.len() as i64) } {
+            let mut __for_first_1047: bool = true;
+            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (orders.len() as i64) } {
             let mut order: Value = self.safe_dict(orders.clone(), Value::Int(i), &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(order.clone(), "symbol", &[]);
             let mut side: Option<String> = self.safe_string_k_opt(order.clone(), "side", &[]);
@@ -2655,8 +2660,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1045: bool = true;
-            while { if !__for_first_1045 { i += 1; } __for_first_1045 = false; i < (results.len() as i64) } {
+            let mut __for_first_1048: bool = true;
+            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (results.len() as i64) } {
             let mut order: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k_opt(order.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -2737,8 +2742,8 @@ if _try_result.is_err() {
         let mut ordersToReturn: Value = Value::from(vec![]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1046: bool = true;
-            while { if !__for_first_1046 { i += 1; } __for_first_1046 = false; i < (results.len() as i64) } {
+            let mut __for_first_1049: bool = true;
+            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (results.len() as i64) } {
             let mut order: Value = results.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut error: Option<String> = self.safe_string_k(order.clone(), "error", &[]).as_str().map(str::to_owned);
             let mut success: bool = self.safe_bool_k_opt(order.clone(), "success", &[Value::Bool(false)]).unwrap_or(false);
@@ -2771,8 +2776,8 @@ if _try_result.is_err() {
         let mut actions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1047: bool = true;
-            while { if !__for_first_1047 { i += 1; } __for_first_1047 = false; i < (ids.len() as i64) } {
+            let mut __for_first_1050: bool = true;
+            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (ids.len() as i64) } {
             let mut id: Option<String> = self.safe_string_opt(ids.clone(), Value::Int(i), &[]);
             let mut request: Value = self.cancel_order_request(id.map(Value::from).unwrap_or(Value::Null), &[symbol.clone(), params.clone()]);
             let mut action: Value = Value::Map({
@@ -2788,8 +2793,8 @@ if _try_result.is_err() {
         let mut paramsOmitted: Value = self.omit(params, Value::Str("clientOrderIds".into()), &[]);
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1048: bool = true;
-            while { if !__for_first_1048 { i += 1; } __for_first_1048 = false; i < (clientOrderIds.len() as i64) } {
+            let mut __for_first_1051: bool = true;
+            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (clientOrderIds.len() as i64) } {
             let mut cloid: Value = clientOrderIds.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut cloidParams: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
@@ -3125,8 +3130,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1049: bool = true;
-            while { if !__for_first_1049 { i += 1; } __for_first_1049 = false; i < (data.len() as i64) } {
+            let mut __for_first_1052: bool = true;
+            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (data.len() as i64) } {
             let mut entry: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut timestamp: Option<i64> = self.safe_integer_k(entry.clone(), "created_at", &[]).as_i64();
             result.push(Value::Map({
@@ -3194,8 +3199,8 @@ if _try_result.is_err() {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1050: bool = true;
-            while { if !__for_first_1050 { i += 1; } __for_first_1050 = false; i < (data.len() as i64) } {
+            let mut __for_first_1053: bool = true;
+            while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (data.len() as i64) } {
             let mut info: Value = data.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut ticker: Value = self.parse_ticker(info, &[]);
             let mut symbol: Option<String> = self.safe_string_k_opt(ticker.clone(), "symbol", &[]);
@@ -3869,8 +3874,8 @@ if _try_result.is_err() {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1051: bool = true;
-            while { if !__for_first_1051 { i += 1; } __for_first_1051 = false; i < (data.len() as i64) } {
+            let mut __for_first_1054: bool = true;
+            while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (data.len() as i64) } {
             result.push(self.parse_position(data.get(i as usize).cloned().unwrap_or(Value::Null), &[Value::Null]));
         }
         }
@@ -4156,8 +4161,8 @@ if _try_result.is_err() {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1052: bool = true;
-            while { if !__for_first_1052 { i += 1; } __for_first_1052 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1055: bool = true;
+            while { if !__for_first_1055 { i += 1; } __for_first_1055 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), self.parse_trading_fee(data.clone(), &[self.market(symbol)])); }
         }
@@ -5177,8 +5182,8 @@ if _try_result.is_err() {
             let mut sortedKeys: Value = self.sort(keys, &[]);
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1053: bool = true;
-                while { if !__for_first_1053 { i += 1; } __for_first_1053 = false; i < (sortedKeys.len() as i64) } {
+                let mut __for_first_1056: bool = true;
+                while { if !__for_first_1056 { i += 1; } __for_first_1056 = false; i < (sortedKeys.len() as i64) } {
                 let mut key: Value = self.safe_string(sortedKeys.clone(), Value::Int(i), &[Value::Str("".into())]);
                 result.insert(crate::runtime::stringify_param(&key), self.sort_json_keys(get_value(&value, &key)));
             }
@@ -5188,8 +5193,8 @@ if _try_result.is_err() {
             let mut sortedList: Vec<Value> = Vec::new();
             {
                                 let mut i: i64 = 0;
-                let mut __for_first_1054: bool = true;
-                while { if !__for_first_1054 { i += 1; } __for_first_1054 = false; i < (value.len() as i64) } {
+                let mut __for_first_1057: bool = true;
+                while { if !__for_first_1057 { i += 1; } __for_first_1057 = false; i < (value.len() as i64) } {
                 sortedList.push(self.sort_json_keys(value.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)));
             }
             }

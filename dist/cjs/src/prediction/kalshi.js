@@ -559,7 +559,7 @@ class kalshi extends kalshi$1["default"] {
         // resolution: kalshi sets `result` to 'yes'/'no' once the market settles (empty while trading)
         const result = this.safeStringLower(raw, 'result');
         const resolved = (status === 'settled') || ((result !== undefined) && (result !== ''));
-        const endDate = this.safeString(raw, 'expiration_time');
+        const endDate = this.safeString2(raw, 'latest_expiration_time', 'expiration_time');
         const volume = this.safeNumber2(raw, 'volume_fp', 'volume');
         const liquidity = this.safeNumber2(raw, 'liquidity_dollars', 'liquidity');
         const openInt = this.safeNumber2(raw, 'open_interest_fp', 'open_interest');

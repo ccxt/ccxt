@@ -213,12 +213,6 @@ public partial class BaseExchange
 
     public object parseJson(object json)
     {
-        // var jsonString = json.ToString();
-        // if (jsonString.StartsWith("[".ToString()))
-        // {
-        //     return JsonConvert.DeserializeObject<List<dict>>(jsonString);
-        // }
-        // return JsonConvert.DeserializeObject<dict>((string)json);
         return JsonHelper.Deserialize((string)json);
     }
 

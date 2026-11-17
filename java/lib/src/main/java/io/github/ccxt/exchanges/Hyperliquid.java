@@ -5289,7 +5289,7 @@ public class Hyperliquid extends HyperliquidApi
                     hx4NewMap0.put("type", "vaultTransfer");
                     hx4NewMap0.put("vaultAddress", ("0x" + vaultAddress));
                     hx4NewMap0.put("isDeposit", false);
-                    hx4NewMap0.put("usd", amount);
+                    hx4NewMap0.put("usd", this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000")));
                     action = hx4NewMap0;
                 }
                 sig = this.signL1Action(action, nonce, (String) null, (Long) null);

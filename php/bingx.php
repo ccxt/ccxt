@@ -635,6 +635,7 @@ class bingx extends Exchange {
                     '100490' => '\\ccxt\\BadSymbol', // spot trading pair is offline
                     '101481' => '\\ccxt\\DuplicateOrderId',
                     '109201' => '\\ccxt\\DuplicateOrderId',
+                    '104414' => '\\ccxt\\BadRequest', // {"code":104414,"msg":"Invalid parameter","retryable":0}
                     '109400' => '\\ccxt\\BadRequest', // {"code":109400,"msg":"Invalid parameters, err:startTs: ... field is required","data":{}}
                     '109418' => '\\ccxt\\BadSymbol', // trading pair is offline and cannot be ordered through the api
                     '109421' => '\\ccxt\\OrderNotFound',
@@ -699,7 +700,7 @@ class bingx extends Exchange {
                         'triggerPriceType' => array(
                             'last' => true,
                             'mark' => true,
-                            'index' => true,
+                            'index' => false,
                         ),
                         'triggerDirection' => false,
                         'stopLossPrice' => true,
@@ -708,7 +709,7 @@ class bingx extends Exchange {
                             'triggerPriceType' => array(
                                 'last' => true,
                                 'mark' => true,
-                                'index' => true,
+                                'index' => false,
                             ),
                             'price' => true,
                         ),
@@ -1229,7 +1230,9 @@ class bingx extends Exchange {
         $maxLimit = ($this->safe_bool($market, 'inverse', false)) ? 1000 : 1440;
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchOHLCV', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $maxLimit);
+            // klines return up to 1440 candles only for 1m, 1000 for 5m and above
+            $paginationLimit = ($timeframe === '1m') ? $maxLimit : 1000;
+            return $this->fetch_paginated_call_deterministic('fetchOHLCV', $symbol, $since, $limit, $timeframe, $paramsPaginate, $paginationLimit);
         }
         $request = array(
             'symbol' => $market['id'],
@@ -1245,7 +1248,13 @@ class bingx extends Exchange {
         $until = $this->safe_integer_2($paramsPaginate, 'until', 'endTime');
         $paramsUntil = ($until !== null) ? $this->omit($paramsPaginate, array( 'until' )) : $paramsPaginate;
         if ($until !== null) {
-            $request['endTime'] = $until;
+            $endTime = $until;
+            if ($since !== null) {
+                // the exchange aligns the window to endTime, so keep it within limit candles of since
+                $duration = $this->parse_timeframe($timeframe) * 1000;
+                $endTime = min($until, $this->sum($since, $duration * $requestLimit));
+            }
+            $request['endTime'] = $endTime;
         } elseif (($this->safe_bool($market, 'inverse', false)) && ($since !== null)) {
             $duration = $this->parse_timeframe($timeframe) * 1000;
             $request['endTime'] = $this->sum($since, $duration * $requestLimit);
@@ -1553,7 +1562,9 @@ class bingx extends Exchange {
         if ($time === 0) {
             $time = null;
         }
-        $cost = $this->safe_string($trade, 'quoteQty');
+        // Spot execution reports distinguish the last fill from the original order's p/q.
+        $isSpotExecution = ($this->safe_string($trade, 'e') === 'executionReport') && ($this->safe_string($trade, 'x') === 'TRADE');
+        $cost = $isSpotExecution ? $this->safe_string($trade, 'Y') : $this->safe_string($trade, 'quoteQty');
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         $currencyId = $this->safe_string_n($trade, array( 'currency', 'N', 'commissionAsset' ));
         $currencyCode = $this->safe_currency_code($currencyId);
@@ -1580,13 +1591,13 @@ class bingx extends Exchange {
         if ($isMaker !== null) {
             $takeOrMaker = $isMaker ? 'maker' : 'taker';
         }
-        $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
+        $amount = $isSpotExecution ? $this->safe_string($trade, 'l') : $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && ($this->safe_bool($market, 'swap', false)) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
             // Linear volume is the base quantity (contractSize 1); inverse volume is the contract count.
             // safeTrade applies contractSize when calculating inverse cost.
             $amount = $this->safe_string($trade, 'volume');
         }
-        $price = $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
+        $price = $isSpotExecution ? $this->safe_string($trade, 'L') : $this->safe_string_n($trade, array( 'price', 'p', 'tradePrice' ));
         if (($market !== null) && ($this->safe_bool($market, 'linear', false)) && ($this->safe_string($trade, 'x') === 'TRADE')) {
             $lastAmount = $this->safe_string($trade, 'l');
             $lastPrice = $this->safe_string($trade, 'L');
@@ -2141,7 +2152,7 @@ class bingx extends Exchange {
             'symbol' => $market['id'],
         );
         if ($this->safe_bool($market, 'spot', false)) {
-            $response = $this->spotV1PublicGetTicker24hr($this->extend($request, $params));
+            $response = $this->spotV2PublicGetQuoteTicker($this->extend($request, $params));
         } else {
             if ($this->safe_bool($market, 'inverse', false)) {
                 $response = $this->cswapV1PublicGetMarketTicker($this->extend($request, $params));
@@ -2256,7 +2267,7 @@ class bingx extends Exchange {
         list($type, $paramsMarketType) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         list($subType, $paramsSubType) = $this->handle_sub_type_and_params('fetchTickers', $market, $paramsMarketType);
         if ($type === 'spot') {
-            $response = $this->spotV1PublicGetTicker24hr($paramsSubType);
+            $response = $this->spotV2PublicGetQuoteTicker($paramsSubType);
         } else {
             if ($subType === 'inverse') {
                 $response = $this->cswapV1PublicGetMarketTicker($paramsSubType);
@@ -3345,6 +3356,10 @@ class bingx extends Exchange {
             $reduceOnlyParam = $this->safe_bool($paramsTakeProfit, 'reduceOnly', false);
             // stop loss / take profit price orders are always reduce only
             $reduceOnly = $reduceOnlyParam || (!$isTriggerOrder && ($isStopLossPriceOrder || $isTakeProfitPriceOrder));
+            $triggerPriceType = $this->safe_string_2($paramsTakeProfit, 'triggerPriceType', 'workingType');
+            if ($triggerPriceType !== null) {
+                $request['workingType'] = $this->encode_trigger_price_type($triggerPriceType);
+            }
             if ($isTriggerOrder) {
                 $request['stopPrice'] = $this->parse_to_numeric($this->price_to_precision($symbol, $triggerPrice));
                 if ($isMarketOrder || ($typeValue === 'TRIGGER_MARKET')) {
@@ -3388,14 +3403,15 @@ class bingx extends Exchange {
                 $stringifiedAmount = $this->number_to_string($amount);
                 if ($hasStopLoss) {
                     $slTriggerPrice = $this->safe_string_2($stopLossDict, 'triggerPrice', 'stopPrice');
-                    $slWorkingType = $this->safe_string($stopLossDict, 'workingType', 'MARK_PRICE');
-                    $slType = $this->safe_string($stopLossDict, 'type', 'STOP_MARKET');
+                    $slWorkingType = $this->safe_string_2($stopLossDict, 'triggerPriceType', 'workingType', 'MARK_PRICE');
+                    $slPrice = $this->safe_string($stopLossDict, 'price');
+                    $slDefaultType = ($slPrice !== null) ? 'STOP' : 'STOP_MARKET';
+                    $slType = $this->safe_string($stopLossDict, 'type', $slDefaultType);
                     $slRequest = array(
                         'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $slTriggerPrice)),
-                        'workingType' => $slWorkingType,
+                        'workingType' => $this->encode_trigger_price_type($slWorkingType),
                         'type' => $slType,
                     );
-                    $slPrice = $this->safe_string($stopLossDict, 'price');
                     if ($slPrice !== null) {
                         $slRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
                     }
@@ -3409,16 +3425,17 @@ class bingx extends Exchange {
                 }
                 if ($hasTakeProfit) {
                     $tkTriggerPrice = $this->safe_string_2($takeProfitDict, 'triggerPrice', 'stopPrice');
-                    $tkWorkingType = $this->safe_string($takeProfitDict, 'workingType', 'MARK_PRICE');
-                    $tpType = $this->safe_string($takeProfitDict, 'type', 'TAKE_PROFIT_MARKET');
+                    $tkWorkingType = $this->safe_string_2($takeProfitDict, 'triggerPriceType', 'workingType', 'MARK_PRICE');
+                    $tpPrice = $this->safe_string($takeProfitDict, 'price');
+                    $tpDefaultType = ($tpPrice !== null) ? 'TAKE_PROFIT' : 'TAKE_PROFIT_MARKET';
+                    $tpType = $this->safe_string($takeProfitDict, 'type', $tpDefaultType);
                     $tpRequest = array(
                         'stopPrice' => $this->parse_to_numeric($this->price_to_precision($symbol, $tkTriggerPrice)),
-                        'workingType' => $tkWorkingType,
+                        'workingType' => $this->encode_trigger_price_type($tkWorkingType),
                         'type' => $tpType,
                     );
-                    $slPrice = $this->safe_string($takeProfitDict, 'price');
-                    if ($slPrice !== null) {
-                        $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $slPrice));
+                    if ($tpPrice !== null) {
+                        $tpRequest['price'] = $this->parse_to_numeric($this->price_to_precision($symbol, $tpPrice));
                     }
                     $tkQuantity = $this->safe_string($takeProfitDict, 'quantity', $stringifiedAmount);
                     $tkQuantityRequest = $this->parse_to_numeric($tkQuantity);
@@ -3453,8 +3470,16 @@ class bingx extends Exchange {
                 $request['quantity'] = $amountReq; // precision not available for inverse contracts
             }
         }
-        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty' ));
+        $paramsRequest = $this->omit($paramsOrder, array( 'hedged', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'trailingAmount', 'trailingPercent', 'trailingType', 'trailingTriggerPrice', 'activationPrice', 'clientOrderId', 'cost', 'quoteOrderQty', 'triggerPriceType', 'workingType' ));
         return $this->extend($request, $paramsRequest);
+    }
+
+    public function encode_trigger_price_type(?string $triggerPriceType) {
+        $types = array(
+            'last' => 'CONTRACT_PRICE',
+            'mark' => 'MARK_PRICE',
+        );
+        return $this->safe_string($types, $triggerPriceType, $triggerPriceType);
     }
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
@@ -3486,8 +3511,13 @@ class bingx extends Exchange {
          * @param {float} [$params->trailingTriggerPrice] *swap only* the $price to activate a trailing order at
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
+         * @param {float} [$params->takeProfit.price] *swap only* limit $price of the attached take profit order, omit for a $market take profit
+         * @param {string} [$params->takeProfit.triggerPriceType] *swap only* 'mark' or 'last'
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the triggerPrice at which the attached stop loss order will be triggered
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
+         * @param {float} [$params->stopLoss.price] *swap only* limit $price of the attached stop loss order, omit for a $market stop loss
+         * @param {string} [$params->stopLoss.triggerPriceType] *swap only* 'mark' or 'last'
+         * @param {string} [$params->triggerPriceType] *swap only* 'mark' or 'last', the $price that trigger, stop loss and take profit prices are compared against
          * @param {boolean} [$params->test] *linear swap only* whether to use the $test endpoint or not, default is false
          * @param {string} [$params->positionSide] *contracts only* "BOTH" for one way mode, "LONG" for buy $side of hedged mode, "SHORT" for sell $side of hedged mode
          * @param {boolean} [$params->hedged] *swap only* whether the order is in hedged mode or one way mode
@@ -5235,6 +5265,19 @@ class bingx extends Exchange {
         } else {
             $isTwapOrder = $this->safe_bool($paramsStandard, 'twap', false);
             $paramsOmitted = $this->omit($paramsStandard, 'twap');
+            if (!$isTwapOrder) {
+                if ($limit !== null) {
+                    $request['limit'] = min($limit, 1000);
+                }
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                $until = $this->safe_integer($paramsOmitted, 'until');
+                if ($until !== null) {
+                    $request['endTime'] = $until;
+                    $paramsOmitted = $this->omit($paramsOmitted, 'until');
+                }
+            }
             if ($isTwapOrder) {
                 $request['pageIndex'] = 1;
                 $request['pageSize'] = ($limit === null) ? 100 : $limit;
@@ -5936,10 +5979,12 @@ class bingx extends Exchange {
          * Either adds or reduces margin in an isolated position in order to set the margin to a specific value
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Trades%20Endpoints/Modify%20Isolated%20Position%20Margin
+         * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Trades%20Endpoints/Adjust%20Position%20Margin
          *
          * @param {string} $symbol unified $market $symbol of the $market to set margin in
          * @param {float} $amount the $amount to set the margin to
          * @param {array} [$params] parameters specific to the exchange API endpoint
+         * @param {string} [$params->positionSide] "LONG" or "SHORT", required for Coin-M
          * @return {array} A ~@link https://docs.ccxt.com/?id=margin-structure margin structure~
          */
         $type = $this->safe_integer($params, 'type'); // 1 increase margin 2 decrease margin
@@ -5953,12 +5998,26 @@ class bingx extends Exchange {
             $this->load_markets();
         }
         $market = $this->market($symbol);
+        $positionSide = $this->safe_string($params, 'positionSide');
+        if (($market['inverse'] === true) && ($positionSide === null)) {
+            throw new ArgumentsRequired($this->id . ' setMargin() requires a positionSide parameter for Coin-M markets');
+        }
+        $amountString = null;
+        if ($market['inverse'] === true) {
+            $amountString = $this->currency_to_precision($market['settle'], $amount);
+        } else {
+            $amountString = $this->amount_to_precision($market['symbol'], $amount);
+        }
         $request = array(
             'symbol' => $market['id'],
-            'amount' => $this->amount_to_precision($market['symbol'], $amount),
+            'amount' => $amountString,
             'type' => $type,
         );
-        $response = $this->swapV2PrivatePostTradePositionMargin($this->extend($request, $params));
+        if ($market['inverse'] === true) {
+            $response = $this->cswapV1PrivatePostTradePositionMargin($this->extend($request, $params));
+        } else {
+            $response = $this->swapV2PrivatePostTradePositionMargin($this->extend($request, $params));
+        }
         //
         //    {
         //        "code": 0,
@@ -5967,7 +6026,16 @@ class bingx extends Exchange {
         //        "type": 1
         //    }
         //
-        return $this->parse_margin_modification($response, $market);
+        $responseData = $response;
+        if ($market['inverse'] === true) {
+            $responseData = $this->extend(array(
+                'amount' => $amountString,
+                'type' => $type,
+            ), $this->safe_dict($response, 'data', array()));
+        }
+        $result = $this->parse_margin_modification($responseData, $market);
+        $result['info'] = $response;
+        return $result;
     }
 
     public function parse_margin_modification(array $data, ?array $market = null): array {
@@ -6174,7 +6242,7 @@ class bingx extends Exchange {
          * @param {int} [$limit] the maximum number of trades structures to retrieve
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is null
-         * @param {string} $params->trandingUnit COIN (directly represent assets such and ETH) or CONT (represents the number of contract sheets)
+         * @param {string} [$params->tradingUnit] COIN (default, base currency amount) or CONT (number of contract sheets)
          * @param {string} $params->orderId the order id required for inverse swap
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=trade-structure trade structures~
          */
@@ -6281,7 +6349,7 @@ class bingx extends Exchange {
                 //     }
                 //
             } else {
-                $tradingUnit = $this->safe_string_upper($paramsUntil, 'tradingUnit', 'CONT');
+                $tradingUnit = $this->safe_string_upper($paramsUntil, 'tradingUnit', 'COIN');
                 $paramsTrades = $this->omit($paramsUntil, 'tradingUnit');
                 $request['tradingUnit'] = $tradingUnit;
                 $response = $this->swapV2PrivateGetTradeAllFillOrders($this->extend($request, $paramsTrades));
@@ -6341,7 +6409,7 @@ class bingx extends Exchange {
                 );
                 if ($networksLength === 1) {
                     $result['withdraw'] = array(
-                        'fee' => $this->safe_number($network, 'withdrawFee'),
+                        'fee' => $this->safe_number($network, 'fee'),
                         'percentage' => false,
                     );
                 }
@@ -7114,7 +7182,7 @@ class bingx extends Exchange {
             'symbol' => $symbol,
             'maker' => $this->safe_number($fee, 'makerCommissionRate'),
             'taker' => $this->safe_number($fee, 'takerCommissionRate'),
-            'percentage' => false,
+            'percentage' => true,
             'tierBased' => false,
         );
     }

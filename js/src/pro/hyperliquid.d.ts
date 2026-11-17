@@ -342,6 +342,7 @@ export default class hyperliquid extends hyperliquidRest {
     handlePositionsUnsubscription(client: Client, subscription: Dict): void;
     handleSpotBalanceUnsubscription(client: Client, subscription: Dict): void;
     handleSubscriptionResponse(client: Client, message: Dict): void;
+    handleUnsubscription(client: Client, subscription: Dict): void;
     handleMessage(client: Client, message: Dict): void;
     ping(client: Client): Dict;
     handlePong(client: Client, message: Dict): Dict;

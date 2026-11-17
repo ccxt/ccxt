@@ -323,6 +323,7 @@ export default class xt extends Exchange {
      */
     cancelOrders(ids: string[], symbol?: Str, params?: Dict): Promise<Order[]>;
     parseOrder(order: Dict, market?: Market): Order;
+    parseOrderType(type: Str): Str;
     parseOrderStatus(status: Str): Str;
     /**
      * @method

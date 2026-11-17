@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.92'
+__version__ = '4.5.93'
 
 # -----------------------------------------------------------------------------
 
@@ -495,7 +495,8 @@ class BaseExchange(object):
 
     def _ensure_whitelisted_file(self, file_path: str):
         sanitized = os.path.realpath(file_path)
-        if sanitized.startswith(self.get_temp_dir()) and sanitized.endswith('.ccxtfile'):
+        exts = ['ccxtfile', 'pem', 'wasm']
+        if any(sanitized.endswith('.' + ext) for ext in exts):
             return
         raise ValueError(f'invalid file path: {file_path}')
 
@@ -1670,7 +1671,7 @@ class BaseExchange(object):
 
     @staticmethod
     def packb(o):
-        from ccxt.static_dependencies.msgpack import packb
+        from ccxt.base.msgpack import packb
         return packb(o)
 
     @staticmethod

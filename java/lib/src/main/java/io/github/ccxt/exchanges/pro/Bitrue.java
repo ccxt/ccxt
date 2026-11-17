@@ -45,6 +45,8 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
                 put( "watchOrders", true );
                 put( "watchOrderBook", true );
                 put( "watchOHLCV", true );
+                put( "unWatchTrades", true );
+                put( "unWatchOHLCV", true );
             }} );
             put( "urls", new HashMap<String, Object>() {{
                 put( "api", new HashMap<String, Object>() {{
@@ -499,6 +501,9 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     public Object findSwapMarketByWsBaseQuote(String wsBaseQuote)
     {
+        // typed Str, not string: callers pass safeStringLower's result, a *string in go,
+        // and only a nullable type makes the go transpiler compare with ccxt.IsEqual (which
+        // dereferences it) instead of a plain == that never matches, leaving every swap frame unparsed
         if (java.util.Objects.equals(this.markets, null))
         {
             return null;
@@ -561,6 +566,50 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
     }
 
     /**
+     * @ignore
+     * @method
+     * @description sends an unsubscribe request and drops the subscription and its cache
+     * @param {string} subHash the messageHash the watch method subscribed with
+     * @param {string} channel the channel the watch method subscribed to
+     * @param {string} cbId the cb_id the watch method subscribed with
+     * @param {object} subscription the cache to clean, see cleanCache
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true
+     */
+    public CompletableFuture<Object> unSubscribe(String subHash, String channel, String cbId, Map<String, Object> subscription, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            String url = (String) ((Map<String, Object>)((Map<String, Object>)this.urls.get("api")).get("ws")).get("futurePublic");
+            Client client = this.client(url);
+            if (client.subscriptions.containsKey(subHash))
+            {
+                Map<String, Object> request = new HashMap<String, Object>() {{
+                    put( "event", "unsub" );
+                    put( "params", new HashMap<String, Object>() {{
+                        put( "cb_id", cbId );
+                        put( "channel", channel );
+                    }} );
+                }};
+                try
+                {
+                    (client.send(this.deepExtend(request, parameters))).join();
+                } catch(Exception e)
+                {
+                    throw new NetworkError((((this.id + " could not unsubscribe ") + subHash) + ", the websocket connection is not open")) ;
+                }
+            }
+            // bitrue does not acknowledge an unsubscribe, it just stops streaming the channel,
+            // so the subscription is cleaned up as soon as the request is sent
+            this.cleanCache(subscription);
+            this.cleanUnsubscription(client, (String) (subHash), ("unsubscribe:" + subHash), false);
+            return true;
+        });
+
+    }
+
+    /**
      * @method
      * @name bitrue#watchTrades
      * @description watches public trades for a swap (futures) market
@@ -612,6 +661,43 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
+    /**
+     * @method
+     * @name bitrue#unWatchTrades
+     * @description unWatches public trades for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch trades for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    public CompletableFuture<Object> unWatchTrades(String symbol, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
+            {
+                throw new NotSupported((this.id + " unWatchTrades is only supported for swap markets")) ;
+            }
+            String baseIdLower = this.safeStringLower(market, "baseId");
+            String quoteIdLower = this.safeStringLower(market, "quoteId");
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
+            String channel = (("market_" + wsId) + "_trade_ticker");
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "trades" );
+                put( "symbols", new ArrayList<Object>(Arrays.asList(symbolValue)) );
+            }};
+            return (this.unSubscribe(("trades:" + symbolValue), channel, wsId, subscription, parameters)).join();
+        });
+
+    }
+
     public void handleTrades(Client client, Map<String, Object> message)
     {
         //
@@ -643,6 +729,13 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
+        String messageHash = ("trades:" + symbol);
+        if (!(client.subscriptions.containsKey(messageHash)))
+        {
+            // a late push for a channel that was unwatched - bitrue does not acknowledge
+            // an unsubscribe, so frames it sent before processing it can still arrive
+            return;
+        }
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", new HashMap<String, Object>() {{}});
         List<Object> data = (List<Object>) this.safeList(tick, "data", new ArrayList<Object>(Arrays.asList()));
         Boolean appended = false;
@@ -661,7 +754,6 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         if (Boolean.TRUE.equals(appended))
         {
-            String messageHash = ("trades:" + symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -749,6 +841,50 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
 
     }
 
+    /**
+     * @method
+     * @name bitrue#unWatchOHLCV
+     * @description unWatches OHLCV candles for a swap (futures) market
+     * @see https://www.bitrue.com/api_docs_includes_file/futures/index.html#websocket-market-data
+     * @param {string} symbol unified symbol of the market to unwatch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {boolean} true once the unsubscribe request has been sent (bitrue does not acknowledge it)
+     */
+    public CompletableFuture<Object> unWatchOHLCV(String symbol, String timeframe, Map<String, Object> parameters)
+    {
+
+        return BaseExchange.supplyAsync(() -> {
+
+            if (java.util.Objects.equals(this.markets, null))
+            {
+                (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
+            }
+            Map<String, Object> market = this.market(symbol);
+            String symbolValue = (String) market.get("symbol");
+            if (!java.util.Objects.equals(market.get("swap"), true))
+            {
+                throw new NotSupported((this.id + " unWatchOHLCV is only supported for swap markets")) ;
+            }
+            Map<String, Object> futuresTimeframes = (Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new HashMap<String, Object>() {{}});
+            String interval = this.safeString(futuresTimeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            if (java.util.Objects.equals(interval, null))
+            {
+                throw new NotSupported(((this.id + " unWatchOHLCV does not support timeframe ") + java.util.Objects.requireNonNullElse(timeframe, "1m"))) ;
+            }
+            String baseIdLower = this.safeStringLower(market, "baseId");
+            String quoteIdLower = this.safeStringLower(market, "quoteId");
+            String wsId = (("e_" + baseIdLower) + quoteIdLower);
+            String channel = ((("market_" + wsId) + "_kline_") + interval);
+            Map<String, Object> subscription = new HashMap<String, Object>() {{
+                put( "topic", "ohlcv" );
+                put( "symbolsAndTimeframes", new ArrayList<Object>(Arrays.asList(new ArrayList<Object>(Arrays.asList(symbolValue, java.util.Objects.requireNonNullElse(timeframe, "1m"))))) );
+            }};
+            return (this.unSubscribe(((("ohlcv:" + symbolValue) + ":") + java.util.Objects.requireNonNullElse(timeframe, "1m")), channel, wsId, subscription, parameters)).join();
+        });
+
+    }
+
     public void handleOHLCV(Client client, Map<String, Object> message)
     {
         //
@@ -785,6 +921,12 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
+        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
+        if (!(client.subscriptions.containsKey(messageHash)))
+        {
+            // a late push for a channel that was unwatched, see handleTrades
+            return;
+        }
         Map<String, Object> tick = (Map<String, Object>) this.safeDict(message, "tick", (Object) null);
         if (java.util.Objects.equals(tick, null))
         {
@@ -802,7 +944,6 @@ public class Bitrue extends io.github.ccxt.exchanges.Bitrue
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) ((Map<?, ?>)this.ohlcvs.get(symbol)).get(timeframe);
         stored.append(parsed);
-        String messageHash = ((("ohlcv:" + symbol) + ":") + timeframe);
         client.resolve(stored, messageHash);
     }
 

@@ -2529,7 +2529,9 @@ func awaitOutcome(task any) (any, error) {
 		return typedTask.Value, typedTask.Err
 	}
 	if outcome, ok := receiveOutcome(task); ok && outcome != nil {
-		return outcome.Untyped(), outcome.Failure()
+		// promiseAll results are read by untyped (TS-shaped) code — SafeList, ArrayConcat — which
+		// does not recognise typed struct lists such as []MarketInterface, so box them as []any
+		return DynamicValue(outcome.Untyped()), outcome.Failure()
 	}
 	return nil, nil
 }

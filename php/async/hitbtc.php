@@ -2892,7 +2892,7 @@ class hitbtc extends Exchange {
         $response = Async\await($this->privatePostWalletTransfer($this->extend($request, $params)));
         //
         //     [
-        //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
+        //         "2db6ebab-fb26-4537-9ef8-1a689472d235"
         //     ]
         //
         return $this->parse_transfer($response, $currency);
@@ -3100,7 +3100,7 @@ class hitbtc extends Exchange {
         }
         list($paginate, $paramsPaginate) = $this->handle_option_bool_and_params($params, 'fetchFundingRateHistory', 'paginate', false);
         if ($paginate) {
-            return Async\await($this->fetch_paginated_call_deterministic('fetchFundingRateHistory', $symbol, $since, $limit, '8h', $paramsPaginate, 1000));
+            return Async\await($this->fetch_paginated_call_dynamic('fetchFundingRateHistory', $symbol, $since, $limit, $paramsPaginate, 1000));
         }
         $market = null;
         $request = array(
@@ -3108,11 +3108,11 @@ class hitbtc extends Exchange {
             // 'symbols': Comma separated list of symbol codes,
             // 'sort': 'DESC' or 'ASC'
             // 'from': 'Datetime or Number',
-            // 'until': 'Datetime or Number',
+            // 'till': 'Datetime or Number',
             // 'limit': 100,
             // 'offset': 0,
         );
-        list($requestUntil, $paramsUntil) = $this->handle_until_option('until', $request, $paramsPaginate);
+        list($requestUntil, $paramsUntil) = $this->handle_until_option('till', $request, $paramsPaginate);
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $requestUntil['symbols'] = $market['id'];

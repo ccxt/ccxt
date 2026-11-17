@@ -1530,8 +1530,8 @@ impl CoinbaseinternationalCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_557: bool = true;
-            while { if !__for_first_557 { i += 1; } __for_first_557 = false; i < (rawNetworks.len() as i64) } {
+            let mut __for_first_559: bool = true;
+            while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (rawNetworks.len() as i64) } {
             let mut rawNetwork: Value = rawNetworks.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "resource_name", &[]);
             let mut network: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -1904,8 +1904,8 @@ impl CoinbaseinternationalCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_558: bool = true;
-            while { if !__for_first_558 { i += 1; } __for_first_558 = false; i < (symbolsResolved.len() as i64) } {
+            let mut __for_first_560: bool = true;
+            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (symbolsResolved.len() as i64) } {
             let mut symbol: Option<String> = self.safe_string_opt(symbolsResolved.clone(), Value::Int(i), &[]);
             if (symbol.is_none()) {
                 continue;
@@ -2092,8 +2092,8 @@ impl CoinbaseinternationalCore {
                 }
                 {
                                         let mut i: i64 = 0;
-                    let mut __for_first_559: bool = true;
-                    while { if !__for_first_559 { i += 1; } __for_first_559 = false; i < (depths.len() as i64) } {
+                    let mut __for_first_561: bool = true;
+                    while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (depths.len() as i64) } {
                     if limit.as_f64().unwrap_or(f64::NAN) <= self.parse_to_int(depths.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_f64().unwrap_or(f64::NAN) {
                         request.insert("depth".into(), self.safe_integer(depths.clone(), Value::Int(i), &[Value::Int(0)]));
                         break;
@@ -2470,8 +2470,8 @@ impl CoinbaseinternationalCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_560: bool = true;
-            while { if !__for_first_560 { i += 1; } __for_first_560 = false; i < (summaries.len() as i64) } {
+            let mut __for_first_562: bool = true;
+            while { if !__for_first_562 { i += 1; } __for_first_562 = false; i < (summaries.len() as i64) } {
             let mut data: Value = self.safe_dict(summaries.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(data.clone(), "currency", &[]);
             let mut currencyCode: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2753,29 +2753,32 @@ impl CoinbaseinternationalCore {
         //
         let mut instrumentName: Option<String> = self.safe_string_k_opt(position.clone(), "instrument_name", &[]);
         let mut marketResolved: Value = self.safe_market(&[instrumentName.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut side: Value = self.safe_string_k(position.clone(), "direction", &[]);
-        if (side.as_str() == Some("buy")) {
+        let mut direction: Option<String> = self.safe_string_k(position.clone(), "direction", &[]).as_str().map(str::to_owned);
+        let mut side: Value = Value::Null;
+        if (direction.as_deref() == Some("buy")) {
             side = Value::Str("long".into());
-        }  else if (side.as_str() == Some("sell")) {
+        }  else if (direction.as_deref() == Some("sell")) {
             side = Value::Str("short".into());
         }
-        let mut notional: Value = self.safe_string_k(position.clone(), "size_currency", &[]);
         let mut initialMargin: Option<String> = self.safe_string_k_opt(position.clone(), "initial_margin", &[]);
         let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(position.clone(), "maintenance_margin", &[]);
-        let mut contracts: Value = self.safe_number_k(position.clone(), "size", &[]);
-        if self.is_native_deribit_credentials().as_bool() == Some(true) {
-            let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
-            if !matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
-                notional = size.clone().map(Value::from).unwrap_or(Value::Null);
-                if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
-                    size = self.safe_string_k_opt(position.clone(), "size_currency", &[]);
-                }
-            }  else {
-                notional = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(position.clone(), "mark_price", &[]));
-            }
-            let mut contractsString: Value = self.safe_string_k(position.clone(), "contracts", &[crate::precise::Precise::stringDiv(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string(marketResolved.clone(), Value::Str("contractSize".into()), &[]))]);
-            contracts = self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]);
+        // size is in the quote currency for futures (USD for inverse, USDC for linear) and in the base currency for options
+        // size_currency is in the base currency, futures only
+        // contractSize is in USD for inverse futures and in the base currency otherwise
+        let mut size: Option<String> = self.safe_string_k_opt(position.clone(), "size", &[]);
+        let mut amount: Value = size.clone().map(Value::from).unwrap_or(Value::Null); // `contract_size` converts between `amount` and `contracts`
+        let mut notional: Value = Value::Null;
+        if matches!(self.safe_bool_k(marketResolved.clone(), "option", &[Value::Bool(false)]), Value::Bool(true)) {
+            // For options, "size" is the base currency (e.g. BTC) instead of quote currency
+            notional = crate::precise::Precise::stringMul(&size.clone().map(Value::from).unwrap_or(Value::Null), &self.safe_string_k(position.clone(), "mark_price", &[]));
+        }  else if matches!(self.safe_bool_k(marketResolved.clone(), "linear", &[Value::Bool(false)]), Value::Bool(true)) {
+            amount = self.safe_string_k(position.clone(), "size_currency", &[]); // The size of the position in terms of base currency (e.g. BTC for BTC/USDC:USDC)
+            notional = size.map(Value::from).unwrap_or(Value::Null);
+        }  else {
+            // Inverse markets in Coinbase all settle in the base currency (per Coinbase's get_instruments), so size_currency is already the notional
+            notional = self.safe_string_k(position.clone(), "size_currency", &[]);
         }
+        let mut contractsString: Value = crate::precise::Precise::stringDiv(&amount, &self.safe_string_k(marketResolved.clone(), "contractSize", &[]));
         return self.safe_position(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), position.clone());
@@ -2787,7 +2790,7 @@ impl CoinbaseinternationalCore {
         m.insert("collateral".to_string(), Value::Null);
         m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "floating_profit_loss", &[]));
         m.insert("side".to_string(), side);
-        m.insert("contracts".to_string(), contracts);
+        m.insert("contracts".to_string(), self.parse_number(crate::precise::Precise::stringAbs(&contractsString), &[]));
         m.insert("contractSize".to_string(), self.safe_number_k(marketResolved, "contractSize", &[]));
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
@@ -2979,8 +2982,8 @@ impl CoinbaseinternationalCore {
         let mut transactions: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_561: bool = true;
-            while { if !__for_first_561 { i += 1; } __for_first_561 = false; i < (logs.len() as i64) } {
+            let mut __for_first_563: bool = true;
+            while { if !__for_first_563 { i += 1; } __for_first_563 = false; i < (logs.len() as i64) } {
             let mut transaction: Value = logs.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut transactionType: Option<String> = self.safe_string_k(transaction.clone(), "type", &[]).as_str().map(str::to_owned);
             if (transactionType.as_deref() == Some("deposit")) || (transactionType.as_deref() == Some("withdrawal")) {

@@ -97,7 +97,7 @@ func (this *Xt) getListenKeyBody(ch chan ccxt.AsyncResult[*string], isContract a
 	if ccxt.EvalTruthy(isContract) {
 		tradeType = "contract"
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url any
 	if derefPtr := this.SafeString(apiUrls, tradeType); derefPtr != nil {
 		url = *derefPtr
@@ -349,7 +349,7 @@ func (this *Xt) subscribeBody(ch chan ccxt.AsyncResult[any], name string, access
 	var subscription map[string]any = map[string]any{
 		"id": id,
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 
 	r2 := <-this.Watch(url, messageHash, request, messageHash, subscription)
@@ -442,7 +442,7 @@ func (this *Xt) unSubscribeBody(ch chan ccxt.AsyncResult[bool], messageHash stri
 			return "market"
 		}()
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url string = *this.SafeString(apiUrls, tradeType, "") + "/" + tail
 	var subscription map[string]any = map[string]any{
 		"unsubscribe":      true,
@@ -1147,7 +1147,7 @@ func (this *Xt) watchPositionsBody(ch chan ccxt.AsyncResult[[]ccxt.Position], op
 			panic(r.Err)
 		}
 	}
-	var apiUrls map[string]any = ccxt.SafeMapTyped(this.Urls, "api")
+	var apiUrls map[string]any = ccxt.SafeMapTyped(this.SafeDict(this.Urls, "api", map[string]any{}), "ws")
 	var url string = *this.SafeString(apiUrls, "contract", "") + "/" + "user"
 	var client ccxt.ClientInterface = this.Client(url)
 	this.SetPositionsCache(client)
@@ -2156,6 +2156,11 @@ func (this *Xt) HandleMyTrades(client any, message map[string]any) {
 		tradeType = "contract"
 	}
 	client.(ccxt.ClientInterface).Resolve(stored, "trade::"+tradeType)
+}
+func (this *Xt) HandleTextMessage(client any, message any) {
+	if ccxt.IsEqual(message, "pong") {
+		client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
+	}
 }
 func (this *Xt) HandleMessage(client any, message map[string]any) {
 	var event *string = this.SafeString(message, "event")

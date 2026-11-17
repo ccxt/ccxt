@@ -35,9 +35,9 @@ cargo add ccxt-prediction
 
 ```toml
 [dependencies]
-ccxt = "4.5.75"                 # REST exchanges (typed) — required
-ccxt-pro = "4.5.75"             # WebSocket (watch*) exchanges — only if you stream
-ccxt-prediction = "4.5.75"      # prediction markets — only if you trade them
+ccxt = "4.5.93"                 # REST exchanges (typed) — required
+ccxt-pro = "4.5.93"             # WebSocket (watch*) exchanges — only if you stream
+ccxt-prediction = "4.5.93"      # prediction markets — only if you trade them
 tokio = { version = "1", features = ["full"] }
 ```
 
@@ -353,6 +353,15 @@ for c in &candles {
 }
 ```
 
+For long history, let CCXT page through it (rate-limited) instead of looping on `since` yourself:
+
+```rust
+let history = exchange
+    .fetch_ohlcv("BTC/USDT", Some("1d"), Some(1_704_067_200_000), None,
+        Params::new().with_bool("paginate", true).with_int("paginationCalls", 20))
+    .await?;
+```
+
 ### Fetching trades
 
 ```rust
@@ -594,7 +603,7 @@ on top of those in `ccxt-pro`. Anything outside that list is still reachable unt
 - `fetch_balance(params)` 🔒
 - `fetch_free_balance` / `fetch_used_balance` / `fetch_total_balance` / `fetch_partial_balance` 🔒
 - `fetch_ledger(code, since, limit, params)` / `fetch_ledger_entry(id, code, params)` 🔒
-- `fetch_transactions` / `fetch_deposits` / `fetch_withdrawals` / `fetch_deposits_withdrawals` 🔒
+- `fetch_deposits` / `fetch_withdrawals` / `fetch_deposits_withdrawals` 🔒
 - `fetch_borrow_interest(code, symbol, since, limit, params)` 🔒
 - `fetch_cross_borrow_rate(code, params)` / `fetch_isolated_borrow_rate(symbol, params)`
 
@@ -647,7 +656,7 @@ Managing:
 - `fetch_trading_fee(symbol, params)` / `fetch_trading_fees(params)` 🔒
 - `fetch_deposit_address(code, params)` / `fetch_deposit_addresses(codes, params)` /
   `fetch_deposit_addresses_by_network(code, params)` / `create_deposit_address(code, params)` 🔒
-- `withdraw(code, amount, address, tag, params)` 🔒
+- `withdraw(code, amount, address, params)` 🔒 (memo/tag and network go in params: `tag`, `network`)
 - `transfer(code, amount, from_account, to_account, params)` / `fetch_transfer` / `fetch_transfers` 🔒
 - `fetch_convert_currencies(params)`
 
@@ -886,7 +895,7 @@ The typed layer covers the unified API. Three ways down to the dynamic layer whe
 
 ```rust
 let ticker = exchange.fetch_ticker("BTC/USDT", Params::none()).await?;
-let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".to_string()));
+let info = ccxt::get_value(&ticker.raw, &ccxt::Value::Str("info".into()));
 let count = ccxt::safe_string(&info, "count", None);
 ```
 
@@ -909,7 +918,7 @@ use ccxt::{TypedExchange, Value};
 
 let mut ex: Box<dyn TypedExchange> = Box::new(ccxt::Binance::new(None));
 let result: Value = ex
-    .call_raw("set_leverage", vec![Value::Int(5), Value::Str("BTC/USDT:USDT".to_string())])
+    .call_raw("set_leverage", vec![Value::Int(5), Value::Str("BTC/USDT:USDT".into())])
     .await?;
 ```
 
@@ -1182,7 +1191,7 @@ Err(e) if e.is("InvalidOrder")  => ...,
 let value = ticker.last * amount;
 
 // Correct — decide what a missing price means
-let Some(last) = ticker.last else { return Err(...) };
+let Some(last) = ticker.last else { return Err(ccxt::ExchangeError::new("BadResponse", "ticker has no last price")) };
 let value = last * amount;
 ```
 

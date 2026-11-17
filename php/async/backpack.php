@@ -1669,9 +1669,10 @@ class backpack extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $maxLimit = 2000;
         $market = $this->market($symbol);
         $interval = $this->safe_string($this->timeframes, $timeframe, $timeframe);
-        $duration = $this->parse_timeframe($timeframe);
+        $duration = $this->parse_timeframe($timeframe) * 1000;
         $dataRequest = $this->stock_data_request('fetchOHLCV', $params, $market);
         $request = array( 'symbol' => $this->safe_string($dataRequest, 'symbol'), 'interval' => $interval );
         list($until, $paramsUntil) = $this->handle_option_integer_and_params($this->omit($dataRequest, 'symbol'), 'fetchOHLCV', 'until');
@@ -1680,27 +1681,26 @@ class backpack extends Exchange {
         }
         $defaultLimit = 100;
         $limitResolved = $limit;
-        if (($since === null) && ($limit === null)) {
-            $limitResolved = $defaultLimit;
+        if ($limitResolved !== null) {
+            $limitResolved = min($limitResolved, $maxLimit);
         }
-        $windowLimit = ($limit === null) ? $defaultLimit : $limit;
-        $startTime = null;
-        if ($since === null) {
-            $endTime = $this->seconds();
-            if ($until !== null && $until !== 0) {
-                $endTime = $this->parse_to_int($until / 1000);
+        $windowLimit = ($limitResolved === null) ? $defaultLimit : $limitResolved;
+        $now = $this->milliseconds();
+        $startTime = $since;
+        $untilValue = $until;
+        if ($startTime === null) {
+            if ($untilValue === null) {
+                $untilValue = $now;
             }
-            $startTime = $endTime - ($windowLimit * $duration);
-        } else {
-            $startTime = $this->parse_to_int($since / 1000); // convert milliseconds to seconds
+            $startTime = $untilValue - ($windowLimit * $duration);
         }
-        $request['startTime'] = $startTime;
-        if ($until === null) {
-            $currentMs = $this->seconds(); // default to current time in seconds
+        $request['startTime'] = $this->parse_to_int($startTime / 1000);
+        // set until value
+        if ($untilValue === null) {
             $windowEnd = $this->sum($startTime, $windowLimit * $duration);
-            $minTimestamp = min($currentMs, $windowEnd);
-            $request['endTime'] = $this->parse_to_int($minTimestamp); // default to current time in seconds if until is not specified
+            $untilValue = min($now, $windowEnd);
         }
+        $request['endTime'] = $this->parse_to_int($untilValue / 1000);
         $price = $this->safe_string($paramsUntil, 'price');
         $paramsOmitted = ($price !== null) ? $this->omit($paramsUntil, 'price') : $paramsUntil;
         if ($price !== null) {
@@ -3415,8 +3415,8 @@ class backpack extends Exchange {
         $marketId = $this->safe_string($position, 'symbol');
         $marketResolved = $this->safe_market($marketId, $market);
         $symbol = $marketResolved['symbol'];
-        $entryPrice = $this->safe_string($position, 'entryPrice');
-        $markPrice = $this->safe_string($position, 'markPrice');
+        $entryPrice = $this->safe_number($position, 'entryPrice');
+        $markPrice = $this->safe_number($position, 'markPrice');
         $netCost = $this->safe_string($position, 'netCost');
         $hedged = false;
         $side = 'long';
@@ -3427,9 +3427,9 @@ class backpack extends Exchange {
             $hedged = null;
             $side = null;
         }
-        $unrealizedPnl = $this->safe_string($position, 'pnlUnrealized');
-        $realizedPnl = $this->safe_string($position, 'pnlRealized');
-        $liquidationPrice = $this->safe_string($position, 'estLiquidationPrice');
+        $unrealizedPnl = $this->safe_number($position, 'pnlUnrealized');
+        $realizedPnl = $this->safe_number($position, 'pnlRealized');
+        $liquidationPrice = $this->safe_number($position, 'estLiquidationPrice');
         return $this->safe_position(array(
             'info' => $position,
             'id' => $id,
@@ -3439,18 +3439,18 @@ class backpack extends Exchange {
             'lastUpdateTimestamp' => null,
             'hedged' => $hedged,
             'side' => $side,
-            'contracts' => $this->safe_string($position, 'netExposureQuantity'),
+            'contracts' => $this->safe_number($position, 'netExposureQuantity'),
             'contractSize' => null,
             'entryPrice' => $entryPrice,
             'markPrice' => $markPrice,
             'lastPrice' => null,
-            'notional' => Precise::string_abs($netCost),
+            'notional' => $this->parse_number(Precise::string_abs($netCost)),
             'leverage' => null,
             'collateral' => null,
             'initialMargin' => null,
-            'initialMarginPercentage' => $this->safe_string($position, 'imf'),
+            'initialMarginPercentage' => $this->safe_number($position, 'imf'),
             'maintenanceMargin' => null,
-            'maintenanceMarginPercentage' => $this->safe_string($position, 'mmf'),
+            'maintenanceMarginPercentage' => $this->safe_number($position, 'mmf'),
             'realizedPnl' => $realizedPnl,
             'unrealizedPnl' => $unrealizedPnl,
             'liquidationPrice' => $liquidationPrice,

@@ -3218,7 +3218,7 @@ public partial class poloniex : Exchange
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -3232,11 +3232,8 @@ public partial class poloniex : Exchange
         };
         if ((limit != null))
         {
-            request["limit"] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if ((this.safeBool(market, "contract", false) == true))
-            {
-                request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 100, 150}, limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request["limit"] = this.findNearestCeiling(new List<object>() {5, 10, 20, 50, 100, 150}, limit);
         }
         if ((this.safeBool(market, "contract", false) == true))
         {
@@ -4380,7 +4377,7 @@ public partial class poloniex : Exchange
             { "info", position },
             { "id", null },
             { "symbol", (marketResolved != null && marketResolved.ContainsKey("symbol") ? marketResolved["symbol"] : null) },
-            { "notional", notional },
+            { "notional", this.parseNumber(notional) },
             { "marginMode", marginMode },
             { "liquidationPrice", this.safeNumber(position, "liqPx") },
             { "entryPrice", this.safeNumber(position, "openAvgPx") },
@@ -4399,7 +4396,7 @@ public partial class poloniex : Exchange
             { "maintenanceMarginPercentage", null },
             { "collateral", this.parseNumber(collateral) },
             { "positionMargin", this.parseNumber(positionMargin) },
-            { "initialMargin", initialMargin },
+            { "initialMargin", this.parseNumber(initialMargin) },
             { "initialMarginPercentage", null },
             { "leverage", this.safeInteger(position, "lever") },
             { "marginRatio", this.safeNumber(position, "mgnRatio") },

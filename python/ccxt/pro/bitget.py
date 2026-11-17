@@ -836,7 +836,8 @@ class bitget(ccxt.async_support.bitget):
         incrementalFeed = True
         if (limit == 1) or (limit == 5) or (limit == 15) or (limit == 50):
             channel += str(limit)
-            incrementalFeed = False
+            # books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = (limit == 50)
         topics = []
         messageHashes = []
         paramsCursor = paramsUta
@@ -929,7 +930,7 @@ class bitget(ccxt.async_support.bitget):
         if rawOrderBook is None:
             return
         timestamp = self.safe_integer(rawOrderBook, 'ts')
-        incrementalBook = (channel == 'books')
+        incrementalBook = ((channel == 'books') or (channel == 'books50'))
         if incrementalBook:
             # storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if not (symbol in self.orderbooks):

@@ -6690,17 +6690,20 @@ class htx(Exchange, ImplicitAPI):
         :param int [since]: the earliest time in ms to fetch funding rate history for
         :param int [limit]: the maximum number of structures to retrieve
         :param dict [params]: extra parameters specific to the exchange API endpoint
+        :param int [params.until]: timestamp in ms of the latest funding rate, linear swaps only
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-history-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
-        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
-        if paginate:
-            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
+        paginate, paramsPaginate = self.handle_option_bool_and_params(params, 'fetchFundingRateHistory', 'paginate', False)
+        if paginate:
+            if market['linear']:
+                return await self.fetch_paginated_call_dynamic('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 100)
+            return await self.fetch_paginated_call_cursor('fetchFundingRateHistory', symbol, since, limit, paramsPaginate, 'current_page', 'page_index', 1, 50)
         request = {
             'contract_code': market['id'],
         }
@@ -6740,7 +6743,8 @@ class htx(Exchange, ImplicitAPI):
             #     }
             #
         elif self.safe_bool(market, 'linear', False):
-            response = await self.contractPublicGetV5MarketFundingRateHistory(self.extend(request, paramsPaginate))
+            requestUntil, paramsUntil = self.handle_until_option('end_time', request, paramsPaginate)
+            response = await self.contractPublicGetV5MarketFundingRateHistory(self.extend(requestUntil, paramsUntil))
             #
             #     {
             #         "code": 200,

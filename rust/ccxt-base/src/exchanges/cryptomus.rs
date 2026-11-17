@@ -87,7 +87,7 @@ impl crate::exchange_generated::ExchangeBase for CryptomusCore {
                 "fetch_markets" => self.fetch_markets(&args[..]).await,
                 "fetch_open_orders" => self.fetch_open_orders(&args[..]).await,
                 "fetch_order_book" => self.fetch_order_book(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
-                "fetch_tickers" => self.fetch_tickers(&args[..]).await,
+                "fetch_ticker" => self.fetch_ticker(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trades" => self.fetch_trades(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]).await,
                 "fetch_trading_fees" => self.fetch_trading_fees(&args[..]).await,
                 "handle_errors" => self.handle_errors(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), args.get(4).cloned().unwrap_or(crate::Value::Null),
@@ -183,7 +183,7 @@ impl CryptomusCore {
         m.insert("fetchConvertTradeHistory".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRate".to_string(), Value::Bool(false));
         m.insert("fetchCrossBorrowRates".to_string(), Value::Bool(false));
-        m.insert("fetchCurrencies".to_string(), Value::Bool(true));
+        m.insert("fetchCurrencies".to_string(), Value::Bool(false));
         m.insert("fetchDepositAddress".to_string(), Value::Bool(false));
         m.insert("fetchDeposits".to_string(), Value::Bool(false));
         m.insert("fetchDepositsWithdrawals".to_string(), Value::Bool(false));
@@ -224,7 +224,7 @@ impl CryptomusCore {
         m.insert("fetchOption".to_string(), Value::Bool(false));
         m.insert("fetchOptionChain".to_string(), Value::Bool(false));
         m.insert("fetchOrder".to_string(), Value::Bool(true));
-        m.insert("fetchOrderBook".to_string(), Value::Bool(true));
+        m.insert("fetchOrderBook".to_string(), Value::Bool(false));
         m.insert("fetchOrders".to_string(), Value::Bool(false));
         m.insert("fetchOrderTrades".to_string(), Value::Bool(false));
         m.insert("fetchPosition".to_string(), Value::Bool(false));
@@ -237,10 +237,10 @@ impl CryptomusCore {
         m.insert("fetchPremiumIndexOHLCV".to_string(), Value::Bool(false));
         m.insert("fetchSettlementHistory".to_string(), Value::Bool(false));
         m.insert("fetchStatus".to_string(), Value::Bool(false));
-        m.insert("fetchTicker".to_string(), Value::Bool(false));
-        m.insert("fetchTickers".to_string(), Value::Bool(true));
+        m.insert("fetchTicker".to_string(), Value::Bool(true));
+        m.insert("fetchTickers".to_string(), Value::Bool(false));
         m.insert("fetchTime".to_string(), Value::Bool(false));
-        m.insert("fetchTrades".to_string(), Value::Bool(true));
+        m.insert("fetchTrades".to_string(), Value::Bool(false));
         m.insert("fetchTradingFee".to_string(), Value::Bool(false));
         m.insert("fetchTradingFees".to_string(), Value::Bool(true));
         m.insert("fetchTransactions".to_string(), Value::Bool(false));
@@ -290,11 +290,6 @@ impl CryptomusCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
-        m.insert("v2/user-api/exchange/market/price".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
-    m
-}));
         m.insert("v2/user-api/exchange/markets/price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -306,11 +301,6 @@ impl CryptomusCore {
     m
 }));
         m.insert("v1/exchange/market/order-book/{currencyPair}".to_string(), Value::Map({
-    let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
-    m
-}));
-        m.insert("v1/exchange/market/tickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -538,6 +528,7 @@ impl CryptomusCore {
 }));
         m.insert("broad".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("Market ".to_string(), Value::Str("BadSymbol".into()));
     m
 }));
     m
@@ -563,7 +554,7 @@ impl CryptomusCore {
  * @method
  * @name cryptomus#fetchMarkets
  * @description retrieves data on all markets for the exchange
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
+ * @see https://doc.cryptomus.com/methods/exchange/list-of-available-trading-pairs
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -749,8 +740,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_601: bool = true;
-            while { if !__for_first_601 { i += 1; } __for_first_601 = false; i < (rawCurrency.len() as i64) } {
+            let mut __for_first_603: bool = true;
+            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (rawCurrency.len() as i64) } {
             let mut networkEntry: Value = self.safe_dict(rawCurrency.clone(), Value::Int(i), &[]);
             // set ID on first loop
             if (id == Value::Null) {
@@ -805,38 +796,30 @@ impl CryptomusCore {
 
 /*
  * @method
- * @name cryptomus#fetchTickers
- * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
- * @see https://doc.cryptomus.com/personal/market-cap/tickers
- * @param {string[]} [symbols] unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+ * @name cryptomus#fetchTicker
+ * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+ * @see https://doc.cryptomus.com/methods/exchange/get-current-market-price
+ * @param {string} symbol unified symbol of the market to fetch the ticker for
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
  */
-    pub async fn fetch_tickers(&mut self, optional_args: &[Value]) -> Value {
-        let mut symbols = get_arg(optional_args, 0, Value::Null);
-        let mut params = get_arg(optional_args, 1, Value::Map({
+    pub async fn fetch_ticker(&mut self, mut symbol: Value, optional_args: &[Value]) -> Value {
+        let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 }));
         if (self.markets.clone() == Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut symbolsNormalized: Value = self.market_symbols(&[symbols]);
-        let mut response: Value = self.public_get_v1_exchange_market_tickers(&[params]).await;
-        //
-        //     {
-        //         "data": [
-        //         {
-        //             "currency_pair": "MATIC_USDT",
-        //             "last_price": "0.342",
-        //             "base_volume": "1676.84092771",
-        //             "quote_volume": "573.48033609043"
-        //         },
-        //         ...
-        //     }
-        //
-        let mut data: Value = self.safe_list_k(response, "data", &[]);
-        return self.parse_tickers(data, &[symbolsNormalized]);
+        let mut market: Value = self.market(symbol);
+        let mut request: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("symbol".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
+            m
+        });
+        let __ws_arg_0 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.public_get_v2_user_api_exchange_markets_price(&[__ws_arg_0]).await;
+        return self.parse_ticker(response, &[market]);
 
     Value::Null
 }
@@ -845,15 +828,11 @@ impl CryptomusCore {
         let mut market = get_arg(optional_args, 0, Value::Null);
         //
         //     {
-        //         "currency_pair": "XMR_USDT",
-        //         "last_price": "158.04829772",
-        //         "base_volume": "0.35185785",
-        //         "quote_volume": "55.523761128544"
+        //         "price": "78450.4"
         //     }
         //
-        let mut marketId: Option<String> = self.safe_string_k_opt(ticker.clone(), "currency_pair", &[]);
-        let mut marketResolved: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), market]);
-        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "last_price", &[]);
+        let mut marketResolved: Value = self.safe_market(&[Value::Null, market]);
+        let mut last: Option<String> = self.safe_string_k_opt(ticker.clone(), "price", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), marketResolved.as_map().and_then(|__m| __m.get("symbol")).cloned().unwrap_or(Value::Null));
@@ -873,8 +852,8 @@ impl CryptomusCore {
         m.insert("change".to_string(), Value::Null);
         m.insert("percentage".to_string(), Value::Null);
         m.insert("average".to_string(), Value::Null);
-        m.insert("baseVolume".to_string(), self.safe_string_k(ticker.clone(), "base_volume", &[]));
-        m.insert("quoteVolume".to_string(), self.safe_string_k(ticker.clone(), "quote_volume", &[]));
+        m.insert("baseVolume".to_string(), Value::Null);
+        m.insert("quoteVolume".to_string(), Value::Null);
         m.insert("info".to_string(), ticker);
     m
 }), &[marketResolved]);
@@ -913,8 +892,8 @@ impl CryptomusCore {
         let mut levelOption: Value = levelOptionparamsLevelVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsLevel: Value = levelOptionparamsLevelVariable.get(1).cloned().unwrap_or(Value::Null);
         request.insert("level".into(), levelOption);
-        let __ws_arg_0 = self.extend(Value::Map(request), &[paramsLevel]);
-        let mut response: Value = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_0]).await;
+        let __ws_arg_1 = self.extend(Value::Map(request), &[paramsLevel]);
+        let mut response: Value = self.public_get_v1_exchange_market_order_book_currency_pair(&[__ws_arg_1]).await;
         //
         //     {
         //         "data": {
@@ -971,8 +950,8 @@ impl CryptomusCore {
                 m.insert("currencyPair".to_string(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
             m
         });
-        let __ws_arg_1 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.public_get_v1_exchange_market_trades_currency_pair(&[__ws_arg_1]).await;
+        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.public_get_v1_exchange_market_trades_currency_pair(&[__ws_arg_2]).await;
         //
         //     {
         //         "data": [
@@ -1056,8 +1035,8 @@ impl CryptomusCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let __ws_arg_2 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_v2_user_api_exchange_account_balance(&[__ws_arg_2]).await;
+        let __ws_arg_3 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_account_balance(&[__ws_arg_3]).await;
         //
         //     {
         //         "result": [
@@ -1090,8 +1069,8 @@ impl CryptomusCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_602: bool = true;
-            while { if !__for_first_602 { i += 1; } __for_first_602 = false; i < (balance.len() as i64) } {
+            let mut __for_first_604: bool = true;
+            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (balance.len() as i64) } {
             let mut balanceEntry: Value = self.safe_dict(balance.clone(), Value::Int(i), &[]);
             let mut currencyId: Option<String> = self.safe_string_k_opt(balanceEntry.clone(), "ticker", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -1174,16 +1153,16 @@ impl CryptomusCore {
             }  else {
                 request.insert("quantity".into(), amountToString.clone());
             }
-            let __ws_arg_3 = self.extend(Value::Map(request.clone()), &[paramsMarket]);
-            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_3]).await;
+            let __ws_arg_4 = self.extend(Value::Map(request.clone()), &[paramsMarket]);
+            response = self.private_post_v2_user_api_exchange_orders_market(&[__ws_arg_4]).await;
         }  else if (type_var.as_str() == Some("limit")) {
             if (price == Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a price parameter for a ".into())).into()), type_var).into()), Value::Str(" order".into()))));
             }
             request.insert("quantity".into(), amountToString);
             request.insert("price".into(), price);
-            let __ws_arg_4 = self.extend(Value::Map(request), &[paramsCost]);
-            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_4]).await;
+            let __ws_arg_5 = self.extend(Value::Map(request), &[paramsCost]);
+            response = self.private_post_v2_user_api_exchange_orders(&[__ws_arg_5]).await;
         }  else {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), Value::Str(" createOrder() requires a type parameter (limit or market)".into()))));
         }
@@ -1216,8 +1195,8 @@ impl CryptomusCore {
             m
         });
         request.insert("orderId".into(), id);
-        let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_5]).await;
+        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_delete_v2_user_api_exchange_orders_order_id(&[__ws_arg_6]).await;
         return self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), response);
@@ -1266,8 +1245,8 @@ impl CryptomusCore {
         if (limit != Value::Null) {
             request.insert("limit".into(), limit);
         }
-        let __ws_arg_6 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_6]).await;
+        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_orders_history(&[__ws_arg_7]).await;
         //
         //     {
         //         "result": [
@@ -1311,8 +1290,8 @@ impl CryptomusCore {
         let mut orders: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_603: bool = true;
-            while { if !__for_first_603 { i += 1; } __for_first_603 = false; i < (result.len() as i64) } {
+            let mut __for_first_605: bool = true;
+            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (result.len() as i64) } {
             orders.push(self.parse_order(result.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]));
         }
         }
@@ -1359,8 +1338,8 @@ impl CryptomusCore {
         if (market != Value::Null) {
             request.insert("market".into(), market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null));
         }
-        let __ws_arg_7 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_7]).await;
+        let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
+        let mut response: Value = self.private_get_v2_user_api_exchange_orders(&[__ws_arg_8]).await;
         //
         //     {
         //         "result": [
@@ -1607,8 +1586,8 @@ impl CryptomusCore {
         }
         {
                         let mut i: i64 = 0;
-            let mut __for_first_604: bool = true;
-            while { if !__for_first_604 { i += 1; } __for_first_604 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_606: bool = true;
+            while { if !__for_first_606 { i += 1; } __for_first_606 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             if let Value::Dict(__d) = &mut result { std::sync::Arc::make_mut(__d).insert(crate::runtime::stringify_param(&symbol), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1634,8 +1613,8 @@ impl CryptomusCore {
         let mut makerFees: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_605: bool = true;
-            while { if !__for_first_605 { i += 1; } __for_first_605 = false; i < (feeTiers.len() as i64) } {
+            let mut __for_first_607: bool = true;
+            while { if !__for_first_607 { i += 1; } __for_first_607 = false; i < (feeTiers.len() as i64) } {
             let mut tier: Value = self.safe_dict(feeTiers.clone(), Value::Int(i), &[]);
             let mut turnover: Value = self.safe_number_k(tier.clone(), "from_turnover", &[]);
             let mut taker: Value = self.safe_string_k(tier.clone(), "taker_percent", &[]);
@@ -1730,6 +1709,7 @@ impl CryptomusCore {
         if (codeError.is_some()) {
             let mut feedback: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), Value::Str(" ".into())).into()), body).into());
             self.throw_exactly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("exact")).cloned().unwrap_or(Value::Null), codeError.map(Value::from).unwrap_or(Value::Null), feedback.clone());
+            self.throw_broadly_matched_exception(self.exceptions.as_map().and_then(|__m| __m.get("broad")).cloned().unwrap_or(Value::Null), message.clone().map(Value::from).unwrap_or(Value::Null), feedback.clone());
             panic!("{}", crate::exchange_errors::exchange_error(feedback));
         }  else if (message.is_some()) {
             //

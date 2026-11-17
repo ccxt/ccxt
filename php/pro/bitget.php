@@ -931,7 +931,8 @@ class bitget extends \ccxt\async\bitget {
         $incrementalFeed = true;
         if (($limit === 1) || ($limit === 5) || ($limit === 15) || ($limit === 50)) {
             $channel .= (string) $limit;
-            $incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            $incrementalFeed = ($limit === 50);
         }
         $topics = array();
         $messageHashes = array();
@@ -1033,7 +1034,7 @@ class bitget extends \ccxt\async\bitget {
             return;
         }
         $timestamp = $this->safe_integer($rawOrderBook, 'ts');
-        $incrementalBook = ($channel === 'books');
+        $incrementalBook = (($channel === 'books') || ($channel === 'books50'));
         if ($incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(is_array($this->orderbooks) && array_key_exists($symbol ?? '', $this->orderbooks))) {

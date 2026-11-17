@@ -4750,7 +4750,8 @@ class hyperliquid extends Exchange {
                 'type' => 'vaultTransfer',
                 'vaultAddress' => '0x' . $vaultAddress,
                 'isDeposit' => false,
-                'usd' => $amount,
+                // like subAccountTransfer, vaultTransfer takes an integer amount of micro-USD (usd * 1e6)
+                'usd' => $this->parse_to_int(Precise::string_mul($this->number_to_string($amount), '1000000')),
             );
             $sig = $this->sign_l1_action($action, $nonce);
         } else {

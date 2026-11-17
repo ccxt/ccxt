@@ -2094,8 +2094,8 @@ impl XtCore {
         });
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1178: bool = true;
-            while { if !__for_first_1178 { i += 1; } __for_first_1178 = false; i < (currenciesData.len() as i64) } {
+            let mut __for_first_1188: bool = true;
+            while { if !__for_first_1188 { i += 1; } __for_first_1188 = false; i < (currenciesData.len() as i64) } {
             let mut entry: Value = currenciesData.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut currencyId: Option<String> = self.safe_string_k_opt(entry.clone(), "currency", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone().map(Value::from).unwrap_or(Value::Null), &[]);
@@ -2110,8 +2110,8 @@ impl XtCore {
             });
             {
                                 let mut j: i64 = 0;
-                let mut __for_first_1177: bool = true;
-                while { if !__for_first_1177 { j += 1; } __for_first_1177 = false; j < (rawNetworks.len() as i64) } {
+                let mut __for_first_1187: bool = true;
+                while { if !__for_first_1187 { j += 1; } __for_first_1187 = false; j < (rawNetworks.len() as i64) } {
                 let mut rawNetwork: Value = rawNetworks.get(j as usize).cloned().unwrap_or(Value::Null);
                 let mut networkId: Option<String> = self.safe_string_k_opt(rawNetwork.clone(), "chain", &[]);
                 let mut networkCode: Value = self.network_id_to_code(&[networkId.clone().map(Value::from).unwrap_or(Value::Null), code.clone()]);
@@ -2379,8 +2379,8 @@ impl XtCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1179: bool = true;
-            while { if !__for_first_1179 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1179 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1189: bool = true;
+            while { if !__for_first_1189 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1189 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&markets).as_f64().unwrap_or(f64::NAN) } {
             let mut parsed: Value = self.parse_market(self.safe_value(markets.clone(), i.clone(), &[]));
             if (parsed != Value::Null) {
                 result.push(parsed);
@@ -2529,8 +2529,8 @@ impl XtCore {
         let mut amountPrecision: Value = Value::Null;
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1180: bool = true;
-            while { if !__for_first_1180 { i += 1; } __for_first_1180 = false; i < (filters.len() as i64) } {
+            let mut __for_first_1190: bool = true;
+            while { if !__for_first_1190 { i += 1; } __for_first_1190 = false; i < (filters.len() as i64) } {
             let mut entry: Value = self.safe_dict(filters.clone(), Value::Int(i), &[]);
             let mut filter: Option<String> = self.safe_string_k(entry.clone(), "filter", &[]).as_str().map(str::to_owned);
             if (filter.as_deref() == Some("QUANTITY")) {
@@ -3134,8 +3134,8 @@ impl XtCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1181: bool = true;
-            while { if !__for_first_1181 { i += 1; } __for_first_1181 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1191: bool = true;
+            while { if !__for_first_1191 { i += 1; } __for_first_1191 = false; i < (tickers.len() as i64) } {
             let mut ticker: indexmap::IndexMap<String, Value> = self.parse_ticker(tickers.get(i as usize).cloned().unwrap_or(Value::Null), &[market.clone()]).as_map().cloned().unwrap_or_default();
             let mut symbol: Value = ticker.get("symbol").cloned().unwrap_or(Value::Null);
             if (symbol != Value::Null) {
@@ -3240,8 +3240,8 @@ impl XtCore {
         };
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1182: bool = true;
-            while { if !__for_first_1182 { i += 1; } __for_first_1182 = false; i < (tickers.len() as i64) } {
+            let mut __for_first_1192: bool = true;
+            while { if !__for_first_1192 { i += 1; } __for_first_1192 = false; i < (tickers.len() as i64) } {
             let mut rawTicker: Value = tickers.get(i as usize).cloned().unwrap_or(Value::Null);
             // the spot and contract payloads share the same field names, so
             // the market type cannot be inferred from the entry itself
@@ -3899,8 +3899,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1183: bool = true;
-            while { if !__for_first_1183 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1183 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1193: bool = true;
+            while { if !__for_first_1193 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1193 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut balance: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut currencyId: Option<String> = self.safe_string2_opt(balance.clone(), Value::Str("currency".into()), Value::Str("coin".into()), &[]);
             let mut code: Value = self.safe_currency_code(currencyId.map(Value::from).unwrap_or(Value::Null), &[]);
@@ -5509,10 +5509,20 @@ impl XtCore {
         let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market, Value::Null, marketType.clone()]);
         let mut symbol: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[marketResolved.clone(), Value::Null, marketType.clone()]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Str("time".into()), Value::Str("createdTime".into()), &[]).as_i64();
-        let mut quantity: Value = self.safe_number_k(order.clone(), "origQty", &[]);
-        let mut amount: Value = (if (marketType.as_str() == Some("spot")) { quantity.clone() } else { crate::precise::Precise::stringMul(&self.number_to_string(quantity), &self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null))) });
-        let mut filledQuantity: Value = self.safe_number_k(order.clone(), "executedQty", &[]);
-        let mut filled: Value = (if (marketType.as_str() == Some("spot")) { filledQuantity.clone() } else { crate::precise::Precise::stringMul(&self.number_to_string(filledQuantity), &self.number_to_string(marketResolved.as_map().and_then(|__m| __m.get("contractSize")).cloned().unwrap_or(Value::Null))) });
+        let mut contractSize: Option<String> = self.safe_string_k_opt(marketResolved.clone(), "contractSize", &[]);
+        let mut quantity: Value = self.safe_string_k(order.clone(), "origQty", &[]);
+        // on spot market buy orders executedQty is denominated in the quote
+        // currency, so the filled base amount is only correct in tradeBase
+        let mut filledQuantity: Value = self.safe_string2(order.clone(), Value::Str("tradeBase".into()), Value::Str("executedQty".into()), &[]);
+        let mut amount: Value = (if (marketType.as_str() == Some("spot")) { quantity.clone() } else { crate::precise::Precise::stringMul(&quantity, &contractSize.clone().map(Value::from).unwrap_or(Value::Null)) });
+        let mut filled: Value = (if (marketType.as_str() == Some("spot")) { filledQuantity.clone() } else { crate::precise::Precise::stringMul(&filledQuantity, &contractSize.clone().map(Value::from).unwrap_or(Value::Null)) });
+        // leavingQty follows executedQty and is quote-denominated on the same
+        // spot market buy shape, so it is only read when the order carries a
+        // base-denominated origQty - otherwise safeOrder derives it from filled
+        let mut remaining: Value = Value::Null;
+        if (quantity != Value::Null) {
+            remaining = self.safe_string_k(order.clone(), "leavingQty", &[]);
+        }
         let mut lastUpdatedTimestamp: Option<i64> = self.safe_integer_k(order.clone(), "updatedTime", &[]).as_i64();
         let mut timeInForce: Value = self.safe_string_k(order.clone(), "timeInForce", &[]);
         let mut postOnly: Value = Value::Null;
@@ -5548,7 +5558,7 @@ impl XtCore {
         m.insert("lastTradeTimestamp".to_string(), Value::from(lastUpdatedTimestamp));
         m.insert("lastUpdateTimestamp".to_string(), Value::from(lastUpdatedTimestamp));
         m.insert("symbol".to_string(), symbol);
-        m.insert("type".to_string(), self.safe_string_lower2(order.clone(), Value::Str("type".into()), Value::Str("orderType".into()), &[]));
+        m.insert("type".to_string(), self.parse_order_type(self.safe_string_lower_n(order.clone(), Value::from(vec![Value::Str("type".into()), Value::Str("orderType".into()), Value::Str("entrustType".into())]), &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), timeInForce);
         m.insert("postOnly".to_string(), postOnly);
         m.insert("side".to_string(), side);
@@ -5558,8 +5568,8 @@ impl XtCore {
         m.insert("takeProfitPrice".to_string(), self.safe_number_k(order.clone(), "triggerProfitPrice", &[]));
         m.insert("amount".to_string(), amount);
         m.insert("filled".to_string(), filled);
-        m.insert("remaining".to_string(), self.safe_number_k(order.clone(), "leavingQty", &[]));
-        m.insert("cost".to_string(), Value::Null);
+        m.insert("remaining".to_string(), remaining);
+        m.insert("cost".to_string(), self.safe_string_k(order.clone(), "tradeQuote", &[]));
         m.insert("average".to_string(), self.safe_number_k(order.clone(), "avgPrice", &[]));
         m.insert("status".to_string(), self.parse_order_status(self.safe_string_k(order.clone(), "state", &[])).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
@@ -5573,6 +5583,19 @@ impl XtCore {
 }), &[marketResolved]);
 
     Value::Null
+}
+
+    pub fn parse_order_type(&self, mut type_var: Value) -> Option<String> {
+        let mut types: indexmap::IndexMap<String, Value> = ({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("stop".to_string(), Value::Str("limit".into()));
+                m.insert("stop_market".to_string(), Value::Str("market".into()));
+                m.insert("take_profit".to_string(), Value::Str("limit".into()));
+                m.insert("take_profit_market".to_string(), Value::Str("market".into()));
+                m.insert("trailing_stop_market".to_string(), Value::Str("market".into()));
+            m
+        });
+        return self.safe_string(Value::Map(types), type_var.clone(), &[type_var.clone()]).as_str().map(str::to_owned);
 }
 
     pub fn parse_order_status(&self, mut status: Value) -> Option<String> {
@@ -6376,8 +6399,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1184: bool = true;
-            while { if !__for_first_1184 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1184 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
+            let mut __for_first_1194: bool = true;
+            while { if !__for_first_1194 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1194 = false; i.as_f64().unwrap_or(f64::NAN) < get_array_length(&response).as_f64().unwrap_or(f64::NAN) } {
             let mut entry: Value = self.safe_dict(response.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut market: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Str("_".into()), Value::Str("contract".into())]);
@@ -6484,8 +6507,8 @@ impl XtCore {
         let mut brackets: Value = self.safe_list_k(info.clone(), "leverageBrackets", &[Value::from(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1185: bool = true;
-            while { if !__for_first_1185 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1185 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
+            let mut __for_first_1195: bool = true;
+            while { if !__for_first_1195 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1195 = false; i.as_f64().unwrap_or(f64::NAN) < ((brackets.len() as i64) as f64) } {
             let mut tier: Value = self.safe_dict(brackets.clone(), i.clone(), &[]);
             let mut marketId: Option<String> = self.safe_string_k_opt(info.clone(), "symbol", &[]);
             let mut marketResolved: Value = self.safe_market(&[marketId.clone().map(Value::from).unwrap_or(Value::Null), market.clone(), Value::Str("_".into()), Value::Str("contract".into())]);
@@ -6595,8 +6618,8 @@ impl XtCore {
         let mut rates: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1186: bool = true;
-            while { if !__for_first_1186 { i += 1; } __for_first_1186 = false; i < (items.len() as i64) } {
+            let mut __for_first_1196: bool = true;
+            while { if !__for_first_1196 { i += 1; } __for_first_1196 = false; i < (items.len() as i64) } {
             let mut entry: Value = items.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), &[market.clone()]);
@@ -6920,8 +6943,8 @@ impl XtCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1187: bool = true;
-            while { if !__for_first_1187 { i += 1; } __for_first_1187 = false; i < (symbols.len() as i64) } {
+            let mut __for_first_1197: bool = true;
+            while { if !__for_first_1197 { i += 1; } __for_first_1197 = false; i < (symbols.len() as i64) } {
             let mut symbol: Value = symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
             let mut market: Value = self.market(symbol.clone());
             let mut matchesSubType: Value = (if (isInverse) { market.as_map().and_then(|__m| __m.get("inverse")).cloned().unwrap_or(Value::Null) } else { market.as_map().and_then(|__m| __m.get("linear")).cloned().unwrap_or(Value::Null) });
@@ -7029,8 +7052,8 @@ impl XtCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1188: bool = true;
-            while { if !__for_first_1188 { i += 1; } __for_first_1188 = false; i < (items.len() as i64) } {
+            let mut __for_first_1198: bool = true;
+            while { if !__for_first_1198 { i += 1; } __for_first_1198 = false; i < (items.len() as i64) } {
             let mut entry: Value = self.safe_dict(items.clone(), Value::Int(i), &[]);
             result.push(self.parse_funding_history(entry, &[market.clone()]));
         }
@@ -7087,8 +7110,8 @@ impl XtCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1189: bool = true;
-            while { if !__for_first_1189 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1189 = false; i.as_f64().unwrap_or(f64::NAN) < ((breakList.len() as i64) as f64) } {
+            let mut __for_first_1199: bool = true;
+            while { if !__for_first_1199 { if let Value::Int(n) = &mut i { *n += 1; } } __for_first_1199 = false; i.as_f64().unwrap_or(f64::NAN) < ((breakList.len() as i64) as f64) } {
             let mut breakEntry: Value = breakList.get((i).as_i64().unwrap_or(-1) as usize).cloned().unwrap_or(Value::Null);
             // xt is hedge-mode only (positionSide is always 'LONG'/'SHORT' on every
             // endpoint, including here and on position/list; there is no one-way/net
@@ -7213,8 +7236,8 @@ impl XtCore {
         let mut breakBySymbolSide: Value = self.index_position_break_list(self.safe_list_k(breakResponse, "result", &[Value::from(vec![])]));
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1190: bool = true;
-            while { if !__for_first_1190 { i += 1; } __for_first_1190 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1200: bool = true;
+            while { if !__for_first_1200 { i += 1; } __for_first_1200 = false; i < (positions.len() as i64) } {
             let mut entry: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);
@@ -7310,8 +7333,8 @@ impl XtCore {
         let mut result: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
-            let mut __for_first_1191: bool = true;
-            while { if !__for_first_1191 { i += 1; } __for_first_1191 = false; i < (positions.len() as i64) } {
+            let mut __for_first_1201: bool = true;
+            while { if !__for_first_1201 { i += 1; } __for_first_1201 = false; i < (positions.len() as i64) } {
             let mut entry: Value = positions.get(i as usize).cloned().unwrap_or(Value::Null);
             let mut marketId: Option<String> = self.safe_string_k_opt(entry.clone(), "symbol", &[]);
             let mut marketInner: Value = self.safe_market(&[marketId.map(Value::from).unwrap_or(Value::Null), Value::Null, Value::Null, Value::Str("contract".into())]);

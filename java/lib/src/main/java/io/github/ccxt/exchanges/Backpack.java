@@ -2019,9 +2019,10 @@ public class Backpack extends BackpackApi
             {
                 (this.loadMarkets(false, new HashMap<String, Object>() {{}})).join();
             }
+            Integer maxLimit = 2000;
             Map<String, Object> market = this.market(symbol);
             String interval = this.safeString(this.timeframes, java.util.Objects.requireNonNullElse(timeframe, "1m"), java.util.Objects.requireNonNullElse(timeframe, "1m"));
-            int duration = this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"));
+            Long duration = (((long) this.parseTimeframe(java.util.Objects.requireNonNullElse(timeframe, "1m"))) * 1000L);
             Map<String, Object> dataRequest = this.stockDataRequest("fetchOHLCV", (Map<String, Object>) (parameters), market);
             Map<String, Object> request = new HashMap<String, Object>() {{
                 put( "symbol", Backpack.this.safeString(dataRequest, "symbol") );
@@ -2034,34 +2035,32 @@ public class Backpack extends BackpackApi
             {
                 request.put("endTime", this.parseToInt((((double) until) / ((double) 1000)))); // convert milliseconds to seconds
             }
-            Long defaultLimit = 100L;
-            Long limitResolved = limit;
-            if ((java.util.Objects.equals(since, null)) && (java.util.Objects.equals(limit, null)))
+            Integer defaultLimit = 100;
+            Object limitResolved = limit;
+            if (!java.util.Objects.equals(limitResolved, null))
             {
-                limitResolved = defaultLimit;
+                limitResolved = (limitResolved == null || maxLimit == null ? null : (((Number) limitResolved).doubleValue() < ((Number) maxLimit).doubleValue() ? (Object) (limitResolved) : (Object) (maxLimit)));
             }
-            Long windowLimit = (((java.util.Objects.equals(limit, null)))) ? defaultLimit : limit;
-            Object startTime = null;
-            if (java.util.Objects.equals(since, null))
+            Object windowLimit = (((java.util.Objects.equals(limitResolved, null)))) ? defaultLimit : limitResolved;
+            Long now = this.milliseconds();
+            Object startTime = since;
+            Object untilValue = until;
+            if (java.util.Objects.equals(startTime, null))
             {
-                Long endTime = this.seconds();
-                if (!java.util.Objects.equals(until, null) && (until != 0))
+                if (java.util.Objects.equals(untilValue, null))
                 {
-                    endTime = this.parseToInt((((double) until) / ((double) 1000)));
+                    untilValue = now;
                 }
-                startTime = (endTime - (windowLimit * duration));
-            } else
-            {
-                startTime = this.parseToInt((((double) since) / ((double) 1000))); // convert milliseconds to seconds
+                startTime = Helpers.subtract(untilValue, (Helpers.multiply(windowLimit, duration)));
             }
-            request.put("startTime", startTime);
-            if (java.util.Objects.equals(until, null))
+            request.put("startTime", this.parseToInt((startTime == null ? null : ((Number) startTime).doubleValue() / ((double) 1000))));
+            // set until value
+            if (java.util.Objects.equals(untilValue, null))
             {
-                Long currentMs = this.seconds(); // default to current time in seconds
-                Object windowEnd = this.sum(startTime, (windowLimit * duration));
-                Object minTimestamp = (currentMs == null ? null : (((Number) currentMs).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (currentMs) : (Object) (windowEnd)));
-                request.put("endTime", this.parseToInt(minTimestamp)); // default to current time in seconds if until is not specified
+                Object windowEnd = this.sum(startTime, Helpers.multiply(windowLimit, duration));
+                untilValue = (now == null ? null : (((Number) now).doubleValue() < ((Number) windowEnd).doubleValue() ? (Object) (now) : (Object) (windowEnd)));
             }
+            request.put("endTime", this.parseToInt(((java.util.function.BinaryOperator<Object>) (j37a, j37b) -> { if (j37a == null || j37b == null) return null; java.util.function.ToDoubleFunction<Object> j37d = (j37o) -> { if (j37o instanceof Double j37v) return j37v; if (j37o instanceof Float j37v) return j37v.doubleValue(); if (j37o instanceof Long j37v) return j37v.doubleValue(); if (j37o instanceof Integer j37v) return j37v.doubleValue(); if (j37o instanceof java.math.BigDecimal j37v) return j37v.doubleValue(); try { return Double.parseDouble(String.valueOf(j37o)); } catch (NumberFormatException j37e) { return 0.0; } }; return j37d.applyAsDouble(j37a) / j37d.applyAsDouble(j37b); }).apply(untilValue, 1000)));
             String price = this.safeString(paramsUntil, "price");
             Map<String, Object> paramsOmitted = (((!java.util.Objects.equals(price, null)))) ? this.omit(paramsUntil, "price") : paramsUntil;
             if (!java.util.Objects.equals(price, null))
@@ -2070,7 +2069,7 @@ public class Backpack extends BackpackApi
             }
             List<Object> response = (this.publicGetApiV1Klines(this.extend(request, paramsOmitted))).join();
             List<Object> ohlcvs = this.toArray(response);
-            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, limitResolved, false);
+            return this.parseOHLCVs(ohlcvs, market, java.util.Objects.requireNonNullElse(timeframe, "1m"), since, ((Long) (switch ((Object) (limitResolved)) { case null -> (Long) null; case Long hx4J40v0 -> hx4J40v0; case Number hx4J40v0 -> Long.valueOf(hx4J40v0.longValue()); case Object hx4J40v0 -> throw new ClassCastException("ccxt: expected a number, got " + hx4J40v0.getClass().getName()); })), false);
         }).thenApply(res -> ((List<?>) res).stream().map(OHLCV::new).collect(Collectors.toList()));
 
     }
@@ -4019,8 +4018,8 @@ public class Backpack extends BackpackApi
         String marketId = this.safeString(position, "symbol");
         Map<String, Object> marketResolved = this.safeMarket(marketId, market, (String) null, (String) null);
         String symbol = (String) marketResolved.get("symbol");
-        String entryPrice = this.safeString(position, "entryPrice");
-        String markPrice = this.safeString(position, "markPrice");
+        Double entryPrice = this.safeNumber(position, "entryPrice", (Object) null);
+        Double markPrice = this.safeNumber(position, "markPrice", (Object) null);
         String netCost = this.safeString(position, "netCost");
         Boolean hedged = false;
         String side = "long";
@@ -4033,9 +4032,9 @@ public class Backpack extends BackpackApi
             hedged = null;
             side = null;
         }
-        String unrealizedPnl = this.safeString(position, "pnlUnrealized");
-        String realizedPnl = this.safeString(position, "pnlRealized");
-        String liquidationPrice = this.safeString(position, "estLiquidationPrice");
+        Double unrealizedPnl = this.safeNumber(position, "pnlUnrealized", (Object) null);
+        Double realizedPnl = this.safeNumber(position, "pnlRealized", (Object) null);
+        Double liquidationPrice = this.safeNumber(position, "estLiquidationPrice", (Object) null);
         HashMap<String, Object> mapLiteral11 = new HashMap<String, Object>();
         mapLiteral11.put("info", position);
         mapLiteral11.put("id", id);
@@ -4045,18 +4044,18 @@ public class Backpack extends BackpackApi
         mapLiteral11.put("lastUpdateTimestamp", null);
         mapLiteral11.put("hedged", hedged);
         mapLiteral11.put("side", side);
-        mapLiteral11.put("contracts", this.safeString(position, "netExposureQuantity"));
+        mapLiteral11.put("contracts", this.safeNumber(position, "netExposureQuantity", (Object) null));
         mapLiteral11.put("contractSize", null);
         mapLiteral11.put("entryPrice", entryPrice);
         mapLiteral11.put("markPrice", markPrice);
         mapLiteral11.put("lastPrice", null);
-        mapLiteral11.put("notional", Precise.stringAbs(netCost));
+        mapLiteral11.put("notional", this.parseNumber(Precise.stringAbs(netCost)));
         mapLiteral11.put("leverage", null);
         mapLiteral11.put("collateral", null);
         mapLiteral11.put("initialMargin", null);
-        mapLiteral11.put("initialMarginPercentage", this.safeString(position, "imf"));
+        mapLiteral11.put("initialMarginPercentage", this.safeNumber(position, "imf", (Object) null));
         mapLiteral11.put("maintenanceMargin", null);
-        mapLiteral11.put("maintenanceMarginPercentage", this.safeString(position, "mmf"));
+        mapLiteral11.put("maintenanceMarginPercentage", this.safeNumber(position, "mmf", (Object) null));
         mapLiteral11.put("realizedPnl", realizedPnl);
         mapLiteral11.put("unrealizedPnl", unrealizedPnl);
         mapLiteral11.put("liquidationPrice", liquidationPrice);

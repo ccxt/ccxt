@@ -2814,7 +2814,7 @@ class poloniex extends poloniex$1["default"] {
      * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
      * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
-     * @param {int} [limit] the maximum amount of order book entries to return
+     * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
@@ -2825,10 +2825,8 @@ class poloniex extends poloniex$1["default"] {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['limit'] = limit; // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if (this.safeBool(market, 'contract', false)) {
-                request['limit'] = this.findNearestCeiling([5, 10, 20, 100, 150], limit);
-            }
+            // both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = this.findNearestCeiling([5, 10, 20, 50, 100, 150], limit);
         }
         if (this.safeBool(market, 'contract', false)) {
             const responseRaw = await this.swapPublicGetV3MarketOrderBook(this.extend(request, params));
@@ -3852,7 +3850,7 @@ class poloniex extends poloniex$1["default"] {
             'info': position,
             'id': undefined,
             'symbol': marketResolved['symbol'],
-            'notional': notional,
+            'notional': this.parseNumber(notional),
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber(position, 'liqPx'),
             'entryPrice': this.safeNumber(position, 'openAvgPx'),
@@ -3871,7 +3869,7 @@ class poloniex extends poloniex$1["default"] {
             'maintenanceMarginPercentage': undefined,
             'collateral': this.parseNumber(collateral),
             'positionMargin': this.parseNumber(positionMargin),
-            'initialMargin': initialMargin,
+            'initialMargin': this.parseNumber(initialMargin),
             'initialMarginPercentage': undefined,
             'leverage': this.safeInteger(position, 'lever'),
             'marginRatio': this.safeNumber(position, 'mgnRatio'),

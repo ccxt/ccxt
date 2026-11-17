@@ -4255,7 +4255,7 @@ func (this *Cryptocom) fetchFundingRateHistoryBody(ch chan AsyncResult[[]Funding
 	paginate, paramsPaginate := this.HandleOptionBoolAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	if paginate {
 
-		r1 := <-this.FetchPaginatedCallDeterministicAsync("fetchFundingRateHistory", symbol, since, limit, "8h", paramsPaginate)
+		r1 := <-this.FetchPaginatedCallDynamicAsync("fetchFundingRateHistory", symbol, since, limit, paramsPaginate, 1000)
 		if r1.Err != nil {
 			panic(r1.Err)
 		}

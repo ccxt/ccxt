@@ -661,11 +661,16 @@ class revolutx(Exchange, ImplicitAPI):
         }
         if since is not None:
             request['since'] = since
+        defaultLimit = 1000  # default max limit if not specified
+        limitValue = limit if (limit is not None) else defaultLimit
+        duration = self.parse_timeframe(timeframe) * 1000
         until = self.safe_integer_2(params, 'until', 'until')
         if until is not None:
             request['until'] = until
-        else:
-            request['until'] = self.milliseconds()
+        if since is not None and until is None:
+            request['until'] = self.sum(since, limitValue * duration)
+        elif since is None and until is not None:
+            request['since'] = until - limitValue * duration
         region = self.safe_string_2(params, 'region', 'region', self.options['region'])
         if region is not None:
             request['region'] = region

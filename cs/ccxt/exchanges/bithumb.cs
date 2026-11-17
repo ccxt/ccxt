@@ -488,6 +488,9 @@ public partial class bithumb : Exchange
                 { "30m", 30 },
                 { "1h", 60 },
                 { "4h", 240 },
+                { "1d", "days" },
+                { "1w", "weeks" },
+                { "1M", "months" },
             } },
             { "options", new Dictionary<string, object>() {
                 { "generation", 2 },
@@ -1433,6 +1436,8 @@ public partial class bithumb : Exchange
      * @param {int} [limit] the maximum amount of candles to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.generation] if you want to use the API generation 1 or 2, default is 2
+     * @param {int} [params.until] generation 2 only, timestamp in ms of the latest candle to fetch
+     * @param {boolean} [params.paginate] generation 2 only, default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
     public async override Task<List<ccxt.OHLCV>> FetchOHLCV(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1453,20 +1458,55 @@ public partial class bithumb : Exchange
         object data = new List<object>() {};
         if ((generation == 2))
         {
+            IList<object> paginateparamsPaginateVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            bool paginate = (bool)paginateparamsPaginateVariable[0];
+            IDictionary<string, object> paramsPaginate = ((IDictionary<string, object>)paginateparamsPaginateVariable[1]);
+            if (paginate)
+            {
+                return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,timeframeVar, paramsPaginate, 200));
+            }
+            Int64? until = this.safeInteger(paramsGeneration, "until");
+            Dictionary<string, object> requestParams = this.omit(paramsGeneration, new List<object>() {"until", "paginate"});
             request["market"] = this.getGen2MarketId(market);
+            // the v1 candles endpoints return at most 200 candles, and a single candle when count is omitted
+            object count = 200;
             if ((limit != null))
             {
-                request["count"] = limit;
+                count = Math.Min(limit.Value, 200);
+            }
+            if (((limit != null)) || ((since != null)) || ((until != null)))
+            {
+                request["count"] = count;
+            }
+            // the v1 candles endpoints only page backwards: `to` is the exclusive end of the range,
+            // and it must be a "yyyy-MM-dd HH:mm:ss" string in Korea Standard Time (UTC+9)
+            object to = null;
+            if ((until != null))
+            {
+                to = this.sum(until, 1000); // `to` is exclusive with second precision, keep the candle that opens at `until`
+            }
+            if ((since != null))
+            {
+                Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+                object sinceEnd = this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, count));
+                if (((to == null)) || (isLessThan(sinceEnd, to)))
+                {
+                    to = sinceEnd;
+                }
+            }
+            if (!(to == null))
+            {
+                request["to"] = this.ymdhms(this.sum(to, 32400000), " ");
             }
             if ((timeframeVar == "1d"))
             {
-                response = await this.publicGetV1CandlesDays(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesDays(this.extend(request, requestParams));
             } else if ((timeframeVar == "1w"))
             {
-                response = await this.publicGetV1CandlesWeeks(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesWeeks(this.extend(request, requestParams));
             } else if ((timeframeVar == "1M"))
             {
-                response = await this.publicGetV1CandlesMonths(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMonths(this.extend(request, requestParams));
             } else
             {
                 Int64? timeframeInteger = this.safeInteger(this.timeframes, timeframeVar);
@@ -1475,7 +1515,7 @@ public partial class bithumb : Exchange
                     throw new BadRequest ((string)((this.id + " fetchOHLCV() unsupported timeframe ") + (timeframeVar))) ;
                 }
                 request["unit"] = timeframeInteger;
-                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, paramsGeneration));
+                response = await this.publicGetV1CandlesMinutesUnit(this.extend(request, requestParams));
             }
             //
             //     [

@@ -52,9 +52,7 @@ const json = (data, params = undefined) => JSON.stringify(data), isJsonEncodedOb
 // Url-safe-base64 without equals signs, with + replaced by - and slashes replaced by underscores
 , urlencodeBase64 = (payload) => {
     const payload64 = (typeof payload === 'string') ? stringToBase64(payload) : binaryToBase64(payload);
-    return payload64.replace(/[=]+$/, '')
-        .replace(/\+/g, '-')
-        .replace(/\//g, '_');
+    return base64ToBase64Url(payload64);
 }, numberToLE = (n, padding) => utils_js.numberToBytesLE(BigInt(n), padding), numberToBE = (n, padding) => utils_js.numberToBytesBE(BigInt(n), padding);
 function packb(req) {
     return msgpack.serialize(req);

@@ -1622,6 +1622,10 @@ func (this *Toobit) fetchOHLCVBody(ch chan AsyncResult[[]OHLCV], symbol string, 
 		} else {
 			request["to"] = this.Sum(since, (duration**limit)*1000)
 		}
+	} else if (since != nil) && (limit != nil) {
+		// without an end time the exchange returns the latest candles, not the ones starting at since
+		var duration int64 = this.ParseTimeframe(timeframe) * 1000
+		request["endTime"] = mathMin(Subtract(this.Sum(since, duration**limit), 1), this.Milliseconds())
 	}
 	if limit != nil {
 		request["limit"] = limit
@@ -2075,11 +2079,11 @@ func (this *Toobit) fetchFundingRateHistoryBody(ch chan AsyncResult[[]FundingRat
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
-		var retRes165819 []any = r1.Value
-		if retRes165819 == nil {
+		var retRes166219 []any = r1.Value
+		if retRes166219 == nil {
 			ch <- AsyncResult[[]FundingRateHistory]{Value: nil}
 		} else {
-			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes165819)}
+			ch <- AsyncResult[[]FundingRateHistory]{Value: FundingRateHistoriesFromList(retRes166219)}
 		}
 		return nil
 	}
@@ -2580,6 +2584,13 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	_ = symbol
 	var params map[string]any = GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
+	if this.Markets == nil {
+
+		r := <-this.LoadMarketsAsync()
+		if r.Err != nil {
+			panic(r.Err)
+		}
+	}
 	var request map[string]any = map[string]any{}
 	if this.SafeString(params, "clientOrderId") == nil {
 		request["orderId"] = id
@@ -2596,18 +2607,18 @@ func (this *Toobit) cancelOrderBody(ch chan AsyncResult[Order], id any, optional
 	var response any = map[string]any{}
 	if marketType != nil && *marketType == "spot" {
 
-		r := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
-		if r.Err != nil {
-			panic(r.Err)
-		}
-		response = r.Raw
-	} else {
-
-		r1 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		r1 := <-this.PrivateDeleteApiV1SpotOrder(this.Extend(request, paramsMarketType))
 		if r1.Err != nil {
 			panic(r1.Err)
 		}
 		response = r1.Raw
+	} else {
+
+		r2 := <-this.PrivateDeleteApiV1FuturesOrder(this.Extend(request, paramsMarketType))
+		if r2.Err != nil {
+			panic(r2.Err)
+		}
+		response = r2.Raw
 	}
 	// response same as in `createOrder`
 	var status *string = this.ParseOrderStatus(this.SafeString(response, "status"))
@@ -3417,11 +3428,11 @@ func (this *Toobit) fetchDepositsBody(ch chan AsyncResult[[]Transaction], option
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes276815 []any = TransactionsToList(r.Value)
-	if retRes276815 == nil {
+	var retRes277515 []any = TransactionsToList(r.Value)
+	if retRes277515 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes276815)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes277515)}
 	}
 	return nil
 }
@@ -3458,11 +3469,11 @@ func (this *Toobit) fetchWithdrawalsBody(ch chan AsyncResult[[]Transaction], opt
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes278315 []any = TransactionsToList(r.Value)
-	if retRes278315 == nil {
+	var retRes279015 []any = TransactionsToList(r.Value)
+	if retRes279015 == nil {
 		ch <- AsyncResult[[]Transaction]{Value: nil}
 	} else {
-		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes278315)}
+		ch <- AsyncResult[[]Transaction]{Value: TransactionsFromList(retRes279015)}
 	}
 	return nil
 }

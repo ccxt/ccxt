@@ -885,7 +885,8 @@ export default class bitget extends bitgetRest {
         let incrementalFeed = true;
         if ((limit === 1) || (limit === 5) || (limit === 15) || (limit === 50)) {
             channel += limit.toString();
-            incrementalFeed = false;
+            // books50 sends a snapshot first and incremental updates afterwards
+            incrementalFeed = (limit === 50);
         }
         const topics = [];
         const messageHashes = [];
@@ -987,7 +988,7 @@ export default class bitget extends bitgetRest {
             return;
         }
         const timestamp = this.safeInteger(rawOrderBook, 'ts');
-        const incrementalBook = (channel === 'books');
+        const incrementalBook = ((channel === 'books') || (channel === 'books50'));
         if (incrementalBook) {
             // storedOrderBook = this.safeValue (this.orderbooks, symbol);
             if (!(symbol in this.orderbooks)) {

@@ -2711,7 +2711,7 @@ class poloniex(Exchange, ImplicitAPI):
         https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
@@ -2721,9 +2721,8 @@ class poloniex(Exchange, ImplicitAPI):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['limit'] = limit  # The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-            if self.safe_bool(market, 'contract', False):
-                request['limit'] = self.find_nearest_ceiling([5, 10, 20, 100, 150], limit)
+            # both hosts accept only these depths, anything else is rejected with 24104
+            request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 150], limit)
         if self.safe_bool(market, 'contract', False):
             responseRaw = self.swapPublicGetV3MarketOrderBook(self.extend(request, params))
             #
@@ -3702,7 +3701,7 @@ class poloniex(Exchange, ImplicitAPI):
             'info': position,
             'id': None,
             'symbol': marketResolved['symbol'],
-            'notional': notional,
+            'notional': self.parse_number(notional),
             'marginMode': marginMode,
             'liquidationPrice': self.safe_number(position, 'liqPx'),
             'entryPrice': self.safe_number(position, 'openAvgPx'),
@@ -3721,7 +3720,7 @@ class poloniex(Exchange, ImplicitAPI):
             'maintenanceMarginPercentage': None,
             'collateral': self.parse_number(collateral),
             'positionMargin': self.parse_number(positionMargin),
-            'initialMargin': initialMargin,
+            'initialMargin': self.parse_number(initialMargin),
             'initialMarginPercentage': None,
             'leverage': self.safe_integer(position, 'lever'),
             'marginRatio': self.safe_number(position, 'mgnRatio'),

@@ -886,13 +886,19 @@ public partial class dydx : Exchange
         }
         if ((since != null))
         {
-            request["fromIso"] = this.iso8601(since);
+            request["fromISO"] = this.iso8601(since);
         }
         Int64? until = this.safeInteger(parameters, "until");
         IDictionary<string, object> paramsOmitted = ((IDictionary<string, object>)this.omit(parameters, "until"));
         if ((until != null))
         {
-            request["toIso"] = this.iso8601(until);
+            request["toISO"] = this.iso8601(until);
+        } else if ((since != null))
+        {
+            // the indexer returns the newest candles in the range, so the range ends where the limit does
+            Int64 duration = (this.parseTimeframe(timeframeVar) * 1000L);
+            object count = ((limit != null)) ? Math.Min(limit.Value, 1000) : 1000;
+            request["toISO"] = this.iso8601(this.sum(since, ((Func<object, object, object>)(static (object hx4a, object hx4b) => ((hx4a is int hx4ai ? (object)(Int64)hx4ai : hx4a is uint hx4au ? (object)(Int64)hx4au : hx4a) is var hx4x && (hx4b is int hx4bi ? (object)(Int64)hx4bi : hx4b is uint hx4bu ? (object)(Int64)hx4bu : hx4b) is var hx4y) ? ((hx4x == null || hx4y == null) ? null : (hx4x is Int64 hx4xi && hx4y is Int64 hx4yi) ? (object)(hx4xi * hx4yi) : (Convert.ToDouble(hx4x) * Convert.ToDouble(hx4y)) is var hx4r && Convert.ToDecimal(hx4r) is var hx4d && hx4d == Math.Floor(hx4d) ? (object)Convert.ToInt64(hx4r) : (object)hx4r) : null))(duration, count)));
         }
         Dictionary<string, object> response = await this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, paramsOmitted));
         //

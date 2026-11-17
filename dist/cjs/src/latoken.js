@@ -849,6 +849,16 @@ class latoken extends latoken$1["default"] {
         }
         const last = this.safeString(ticker, 'lastPrice');
         const timestamp = this.safeIntegerOmitZero(ticker, 'updateTimestamp'); // sometimes latoken provided '0' ts from /ticker endpoint
+        // during venue incidents a deleted level leaks a signed aggregate into the
+        // best sizes - the quoted prices stay usable, so only negatives are dropped
+        let bidVolume = this.safeString(ticker, 'bestBidQuantity');
+        if ((bidVolume !== undefined) && Precise["default"].stringLt(bidVolume, '0')) {
+            bidVolume = undefined;
+        }
+        let askVolume = this.safeString(ticker, 'bestAskQuantity');
+        if ((askVolume !== undefined) && Precise["default"].stringLt(askVolume, '0')) {
+            askVolume = undefined;
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -856,9 +866,9 @@ class latoken extends latoken$1["default"] {
             'low': undefined,
             'high': undefined,
             'bid': this.safeString(ticker, 'bestBid'),
-            'bidVolume': this.safeString(ticker, 'bestBidQuantity'),
+            'bidVolume': bidVolume,
             'ask': this.safeString(ticker, 'bestAsk'),
-            'askVolume': this.safeString(ticker, 'bestAskQuantity'),
+            'askVolume': askVolume,
             'vwap': undefined,
             'open': undefined,
             'close': last,

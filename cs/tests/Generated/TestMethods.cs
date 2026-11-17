@@ -3113,11 +3113,45 @@ public partial class testMainClass
         //  -----------------------------------------------------------------------------
         //  --- Init of brokerId tests functions-----------------------------------------
         //  -----------------------------------------------------------------------------
-        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended()};
+        List<object> promises = new List<object> {this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit(), this.testBithumb(), this.testExtended(), this.testBit2me()};
         await promiseAll(promises);
         string successMessage = (("[" + (this.lang)) + "][TEST_SUCCESS] brokerId tests passed.");
         dump(("[INFO]" + successMessage));
         exitScript(0);
+        return true;
+    }
+
+    public async virtual Task<object> testBit2me()
+    {
+        Exchange exchange = ((Exchange)this.initOfflineExchange("bit2me"));
+        string id = "CCXT";
+        await exchange.loadMarkets();
+        assert(isEqual(getValue(exchange.options, "brokerId"), id), "bit2me - brokerId not in options");
+        object request = new Dictionary<string, object>() {};
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC", "limit", "buy", 0.0001, 36000);
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object clientOrderId = getValue(request, "clientOrderId");
+        assert(((string)clientOrderId).StartsWith((id + "-")), ((("bit2me - clientOrderId: " + (clientOrderId)) + " does not start with the broker id ") + id));
+        try
+        {
+            await exchange.CreateOrder("BTC/USDC", "limit", "buy", 0.0001, 36000, new Dictionary<string, object>() {
+                { "clientOrderId", "my-order" },
+            });
+        } catch(Exception e)
+        {
+            request = jsonParse(exchange.last_request_body);
+        }
+        object customClientOrderId = getValue(request, "clientOrderId");
+        assert(isEqual(customClientOrderId, "my-order"), (("bit2me - custom clientOrderId: " + (customClientOrderId)) + " should be sent as given, the broker id is only added when none is provided"));
+        if (!isTrue(isSync()))
+        {
+            await close(exchange);
+        }
         return true;
     }
 

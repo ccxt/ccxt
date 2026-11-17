@@ -24,16 +24,12 @@
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 use hmac::{Hmac, Mac};
-use sha2::{Sha256, Sha512, Digest as Sha2Digest};
+use sha2::{Sha256, Sha384, Sha512, Digest as Sha2Digest};
 use sha1::Sha1;
 use md5::Md5;
 use base64::{engine::general_purpose::STANDARD as B64, Engine as _};
 use crate::{Value, ExchangeError, Result};
 
-type HmacSha256 = Hmac<Sha256>;
-type HmacSha512 = Hmac<Sha512>;
-type HmacSha1   = Hmac<Sha1>;
-type HmacMd5    = Hmac<Md5>;
 
 /// Callback type used by derived exchanges to provide their `describe()` data.
 pub type DescribeCallback = Arc<dyn Fn() -> Value + Send + Sync>;
@@ -46,8 +42,8 @@ struct HttpTimings { http_nanos: u64, json_nanos: u64, http_calls: u64 }
 // One owner thread holds the three counters; a caller hands it an add and never
 // waits, so there is no lock on the HTTP path. A read is ordered behind every
 // add this thread already posted.
-static TIMINGS: once_cell::sync::Lazy<crate::value::OwnerThread<HttpTimings>> =
-    once_cell::sync::Lazy::new(|| {
+static TIMINGS: std::sync::LazyLock<crate::value::OwnerThread<HttpTimings>> =
+    std::sync::LazyLock::new(|| {
         crate::value::OwnerThread::spawn("ccxt-http-timings", HttpTimings::default())
     });
 
@@ -1079,25 +1075,18 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        match self.hmac_typed(&dbytes, &sbytes, &h, &digest) {
-            Ok(v) => Value::Str(v.into()),
-            Err(_) => Value::Null,
+        match hmac_raw(&dbytes, &sbytes, &h) {
+            Some(raw) => digest_value(&raw, &digest),
+            None => Value::Null,
         }
     }
 
     pub fn hmac_typed(&self, data: &[u8], secret: &[u8], hash: &str, digest: &str) -> Result<String> {
-        let dbytes = data;
-        let sbytes = secret;
-        let raw: Vec<u8> = match hash.to_ascii_lowercase().as_str() {
-            "sha256" => { let mut m = HmacSha256::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha512" => { let mut m = HmacSha512::new_from_slice(sbytes).unwrap(); m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "sha1"   => { let mut m = HmacSha1::new_from_slice(sbytes).unwrap();   m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            "md5"    => { let mut m = HmacMd5::new_from_slice(sbytes).unwrap();    m.update(dbytes); m.finalize().into_bytes().to_vec() }
-            other    => return Err(ExchangeError::new("BadRequest", format!("unknown hmac: {other}"))),
-        };
+        let raw = hmac_raw(data, secret, hash)
+            .ok_or_else(|| ExchangeError::new("BadRequest", format!("unknown hmac: {}", hash.to_ascii_lowercase())))?;
         Ok(match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         })
     }
 
@@ -1109,20 +1098,14 @@ impl Exchange {
             Some(Value::Str(d)) => d.clone(),
             _ => "hex".to_string().into(),
         };
-        let raw = hash_raw(&dbytes, &a);
-        match digest.as_ref() {
-            // `binary` → a byte-array Value (consumed by another crypto step).
-            "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
-            "base64" => Value::Str(B64.encode(&raw).into()),
-            _        => Value::Str(hex::encode(&raw).into()),
-        }
+        digest_value(&hash_raw(&dbytes, &a), &digest)
     }
 
     pub fn hash_typed(&self, data: &[u8], algo: &str, digest: &str) -> String {
         let raw = hash_raw(data, algo);
         match digest {
             "base64" => B64.encode(&raw),
-            _        => hex::encode(&raw),
+            _        => hex_encode(&raw),
         }
     }
 
@@ -1139,13 +1122,13 @@ impl Exchange {
     }
     pub fn binary_to_base16(&self, data: Value, _optional_args: &[Value]) -> Value {
         let bytes = value_to_bytes(&data);
-        Value::Str(hex::encode(&bytes).into())
+        Value::Str(hex_encode(&bytes).into())
     }
     pub fn base16_to_binary(&self, s: Value, _optional_args: &[Value]) -> Value {
         let str_val = match &s { Value::Str(s) => s.clone(), _ => return Value::Null };
-        match hex::decode(&*str_val) {
-            Ok(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
-            Err(_) => Value::Null,
+        match hex_decode(&*str_val) {
+            Some(b) => Value::Array(b.into_iter().map(|n| Value::Int(n as i64)).collect()),
+            None => Value::Null,
         }
     }
 
@@ -2328,6 +2311,7 @@ impl Exchange {
 pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
     match algo.to_ascii_lowercase().as_str() {
         "sha256" => { let mut h = Sha256::new(); h.update(data); h.finalize().to_vec() }
+        "sha384" => { let mut h = Sha384::new(); h.update(data); h.finalize().to_vec() }
         "sha512" => { let mut h = Sha512::new(); h.update(data); h.finalize().to_vec() }
         "sha1"   => { let mut h = Sha1::new();   h.update(data); h.finalize().to_vec() }
         "md5"    => { let mut h = Md5::new();    h.update(data); h.finalize().to_vec() }
@@ -2338,6 +2322,32 @@ pub(crate) fn hash_raw(data: &[u8], algo: &str) -> Vec<u8> {
             h.finalize().to_vec()
         }
         _ => Vec::new(),
+    }
+}
+
+/// The one HMAC dispatch for every hmac path; `None` for an unknown algorithm.
+pub(crate) fn hmac_raw(data: &[u8], secret: &[u8], algo: &str) -> Option<Vec<u8>> {
+    fn mac<D: Mac + hmac::digest::KeyInit>(data: &[u8], secret: &[u8]) -> Vec<u8> {
+        let mut m = <D as Mac>::new_from_slice(secret).expect("HMAC accepts any key length");
+        m.update(data);
+        m.finalize().into_bytes().to_vec()
+    }
+    Some(match algo.to_ascii_lowercase().as_str() {
+        "sha256" => mac::<Hmac<Sha256>>(data, secret),
+        "sha384" => mac::<Hmac<Sha384>>(data, secret),
+        "sha512" => mac::<Hmac<Sha512>>(data, secret),
+        "sha1"   => mac::<Hmac<Sha1>>(data, secret),
+        "md5"    => mac::<Hmac<Md5>>(data, secret),
+        _ => return None,
+    })
+}
+
+/// Formats a raw digest: `binary` is a byte-array Value, `base64`, else hex.
+pub(crate) fn digest_value(raw: &[u8], digest: &str) -> Value {
+    match digest {
+        "binary" => Value::Array(raw.iter().map(|b| Value::Int(*b as i64)).collect()),
+        "base64" => Value::Str(B64.encode(raw).into()),
+        _        => Value::Str(hex_encode(raw).into()),
     }
 }
 
@@ -2526,10 +2536,39 @@ fn eip712_bytes(v: &Value) -> Vec<u8> {
     match v {
         Value::Str(s) => {
             let h = s.strip_prefix("0x").unwrap_or(s);
-            hex::decode(h).unwrap_or_else(|_| s.as_bytes().to_vec())
+            hex_decode(h).unwrap_or_else(|| s.as_bytes().to_vec())
         }
         _ => value_to_bytes(v),
     }
+}
+
+/// Lowercase hex of `bytes`.
+pub(crate) fn hex_encode(bytes: impl AsRef<[u8]>) -> String {
+    const DIGITS: &[u8; 16] = b"0123456789abcdef";
+    let bytes = bytes.as_ref();
+    let mut out = String::with_capacity(bytes.len() * 2);
+    for &b in bytes {
+        out.push(DIGITS[(b >> 4) as usize] as char);
+        out.push(DIGITS[(b & 0x0f) as usize] as char);
+    }
+    out
+}
+
+/// Hex (either case) to bytes; `None` on odd length or a non-hex char.
+pub(crate) fn hex_decode(s: impl AsRef<[u8]>) -> Option<Vec<u8>> {
+    fn nibble(c: u8) -> Option<u8> {
+        match c {
+            b'0'..=b'9' => Some(c - b'0'),
+            b'a'..=b'f' => Some(c - b'a' + 10),
+            b'A'..=b'F' => Some(c - b'A' + 10),
+            _ => None,
+        }
+    }
+    let s = s.as_ref();
+    if s.len() % 2 != 0 {
+        return None;
+    }
+    s.chunks_exact(2).map(|p| Some((nibble(p[0])? << 4) | nibble(p[1])?)).collect()
 }
 
 pub(crate) fn value_to_bytes(v: &Value) -> Vec<u8> {
@@ -2848,5 +2887,41 @@ mod http_error_tests {
         let mut core = BaseCore::new(Exchange::new(None));
         let error = fetch_error(&mut core, url).await;
         assert!(error.contains("ExchangeError"), "{error}");
+    }
+}
+
+#[cfg(test)]
+mod digest_dispatch_tests {
+    use super::*;
+
+    const SHA384_HMAC_JEFE: &str = "af45d2e376484031617f78d2b58a6b1b9c7ef464f5a01b47e42ec3736322445e8e2240ca5e69e2c78b3239ecfab21649";
+
+    #[test]
+    fn every_hmac_path_supports_sha384() {
+        let data = || Value::Str("what do ya want for nothing?".into());
+        let key = || Value::Str("Jefe".into());
+        let ex = Exchange::new(None);
+        let method = ex.hmac(data(), key(), Value::Str("sha384".into()), &[]);
+        let free = crate::runtime::hmac(data(), key(), Value::Str("sha384".into()), Value::Str("hex".into()));
+        let typed = ex.hmac_typed(b"what do ya want for nothing?", b"Jefe", "SHA384", "hex").unwrap();
+        assert_eq!(method, Value::Str(SHA384_HMAC_JEFE.into()));
+        assert_eq!(free, Value::Str(SHA384_HMAC_JEFE.into()));
+        assert_eq!(typed, SHA384_HMAC_JEFE);
+    }
+
+    #[test]
+    fn hash_supports_sha384() {
+        let ex = Exchange::new(None);
+        assert_eq!(ex.hash_typed(b"abc", "sha384", "hex"),
+            "cb00753f45a35e8bb5a03d699ac65007272c32ab0eded1631a8b605a43ff5bed8086072ba1e7cc2358baeca134c825a7");
+    }
+
+    #[test]
+    fn hex_helpers_match_hex_crate_semantics() {
+        assert_eq!(hex_encode([0x00u8, 0xab, 0xff]), "00abff");
+        assert_eq!(hex_decode("00ABff"), Some(vec![0x00, 0xab, 0xff]));
+        assert_eq!(hex_decode("abc"), None);
+        assert_eq!(hex_decode("zz"), None);
+        assert_eq!(hex_decode(""), Some(vec![]));
     }
 }

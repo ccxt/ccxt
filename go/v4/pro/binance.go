@@ -2950,11 +2950,21 @@ func (this *Binance) WatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncRes
 func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.Ticker], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
+	// a routed call (watchTicker > watchTickers) reads its options under the caller's name, the first
+	// option lookup would consume callerMethodName, so it is resolved once for both lookups below
 	symbols := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	stock, paramsStock := this.HandleOptionBoolAndParams(params, "watchTickers", "stock", false)
+	var methodNamePtr *string = nil
+	methodNamePtr, paramsMethodName := this.HandleParamString(params, "callerMethodName", "watchTickers")
+	methodName := func() any {
+		if methodNamePtr != nil {
+			return *methodNamePtr
+		}
+		return nil
+	}()
+	stock, paramsStock := this.HandleOptionBoolAndParams(paramsMethodName, methodName, "stock", false)
 	var symbolsNormalized any = symbols
 	if stock {
 		if symbols == nil {
@@ -2976,7 +2986,7 @@ func (this *Binance) watchTickersBody(ch chan ccxt.AsyncResult[map[string]ccxt.T
 		ch <- ccxt.AsyncResult[map[string]ccxt.Ticker]{Value: this.FilterTickersBySymbol(this.Tickers, symbolsNormalized)}
 		return nil
 	}
-	channelName, paramsName := this.HandleOptionStringAndParams(paramsStock, "watchTickers", "name", "miniTicker")
+	channelName, paramsName := this.HandleOptionStringAndParams(paramsStock, methodName, "name", "miniTicker")
 	if channelName != nil && *channelName == "bookTicker" {
 		panic(ccxt.BadRequest(this.Id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead"))
 	}
@@ -3020,11 +3030,12 @@ func (this *Binance) UnWatchTickersAsync(optionalArgs ...any) <-chan ccxt.AsyncR
 func (this *Binance) unWatchTickersBody(ch chan ccxt.AsyncResult[bool], optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
+	// same channel lookup as watchTickers, so that the stream that was subscribed is the one that is unsubscribed
 	var symbols []string = ccxt.GetArgStringSlice(optionalArgs, 0, nil)
 	_ = symbols
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 1, map[string]any{})
 	_ = params
-	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", "ticker")
+	channelName, paramsName := this.HandleOptionStringAndParams(params, "watchTickers", "name", "miniTicker")
 	if channelName != nil && *channelName == "bookTicker" {
 		panic(ccxt.BadRequest(this.Id + " deprecation notice - to subscribe for bids-asks, use watch_bids_asks() method instead"))
 	}
@@ -3197,14 +3208,18 @@ func (this *Binance) UnWatchTickerAsync(symbol string, optionalArgs ...any) <-ch
 func (this *Binance) unWatchTickerBody(ch chan ccxt.AsyncResult[bool], symbol string, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
+	// read the channel under watchTicker's options, the stream watchTicker subscribed
 	var params map[string]any = ccxt.GetArgMap(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	r := <-this.UnWatchTickersAsync([]any{symbol}, params)
+	r := <-this.UnWatchTickersAsync([]any{symbol}, this.Extend(params, map[string]any{
+		"callerMethodName": "watchTicker",
+	}))
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	ch <- ccxt.AsyncResult[bool]{Value: r.Value}
+	retRes237315 := r.Value
+	ch <- ccxt.AsyncResult[bool]{Value: retRes237315}
 	return nil
 }
 
@@ -4717,11 +4732,11 @@ func (this *Binance) fetchPositionWsBody(ch chan ccxt.AsyncResult[[]ccxt.Positio
 	if r.Err != nil {
 		panic(r.Err)
 	}
-	var retRes350215 []any = ccxt.PositionsToList(r.Value)
-	if retRes350215 == nil {
+	var retRes350715 []any = ccxt.PositionsToList(r.Value)
+	if retRes350715 == nil {
 		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: nil}
 	} else {
-		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350215)}
+		ch <- ccxt.AsyncResult[[]ccxt.Position]{Value: ccxt.PositionsFromList(retRes350715)}
 	}
 	return nil
 }
@@ -7401,9 +7416,9 @@ func (this *Binance) HandleMyTrade(client any, message any) {
 							}
 						}
 						if insertNewFeeCurrency {
-							retRes568932 := ccxt.GetValue(order, "fees")
-							ccxt.AppendToArray(&retRes568932, tradeFee)
-							ccxt.AddElementToObject(order, "fees", retRes568932)
+							retRes569432 := ccxt.GetValue(order, "fees")
+							ccxt.AppendToArray(&retRes569432, tradeFee)
+							ccxt.AddElementToObject(order, "fees", retRes569432)
 						}
 					} else if fee != nil {
 						if this.SafeString(fee, "currency") == this.SafeString(tradeFee, "currency") || (this.SafeString(fee, "currency") != nil && this.SafeString(tradeFee, "currency") != nil && *this.SafeString(fee, "currency") == *this.SafeString(tradeFee, "currency")) {

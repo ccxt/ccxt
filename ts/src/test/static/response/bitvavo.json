@@ -4,6 +4,169 @@
         "operatorId": 123456
     },
     "methods": {
+        "fetchMarkets": [
+            {
+                "description": "entry-tier spot trading fees for categories A, B, C and D",
+                "method": "fetchMarkets", "input": [],
+                "httpResponse": [
+                    {
+                        "market": "EURC-EUR", "status": "trading", "base": "EURC", "quote": "EUR",
+                        "pricePrecision": null, "minOrderInBaseAsset": "5.000000",
+                        "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "1000000000.000000",
+                        "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 6, "notionalDecimals": 2,
+                        "tickSize": "0.0000100", "maxOpenOrders": 100, "feeCategory": "D",
+                        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+                    },
+                    {
+                        "market": "USDC-EUR", "status": "trading", "base": "USDC", "quote": "EUR",
+                        "pricePrecision": null, "minOrderInBaseAsset": "5.522987",
+                        "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "1104597427.705799",
+                        "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 6, "notionalDecimals": 2,
+                        "tickSize": "0.0001000", "maxOpenOrders": 100, "feeCategory": "C",
+                        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+                    },
+                    {
+                        "market": "BTC-EUR", "status": "trading", "base": "BTC", "quote": "EUR",
+                        "pricePrecision": null, "minOrderInBaseAsset": "0.00008058",
+                        "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "16116.12745758",
+                        "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 8, "notionalDecimals": 2,
+                        "tickSize": "1.00", "maxOpenOrders": 400, "feeCategory": "A",
+                        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+                    },
+                    {
+                        "market": "BTC-USDC", "status": "trading", "base": "BTC", "quote": "USDC",
+                        "pricePrecision": null, "minOrderInBaseAsset": "0.00006985",
+                        "minOrderInQuoteAsset": "5.000000", "maxOrderInBaseAsset": "13970.71417230",
+                        "maxOrderInQuoteAsset": "1000000000.000000", "quantityDecimals": 8,
+                        "notionalDecimals": 6, "tickSize": "1.00", "maxOpenOrders": 100, "feeCategory": "B",
+                        "orderTypes": ["market", "limit", "stopLoss", "stopLossLimit", "takeProfit", "takeProfitLimit"]
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "EURC-EUR", "lowercaseId": null, "symbol": "EURC/EUR", "base": "EURC",
+                        "quote": "EUR", "settle": null, "baseId": "EURC", "quoteId": "EUR", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false,
+                        "option": false, "index": false, "active": true, "contract": false, "linear": null,
+                        "inverse": null, "subType": null, "taker": 0.0001, "maker": 0, "contractSize": null,
+                        "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": {"amount": 1e-06, "price": 1e-05, "cost": 0.01},
+                        "limits": {
+                            "leverage": {"min": null, "max": null}, "amount": {"min": 5, "max": 1000000000},
+                            "price": {"min": null, "max": null}, "cost": {"min": 5, "max": 1000000000}
+                        },
+                        "marginModes": {"cross": null, "isolated": null}, "created": null,
+                        "info": {
+                            "market": "EURC-EUR", "status": "trading", "base": "EURC", "quote": "EUR",
+                            "pricePrecision": null, "minOrderInBaseAsset": "5.000000",
+                            "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "1000000000.000000",
+                            "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 6,
+                            "notionalDecimals": 2, "tickSize": "0.0000100", "maxOpenOrders": 100,
+                            "feeCategory": "D",
+                            "orderTypes": [
+                                "market",
+                                "limit",
+                                "stopLoss",
+                                "stopLossLimit",
+                                "takeProfit",
+                                "takeProfitLimit"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "USDC-EUR", "lowercaseId": null, "symbol": "USDC/EUR", "base": "USDC",
+                        "quote": "EUR", "settle": null, "baseId": "USDC", "quoteId": "EUR", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false,
+                        "option": false, "index": false, "active": true, "contract": false, "linear": null,
+                        "inverse": null, "subType": null, "taker": 0.001, "maker": 0.001, "contractSize": null,
+                        "expiry": null, "expiryDatetime": null, "strike": null, "optionType": null,
+                        "precision": {"amount": 1e-06, "price": 0.0001, "cost": 0.01},
+                        "limits": {
+                            "leverage": {"min": null, "max": null},
+                            "amount": {"min": 5.522987, "max": 1104597427.705799},
+                            "price": {"min": null, "max": null}, "cost": {"min": 5, "max": 1000000000}
+                        },
+                        "marginModes": {"cross": null, "isolated": null}, "created": null,
+                        "info": {
+                            "market": "USDC-EUR", "status": "trading", "base": "USDC", "quote": "EUR",
+                            "pricePrecision": null, "minOrderInBaseAsset": "5.522987",
+                            "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "1104597427.705799",
+                            "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 6,
+                            "notionalDecimals": 2, "tickSize": "0.0001000", "maxOpenOrders": 100,
+                            "feeCategory": "C",
+                            "orderTypes": [
+                                "market",
+                                "limit",
+                                "stopLoss",
+                                "stopLossLimit",
+                                "takeProfit",
+                                "takeProfitLimit"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "BTC-EUR", "lowercaseId": null, "symbol": "BTC/EUR", "base": "BTC",
+                        "quote": "EUR", "settle": null, "baseId": "BTC", "quoteId": "EUR", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false,
+                        "option": false, "index": false, "active": true, "contract": false, "linear": null,
+                        "inverse": null, "subType": null, "taker": 0.0025, "maker": 0.0015,
+                        "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null,
+                        "optionType": null, "precision": {"amount": 1e-08, "price": 1, "cost": 0.01},
+                        "limits": {
+                            "leverage": {"min": null, "max": null},
+                            "amount": {"min": 8.058e-05, "max": 16116.12745758},
+                            "price": {"min": null, "max": null}, "cost": {"min": 5, "max": 1000000000}
+                        },
+                        "marginModes": {"cross": null, "isolated": null}, "created": null,
+                        "info": {
+                            "market": "BTC-EUR", "status": "trading", "base": "BTC", "quote": "EUR",
+                            "pricePrecision": null, "minOrderInBaseAsset": "0.00008058",
+                            "minOrderInQuoteAsset": "5.00", "maxOrderInBaseAsset": "16116.12745758",
+                            "maxOrderInQuoteAsset": "1000000000.00", "quantityDecimals": 8,
+                            "notionalDecimals": 2, "tickSize": "1.00", "maxOpenOrders": 400, "feeCategory": "A",
+                            "orderTypes": [
+                                "market",
+                                "limit",
+                                "stopLoss",
+                                "stopLossLimit",
+                                "takeProfit",
+                                "takeProfitLimit"
+                            ]
+                        }
+                    },
+                    {
+                        "id": "BTC-USDC", "lowercaseId": null, "symbol": "BTC/USDC", "base": "BTC",
+                        "quote": "USDC", "settle": null, "baseId": "BTC", "quoteId": "USDC", "settleId": null,
+                        "type": "spot", "spot": true, "margin": false, "swap": false, "future": false,
+                        "option": false, "index": false, "active": true, "contract": false, "linear": null,
+                        "inverse": null, "subType": null, "taker": 0.0005, "maker": 0.0005,
+                        "contractSize": null, "expiry": null, "expiryDatetime": null, "strike": null,
+                        "optionType": null, "precision": {"amount": 1e-08, "price": 1, "cost": 1e-06},
+                        "limits": {
+                            "leverage": {"min": null, "max": null},
+                            "amount": {"min": 6.985e-05, "max": 13970.7141723},
+                            "price": {"min": null, "max": null}, "cost": {"min": 5, "max": 1000000000}
+                        },
+                        "marginModes": {"cross": null, "isolated": null}, "created": null,
+                        "info": {
+                            "market": "BTC-USDC", "status": "trading", "base": "BTC", "quote": "USDC",
+                            "pricePrecision": null, "minOrderInBaseAsset": "0.00006985",
+                            "minOrderInQuoteAsset": "5.000000", "maxOrderInBaseAsset": "13970.71417230",
+                            "maxOrderInQuoteAsset": "1000000000.000000", "quantityDecimals": 8,
+                            "notionalDecimals": 6, "tickSize": "1.00", "maxOpenOrders": 100, "feeCategory": "B",
+                            "orderTypes": [
+                                "market",
+                                "limit",
+                                "stopLoss",
+                                "stopLossLimit",
+                                "takeProfit",
+                                "takeProfitLimit"
+                            ]
+                        }
+                    }
+                ]
+            }
+        ],
         "fetchCurrencies": [
             {
                 "description": "default",

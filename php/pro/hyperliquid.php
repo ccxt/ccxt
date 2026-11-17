@@ -1741,6 +1741,16 @@ class hyperliquid extends \ccxt\async\hyperliquid {
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
                 return true;
             }
+            if (mb_strpos($ret_msg, 'Already unsubscribed') !== false) {
+                // the requested state is already reached, so the unWatch call resolves through the
+                // regular unsubscription handler, the subscription is echoed only inside the text
+                $subscriptionStart = mb_strpos($ret_msg, '{');
+                $subscription = $this->parse_json(mb_substr($ret_msg, $subscriptionStart));
+                if ($subscription !== null) {
+                    $this->handle_unsubscription($client, $subscription);
+                    return true;
+                }
+            }
             $error = new ExchangeError($this->id . ' ' . $ret_msg);
             $client->reject($error);
             return true;
@@ -1978,26 +1988,30 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         $method = $this->safe_string($data, 'method');
         if ($method === 'unsubscribe') {
             $subscription = $this->safe_dict($data, 'subscription', array());
-            $type = $this->safe_string($subscription, 'type');
-            if ($type === 'l2Book') {
-                $this->handle_order_book_unsubscription($client, $subscription);
-            } elseif ($type === 'trades') {
-                $this->handle_trades_unsubscription($client, $subscription);
-            } elseif ($type === 'candle') {
-                $this->handle_ohlcv_unsubscription($client, $subscription);
-            } elseif ($type === 'orderUpdates') {
-                $this->handle_order_unsubscription($client, $subscription);
-            } elseif ($type === 'userFills') {
-                $this->handle_my_trades_unsubscription($client, $subscription);
-            } elseif ($type === 'clearinghouseState') {
-                $this->handle_positions_unsubscription($client, $subscription);
-            } elseif ($type === 'spotState') {
-                $this->handle_spot_balance_unsubscription($client, $subscription);
-            } elseif (($type === 'activeAssetCtx') || ($type === 'activeSpotAssetCtx')) {
-                $this->handle_ticker_unsubscription($client, $subscription);
-            } elseif ($type === 'allMids') {
-                $this->handle_tickers_unsubscription($client, $subscription);
-            }
+            $this->handle_unsubscription($client, $subscription);
+        }
+    }
+
+    public function handle_unsubscription(Client $client, array $subscription) {
+        $type = $this->safe_string($subscription, 'type');
+        if ($type === 'l2Book') {
+            $this->handle_order_book_unsubscription($client, $subscription);
+        } elseif ($type === 'trades') {
+            $this->handle_trades_unsubscription($client, $subscription);
+        } elseif ($type === 'candle') {
+            $this->handle_ohlcv_unsubscription($client, $subscription);
+        } elseif ($type === 'orderUpdates') {
+            $this->handle_order_unsubscription($client, $subscription);
+        } elseif ($type === 'userFills') {
+            $this->handle_my_trades_unsubscription($client, $subscription);
+        } elseif ($type === 'clearinghouseState') {
+            $this->handle_positions_unsubscription($client, $subscription);
+        } elseif ($type === 'spotState') {
+            $this->handle_spot_balance_unsubscription($client, $subscription);
+        } elseif (($type === 'activeAssetCtx') || ($type === 'activeSpotAssetCtx')) {
+            $this->handle_ticker_unsubscription($client, $subscription);
+        } elseif ($type === 'allMids') {
+            $this->handle_tickers_unsubscription($client, $subscription);
         }
     }
 

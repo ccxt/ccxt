@@ -119,7 +119,14 @@ public class Nado extends NadoApi
                                 put( "cost", 2 );
                             }} );
                             put( "query", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
+                                put( "byType", new HashMap<String, Object>() {{
+                                    put( "status", 1 );
+                                    put( "contracts", 1 );
+                                    put( "order", 1 );
+                                    put( "subaccount_orders", 2 );
+                                    put( "subaccount_info", 2 );
+                                }} );
                             }} );
                             put( "edge/query", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
@@ -127,7 +134,14 @@ public class Nado extends NadoApi
                         }} );
                         put( "post", new HashMap<String, Object>() {{
                             put( "query", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
+                                put( "byType", new HashMap<String, Object>() {{
+                                    put( "status", 1 );
+                                    put( "contracts", 1 );
+                                    put( "order", 1 );
+                                    put( "subaccount_orders", 2 );
+                                    put( "subaccount_info", 2 );
+                                }} );
                             }} );
                             put( "edge/query", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
@@ -149,7 +163,7 @@ public class Nado extends NadoApi
                                 put( "cost", 2 );
                             }} );
                             put( "pairs", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
                             }} );
                             put( "orderbook", new HashMap<String, Object>() {{
                                 put( "cost", 1 );
@@ -160,7 +174,14 @@ public class Nado extends NadoApi
                 put( "archive", new HashMap<String, Object>() {{
                     put( "post", new HashMap<String, Object>() {{
                         put( "", new HashMap<String, Object>() {{
-                            put( "cost", 1 );
+                            put( "cost", 2 );
+                            put( "byQuery", new HashMap<String, Object>() {{
+                                put( "candlesticks", new ArrayList<Object>(Arrays.asList(2, 100)) );
+                                put( "events", new ArrayList<Object>(Arrays.asList(2, 10)) );
+                                put( "matches", new ArrayList<Object>(Arrays.asList(2, 10)) );
+                                put( "orders", new ArrayList<Object>(Arrays.asList(2, 20)) );
+                                put( "interest_and_funding", new ArrayList<Object>(Arrays.asList(5)) );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -168,16 +189,17 @@ public class Nado extends NadoApi
                     put( "public", new HashMap<String, Object>() {{
                         put( "get", new HashMap<String, Object>() {{
                             put( "tickers", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
                             }} );
                             put( "contracts", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
                             }} );
                             put( "trades", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 4 );
+                                put( "byRows", new ArrayList<Object>(Arrays.asList(2, 50)) );
                             }} );
                             put( "symbols", new HashMap<String, Object>() {{
-                                put( "cost", 1 );
+                                put( "cost", 2 );
                             }} );
                         }} );
                     }} );
@@ -3663,6 +3685,58 @@ public class Nado extends NadoApi
             return (marketId == null ? null : ((String)marketId).substring(0, Math.max(((String)marketId).length() - 5, 0)));
         }
         return marketId;
+    }
+
+    public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Map<String, Object> config)
+    {
+        // the gateway weighs a query by its 'type' param, the archive by the query key of the
+        // body, and every archive weight grows with the number of rows requested
+        if ((config.containsKey("byType")) && ((switch ((Object)(parameters)) { case List<?> j39v6 -> j39v6.contains("type"); case Map<?, ?> j39v5 -> j39v5.containsKey("type"); case null, default -> false; })))
+        {
+            Object queryType = Helpers.GetValue(parameters, "type");
+            Object byType = config.get("byType");
+            if ((queryType != null && ((Map<?, ?>)byType).containsKey(queryType)))
+            {
+                return Helpers.GetValue(byType, queryType);
+            }
+        }
+        Map<String, Object> byQuery = (Map<String, Object>) this.safeDict(config, "byQuery", (Object) null);
+        if (!java.util.Objects.equals(byQuery, null))
+        {
+            List<String> queryNames = new ArrayList<String>(byQuery.keySet());
+            for (var i = 0; i < ((List<?>)queryNames).size(); i++)
+            {
+                String queryName = (queryNames == null || i < 0 || i >= queryNames.size() ? null : queryNames.get(i));
+                if ((switch ((Object)(parameters)) { case List<?> j39v4 -> ((Object)(queryName)) != null && j39v4.contains(queryName); case Map<?, ?> j39v3 -> ((Object)(queryName)) instanceof String && j39v3.containsKey(queryName); case null, default -> false; }))
+                {
+                    List<Object> weights = (List<Object>) this.safeList(byQuery, queryName, new ArrayList<Object>(Arrays.asList()));
+                    Long baseWeight = this.safeInteger(weights, 0, 2);
+                    Long rowsPerWeight = this.safeInteger(weights, 1);
+                    if (java.util.Objects.equals(rowsPerWeight, null))
+                    {
+                        return baseWeight;
+                    }
+                    Map<String, Object> query = (Map<String, Object>) this.safeDict(parameters, queryName, new HashMap<String, Object>() {{}});
+                    Long rows = this.safeInteger(query, "limit", 100); // the archive default page
+                    Map<String, Object> nestedLimit = (Map<String, Object>) this.safeDict(query, "limit", (Object) null); // the events query sends { 'raw': 100 }
+                    if (!java.util.Objects.equals(nestedLimit, null))
+                    {
+                        rows = (Long) this.safeInteger(nestedLimit, "raw", 100);
+                    }
+                    return this.sum(baseWeight, this.parseToInt((((double) rows) / ((double) rowsPerWeight))));
+                }
+            }
+        }
+        List<Object> byRows = (List<Object>) this.safeList(config, "byRows", (Object) null);
+        if (!java.util.Objects.equals(byRows, null))
+        {
+            // distinct local names: the C# emitter rejects a name already used in a sibling block
+            Long rowsBaseWeight = this.safeInteger(byRows, 0, 2);
+            Long rowsDivisor = this.safeInteger(byRows, 1, 50);
+            Long rowCount = this.safeInteger(parameters, "limit", 100); // the v2 default page
+            return this.sum(rowsBaseWeight, this.parseToInt((((double) rowCount) / ((double) rowsDivisor))));
+        }
+        return this.safeValue(config, "cost", 1);
     }
 
     public Object sign(Object path, Object api, Object method, Object parameters)

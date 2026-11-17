@@ -3681,7 +3681,7 @@ func (this *Poloniex) fetchTradingFeesBody(ch chan AsyncResult[map[string]Tradin
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
  * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
@@ -3707,10 +3707,8 @@ func (this *Poloniex) fetchOrderBookBody(ch chan AsyncResult[OrderBook], symbol 
 		"symbol": market["id"],
 	}
 	if limit != nil {
-		request["limit"] = limit // The default value of limit is 10. Valid limit values are: 5, 10, 20, 50, 100, 150.
-		if *this.SafeBool(market, "contract", false) {
-			request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 100, 150}, limit)
-		}
+		// both hosts accept only these depths, anything else is rejected with 24104
+		request["limit"] = this.FindNearestCeiling([]any{5, 10, 20, 50, 100, 150}, limit)
 	}
 	if *this.SafeBool(market, "contract", false) {
 
@@ -5179,7 +5177,7 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 		"info":                        position,
 		"id":                          nil,
 		"symbol":                      marketResolved["symbol"],
-		"notional":                    notional,
+		"notional":                    this.ParseNumber(notional),
 		"marginMode":                  marginMode,
 		"liquidationPrice":            this.SafeNumber(position, "liqPx"),
 		"entryPrice":                  this.SafeNumber(position, "openAvgPx"),
@@ -5198,7 +5196,7 @@ func (this *Poloniex) ParsePosition(position any, optionalArgs ...any) Position 
 		"maintenanceMarginPercentage": nil,
 		"collateral":                  this.ParseNumber(collateral),
 		"positionMargin":              this.ParseNumber(positionMargin),
-		"initialMargin":               initialMargin,
+		"initialMargin":               this.ParseNumber(initialMargin),
 		"initialMarginPercentage":     nil,
 		"leverage":                    this.SafeInteger(position, "lever"),
 		"marginRatio":                 this.SafeNumber(position, "mgnRatio"),
@@ -5979,7 +5977,7 @@ func (this *Poloniex) FetchTradingFees(params ...any) (TradingFees, error) {
  * @see https://api-docs.poloniex.com/spot/api/public/market-data#order-book
  * @see https://api-docs.poloniex.com/v3/futures/api/market/get-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
- * @param {int} [limit] the maximum amount of order book entries to return
+ * @param {int} [limit] the maximum amount of order book entries to return, rounded up to one of 5, 10, 20, 50, 100, 150
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
