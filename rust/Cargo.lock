@@ -151,7 +151,7 @@ dependencies = [
  "reqwest",
  "rsa",
  "rust_decimal",
- "rustls",201bc4cd74b3761a861e509e533a2a86e87e
+ "rustls",
  "serde_json",
  "sha1",
  "sha2",

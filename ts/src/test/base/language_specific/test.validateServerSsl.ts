@@ -15,7 +15,7 @@ import ccxt from '../../../../ccxt.js';
 function findSslServerScript () {
     let dir = path.dirname (fileURLToPath (import.meta.url));
     for (let i = 0; i < 10; i++) {
-        const candidate = path.join (dir, 'ts', 'src', 'test', 'static', 'ssl', 'server.cjs');
+        const candidate = path.join (dir, 'ts', 'src', 'test', 'static', 'ssl-server', 'server.cjs');
         if (fs.existsSync (candidate)) {
             return candidate;
         }

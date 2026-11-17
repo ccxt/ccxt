@@ -27,7 +27,7 @@ func (this *BaseExchange) ReadFile(path any, args ...any) string {
 
 // WriteFile writes data to a file
 func (this *BaseExchange) WriteFile(path any, data any, args ...any) bool {
-	this.EnsureWhitelistedFile(path, true)
+	this.EnsureWhitelistedFile(path)
 	pathStr := derefScalar(path).(string)
 	dataStr := derefScalar(data).(string)
 	dir := filepath.Dir(pathStr)
