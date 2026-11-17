@@ -2478,6 +2478,9 @@ const VENUE_RETURN_KINDS = {
     // base `convertMarketIdExpireDate (date: Str): Str` (no override in ts/src): returns undefined or its String
     // concat; the bybit / deribit `expiry` seeds it writes are handed to String slots (convertExpireDate*)
     'convertMarketIdExpireDate': [ 'String' ],
+    // pro kraken `formatNumber (data: string): string` (one declaration in ts/src): returns its own concat
+    // of two safeString (.., '') reads, trimmed by slice; the checksum concat of two calls goes native
+    'formatNumber': [ 'String' ],
 };
 
 function JAVA_ARRAY_TYPE_MAP () {
@@ -15906,6 +15909,9 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
         return node.arguments.length === 1 && node.arguments[0].kind !== ts.SyntaxKind.SpreadElement;
     }
     if (receiver.kind === ts.SyntaxKind.ThisKeyword) {
+        if (name === 'safeString' && r93j3SafeStringLiteralDefault (printer, node)) {
+            return true;
+        }
         if (!JAVA_NON_NULL_STRING_BASE_METHODS.has (name)) {
             return undefined;
         }
@@ -15925,7 +15931,34 @@ function javaNonNullStringCall87 (printer, node, name, declaration, retyped, dep
         return node.arguments.length === 2 && javaStringLikeReceiver (printer, receiver)
             && declaration !== undefined && javaNonNullStringValue (printer, declaration, retyped, receiver, (depth ?? 0) + 1);
     }
+    // `<s>.slice (..)` prints `(s == null ? null : ((String)s).substring (..))`: String, and non-null for a
+    // non-null String receiver (substring never answers null)
+    if (name === 'slice' && r93j3StringSliceShape (node)) {
+        // only the self slice `x = x.slice (..)` of the declaration being classified (its other writes decide x)
+        return ts.isIdentifier (receiver) && declaration !== undefined && javaStringLikeReceiver (printer, receiver)
+            && javaNonNullStringDeclarationOf (printer, receiver) === declaration;
+    }
     return undefined;
+}
+
+// base `this.safeString (x, k, '<lit>')`: SafeMethods.coerceOrDefault answers the coerced String or the
+// String default, so a literal default makes it a non-null String (BaseExchange declares it String)
+function r93j3SafeStringLiteralDefault (printer, node) {
+    if (node.arguments.length !== 3 || !ts.isStringLiteralLike (node.arguments[2]) || r87j6UnderPropertyAssignment (node)) {
+        return false;
+    }
+    let member;
+    try {
+        member = printer.getChecker ().getSymbolAtLocation (node.expression)?.valueDeclaration?.resolve ();
+    } catch (e) {
+        return false;
+    }
+    return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
+}
+
+function r93j3StringSliceShape (node) {
+    return (node.arguments.length === 1 || node.arguments.length === 2)
+        && node.arguments.every ((a) => a.kind !== ts.SyntaxKind.SpreadElement);
 }
 
 // a ral-87j3 call shape as the LEFT of `+`: the printer's concat proof does not see these calls, so
@@ -24253,6 +24286,10 @@ function r87j3SumWrite (printer, declaration, node) {
 // `int`/`double` kinds are refused (int does not box to Long; double would change the box).
 function r87j3LongValue (printer, node) {
     const n = unwrapParens (node);
+    // a base `this.parseToInt (..)`: declared Long, throws or answers a long, never null
+    if (n !== undefined && r92j3ParseToIntCall (printer, n)) {
+        return true;
+    }
     if (n === undefined || !ts.isBinaryExpression (n) || typeof printer.javaProvableNumericKind !== 'function') {
         return false;
     }
@@ -24289,6 +24326,23 @@ function r87j3SelfStep (printer, declaration, node) {
     const left = unwrapParens (n.left);
     return left !== undefined && ts.isIdentifier (left)
         && printer.getChecker ().getSymbolAtLocation (left)?.valueDeclaration?.resolve () === declaration;
+}
+
+// `Math.min (a, x)` / `Math.max (a, x)` whose other operand the printer proves a long: with x a
+// non-null Long the printer's numeric min/max prints the native Math call instead of the boxed compare
+function r93j3MathMinMaxOperand (printer, n) {
+    const call = n.parent;
+    if (call === undefined || !ts.isCallExpression (call) || call.arguments.length !== 2 || !call.arguments.includes (n)
+        || !ts.isPropertyAccessExpression (call.expression) || !ts.isIdentifier (call.expression.expression)
+        || call.expression.expression.text !== 'Math' || ![ 'min', 'max' ].includes (call.expression.name.text)) {
+        return false;
+    }
+    const other = call.arguments[0] === n ? call.arguments[1] : call.arguments[0];
+    try {
+        return r87j3IntLiteral (other) || printer.javaProvableNumericKind (unwrapParens (other)) === 'long';
+    } catch (e) {
+        return false;
+    }
 }
 
 function r87j3SumCounter (printer, declaration) {
@@ -24338,6 +24392,9 @@ function r87j3SumCounter (printer, declaration) {
             }
         }
         if (ts.isBinaryExpression (parent) && R87J3_ARITH_OPS.has (parent.operatorToken.kind)) {
+            nativeUse = true;
+        }
+        if (r93j3MathMinMaxOperand (printer, n)) {
             nativeUse = true;
         }
         if (ts.isPropertyAssignment (parent) && parent.initializer === n) {
@@ -24959,6 +25016,13 @@ export function installJavaR92j3SafeIntegerOperands (transpiler) {
     printer._javaR92j3SafeIntegerOperandsPatched = true;
     const upstream = printer.javaProvableNumericKind.bind (printer);
     printer.javaProvableNumericKind = function (node, allowDeclaredLocals = true) {
+        // a negated whole-number literal `-N` prints `-N`: a primitive operand like N itself; only as the
+        // left of a `-` that is itself a compare operand (`i < -1 - n`), so no other sum or local retypes
+        const bare = unwrapParens (node);
+        if (bare !== undefined && ts.isPrefixUnaryExpression (bare) && bare.operator === ts.SyntaxKind.MinusToken
+            && r87j3IntLiteral (bare.operand) && r93j3NegatedLiteralInCompare (bare)) {
+            return 'long';
+        }
         const kind = upstream (node, allowDeclaredLocals);
         // the call form relies on no retyped local, so it also answers `+` (allowDeclaredLocals false)
         if (kind !== undefined || (!allowDeclaredLocals && !ts.isCallExpression (unwrapParens (node) ?? node))) {
@@ -25025,12 +25089,52 @@ function r92j3NativeSumLocal (printer, declaration) {
         return false;
     }
     const init = unwrapParens (declaration.initializer);
+    if (init !== undefined && ts.isBinaryExpression (init) && init.operatorToken.kind === ts.SyntaxKind.MinusToken) {
+        return r93j3NativeLongDifference (printer, init);
+    }
     if (init === undefined || !ts.isBinaryExpression (init) || init.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
         return false;
     }
     const mine = (n) => r92j3DefaultedSafeIntegerOperand (printer, n) || r92j3DefaultedLongParamRead (printer, n);
     const longish = (n) => mine (n) || printer.javaWidenedNumericKind (unwrapParens (n)) === 'long';
     return (mine (init.left) || mine (init.right)) && longish (init.left) && longish (init.right);
+}
+
+// `const x = <int literal> - <long>`: the printer's native long subtract `(NL - y)` over a never-null
+// operand (a base parseToInt const: declared Long, throws or answers a long) is a long, so x is Long
+function r93j3NativeLongDifference (printer, init) {
+    const parseToIntConst = (n) => {
+        const bare = unwrapParens (n);
+        if (bare === undefined || !ts.isIdentifier (bare) || printer.printNode (bare, 0) !== bare.text) {
+            return false;
+        }
+        const target = printer.getChecker ().getSymbolAtLocation (bare)?.valueDeclaration?.resolve ();
+        return target !== undefined && ts.isVariableDeclaration (target) && ts.isVariableDeclarationList (target.parent)
+            && (target.parent.flags & ts.NodeFlags.Const) !== 0 && enclosingFunction (target) === enclosingFunction (bare)
+            && r92j3ParseToIntCall (printer, target.initializer);
+    };
+    return r87j3IntLiteral (init.left) && parseToIntConst (init.right);
+}
+
+function r93j3NegatedLiteralInCompare (node) {
+    let child = node;
+    let parent = node.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        child = parent;
+        parent = parent.parent;
+    }
+    if (parent === undefined || !ts.isBinaryExpression (parent) || parent.left !== child || parent.operatorToken.kind !== ts.SyntaxKind.MinusToken) {
+        return false;
+    }
+    let outer = parent.parent;
+    let inner = parent;
+    while (outer !== undefined && ts.isParenthesizedExpression (outer)) {
+        inner = outer;
+        outer = outer.parent;
+    }
+    return outer !== undefined && ts.isBinaryExpression (outer) && (outer.left === inner || outer.right === inner)
+        && [ ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken, ts.SyntaxKind.GreaterThanToken,
+            ts.SyntaxKind.GreaterThanEqualsToken ].includes (outer.operatorToken.kind);
 }
 
 // a read of a Long-typed integer-literal defaulted parameter prints `requireNonNullElse(x, NL)`: never null
@@ -25066,6 +25170,17 @@ function r92j3HexStringCall (printer, node) {
     return member !== undefined && BASE_SOURCE_FILE.test (member.getSourceFile ().fileName);
 }
 
+// pro kraken `this.formatNumber (x)`: printed `public String` (VENUE_RETURN_KINDS) and never null (its
+// one return is a local seeded by a concat of two defaulted safeString reads, then sliced)
+function r93j3FormatNumberCall (printer, node) {
+    const call = unwrapParens (node);
+    if (!isThisCall (call) || call.expression.name.text !== 'formatNumber' || call.arguments.length !== 1
+        || r87j6UnderPropertyAssignment (call)) {
+        return false;
+    }
+    return venueCallJavaType (printer, call) === 'String';
+}
+
 export function installJavaR92j3HexStringCalls (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || printer._javaR92j3HexStringCallsPatched) {
@@ -25074,7 +25189,7 @@ export function installJavaR92j3HexStringCalls (transpiler) {
     printer._javaR92j3HexStringCallsPatched = true;
     const upstream = printer.javaExpressionTypeResolver;
     printer.javaExpressionTypeResolver = function (node) {
-        if (r92j3HexStringCall (printer, node)) {
+        if (r92j3HexStringCall (printer, node) || r93j3FormatNumberCall (printer, node)) {
             return 'String';
         }
         return typeof upstream === 'function' ? upstream (node) : undefined;
