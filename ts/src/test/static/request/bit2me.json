@@ -159,6 +159,7 @@
                 "description": "limit buy with clientOrderId",
                 "method": "createOrder",
                 "url": "https://gateway.bit2me.com/v1/trading/order",
+                "forceCheckKeys": ["clientOrderId"],
                 "input": [
                     "BTC/USDC",
                     "limit",
@@ -169,7 +170,7 @@
                         "clientOrderId": "my-order-1"
                     }
                 ],
-                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"clientOrderId\":\"CCXT-my-order-1\"}",
+                "output": "{\"symbol\":\"BTC/USDC\",\"side\":\"buy\",\"orderType\":\"limit\",\"amount\":\"0.0001\",\"price\":\"36000\",\"clientOrderId\":\"my-order-1\"}",
                 "skipKeys": []
             },
             {
