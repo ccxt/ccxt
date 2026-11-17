@@ -17,6 +17,8 @@ import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
 import { installJavaR84j8Locals } from './java-local-types.js';
+import { installJavaR87j2WsLocals } from './java-local-types.js';
+import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
@@ -173,6 +175,8 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         installJ84j6TrueOnlyLocals (cachedTranspiler);
         installJ84j6StringListLocals (cachedTranspiler);
         installJavaR84j8Locals (cachedTranspiler);
+        installJavaR87j2WsLocals (cachedTranspiler);
+        installJavaR87j2UrlLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

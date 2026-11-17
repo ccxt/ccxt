@@ -38,6 +38,8 @@ import { installJavaR84j2ContainerLocals } from './java-local-types.js';
 import { installJavaR84j2GuardedListLocals } from './java-local-types.js';
 import { installJavaR84j2MapConditionalLocals } from './java-local-types.js';
 import { installJavaR84j8Locals } from './java-local-types.js';
+import { installJavaR87j2WsLocals } from './java-local-types.js';
+import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2500,6 +2502,8 @@ class NewTranspiler {
         installJ84j6TrueOnlyLocals(this.transpiler);
         installJ84j6StringListLocals(this.transpiler);
         installJavaR84j8Locals(this.transpiler);
+        installJavaR87j2WsLocals(this.transpiler);
+        installJavaR87j2UrlLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5827,7 +5831,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10006,6 +10010,88 @@ function javaR84j8LocalsSelfTest (): string[] {
         if (!/List<String> more = /.test(out) || !/more = new java\.util\.ArrayList<String>\(/.test(out)) problems.push("'more' (split write) must print List<String> with a List<String> write");
         if (!/\bObject ys = /.test(out)) problems.push("'ys' (copy of a safeValue const) must stay Object");
         if (/\(java\.util\.List<String>\)keys\)/.test(out) || !/String\.join\(", ", keys\)/.test(out)) problems.push("'keys' join must read the declared List<String> without a checkcast");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R1: a ws order-book side read off a WsOrderBook local, and a guarded ws cache read, print the
+// hand-written ws class with one checkcast and a native store / append; a side with no store keeps Object
+function javaR87j2WsLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', 'pro', `zzr87j2ws${process.pid}.ts`);
+    const body = [
+        "import binanceRest from '../binance.js';",
+        "import { ArrayCache } from '../base/ws/Cache.js';",
+        `export default class zzr87j2ws${process.pid} extends binanceRest {`,
+        "    sides (symbol: string, bid: boolean, price: number, amount: number) { const orderbook = this.safeValue (this.orderbooks, symbol); const s = bid ? orderbook['bids'] : orderbook['asks']; s.store (price, amount); const t = orderbook['asks']; return t; }",
+        "    cache (symbol: string, trade: any) { let arr = (symbol === undefined) ? undefined : this.safeValue (this.trades, symbol); if (arr === undefined) { arr = new ArrayCache (10); } arr.append (trade); return arr; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/io\.github\.ccxt\.ws\.OrderBookSide s = \(io\.github\.ccxt\.ws\.OrderBookSide\) /.test(out) || !/\bs\.store\(price, amount\)/.test(out)) problems.push("ral-87j2: 's' (WsOrderBook bids/asks conditional, store use) must print OrderBookSide with a native store");
+        if (!/io\.github\.ccxt\.ws\.ArrayCache arr = \(io\.github\.ccxt\.ws\.ArrayCache\) /.test(out) || !/\barr\.append\(trade\)/.test(out)) problems.push("ral-87j2: 'arr' (guarded this.trades read, append use) must print ArrayCache with a native append");
+        if (!/\bObject t = /.test(out)) problems.push("ral-87j2: 't' (no store use) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R3: an Array.isArray-guarded List conditional whose only native use is `x.length` prints List<Object>
+// with a native size(); the same local with only call-argument uses keeps Object
+function javaR87j2LengthListLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2len${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr87j2len${process.pid} extends Exchange {`,
+        "    rowsOf (response: any) { const isArr = Array.isArray (response); const rows = isArr ? response : this.safeList (response, 'data', []); const out = []; for (let i = 0; i < rows.length; i++) { out.push (this.safeDict (rows, i)); } return out; }",
+        "    argOnly (response: any) { const isArr = Array.isArray (response); const other = isArr ? response : this.safeList (response, 'data', []); return this.safeDict (other, 0); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rows = \(java\.util\.List<Object>\) /.test(out) || !/< rows\.size\(\)/.test(out)) problems.push("ral-87j2: 'rows' (isArray-guarded, .length use) must print List<Object> with a native size()");
+        if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (only a safe* argument) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e: any) {
+        problems.push(`self-test threw: ${e.message}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// ral-87j2 R4: a conditional of describe() urls string leaves handed to a String core parameter prints String with
+// one checkcast and a bare argument; the same conditional with a non-string leaf keeps Object
+function javaR87j2UrlLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr87j2url${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        `export default class zzr87j2url${process.pid} extends Exchange {`,
+        "    describe () { return this.deepExtend (super.describe (), { 'urls': { 'api': { 'ws': { 'spot': 'wss://a', 'swap': 'wss://b', 'odd': { 'x': 1 } } } } }); }",
+        "    open (u: string) { return u.length; }",
+        "    pick (isSpot: boolean) { const url = isSpot ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['swap']; return this.open (url); }",
+        "    odd (isSpot: boolean) { const other = isSpot ? this.urls['api']['ws']['spot'] : this.urls['api']['ws']['odd']; return this.open (other); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String url = \(String\) /.test(out)) problems.push("ral-87j2: 'url' (urls string leaves, String slot use) must print String");
+        if (!/\bObject other = /.test(out)) problems.push("ral-87j2: 'other' (a non-string urls leaf) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e: any) {
         problems.push(`self-test threw: ${e.message}`);
