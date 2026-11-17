@@ -8686,7 +8686,7 @@ function rowWriteElementSnippetChecks84c3 (): string[] {
 
 async function runMain () {
     if (process.argv.includes ('--self-test')) {
-        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 () ];
+        const problems = [ ...csharpNativeEmissionSelfTest (), ...counterAndGuardedMathSelfTest (), ...pureKeyInOpSelfTest (), ...digitLiteralEqualitySelfTest (), ...nonNullIntCompareSelfTest (), ...stringBoxConcatSelfTest (), ...csharpReturnIdentitySelfTest (), ...csharpTypedCoreConversionSelfTest (), ...nativeParseCallsSnippetChecks (), ...tupleSlotReadSnippetChecks (), ...nullSeedParamsSlotChecks (), ...copyLocalSnippetChecks77c5 (), ...helperReturnLocalsSnippetChecks (), ...rowWriteElementSnippetChecks84c3 (), ...copyLocalSnippetChecks84c5 (), ...nonNullStringCallSnippetChecks84c7 (), ...nullSeedNativeStringChecks87c4 (), ...copyLocalSnippetChecks87c5 () ];
         if (problems.length) {
             console.error ('SELF-TEST FAILED:\n  - ' + problems.join ('\n  - '));
             process.exit (3);
@@ -12844,5 +12844,30 @@ export function nullSeedNativeStringChecks87c4 (): string[] {
     // R4: `let p = undefined; p = this.safeDict (o, 1, {}); … p = this.omit (p, k)` is IDictionary, so the omit binds the dict overload
     const r4 = print ('safeDict (o, k, d = undefined) { return d; }\n omit (o, k) { return o; }\n f (o) { let p = undefined; p = this.safeDict (o, 1, {}); if (o) { p = this.omit (p, \'a\'); } return p; }');
     if (!r4.includes ('IDictionary<string, object> p = null;')) problems.push (`87c4 R4 null-seed self-omit: ${r4.replace (/\n/g, ' | ').slice (-400)}`);
+    return problems;
+}
+
+// ral-87c5 R1: a copy of a typed string local whose `+` reads are left operands prints `string?` and
+// keeps the printer's null-guarded concatenation, minus the `((object)…)` box
+export function copyLocalSnippetChecks87c5 (): string[] {
+    const problems: string[] = [];
+    const config: any = { verbose: false, csharp: { parser: { NUM_LINES_END_FILE: 0, 'ELEMENT_ACCESS_WRAPPER_OPEN': 'getValue(', 'ELEMENT_ACCESS_WRAPPER_CLOSE': ')' } } };
+    const transpiler = new Transpiler (config);
+    setupCsharpPrinter (transpiler);
+    const pre = 'type Str = string | undefined;\nclass Test {\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n';
+    const print = (body: string) => (transpiler as any).transpileCSharp (pre + body + '\n}').content as string;
+    const out = print ('f (o) { const orderType = this.safeString (o, \'t\'); const q = orderType; const z = q + \'.x\'; const y = q + \'.y\'; return this.hash (z, y, 1); }');
+    if (!out.includes ('string? q = orderType;')) problems.push (`87c5 string copy: not typed: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    if (!out.includes ('string? z = ((string)(q == null ? null : q + ".x"));')) problems.push (`87c5 string copy: guarded read not native: ${out.replace (/\n/g, ' | ').slice (-400)}`);
+    // R2: a Dictionary omit result later written from an IDictionary reader and through omit itself
+    const widened = (transpiler as any).transpileCSharp ('type Dict = { [key: string]: any };\nclass Test {\n omit (o, k): Dict { return o; }\n safeDict (o, k, d = undefined): Dict { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (o) { let p = this.omit ({}, \'a\'); if (o) { p = this.safeDict (o, \'b\'); } p = this.omit (p, \'c\'); return this.hash (p, 1, 1); }\n}').content as string;
+    if (!widened.includes ('IDictionary<string, object> p = this.omit(')) problems.push (`87c5 R2 dictionary widening: ${widened.replace (/\n/g, ' | ').slice (-400)}`);
+    // R3: self-concat writes `x = x + r` keep the guarded form, now without the box
+    const selfWrite = print ('f (o, e) { const id = this.safeString (o, \'i\'); let s = id; if (e) { s = s + \'-\' + e; } const k = s + \':\'; return this.hash (k, 1, 1); }');
+    if (!selfWrite.includes ('string? s = id;') || !selfWrite.includes ('s = (s == null ? null : s + "-" + ')) problems.push (`87c5 R3 string self write: ${selfWrite.replace (/\n/g, ' | ').slice (-400)}`);
+    // a copy of an untyped value keeps object
+    const kept = print ('f (o, r) { let q = o; q = q + \'?\' + r; return this.hash (q, 1, 1); }');
+    if (!kept.includes ('object q = o;')) problems.push (`87c5 string copy: untyped source retyped: ${kept.replace (/\n/g, ' | ').slice (-400)}`);
     return problems;
 }

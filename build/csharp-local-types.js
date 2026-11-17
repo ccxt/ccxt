@@ -20744,3 +20744,165 @@ const c87UpstreamUseProvenElementBox = useProvenElementBox;
 useProvenElementBox = function (csharp, declaration) {
     return c87UpstreamUseProvenElementBox (csharp, declaration) ?? literalKeyPushedListLocal (csharp, declaration);
 };
+
+// ===== 87c5: copies of typed locals (continues 84c5) =====
+// (R1) `let x = <string / string? local>` whose `+` / `+=` reads are left operands: the guarded
+// concat proof (guardedConcatLeftUse) only takes a declaration whose initializer is a string-or-null
+// CALL, so a plain copy of such a local stayed `object` and every read printed the boxed
+// `((object)(x == null ? null : x + r))`. A copy of a local the module itself declares `string` /
+// `string?` (localIdentifierType: one binding, declared before the read) prints with no cast and holds
+// the same string-or-null box, so the same proof applies: the guarded conditional keeps add(object,
+// object)'s null-left semantics and is already statically `string`. Only a FALLBACK: it runs when
+// every upstream rule left the declaration `object`, so no already-typed local changes its reads.
+function c87StringCopyInitializer (csharp, declaration) {
+    const init = stripParens (declaration?.initializer);
+    if (init?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const type = localIdentifierType (csharp, init);
+    return type === 'string' || type === 'string?';
+}
+const c87StringCopyActive = new Set ();
+const c87UpstreamGuardedConcatLeftUse = guardedConcatLeftUse;
+// eslint-disable-next-line no-func-assign
+guardedConcatLeftUse = function (csharp, n, csharpType, scan) {
+    if (scan === undefined || csharpType !== 'string?' || !c87StringCopyActive.has (scan.declaration)) {
+        return c87UpstreamGuardedConcatLeftUse (csharp, n, csharpType, scan);
+    }
+    // the upstream proof for the read alone (shape + effect-free right operands); the read is
+    // recorded only when the whole declaration is accepted (c87StringCopyLocal)
+    // and only reads the printer already prints guarded for the `object` local (csharpObjectStringLocal):
+    // an unguarded `object + string` read is string.Concat (null -> ""), which the guard would change
+    const ok = typeof csharp.csharpObjectStringLocal === 'function' && csharp.csharpObjectStringLocal (n)
+        && c87UpstreamGuardedConcatLeftUse (csharp, n, csharpType, undefined);
+    if (ok) {
+        c87StringCopyReads.push (n);
+    }
+    return ok;
+};
+const c87StringCopyReads = [];
+function c87StringCopyLocal (csharp, declaration, context) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || c87StringCopyActive.size > 0 || !c87StringCopyInitializer (csharp, declaration)) {
+        return undefined;
+    }
+    // top-level (printer) decisions only: a nested classification must not record guarded reads
+    if (context !== undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    const ctx = { scope, stack: new Set (), depth: 0 };
+    c87StringCopyActive.add (declaration);
+    c87StringCopyReads.length = 0;
+    try {
+        // at least one read must go native (the guarded concat loses its object box); a copy that is only
+        // written and handed to helpers would gain a declaration type alone
+        if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, 'string?', ctx) || c87StringCopyReads.length === 0) {
+            return undefined;
+        }
+        for (const read of c87StringCopyReads) {
+            guardedConcatReads.add (read);
+        }
+        return { type: 'string?' };
+    } finally {
+        c87StringCopyActive.delete (declaration);
+        c87StringCopyReads.length = 0;
+    }
+}
+const c87UpstreamLocalDeclaration = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c87UpstreamLocalDeclaration (csharp, declaration, context) ?? c87StringCopyLocal (csharp, declaration, context);
+};
+
+
+// (R2) a local initialised by a proven `Dictionary<string, object>` (an omit of a dict receiver, no
+// cast) whose later writes store IDictionary boxes too (an element-1 params binding, a typed bag copy)
+// beside the `x = this.omit (x, k)` accumulator writes: the plain join stops at Dictionary + IDictionary.
+// Dictionary implements IDictionary by an implicit reference conversion, so the interface declaration
+// holds every write's box unchanged (INTERFACE_FIRST_WIDENING_EDGES, the 84c5 R3 widening without its
+// slot-write condition). Top-level decisions only; the retype scan re-checks every use against the
+// interface and some use must be native (dictParamsCopyHasNativeUse: omit receiver, indexer, `in`).
+function c87DictionaryWriteWidening (csharp, declaration, context) {
+    if (context !== undefined || declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1
+            || !isBlockScopedDeclaration (declaration) || declaration.initializer === undefined || isNullInit (declaration)
+            || c84WideningInProgress.size > 0 || c87WideningInProgress.size > 0) {
+        return undefined;
+    }
+    if (classifyInProgress.has (declaration)) {
+        return undefined;
+    }
+    c87WideningInProgress.add (declaration);
+    try {
+        return c87DictionaryWriteWideningInner (csharp, declaration);
+    } finally {
+        c87WideningInProgress.delete (declaration);
+        classifyInProgress.delete (declaration);
+    }
+}
+const c87WideningInProgress = new Set ();
+function c87DictionaryWriteWideningInner (csharp, declaration) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const ctx = { scope, stack: new Set (), depth: 0 };
+    const name = declaration.name.text;
+    // the declaration stays in classifyInProgress for the whole decision: a read of the local inside its
+    // own writes (`x = this.omit (x, k)`) must not re-enter the classifier for it
+    classifyInProgress.add (declaration);
+    const initial = csharpTypeOfValue (csharp, declaration.initializer, ctx);
+    if (initial !== 'Dictionary<string, object>') {
+        return undefined;
+    }
+    const type = 'IDictionary<string, object>';
+    if (typeFromValueOrWrites (csharp, scope, declaration, name, initial, ctx, INTERFACE_FIRST_WIDENING_EDGES) !== type
+            || !csharpLocalIsSafeToRetype (csharp, scope, declaration, name, type, ctx)
+            || !dictParamsCopyHasNativeUse (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return { type };
+}
+const c87UpstreamLocalDeclarationR2 = csharpLocalDeclaration;
+// eslint-disable-next-line no-func-assign
+csharpLocalDeclaration = function (csharp, declaration, context) {
+    return c87UpstreamLocalDeclarationR2 (csharp, declaration, context) ?? c87DictionaryWriteWidening (csharp, declaration, context);
+};
+
+// (R3) the R1 copies again, now with plain writes `x = <s> + r` whose LEFTMOST leaf <s> is a local the
+// module declares `string` / `string?` (localIdentifierType) or a string literal: the printer prints that
+// `+` chain as a native concatenation, add(string, …) or its null-guarded conditional, all statically
+// `string`, so the write is assignable to the `string?` declaration with the same string-or-null value.
+// The classifier cannot type a `+` value (csharpTypeOfValue's second BinaryExpression arm is
+// unreachable), hence this fallback, consulted only while R1 decides its own declaration.
+function c87StringPlusWriteType (csharp, node, declaration) {
+    let value = stripParens (node);
+    if (value?.kind !== ts.SyntaxKind.BinaryExpression || value.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    while (value?.kind === ts.SyntaxKind.BinaryExpression && value.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        value = stripParens (value.left);
+    }
+    if (value?.kind === ts.SyntaxKind.StringLiteral || value?.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral) {
+        return 'string';
+    }
+    if (value?.kind !== ts.SyntaxKind.Identifier) {
+        return undefined;
+    }
+    // `x = x + r`: the leaf is the R1 local itself, read as the `string?` it is being decided as, so the
+    // printer prints the same guarded concatenation its reads get (guardedConcatLeftUse proves each read)
+    if (declaration !== undefined && value.text === declaration.name.text && resolveReference (csharp, value) === declaration) {
+        return 'string?';
+    }
+    const type = localIdentifierType (csharp, value);
+    return (type === 'string' || type === 'string?') ? 'string' : undefined;
+}
+const c87UpstreamNullInitWriteValueType = nullInitWriteValueType;
+// eslint-disable-next-line no-func-assign
+nullInitWriteValueType = function (csharp, declaration, node) {
+    const upstream = c87UpstreamNullInitWriteValueType (csharp, declaration, node);
+    if (upstream !== undefined || !c87StringCopyActive.has (declaration)) {
+        return upstream;
+    }
+    return c87StringPlusWriteType (csharp, node, declaration);
+};
