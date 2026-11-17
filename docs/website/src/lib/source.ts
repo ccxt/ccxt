@@ -35,6 +35,24 @@ export const source = loader({
         },
       },
     },
+    // List /docs/changelog-exchanges (a Next route, not an MDX page) in the Guide sidebar right
+    // after the CCXT changelog. Added here rather than in build/wiki-to-fumadocs.ts so a change to
+    // the sidebar does not touch build/ (which makes every language's CI run a full rebuild).
+    {
+      name: 'exchange-changelogs-link',
+      transformPageTree: {
+        folder(node) {
+          const children = node.children;
+          const at = children.findIndex((c) => c.type === 'page' && /\/docs\/changelog$/.test(c.url));
+          const present = children.some((c) => c.type === 'page' && /\/docs\/changelog-exchanges$/.test(c.url));
+          if (at !== -1 && !present) {
+            const changelog = children[at] as Extract<(typeof children)[number], { type: 'page' }>;
+            children.splice(at + 1, 0, { type: 'page', name: 'Exchange API Changelogs', url: `${changelog.url}-exchanges` });
+          }
+          return node;
+        },
+      },
+    },
   ],
 });
 

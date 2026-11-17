@@ -780,7 +780,7 @@ function main () {
         'index', 'install', 'manual', '[Prediction Markets](/docs/prediction)', 'pro-manual', 'pro', 'cli', 'mcp', 'examples-overview',
         'faq', 'requirements', 'contributing',
         '---Reference---', 'base-spec', 'exchange-markets', 'exchange-markets-by-country',
-        'ai-skills', 'stats', 'certification', 'changelog', '[Exchange API Changelogs](/docs/changelog-exchanges)',
+        'ai-skills', 'stats', 'certification', 'changelog',
     ];
     write(path.join(OUT, 'meta.json'),
         JSON.stringify({ title: 'Guide', icon: 'BookOpen', description: 'Install, manual & reference', root: true, pages: topPages }, null, 2));
