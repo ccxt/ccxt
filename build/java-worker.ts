@@ -45,6 +45,7 @@ import { installJavaR92j1StringRowLocals } from './java-local-types.js';
 import { installJavaR92j2MarketTypeParams, installJavaTypedDefaultReaders } from './java-local-types.js';
 import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
 import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
+import { installJavaR93j2ListLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
 import { installJavaR77j2ConditionalLocals } from './java-local-types.js';
@@ -232,6 +233,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots, handed,
         installJavaTypedDefaultReaders (cachedTranspiler);
         installJavaR92j2MapSlotHandOff (cachedTranspiler);
         installJavaR92j2StringSlotLocals (cachedTranspiler);
+        installJavaR93j2ListLocals (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;

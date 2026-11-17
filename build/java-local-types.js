@@ -27232,3 +27232,114 @@ export function installJavaTypedDefaultReaders (transpiler) {
         return printed === '(Object) null' && javaTypedDefaultReaderSlot (param) ? 'null' : printed;
     };
 }
+
+// ===== 93j2 R1. read-only list locals from a checker-array conditional / element read =====
+// `const points = (list !== undefined) ? list : []` or `const entry = grouped[id]` whose TS type is an
+// array on every non-nullish member, read only as a list (`.length`, `x[i]`), handed to Object slots,
+// or rewritten from an `as any[]` value: the local takes one `(java.util.List<?>)` checkcast at the
+// declaration and the printer's declared-List length / element reads go native at every use.
+const R93J2_LIST_TYPE = 'java.util.List<?>';
+
+function r93j2ListUse (printer, n) {
+    const parent = n.parent;
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === n) {
+        return parent.name.text === 'length' && !(ts.isBinaryExpression (parent.parent) && parent.parent.left === parent) ? 'native' : undefined;
+    }
+    if (ts.isElementAccessExpression (parent) && parent.expression === n && !ts.isStringLiteralLike (parent.argumentExpression)) {
+        const grand = parent.parent;
+        // a literal index keeps the printer's tuple cast: not a native read
+        if (ts.isNumericLiteral (parent.argumentExpression) || grand?.kind === ts.SyntaxKind.DeleteExpression
+            || (ts.isBinaryExpression (grand) && grand.left === parent)
+            || ts.isPostfixUnaryExpression (grand) || ts.isPrefixUnaryExpression (grand) || (ts.isCallExpression (grand) && grand.expression === parent)) {
+            return undefined;
+        }
+        return 'native';
+    }
+    if (ts.isCallExpression (parent) && parent.arguments.includes (n) && isThisCall (parent)) {
+        let types;
+        try {
+            types = printer.javaNativeCallParameterTypes?.(parent);
+        } catch (e) {
+            return undefined;
+        }
+        const slot = types?.[parent.arguments.indexOf (n)];
+        return slot === undefined || r77j2Normalize (slot) === 'Object' ? 'arg' : undefined;
+    }
+    if (ts.isBinaryExpression (parent) && parent.left === n && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+        const right = unwrapParens (parent.right);
+        return right !== undefined && ts.isAsExpression (right) && right.type.kind === ts.SyntaxKind.ArrayType
+            && right.type.elementType.kind === ts.SyntaxKind.AnyKeyword && ts.isExpressionStatement (parent.parent) ? 'write' : undefined;
+    }
+    return undefined;
+}
+
+function r93j2ListLocal (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.parent?.declarations?.length !== 1
+        || !ts.isVariableDeclarationList (declaration.parent) || !ts.isVariableStatement (declaration.parent.parent)
+        || declaration.initializer === undefined) {
+        return false;
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (init === undefined || !(ts.isConditionalExpression (init) || (ts.isElementAccessExpression (init)
+        && !ts.isStringLiteralLike (init.argumentExpression) && !ts.isNumericLiteral (init.argumentExpression)))) {
+        return false;
+    }
+    if (r84j2TsIsArray (printer, declaration.name) !== true) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const index = scope === undefined ? undefined : dataflowIndex (printer, scope);
+    const name = String (declaration.name.text);
+    if (index === undefined || index.parameterNames.has (name) || index.blockedNames.has (name)) {
+        return false;
+    }
+    const uses = r90j2BindingUses (printer, declaration);
+    if (uses === undefined || uses.length === 0) {
+        return false;
+    }
+    const kinds = uses.map ((n) => r93j2ListUse (printer, n));
+    return !kinds.some ((k) => k === undefined) && kinds.includes ('native');
+}
+
+export function installJavaR93j2ListLocals (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaR93j2ListLocalsPatched) {
+        return;
+    }
+    printer._javaR93j2ListLocalsPatched = true;
+    const upto = (JAVA_DECLARED_LOCAL_TABLES.get (printer) ?? []).length;
+    const typed = new WeakMap ();
+    const upstream = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)
+            || declaration.initializer === undefined) {
+            return upstream (node, identation);
+        }
+        let ok = typed.has (declaration);
+        if (!ok) {
+            try {
+                ok = r93j2ListLocal (printer, declaration) && r87j6HeadIsObject (printer, declaration, upto);
+            } catch (e) {
+                ok = false;
+            }
+        }
+        if (ok) {
+            typed.set (declaration, R93J2_LIST_TYPE);
+        }
+        const printed = upstream (node, identation);
+        if (!ok) {
+            return printed;
+        }
+        const marker = `${printer.getIden (identation)}Object ${printer.printNode (declaration.name, 0)} = `;
+        const rest = printed.startsWith (marker) && printed.indexOf ('\n') === -1 ? printed.slice (marker.length) : undefined;
+        const semi = rest === undefined ? -1 : rest.lastIndexOf (';');
+        if (rest === undefined || (semi !== -1 && rest.slice (semi).trim () !== ';')) {
+            typed.delete (declaration);
+            return printed;
+        }
+        const body = semi === -1 ? rest : rest.slice (0, semi);
+        return r87j6Head (printer, declaration, identation, R93J2_LIST_TYPE) + `(${R93J2_LIST_TYPE}) (${body})` + (semi === -1 ? '' : rest.slice (semi));
+    };
+    publishJavaDeclaredLocalTypes (printer, (declaration) => typed.get (declaration));
+}
