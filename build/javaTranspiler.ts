@@ -41,6 +41,8 @@ import { installJavaR84j8Locals } from './java-local-types.js';
 import { installJavaR87j2WsLocals } from './java-local-types.js';
 import { installJavaR87j2UrlLocals } from './java-local-types.js';
 import { installJavaR87j3SumCounterLocals } from './java-local-types.js';
+import { installJavaR90j3NativeSumLocals } from './java-local-types.js';
+import { installJavaR90j3CounterLoops } from './java-local-types.js';
 import { installJavaR87j4SplitLists } from './java-local-types.js';
 import { installJavaR87j5CalleeStringArgs } from './java-local-types.js';
 import { installJavaR87j8CopyStringResolver } from './java-local-types.js';
@@ -2518,6 +2520,8 @@ class NewTranspiler {
         installJavaR90j2ElementListLocals(this.transpiler);
         installJavaR90j2PromiseAllLocals(this.transpiler);
         installJavaR90j2ElementMapLocals(this.transpiler);
+        installJavaR90j3NativeSumLocals(this.transpiler);
+        installJavaR90j3CounterLoops(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -6035,16 +6039,50 @@ function mapLocalsSelfTest (): string[] {
             '}',
         ].join('\n'));
         const out = new NewTranspiler().transpiler.transpileJavaByPath(r87j3b).content as string;
-        if (!/Long i = 0L;/.test(out) || !/i = \(Long\) this\.sum\(i, 1\)/.test(out)) problems.push("ral-87j3: 'i' (sum-of-integral counter) must print Long with a checkcast sum write");
+        // ral-90j3 loosened: a counter's sum of two proven longs now prints the native add `i = (i + 1L)`
+        if (!/Long i = 0L;/.test(out) || !/i = (?:\(Long\) this\.sum\(i, 1\)|\(i \+ 1L\))/.test(out)) problems.push("ral-87j3: 'i' (sum-of-integral counter) must print Long with a checkcast or native sum write");
         if (!/Object j = 0;/.test(out)) problems.push("ral-87j3: 'j' (sum with an Object operand) must stay Object");
         if (!/Object k = 0;/.test(out)) problems.push("ral-87j3: 'k' (no comparison / arithmetic use) must stay Object");
-        if (!/Long e = \(Long\) this\.sum\(a, 2\);/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
+        if (!/Long e = (?:\(Long\) this\.sum\(a, 2\)|\(a \+ 2L\));/.test(out) || !/e = Long\.valueOf\(n\)/.test(out)) problems.push("ral-87j3 R3: 'e' (sum initializer, length-const write) must print Long");
         if (!/Long d = 0L;/.test(out)) problems.push("ral-87j3 R3: 'd' (native long write) must print Long");
         if (!/Long r = 0L;/.test(out) || !/r = \(r \+ 1L\);/.test(out)) problems.push("ral-87j3 R4: 'r' (self step write) must print Long with a native add");
     } catch (e) {
         problems.push(`ral-87j3 R2 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j3b, { force: true });
+    }
+    // ral-90j3: base this.sum of two proven non-null longs prints the native long add (no `(Long)` checkcast)
+    const r90j3 = path.join(process.cwd(), 'ts', 'src', `zz90j3selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r90j3, [
+            "import Exchange from './abstract/binance.js';",
+            "import type { Dict } from './base/types.js';",
+            'export default class zz90j3selftest extends Exchange {',
+            "    rid () { const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1); this.options['requestId'] = requestId; return requestId; }",
+            "    exp () { const expiry = this.sum (this.milliseconds (), 5000); return expiry > 3; }",
+            "    walk (xs: any[]) { const n = xs.length; let i = 0; while (i < n) { i = this.sum (i, 1); } return i; }",
+            "    neg (p: Dict) { const a = this.sum (this.safeInteger (p, 'a'), 1); return a; }",
+            "    neg2 (p: Dict) { const b = this.sum (this.safeValue (p, 'b'), 1); return b; }",
+            "    cut (s: string, p: Dict) { const a = this.safeInteger (p, 'a', 0); const e = this.sum (a, 2); return s.slice (a, e); }",
+            "    put (p: Dict) { const a = this.safeInteger (p, 'a', 0); const f = this.sum (a, 2); p['f'] = f; return p; }",
+            "    loop (xs: any[]) { const n = xs.length; const out = []; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let k = s; k < t; k++) { out.push (xs[k]); } s = this.sum (s, 2); } return out; }",
+            "    loop2 (xs: any[]) { const n = xs.length; let s = 0; while (s < n) { let t = this.sum (s, 2); if (t > n) { t = n; } for (let m = s; m < t; m++) { m = m + 1; } s = this.sum (s, 2); } return s; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j3).content as string;
+        if (!/Long requestId = \(this\.safeInteger\(this\.options, "requestId", 0\) \+ 1L\);/.test(out)) problems.push("ral-90j3: 'requestId' (safeInteger with int default + 1) must print the native long add");
+        if (!/Long expiry = \(this\.milliseconds\(\) \+ 5000L\);/.test(out)) problems.push("ral-90j3: 'expiry' (milliseconds + literal) must print the native long add");
+        if (!/i = \(i \+ 1L\);/.test(out)) problems.push("ral-90j3: counter sum write must print the native long add");
+        if (!/Long a = \(Long\) this\.sum\(/.test(out) && !/Object a = this\.sum\(/.test(out)) problems.push("ral-90j3: 'a' (safeInteger without default) must keep this.sum");
+        if (!/Object b = this\.sum\(/.test(out)) problems.push("ral-90j3: 'b' (Object operand) must stay Object");
+        if (!/Long e = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'e' (const-local sum feeding a slice bound) must print the native long add");
+        if (/Long f = \(a \+ 2L\);/.test(out)) problems.push("ral-90j3 R2: 'f' (const-local sum only put into a map) must not be retyped by R2");
+        if (!/for \(long k = s; k < t; k\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'k' (loop between two Long counters) must print a native long header");
+        if (/for \(long m = s; m < t; m\+\+\)/.test(out)) problems.push("ral-90j3 R3: 'm' (loop variable written in the body) must keep the helper header");
+    } catch (e) {
+        problems.push(`ral-90j3 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r90j3, { force: true });
     }
     const probe = path.join(process.cwd(), 'ts', 'src', `zzmaplocalsselftest${process.pid}.ts`);
     const body = [
