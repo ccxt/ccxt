@@ -8157,6 +8157,24 @@ function goAccessSingleDeclaration (maskedFunc: string, signature: string, name:
     return undefined;
 }
 
+// slot 0 of the one `name, b := this.M(..)` bind of a pair method this file declares `(*string, map[string]any)` (every
+// declaration agrees): a *string local, the same declaration goAccessSingleDeclaration answers for `var name *string = ..`
+function goAccessPairSlot0Declaration (maskedFunc: string, signature: string, name: string, lines: string[]): any {
+    const n = goAccessEscape (name);
+    const bind = new RegExp ('^[ \\t]*' + n + ', \\w+ := this\\.(\\w+)\\(', 'm').exec (maskedFunc);
+    if ((bind === null) || (goAccessSingleDeclaration (maskedFunc.replace (bind[0], ' '.repeat (bind[0].length)), signature, name) !== undefined)
+        || new RegExp ('\\bvar\\s+' + n + '\\b|(?:^|[^\\w.])' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + n + '\\s*(?:,\\s*\\w+\\s*)*:=|\\bfunc\\s*\\([^()]*\\b' + n + '\\b|\\bfor\\b[^\\n{]*\\b' + n + '\\b[^\\n{]*:=')
+            .test (maskedFunc.replace (bind[0], ' '.repeat (bind[0].length)))
+        || new RegExp ('[(,]\\s*' + n + '\\s+[^,()]+?\\s*[,)]').test (signature.substring (signature.indexOf (') ') + 1))) {
+        return undefined;
+    }
+    const sigs = lines.filter ((l) => l.startsWith ('func (this *') && l.includes (') ' + bind[1] + '('));
+    if ((sigs.length === 0) || !sigs.every ((l) => l.endsWith (') (*string, map[string]any) {'))) {
+        return undefined;
+    }
+    return { 'type': '*string', 'index': bind.index, 'line': bind[0] };
+}
+
 // line k sits directly in the body of an `if name != nil {` block (no else-if chain above it)
 function goAccessInsideNilGuard (masked: string[], k: number, name: string): boolean {
     let depth = 0;
@@ -8276,7 +8294,7 @@ function rewriteTypedContainerFunc (lines: string[], masked: string[], start: nu
     const cache = new Map<string, any> ();
     const declOf = (name: string) => {
         if (!cache.has (name)) {
-            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name));
+            cache.set (name, goAccessSingleDeclaration (maskedFunc, lines[start], name) ?? goAccessPairSlot0Declaration (maskedFunc, lines[start], name, lines));
         }
         return cache.get (name);
     };
@@ -16040,10 +16058,10 @@ function goTypedMaplistTupleMethods (): string {
     return 'HandleMarketTypeAndParams|HandleSubTypeAndParams|HandleOptionStringAndParams2?|HandleParamString2?|HandleParamBool2?|HandleParamInteger2?|HandleNetworkCodeAndParams|HandleUntilOption|HandleMarginModeAndParams|HandleOptionBoolAndParams2?|HandleOptionIntegerAndParams2?';
 }
 
-function goTypedMaplistTupleMap (func: string, name: string): boolean {
+function goTypedMaplistTupleMap (func: string, name: string, pairs: string = ''): boolean {
     const binds = new RegExp ('\\bvar ' + name + '\\b|(?<![\\w.])' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|,\\s*' + name + '\\s*(?:,\\s*\\w+\\s*)*:=|[(,]\\s*' + name + ' [\\w\\[*.]|&' + name + '\\b');
     const decls = func.split ('\n').filter ((l) => binds.test (l));
-    const tuple = new RegExp ('^\\s*\\w+, ' + name + ' := this\\.(?:Exchange\\.)?(?:' + goTypedMaplistTupleMethods () + ')\\(');
+    const tuple = new RegExp ('^\\s*\\w+, ' + name + ' := this\\.(?:Exchange\\.)?(?:' + goTypedMaplistTupleMethods () + pairs + ')\\(');
     return (decls.length === 1) && tuple.test (decls[0]);
 }
 
@@ -16052,6 +16070,8 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         return content;
     }
     const masked = goTextMaskLiteralsAndComments (content);
+    // the file's own pair producers (venue `[ Str|Dict, Dict ]` methods printed with a `(T, map[string]any)` result)
+    const pairs = [ ...masked.matchAll (/^func \(this \*\w+\) (\w+)\([^\n]*\) \((?:\*string|map\[string\]any), map\[string\]any\) \{$/gm) ].map ((p) => '|' + p[1]).join ('');
     const call = /(?<![\w.])(?:ccxt\.)?MapTyped\(this\.Omit\((\w+),/g;
     let out = '';
     let cursor = 0;
@@ -16060,7 +16080,7 @@ function goTypedMaplistOmitOfTupleMaps (content: string): string {
         const end = goMatchingCloseText (masked, open);
         const fs = masked.lastIndexOf ('\nfunc ', m.index);
         const fe = masked.indexOf ('\n}\n', m.index);
-        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1])) {
+        if ((end < 0) || (masked[end - 1] !== ')') || (fs < 0) || (fe < 0) || !goTypedMaplistTupleMap (masked.substring (fs, fe), m[1], pairs)) {
             continue;
         }
         const inner = content.substring (m.index + m[0].length, end - 1);
