@@ -1695,8 +1695,8 @@ impl Bittrade {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut symbolsResolved: Value = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols });
-        if (symbolsResolved == Value::Null) {
+        let mut symbolsResolved: Option<crate::value::List> = (if (symbols == Value::Null) { Value::Arr(self.symbols.clone()) } else { symbols }).into_opt_list();
+        if (symbolsResolved.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " markets not loaded")));
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
@@ -1706,8 +1706,8 @@ impl Bittrade {
         {
                         let mut i: i64 = 0;
             let mut __for_first_445: bool = true;
-            while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (symbolsResolved.len() as i64) } {
-            let mut symbol: Option<String> = symbolsResolved.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            while { if !__for_first_445 { i += 1; } __for_first_445 = false; i < (symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut symbol: Option<String> = symbolsResolved.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
             result.insert(symbol.as_deref().unwrap_or("null").to_string(), self.fetch_trading_limits_by_id((self.market_id(Value::from(symbol.as_deref()))).as_str(), &[params.clone()]).await);
         }
         }

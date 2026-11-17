@@ -217,12 +217,12 @@ impl Gemini {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " watchTrades() has no websocket url")));
         }
         let mut url: String = format!("{}{}", wsUrl.as_deref().unwrap_or("null"), "/v2/marketdata");
-        let mut trades: Value = self.watch(url.as_str(), messageHash.as_str(), &request, subscribeHash.as_str(), Value::Null).await;
+        let mut trades: Option<crate::pro::cache::Cache> = self.watch(url.as_str(), messageHash.as_str(), &request, subscribeHash.as_str(), Value::Null).await.into();
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit((Value::from((market).symbol.clone())).as_str(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -251,14 +251,14 @@ impl Gemini {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut trades: Value = self.helper_for_watch_multiple_construct("trades", &[symbols, params]).await;
-        let mut first: crate::value::Dict = self.safe_dict(trades.clone(), Value::Int(0), &[]).into_dict();
+        let mut trades: Option<crate::pro::cache::Cache> = self.helper_for_watch_multiple_construct("trades", &[symbols, params]).await.into();
+        let mut first: crate::value::Dict = self.safe_dict(Value::from(&trades), Value::Int(0), &[]).into_dict();
         let mut tradeSymbol: Option<String> = self.safe_string_k_opt(&first, "symbol", &[]);
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = trades.get_limit(tradeSymbol.as_deref(), limit.as_i64());
         }
-        return self.filter_by_since_limit(trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
+        return self.filter_by_since_limit(&trades, since.as_i64(), limitResolved, &[Value::Str("timestamp".into()), Value::Bool(true)]);
         Value::Null
         }).await?))
     }
@@ -416,7 +416,8 @@ impl Gemini {
         }
 }
 
-    pub fn handle_trades_for_multidata(&mut self, mut client: Value, mut trades: Value, mut timestamp: Value) {
+    pub fn handle_trades_for_multidata(&mut self, mut client: Value, trades: impl Into<crate::Value>, mut timestamp: Value) {
+        let mut trades: Value = trades.into();
         let mut tradesLimit: i64 = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]).as_i64().unwrap_or(1000);
         let mut storesForSymbols: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
@@ -748,7 +749,8 @@ impl Gemini {
         }).await?))
     }
 
-    pub fn handle_bids_asks_for_multidata(&mut self, mut client: Value, mut rawBidAskChanges: Value, mut timestamp: Value, mut nonce: Value) {
+    pub fn handle_bids_asks_for_multidata(&mut self, mut client: Value, rawBidAskChanges: impl Into<crate::Value>, mut timestamp: Value, mut nonce: Value) {
+        let mut rawBidAskChanges: Value = rawBidAskChanges.into();
         //
         // {
         //     eventId: '1683002916916153',
@@ -882,7 +884,8 @@ impl Gemini {
     Value::Null
 }
 
-    pub fn handle_order_book_for_multidata(&mut self, mut client: Value, mut rawOrderBookChanges: Value, mut timestamp: Value, mut nonce: Value) {
+    pub fn handle_order_book_for_multidata(&mut self, mut client: Value, rawOrderBookChanges: impl Into<crate::Value>, mut timestamp: Value, mut nonce: Value) {
+        let mut rawOrderBookChanges: Value = rawOrderBookChanges.into();
         //
         // rawOrderBookChanges
         //
@@ -1138,9 +1141,9 @@ impl Gemini {
         m.insert("timestamp".to_string(), Value::from(timestamp));
         m.insert("datetime".to_string(), self.iso8601(timestamp));
         m.insert("lastTradeTimestamp".to_string(), Value::Null);
-        m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("symbol".to_string(), self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]));
-        m.insert("type".to_string(), self.parse_ws_order_type(typeId.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("type".to_string(), self.parse_ws_order_type(typeId.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("timeInForce".to_string(), Value::from(timeInForce));
         m.insert("postOnly".to_string(), Value::Bool(postOnly));
         m.insert("side".to_string(), self.safe_string_k(order.clone(), "side", &[]));
@@ -1159,7 +1162,8 @@ impl Gemini {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accepted".to_string(), Value::Str("open".into()));
@@ -1173,7 +1177,8 @@ impl Gemini {
         return self.safe_string_opt(&statuses, status.clone(), &[status.clone()]);
 }
 
-    pub fn parse_ws_order_type(&self, mut type_var: Value) -> Option<String> {
+    pub fn parse_ws_order_type(&self, type_var: Option<&str>) -> Option<String> {
+        let mut type_var: Value = type_var.into();
         let mut types: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("exchange limit".to_string(), Value::Str("limit".into()));

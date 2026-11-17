@@ -3031,7 +3031,7 @@ impl Nado {
             transactions.push(<Self as crate::exchange::DerivedExchange>::parse_transaction(self, transaction, currency.as_ref()));
         }
         }
-        return self.filter_by_currency_since_limit(Value::from(transactions), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::from(transactions), code.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

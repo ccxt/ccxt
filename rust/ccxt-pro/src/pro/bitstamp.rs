@@ -388,11 +388,12 @@ impl Bitstamp {
         orderbook.set_book_meta("nonce", self.safe_integer_k(delta.clone(), "microtimestamp", &[]));
         let mut bids: crate::value::List = self.safe_list_k(delta.clone(), "bids", &[Value::from(vec![])]).into_list();
         let mut asks: crate::value::List = self.safe_list_k(delta, "asks", &[Value::from(vec![])]).into_list();
-        self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("bids")), Value::Arr(bids));
-        self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("asks")), Value::Arr(asks));
+        self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("bids")), &bids);
+        self.handle_bid_asks(crate::pro::order_book::Side::of(orderbook.book_field("asks")), &asks);
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, mut bidAsks: Value) {
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
+        let mut bidAsks: Value = bidAsks.into();
         let __bidAsks_empty = Vec::new();
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {

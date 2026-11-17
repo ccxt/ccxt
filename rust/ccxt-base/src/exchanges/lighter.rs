@@ -1536,7 +1536,7 @@ impl Lighter {
         if lighterPrivateKeyIsSet && (libraryPath.is_some()) && (apiKeyIndex != Value::Null) && (accountIndex != Value::Null) {
             // load lighter library, and create lighter client
             signer = self.load_lighter_library(libraryPath.clone().map(Value::from).unwrap_or(Value::Null), chainId.clone(), privateKey, Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(true)]).await;
-            self.set_auth_entry(accountIndex.clone(), apiKeyIndex.clone(), Value::Map({
+            self.set_auth_entry(accountIndex.as_str().unwrap_or_default(), apiKeyIndex.as_str().unwrap_or_default(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), signer.clone());
                 m
@@ -1550,7 +1550,7 @@ impl Lighter {
             }
             // load lighter library without creating lighter client
             signer = self.load_lighter_library(libraryPath.map(Value::from).unwrap_or(Value::Null), chainId, Value::Str("".into()), Value::from(self.parse_to_int(apiKeyIndex.clone())), Value::from(self.parse_to_int(accountIndex.clone())), &[Value::Bool(false)]).await;
-            self.set_auth_entry(accountIndex.clone(), apiKeyIndex.clone(), Value::Map({
+            self.set_auth_entry(accountIndex.as_str().unwrap_or_default(), apiKeyIndex.as_str().unwrap_or_default(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), signer.clone());
                 m
@@ -1564,7 +1564,9 @@ impl Lighter {
     Value::Null
 }
 
-    pub fn set_auth_entry(&self, mut accIdx: Value, mut keyIdx: Value, mut entry: Value) {
+    pub fn set_auth_entry(&self, accIdx: &str, keyIdx: &str, mut entry: Value) {
+        let mut accIdx: Value = accIdx.into();
+        let mut keyIdx: Value = keyIdx.into();
         let mut updated: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
             m
@@ -1609,7 +1611,7 @@ impl Lighter {
     let mut m = indexmap::IndexMap::new();
     m
 })]), strApiKeyIndex.clone(), &[]) == Value::Null) {
-            self.set_auth_entry(strAccountIndex, strApiKeyIndex, Value::Map({
+            self.set_auth_entry(strAccountIndex.as_str().unwrap_or_default(), strApiKeyIndex.as_str().unwrap_or_default(), Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("signer".to_string(), Value::Null);
                     m.insert("lighterPrivateKey".to_string(), Value::Null);
@@ -1843,7 +1845,7 @@ impl Lighter {
             panic!("{}", crate::exchange_errors::authentication_error(format!("{}{}", self.id.clone(), " could not load the signer, set options[\"libraryPath\"] to the lighter signing library. Please check for more details: https://github.com/ccxt/ccxt/wiki/FAQ#how-to-use-the-lighter-exchange-in-ccxt")));
         }
         let mut token: Value = self.lighter_create_auth_token(signer, Value::Map(request));
-        self.set_auth_entry(accountIndex.map(Value::from).unwrap_or(Value::Null), apiKeyIndex.map(Value::from).unwrap_or(Value::Null), Value::Map({
+        self.set_auth_entry(accountIndex.as_deref().unwrap_or_default(), apiKeyIndex.as_deref().unwrap_or_default(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("deadline".to_string(), Value::from(deadline));
                 m.insert("token".to_string(), token.clone());
@@ -2038,15 +2040,15 @@ if _try_result.is_err() {
         let accountIndexparamsAccountIndexVariable: Vec<Value> = self.handle_account_index(&paramsApiKeyIndex, "changeApiKey", "accountIndex", "account_index", &[]).await.as_array().cloned().unwrap_or_default();
         let mut accountIndex: Option<i64> = accountIndexparamsAccountIndexVariable.get(0).and_then(Value::as_i64);
         let mut paramsAccountIndex: crate::value::Dict = accountIndexparamsAccountIndexVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
-        let mut strAccountIndex: Value = Value::from(self.number_to_string(Value::from(accountIndex)));
-        let mut strApiKeyIndex: Value = Value::from(self.number_to_string(Value::from(apiKeyIndex)));
+        let mut strAccountIndex: Option<String> = self.number_to_string(Value::from(accountIndex));
+        let mut strApiKeyIndex: Option<String> = self.number_to_string(Value::from(apiKeyIndex));
         let mut signerNotLoad: Value = self.safe_value(self.safe_dict(self.safe_dict(self.safe_dict_k(self.options.clone(), "auths", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), strAccountIndex.clone(), &[Value::Map({
+})]), Value::from(strAccountIndex.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), strApiKeyIndex.clone(), &[Value::Map({
+})]), Value::from(strApiKeyIndex.as_deref()), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
 })]), Value::Str("signer".into()), &[]);
@@ -2082,7 +2084,7 @@ if _try_result.is_err() {
             m
         });
         self.public_post_send_tx(&[Value::Map(request)]).await;
-        self.set_auth_entry(strAccountIndex, strApiKeyIndex, Value::Map({
+        self.set_auth_entry(strAccountIndex.as_deref().unwrap_or_default(), strApiKeyIndex.as_deref().unwrap_or_default(), Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("lighterPrivateKey".to_string(), privateKey.map(Value::from).unwrap_or(Value::Null));
                 m.insert("signer".to_string(), signer.clone());

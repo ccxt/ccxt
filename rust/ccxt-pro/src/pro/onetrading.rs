@@ -1308,7 +1308,7 @@ impl Onetrading {
             })]).into_dict();
             symbol = self.safe_string_k_opt(&previousOrder, "symbol", &[]);
             let mut filled: Option<String> = self.safe_string_k_opt(&update, "filled_amount", &[]);
-            let mut status: Value = self.parse_ws_order_status(updateType.clone().map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null);
+            let mut status: Value = self.parse_ws_order_status(updateType.as_deref()).map(Value::from).unwrap_or(Value::Null);
             if (updateType.as_deref() == Some("ORDER_CLOSED")) && crate::precise::Precise::stringEq(&filled, &Value::Str("0".into())).as_bool() == Some(true) {
                 status = Value::Str("canceled".into());
             }
@@ -1353,7 +1353,8 @@ impl Onetrading {
         }
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ORDER_REJECTED".to_string(), Value::Str("rejected".into()));

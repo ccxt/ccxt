@@ -285,20 +285,20 @@ impl Backpack {
  * @param {object} params local parameters
  * @returns {string} venue market id
  */
-    pub fn ws_venue_market_id(&self, mut methodName: Value, mut market: Value, params: impl Into<crate::Value>) -> Option<String> {
+    pub fn ws_venue_market_id(&self, mut methodName: Value, market: Option<&crate::types::Market>, params: impl Into<crate::Value>) -> Option<String> {
         let mut params: Value = params.into();
-        if (market == Value::Null) {
+        if (market.is_none()) {
             panic!("{}", crate::exchange_errors::bad_symbol(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a market")));
         }
-        self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), params.clone(), &[market.clone()]);
+        self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), params.clone(), market);
         let mut source: Option<String> = self.safe_string_k_opt(params, "source", &[Value::Str("Venue".into())]);
-        if (source.as_deref() == Some("External")) || (self.safe_string_k(market.clone(), "executionModel", &[]).as_str() == Some("rfq")) || (self.safe_string(market.as_map().and_then(|__m| __m.get("info")).cloned().unwrap_or(Value::Null), Value::Str("marketType".into()), &[]).as_str() == Some("RFQ")) {
+        if (source.as_deref() == Some("External")) || (self.safe_string_k(&market, "executionModel", &[]).as_str() == Some("rfq")) || (self.safe_string_k(crate::value::KeyRead::key_read(&market, "info"), "marketType", &[]).as_str() == Some("RFQ")) {
             panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() requires a venue order-book market; provider and RFQ streams are not documented for this method")));
         }
         if (source.as_deref() != Some("Venue")) {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " ").into()), methodName).into()), "() source must be Venue")));
         }
-        return market.as_map().and_then(|__m| __m.get("id")).cloned().unwrap_or(Value::Null).as_str().map(str::to_owned);
+        return crate::value::KeyRead::key_read(&market, "id").as_str().map(str::to_owned);
 }
 
 /*
@@ -349,7 +349,7 @@ impl Backpack {
             if (symbols == Value::Null) && (stock || (explicitSource.as_deref() == Some("External")) || (channel.is_some())) && ((market).stock.map(Value::Bool).unwrap_or_default().as_bool() != Some(true)) {
                 continue;
             }
-            let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, &[(market).raw.clone()]).into_list();
+            let mut marketSelection: crate::value::List = self.parent.handle_stock_params(methodName.as_str().unwrap_or_default(), &query, Some(&market)).into_list();
             let mut marketStock: bool = self.safe_bool_opt(&marketSelection, Value::Int(0), &[Value::Bool(false)]).unwrap_or(false);
             let mut marketParams: crate::value::Dict = self.safe_dict(&marketSelection, Value::Int(1), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -366,7 +366,7 @@ impl Backpack {
                     m.insert("source".to_string(), source.clone().map(Value::from).unwrap_or(Value::Null));
                 m
             })]).into_dict();
-            let mut request: crate::value::Dict = self.parent.stock_data_request(methodName.as_str().unwrap_or_default(), &requestParams, &[(market).raw.clone()]).into_dict();
+            let mut request: crate::value::Dict = self.parent.stock_data_request(methodName.as_str().unwrap_or_default(), &requestParams, Some(&market)).into_dict();
             let mut tickerSymbol: String = self.safe_string_k(&request, "symbol", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut topic: String = format!("{}{}", "ticker.", tickerSymbol);
             if (channel.is_some()) {
@@ -389,7 +389,7 @@ impl Backpack {
                     let mut quoteChannel: String = (if (source.as_deref() == Some("External")) { "stockPrice".to_string() } else { "stockIndicativeQuote".to_string() });
                     topic = format!("{}{}", Value::Str(format!("{}{}", quoteChannel, ".").into()), ticker);
                 }  else {
-                    self.ws_venue_market_id(methodName.clone(), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
+                    self.ws_venue_market_id(methodName.clone(), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
                     topic = format!("{}{}", Value::Str("bookTicker.".into()), Value::from((market).id.as_deref().unwrap_or("")));
                 }
             }  else if (source.as_deref() == Some("External")) {
@@ -1175,7 +1175,7 @@ impl Backpack {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]);
-            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
@@ -1234,7 +1234,7 @@ impl Backpack {
             let mut market: crate::types::Market = (match self.market(marketId.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
             let mut tf: String = self.safe_string(self.safe_list(symbolsAndTimeframes.clone(), Value::Int(i), &[]), Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
             let mut interval: Option<String> = self.safe_string_opt(self.timeframes.clone(), Value::from(tf.clone()), &[Value::from(tf)]);
-            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), (market).raw.clone(), &query).map(Value::from).unwrap_or(Value::Null);
+            self.ws_venue_market_id(Value::Str("watchOHLCVForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
             topics.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "kline.", interval.as_deref().unwrap_or("null")).into()), ".").into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "unsubscribe:candles:", Value::from((market).symbol.clone())).into()), ":").into()), interval.as_deref().unwrap_or("null")).into()));
         }
@@ -1396,9 +1396,9 @@ impl Backpack {
             let mut __for_first_45: bool = true;
             while { if !__for_first_45 { i += 1; } __for_first_45 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
-            topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
+            topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", "trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
@@ -1453,9 +1453,9 @@ impl Backpack {
             let mut __for_first_46: bool = true;
             while { if !__for_first_46 { i += 1; } __for_first_46 = false; i < (symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str).map(str::to_owned);
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
-            topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            self.ws_venue_market_id(Value::Str("watchTradesForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
+            topics.push(Value::Str(format!("{}{}", Value::Str("trade.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:trades:", symbol.as_deref().unwrap_or("null")).into()));
         }
         }
@@ -1635,9 +1635,9 @@ impl Backpack {
             while { if !__for_first_47 { i += 1; } __for_first_47 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", "orderbook:", symbol.as_deref().unwrap_or("null")).into()));
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
-            topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
+            topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
             if !(self.orderbooks.has(&symbol)) {
                 { let __cv = self.order_book(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1714,9 +1714,9 @@ impl Backpack {
             while { if !__for_first_48 { i += 1; } __for_first_48 = false; i < (symbolsNormalized.len() as i64) } {
             let mut symbol: Option<String> = symbolsNormalized.get(i as usize).and_then(Value::as_str).map(str::to_owned);
             messageHashes.push(Value::Str(format!("{}{}", "unsubscribe:orderbook:", symbol.as_deref().unwrap_or("null")).into()));
-            let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_deref().unwrap_or_default()));
-            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), market.clone(), &query).map(Value::from).unwrap_or(Value::Null);
-            topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), self.safe_string_k(market, "id", &[Value::Str("".into())])).into()));
+            let mut market: crate::types::Market = (match self.market(symbol.as_deref().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
+            self.ws_venue_market_id(Value::Str("watchOrderBookForSymbols".into()), Some(&market), &query).map(Value::from).unwrap_or(Value::Null);
+            topics.push(Value::Str(format!("{}{}", Value::Str("depth.".into()), Value::from((market).id.as_deref().unwrap_or(""))).into()));
         }
         }
         return self.watch_public(Value::from(topics), Value::from(messageHashes), &[self.omit(&query, &["stock", "source"], &[]), Value::Bool(true)]).await;
@@ -1788,11 +1788,12 @@ impl Backpack {
         let mut asks: crate::value::List = self.safe_list_k(delta, "a", &[Value::from(vec![])]).into_list();
         let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
         let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
-        self.handle_bid_asks(storedBids, Value::Arr(bids));
-        self.handle_bid_asks(storedAsks, Value::Arr(asks));
+        self.handle_bid_asks(storedBids, &bids);
+        self.handle_bid_asks(storedAsks, &asks);
 }
 
-    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, mut bidAsks: Value) {
+    pub fn handle_bid_asks(&self, mut bookSide: crate::pro::order_book::Side, bidAsks: impl Into<crate::Value>) {
+        let mut bidAsks: Value = bidAsks.into();
         let __bidAsks_empty = Vec::new();
         let bidAsks = bidAsks.as_array().unwrap_or(&__bidAsks_empty);
         {
@@ -1873,7 +1874,7 @@ impl Backpack {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            self.parent.handle_stock_params("watchOrders", &query, &[crate::Value::from(market.as_ref())]);
+            self.parent.handle_stock_params("watchOrders", &query, market.as_ref());
         }
         let mut symbolResolved: Option<String> = (if (market.is_some()) { self.safe_string_k_opt(&market, "symbol", &[]) } else { symbol.as_str().map(str::to_owned) });
         let mut topic: String = "account.orderUpdate".to_string();
@@ -1931,7 +1932,7 @@ impl Backpack {
         let mut market: Option<crate::types::Market> = None;
         if (symbol != Value::Null) {
             market = Some(match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            self.parent.handle_stock_params("watchOrders", &query, &[crate::Value::from(market.as_ref())]);
+            self.parent.handle_stock_params("watchOrders", &query, market.as_ref());
         }
         let mut topic: String = "account.orderUpdate".to_string();
         let mut messageHash: String = "unsubscribe:orders".to_string();

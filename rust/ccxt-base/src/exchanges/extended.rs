@@ -905,10 +905,10 @@ impl crate::exchange_generated::ExchangeBase for Extended {
                 "create_extended_order_request" => self.create_extended_order_request(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]).await,
                 "create_order" => crate::types::IntoRaw::into_raw(self.create_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_f64).unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).cloned().unwrap_or_default()).await),
-                "create_order_settlement_data" => self.create_order_settlement_data(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), &args[3.min(args.len())..]),
-                "create_transfer_settlement_data" => self.create_transfer_settlement_data(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
+                "create_order_settlement_data" => self.create_order_settlement_data(args.get(0).is_some_and(crate::Value::is_truthy), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[3.min(args.len())..]),
+                "create_transfer_settlement_data" => self.create_transfer_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(4).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), &args[5.min(args.len())..]),
-                "create_withdrawal_settlement_data" => self.create_withdrawal_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).cloned().unwrap_or(crate::Value::Null), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
+                "create_withdrawal_settlement_data" => self.create_withdrawal_settlement_data(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).cloned().unwrap_or(crate::Value::Null), args.get(3).cloned().unwrap_or(crate::Value::Null), &args[4.min(args.len())..]),
                 "edit_order" => crate::types::IntoRaw::into_raw(self.edit_order(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
                 "fetch_account" => self.fetch_account(&args[..]).await,
@@ -3159,7 +3159,7 @@ impl Extended {
         let mut account: crate::value::Dict = self.fetch_extended_account(&[]).await.into_dict();
         let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
         let mut accountId: Option<String> = self.safe_string_k_opt(&account, "accountId", &[]);
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.as_str().unwrap_or_default(), amountString.clone().map(Value::from).unwrap_or(Value::Null), crate::Value::from(Some(&currency)), &account, &[Value::from(&paramsWithdrawTag)]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_withdrawal_settlement_data(address.as_str().unwrap_or_default(), amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, &[Value::from(&paramsWithdrawTag)]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("accountId".to_string(), accountId.map(Value::from).unwrap_or(Value::Null));
@@ -3327,7 +3327,7 @@ impl Extended {
             panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", self.id.clone(), " transfer() requires a toAccount argument and params[\"toVault\"] and params[\"toL2Key\"]")));
         }
         let mut amountString: Option<String> = self.currency_to_precision(code, amount, &[]);
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.clone().map(Value::from).unwrap_or(Value::Null), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[params.clone()]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_transfer_settlement_data(amountString.as_deref().unwrap_or_default(), crate::Value::from(Some(&currency)), &account, toVault.as_deref().unwrap_or_default(), toL2Key.as_deref().unwrap_or_default(), &[params.clone()]).as_map().cloned().unwrap_or_default();
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("fromAccount".to_string(), Value::from(currentAccountId.clone()));
@@ -3904,8 +3904,10 @@ impl Extended {
     Value::Null
 }
 
-    pub fn create_order_settlement_data(&self, isBuy: bool, mut amountString: Value, mut priceString: Value, optional_args: &[Value]) -> Value {
+    pub fn create_order_settlement_data(&self, isBuy: bool, amountString: &str, priceString: &str, optional_args: &[Value]) -> Value {
         let mut isBuy: Value = isBuy.into();
+        let mut amountString: Value = amountString.into();
+        let mut priceString: Value = priceString.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -3955,8 +3957,9 @@ impl Extended {
     Value::Null
 }
 
-    pub fn create_withdrawal_settlement_data(&self, address: &str, mut amountString: Value, mut currency: Value, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+    pub fn create_withdrawal_settlement_data(&self, address: &str, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
         let mut address: Value = address.into();
+        let mut amountString: Value = amountString.into();
         let mut account: Value = account.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4009,7 +4012,8 @@ impl Extended {
     Value::Null
 }
 
-    pub fn create_transfer_settlement_data(&self, mut amountString: Value, mut currency: Value, account: impl Into<crate::Value>, toVault: &str, toL2Key: &str, optional_args: &[Value]) -> Value {
+    pub fn create_transfer_settlement_data(&self, amountString: &str, mut currency: Value, account: impl Into<crate::Value>, toVault: &str, toL2Key: &str, optional_args: &[Value]) -> Value {
+        let mut amountString: Value = amountString.into();
         let mut account: Value = account.into();
         let mut toVault: Value = toVault.into();
         let mut toL2Key: Value = toL2Key.into();
@@ -4182,7 +4186,7 @@ impl Extended {
         if (cancelId.is_some()) {
             request.insert("cancelId".into(), cancelId.map(Value::from).unwrap_or(Value::Null));
         }
-        let mut settlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), priceString.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+        let mut settlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(isBuy, amountString.as_deref().unwrap_or_default(), priceString.as_deref().unwrap_or_default(), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
         request.insert("settlement".into(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("signature".to_string(), Value::Map({
@@ -4211,7 +4215,7 @@ impl Extended {
                 let mut stopLossTriggerPriceType: Option<String> = self.safe_string_k_opt(&stopLoss, "triggerPriceType", &[]);
                 let mut stopLossExecutionPrice: Option<String> = self.safe_string_k_opt(&stopLoss, "price", &[]);
                 let mut stopLossType: Option<String> = self.safe_string_k_opt(&stopLoss, "type", &[]);
-                let mut stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), stopLossExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
+                let mut stopLossSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), stopLossExecutionPrice.as_deref().unwrap_or_default(), &[Value::Map(settlementParams.clone())]).as_map().cloned().unwrap_or_default();
                 let mut requestStopLoss: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.clone(), stopLossTrigger.map(Value::from).unwrap_or(Value::Null))));
@@ -4243,7 +4247,7 @@ impl Extended {
                 let mut takeProfitTriggerPriceType: Option<String> = self.safe_string_k_opt(&takeProfit, "triggerPriceType", &[]);
                 let mut takeProfitExecutionPrice: Option<String> = self.safe_string_k_opt(&takeProfit, "price", &[]);
                 let mut takeProfitType: Option<String> = self.safe_string_k_opt(&takeProfit, "type", &[]);
-                let mut takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.clone().map(Value::from).unwrap_or(Value::Null), takeProfitExecutionPrice.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
+                let mut takeProfitSettlement: indexmap::IndexMap<String, Value> = self.create_order_settlement_data(!isBuy, amountString.as_deref().unwrap_or_default(), takeProfitExecutionPrice.as_deref().unwrap_or_default(), &[Value::Map(settlementParams)]).as_map().cloned().unwrap_or_default();
                 let mut requestTakeProfit: indexmap::IndexMap<String, Value> = ({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("triggerPrice".to_string(), Value::from(self.price_to_precision(symbol.clone(), takeProfitTrigger.map(Value::from).unwrap_or(Value::Null))));

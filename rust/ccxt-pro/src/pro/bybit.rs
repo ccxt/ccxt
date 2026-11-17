@@ -67,7 +67,7 @@ impl crate::exchange_generated::ExchangeBase for Bybit {
                 "describe_data" => self.describe_data(),
                 "edit_order_ws" => crate::types::IntoRaw::into_raw(self.edit_order_ws(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(1).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(2).and_then(crate::Value::as_text).as_deref().unwrap_or_default(),
                     args.get(3).and_then(crate::Value::as_text).as_deref().unwrap_or_default(), args.get(4).and_then(crate::Value::as_f64), args.get(5).and_then(crate::Value::as_f64), args.get(6).cloned().unwrap_or_default()).await),
-                "get_private_type" => self.get_private_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "get_private_type" => self.get_private_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
                 "get_url_by_market_type" => self.get_url_by_market_type(args.get(0).and_then(crate::Value::as_text).as_deref(), &args[1.min(args.len())..]).await,
                 "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "handle_error_message" => self.handle_error_message(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
@@ -129,7 +129,7 @@ impl Bybit {
             "create_order_ws" => { crate::exchange_stubs::enqueue_spawn("create_order_ws", args.to_vec()); crate::Value::Null },
             "describe_data" => self.describe_data(),
             "edit_order_ws" => { crate::exchange_stubs::enqueue_spawn("edit_order_ws", args.to_vec()); crate::Value::Null },
-            "get_private_type" => self.get_private_type(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+            "get_private_type" => self.get_private_type(args.get(0).and_then(crate::Value::as_text).as_deref().unwrap_or_default()),
             "get_url_by_market_type" => { crate::exchange_stubs::enqueue_spawn("get_url_by_market_type", args.to_vec()); crate::Value::Null },
             "handle_authenticate" => self.handle_authenticate(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)),
             "handle_balance" => { self.handle_balance(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null)); crate::Value::Null },
@@ -1941,7 +1941,8 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn get_private_type(&self, mut url: Value) -> Value {
+    pub fn get_private_type(&self, url: &str) -> Value {
+        let mut url: Value = url.into();
         if url.as_str().unwrap_or("").contains("spot") {
             return Value::Str("spot".into());
         }  else if url.as_str().unwrap_or("").contains("v5/private") {
@@ -1998,7 +1999,7 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
             m
         });
-        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[]);
+        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2056,7 +2057,7 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::Str("user.openapi.perp.trade".into()));
             m
         });
-        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[]);
+        let mut topic: Option<String> = self.safe_string_opt(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]);
         let executionFastparamsExecutionFastVariable: Vec<Value> = self.handle_option_bool_and_params(params, Value::Str("watchMyTrades".into()), Value::Str("executionFast".into()), &[Value::Bool(false)]).as_array().cloned().unwrap_or_default();
         let mut executionFast: bool = executionFastparamsExecutionFastVariable.get(0).and_then(Value::as_bool) == Some(true);
         let mut paramsExecutionFast: crate::value::Dict = executionFastparamsExecutionFastVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2681,7 +2682,7 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).into_list();
+        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]).into_list();
         let mut orders: Value = self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
@@ -2731,7 +2732,7 @@ impl Bybit {
                 m.insert("usdc".to_string(), Value::from(vec![Value::Str("user.openapi.perp.order".into())]));
             m
         });
-        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(Value::from(url.as_deref())), &[]).into_list();
+        let mut topics: crate::value::List = self.safe_list(&topicsByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[]).into_list();
         return self.un_watch_topics(url.as_deref().unwrap_or_default(), "orders", Value::from(vec![]), Value::from(vec![Value::from(messageHash)]), Value::from(vec![Value::from(subHash)]), &topics, &[params]).await;
         Value::Null
         }).await?))
@@ -2961,7 +2962,7 @@ impl Bybit {
                 }
             }
         }
-        let mut topics: crate::value::List = std::sync::Arc::new(vec![self.safe_string(&topicByMarket, self.get_private_type(Value::from(url.as_deref())), &[])]);
+        let mut topics: crate::value::List = std::sync::Arc::new(vec![self.safe_string(&topicByMarket, self.get_private_type(url.as_deref().unwrap_or_default()), &[])]);
         return self.watch_topics(url.as_deref().unwrap_or_default(), Value::from(vec![Value::from(messageHash)]), &topics, &[Value::Dict(paramsSubType)]).await;
         Value::Null
         }).await?))

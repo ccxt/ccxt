@@ -1369,7 +1369,8 @@ impl Poloniex {
     Value::Null
 }
 
-    pub fn parse_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("NEW".to_string(), Value::Str("open".into()));
@@ -1567,7 +1568,7 @@ impl Poloniex {
                         add_element_to_object(get_value_mut(&mut previousOrder, &Value::Str("fee".into())), &Value::Str("cost".into()), crate::precise::Precise::stringAdd(&stringOrderCost, &stringTradeCost));
                     }
                     let mut rawState: Option<String> = self.safe_string_k_opt(&order, "state", &[]);
-                    let mut state: Option<String> = self.parse_status(rawState.map(Value::from).unwrap_or(Value::Null));
+                    let mut state: Option<String> = self.parse_status(rawState.as_deref());
                     add_element_to_object(&mut previousOrder, &Value::Str("status".into()), state.map(Value::from).unwrap_or(Value::Null));
                     // update the newUpdates count
                     orders.append(previousOrder);
@@ -1656,7 +1657,7 @@ impl Poloniex {
         m.insert("average".to_string(), Value::Null);
         m.insert("filled".to_string(), filledAmount.map(Value::from).unwrap_or(Value::Null));
         m.insert("remaining".to_string(), self.safe_string_k(order.clone(), "remaining_size", &[]));
-        m.insert("status".to_string(), self.parse_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("rate".to_string(), Value::Null);

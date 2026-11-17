@@ -766,7 +766,8 @@ impl Upbit {
         }).await?))
     }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("wait".to_string(), Value::Str("open".into()));
@@ -826,7 +827,7 @@ impl Upbit {
         }
         let mut timestamp: Option<i64> = self.safe_integer_k(order.clone(), "order_timestamp", &[]).as_i64();
         let mut rawStatus: Option<String> = self.safe_string_k_opt(order.clone(), "state", &[]);
-        let mut status: Option<String> = self.parse_ws_order_status(rawStatus.clone().map(Value::from).unwrap_or(Value::Null));
+        let mut status: Option<String> = self.parse_ws_order_status(rawStatus.as_deref());
         let mut marketId: Option<String> = self.safe_string_k_opt(order.clone(), "code", &[]);
         let mut marketResolved: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), market, &[]);
         let mut fee: Option<crate::value::Dict> = None;

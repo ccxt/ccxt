@@ -961,7 +961,8 @@ impl Coinbaseexchange {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("filled".to_string(), Value::Str("closed".into()));
@@ -1175,7 +1176,7 @@ impl Coinbaseexchange {
         let mut time: Option<String> = self.safe_string_k_opt(order.clone(), "time", &[]);
         let mut timestamp: Option<i64> = self.parse8601(time.map(Value::from).unwrap_or(Value::Null));
         let mut reason: Option<String> = self.safe_string_k_opt(order.clone(), "reason", &[]);
-        let mut status: Option<String> = self.parse_ws_order_status(reason.map(Value::from).unwrap_or(Value::Null));
+        let mut status: Option<String> = self.parse_ws_order_status(reason.as_deref());
         let mut orderType: Option<String> = self.safe_string_k_opt(order.clone(), "order_type", &[]);
         let mut remaining: Option<String> = self.safe_string_k_opt(order.clone(), "remaining_size", &[]);
         let mut type_var: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);

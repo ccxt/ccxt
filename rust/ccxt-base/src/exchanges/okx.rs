@@ -11228,8 +11228,8 @@ impl Okx {
                         let mut i: i64 = 0;
             let mut __for_first_1028: bool = true;
             while { if !__for_first_1028 { i += 1; } __for_first_1028 = false; i < (keys.len() as i64) } {
-            let mut code: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::from(code.as_deref()), since.clone(), limit.clone()]); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+            let mut code: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), code.as_deref(), since.as_i64(), limit.as_i64(), &[]); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(borrowRateHistories);
@@ -11610,7 +11610,7 @@ impl Okx {
         //
         let mut data: crate::value::List = self.safe_list_k(&response, "data", &[Value::from(vec![])]).into_list();
         let mut interest: crate::value::List = self.parse_borrow_interests(&data, None).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

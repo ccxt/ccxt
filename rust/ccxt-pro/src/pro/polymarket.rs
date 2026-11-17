@@ -251,13 +251,13 @@ impl Polymarket {
         // subscribed yet, so a pending entry is registered under the same
         // condition - otherwise no ack would ever arrive to consume it, the
         // private channels register a shared hash next to narrowed ones
-        let mut hashesToCheck: Value = (if (checkHashes == Value::Null) { messageHashes.clone() } else { checkHashes });
+        let mut hashesToCheck: Option<crate::value::List> = (if (checkHashes == Value::Null) { messageHashes.clone() } else { checkHashes }).into_opt_list();
         let mut willSend: bool = false;
         {
                         let mut i: i64 = 0;
             let mut __for_first_654: bool = true;
-            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (hashesToCheck.len() as i64) } {
-            if !(client.has_subscription(&hashesToCheck.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
+            while { if !__for_first_654 { i += 1; } __for_first_654 = false; i < (hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            if !(client.has_subscription(&hashesToCheck.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null))) {
                 willSend = true;
             }
         }

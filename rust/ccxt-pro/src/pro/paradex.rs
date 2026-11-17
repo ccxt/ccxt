@@ -1533,7 +1533,8 @@ if _try_result.is_err() {
         client.resolve(Value::from(&orderbook), messageHash.as_str());
 }
 
-    pub fn handle_book_side_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
+    pub fn handle_book_side_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: impl Into<crate::Value>) {
+        let mut deltas: Value = deltas.into();
         let __deltas_empty = Vec::new();
         let deltas = deltas.as_array().unwrap_or(&__deltas_empty);
         {

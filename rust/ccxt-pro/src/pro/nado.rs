@@ -1909,7 +1909,7 @@ impl Nado {
         if (endpointAddress.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " authenticate() requires endpoint_addr from contracts query")));
         }
-        let mut signature: Option<String> = self.sign_stream_authentication(Value::Map(tx.clone()), chainId.map(Value::from).unwrap_or(Value::Null), endpointAddress.map(Value::from).unwrap_or(Value::Null));
+        let mut signature: Option<String> = self.sign_stream_authentication(Value::Map(tx.clone()), chainId.as_deref(), endpointAddress.as_deref());
         let mut request: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("method".to_string(), Value::Str("authenticate".into()));
@@ -1925,8 +1925,10 @@ impl Nado {
     Value::Null
 }
 
-    pub fn sign_stream_authentication(&self, tx: impl Into<crate::Value>, mut chainId: Value, mut endpointAddress: Value) -> Option<String> {
+    pub fn sign_stream_authentication(&self, tx: impl Into<crate::Value>, chainId: Option<&str>, endpointAddress: Option<&str>) -> Option<String> {
         let mut tx: Value = tx.into();
+        let mut chainId: Value = chainId.into();
+        let mut endpointAddress: Value = endpointAddress.into();
         let mut domain: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("name".to_string(), Value::Str("Nado".into()));

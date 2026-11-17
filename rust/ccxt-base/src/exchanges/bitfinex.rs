@@ -2658,12 +2658,13 @@ impl Bitfinex {
         }
         }
         let mut ids: crate::value::List = self.safe_list(&response, Value::Int(0), &[Value::from(vec![])]).into_list();
-        return self.parse_currencies_custom(Value::Arr(ids), Value::Map(indexed), Value::Map(indexedNetworks));
+        return self.parse_currencies_custom(&ids, Value::Map(indexed), Value::Map(indexedNetworks));
         Value::Null
         }).await?))
     }
 
-    pub fn parse_currencies_custom(&self, mut ids: Value, indexed: impl Into<crate::Value>, indexedNetworks: impl Into<crate::Value>) -> Value {
+    pub fn parse_currencies_custom(&self, ids: impl Into<crate::Value>, indexed: impl Into<crate::Value>, indexedNetworks: impl Into<crate::Value>) -> Value {
+        let mut ids: Value = ids.into();
         let mut indexed: Value = indexed.into();
         let mut indexedNetworks: Value = indexedNetworks.into();
         let mut allowedIds: Vec<Value> = Vec::new();

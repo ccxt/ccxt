@@ -2175,7 +2175,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: crate::value::Dict = self.parent.fetch_withdrawals_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
         let mut withdraws: Value = self.watch_request("privateGetWithdrawalHistory", Value::Dict(request)).await;
-        return self.filter_by_currency_since_limit(withdraws, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(withdraws, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2277,7 +2277,7 @@ impl Bitvavo {
         self.authenticate(&[]).await;
         let mut request: crate::value::Dict = self.parent.fetch_deposits_request(code.as_str(), since.as_i64(), limit.as_i64(), &[params]).into_dict();
         let mut deposits: Value = self.watch_request("privateGetDepositHistory", Value::Dict(request)).await;
-        return self.filter_by_currency_since_limit(deposits, &[code, since, limit]);
+        return self.filter_by_currency_since_limit(deposits, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -2549,7 +2549,8 @@ impl Bitvavo {
         client.resolve(Value::Arr(markets), messageHash.as_deref());
 }
 
-    pub fn build_message_hash(&mut self, mut action: Value, optional_args: &[Value]) -> Option<String> {
+    pub fn build_message_hash(&mut self, action: Option<&str>, optional_args: &[Value]) -> Option<String> {
+        let mut action: Value = action.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -2783,7 +2784,7 @@ impl Bitvavo {
         }
         let mut code: Option<i64> = self.safe_integer_k(error.clone().map(Value::from).unwrap_or(Value::Null), "errorCode", &[]).as_i64();
         let mut action: Option<String> = (match __pro_message.get("action") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
-        let mut buildMessage: Option<String> = self.build_message_hash(action.map(Value::from).unwrap_or(Value::Null), &[message.clone()]);
+        let mut buildMessage: Option<String> = self.build_message_hash(action.as_deref(), &[message.clone()]);
         let mut messageHash: Option<String> = self.safe_string_k_opt(message.clone(), "requestId", &[buildMessage.map(Value::from).unwrap_or(Value::Null)]);
         let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {

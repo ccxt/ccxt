@@ -963,7 +963,7 @@ impl Whitebit {
         let mut cost: Option<String> = self.safe_string_k_opt(order.clone(), "deal_money", &[]);
         let mut stopPrice: Option<String> = self.safe_string_k_opt(order.clone(), "activation_price", &[]);
         let mut rawType: Option<String> = self.safe_string_k_opt(order.clone(), "type", &[]);
-        let mut type_var: Option<String> = self.parse_ws_order_type(rawType.map(Value::from).unwrap_or(Value::Null));
+        let mut type_var: Option<String> = self.parse_ws_order_type(rawType.as_deref());
         let mut amount: Option<String> = None;
         let mut remaining: Option<String> = None;
         if (type_var.as_deref() == Some("market")) {
@@ -1031,7 +1031,8 @@ impl Whitebit {
     Value::Null
 }
 
-    pub fn parse_ws_order_type(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_type(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("1".to_string(), Value::Str("limit".into()));

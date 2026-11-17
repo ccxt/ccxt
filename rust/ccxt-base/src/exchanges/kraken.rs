@@ -3332,7 +3332,7 @@ impl Kraken {
     m
 })]).into_dict();
         if (matches!(&id, Value::Str(__k) if marketsByAltname.contains_key(__k.as_ref()))) {
-            return crate::value::KeyRead::read(&&marketsByAltname, &id);
+            return self.safe_dict(&marketsByAltname, id.clone(), &[]);
         }  else {
             return crate::types::IntoRaw::into_raw(self.safe_market(id, None, &[]));
         }
@@ -3358,7 +3358,7 @@ impl Kraken {
     pub fn get_delisted_market_by_id(&self, id: Option<&str>) -> Value {
         let mut id: Value = id.into();
         if (id == Value::Null) {
-            return id;
+            return Value::Null;
         }
         let mut market: Value = self.safe_dict(self.options.as_map().and_then(|__m| __m.get("delistedMarketsById")).cloned().unwrap_or(Value::Null), id.clone(), &[]);
         if (market != Value::Null) {
@@ -4495,7 +4495,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             result.push(Value::Dict(transaction));
         }
         }
-        return self.filter_by_currency_since_limit(Value::from(result), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(Value::from(result), code.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }

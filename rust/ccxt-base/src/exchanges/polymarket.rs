@@ -4101,7 +4101,8 @@ impl Polymarket {
  * @param {any[]} row the positional array to compact
  * @returns {any[]} the compacted array
  */
-    pub fn compact_signable(&self, mut row: Value) -> Value {
+    pub fn compact_signable(&self, row: impl Into<crate::Value>) -> Value {
+        let mut row: Value = row.into();
         let __row_empty = Vec::new();
         let row = row.as_array().unwrap_or(&__row_empty);
         let mut result: Vec<Value> = Vec::new();

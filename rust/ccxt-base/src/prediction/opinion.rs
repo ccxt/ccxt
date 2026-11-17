@@ -2458,12 +2458,12 @@ impl Opinion {
             m
         });
         // copy to a plain list so the strict null checks see one shape
-        let mut outcomesList: Value = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes });
+        let mut outcomesList: Option<crate::value::List> = (if (outcomes == Value::Null) { Value::from(vec![]) } else { outcomes }).into_opt_list();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1404: bool = true;
-            while { if !__for_first_1404 { i += 1; } __for_first_1404 = false; i < (outcomesList.len() as i64) } {
-            let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomesList.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
+            while { if !__for_first_1404 { i += 1; } __for_first_1404 = false; i < (outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
+            let mut outcomeObj: Option<crate::types::Market> = self.outcome(outcomesList.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null));
             let mut tokenId: Option<String> = self.safe_string_k_opt(&outcomeObj, "outcomeId", &[]);
             if (tokenId.is_some()) {
                 wantedTokenIds.insert(tokenId.as_deref().unwrap_or("null").to_string(), Value::Bool(true));

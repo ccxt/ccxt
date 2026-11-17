@@ -1396,7 +1396,8 @@ impl Coinbase {
     Value::Null
 }
 
-    pub fn handle_order_book_helper(&self, mut orderbook: Value, mut updates: Value) {
+    pub fn handle_order_book_helper(&self, mut orderbook: Value, updates: impl Into<crate::Value>) {
+        let mut updates: Value = updates.into();
         {
                         let mut i: i64 = 0;
             let mut __for_first_238: bool = true;
@@ -1484,7 +1485,7 @@ impl Coinbase {
                     m
                 }));
             }
-            self.handle_order_book_helper(Value::from(&orderbook), Value::Arr(updates));
+            self.handle_order_book_helper(Value::from(&orderbook), &updates);
             orderbook.set_book_meta("timestamp", Value::from(self.parse8601(datetime.clone().map(Value::from).unwrap_or(Value::Null))));
             orderbook.set_book_meta("datetime", datetime.clone().map(Value::from).unwrap_or(Value::Null));
             orderbook.set_book_meta("symbol", Value::from(symbol));

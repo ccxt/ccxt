@@ -1076,7 +1076,8 @@ impl Apex {
         }).await?))
     }
 
-    pub fn handle_my_trades(&mut self, mut client: Value, mut lists: Value) {
+    pub fn handle_my_trades(&mut self, mut client: Value, lists: impl Into<crate::Value>) {
+        let mut lists: Value = lists.into();
         // [
         //     {
         //         "symbol":"ETH-USDT",
@@ -1132,7 +1133,8 @@ impl Apex {
         client.resolve(Value::from(&trades), messageHash.as_str());
 }
 
-    pub fn handle_order(&mut self, mut client: Value, mut lists: Value) {
+    pub fn handle_order(&mut self, mut client: Value, lists: impl Into<crate::Value>) {
+        let mut lists: Value = lists.into();
         // [
         //     {
         //         "symbol":"ETH-USDT",
@@ -1242,7 +1244,8 @@ impl Apex {
     Value::Null
 }
 
-    pub fn handle_positions(&mut self, mut client: Value, mut lists: Value) {
+    pub fn handle_positions(&mut self, mut client: Value, lists: impl Into<crate::Value>) {
+        let mut lists: Value = lists.into();
         //
         // [
         //     {
@@ -1568,15 +1571,15 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         let mut contents: crate::value::Dict = message.get("contents").cloned().unwrap_or_default().into_dict();
         let mut fills: crate::value::List = self.safe_list_k(&contents, "fills", &[Value::from(vec![])]).into_list();
         if (true) {
-            self.handle_my_trades(client.clone(), Value::Arr(fills));
+            self.handle_my_trades(client.clone(), &fills);
         }
         let mut positions: crate::value::List = self.safe_list_k(&contents, "positions", &[Value::from(vec![])]).into_list();
         if (true) {
-            self.handle_positions(client.clone(), Value::Arr(positions));
+            self.handle_positions(client.clone(), &positions);
         }
         let mut orders: crate::value::List = self.safe_list_k(&contents, "orders", &[Value::from(vec![])]).into_list();
         if (true) {
-            self.handle_order(client, Value::Arr(orders));
+            self.handle_order(client, &orders);
         }
 }
 

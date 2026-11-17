@@ -1712,7 +1712,7 @@ impl Cryptomus {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(Value::Arr(feeTiers), None).as_map().cloned().unwrap_or_default();
+        let mut tiers: indexmap::IndexMap<String, Value> = self.parse_fee_tiers(&feeTiers, None).as_map().cloned().unwrap_or_default();
         let mut symbols: Value = Value::Arr(self.symbols.clone());
         if (symbols == Value::Null) {
             return Value::Map(result);
@@ -1740,7 +1740,8 @@ impl Cryptomus {
         }).await?))
     }
 
-    pub fn parse_fee_tiers(&self, mut feeTiers: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_fee_tiers(&self, feeTiers: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut feeTiers: Value = feeTiers.into();
         let mut takerFees: Vec<Value> = Vec::new();
         let mut makerFees: Vec<Value> = Vec::new();
         {

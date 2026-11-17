@@ -5090,7 +5090,7 @@ impl Digifinex {
         //
         let mut rows: crate::value::List = self.safe_list_k(&response, "positions", &[Value::from(vec![])]).into_list();
         let mut interest: crate::value::List = self.parse_borrow_interests(&rows, market.as_ref()).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -5200,13 +5200,14 @@ impl Digifinex {
         //     }
         //
         let mut result: crate::value::List = self.safe_list_k(&response, "list", &[Value::from(vec![])]).into_list();
-        return self.parse_borrow_rates(Value::Arr(result), Some("currency"));
+        return self.parse_borrow_rates(&result, Some("currency"));
         Value::Null
         }).await?))
     }
 
 
-    pub fn parse_borrow_rates(&self, mut info: Value, codeKey: Option<&str>) -> Value {
+    pub fn parse_borrow_rates(&self, info: impl Into<crate::Value>, codeKey: Option<&str>) -> Value {
+        let mut info: Value = info.into();
         let mut codeKey: Value = codeKey.into();
         let __info_empty = Vec::new();
         let info = info.as_array().unwrap_or(&__info_empty);

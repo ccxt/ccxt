@@ -3589,7 +3589,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             request.insert("market".into(), crate::value::KeyRead::key_read(&&market, "id"));
         }
         let __ws_arg_5 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.v4_private_post_trade_account_executed_history(&[__ws_arg_5]).await;
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.v4_private_post_trade_account_executed_history(&[__ws_arg_5]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         //
         // when no symbol is provided
         //
@@ -3627,18 +3627,18 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //         },
         //     ]
         //
-        if (matches!(&response, Value::Arr(_))) {
-            return self.parse_trades(response.clone(), market.as_ref(), &[since.clone(), limit.clone()]);
+        if (response.is_some()) {
+            return self.parse_trades(&response, market.as_ref(), &[since.clone(), limit.clone()]);
         }  else {
             let mut results: Value = Value::from(vec![]);
-            let mut keys: Vec<Value> = Value::Array(response.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array((response__map.clone().map_or(Value::Null, Value::Dict)).as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1164: bool = true;
                 while { if !__for_first_1164 { i += 1; } __for_first_1164 = false; i < (keys.len() as i64) } {
                 let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
                 let mut marketNew: crate::types::Market = self.safe_market(Value::from(marketId.as_deref()), None, &[Value::Str("_".into())]);
-                let mut rawTrades: crate::value::List = self.safe_list(response.clone(), Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
+                let mut rawTrades: crate::value::List = self.safe_list(&response__map, Value::from(marketId.as_deref()), &[Value::from(vec![])]).into_list();
                 let mut parsed: crate::value::List = self.parse_trades(&rawTrades, Some(&marketNew), &[since.clone(), limit.clone()]).into_list();
                 results = self.array_concat(results, &parsed);
             }
@@ -5348,7 +5348,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         //     ]
         //
         let mut interest: crate::value::List = self.parse_borrow_interests(&response, market.as_ref()).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }

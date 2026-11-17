@@ -1579,12 +1579,13 @@ impl Bitopro {
         //     }
         //
         let mut sparse: crate::value::List = self.parse_ohlc_vs(&data, Some(&market), &[timeframe, since, Value::from(limitResolved)]).into_list();
-        return self.insert_missing_candles(Value::Arr(sparse), Value::Int((timeframeInSeconds * 1000)), Value::from(alignedSince), Value::from(limitResolved));
+        return self.insert_missing_candles(&sparse, Value::Int((timeframeInSeconds * 1000)), Value::from(alignedSince), Value::from(limitResolved));
         Value::Null
         }).await?))
     }
 
-    pub fn insert_missing_candles(&self, mut candles: Value, mut distanceInMs: Value, mut since: Value, mut limit: Value) -> Value {
+    pub fn insert_missing_candles(&self, candles: impl Into<crate::Value>, mut distanceInMs: Value, mut since: Value, mut limit: Value) -> Value {
+        let mut candles: Value = candles.into();
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
         let mut length: i64 = candles.len() as i64;

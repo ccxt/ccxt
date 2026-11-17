@@ -1467,7 +1467,7 @@ impl Limitless {
         });
         // group rows carry their tradeable children in a nested `markets` list — expand them
         // into regular rows before parsing (a group row itself has no tokens)
-        let mut expandedRaw: Vec<Value> = self.expand_group_rows(Value::Arr(allRaw)).as_array().cloned().unwrap_or_default();
+        let mut expandedRaw: Vec<Value> = self.expand_group_rows(&allRaw).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_1307: bool = true;
@@ -1580,7 +1580,8 @@ impl Limitless {
  * @param {object[]} rawRows raw listing rows, single-market and group rows mixed
  * @returns {object[]} raw single-market rows only
  */
-    pub fn expand_group_rows(&self, mut rawRows: Value) -> Value {
+    pub fn expand_group_rows(&self, rawRows: impl Into<crate::Value>) -> Value {
+        let mut rawRows: Value = rawRows.into();
         let __rawRows_empty = Vec::new();
         let rawRows = rawRows.as_array().unwrap_or(&__rawRows_empty);
         let mut result: Vec<Value> = Vec::new();

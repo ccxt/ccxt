@@ -4778,8 +4778,8 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             while { if !__for_first_1379 { i += 1; } __for_first_1379 = false; i < changesLength } {
             let mut change: crate::value::Dict = self.safe_dict(&changes, Value::Int(i), &[]).into_dict();
             let mut outcomeId: Option<String> = self.safe_string_k_opt(&change, "outcome", &[]);
-            let mut sym: Value = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), outcomeId.as_deref()).map(Value::from).unwrap_or(Value::Null);
-            if (sym == Value::Null) {
+            let mut sym: Option<String> = self.market_outcome_to_symbol(networkId.as_deref(), marketId.as_deref(), outcomeId.as_deref());
+            if (sym.is_none()) {
                 continue;
             }
             if (self.orderbooks.lookup(&sym).is_none()) {
@@ -4793,7 +4793,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             bookSide.store_array(Value::from(vec![Value::from(price), Value::from(amount)]));
             orderbook.set_book_meta("timestamp", Value::from(ts));
             orderbook.set_book_meta("datetime", self.iso8601(ts));
-            updated.insert(crate::runtime::stringify_param(&sym), Value::Bool(true));
+            updated.insert(sym.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
         }
         }
         let mut updatedSymbols: Vec<Value> = Value::Array(updated.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();

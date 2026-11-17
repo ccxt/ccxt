@@ -1133,7 +1133,7 @@ if _try_result.is_err() {
         m.insert("amount".to_string(), self.safe_string2(&orderUpdate, Value::Str("amount".into()), Value::Str("orderAmt".into()), &[]));
         m.insert("remaining".to_string(), self.safe_string_k(&orderUpdate, "remainAmt", &[]));
         m.insert("filled".to_string(), self.safe_string_k(&orderUpdate, "accAmt", &[]));
-        m.insert("status".to_string(), self.parse_ws_order_status(status.map(Value::from).unwrap_or(Value::Null)).map(Value::from).unwrap_or(Value::Null));
+        m.insert("status".to_string(), self.parse_ws_order_status(status.as_deref()).map(Value::from).unwrap_or(Value::Null));
         m.insert("fee".to_string(), Value::Null);
         m.insert("cost".to_string(), cost.map(Value::from).unwrap_or(Value::Null));
         m.insert("trades".to_string(), Value::Null);
@@ -1143,7 +1143,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("-1".to_string(), Value::Str("canceled".into()));

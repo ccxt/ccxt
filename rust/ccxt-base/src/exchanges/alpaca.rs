@@ -2489,13 +2489,13 @@ impl Alpaca {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut response: Value = self.trader_private_delete_v2_orders(&[params]).await;
-        if (matches!(&response, Value::Arr(_))) {
-            return self.parse_orders(response.clone(), None, &[]);
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.trader_private_delete_v2_orders(&[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if (response.is_some()) {
+            return self.parse_orders(&response, None, &[]);
         }  else {
             return Value::from(vec![self.safe_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), response);
+        m.insert("info".to_string(), response__map.map_or(Value::Null, Value::Dict));
     m
 }), None)]);
         }

@@ -2228,11 +2228,11 @@ impl Tokocrypto {
         // the binance backed host is the only source of 24hr statistics, so the
         // result omits the native markets instead of raising for them, unlike
         // the single symbol fetchTicker
-        let mut response: Value = self.binance_get_ticker24hr(&[params]).await;
-        if !(matches!(&response, Value::Arr(_))) {
-            return self.parse_tickers(Value::from(vec![response.clone()]), &[symbols.clone()]);
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.binance_get_ticker24hr(&[params]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
+        if !(response.is_some()) {
+            return self.parse_tickers(Value::from(vec![response__map.clone().map_or(Value::Null, Value::Dict)]), &[symbols.clone()]);
         }
-        return self.parse_tickers(response, &[symbols]);
+        return self.parse_tickers(&response, &[symbols]);
         Value::Null
         }).await?))
     }

@@ -946,7 +946,7 @@ impl crate::exchange_generated::ExchangeBase for Pacifica {
                 "parse_funding_rate" => self.parse_funding_rate(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_income" => self.parse_income(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
                 "parse_ledger_entry" => self.parse_ledger_entry(args.get(0).cloned().unwrap_or(crate::Value::Null), <Option<crate::types::Currency> as crate::types::FromRaw>::from_raw(args.get(1).cloned().unwrap_or_default()).as_ref()),
-                "parse_leverage_from_market" => self.parse_leverage_from_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
+                "parse_leverage_from_market" => self.parse_leverage_from_market(<Option<crate::types::Market> as crate::types::FromRaw>::from_raw(args.get(0).cloned().unwrap_or_default()).as_ref()),
                 "parse_leverage_from_setting" => self.parse_leverage_from_setting(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_margin_mode_from_setting" => self.parse_margin_mode_from_setting(args.get(0).and_then(crate::Value::as_text).as_deref(), args.get(1).cloned().unwrap_or(crate::Value::Null)),
                 "parse_market" => self.parse_market(args.get(0).cloned().unwrap_or(crate::Value::Null)),
@@ -2202,7 +2202,7 @@ if _try_result.is_err() {
         if (self.markets.clone() == Value::Null) {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
-        let mut market: Value = crate::types::IntoRaw::into_raw(self.market(symbol.as_str().unwrap_or_default()));
+        let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         let userAccountparamsOriginAndSingleAddressVariable: Vec<Value> = self.handle_origin_and_single_address("fetchLeverage", params).as_array().cloned().unwrap_or_default();
         let mut userAccount: Value = userAccountparamsOriginAndSingleAddressVariable.get(0).cloned().unwrap_or(Value::Null);
         let mut paramsOriginAndSingleAddress: crate::value::Dict = userAccountparamsOriginAndSingleAddressVariable.get(1).cloned().unwrap_or(Value::Null).into_dict();
@@ -2220,7 +2220,7 @@ if _try_result.is_err() {
         }
         let mut setting: Option<crate::value::Dict> = self.safe_dict(settings, symbol.clone(), &[]).into_opt_dict();
         if (setting.is_none()) {
-            return self.parse_leverage_from_market(market);
+            return self.parse_leverage_from_market(Some(&market));
         }  else {
             return self.parse_leverage_from_setting(symbol.as_str(), &setting);
         }
@@ -2259,19 +2259,19 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_leverage_from_market(&self, mut market: Value) -> Value {
-        let mut marketLimits: crate::value::Dict = self.safe_dict_k(market.clone(), "limits", &[Value::Map({
-    let mut m = indexmap::IndexMap::new();
-    m
-})]).into_dict();
+    pub fn parse_leverage_from_market(&self, market: Option<&crate::types::Market>) -> Value {
+        let mut marketLimits: crate::value::Dict = self.safe_dict_k(&market, "limits", &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+            m
+        })]).into_dict();
         let mut leverageLimits: crate::value::Dict = self.safe_dict_k(&marketLimits, "leverage", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("info".to_string(), market.clone());
-        m.insert("symbol".to_string(), self.safe_string_k(market, "symbol", &[]));
+        m.insert("info".to_string(), crate::Value::from(market));
+        m.insert("symbol".to_string(), self.safe_string_k(&market, "symbol", &[]));
         m.insert("marginMode".to_string(), self.handle_option(Value::Str("fetchLeverage".into()), Value::Str("defaultMarginMode".into()), &[Value::Str("cross".into())]));
         m.insert("longLeverage".to_string(), self.safe_integer_k(&leverageLimits, "max", &[]));
         m.insert("shortLeverage".to_string(), self.safe_integer_k(&leverageLimits, "max", &[]));
@@ -2326,7 +2326,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_account_settings(&self, mut settings: Value) -> Value {
+    pub fn parse_account_settings(&self, settings: impl Into<crate::Value>) -> Value {
+        let mut settings: Value = settings.into();
         let __settings_empty = Vec::new();
         let settings = settings.as_array().unwrap_or(&__settings_empty);
         let mut settingsLen: i64 = settings.len() as i64;
@@ -3057,7 +3058,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn batch_orders_request(&self, mut actions: Value) -> Value {
+    pub fn batch_orders_request(&self, actions: impl Into<crate::Value>) -> Value {
+        let mut actions: Value = actions.into();
         //
         // [
         //     {

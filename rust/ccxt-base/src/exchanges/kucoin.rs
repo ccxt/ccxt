@@ -13498,7 +13498,7 @@ impl Kucoin {
             assets = self.safe_list_k(&data, "accounts", &[Value::from(vec![])]).into_opt_list();
         }
         let mut interest: crate::value::List = self.parse_borrow_interests(&assets, market.as_ref()).into_list();
-        let mut filteredByCurrency: crate::value::List = self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since.clone(), limit.clone()]).into_list();
+        let mut filteredByCurrency: crate::value::List = self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]).into_list();
         return self.filter_by_symbol_since_limit(&filteredByCurrency, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
@@ -13569,7 +13569,7 @@ impl Kucoin {
         //
         let mut data: crate::value::Dict = self.safe_dict_k(&response, "data", &[]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "items", &[Value::from(vec![])]).into_list();
-        return self.parse_borrow_rate_histories(Value::Arr(rows), codes, since.as_i64(), limit.as_i64());
+        return self.parse_borrow_rate_histories(&rows, codes, since.as_i64(), limit.as_i64());
 
     Value::Null
 }
@@ -13645,7 +13645,8 @@ impl Kucoin {
     Value::Null
 }
 
-    pub fn parse_borrow_rate_histories(&self, mut response: Value, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+    pub fn parse_borrow_rate_histories(&self, response: impl Into<crate::Value>, mut codes: Value, since: Option<i64>, limit: Option<i64>) -> Value {
+        let mut response: Value = response.into();
         let mut since: Value = since.into();
         let mut limit: Value = limit.into();
         //
@@ -13683,8 +13684,8 @@ impl Kucoin {
                         let mut i: i64 = 0;
             let mut __for_first_905: bool = true;
             while { if !__for_first_905 { i += 1; } __for_first_905 = false; i < (keys.len() as i64) } {
-            let mut code: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), &[Value::from(code.as_deref()), since.clone(), limit.clone()]); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
+            let mut code: Option<String> = keys.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            { let __be_tmp = self.filter_by_currency_since_limit(borrowRateHistories.get(code.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null), code.as_deref(), since.as_i64(), limit.as_i64(), &[]); borrowRateHistories.insert(code.as_deref().unwrap_or("null").to_string(), __be_tmp); }
         }
         }
         return Value::Map(borrowRateHistories);

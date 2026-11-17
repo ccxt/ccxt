@@ -199,7 +199,8 @@ impl P2b {
  * @param {object} [params] extra parameters specific to the p2b api
  * @returns {object} data from the websocket stream
  */
-    pub async fn subscribe(&mut self, mut name: Value, mut messageHash: Value, mut request: Value, optional_args: &[Value]) -> Value {
+    pub async fn subscribe(&mut self, mut name: Value, mut messageHash: Value, request: impl Into<crate::Value>, optional_args: &[Value]) -> Value {
+        let mut request: Value = request.into();
         let mut params = get_arg(optional_args, 0, Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
@@ -256,9 +257,9 @@ impl P2b {
             panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " watchOHLCV cannot take a timeframe of ").into()), timeframe)));
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(channel)]);
+        let mut request: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), Value::from(channel)]);
         let mut messageHash: String = format!("{}{}", "kline::", Value::from((market).symbol.clone()));
-        let mut ohlcv: Value = self.subscribe(Value::Str("kline.subscribe".into()), Value::from(messageHash), request, &[params]).await;
+        let mut ohlcv: Value = self.subscribe(Value::Str("kline.subscribe".into()), Value::from(messageHash), &request, &[params]).await;
         let mut limitResolved: Option<i64> = limit.as_i64();
         if self.newUpdates.as_bool() == Some(true) {
             limitResolved = ohlcv.get_limit(symbol.as_str(), limit.as_i64());
@@ -301,8 +302,8 @@ impl P2b {
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
         add_element_to_object(get_value_mut(&mut self.options, &Value::Str("tickerSubs".into())), &Value::from((market).id.as_deref()), Value::Bool(true)); // we need to re-subscribe to all tickers upon watching a new ticker
         let mut tickerSubs: Value = self.options.as_map().and_then(|__m| __m.get("tickerSubs")).cloned().unwrap_or(Value::Null);
-        let mut request: Value = object_keys(&tickerSubs);
-        return self.subscribe(Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), ".subscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), "::").into()), Value::from((market).symbol.as_str())).into()), request, &[Value::Dict(paramsName)]).await;
+        let mut request: crate::value::List = object_keys(&tickerSubs).into_list();
+        return self.subscribe(Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), ".subscribe").into()), Value::Str(format!("{}{}", Value::Str(format!("{}{}", nameOption.as_deref().unwrap_or("null"), "::").into()), Value::from((market).symbol.as_str())).into()), &request, &[Value::Dict(paramsName)]).await;
         Value::Null
         }).await?))
     }
@@ -484,8 +485,8 @@ impl P2b {
         let mut messageHash: String = format!("{}{}", "orderbook::", Value::from((market).symbol.clone()));
         let mut interval: String = self.safe_string_k(params.clone(), "interval", &[Value::Str("0.001".into())]).as_str().unwrap_or("0.001").to_string();
         let mut limitResolved: i64 = limit.as_i64().unwrap_or(100);
-        let mut request: Value = Value::from(vec![Value::from((market).id.as_deref()), Value::from(limitResolved), Value::from(interval)]);
-        let mut orderbook: Value = self.subscribe(Value::from(name), Value::from(messageHash), request, &[params]).await;
+        let mut request: crate::value::List = std::sync::Arc::new(vec![Value::from((market).id.as_deref()), Value::from(limitResolved), Value::from(interval)]);
+        let mut orderbook: Value = self.subscribe(Value::from(name), Value::from(messageHash), &request, &[params]).await;
         return orderbook.limit();
         Value::Null
         }).await?))

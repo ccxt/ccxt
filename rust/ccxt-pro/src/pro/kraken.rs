@@ -1591,10 +1591,10 @@ impl Kraken {
             let mut storedAsks: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("asks"));
             let mut storedBids: crate::pro::order_book::Side = crate::pro::order_book::Side::of(orderbook.book_field("bids"));
             if (true) {
-                self.custom_handle_deltas(storedAsks, Value::from(&a));
+                self.custom_handle_deltas(storedAsks, &a);
             }
             if (true) {
-                self.custom_handle_deltas(storedBids, Value::Arr(b));
+                self.custom_handle_deltas(storedBids, &b);
             }
             let mut datetime: Option<String> = self.safe_string_k_opt(&first, "timestamp", &[]);
             orderbook.set_book_meta("symbol", Value::from(symbol.as_deref()));
@@ -1698,7 +1698,8 @@ impl Kraken {
         client.resolve(Value::from(&orderbook), messageHash.as_deref());
 }
 
-    pub fn custom_handle_deltas(&self, mut bookside: crate::pro::order_book::Side, mut deltas: Value) {
+    pub fn custom_handle_deltas(&self, mut bookside: crate::pro::order_book::Side, deltas: impl Into<crate::Value>) {
+        let mut deltas: Value = deltas.into();
         {
                         let mut j: i64 = 0;
             let mut __for_first_428: bool = true;

@@ -5498,12 +5498,12 @@ if _try_result.is_err() {
             return Value::from(vec![]);
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut futureSettlementCurrencies: Value = self.get_settlement_currencies(Some("future"), Some("fetchMarkets"));
+        let mut futureSettlementCurrencies: crate::value::List = self.get_settlement_currencies(Some("future"), Some("fetchMarkets")).into_list();
         {
                         let mut c: i64 = 0;
             let mut __for_first_688: bool = true;
             while { if !__for_first_688 { c += 1; } __for_first_688 = false; c < (futureSettlementCurrencies.len() as i64) } {
-            let mut settleId: Option<String> = self.safe_string_opt(futureSettlementCurrencies.clone(), Value::Int(c), &[]);
+            let mut settleId: Option<String> = self.safe_string_opt(&futureSettlementCurrencies, Value::Int(c), &[]);
             let mut request: indexmap::IndexMap<String, Value> = ({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("settle".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));
@@ -10404,7 +10404,7 @@ if _try_result.is_err() {
             response = self.private_margin_get_cross_interest_records(&[__ws_arg_93]).await.into_opt_list();
         }
         let mut interest: crate::value::List = self.parse_borrow_interests(&response, market.as_ref()).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -10605,7 +10605,7 @@ if _try_result.is_err() {
             request.insert("limit".into(), limit.clone());
         }
         let __ws_arg_97 = self.extend(Value::Map(request), &[&paramsMarketType]);
-        let mut response: Value = self.public_options_get_settlements(&[__ws_arg_97]).await;
+        let mut response: crate::value::List = self.public_options_get_settlements(&[__ws_arg_97]).await.into_list();
         //
         //     [
         //         {
@@ -10618,7 +10618,7 @@ if _try_result.is_err() {
         //         }
         //     ]
         //
-        let mut settlements: crate::value::List = self.parse_settlements(response, Some(&market)).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&response, Some(&market)).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, symbol.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -10723,7 +10723,7 @@ if _try_result.is_err() {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
-        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&data, market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, symbolResolved.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -10785,7 +10785,8 @@ if _try_result.is_err() {
     Value::Null
 }
 
-    pub fn parse_settlements(&self, mut settlements: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut settlements: Value = settlements.into();
         let __settlements_empty = Vec::new();
         let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         //

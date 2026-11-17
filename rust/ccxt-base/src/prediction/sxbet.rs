@@ -3507,26 +3507,26 @@ impl Sxbet {
             return;
         }
         // rows arrive either shaped like one object or like an array of objects - normalize to a list
-        let mut rows: Value = Value::from(vec![]);
+        let mut rows: crate::value::List = std::sync::Arc::new(Vec::new());
         if (matches!(&data, Value::Arr(_))) {
-            rows = data.clone();
+            rows = data.into_list();
         }  else {
-            rows = Value::from(vec![data]);
+            rows = std::sync::Arc::new(vec![data]);
         }
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut channelType: Option<String> = self.safe_string_opt(&parts, Value::Int(0), &[]);
         if (channelType.as_deref() == Some("orderbook_v3")) {
-            self.handle_order_book(client.clone(), rows.clone());
+            self.handle_order_book(client.clone(), &rows);
         }  else if (channelType.as_deref() == Some("best_odds_v3")) {
-            self.handle_ticker(client.clone(), rows.clone());
+            self.handle_ticker(client.clone(), &rows);
         }  else if (channelType.as_deref() == Some("recent_trades_v3")) {
-            self.handle_trades(client.clone(), rows.clone());
+            self.handle_trades(client.clone(), &rows);
         }  else if (channelType.as_deref() == Some("account")) {
             // per-account channels: account:orders_v3_#addr / account:fills_v3_#addr
             if channel.as_deref().unwrap_or_default().contains("orders_v3") {
-                self.handle_order(client.clone(), rows.clone());
+                self.handle_order(client.clone(), &rows);
             }  else if channel.as_deref().unwrap_or_default().contains("fills_v3") {
-                self.handle_my_trade(client, rows);
+                self.handle_my_trade(client, &rows);
             }
         }
 }
@@ -3669,7 +3669,8 @@ impl Sxbet {
     Value::Null
 }
 
-    pub fn handle_order_book(&self, mut client: Value, mut rows: Value) {
+    pub fn handle_order_book(&self, mut client: Value, rows: impl Into<crate::Value>) {
+        let mut rows: Value = rows.into();
         let __rows_empty = Vec::new();
         let rows = rows.as_array().unwrap_or(&__rows_empty);
         //
@@ -3769,7 +3770,8 @@ impl Sxbet {
         }).await?))
     }
 
-    pub fn handle_ticker(&self, mut client: Value, mut rows: Value) {
+    pub fn handle_ticker(&self, mut client: Value, rows: impl Into<crate::Value>) {
+        let mut rows: Value = rows.into();
         //
         //     {
         //         "marketHash": "0xbf06...16a2eb",
@@ -3920,7 +3922,8 @@ impl Sxbet {
     Value::Null
 }
 
-    pub fn handle_trades(&mut self, mut client: Value, mut rows: Value) {
+    pub fn handle_trades(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
+        let mut rows: Value = rows.into();
         let __rows_empty = Vec::new();
         let rows = rows.as_array().unwrap_or(&__rows_empty);
         //
@@ -3995,7 +3998,8 @@ impl Sxbet {
         }).await?))
     }
 
-    pub fn handle_my_trade(&mut self, mut client: Value, mut rows: Value) {
+    pub fn handle_my_trade(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
+        let mut rows: Value = rows.into();
         let __rows_empty = Vec::new();
         let rows = rows.as_array().unwrap_or(&__rows_empty);
         //
@@ -4066,7 +4070,8 @@ impl Sxbet {
         }).await?))
     }
 
-    pub fn handle_order(&mut self, mut client: Value, mut rows: Value) {
+    pub fn handle_order(&mut self, mut client: Value, rows: impl Into<crate::Value>) {
+        let mut rows: Value = rows.into();
         let __rows_empty = Vec::new();
         let rows = rows.as_array().unwrap_or(&__rows_empty);
         //

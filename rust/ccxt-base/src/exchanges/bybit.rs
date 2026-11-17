@@ -9191,7 +9191,7 @@ impl Bybit {
     m
 }), None)]);
         }
-        return self.parse_orders(orders.map_or(Value::Null, Value::Arr), market.as_ref(), &[]);
+        return self.parse_orders(&orders, market.as_ref(), &[]);
         Value::Null
         }).await?))
     }
@@ -11635,7 +11635,7 @@ impl Bybit {
         })]).into_dict();
         let mut rows: crate::value::List = self.safe_list_k(&data, "loanAccountList", &[Value::from(vec![])]).into_list();
         let mut interest: crate::value::List = self.parse_borrow_interests(&rows, None).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(interest), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&interest, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
         Value::Null
         }).await?))
     }
@@ -12423,7 +12423,7 @@ impl Bybit {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
-        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&data, market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -12505,7 +12505,7 @@ impl Bybit {
             m
         })]).into_dict();
         let mut data: crate::value::List = self.safe_list_k(&result, "list", &[Value::from(vec![])]).into_list();
-        let mut settlements: crate::value::List = self.parse_settlements(Value::Arr(data), market.as_ref()).into_list();
+        let mut settlements: crate::value::List = self.parse_settlements(&data, market.as_ref()).into_list();
         let mut sorted: crate::value::List = self.sort_by(Value::Arr(settlements), Value::Str("timestamp".into()), &[]).into_list();
         return self.filter_by_symbol_since_limit(&sorted, (self.safe_string_k(&market, "symbol", &[])).as_str(), since.as_i64(), limit.as_i64(), &[]);
 
@@ -12550,7 +12550,8 @@ impl Bybit {
     Value::Null
 }
 
-    pub fn parse_settlements(&self, mut settlements: Value, market: Option<&crate::types::Market>) -> Value {
+    pub fn parse_settlements(&self, settlements: impl Into<crate::Value>, market: Option<&crate::types::Market>) -> Value {
+        let mut settlements: Value = settlements.into();
         let __settlements_empty = Vec::new();
         let settlements = settlements.as_array().unwrap_or(&__settlements_empty);
         //
@@ -12635,12 +12636,13 @@ impl Bybit {
         //     }
         //
         let mut volatility: crate::value::List = self.safe_list_k(&response, "result", &[Value::from(vec![])]).into_list();
-        return self.parse_volatility_history(Value::Arr(volatility));
+        return self.parse_volatility_history(&volatility);
 
     Value::Null
 }
 
-    pub fn parse_volatility_history(&self, mut volatility: Value) -> Value {
+    pub fn parse_volatility_history(&self, volatility: impl Into<crate::Value>) -> Value {
+        let mut volatility: Value = volatility.into();
         //
         //     {
         //         "period": 7,

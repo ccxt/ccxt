@@ -1618,7 +1618,8 @@ impl Bitfinex {
         }
 }
 
-    pub fn parse_ws_order_status(&self, mut status: Value) -> Option<String> {
+    pub fn parse_ws_order_status(&self, status: Option<&str>) -> Option<String> {
+        let mut status: Value = status.into();
         let mut statuses: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
                 m.insert("ACTIVE".to_string(), Value::Str("open".into()));
@@ -1689,7 +1690,7 @@ impl Bitfinex {
         let mut rawState: String = self.safe_string(order.clone(), Value::Int(13), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut stateParts: crate::value::List = Value::Array(rawState.split(" ").map(Value::from).collect()).into_list();
         let mut trimmedStatus: Option<String> = self.safe_string_opt(&stateParts, Value::Int(0), &[]);
-        let mut status: Option<String> = self.parse_ws_order_status(trimmedStatus.map(Value::from).unwrap_or(Value::Null));
+        let mut status: Option<String> = self.parse_ws_order_status(trimmedStatus.as_deref());
         let mut price: Option<String> = self.safe_string_opt(order.clone(), Value::Int(16), &[]);
         let mut timestamp: Option<i64> = self.safe_integer2(order.clone(), Value::Int(5), Value::Int(4), &[]).as_i64();
         let mut average: Option<String> = self.safe_string_opt(order.clone(), Value::Int(17), &[]);

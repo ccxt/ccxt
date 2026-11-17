@@ -2378,7 +2378,7 @@ impl Weex {
         if fetchBalanceSnapshot && awaitBalanceSnapshot {
             crate::exchange_stubs::ws_await_flight(&client.future(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":fetchBalanceSnapshot").into()))).await;
         }
-        return self.subscribe_private(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":balance").into()), type_var.as_deref().unwrap_or_default(), Some("account"), &[Value::Bool(isContract), Value::Dict(paramsMarketType)]).await;
+        return self.subscribe_private(Value::Str(format!("{}{}", type_var.as_deref().unwrap_or("null"), ":balance").into()), type_var.clone().as_deref().unwrap_or_default(), Some("account"), &[Value::Bool(isContract), Value::Dict(paramsMarketType)]).await;
         Value::Null
         }).await?))
     }

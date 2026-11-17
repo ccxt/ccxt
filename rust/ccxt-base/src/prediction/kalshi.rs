@@ -2229,9 +2229,11 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
  * @param {object[]} asks array of [price, size] ask levels
  * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
  */
-    pub fn sorted_orders(&self, outcome: Option<&str>, timestamp: Option<i64>, mut bids: Value, mut asks: Value) -> Value {
+    pub fn sorted_orders(&self, outcome: Option<&str>, timestamp: Option<i64>, bids: impl Into<crate::Value>, asks: impl Into<crate::Value>) -> Value {
         let mut outcome: Value = outcome.into();
         let mut timestamp: Value = timestamp.into();
+        let mut bids: Value = bids.into();
+        let mut asks: Value = asks.into();
         // Sort bids descending, asks ascending, match CCXT OrderBook shape
         let mut bidsValue: Value = self.sort_by(bids, Value::Int(0), &[Value::Bool(true)]);
         let mut asksValue: Value = self.sort_by(asks, Value::Int(0), &[]);

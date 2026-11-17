@@ -5493,8 +5493,8 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
-        let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
+        let mut code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        return self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5518,8 +5518,8 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
-        let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
+        let mut code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        return self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -5553,8 +5553,8 @@ pub trait ExchangeBase:
         }
         }
         result = self.sort_by(Value::Arr(result), Value::Str("timestamp".into()), &[]).into_list();
-        let mut code: Value = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code") } else { Value::Null });
-        return self.filter_by_currency_since_limit(Value::Arr(result), &[code, since, limit]);
+        let mut code: Option<String> = (if (currency.is_some()) { crate::value::KeyRead::key_read(&currency, "code").into_opt_string() } else { None });
+        return self.filter_by_currency_since_limit(&result, code.as_deref(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -8050,12 +8050,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
     Value::Null
 }
 
-    fn filter_by_currency_since_limit(&self, mut array: Value, optional_args: &[Value]) -> Value {
-        let mut code = get_arg(optional_args, 0, Value::Null);
-        let mut since = get_arg(optional_args, 1, Value::Null);
-        let mut limit = get_arg(optional_args, 2, Value::Null);
-        let mut tail = get_arg(optional_args, 3, Value::Bool(false));
-        return self.filter_by_value_since_limit(array, Value::Str("currency".into()), code, since.as_i64(), limit.as_i64(), &[Value::Str("timestamp".into()), tail]);
+    fn filter_by_currency_since_limit(&self, array: impl Rows, code: Option<&str>, since: Option<i64>, limit: Option<i64>, optional_args: &[Value]) -> Value {
+        let mut tail = get_arg(optional_args, 0, Value::Bool(false));
+        return self.filter_by_value_since_limit(array, Value::Str("currency".into()), Value::from(code), since, limit, &[Value::Str("timestamp".into()), tail]);
 
     Value::Null
 }
@@ -8247,7 +8244,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         let mut sorted: crate::value::List = self.sort_by(Value::from(result), Value::Str("timestamp".into()), &[]).into_list();
-        return self.filter_by_currency_since_limit(Value::Arr(sorted), &[code, since, limit]);
+        return self.filter_by_currency_since_limit(&sorted, code.as_str(), since.as_i64(), limit.as_i64(), &[]);
 
     Value::Null
 }
@@ -13513,7 +13510,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             "filter_by_array_adl_ranks" => self.filter_by_array_adl_ranks(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_positions" => self.filter_by_array_positions(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_array_tickers" => self.filter_by_array_tickers(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
-            "filter_by_currency_since_limit" => self.filter_by_currency_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
+            "filter_by_currency_since_limit" => self.filter_by_currency_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_text).as_deref(), args.get(2).and_then(crate::Value::as_i64), args.get(3).and_then(crate::Value::as_i64), &args[4.min(args.len())..]),
             "filter_by_key" => self.filter_by_key(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).cloned().unwrap_or(crate::Value::Null), &args[2.min(args.len())..]),
             "filter_by_limit" => self.filter_by_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), &args[1.min(args.len())..]),
             "filter_by_since_limit" => self.filter_by_since_limit(args.get(0).cloned().unwrap_or(crate::Value::Null), args.get(1).and_then(crate::Value::as_i64), args.get(2).and_then(crate::Value::as_i64), &args[3.min(args.len())..]),
