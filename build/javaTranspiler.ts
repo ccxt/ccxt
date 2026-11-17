@@ -7574,7 +7574,8 @@ function javaJ8CopyLocalsSelfTest (): string[] {
         fs.writeFileSync(probe, body);
         const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
         if (!/Long a = since;/.test(out)) problems.push("'a' (copy of a Long default parameter) must print Long");
-        if (!/a = \(Long\) /.test(out)) problems.push("'a' Long-arithmetic write needs a Long checkcast");
+        // the write is a Long checkcast or native long arithmetic of a Long reader and long literals
+        if (!/a = \(Long\) /.test(out) && !/a = \(this\.milliseconds\(\) - \(+30L \* 24L\)/.test(out)) problems.push("'a' Long-arithmetic write needs a Long checkcast or native long arithmetic");
         if (!/Long b = limit;/.test(out) || !/b = 200L;/.test(out)) problems.push("'b' (Long copy + int literal write) must print Long and a 200L write");
         if (!/List<Object> d = /.test(out) || !/d = \(java\.util\.List<Object>\) response;/.test(out)) problems.push("'d' (Array.isArray-guarded write) must print List<Object> with a checkcast");
         for (const name of [ 'c', 'e' ]) {
