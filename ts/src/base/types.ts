@@ -152,9 +152,6 @@ export interface MarketInterface {
     id2?: Str;                    // venue alternate market id (apex)
     instIdCode?: Int;             // venue numeric instrument code (okx)
     tiers?: Dict;                 // fee tiers (weex)
-    priceScale?: Int;             // venue integer scales of prices, values and ratios (phemex)
-    valueScale?: Int;
-    ratioScale?: Int;
     info: any;
     // prediction venues: fetchMarkets rows are PredictionMarket-shaped
     market?: Str;
