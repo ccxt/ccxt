@@ -53,6 +53,7 @@ import { installJavaR90j6StringListReaders } from './java-local-types.js';
 import { installJavaR90j6AsStringListReaders } from './java-local-types.js';
 import { installJavaR90j6PairLocals } from './java-local-types.js';
 import { installJavaR90j6ListCopyLocals } from './java-local-types.js';
+import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2530,6 +2531,7 @@ class NewTranspiler {
         installJavaR90j6AsStringListReaders(this.transpiler);
         installJavaR90j6PairLocals(this.transpiler);
         installJavaR90j6ListCopyLocals(this.transpiler);
+        installJavaR90j7MapDelete(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -6133,6 +6135,7 @@ function mapLocalsSelfTest (): string[] {
             'export default class zz87j7selftest extends Exchange {',
             "    zzCancel (response: Dict, id: string) { const order = this.parsePredictionOrder (response); order['id'] = id; return order; }",
             "    zzPositions (rows: any[]) { const parsed = this.parsePredictionPositions (rows); let n = 0; for (let i = 0; i < parsed.length; i++) { n += 1; } return n; }",
+            "    zzPosition (raw: Dict) { const position = this.parsePredictionPosition (raw); return position['outcome']; }",
             "    parsePredictionOrder (order: Dict, market: Market = undefined): PredictionOrder { return this.safePredictionOrder ({ 'id': this.safeString (order, 'id') }, market); }",
             "    async zzRawRows (params: Dict = {}): Promise<Dict[]> {",
             "        const out: Dict[] = [];",
@@ -6151,11 +6154,36 @@ function mapLocalsSelfTest (): string[] {
         if (!/Map<String, ?Object> order = this\.parsePredictionOrder\(/.test(out) || !/order\.put\("id", id\);/.test(out)) problems.push("ral-87j7: a prediction-order result local must print Map with a native put");
         if (!/List<Object> parsed = this\.parsePredictionPositions\(/.test(out) || !/i < parsed\.size\(\)/.test(out)) problems.push("ral-87j7: a parsePredictionPositions result must print List<Object> read by size()");
         if (!/List<Object> rows = \(this\.zzRawRows\(/.test(out) || !/rows\.size\(\)/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Dict[]> core (returns a local) must give a List<Object> local read by size()");
+        if (!/Map<String, ?Object> position = this\.parsePredictionPosition\(/.test(out) || !/position\.get\("outcome"\)/.test(out)) problems.push("ral-90j7: a parsePredictionPosition result must print Map<String, Object> read by get()");
         if (!/List<Object> ids = \(this\.zzRawIds\(/.test(out)) problems.push("ral-87j7: an awaited venue Promise<Str[]> core (returns a local) must give a List<Object> local");
     } catch (e) {
         problems.push(`ral-87j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
         fs.rmSync(r87j7, { force: true });
+    }
+    // ral-90j7 R1: a Map-typed callee result with a `delete x[k]` use prints Map<String, Object> and a bare remove
+    const r90j7 = path.join(process.cwd(), 'ts', 'src', `zz90j7selftest${process.pid}.ts`);
+    try {
+        fs.writeFileSync(r90j7, [
+            "import Exchange from './paradex.js';",
+            "import type { Dict, Num, OrderSide, OrderType, Str } from './base/types.js';",
+            'export default class zz90j7selftest extends Exchange {',
+            "    createOrderRequest (symbol: Str, type: Str, side: Str, amount: number, price: number = undefined, params: Dict = {}): Dict { return { 'instId': symbol }; }",
+            "    zzWs (symbol: string, code: number) { const args = this.createOrderRequest (symbol, 'limit', 'buy', 1, undefined, {}); delete args['instId']; args['instIdCode'] = code; return args; }",
+            "    async zzEdit (id: string, symbol: string, type: OrderType, side: OrderSide, amount: Num = undefined, price: Num = undefined, params = {}) { await this.loadMarkets (); let request = this.createOrderRequest (symbol, type, side, amount, price, params); request = this.omit (request, [ 'instruction', 'client_id' ]); request['order_id'] = id; request = await this.signOrderRequest (request, true); return request; }",
+            "    zzWsTrades (rows: any[]) { const trades = this.parseWsTrades (rows); let n = 0; for (let j = 0; j < trades.length; j++) { n += 1; } return n; }",
+            "    setMarkets (markets: any, currencies: any = undefined) { const result = super.setMarkets (markets, currencies); const symbols = Object.keys (result); return result; }",
+            '}',
+        ].join('\n'));
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(r90j7).content as string;
+        if (!/Map<String, ?Object> args = this\.createOrderRequest\(/.test(out) || !/\bargs\.remove\("instId"\);/.test(out)) problems.push("ral-90j7: a Map callee result with a delete must print Map<String, Object> and a bare remove");
+        if (!/Map<String, ?Object> request = this\.createOrderRequest\(/.test(out) || !/\brequest\.put\("order_id", id\);/.test(out)) problems.push("ral-90j7: a Map callee result rewritten by this.omit (self, ..) must stay Map<String, Object> with a native put");
+        if (!/List<Object> trades = this\.parseWsTrades\(/.test(out) || !/j < trades\.size\(\)/.test(out)) problems.push("ral-90j7: a parseWsTrades result must print List<Object> read by size()");
+        if (!/Map<String, ?Object> result = super\.setMarkets\(/.test(out) || !/result\.keySet\(\)/.test(out)) problems.push("ral-90j7: a super.setMarkets result must print Map<String, Object> read by keySet()");
+    } catch (e) {
+        problems.push(`ral-90j7 self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(r90j7, { force: true });
     }
     return problems;
 }

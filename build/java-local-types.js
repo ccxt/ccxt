@@ -368,6 +368,9 @@ export const JAVA_LIST_RETURN_METHODS = new Set ([
     // `results` local, parsePredictionTrades returns filterByValueSinceLimit (List<Object>). Only
     // these two of 84j7 R1's names: their result locals are read by size()/get(i) (native uses)
     'parsePredictionPositions', 'parsePredictionTrades',
+    // ral-90j7 R5: base parseWsTrades returns parseTradesHelper (List), the hitbtc override filterBySymbolSinceLimit (List);
+    // the hitbtc handleTrades result local is read by size()/get(j)
+    'parseWsTrades',
 ]);
 // awaited typed cores added by ral-84j7 to build/javaTypedCore.ts BASE_ASYNC_HELPERS (keep in sync)
 const J84J7_TYPED_CORES = { 'fetchDepositAddressesByNetwork': 'Map<String, Object>', 'sendEvmTransaction': 'String' }; // ral-90j5 R1: + sendEvmTransaction
@@ -671,7 +674,12 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 // Structure accessors whose Java return is declared Map<String, Object> on every declaration
 // (base + overrides): each return is a literal/null, a markets/currencies row, super./this. call
 // of the same family or createExpiredOptionMarket (a row) - checkcast at the return site only.
-const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS ]);
+// ral-90j7 R2: setMarkets (base returns the Map field this.markets; PredictionExchange / deepcoin return their own
+// super.setMarkets result local). Its result locals are read by Object.keys / put (native on a Map)
+// ral-90j7 R3: safePredictionPosition (returns its own Map `result` literal) and every parsePredictionPosition
+// (base throws; venues return this.safePredictionPosition ({..}) or an object literal)
+const J90J7_MAP_RETURN_METHODS = [ 'setMarkets', 'safePredictionPosition', 'parsePredictionPosition' ];
+const JAVA_MAP_RETURN_METHODS = new Set ([ 'account', 'currency', 'safeCurrency', 'market', 'safeMarket', ...JAVA_84J7_MAP_RETURN_METHODS, ...J90J7_MAP_RETURN_METHODS ]);
 
 // Methods returning a unified struct (TypedMap view) on every declaration. Return sites:
 // null / same-table this|super call pass, a proven Map prints `new T(x)`, a const local of a
@@ -3076,6 +3084,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: bare, valuePrefix: String (initializer.expression.text) + '(' };
         }
     }
+    // ral-90j7 R2: `this.setMarkets (..)` / `super.setMarkets (..)` print Map<String, Object> on every declaration
+    if (!asserted && isThisOrSuperCall (initializer) && J90J7_MAP_RETURN_METHODS.includes (String (initializer.expression.name.text))
+        && resolvesToMethodNamed (printer, initializer, String (initializer.expression.name.text))) {
+        return { type: JAVA_STRUCTURE_TYPE, valuePrefixes: [ 'this.', 'super.' ] };
+    }
     if (!isThisCall (initializer) && !(asserted && isThisCall (assertedCall))) {
         return undefined;
     }
@@ -3918,7 +3931,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             // the String cannot satisfy ("...".remove((String)k) / List cast), so it
             // rejects. Map/List/ws locals take the Object-parameter helper unchanged.
             const grand = parent.parent;
-            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression && !(javaType === JAVA_STRUCTURE_TYPE && info?.r90j7DeleteOk === true)) {
                 return false;
             }
             if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
@@ -4074,7 +4087,9 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const sourceName = declaration.name.text;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    const info = localInitializerType (printer, declaration, isProFile, narrowed);
+    const info0 = localInitializerType (printer, declaration, isProFile, narrowed);
+    // ral-90j7 R1: `delete x[k]` prints `((Map<String,Object>)x).remove (k)`, legal on a Map-declared local
+    const info = info0?.type === JAVA_STRUCTURE_TYPE ? { ...info0, r90j7DeleteOk: true, writeOk: r90j7MapWriteOk (printer, sourceName, info0.writeOk, declaration) } : info0;
     if (info === undefined) {
         return undefined;
     }
@@ -6238,13 +6253,18 @@ export function installJavaLocalTypes (transpiler) {
             return printed.slice (0, at + 'return '.length) + open + tail.slice (0, end) + ')' + tail.slice (end);
         }
         if (JAVA_MAP_RETURN_METHODS.has (methodName) && !printer.isAsyncFunction?.(method)) {
-            const expression = unwrapNoCastAssertion (unwrapParens (node.expression));
+            let expression = unwrapNoCastAssertion (unwrapParens (node.expression));
+            // ral-90j7: `{..} as unknown as T` (two no-cast assertions) is still the literal
+            while (J90J7_MAP_RETURN_METHODS.includes (methodName) && expression !== undefined && unwrapNoCastAssertion (expression) !== expression) {
+                expression = unwrapNoCastAssertion (expression);
+            }
             const at = printed.lastIndexOf ('return ');
             if (expression === undefined || at === -1 || enclosingFunction (node) !== method
                 || ts.isObjectLiteralExpression (expression) || expression.kind === ts.SyntaxKind.NullKeyword
                 || (ts.isIdentifier (expression) && expression.text === 'undefined')
                 || (isThisOrSuperCall (expression) && JAVA_MAP_RETURN_METHODS.has (expression.expression.name.text))
-                || (JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) && ts.isIdentifier (expression)
+                || (J90J7_MAP_RETURN_METHODS.includes (methodName) && javaBaseMapField (printer, expression))
+                || ((JAVA_84J7_MAP_RETURN_METHODS.includes (methodName) || J90J7_MAP_RETURN_METHODS.includes (methodName)) && ts.isIdentifier (expression)
                     && typeof printer.javaDeclaredTypeOf === 'function'
                     && /^(java\.util\.)?Map<String, ?Object>$/.test (printer.javaDeclaredTypeOf (expression) ?? ''))) {
                 return printed;
@@ -25174,3 +25194,94 @@ export function installJavaR90j6ListCopyLocals (transpiler) {
     };
     publishJavaDeclaredLocalTypes (printer, (declaration) => (typed.has (declaration) ? JAVA_SAFE_LIST_TYPE : undefined));
 }
+
+// ral-90j7 R4: a Map-declared local may be rewritten by `x = this.omit (x, keys)`: the hand-written
+// `Map<String, Object> omit (Map<String, Object>, ..)` overload binds on the Map receiver and returns a fresh Map
+// stack-90j narrowing: a local initialised by a base safeDict* reader takes the omit-self write only
+// when the binding has a native use (an element read / write / delete on the local itself); a local
+// read only through this.safe* arguments (hyperliquid editOrdersRequest `orderParams`) stays Object
+function r90j7SafeDictInitNoNativeUse (printer, declaration) {
+    const init = declaration === undefined || !ts.isVariableDeclaration (declaration) ? undefined : unwrapParens (declaration.initializer);
+    if (init === undefined || !isThisCall (init) || !SAFE_DICT_ACCESSORS.has (String (init.expression.name.text)) || !ts.isIdentifier (declaration.name)) {
+        return false;
+    }
+    const scope = enclosingFunction (declaration);
+    const checker = printer.getChecker ();
+    const symbol = checker.getSymbolAtLocation (declaration.name);
+    for (const n of (scope === undefined ? [] : identifierIndex (scope).get (declaration.name.text) ?? [])) {
+        if (n !== declaration.name && checker.getSymbolAtLocation (n) === symbol && n.parent !== undefined
+            && ts.isElementAccessExpression (n.parent) && n.parent.expression === n) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function r90j7MapWriteOk (printer, selfName, upstream, declaration) {
+    let noNative;
+    return (right) => {
+        if (typeof upstream === 'function' && upstream (right) === true) {
+            return true;
+        }
+        if (noNative === undefined) {
+            try {
+                noNative = r90j7SafeDictInitNoNativeUse (printer, declaration);
+            } catch (e) {
+                noNative = true;
+            }
+        }
+        if (noNative) {
+            return false;
+        }
+        const call = unwrapParens (right);
+        if (!isThisCall (call) || String (call.expression.name.text) !== 'omit' || call.arguments.length < 2) {
+            return false;
+        }
+        const first = unwrapParens (call.arguments[0]);
+        return first !== undefined && ts.isIdentifier (first) && first.text === selfName && isBaseDeclaration (printer, call);
+    };
+}
+
+// ===== ral-90j7 R1. `delete x[k]` on a Map-declared local =====
+// isSafeToNarrow refused every Map local with a `delete x[k]` use (the delete prints a receiver cast a
+// String local cannot take). For a Map-declared local the delete is legal; print it on the receiver
+// with no cast. Decided from the TS declaration and the type the layer published for it.
+export function installJavaR90j7MapDelete (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || printer._javaR90j7MapDeletePatched || typeof printer.printDeleteExpression !== 'function'
+        || typeof printer.javaBaseDeclaredMapCacheField !== 'function') {
+        return;
+    }
+    printer._javaR90j7MapDeletePatched = true;
+    // the printer's delete arm already prints `<receiver>.remove(..)` with no receiver cast when
+    // javaBaseDeclaredMapCacheField(receiver) holds; answer it for the one Map-declared identifier
+    // receiver of the delete being printed (decided from the TS declaration and its published type)
+    let mapReceiver;
+    const upstreamField = printer.javaBaseDeclaredMapCacheField.bind (printer);
+    printer.javaBaseDeclaredMapCacheField = function (expression) {
+        return (mapReceiver !== undefined && expression === mapReceiver) || upstreamField (expression);
+    };
+    const upstream = printer.printDeleteExpression.bind (printer);
+    printer.printDeleteExpression = function (node, identation) {
+        const receiver = node?.expression?.expression;
+        let isMap = false;
+        try {
+            if (receiver !== undefined && ts.isIdentifier (receiver)) {
+                const declaration = this.getChecker ().getSymbolAtLocation (receiver)?.valueDeclaration?.resolve ();
+                isMap = declaration !== undefined && ts.isVariableDeclaration (declaration) && declaration.name?.text === receiver.text
+                    && J90J7_MAP_DECLARED.has (String (this.javaDeclaredTypeOfDeclaration?.(declaration) ?? ''));
+            }
+        } catch (e) {
+            isMap = false;
+        }
+        const saved = mapReceiver;
+        mapReceiver = isMap ? receiver : undefined;
+        try {
+            return upstream (node, identation);
+        } finally {
+            mapReceiver = saved;
+        }
+    };
+}
+// the declared-type spellings sections publish for a Map<String, Object> local
+const J90J7_MAP_DECLARED = new Set ([ 'java.util.Map<String, Object>', 'Map<String, Object>', 'final java.util.Map<String, Object>', 'final Map<String, Object>' ]);
