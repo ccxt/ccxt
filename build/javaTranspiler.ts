@@ -57,6 +57,9 @@ import { installJavaR90j7MapDelete } from './java-local-types.js';
 import { installJavaR90j8OmitParamLocals } from './java-local-types.js';
 import { installJavaR92j1AssertedStringLocals } from './java-local-types.js';
 import { installJavaR92j1StringRowLocals } from './java-local-types.js';
+import { installJavaR92j2MarketTypeParams } from './java-local-types.js';
+import { installJavaR92j2MapSlotHandOff } from './java-local-types.js';
+import { installJavaR92j2StringSlotLocals } from './java-local-types.js';
 import { installJavaScalarLocals } from './java-local-types.js';
 import { installJavaParamTypesPreScan } from './java-local-types.js';
 import { installJavaStringReturns } from './java-local-types.js';
@@ -2538,6 +2541,9 @@ class NewTranspiler {
         installJavaR90j8OmitParamLocals(this.transpiler);
         installJavaR92j1AssertedStringLocals(this.transpiler);
         installJavaR92j1StringRowLocals(this.transpiler);
+        installJavaR92j2MarketTypeParams(this.transpiler);
+        installJavaR92j2MapSlotHandOff(this.transpiler);
+        installJavaR92j2StringSlotLocals(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a
@@ -5865,7 +5871,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10660,6 +10666,125 @@ function javaR90j8LocalsSelfTest (): string[] {
         if (!/List<String> out = new java\.util\.ArrayList<String>\(/.test(out) || !/\bout\.add\(marketId\)/.test(out)) problems.push("'out' (pushes of a market['id'] structure-key String local) must print List<String> with a bare add");
         if (!/List<String> parsed = new java\.util\.ArrayList<String>\(/.test(out) || !/\bparsed\.add\(sid\)/.test(out)) problems.push("'parsed' (pushes of a const x.toString () local) must print List<String> with a bare add");
         if (!/\bObject raw = /.test(out)) problems.push("'raw' (written from a venue method that returns an awaited response) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R1: a read-only `marketType: MarketType` slot of the base parse* family prints String,
+// so its `x === undefined ? 'swap' : x` local and the safeMarket hand-off print native
+function javaR92j2MarketTypeParamsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mt${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { MarketType, Strings, Str, Leverages } from './base/types.js';",
+        `export default class zzr92j2mt${process.pid} extends Exchange {`,
+        "    parseLeverages (response: object[], symbols: Strings = undefined, symbolKey: Str = undefined, marketType: MarketType | undefined = undefined): Leverages {",
+        "        const leverageStructures = {};",
+        "        const marketTypeResolved: MarketType = (marketType === undefined) ? 'swap' : marketType;",
+        "        for (let i = 0; i < response.length; i++) {",
+        "            const info = response[i];",
+        "            const market = this.safeMarket (this.safeString (info, symbolKey), undefined, undefined, marketTypeResolved);",
+        "            leverageStructures[market['symbol']] = this.parseLeverage (info, market);",
+        "        }",
+        "        return leverageStructures as Leverages;",
+        "    }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/parseLeverages\(Object response, (java\.util\.)?List<String> symbols, String symbolKey, String marketType\)/.test(out)) problems.push("92j2 R1: the MarketType slot of parseLeverages must print String");
+        if (!/\bString marketTypeResolved = /.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must print String");
+        if (!/this\.safeMarket\([^;]*, marketTypeResolved\)/.test(out)) problems.push("92j2 R1: 'marketTypeResolved' must reach safeMarket bare");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R2: a conditional / element-read local handed once, in the next statement, to a fixed
+// Map parameter takes the slot's checkcast on its declaration and passes bare
+function javaR92j2SlotHandOffSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2so${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, Balances } from './base/types.js';",
+        `export default class zzr92j2so${process.pid} extends Exchange {`,
+        "    zzBal (response: Dict): Balances { return this.safeBalance (response); }",
+        "    async a (params: Dict = {}) { const response = await this.publicGetPing (params); const balanceResponse = (response === undefined) ? {} : response; const r = this.zzBal (balanceResponse); return r; }",
+        "    b (groups: Dict, k: string) { const g = groups[k]; const r = this.zzBal (g); return r; }",
+        "    async d (params: Dict = {}) { const response = await this.publicGetPing (params); const later = (response === undefined) ? {} : response; const x = 1; return this.zzBal (later); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> balanceResponse = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/this\.zzBal\(balanceResponse\)/.test(out)) problems.push("92j2 R2: 'balanceResponse' (conditional handed to a Dict slot next) must print Map and pass bare");
+        if (!/Map<String, Object> g = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/this\.zzBal\(g\)/.test(out)) problems.push("92j2 R2: 'g' (element read handed to a Dict slot next) must print Map and pass bare");
+        if (!/\bObject later = /.test(out)) problems.push("92j2 R2: 'later' (hand-off not in the next statement) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R3: an element-read Map local whose later literal-key writes the printer already prints as Map puts
+function javaR92j2ElementMapWritesSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2mw${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict } from './base/types.js';",
+        `export default class zzr92j2mw${process.pid} extends Exchange {`,
+        "    fees (rows: Dict[], code: string) { const all: Dict = {}; for (let i = 0; i < rows.length; i++) { const entry = rows[i]; const fee: Dict = all[code]; const info = fee['info']; info.push (entry); const result: Dict = { 'fee': this.safeNumber (entry, 'f') }; fee['withdraw'] = result; } return all; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/Map<String, Object> fee = \(java\.util\.Map<String, Object>\) \(/.test(out) || !/\bfee\.put\("withdraw", result\)/.test(out)) problems.push("92j2 R3: 'fee' (element read, literal-key read next, Map put later) must print Map with a native put");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// 92j2 R4: a Str conditional whose every use is a printed String slot takes that slot's conversion once
+function javaR92j2StringSlotLocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j2ss${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Currency, Dict, Market, Str, Int } from './base/types.js';",
+        `export default class zzr92j2ss${process.pid} extends Exchange {`,
+        "    zzFixed (s: Str, n: Int) { return [ s, n ]; }",
+        "    a (rows: Dict[], currency: Currency = undefined) { const code = (currency !== undefined) ? currency['code'] : undefined; return this.filterByCurrencySinceLimit (rows, code, undefined, undefined); }",
+        "    b (market: Market = undefined) { const sym = (market !== undefined) ? market['symbol'] : undefined; return this.zzFixed (sym, 1); }",
+        "    c (rows: Dict[], currency: Currency = undefined) { const both = (currency !== undefined) ? currency['code'] : undefined; this.zzFixed (both, 1); return this.filterByCurrencySinceLimit (rows, both, undefined, undefined); }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/String code = java\.util\.Objects\.toString\(/.test(out) || !/filterByCurrencySinceLimit\(rows, code,/.test(out)) problems.push("92j2 R4: 'code' (only a defaulted core String slot) must print String and pass bare");
+        if (!/String sym = \(String\) \(/.test(out) || !/this\.zzFixed\(sym,/.test(out)) problems.push("92j2 R4: 'sym' (only a fixed String slot) must print String and pass bare");
+        if (!/\bObject both = /.test(out)) problems.push("92j2 R4: 'both' (core and fixed slots) must stay Object");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
