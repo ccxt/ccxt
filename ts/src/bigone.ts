@@ -688,7 +688,7 @@ export default class bigone extends Exchange {
             const spotBase = this.safeCurrencyCode (spotBaseId);
             const spotQuote = this.safeCurrencyCode (spotQuoteId);
             if ((spotBase === undefined) || (spotQuote === undefined)) {
-                return undefined;
+                return {} as Market;
             }
             return this.safeMarketStructure ({
                 'id': this.safeString (market, 'name'),
@@ -749,7 +749,7 @@ export default class bigone extends Exchange {
         const base = this.safeCurrencyCode (baseId);
         const quote = this.safeCurrencyCode (quoteId);
         if ((base === undefined) || (quote === undefined)) {
-            return undefined;
+            return {} as Market;
         }
         const settle = this.safeCurrencyCode (settleId);
         const inverse = this.safeBool (market, 'isInverse');
