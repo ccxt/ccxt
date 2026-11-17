@@ -15325,6 +15325,9 @@ function csharpDictionaryIndexWriteNeedsNoCast (csharp, node) {
     if (recordedDictType (declaredLocalOfUse (csharp, node, receiver.text)) !== undefined) {
         return true;
     }
+    if (listBucketMapWriteReceiver90c7 (csharp, receiver)) {
+        return true;
+    }
     return (typeof csharp.csharpPrintedParamType === 'function') && (csharp.csharpPrintedParamType (receiver) !== undefined);
 }
 
@@ -15466,6 +15469,10 @@ export function installCsharpLocalTypes (transpiler) {
             return printed;
         }
         const declaration = declarations[0];
+        const bucketMap90c7 = listBucketMapDeclaration90c7 (csharp, declaration, printed, identation);
+        if (bucketMap90c7 !== undefined) {
+            return bucketMap90c7;
+        }
         // `const [a, b] = this.handleM (...)` — the printer emits a `var abVariable = <call>;`
         // holder and one casted read per element; type the holder per the proof above
         if (declaration.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
@@ -15494,7 +15501,7 @@ export function installCsharpLocalTypes (transpiler) {
         if (declaration.initializer?.kind === ts.SyntaxKind.AwaitExpression && !awaitedCallIsPrintedAsProven (printed.slice (prefix.length), declaration.initializer)) {
             return printed;
         }
-        let value = printed.slice (prefix.length);
+        let value = (info.nativeValue90c7 !== undefined) ? info.nativeValue90c7 : printed.slice (prefix.length);
         // the printer's own `((object)…)` box around an `as any` operand is an identity upcast
         // (printAsExpression); the named type IS that operand's box, so the box goes with the
         // retype (the `as any` safeList* receiver copies — see asAnySafeListReceiverCopy)
@@ -21695,13 +21702,41 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
     const index = indexScope (csharp, scope);
     const mapName = stripParens (read.expression).text;
     const maps = index.declarations.get (mapName) ?? [];
-    if (maps.length !== 1 || index.parameterNames.has (mapName) || maps[0].parent?.declarations?.length !== 1 || maps[0].getStart () >= read.getStart ()) {
+    if (maps.length !== 1 || maps[0].getStart () >= read.getStart () || !listBucketMap87c7 (csharp, scope, maps[0], ctx)) {
         return undefined;
     }
-    const map = maps[0];
+    const type = 'List<object>';
+    if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx)) {
+        return undefined;
+    }
+    // 90c7: the map itself is declared `Dictionary<string, List<object>>` (listBucketMapDeclaration90c7):
+    // with a string-typed identifier key the read prints the indexer form itself (from the AST; the
+    // helper's missing-key / null-key branches kept as tests), a List<object> with no cast back
+    const key = stripParens (read.argumentExpression);
+    const keyType = (key?.kind === ts.SyntaxKind.Identifier) ? csharpTypeOfValue (csharp, key, ctx) : undefined;
+    if ((keyType === 'string' || keyType === 'string?') && listBucketMapIsRetyped90c7 (csharp, scope, maps[0])) {
+        const m = csharp.printNode (stripParens (read.expression), 0);
+        const k = csharp.printNode (key, 0);
+        return { type, nativeValue90c7: '(' + k + ' != null && ' + m + '.ContainsKey(' + k + ') ? ' + m + '[' + k + '] : null)' };
+    }
+    return { type, cast: type, castWhole: true };
+}
+
+// the bucket-map proof of 87c7 R3, on the map's own declaration: `const byKey: Dict = {}` (one
+// declarator, not a parameter) whose every use is an element write of `[]` / a List<object> local,
+// an element read, a `k in byKey` test or the first argument of `this.safeList`
+function listBucketMap87c7 (csharp, scope, map, ctx) {
+    const index = indexScope (csharp, scope);
+    if (map?.name?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const mapName = map.name.text;
+    if ((index.declarations.get (mapName) ?? []).length !== 1 || index.parameterNames.has (mapName) || map.parent?.declarations?.length !== 1) {
+        return false;
+    }
     const mapInit = stripParens (map.initializer);
     if (mapInit?.kind !== ts.SyntaxKind.ObjectLiteralExpression || mapInit.properties.length !== 0) {
-        return undefined;
+        return false;
     }
     const listValue = (value) => {
         const v = stripParens (value);
@@ -21715,7 +21750,7 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
             continue;
         }
         if (useRefersToDeclaration (csharp, scope, map, use) !== true) {
-            return undefined;
+            return false;
         }
         let node = use;
         while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
@@ -21726,12 +21761,12 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
             const holder = parent.parent;
             if (holder?.kind === ts.SyntaxKind.BinaryExpression && holder.left === parent && ASSIGNMENT_OPERATORS.includes (holder.operatorToken.kind)) {
                 if (holder.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !listValue (holder.right)) {
-                    return undefined;
+                    return false;
                 }
                 continue;
             }
             if (holder?.kind === ts.SyntaxKind.DeleteExpression || holder?.kind === ts.SyntaxKind.PrefixUnaryExpression || holder?.kind === ts.SyntaxKind.PostfixUnaryExpression) {
-                return undefined;
+                return false;
             }
             continue; // an element read
         }
@@ -21743,10 +21778,94 @@ function listBucketMapReadLocal87c7 (csharp, declaration, context) {
                 && parent.expression.expression?.kind === ts.SyntaxKind.ThisKeyword && parent.expression.name?.text === 'safeList') {
             continue;
         }
+        return false;
+    }
+    return true;
+}
+
+// ===== ral-90c7 R0: the value type of a list-bucket map =====
+// A bucket map (listBucketMap87c7) whose every element read is a `const g = byKey[k]` local (no
+// other element-read shape) holds only List<object> values: declare it
+// `Dictionary<string, List<object>>`. Its `[k] = []` / `[k] = list` writes, `ContainsKey` tests and
+// conditional reads keep their printed text and are typed by C# itself; `this.safeList (map, ..)`
+// takes object and reads the same list reference (SafeValueN's generic-IDictionary branch).
+const listBucketMapRetyped90c7 = new WeakMap ();
+function listBucketMapIsRetyped90c7 (csharp, scope, map) {
+    if (listBucketMapRetyped90c7.has (map)) {
+        return listBucketMapRetyped90c7.get (map);
+    }
+    listBucketMapRetyped90c7.set (map, false); // re-entrancy: answer false while deciding
+    const ctx = { scope, stack: new Set (), depth: 0 };
+    let ok = listBucketMap87c7 (csharp, scope, map, ctx);
+    if (ok) {
+        const index = indexScope (csharp, scope);
+        for (const use of index.identifiers.get (map.name.text) ?? []) {
+            if (use === map.name || isNotAUse (use)) {
+                continue;
+            }
+            let node = use;
+            while (node.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                node = node.parent;
+            }
+            const parent = node.parent;
+            if (parent?.kind !== ts.SyntaxKind.ElementAccessExpression || parent.expression !== node) {
+                continue;
+            }
+            let holder = parent;
+            while (holder.parent?.kind === ts.SyntaxKind.ParenthesizedExpression) {
+                holder = holder.parent;
+            }
+            const isWrite = holder.parent?.kind === ts.SyntaxKind.BinaryExpression && holder.parent.left === holder;
+            const isLocalInit = holder.parent?.kind === ts.SyntaxKind.VariableDeclaration && holder.parent.initializer === holder
+                && holder.parent.name?.kind === ts.SyntaxKind.Identifier && holder.parent.parent?.declarations?.length === 1 && holder.parent.type === undefined;
+            const key = stripParens (parent.argumentExpression);
+            const keyType = (key?.kind === ts.SyntaxKind.Identifier) ? csharpTypeOfValue (csharp, key, ctx) : undefined;
+            if ((!isWrite && !isLocalInit) || (isLocalInit && keyType !== 'string' && keyType !== 'string?')) {
+                ok = false;
+                break;
+            }
+        }
+    }
+    listBucketMapRetyped90c7.set (map, ok);
+    return ok;
+}
+
+// a write receiver that names a retyped bucket map (decided on the map's declaration node):
+// `m[k] = v` indexes the Dictionary<string, List<object>> directly, the value is a List<object>
+function listBucketMapWriteReceiver90c7 (csharp, receiver) {
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (receiver) : enclosingFunction (receiver);
+    if (scope === undefined) {
+        return false;
+    }
+    const maps = indexScope (csharp, scope).declarations.get (receiver.text) ?? [];
+    return maps.length === 1 && useRefersToDeclaration (csharp, scope, maps[0], receiver) === true && listBucketMapIsRetyped90c7 (csharp, scope, maps[0]);
+}
+
+// the declaration print: an exact printer line `object m = new Dictionary<string, object>() {}`
+// (or its Dictionary-typed form)
+// (compared whole, never parsed) becomes the List<object>-valued map
+function listBucketMapDeclaration90c7 (csharp, declaration, printed, identation) {
+    if (declaration?.name?.kind !== ts.SyntaxKind.Identifier || declaration.parent?.declarations?.length !== 1) {
         return undefined;
     }
-    const type = 'List<object>';
-    return csharpLocalIsSafeToRetype (csharp, scope, declaration, declaration.name.text, type, ctx) ? { type, cast: type, castWhole: true } : undefined;
+    const init = stripParens (declaration.initializer);
+    if (init?.kind !== ts.SyntaxKind.ObjectLiteralExpression || init.properties.length !== 0) {
+        return undefined;
+    }
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const iden = csharp.getIden (identation);
+    const name = csharp.printNode (declaration.name, 0);
+    const tail = ' ' + name + ' = new Dictionary<string, object>() {}';
+    if (printed !== iden + csharp.VAR_TOKEN + tail && printed !== iden + 'Dictionary<string, object>' + tail) {
+        return undefined;
+    }
+    if (!listBucketMapIsRetyped90c7 (csharp, scope, declaration)) {
+        return undefined;
+    }
+    return iden + 'Dictionary<string, List<object>> ' + name + ' = new Dictionary<string, List<object>>() {}';
 }
 
 // ===== 90c2: conditional initialisers proven from the TS AST (continues 87c2) =====

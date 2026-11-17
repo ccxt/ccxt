@@ -12858,9 +12858,17 @@ export function nonNullStringCallSnippetChecks84c7 (): string[] {
     const bucketBody = (tail: string) => 'class Test {\n safeList (o, k, d = undefined) { return d; }\n hash (a, b, c) { return a; }\n'
         + ' f (keys: string[], rows: string[]) { const byKey = {}; for (let i = 0; i < keys.length; i++) { const k = keys[i]; if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; }' + tail + ' }\n}';
     const bucket = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (bucketBody (' const out = []; for (let i = 0; i < keys.length; i++) { const grouped = byKey[keys[i]]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); } } return out;')).content as string;
-    if (!bucket.includes ('List<object> grouped = ((List<object>)(')) problems.push (`87c7 list-bucket map read: ${bucket.replace (/\n/g, ' | ').slice (-500)}`);
-    const leaked = (transpiler as unknown as { transpileCSharp (src: string): { content: string }, transpileCSharpByPath (file: string): { content: string } }).transpileCSharp (bucketBody (' byKey[\'x\'] = 1; const grouped = byKey[keys[0]]; return this.hash (grouped.length, 1, 1);')).content as string;
-    if (leaked.includes ('List<object> grouped =')) problems.push (`87c7 list-bucket map read: non-list element write retyped: ${leaked.replace (/\n/g, ' | ').slice (-500)}`);
+    // ral-90c7: the bucket map itself is Dictionary<string, List<object>>, so a string-keyed read needs no cast back
+    const typedBucket = (tail: string) => (transpiler as unknown as { transpileCSharp (src: string): { content: string } }).transpileCSharp ('type Str = string | undefined;\nclass Test {\n safeList (o, k, d = undefined) { return d; }\n safeString (o, k, d = undefined): Str { return d; }\n hash (a, b, c) { return a; }\n'
+        + ' f (rows) { const byKey = {}; for (let i = 0; i < rows.length; i++) { const k = this.safeString (rows[i], \'id\'); if (k === undefined) { continue; } if (!(k in byKey)) { byKey[k] = []; } const g = this.safeList (byKey, k, []); g.push (rows[i]); byKey[k] = g; } const out = []; for (let i = 0; i < rows.length; i++) { const m = this.safeString (rows[i], \'id\');' + tail + ' } return out; }\n}').content as string;
+    const typed = typedBucket (' if ((m === undefined) || !(m in byKey)) { continue; } const grouped = byKey[m]; for (let j = 0; j < grouped.length; j++) { out.push (grouped[j]); }');
+    for (const expected of [ 'Dictionary<string, List<object>> byKey = new Dictionary<string, List<object>>() {};', 'List<object> grouped = (m != null && byKey.ContainsKey(m) ? byKey[m] : null);', 'byKey[(string)k] = g;' ]) {
+        if (!typed.includes (expected)) problems.push (`90c7 list-bucket map value type: ${expected}: ${typed.replace (/\n/g, ' | ').slice (-700)}`);
+    }
+    if (typed.includes ('((List<object>)') || typed.includes ('((IDictionary<string,object>)byKey)')) problems.push (`90c7 list-bucket map value type: cast kept: ${typed.replace (/\n/g, ' | ').slice (-700)}`);
+    // a map with an element read that is not a local's initializer keeps Dictionary<string, object>
+    const escapedMap = typedBucket (' const grouped = byKey[m]; out.push (grouped.length); out.push (byKey[m]);');
+    if (escapedMap.includes ('List<object>> byKey')) problems.push (`90c7 list-bucket map value type: other element read retyped the map: ${escapedMap.replace (/\n/g, ' | ').slice (-700)}`);
     return problems;
 }
 
