@@ -5881,7 +5881,7 @@ function auditSelfTest (): string[] {
     } finally {
         fs.rmSync(tmp, { recursive: true, force: true });
     }
-    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest());
+    return problems.concat(mapLocalsSelfTest(), javaFreshObjectMapWritesSelfTest(), javaCounterLocalsSelfTest(), javaMapLocalsSelfTest(), javaTypedArithmeticSelfTest(), javaParamTypesSelfTest(), javaListLocalsSelfTest(), javaScalarLocalsSelfTest(), javaParamTypesPreScanSelfTest(), javaStringReturnsSelfTest(), javaNonNullCompareSelfTest(), javaParamCompareSelfTest(), javaCoreArgIdentitiesSelfTest(), javaPrimitiveArithmeticSelfTest(), javaNumericLocalsRetypeSelfTest(), javaMapLocalsRetypeSelfTest(), javaNumberParamCompareSelfTest(), javaWsOrderBookContainersSelfTest(), javaBoxLocalsCoreArgsSelfTest(), javaIntegralMultiplySubtractSelfTest(), javaNumberDivModNegSelfTest(), javaInlineDivModNegSelfTest(), javaInlineCompareSelfTest(), javaContainerOpsSelfTest(), javaCoreArgHelpersSelfTest(), javaIsEqualSelfTest(), x21SelfTest(), x22SelfTest(), javaPaginationCursorSelfTest(), javaTypedCoreDirectReturnSelfTest(), javaR77j2ConditionalLocalsSelfTest(), javaNullSeedJoinSelfTest(), javaBaseProducerLocalsSelfTest(), j6ReaderLocalsSelfTest(), javaJ8CopyLocalsSelfTest(), javaR84j1StringElementLocalsSelfTest(), javaR84j2ContainerLocalsSelfTest(), javaR84j2GuardedListLocalsSelfTest(), javaR84j2MapConditionalLocalsSelfTest(), javaR84j4NullSeedSelfTest(), javaR84j5CalleeReturnsSelfTest(), javaR87j5CalleeReturnsSelfTest(), j84j6TrueOnlyLocalsSelfTest(), javaR84j8LocalsSelfTest(), javaR87j2WsLocalsSelfTest(), javaR87j2LengthListLocalsSelfTest(), javaR87j2UrlLocalsSelfTest(), javaR87j4SplitSeedSelfTest(), javaR87j8LocalsSelfTest(), javaR90j2ElementListLocalsSelfTest(), javaR90j2PromiseAllLocalsSelfTest(), javaR90j2ElementMapLocalsSelfTest(), javaR90j2ElementMapSlotSelfTest(), javaR90j4NullSeedSelfTest(), javaR90j6ReaderLocalsSelfTest(), javaR90j8LocalsSelfTest(), javaR92j2MarketTypeParamsSelfTest(), javaR92j2SlotHandOffSelfTest(), javaR92j2ElementMapWritesSelfTest(), javaR92j2StringSlotLocalsSelfTest(), javaR92j4NullSeedConsumerSelfTest(), javaR92j8LocalsSelfTest());
 }
 
 // ral-77j5: locals of base producers whose hand-written Java return is concrete (byte[] / Integer);
@@ -10949,6 +10949,43 @@ function javaR92j4NullSeedConsumerSelfTest (): string[] {
         if (!/String expiry = null/.test(out) || !/this\.convertExpireDate\(expiry\)/.test(out)) problems.push("r92-j4: 'expiry' (safeString / convertMarketIdExpireDate writes, String slot) must print String with a bare argument");
         if (!/String baseId = null/.test(out) || !/this\.safeCurrencyCode\(baseId, /.test(out)) problems.push("r92-j4: 'baseId' (safeString / integral-bound slice writes, String slot) must print String with a bare argument");
         if (!/\bObject mixed = null/.test(out)) problems.push("r92-j4: 'mixed' (one Object element write) must stay Object");
+        if (problems.length) problems.push('output:\n' + out);
+    } catch (e) {
+        problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+        fs.rmSync(probe, { force: true });
+    }
+    return problems;
+}
+
+// venue list fetchers: `let x: List = []` targets and fetchers returning another proven fetcher's awaited result
+function javaR92j8LocalsSelfTest (): string[] {
+    const problems: string[] = [];
+    const probe = path.join(process.cwd(), 'ts', 'src', `zzr92j8selftest${process.pid}.ts`);
+    const body = [
+        "import Exchange from './abstract/binance.js';",
+        "import type { Dict, List } from './base/types.js';",
+        'export default class zzr92j8selftest extends Exchange {',
+        "    async zzr92j8Inner (params: Dict = {}): Promise<Dict[]> {",
+        "        const out: Dict[] = [];",
+        "        out.push (params);",
+        "        return out;",
+        "    }",
+        "    async zzr92j8Outer (params: Dict = {}): Promise<Dict[]> {",
+        "        return await this.zzr92j8Inner (params);",
+        "    }",
+        "    omitPerBinding (a: Dict, flag: boolean) { if (flag) { let tickers = [ 1 ]; tickers = [ 2 ]; return tickers; } const data = this.safeDict (a, 'data', {}); const tickers = this.omit (data, 'date'); return Object.keys (tickers).length; }",
+        "    signedCopy (params: Dict, post: boolean) { const sorted: Dict = this.keysort (this.omit (params, 'a')); let signed: Dict = sorted; if (post) { signed = this.keysort (sorted); } return Object.keys (signed).length; }",
+        "    async zzr92j8Use (q: string, params: Dict = {}) { const first = await this.zzr92j8Inner (params); let rows: List = []; if (q !== undefined) { rows = await this.zzr92j8Outer (params); } return [ first.length, rows.length ]; }",
+        '}',
+    ].join('\n');
+    try {
+        fs.writeFileSync(probe, body);
+        resetJavaVenueIndexes();
+        const out = new NewTranspiler().transpiler.transpileJavaByPath(probe).content as string;
+        if (!/List<Object> rows = /.test(out) || !/\brows\.size\(\)/.test(out)) problems.push("'rows' (let x: List = [] written from a list fetcher) must print List<Object> with a native size()");
+        if (!/Map<String, Object> signed = sorted;/.test(out) || !/\bsigned\.size\(\)/.test(out)) problems.push("'signed' (copy of a keysort Map local, published as Map<String,Object>) must print Map<String, Object> with a native size()");
+        if (!/Map<String, Object> tickers = this\.omit\(/.test(out)) problems.push("'tickers' (omit of a Map, a same-named sibling binding written elsewhere) must print Map<String, Object>");
         if (problems.length) problems.push('output:\n' + out);
     } catch (e) {
         problems.push(`self-test threw: ${e instanceof Error ? e.message : String(e)}`);
