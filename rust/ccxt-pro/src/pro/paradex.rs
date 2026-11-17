@@ -1461,13 +1461,13 @@ if _try_result.is_err() {
         let mut bids: Vec<Value> = Vec::new();
         let mut asks: Vec<Value> = Vec::new();
         // a level of the deletes is removed whatever size it carries, an SBE delta removes one by a size of 0
-        let mut levelKeys: Value = Value::from(vec![Value::Str("inserts".into()), Value::Str("updates".into()), Value::Str("deletes".into())]);
+        let mut levelKeys: crate::value::List = std::sync::Arc::new(vec![Value::Str("inserts".into()), Value::Str("updates".into()), Value::Str("deletes".into())]);
         {
                         let mut k: i64 = 0;
             let mut __for_first_597: bool = true;
             while { if !__for_first_597 { k += 1; } __for_first_597 = false; k < (levelKeys.len() as i64) } {
-            let mut isDelete: bool = levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
-            let mut levels: crate::value::List = self.safe_list(&data, levelKeys.as_array().map(Vec::as_slice).unwrap_or_default().get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
+            let mut isDelete: bool = levelKeys.get(k as usize).cloned().unwrap_or(Value::Null).as_str() == Some("deletes");
+            let mut levels: crate::value::List = self.safe_list(&data, levelKeys.get(k as usize).cloned().unwrap_or(Value::Null), &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_596: bool = true;
@@ -3705,7 +3705,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             if !handled {
                 // not a reply to a known request, every watcher on the connection gets the error,
                 // and the next private watch authenticates again instead of waiting on a rejected future
-                if (matches!(&get_value(&client, &Value::Str("subscriptions".into())), Value::Dict(__d) if __d.contains_key("authenticated"))) {
+                if (__ch.has_subscription("authenticated")) {
                     __ch.remove_subscription("authenticated");
                 }
                 client.reject(e, None);

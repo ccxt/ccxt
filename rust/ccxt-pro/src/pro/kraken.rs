@@ -1715,11 +1715,11 @@ impl Kraken {
         let mut parts: crate::value::List = Value::Array(if let Some(__s) = data.as_str() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut integer: String = self.safe_string(&parts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut decimals: String = self.safe_string(&parts, Value::Int(1), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut joinedResult: Value = Value::Str(format!("{}{}", integer, decimals).into());
-        while (joinedResult.as_str().unwrap_or("").starts_with("0")) {
-            joinedResult = joinedResult.as_str().map(|__s| { let __c: Vec<char> = __s.chars().collect(); let __l = __c.len() as i64; let __i = __l.min(1); let __j = __l; if __i <= __j { __c[__i as usize..__j as usize].iter().collect::<String>() } else { String::new() } }).map(Value::from).unwrap_or(Value::Null);
+        let mut joinedResult: String = format!("{}{}", integer, decimals);
+        while (joinedResult.starts_with("0")) {
+            joinedResult = joinedResult.chars().skip(1).collect::<String>();
         }
-        return joinedResult.as_str().map(str::to_owned);
+        return Some(joinedResult);
 }
 
     pub fn handle_system_status(&self, mut client: Value, mut message: Value) -> Value {

@@ -1319,15 +1319,15 @@ impl crate::exchange::DerivedExchange for Binance {
         let mut inverse: Option<bool> = None;
         let mut subType: Option<String> = None;
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
-        let mut strike: Value = Value::Null;
+        let mut strike: Option<String> = None;
         if contract.as_bool() == Some(true) {
             if swap {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             }  else if future {
                 symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null")).into()), "-").into()), self.yymmdd(Value::from(expiry), &[]));
             }  else if option {
-                strike = Value::from(self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[]))));
-                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", strike, "-", self.safe_string(&optionParts, Value::Int(3), &[]));
+                strike = self.number_to_string(self.parse_to_numeric(self.safe_string_k(market.clone(), "strikePrice", &[])));
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle.clone().map(Value::from).unwrap_or(Value::Null), "-", self.yymmdd(Value::from(expiry), &[]), "-", strike.as_deref().unwrap_or("null"), "-", self.safe_string(&optionParts, Value::Int(3), &[]));
             }
             contractSize = self.safe_number2(market.clone(), Value::Str("contractSize".into()), Value::Str("unit".into()), &[self.parse_number(Value::Str("1".into()), &[])]).as_f64();
             linear = Some(settle == quote);
@@ -1391,8 +1391,8 @@ impl crate::exchange::DerivedExchange for Binance {
             active = None;
         }
         let mut parsedStrike: Value = Value::Null;
-        if (strike != Value::Null) {
-            parsedStrike = self.parse_to_numeric(strike);
+        if (strike.is_some()) {
+            parsedStrike = self.parse_to_numeric(strike.map(Value::from).unwrap_or(Value::Null));
         }
         let mut tradability: Option<String> = self.safe_string_k_opt(market.clone(), "tradability", &[]);
         if (tradability.is_some()) {
@@ -3164,7 +3164,7 @@ impl crate::exchange::DerivedExchange for Binance {
                 query = Value::from(self.urlencode_with_array_repeat(extendedParams.clone()));
             }  else if (path.as_str() == Some("batchOrders")) || (path.as_str().unwrap_or("").contains("sub-account")) || (path.as_str() == Some("capital/withdraw/apply")) || (path.as_str().unwrap_or("").contains("staking")) || (path.as_str().unwrap_or("").contains("simple-earn")) {
                 if (method.as_str() == Some("DELETE")) && (path.as_str() == Some("batchOrders")) {
-                    let mut orderidlist: Value = self.safe_list_k(extendedParams.clone(), "orderidlist", &[Value::from(vec![])]);
+                    let mut orderidlist: crate::value::List = self.safe_list_k(extendedParams.clone(), "orderidlist", &[Value::from(vec![])]).into_list();
                     let mut origclientorderidlist: crate::value::List = self.safe_list2(extendedParams.clone(), Value::Str("origclientorderidlist".into()), Value::Str("origClientOrderIdList".into()), &[Value::from(vec![])]).into_list();
                     extendedParams = self.omit(extendedParams, &["orderidlist", "origclientorderidlist", "origClientOrderIdList"], &[]);
                     if (matches!(&extendedParams, Value::Dict(__d) if __d.contains_key("symbol"))) {
@@ -3174,7 +3174,7 @@ impl crate::exchange::DerivedExchange for Binance {
                     let mut orderidlistLength: i64 = orderidlist.len() as i64;
                     let mut origclientorderidlistLength: i64 = origclientorderidlist.len() as i64;
                     if orderidlistLength > 0 {
-                        query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, "&").into()), "orderidlist=%5B").into()), join(&orderidlist, &Value::Str("%2C".into()))).into()), "%5D").into());
+                        query = Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", query, "&").into()), "orderidlist=%5B").into()), Value::Str(orderidlist.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join("%2C").into())).into()), "%5D").into());
                     }
                     if origclientorderidlistLength > 0 {
                         // wrap clientOrderids around ""
@@ -16366,17 +16366,17 @@ impl Binance {
             let mut position: crate::value::Dict = positions.get(i as usize).cloned().unwrap_or(Value::Null).into_dict();
             let mut marketId: Option<String> = self.safe_string_k_opt(&position, "symbol", &[]);
             let mut market: crate::types::Market = self.safe_market(marketId.map(Value::from).unwrap_or(Value::Null), None, &[Value::Null, Value::Str("contract".into())]);
-            let mut code: Value = (if ((market).linear == Some(true)) { crate::value::KeyRead::key_read(&&market, "quote") } else { crate::value::KeyRead::key_read(&&market, "base") });
+            let mut code: String = (if ((market).linear == Some(true)) { (market).quote.clone() } else { (market).base.clone() });
             let mut maintenanceMargin: Option<String> = self.safe_string_k_opt(&position, "maintMargin", &[]);
             // check for maintenance margin so empty positions are not returned
             let mut isPositionOpen: bool = (maintenanceMargin.as_deref() != Some("0")) && (maintenanceMargin.as_deref() != Some("0.00000000"));
             if !filterClosed || isPositionOpen {
                 // sometimes not all the codes are correctly returned...
-                if (matches!(&code, Value::Str(__k) if balances.contains_key(__k.as_ref()))) {
+                if (balances.contains_key(code.as_str())) {
                     let __ws_arg_159 = self.extend(position, &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
-                            m.insert("crossMargin".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
-                            m.insert("crossWalletBalance".to_string(), self.safe_value(balances.get(code.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
+                            m.insert("crossMargin".to_string(), self.safe_value(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossMargin".into()), &[]));
+                            m.insert("crossWalletBalance".to_string(), self.safe_value(balances.get(code.as_str()).cloned().unwrap_or(Value::Null), Value::Str("crossWalletBalance".into()), &[]));
                         m
                     })]);
                     let mut parsed: crate::value::Dict = self.parse_account_position(__ws_arg_159, Some(&market)).into_dict();
@@ -20276,7 +20276,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
             m
         });
         let __ws_arg_223 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.sapi_post_convert_get_quote(&[__ws_arg_223]).await;
+        let mut response: Option<crate::value::Dict> = self.sapi_post_convert_get_quote(&[__ws_arg_223]).await.into_opt_dict();
         //
         //     {
         //         "quoteId":"12415572564",
@@ -20289,10 +20289,10 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
         //
         let mut fromCurrency: crate::types::Currency = self.currency(fromCode);
         let mut toCurrency: crate::types::Currency = self.currency(toCode);
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::null_response(format!("{}{}", self.id.clone(), " parseConversion() returned empty response")));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, response, Some(&fromCurrency), Some(&toCurrency));
+        return <Self as crate::exchange::DerivedExchange>::parse_conversion(self, &response, Some(&fromCurrency), Some(&toCurrency));
         Value::Null
         }).await?))
     }

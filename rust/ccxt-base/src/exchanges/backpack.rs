@@ -4167,13 +4167,13 @@ impl Backpack {
         if (amount == Value::Null) || !(crate::precise::Precise::stringGt(&Value::from(self.number_to_string(amount.clone())), &Value::Str("0".into())).as_bool() == Some(true)) {
             panic!("{}", crate::exchange_errors::invalid_order(format!("{}{}", self.id.clone(), " createOrder() RFQs require a positive base quantity")));
         }
-        let mut unsupported: Value = Value::from(vec![Value::Str("cost".into()), Value::Str("quoteQuantity".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()), Value::Str("reduceOnly".into()),
-            Value::Str("timeInForce".into()), Value::Str("selfTradePrevention".into())]);
+        let mut unsupported: crate::value::List = std::sync::Arc::new(vec![Value::Str("cost".into()), Value::Str("quoteQuantity".into()), Value::Str("postOnly".into()), Value::Str("triggerPrice".into()), Value::Str("stopLossPrice".into()), Value::Str("takeProfitPrice".into()), Value::Str("stopLoss".into()), Value::Str("takeProfit".into()),
+            Value::Str("reduceOnly".into()), Value::Str("timeInForce".into()), Value::Str("selfTradePrevention".into())]);
         {
                         let mut i: i64 = 0;
             let mut __for_first_257: bool = true;
             while { if !__for_first_257 { i += 1; } __for_first_257 = false; i < (unsupported.len() as i64) } {
-            let mut key: Option<&str> = unsupported.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).and_then(Value::as_str);
+            let mut key: Option<&str> = unsupported.get(i as usize).and_then(Value::as_str);
             if (matches!(key.as_deref(), Some(__k) if paramsResolved.contains_key(__k))) {
                 panic!("{}", crate::exchange_errors::not_supported(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() RFQs do not support ").into()), key.as_deref().unwrap_or("null"))));
             }

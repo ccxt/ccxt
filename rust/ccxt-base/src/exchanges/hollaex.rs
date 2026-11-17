@@ -2066,7 +2066,7 @@ impl Hollaex {
             m
         });
         let __ws_arg_8 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_order(&[__ws_arg_8]).await;
+        let mut response: Option<crate::value::Dict> = self.private_get_order(&[__ws_arg_8]).await.into_opt_dict();
         //             {
         //                 "id": "string",
         //                 "side": "sell",
@@ -2089,10 +2089,10 @@ impl Hollaex {
         //                     "exchange_id": 176
         //                 }
         //             }
-        if (response == Value::Null) {
+        if (response.is_none()) {
             panic!("{}", crate::exchange_errors::order_not_found(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchOrder() could not find order id ").into()), id)));
         }
-        return <Self as crate::exchange::DerivedExchange>::parse_order(self, response, None);
+        return <Self as crate::exchange::DerivedExchange>::parse_order(self, &response, None);
         Value::Null
         }).await?))
     }

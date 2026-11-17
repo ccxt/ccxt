@@ -4675,20 +4675,20 @@ impl Phemex {
             }
             request.insert("qtyType".into(), Value::from(qtyType.clone()));
             if (qtyType == "ByQuote") {
-                let mut cost: Value = self.safe_number_k(orderParams.clone(), "cost", &[]);
+                let mut cost: Option<f64> = self.safe_number_k(orderParams.clone(), "cost", &[]).as_f64();
                 orderParams = self.omit(orderParams, Value::Str("cost".into()), &[]);
                 if matches!(self.safe_bool_k(self.options.clone(), "createOrderByQuoteRequiresPrice", &[Value::Bool(false)]), Value::Bool(true)) {
                     if (price != Value::Null) {
                         let mut amountString: Option<String> = self.number_to_string(amount.clone());
                         let mut priceString: Option<String> = self.number_to_string(price.clone());
                         let mut quoteAmount: Option<String> = crate::precise::Precise::stringMul(&amountString, &priceString).as_str().map(str::to_owned);
-                        cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]);
-                    }  else if (cost == Value::Null) {
+                        cost = self.parse_number(quoteAmount.map(Value::from).unwrap_or(Value::Null), &[]).as_f64();
+                    }  else if (cost.is_none()) {
                         panic!("{}", crate::exchange_errors::arguments_required(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " createOrder() ").into()), qtyType).into()), " requires a price argument or a cost parameter")));
                     }
                 }
-                cost = (if (cost == Value::Null) { amount.clone() } else { cost.clone() });
-                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), cost);
+                cost = (if (cost.is_none()) { amount.as_f64() } else { cost });
+                let mut costString: Option<String> = self.cost_to_precision(symbol.clone(), Value::from(cost));
                 request.insert("quoteQtyEv".into(), self.to_ev(costString.map(Value::from).unwrap_or(Value::Null), &[(market).raw.clone()]));
             }  else {
                 let mut amountString: Option<String> = self.amount_to_precision(symbol.clone(), amount.clone());

@@ -3493,10 +3493,10 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 if (reqId.is_some()) {
                     client.reject(error.clone(), reqId.as_deref());
                 }  else if error.is_instance_of("AuthenticationError") {
-                    let mut authenticatedHash: Value = Value::Str("authenticated".into());
-                    client.reject(error.clone(), &authenticatedHash);
-                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &authenticatedHash), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        __ch.remove_subscription(&authenticatedHash);
+                    let mut authenticatedHash: String = "authenticated".to_string();
+                    client.reject(error.clone(), authenticatedHash.as_str());
+                    if (__ch.has_subscription(authenticatedHash.as_str())) {
+                        __ch.remove_subscription(authenticatedHash.as_str());
                     }
                     let mut op: Option<String> = (match __pro_message.get("op") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                     if (op.is_some()) && (op.as_deref() != Some("auth")) {

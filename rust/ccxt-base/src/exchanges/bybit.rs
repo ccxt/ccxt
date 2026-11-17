@@ -2093,64 +2093,63 @@ impl crate::exchange::DerivedExchange for Bybit {
 }
     fn create_expired_option_market(&self, mut symbol: Value) -> Value {
         // support expired option contracts
-        let mut quote: Value = Value::Null;
+        let mut quote: Option<String> = None;
         let mut optionParts: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("-").map(Value::from).collect() } else { Vec::new() }).into_list();
         let mut symbolBase: crate::value::List = Value::Array(if let Some(__s) = symbol.as_str() { __s.split("/").map(Value::from).collect() } else { Vec::new() }).into_list();
-        let mut expiry: Value = Value::Null;
+        let mut expiry: Option<String> = None;
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
-        let mut baseName: Value = self.safe_string(&optionParts, Value::Int(0), &[Value::Str("".into())]);
+        let mut baseName: String = self.safe_string(&optionParts, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         if hasSlash {
-            baseName = self.safe_string(&symbolBase, Value::Int(0), &[Value::Str("".into())]);
-            expiry = self.safe_string(&optionParts, Value::Int(1), &[]);
+            baseName = self.safe_string(&symbolBase, Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
+            expiry = self.safe_string_opt(&optionParts, Value::Int(1), &[]);
             let mut symbolQuoteAndSettle: Option<String> = self.safe_string_opt(&symbolBase, Value::Int(1), &[]);
             if (symbolQuoteAndSettle.is_none()) {
                 panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createExpiredOptionMarket() missing symbolQuoteAndSettle")));
             }
             let mut splitQuote: crate::value::List = Value::Array(if let Some(__s) = symbolQuoteAndSettle.as_deref() { __s.split(":").map(Value::from).collect() } else { Vec::new() }).into_list();
             let mut quoteAndSettle: Option<String> = self.safe_string_opt(&splitQuote, Value::Int(0), &[]);
-            quote = quoteAndSettle.map(Value::from).unwrap_or(Value::Null);
+            quote = quoteAndSettle;
         }  else {
-            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str());
+            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str()).as_str().map(str::to_owned);
             if (symbol.as_str().unwrap_or("").ends_with("-USDT")) {
-                quote = Value::Str("USDT".into());
+                quote = Some("USDT".to_string());
             }  else {
-                quote = Value::Str("USDC".into());
+                quote = Some("USDC".to_string());
             }
         }
         let mut strike: Option<String> = self.safe_string_opt(&optionParts, Value::Int(2), &[]);
         let mut optionType: Option<String> = self.safe_string_opt(&optionParts, Value::Int(3), &[]);
-        let mut datetime: Option<String> = self.convert_expire_date(expiry.as_str()).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.convert_expire_date(expiry.as_deref()).as_str().map(str::to_owned);
         let mut timestamp: Option<i64> = self.parse8601(Value::from(datetime.as_deref()));
         let mut amountPrecision: Option<f64> = None;
         let mut pricePrecision: Option<f64> = None;
         // hard coded amount and price precisions from fetchOptionMarkets
-        if (baseName.as_str() == Some("BTC")) {
+        if (baseName == "BTC") {
             amountPrecision = Some(0.01_f64);
             pricePrecision = Some(5_f64);
-        }  else if (baseName.as_str() == Some("ETH")) {
+        }  else if (baseName == "ETH") {
             amountPrecision = Some(0.1_f64);
             pricePrecision = Some(0.1_f64);
-        }  else if (baseName.as_str() == Some("SOL")) {
+        }  else if (baseName == "SOL") {
             amountPrecision = Some(1_f64);
             pricePrecision = Some(0.01_f64);
         }
-        let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.as_str()).as_str().map(str::to_owned);
+        let mut convertedExpireDate: Option<String> = self.convert_expire_date_to_market_id_date(expiry.as_deref()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), Value::Str(format!("{}{}{}{}{}{}{}", baseName, "-", convertedExpireDate.map(Value::from).unwrap_or(Value::Null), "-", strike.clone().map(Value::from).unwrap_or(Value::Null), "-", optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseName, "/").into()), quote).into()),
-            ":").into()), quote).into()), "-").into()), expiry).into()), "-").into()), strike.clone().map(Value::from).unwrap_or(Value::Null)).into()), "-").into()), optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
-        m.insert("base".to_string(), baseName.clone());
-        m.insert("quote".to_string(), quote.clone());
-        m.insert("settle".to_string(), quote.clone());
-        m.insert("baseId".to_string(), baseName.clone());
-        m.insert("quoteId".to_string(), quote.clone());
-        m.insert("settleId".to_string(), quote.clone());
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}{}{}{}{}{}{}{}{}{}", baseName, "/", quote.as_deref().unwrap_or("null"), ":", quote.as_deref().unwrap_or("null"), "-", expiry.as_deref().unwrap_or("null"), "-", strike.clone().map(Value::from).unwrap_or(Value::Null), "-", optionType.clone().map(Value::from).unwrap_or(Value::Null)).into()));
+        m.insert("base".to_string(), Value::from(baseName.clone()));
+        m.insert("quote".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("settle".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("baseId".to_string(), Value::from(baseName.clone()));
+        m.insert("quoteId".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
+        m.insert("settleId".to_string(), quote.clone().map(Value::from).unwrap_or(Value::Null));
         m.insert("active".to_string(), Value::Bool(false));
         m.insert("type".to_string(), Value::Str("option".into()));
-        m.insert("subType".to_string(), (if (baseName.as_str() == quote.as_str()) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
-        m.insert("linear".to_string(), (Value::Bool(baseName.as_str() != quote.as_str())));
-        m.insert("inverse".to_string(), (Value::Bool(baseName.as_str() == quote.as_str())));
+        m.insert("subType".to_string(), (if (quote.as_deref() == Some(baseName.as_str())) { Value::Str("inverse".into()) } else { Value::Str("linear".into()) }));
+        m.insert("linear".to_string(), (Value::Bool(quote.as_deref() != Some(baseName.as_str()))));
+        m.insert("inverse".to_string(), (Value::Bool(quote.as_deref() == Some(baseName.as_str()))));
         m.insert("spot".to_string(), Value::Bool(false));
         m.insert("swap".to_string(), Value::Bool(false));
         m.insert("future".to_string(), Value::Bool(false));
@@ -13081,14 +13080,14 @@ impl Bybit {
         let mut marketIds: Option<crate::value::List> = self.market_ids(&[symbols]).into_opt_list();
         let mut idKey: Value = (if (marketIdKey == Value::Null) { Value::Str("symbol".into()) } else { marketIdKey });
         let mut filteredResults: crate::value::List = self.filter_by_array(response, idKey.clone(), &marketIds, &[Value::Bool(false)]).into_list();
-        let mut grouped: Value = self.group_by(Value::Arr(filteredResults), idKey, &[]);
-        let mut keys: Vec<Value> = Value::Array(grouped.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        let mut grouped: crate::value::Dict = self.group_by(Value::Arr(filteredResults), idKey, &[]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(grouped.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         {
                         let mut i: i64 = 0;
             let mut __for_first_524: bool = true;
             while { if !__for_first_524 { i += 1; } __for_first_524 = false; i < (keys.len() as i64) } {
             let mut marketId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut entry: Value = get_value(&grouped, marketId.as_deref());
+            let mut entry: Value = crate::value::KeyRead::read(&&grouped, &Value::from(marketId));
             {
                                 let mut j: i64 = 0;
                 let mut __for_first_523: bool = true;

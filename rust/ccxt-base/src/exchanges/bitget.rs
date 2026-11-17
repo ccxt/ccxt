@@ -11029,8 +11029,8 @@ if _try_result.is_err() {
             if let Err(__e) = self.load_markets(false, Value::Null).await { panic!("{}", __e) }
         }
         let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-        let mut marginParams: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]);
-        let mut marginMode: Option<String> = marginParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+        let mut marginParams: crate::value::List = self.handle_margin_mode_and_params(Value::Str("createOrder".into()), &[params.clone()]).into_list();
+        let mut marginMode: Option<String> = marginParams.get(0).and_then(Value::as_str).map(str::to_owned);
         let mut isStock: Option<bool> = (market).stock;
         let mut isStockSpot: bool = (isStock == Some(true)) && ((market).spot);
         let mut paramsStock: crate::value::Dict = self.omit(params.clone(), Value::Str("stock".into()), &[]).into_dict();
@@ -11545,8 +11545,8 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginResult: crate::value::List = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).into_list();
+            let mut currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
@@ -11640,8 +11640,8 @@ if _try_result.is_err() {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginResult: crate::value::List = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).into_list();
+            let mut currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();

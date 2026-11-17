@@ -7304,19 +7304,19 @@ if _try_result.is_err() {
         let mut data: Value = response;
         if (matches!(&data, Value::Dict(__d) if __d.contains_key("balances"))) {
             let mut flatBalances: crate::value::List = std::sync::Arc::new(Vec::new());
-            let mut balances: Value = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
+            let mut balances: crate::value::Dict = self.safe_dict_k(data.clone(), "balances", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]);
+})]).into_dict();
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
-            let mut keys: Vec<Value> = Value::Array(balances.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+            let mut keys: Vec<Value> = Value::Array(balances.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_698: bool = true;
                 while { if !__for_first_698 { i += 1; } __for_first_698 = false; i < (keys.len() as i64) } {
                 let mut currencyId: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-                let mut content: Option<crate::value::Dict> = get_value(&balances, currencyId.as_deref()).into_opt_dict();
+                let mut content: Option<crate::value::Dict> = crate::value::KeyRead::read(&&balances, &Value::from(currencyId)).into_opt_dict();
                 if let Some(__d) = &mut content { std::sync::Arc::make_mut(__d).insert("currency".into(), Value::from(currencyId.as_deref())); }
                 std::sync::Arc::make_mut(&mut flatBalances).push(content.map_or(Value::Null, Value::Dict));
             }

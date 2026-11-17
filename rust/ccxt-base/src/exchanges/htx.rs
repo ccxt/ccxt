@@ -9567,8 +9567,8 @@ impl Htx {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]).into_dict();
-            let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]);
-            let mut currentMarginMode: Option<String> = marginResult.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginResult: crate::value::List = self.handle_margin_mode_and_params(Value::Str("createOrders".into()), &[Value::from(&orderParams)]).into_list();
+            let mut currentMarginMode: Option<String> = marginResult.get(0).and_then(Value::as_str).map(str::to_owned);
             if (currentMarginMode.is_some()) {
                 if (marginMode.is_none()) {
                     marginMode = currentMarginMode.clone();
@@ -11212,12 +11212,12 @@ impl Htx {
             }
         }  else {
             let mut cursor: Value = self.safe_value_k(data.clone(), "current_page", &[]);
-            let mut result: Value = self.safe_list_k(data, "data", &[Value::from(vec![])]);
+            let mut result: crate::value::List = self.safe_list_k(data, "data", &[Value::from(vec![])]).into_list();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_788: bool = true;
                 while { if !__for_first_788 { i += 1; } __for_first_788 = false; i < (result.len() as i64) } {
-                let mut entry: Option<crate::value::Dict> = get_value(&result, &Value::Int(i)).into_opt_dict();
+                let mut entry: Option<crate::value::Dict> = crate::value::KeyRead::read(&&result, &Value::Int(i)).into_opt_dict();
                 add_element_to_object(&mut entry, &Value::Str("current_page".into()), cursor.clone());
                 let mut marketId: Option<String> = self.safe_string_k_opt(&entry, "contract_code", &[]);
                 let mut symbolInner: Value = self.safe_symbol(marketId.map(Value::from).unwrap_or(Value::Null), None, &[]);
@@ -11623,8 +11623,8 @@ impl Htx {
         }
         let mut response: Option<crate::value::Dict> = None;
         if ((market).linear == Some(true)) {
-            let mut marginModeAndParams: Value = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]);
-            let mut marginMode: Option<String> = marginModeAndParams.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+            let mut marginModeAndParams: crate::value::List = self.handle_margin_mode_and_params(Value::Str("setLeverage".into()), &[params, Value::Str("cross".into())]).into_list();
+            let mut marginMode: Option<String> = marginModeAndParams.get(0).and_then(Value::as_str).map(str::to_owned);
             request.insert("margin_mode".into(), marginMode.map(Value::from).unwrap_or(Value::Null));
             let __ws_arg_133 = self.extend(Value::Map(request.clone()), &[&query]);
             response = self.contract_private_post_v5_position_lever(&[__ws_arg_133]).await.into_opt_dict();

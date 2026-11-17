@@ -3596,17 +3596,17 @@ pub trait ExchangeBase:
             useQuote = Some(feeSide.as_deref() == Some("quote"));
         }
         let mut cost: Option<String> = self.number_to_string(amount);
-        let mut key: Value = Value::Null;
+        let mut key: Option<String> = None;
         if (useQuote == Some(true)) {
             let mut priceString: Option<String> = self.number_to_string(price);
             cost = crate::precise::Precise::stringMul(&cost, &priceString).as_str().map(str::to_owned);
-            key = Value::Str("quote".into());
+            key = Some("quote".to_string());
         }  else {
-            key = Value::Str("base".into());
+            key = Some("base".to_string());
         }
         // for derivatives, the fee is in 'settle' currency
         if !(match &(market.get("spot").cloned().unwrap_or(Value::Null)) { Value::Bool(__x) => *__x == true, __v => matches!((match __v { Value::Int(__n) => Some(*__n as f64), Value::Float(__f) => Some(*__f), Value::Str(__s) => __s.parse::<f64>().ok(), Value::Bool(__b) => Some(if *__b { 1.0 } else { 0.0 }), _ => None }), Some(__y) if __y == 1.0) }) {
-            key = Value::Str("settle".into());
+            key = Some("settle".to_string());
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         let mut takerOrMakerResolved: Value = (if (type_var.as_str() == Some("market")) { Value::Str("taker".into()) } else { takerOrMaker });
@@ -3615,7 +3615,7 @@ pub trait ExchangeBase:
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("type".to_string(), takerOrMakerResolved);
-        m.insert("currency".to_string(), market.get(key.as_str().unwrap_or("")).cloned().unwrap_or(Value::Null));
+        m.insert("currency".to_string(), market.get(key.as_deref().unwrap_or("")).cloned().unwrap_or(Value::Null));
         m.insert("rate".to_string(), self.parse_number(rate.map(Value::from).unwrap_or(Value::Null), &[]));
         m.insert("cost".to_string(), self.parse_number(cost.map(Value::from).unwrap_or(Value::Null), &[]));
     m
@@ -4533,29 +4533,29 @@ pub trait ExchangeBase:
             return symbols;
         }
         let mut result: Vec<Value> = Vec::new();
-        let mut marketType: Value = Value::Null;
-        let mut isLinearSubType: Value = Value::Null;
+        let mut marketType: Option<String> = None;
+        let mut isLinearSubType: Option<bool> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_111: bool = true;
             while { if !__for_first_111 { i += 1; } __for_first_111 = false; i < (symbols.len() as i64) } {
             let mut market: crate::types::Market = (match <Self as crate::exchange_generated::ExchangeBase>::market(self, (symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)).as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if sameTypeOnly.as_bool() == Some(true) && (marketType != Value::Null) {
-                if (Value::from((market).market_type.clone()).as_str() != marketType.as_str()) {
-                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type, either ").into()), marketType).into()), " or ").into()), Value::from((market).market_type.clone())).into()), ".")));
+            if sameTypeOnly.as_bool() == Some(true) && (marketType.is_some()) {
+                if ((Some((market).market_type.as_str()) != marketType.as_deref())) {
+                    panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type, either ").into()), marketType.as_deref().unwrap_or("null")).into()), " or ").into()), Value::from((market).market_type.clone())).into()), ".")));
                 }
             }
-            if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType != Value::Null) {
-                if ((market).linear.map(Value::Bool).unwrap_or_default().as_bool() != isLinearSubType.as_bool()) {
+            if sameSubTypeOnly.as_bool() == Some(true) && (isLinearSubType.is_some()) {
+                if (((market).linear != isLinearSubType)) {
                     panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", self.id.clone(), " symbols must be of the same subType, either linear or inverse.")));
                 }
             }
             if (type_var != Value::Null) && (Value::from((market).market_type.clone()).as_str() != type_var.as_str()) {
                 panic!("{}", crate::exchange_errors::bad_request(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " symbols must be of the same type ").into()), type_var).into()), ". If the type is incorrect you can change it in options or the params of the request")));
             }
-            marketType = Value::from((market).market_type.clone());
+            marketType = Value::from((market).market_type.clone()).as_str().map(str::to_owned);
             if !(market).spot {
-                isLinearSubType = crate::value::KeyRead::key_read(&&market, "linear");
+                isLinearSubType = crate::value::KeyRead::key_read(&&market, "linear").as_bool();
             }
             let mut symbol: Option<String> = self.safe_string_k_opt(&market, "symbol", &[symbols.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null)]);
             result.push(symbol.map(Value::from).unwrap_or(Value::Null));
@@ -7911,17 +7911,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if (precision == Value::Null) {
             return Value::Null;
         }
-        let mut precisionNumber: Value = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null });
-        if (precisionNumber.as_f64() == Some(0.0)) {
+        let mut precisionNumber: Option<i64> = (match &precision { Value::Str(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), Value::Int(__parse_n) => Value::Int(*__parse_n), Value::Float(__parse_f) => Value::Int(*__parse_f as i64), _ => Value::Null }).as_i64();
+        if (precisionNumber == Some(0)) {
             return Value::Str("1".into());
         }
-        if precisionNumber.as_f64().unwrap_or(f64::NAN) > ((0i64) as f64) {
+        if precisionNumber > Some(0) {
             let mut parsedPrecision: String = "0.".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_141: bool = true;
-                while { if !__for_first_141 { i += 1; } __for_first_141 = false; (i as f64) < (match (&(precisionNumber), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_141 { i += 1; } __for_first_141 = false; matches!(precisionNumber, Some(__b) if (i as f64) < ((__b - 1) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
@@ -7931,8 +7930,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_142: bool = true;
-                while { if !__for_first_142 { i += 1; } __for_first_142 = false; (i as f64) < (match (&(Value::Int(-1)), &(precisionNumber)) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_142 { i += 1; } __for_first_142 = false; matches!(precisionNumber, Some(__b) if (i as f64) < ((-1 - __b) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }
@@ -7960,13 +7958,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if (positivePrecisionString.is_none()) {
                 return Value::Null;
             }
-            let mut positivePrecision: Value = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null });
+            let mut positivePrecision: Option<i64> = (match positivePrecisionString.as_deref() { Some(__parse_s) => __parse_s.trim().parse::<i64>().map(Value::Int).unwrap_or(Value::Null), None => Value::Null }).as_i64();
             let mut parsedPrecision: String = "1".to_string();
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_143: bool = true;
-                while { if !__for_first_143 { i += 1; } __for_first_143 = false; (i as f64) < (match (&(positivePrecision), &(Value::Int(1))) { (Value::Int(x), Value::Int(y)) => Value::Int(x - y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 - *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x - *y as f64), (Value::Float(x),
-                    Value::Float(y)) => Value::Float(x - y), _ => Value::Null }).as_f64().unwrap_or(f64::NAN) } {
+                while { if !__for_first_143 { i += 1; } __for_first_143 = false; matches!(positivePrecision, Some(__b) if (i as f64) < ((__b - 1) as f64)) } {
                 parsedPrecision = format!("{}{}", parsedPrecision, "0");
             }
             }

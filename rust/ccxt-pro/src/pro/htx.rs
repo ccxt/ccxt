@@ -3085,7 +3085,7 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                     // without removing it a repeated watch call attaches to a future
                     // that nothing will resolve instead of resubscribing, see
                     // https://github.com/ccxt/ccxt/issues/10280
-                    if (messageHash.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHash.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+                    if (messageHash.is_some()) && (__ch.has_subscription((&messageHash).as_deref())) {
                         __ch.remove_subscription(messageHash.as_deref());
                     }
                 }
@@ -3102,9 +3102,9 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
 if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::error::CaughtError::from_panic(_try_err);
                 if e.is_instance_of("AuthenticationError") {
                     client.reject(e.clone(), "auth");
-                    let mut method: Value = Value::Str("auth".into());
-                    if (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &method), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                        __ch.remove_subscription(&method);
+                    let mut method: String = "auth".to_string();
+                    if (__ch.has_subscription(method.as_str())) {
+                        __ch.remove_subscription(method.as_str());
                     }
                     return Value::Bool(false);
                 }  else {

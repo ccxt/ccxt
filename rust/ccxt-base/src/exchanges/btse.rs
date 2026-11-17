@@ -4991,7 +4991,7 @@ impl Btse {
             m
         });
         let __ws_arg_38 = self.extend(Value::Map(request), &[params]);
-        let mut response: Value = self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_38]).await;
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.private_get_futures_api_v3_trade_leverage(&[__ws_arg_38]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         //
         //     [
         //         {
@@ -5009,12 +5009,12 @@ impl Btse {
         //     ]
         //
         let mut safeResponse: crate::value::List = std::sync::Arc::new(Vec::new());
-        if (matches!(&response, Value::Arr(_))) {
-            safeResponse = response.clone().into_list();
+        if (response.is_some()) {
+            safeResponse = response.clone().unwrap_or_default();
         }
         let mut result: indexmap::IndexMap<String, Value> = ({
             let mut m = indexmap::IndexMap::new();
-                m.insert("info".to_string(), response);
+                m.insert("info".to_string(), (match response { Some(__l) => Value::Arr(__l), None => response__map.map_or(Value::Null, Value::Dict) }));
                 m.insert("symbol".to_string(), symbol);
             m
         });

@@ -2890,18 +2890,18 @@ impl Kraken {
             let mut m = indexmap::IndexMap::new();
             m
         })]).into_dict();
-        let mut ledger: Value = self.safe_dict_k(&result, "ledger", &[Value::Map({
+        let mut ledger: crate::value::Dict = self.safe_dict_k(&result, "ledger", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
-        })]);
-        let mut keys: Vec<Value> = Value::Array(ledger.as_map().map(|__m| __m.keys().map(|__k| Value::Str(__k.clone().into())).collect()).unwrap_or_default()).as_array().cloned().unwrap_or_default();
+        })]).into_dict();
+        let mut keys: Vec<Value> = Value::Array(ledger.keys().cloned().map(Value::from).collect()).as_array().cloned().unwrap_or_default();
         let mut items: Vec<Value> = Vec::new();
         {
                         let mut i: i64 = 0;
             let mut __for_first_849: bool = true;
             while { if !__for_first_849 { i += 1; } __for_first_849 = false; i < (keys.len() as i64) } {
             let mut key: Option<&str> = keys.get(i as usize).and_then(Value::as_str);
-            let mut value: Option<crate::value::Dict> = get_value(&ledger, key.as_deref()).into_opt_dict();
+            let mut value: Option<crate::value::Dict> = crate::value::KeyRead::read(&&ledger, &Value::from(key)).into_opt_dict();
             if let Some(__d) = &mut value { std::sync::Arc::make_mut(__d).insert("id".into(), Value::from(key.as_deref())); }
             items.push(value.map_or(Value::Null, Value::Dict));
         }

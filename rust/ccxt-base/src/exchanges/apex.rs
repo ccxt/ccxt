@@ -2294,12 +2294,12 @@ impl Apex {
         }
         }
         let mut tokenId: String = self.safe_string_k(currency.clone(), "tokenId", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut decimalsNum: Value = self.safe_number_k(currency, "decimals", &[Value::Int(0)]);
-        let mut decimalsNumber: Value = (if (decimalsNum == Value::Null) { Value::Int(0) } else { decimalsNum });
-        let mut mathPowResult: Value = (crate::runtime::Math::pow(&Value::Int(10), &decimalsNumber));
-        let mut amountNum: Value = self.parse_number(amount.clone(), &[]);
-        let mut amountValue: Value = (if (amountNum == Value::Null) { Value::Int(0) } else { amountNum });
-        let mut amountNumber: Option<i64> = self.parse_to_int((match (&(amountValue), &(mathPowResult)) { (Value::Int(x), Value::Int(y)) => Value::Int(x * y), (Value::Int(x), Value::Float(y)) => Value::Float(*x as f64 * *y), (Value::Float(x), Value::Int(y)) => Value::Float(*x * *y as f64), (Value::Float(x), Value::Float(y)) => Value::Float(x * y), _ => Value::Null }));
+        let mut decimalsNum: Option<f64> = self.safe_number_k(currency, "decimals", &[Value::Int(0)]).as_f64();
+        let mut decimalsNumber: f64 = decimalsNum.unwrap_or(0.0);
+        let mut mathPowResult: f64 = f64::powf(10.0, decimalsNumber);
+        let mut amountNum: Option<f64> = self.parse_number(amount.clone(), &[]).as_f64();
+        let mut amountValue: f64 = amountNum.unwrap_or(0.0);
+        let mut amountNumber: Option<i64> = self.parse_to_int(Value::Float((amountValue * mathPowResult)));
         let mut timestampSeconds: Option<i64> = self.parse_to_int((match ((Value::Int(self.milliseconds())).as_f64(), (Value::Int(1000)).as_f64()) { (Some(x), Some(y)) if y != 0.0 => Value::Float(x / y), _ => Value::Null }));
         let mut clientOrderId: Option<String> = self.safe_string_n_opt(params.clone(), Value::from(vec![Value::Str("clientId".into()), Value::Str("clientOrderId".into()), Value::Str("client_order_id".into())]), &[]);
         let mut finalClientOrderId: Option<String> = (if (clientOrderId.is_some()) { clientOrderId } else { self.generate_random_client_id_omni((self.safe_string_k(self.options.clone(), "accountId", &[])).as_str()) });

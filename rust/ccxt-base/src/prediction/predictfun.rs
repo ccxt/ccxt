@@ -1030,9 +1030,9 @@ impl Predictfun {
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            let mut tags: Value = self.safe_list_k(&paramsValue, "tags", &[Value::from(vec![])]);
+            let mut tags: crate::value::List = self.safe_list_k(&paramsValue, "tags", &[Value::from(vec![])]).into_list();
             if ((tags.len() as i64) as f64) > ((0i64) as f64) {
-                request.insert("tagIds".into(), join(&tags, &Value::Str(",".into())));
+                request.insert("tagIds".into(), Value::Str(tags.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join(",").into()));
             }
             postOmitKeys.push(Value::Str("limit".into()));
             let mut paramsCategories: crate::value::Dict = self.omit(&paramsValue, &["limit", "tags"], &[]).into_dict();

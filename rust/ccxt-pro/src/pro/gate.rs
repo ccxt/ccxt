@@ -2876,28 +2876,28 @@ if let Err(_try_err) = _try_result { let e: crate::error::CaughtError = crate::e
                 // remove subscriptions for watchSymbols
                 let mut channel: Option<String> = (match __pro_message.get("channel") { Some(Value::Str(__s)) if !__s.is_empty() => Some(__s.to_string()), Some(Value::Int(__n)) => Some(__n.to_string()), Some(Value::Float(__f)) => Some(__f.to_string()), _ => None });
                 if (channel.is_some()) && (((if let (Some(__h), Some(__n)) = (channel.as_deref(), Some(".")) { if let Some(__i) = __h.find(__n) { __i as i64 } else { -1 } } else { -1 })) > 0) {
-                    let mut parsedChannel: Value = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() });
+                    let mut parsedChannel: crate::value::List = Value::Array(if let Some(__s) = channel.as_deref() { __s.split(".").map(Value::from).collect() } else { Vec::new() }).into_list();
                     let mut payload: crate::value::List = __pro_message.get("payload").cloned().unwrap_or_default().into_list();
                     {
                                                 let mut i: i64 = 0;
                         let mut __for_first_337: bool = true;
                         while { if !__for_first_337 { i += 1; } __for_first_337 = false; i < (payload.len() as i64) } {
                         let mut marketType: Option<String> = None;
-                        if (parsedChannel.as_array().and_then(|__arr| __arr.get(0)).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) {
+                        if (parsedChannel.get(0).cloned().unwrap_or(Value::Null).as_str() == Some("futures")) {
                             marketType = Some("swap".to_string());
                         }  else {
-                            marketType = parsedChannel.as_array().and_then(|__arr| __arr.get(0)).and_then(Value::as_str).map(str::to_owned);
+                            marketType = parsedChannel.get(0).and_then(Value::as_str).map(str::to_owned);
                         }
                         let mut symbol: Option<String> = self.safe_symbol(payload.get(i as usize).cloned().unwrap_or(Value::Null), None, &[Value::Str("_".into()), marketType.map(Value::from).unwrap_or(Value::Null)]).as_str().map(str::to_owned);
-                        let mut messageHashSymbol: Value = Value::Str(format!("{}{}", Value::Str(format!("{}{}", parsedChannel.as_array().and_then(|__arr| __arr.get(1)).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null")).into());
-                        if (messageHashSymbol != Value::Null) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &messageHashSymbol), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
-                            __ch.remove_subscription(&messageHashSymbol);
+                        let mut messageHashSymbol: String = format!("{}{}", Value::Str(format!("{}{}", parsedChannel.get(1).cloned().unwrap_or(Value::Null), ":").into()), symbol.as_deref().unwrap_or("null"));
+                        if (true) && (__ch.has_subscription(&messageHashSymbol[..])) {
+                            __ch.remove_subscription(messageHashSymbol.as_str());
                         }
                     }
                     }
                 }
             }
-            if (id.is_some()) && (matches!((&get_value(&client, &Value::Str("subscriptions".into())), &id.clone().map(Value::from).unwrap_or(Value::Null)), (Value::Dict(__d), Value::Str(__k)) if __d.contains_key(__k.as_ref()))) {
+            if (id.is_some()) && (__ch.has_subscription((&id).as_deref())) {
                 __ch.remove_subscription(id.as_deref());
             }
             return Value::Bool(true);

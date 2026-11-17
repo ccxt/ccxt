@@ -2044,12 +2044,12 @@ impl Polymarket {
         // absence must be `< 0` — the php transpiler maps that to `=== false`, while a literal
         // `=== -1` passes through and never matches mb_strpos's false return
         if (!outcomeSymbol.as_str().unwrap_or("").contains(":")) && (self.outcome_search_query(outcomeSymbol.clone()) == Value::Null) {
-            let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
-                let mut m = indexmap::IndexMap::new();
-                    m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
-                m
-            })]).await;
-            let mut rawMarkets: Value = (if (response != Value::Null) { response } else { Value::from(vec![]) });
+            let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clob_token_ids".to_string(), outcomeSymbol.clone());
+    m
+})]).await.into_opt_list();
+            let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
             let mut rawMarketsLength: i64 = rawMarkets.len() as i64;
             if rawMarketsLength > 0 {
                 if (self.markets.clone() == Value::Null) {
@@ -2131,13 +2131,13 @@ impl Polymarket {
                 }
                 // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                 // with a validation error, so the list rides through urlencodeWithArrayRepeat
-                let mut response: Value = self.gamma_public_get_markets(&[Value::Map({
-                    let mut m = indexmap::IndexMap::new();
-                        m.insert("clob_token_ids".to_string(), Value::from(chunk));
-                        m.insert("limit".to_string(), Value::from(chunkSize));
-                    m
-                })]).await;
-                let mut rawMarkets: Value = (if (response != Value::Null) { response } else { Value::from(vec![]) });
+                let mut response: Option<crate::value::List> = self.gamma_public_get_markets(&[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("clob_token_ids".to_string(), Value::from(chunk));
+        m.insert("limit".to_string(), Value::from(chunkSize));
+    m
+})]).await.into_opt_list();
+                let mut rawMarkets: Value = (if (response.is_some()) { response.map_or(Value::Null, Value::Arr) } else { Value::from(vec![]) });
                 let mut ccxtMarkets: Vec<Value> = self.parse_event_to_markets(Value::Map({
                     let mut m = indexmap::IndexMap::new();
                         m.insert("markets".to_string(), rawMarkets);
@@ -3444,15 +3444,15 @@ impl Polymarket {
             })]));
         }
         }
-        let mut response: Value = self.clob_private_post_orders(&[Value::from(bodies)]).await;
+        let (mut response, response__map): (Option<crate::value::List>, Option<crate::value::Dict>) = (match self.clob_private_post_orders(&[Value::from(bodies)]).await { Value::Arr(__l) => (Some(__l), None), __v => (None, __v.into_opt_dict()) });
         let mut result: Vec<Value> = Vec::new();
-        if (matches!(&response, Value::Arr(_))) {
+        if (response.is_some()) {
             {
                                 let mut i: i64 = 0;
                 let mut __for_first_1443: bool = true;
-                while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (response.len() as i64) } {
+                while { if !__for_first_1443 { i += 1; } __for_first_1443 = false; i < (response.as_deref().map(Vec::as_slice).unwrap_or_default().len() as i64) } {
                 // request echo first so the response's real orderID/status win on overlap
-                let mut rawItem: Value = response.as_array().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
+                let mut rawItem: Value = response.as_deref().map(Vec::as_slice).unwrap_or_default().get(i as usize).cloned().unwrap_or(Value::Null);
                 let mut enriched: crate::value::Dict = self.extend(requests.get(i as usize).cloned().unwrap_or(Value::Null), &[rawItem.clone()]).into_dict();
                 let mut parsedItem: crate::value::Dict = <Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, &enriched, <Option<crate::types::Market> as crate::types::FromRaw>::from_raw(outcomes.get(i as usize).cloned().unwrap_or(Value::Null)).as_ref()).into_dict();
                 std::sync::Arc::make_mut(&mut parsedItem).insert("info".into(), rawItem); // keep info the raw exchange response
@@ -3460,7 +3460,7 @@ impl Polymarket {
             }
             }
         }  else {
-            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, response, None));
+            result.push(<Self as crate::exchange::DerivedExchange>::parse_prediction_order(self, response__map.map_or(Value::Null, Value::Dict), None));
         }
         return Value::from(result);
         Value::Null
@@ -4664,14 +4664,14 @@ if _try_result.is_err() {
             return Value::Null;
         }
         let mut apiKey: Option<String> = (if (self.apiKey.clone() != Value::Null) { self.apiKey.as_str().map(str::to_owned) } else { self.safe_string_k_opt(self.options.clone(), "l2ApiKey", &[]) });
-        let mut secret: Value = Value::Null;
+        let mut secret: Option<String> = None;
         if (self.secret.clone() != Value::Null) {
-            secret = self.secret.clone();
+            secret = self.secret.as_str().map(str::to_owned);
         }  else {
-            secret = self.safe_string_k(self.options.clone(), "l2Secret", &[]);
+            secret = self.safe_string_k_opt(self.options.clone(), "l2Secret", &[]);
         }
         let mut passphrase: Option<String> = (if (self.password.clone() != Value::Null) { self.password.as_str().map(str::to_owned) } else { self.safe_string_k_opt(self.options.clone(), "l2Passphrase", &[]) });
-        let mut hasL2: bool = (apiKey.is_some()) && (secret != Value::Null) && (passphrase.is_some());
+        let mut hasL2: bool = (apiKey.is_some()) && (secret.is_some()) && (passphrase.is_some());
         if hasL2 {
             return Value::Null;
         }

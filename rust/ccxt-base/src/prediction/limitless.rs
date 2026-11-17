@@ -2479,30 +2479,30 @@ impl Limitless {
                         let mut bi: i64 = 0;
             let mut __for_first_1316: bool = true;
             while { if !__for_first_1316 { bi += 1; } __for_first_1316 = false; bi < (bidsSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_dict(&bidsSource, Value::Int(bi), &[]), Value::Str("price".into()), &[]);
-            if !isYes && (priceStr != Value::Null) {
-                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
+            let mut priceStr: Option<String> = self.safe_string_k_opt(self.safe_dict(&bidsSource, Value::Int(bi), &[]), "price", &[]);
+            if !isYes && (priceStr.is_some()) {
+                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_dict(&bidsSource, Value::Int(bi), &[]), Value::Str("size".into()), &[]);
-            if (sizeStr != Value::Null) {
-                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
+            let mut sizeStr: Option<String> = self.safe_string_k_opt(self.safe_dict(&bidsSource, Value::Int(bi), &[]), "size", &[]);
+            if (sizeStr.is_some()) {
+                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr).as_str().map(str::to_owned);
             }
-            bids.push(Value::from(vec![self.parse_number(priceStr.clone(), &[]), self.parse_number(sizeStr.clone(), &[])]));
+            bids.push(Value::from(vec![self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(sizeStr.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         {
                         let mut ai: i64 = 0;
             let mut __for_first_1317: bool = true;
             while { if !__for_first_1317 { ai += 1; } __for_first_1317 = false; ai < (asksSource.len() as i64) } {
-            let mut priceStr: Value = self.safe_string(self.safe_dict(&asksSource, Value::Int(ai), &[]), Value::Str("price".into()), &[]);
-            if !isYes && (priceStr != Value::Null) {
-                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr);
+            let mut priceStr: Option<String> = self.safe_string_k_opt(self.safe_dict(&asksSource, Value::Int(ai), &[]), "price", &[]);
+            if !isYes && (priceStr.is_some()) {
+                priceStr = crate::precise::Precise::stringSub(&Value::Str("1".into()), &priceStr).as_str().map(str::to_owned);
             }
-            let mut sizeStr: Value = self.safe_string(self.safe_dict(&asksSource, Value::Int(ai), &[]), Value::Str("size".into()), &[]);
-            if (sizeStr != Value::Null) {
-                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr);
+            let mut sizeStr: Option<String> = self.safe_string_k_opt(self.safe_dict(&asksSource, Value::Int(ai), &[]), "size", &[]);
+            if (sizeStr.is_some()) {
+                sizeStr = crate::precise::Precise::stringDiv(&sizeStr, &scaleStr).as_str().map(str::to_owned);
             }
-            asks.push(Value::from(vec![self.parse_number(priceStr, &[]), self.parse_number(sizeStr, &[])]));
+            asks.push(Value::from(vec![self.parse_number(priceStr.map(Value::from).unwrap_or(Value::Null), &[]), self.parse_number(sizeStr.map(Value::from).unwrap_or(Value::Null), &[])]));
         }
         }
         let mut orderbook: indexmap::IndexMap<String, Value> = ({

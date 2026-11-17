@@ -335,20 +335,20 @@ impl crate::exchange::DerivedExchange for Derive {
         let mut marketId: Option<String> = self.safe_string_k_opt(market.clone(), "instrument_name", &[]);
         let mut symbol: String = format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null"));
         let mut settleId: Option<String> = None;
-        let mut settle: Value = Value::Null;
+        let mut settle: Option<String> = None;
         let mut expiry: Option<i64> = None;
         let mut strike: Option<f64> = None;
         let mut optionType: Option<String> = None;
-        let mut optionLetter: Value = Value::Null;
+        let mut optionLetter: Option<String> = None;
         if (type_var.as_deref() == Some("erc20")) {
             spot = true;
             marketType = Some("spot".to_string());
         }  else if (type_var.as_deref() == Some("perp")) {
             margin = false;
             settleId = Some("USDC".to_string());
-            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-            if (settle != Value::Null) {
-                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle);
+            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
+            if (settle.is_some()) {
+                symbol = format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", base.as_deref().unwrap_or("null"), "/").into()), quote.as_deref().unwrap_or("null")).into()), ":").into()), settle.as_deref().unwrap_or("null"));
             }
             swap = true;
             linear = Some(true);
@@ -356,18 +356,18 @@ impl crate::exchange::DerivedExchange for Derive {
             marketType = Some("swap".to_string());
         }  else if (type_var.as_deref() == Some("option")) {
             settleId = Some("USDC".to_string());
-            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
+            settle = self.safe_currency_code(settleId.clone().map(Value::from).unwrap_or(Value::Null), None);
             margin = false;
             option = true;
             marketType = Some("option".to_string());
             let mut optionDetails: crate::value::Dict = self.safe_dict_k(market.clone(), "option_details", &[]).into_dict();
             expiry = self.safe_timestamp_k(&optionDetails, "expiry", &[]).as_i64();
             strike = self.safe_number_k(&optionDetails, "strike", &[]).as_f64(); // strikes can be fractional, e.g. XRP-20261225-0_5-P is a 0.5 strike
-            optionLetter = self.safe_string_k(&optionDetails, "option_type", &[]);
-            if (settle != Value::Null) {
-                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle, "-", self.yymmdd(Value::from(expiry), &[]), "-", Value::from(self.number_to_string(Value::from(strike))), "-", optionLetter);
+            optionLetter = self.safe_string_k_opt(&optionDetails, "option_type", &[]);
+            if (settle.is_some()) {
+                symbol = format!("{}{}{}{}{}{}{}{}{}{}{}", base.clone().map(Value::from).unwrap_or(Value::Null), "/", quote.clone().map(Value::from).unwrap_or(Value::Null), ":", settle.as_deref().unwrap_or("null"), "-", self.yymmdd(Value::from(expiry), &[]), "-", Value::from(self.number_to_string(Value::from(strike))), "-", optionLetter.as_deref().unwrap_or("null"));
             }
-            if (optionLetter.as_str() == Some("P")) {
+            if (optionLetter.as_deref() == Some("P")) {
                 optionType = Some("put".to_string());
             }  else {
                 optionType = Some("call".to_string());
@@ -382,7 +382,7 @@ impl crate::exchange::DerivedExchange for Derive {
         m.insert("symbol".to_string(), Value::from(symbol));
         m.insert("base".to_string(), base.map(Value::from).unwrap_or(Value::Null));
         m.insert("quote".to_string(), quote.map(Value::from).unwrap_or(Value::Null));
-        m.insert("settle".to_string(), settle);
+        m.insert("settle".to_string(), settle.map(Value::from).unwrap_or(Value::Null));
         m.insert("baseId".to_string(), baseId.map(Value::from).unwrap_or(Value::Null));
         m.insert("quoteId".to_string(), quoteId.map(Value::from).unwrap_or(Value::Null));
         m.insert("settleId".to_string(), settleId.clone().map(Value::from).unwrap_or(Value::Null));

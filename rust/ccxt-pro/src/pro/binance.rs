@@ -5110,19 +5110,19 @@ if let Err(_try_err) = _try_result { let error: crate::error::CaughtError = crat
         let mut subscriptions: Value = subscriptions.into();
         let __subscriptions_empty = Vec::new();
         let subscriptions = subscriptions.as_array().unwrap_or(&__subscriptions_empty);
-        let mut accountType: Value = Value::Str("".into());
+        let mut accountType: Option<String> = Some("".to_string());
         {
                         let mut i: i64 = 0;
             let mut __for_first_77: bool = true;
             while { if !__for_first_77 { i += 1; } __for_first_77 = false; i < (subscriptions.len() as i64) } {
-            let mut subscription: Value = subscriptions.get(i as usize).cloned().unwrap_or(Value::Null);
-            if (subscription.as_str() == Some("spot")) || (subscription.as_str() == Some("margin")) || (subscription.as_str() == Some("linear")) || (subscription.as_str() == Some("inverse")) || (subscription.as_str() == Some("option")) {
+            let mut subscription: Option<String> = subscriptions.get(i as usize).and_then(Value::as_str).map(str::to_owned);
+            if (subscription.as_deref() == Some("spot")) || (subscription.as_deref() == Some("margin")) || (subscription.as_deref() == Some("linear")) || (subscription.as_deref() == Some("inverse")) || (subscription.as_deref() == Some("option")) {
                 accountType = subscription;
                 break;
             }
         }
         }
-        return accountType.as_str().map(str::to_owned);
+        return accountType;
 }
 
     pub fn resolve_auth_type(&self, mut methodName: Value, market: Option<&crate::types::Market>, optional_args: &[Value]) -> Value {

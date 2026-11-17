@@ -3610,20 +3610,20 @@ impl Sxbet {
     pub fn apply_sxbet_ws_snapshot(&self, snapshot: impl Into<crate::Value>) -> Value {
         let mut snapshot: Value = snapshot.into();
         let mut marketHash: Option<String> = self.safe_string_k_opt(snapshot.clone(), "marketHash", &[]);
-        let mut version: Value = self.safe_string_k(snapshot.clone(), "version", &[Value::Str("".into())]);
+        let mut version: String = self.safe_string_k(snapshot.clone(), "version", &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut refreshed: Vec<Value> = Vec::new();
         if (marketHash.is_none()) {
             return Value::from(refreshed);
         }
-        let mut held: Value = self.safe_string(self.safe_dict_k(self.options.clone(), "wsBookVersions", &[Value::Map({
+        let mut held: String = self.safe_string(self.safe_dict_k(self.options.clone(), "wsBookVersions", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m
-})]), marketHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]);
+})]), marketHash.clone().map(Value::from).unwrap_or(Value::Null), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         // versions are fixed-width numeric strings - replace only on a strictly newer publication
-        if (held.as_str() != Some("")) && ((match (version.as_str(), held.as_str()) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }) || __x == __y, (None, None) => true, _ => false })) {
+        if (held != "") && ((match (Some(version.as_str()), Some(held.as_str())) { (Some(__x), Some(__y)) => (match (__x.parse::<f64>(), __y.parse::<f64>()) { (Ok(__p), Ok(__q)) => __p < __q, _ => __x < __y }) || __x == __y, (None, None) => true, _ => false })) {
             return Value::from(refreshed);
         }
-        self.set_ws_option("wsBookVersions", marketHash.as_deref().unwrap_or_default(), version);
+        self.set_ws_option("wsBookVersions", marketHash.as_deref().unwrap_or_default(), Value::from(version));
         let mut watchedBooks: crate::value::Dict = self.safe_dict_k(self.options.clone(), "wsWatchedBooks", &[Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

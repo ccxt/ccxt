@@ -1273,9 +1273,9 @@ impl crate::exchange::DerivedExchange for Bingx {
         let mut address: Option<String> = rawAddress.clone();
         if (rawAddress.is_some()) {
             let mut isPrefixed: bool = (rawAddress.as_deref().unwrap_or_default().starts_with("0x")) || (rawAddress.as_deref().unwrap_or_default().starts_with("0X"));
-            let mut evmNetworks: Value = Value::from(vec![Value::Str("BEP20".into()), Value::Str("ERC20".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()), Value::Str("FTM".into()),
-                Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
-            if !isPrefixed && self.in_array(&networkCode, evmNetworks) {
+            let mut evmNetworks: crate::value::List = std::sync::Arc::new(vec![Value::Str("BEP20".into()), Value::Str("ERC20".into()), Value::Str("HECO".into()), Value::Str("MATIC".into()), Value::Str("POLYGON".into()), Value::Str("ARBITRUM".into()), Value::Str("OPTIMISM".into()), Value::Str("AVAXC".into()), Value::Str("BASE".into()),
+                Value::Str("FTM".into()), Value::Str("LINEA".into()), Value::Str("ZKSYNC".into()), Value::Str("OPBNB".into())]);
+            if !isPrefixed && self.in_array(&networkCode, &evmNetworks) {
                 address = Some(format!("{}{}", "0x", rawAddress.as_deref().unwrap_or("null")));
             }
         }

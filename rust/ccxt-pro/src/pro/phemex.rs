@@ -1461,7 +1461,7 @@ impl Phemex {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         {
                         let mut i: i64 = 0;
             let mut __for_first_628: bool = true;
@@ -1472,9 +1472,9 @@ impl Phemex {
             let mut parsed: crate::value::Dict = self.parse_trade(rawTrade, None).into_dict();
             cachedTrades.append(Value::from(&parsed));
             let mut symbol: Option<String> = crate::value::KeyRead::key_read(&&parsed, "symbol").as_str().map(str::to_owned);
-            if (type_var == Value::Null) {
+            if (type_var.is_none()) {
                 let mut marketSettle: Option<String> = self.safe_string_k_opt(&market, "settle", &[]);
-                type_var = (if (marketSettle.as_deref() == Some("USDT")) { Value::Str("perpetual".into()) } else { crate::value::KeyRead::key_read(&&market, "type") });
+                type_var = (if (marketSettle.as_deref() == Some("USDT")) { Some("perpetual".to_string()) } else { crate::value::KeyRead::key_read(&&market, "type").into_opt_string() });
             }
             if (symbol.is_some()) {
                 marketIds.insert(symbol.as_deref().unwrap_or("null").to_string(), Value::Bool(true));
@@ -1492,7 +1492,7 @@ impl Phemex {
         }
         }
         // generic subscription
-        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), type_var);
+        let mut messageHash: String = format!("{}{}", Value::Str(format!("{}{}", channel, ":").into()), type_var.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&cachedTrades), messageHash.as_str());
 }
 
@@ -1772,7 +1772,7 @@ impl Phemex {
         if (self.orders.is_none()) {
             self.orders = Some(ArrayCacheBySymbolById::new(Value::from(limit)));
         }
-        let mut type_var: Value = Value::Null;
+        let mut type_var: Option<String> = None;
         let mut stored: Option<crate::pro::cache::Cache> = self.orders.clone();
         {
                         let mut i: i64 = 0;
@@ -1782,9 +1782,9 @@ impl Phemex {
             stored.append(parsed.clone().map_or(Value::Null, Value::Dict));
             let mut symbol: Value = crate::value::KeyRead::key_read(&&parsed, "symbol");
             let mut market: crate::types::Market = (match self.market(symbol.as_str().unwrap_or_default()) { Ok(__mk) => __mk, Err(__e) => panic!("{}", __e) });
-            if (type_var == Value::Null) {
+            if (type_var.is_none()) {
                 let mut isUsdt: bool = Value::from((market).settle.as_deref()).as_str() == Some("USDT");
-                type_var = (if isUsdt { Value::Str("perpetual".into()) } else { Value::from((market).market_type.clone()) });
+                type_var = (if isUsdt { Some("perpetual".to_string()) } else { Some((market).market_type.clone()) });
             }
             marketIds.insert(crate::runtime::stringify_param(&symbol), Value::Bool(true));
         }
@@ -1799,7 +1799,7 @@ impl Phemex {
         }
         }
         // resolve generic subscription (spot or swap)
-        let mut messageHash: String = format!("{}{}", "orders:", type_var);
+        let mut messageHash: String = format!("{}{}", "orders:", type_var.as_deref().unwrap_or("null"));
         client.resolve(Value::from(&self.orders), messageHash.as_str());
 }
 

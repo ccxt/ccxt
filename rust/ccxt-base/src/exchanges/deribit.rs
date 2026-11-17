@@ -843,13 +843,13 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut hasSlash: bool = symbol.as_str().unwrap_or("").contains("/");
         let mut hasUsdc: bool = symbol.as_str().unwrap_or("").contains("USDC");
         let mut base: Option<String> = None;
-        let mut expiry: Value = Value::Null;
+        let mut expiry: Option<String> = None;
         if hasSlash {
             base = self.safe_string_opt(&symbolBase, Value::Int(0), &[Value::Str("".into())]);
-            expiry = self.safe_string(&optionParts, Value::Int(1), &[]);
+            expiry = self.safe_string_opt(&optionParts, Value::Int(1), &[]);
         }  else {
             base = self.safe_string_opt(&optionParts, Value::Int(0), &[Value::Str("".into())]);
-            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str());
+            expiry = self.convert_market_id_expire_date((self.safe_string(&optionParts, Value::Int(1), &[])).as_str()).as_str().map(str::to_owned);
         }
         if (base.is_none()) {
             panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", self.id.clone(), " createExpiredOptionMarket() missing base")));
@@ -871,12 +871,12 @@ impl crate::exchange::DerivedExchange for Deribit {
         let mut splitBase: String = self.safe_string(Value::Array(if let Some(__s) = baseResolved.as_str() { __s.split("_").map(Value::from).collect() } else { Vec::new() }), Value::Int(0), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut strike: String = self.safe_string(&optionParts, Value::Int(2), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
         let mut optionType: String = self.safe_string(&optionParts, Value::Int(3), &[Value::Str("".into())]).as_str().unwrap_or("").to_string();
-        let mut datetime: Option<String> = self.convert_expire_date(expiry.as_str()).as_str().map(str::to_owned);
+        let mut datetime: Option<String> = self.convert_expire_date(expiry.as_deref()).as_str().map(str::to_owned);
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseResolved, "-").into()), self.convert_expire_date_to_market_id_date(expiry.as_str())).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
-        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, "/").into()), quote).into()), ":").into()), settle).into()), "-").into()), expiry).into()), (Value::Str(format!("{}{}",
-            Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
+        m.insert("id".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", baseResolved, "-").into()), self.convert_expire_date_to_market_id_date(expiry.as_deref())).into()), (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
+        m.insert("symbol".to_string(), Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", splitBase, "/").into()), quote).into()), ":").into()), settle).into()), "-").into()), expiry.as_deref().unwrap_or("null")).into()),
+            (Value::Str(format!("{}{}", Value::Str(format!("{}{}", Value::Str(format!("{}{}", "-", strike).into()), "-").into()), optionType).into()))).into()));
         m.insert("base".to_string(), baseResolved.clone());
         m.insert("quote".to_string(), Value::from(quote.clone()));
         m.insert("settle".to_string(), settle.clone());

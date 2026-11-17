@@ -853,9 +853,9 @@ impl crate::exchange::DerivedExchange for Okx {
             // margin position
             if (side.as_deref() == Some("net")) {
                 let mut posCcy: Option<String> = self.safe_string_k_opt(position.clone(), "posCcy", &[]);
-                let mut parsedCurrency: Value = self.safe_currency_code(posCcy.map(Value::from).unwrap_or(Value::Null), None).map(Value::from).unwrap_or(Value::Null);
-                if (parsedCurrency != Value::Null) {
-                    side = (if (crate::value::KeyRead::key_read(&&marketResolved, "base").as_str() == parsedCurrency.as_str()) { Some("long".to_string()) } else { Some("short".to_string()) });
+                let mut parsedCurrency: Option<String> = self.safe_currency_code(posCcy.map(Value::from).unwrap_or(Value::Null), None);
+                if (parsedCurrency.is_some()) {
+                    side = (if ((crate::value::KeyRead::key_read(&&marketResolved, "base").as_str() == parsedCurrency.as_deref())) { Some("long".to_string()) } else { Some("short".to_string()) });
                 }
             }
             if (side.is_none()) {
@@ -10964,9 +10964,8 @@ impl Okx {
         if length > 1 {
             let mut accountId: Option<String> = (match params.get("accountId") { Some(Value::Str(__s)) if !__s.is_empty() => Value::Str(__s.clone()), Some(Value::Int(__n)) => Value::Str(__n.to_string().into()), Some(Value::Float(__f)) => Value::Str(__f.to_string().into()), _ => Value::Null }).as_str().map(str::to_owned);
             if (accountId.is_none()) {
-                let mut accountIds: Value = self.get_list_from_object_values(accounts.clone(), Value::Str("id".into()));
-                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ").into()),
-                    Value::Str(accountIds.as_array().map(|__a| __a.iter().map(|__v| __v.to_string()).collect::<Vec<String>>().join(", ")).unwrap_or_default().into()))));
+                let mut accountIds: crate::value::List = self.get_list_from_object_values(accounts.clone(), Value::Str("id".into())).into_list();
+                panic!("{}", crate::exchange_errors::exchange_error(format!("{}{}", Value::Str(format!("{}{}", self.id.clone(), " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: ").into()), Value::Str(accountIds.iter().map(crate::runtime::stringify_param).collect::<Vec<String>>().join(", ").into()))));
             }  else {
                 let mut accountsById: crate::value::Dict = self.index_by(accounts.clone(), Value::Str("id".into())).into_dict();
                 selectedAccount = self.safe_dict(&accountsById, accountId.map(Value::from).unwrap_or(Value::Null), &[]);
